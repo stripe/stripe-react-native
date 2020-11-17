@@ -52,9 +52,11 @@ target 'StripeSdkExample' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+  
+  # FIXME: find a better way add Stripe as a dependency. It should be done automatically
+  pod 'Stripe', :modular_headers => true
 
   pod 'react-native-stripe-sdk', :path => '../..'
-
   use_native_modules!
 
   # Enables Flipper.
