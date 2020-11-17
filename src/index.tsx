@@ -1,9 +1,9 @@
-import { NativeModules } from 'react-native';
+import { usePaymentMethod } from './hooks/usePaymentMethod';
+import { StripeProvider } from './StripeProvider';
 
-type StripeSdkType = {
-  multiply(a: number, b: number): Promise<number>;
+const StripeSdk = {
+  StripeProvider,
+  usePaymentMethod,
 };
 
-const { StripeSdk } = NativeModules;
-
-export default StripeSdk as StripeSdkType;
+export default StripeSdk;
