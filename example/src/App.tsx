@@ -3,15 +3,13 @@ import { StyleSheet, View, Text } from 'react-native';
 import StripeSdk from 'react-native-stripe-sdk';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const { cardDetails } = StripeSdk.usePaymentMethod();
 
-  React.useEffect(() => {
-    StripeSdk.multiply(3, 7).then(setResult);
-  }, []);
+  console.log('cardDetails,', cardDetails);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Result</Text>
     </View>
   );
 }
