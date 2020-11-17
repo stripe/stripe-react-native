@@ -6,16 +6,26 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "start": "react-native start"
+    "start": "react-native start",
+    "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
+    "start:server": "yarn build:server && node ./dist"
   },
   "dependencies": {
     "react": "16.11.0",
     "react-native": "0.62.2"
   },
   "devDependencies": {
+    "@babel/cli": "^7.12.1",
     "@babel/core": "^7.9.6",
     "@babel/runtime": "^7.9.6",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.2",
+    "@types/node": "^14.14.7",
     "babel-plugin-module-resolver": "^4.0.0",
-    "metro-react-native-babel-preset": "^0.59.0"
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "metro-react-native-babel-preset": "^0.59.0",
+    "path": "^0.12.7",
+    "stripe": "^8.0.1"
   }
 }
