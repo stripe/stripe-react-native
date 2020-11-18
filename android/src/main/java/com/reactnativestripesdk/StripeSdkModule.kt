@@ -1,24 +1,21 @@
 package com.reactnativestripesdk
 
+import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
+import com.stripe.android.Stripe
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+  private lateinit var stripe: Stripe
 
-    override fun getName(): String {
-        return "StripeSdk"
-    }
+  override fun getName(): String {
+    return "StripeSdk"
+  }
 
-    // Example method
-    // See https://facebook.github.io/react-native/docs/native-modules-android
-    @ReactMethod
-    fun multiply(a: Int, b: Int, promise: Promise) {
-    
-      promise.resolve(a * b)
-    
-    }
+  @ReactMethod
+  fun initialise(publishableKey: String) {
+    stripe = Stripe(reactApplicationContext, publishableKey)
+  }
 
-    
 }

@@ -1,16 +1,30 @@
-import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-import StripeSdk from 'react-native-stripe-sdk';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, Platform } from 'react-native';
+import { StripeProvider } from 'react-native-stripe-sdk';
+
+// Address to stripe server running on local machine
+const API_URL =
+  Platform.OS === 'android' ? 'http://10.0.2.2:4242' : 'http://localhost:4242';
 
 export default function App() {
-  const { cardDetails } = StripeSdk.usePaymentMethod();
+  const [publishableKey, setPublishableKey] = useState('');
 
-  console.log('cardDetails,', cardDetails);
+  const fetchPublishableKey = async () => {
+    const response = await fetch(`${API_URL}/stripe-key`);
+    const { publishableKey } = await response.json();
+    setPublishableKey(publishableKey);
+  };
+
+  useEffect(() => {
+    fetchPublishableKey();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <Text>Result</Text>
-    </View>
+    <StripeProvider publishableKey={publishableKey}>
+      <View style={styles.container}>
+        <Text>Stripe SDK example</Text>
+      </View>
+    </StripeProvider>
   );
 }
 
