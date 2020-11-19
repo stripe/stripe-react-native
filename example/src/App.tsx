@@ -24,9 +24,16 @@ export default function App() {
   return (
     <StripeProvider publishableKey={publishableKey}>
       <StripeSdk.CardFieldNative
-        postalCodeEnabled={true}
+        value={{
+          cardNumber: '123',
+          cvc: '555',
+          expiryDate: '12/20',
+        }}
         onCardChange={(card) => {
           console.log('card details', card.nativeEvent);
+        }}
+        onFocus={(focusField) => {
+          console.log('focusField', focusField.nativeEvent.focusField);
         }}
         style={styles.cardField}
       />
