@@ -8,6 +8,7 @@ import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import com.facebook.react.bridge.JavaScriptModule
+import com.stripe.android.PaymentConfiguration
 
 class StripeSdkPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
@@ -15,6 +16,6 @@ class StripeSdkPackage : ReactPackage {
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        return emptyList<ViewManager<*, *>>()
+        return Arrays.asList<ViewManager<*, *>>(StripeSdkView());
     }
 }
