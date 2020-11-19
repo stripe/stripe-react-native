@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Platform } from 'react-native';
-import { StripeProvider } from 'react-native-stripe-sdk';
+import { StyleSheet, Platform } from 'react-native';
+import StripeSdk, { StripeProvider } from 'react-native-stripe-sdk';
 
 // Address to stripe server running on local machine
 const API_URL =
@@ -11,9 +11,11 @@ export default function App() {
 
   const fetchPublishableKey = async () => {
     const response = await fetch(`${API_URL}/stripe-key`);
-    const { publishableKey } = await response.json();
-    setPublishableKey(publishableKey);
+    const { publishableKey: key } = await response.json();
+    setPublishableKey(key);
   };
+
+  console.log('StripeSdk,', StripeSdk);
 
   useEffect(() => {
     fetchPublishableKey();
@@ -21,17 +23,21 @@ export default function App() {
 
   return (
     <StripeProvider publishableKey={publishableKey}>
-      <View style={styles.container}>
-        <Text>Stripe SDK example</Text>
-      </View>
+      <StripeSdk.CardFieldNative
+        postalCodeEnabled={true}
+        onCardChange={(card) => {
+          console.log('card details', card.nativeEvent);
+        }}
+        style={styles.cardField}
+      />
     </StripeProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  cardField: {
+    marginTop: 300,
+    width: '100%',
+    height: 50,
   },
 });
