@@ -1,14 +1,14 @@
-import { usePaymentMethod } from './hooks/usePaymentMethod';
 import { requireNativeComponent } from 'react-native';
 import type { CardFieldProps } from './types';
 
-const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
+// hooks
+export { useConfirmPayment } from './hooks/useConfirmPayment';
 
-const StripeSdk = {
-  usePaymentMethod,
-  CardFieldNative,
-};
-
+//components
 export { StripeProvider } from './StripeProvider';
+export const CardFieldNative = requireNativeComponent<CardFieldProps>(
+  'CardField'
+);
 
-export default StripeSdk;
+// types
+export { CardDetails } from './types';
