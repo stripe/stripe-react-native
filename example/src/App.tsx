@@ -25,10 +25,12 @@ export default function App() {
     <StripeProvider publishableKey={publishableKey}>
       <StripeSdk.CardFieldNative
         value={{
-          cardNumber: '123',
-          cvc: '555',
-          expiryDate: '12/20',
+          cardNumber: '5555',
+          cvc: '2222',
+          expiryYear: 20,
+          expiryMonth: 12,
         }}
+        postalCodeEnabled={false}
         onCardChange={(card) => {
           console.log('card details', card.nativeEvent);
         }}

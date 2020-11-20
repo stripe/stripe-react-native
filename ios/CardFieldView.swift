@@ -11,28 +11,28 @@ import UIKit
 
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
-
-    func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
-        if onCardChange != nil {
-            onCardChange!([
-                "cardNumber": textField.cardNumber ?? "",
-                "cvc": textField.cvc ?? "",
-                "postalCode": textField.postalCode ?? "",
-                "month": textField.expirationMonth,
-                "year": textField.expirationYear
-            ])
-        }
-    }
+    
+    private var theme = STPTheme.default()
     
     private var cardField = STPPaymentCardTextField()
+    
+    private let cardParams = STPPaymentMethodCardParams()
     
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-    
-    var theme = STPTheme.default()
+
+    @objc var value: NSDictionary? {
+        didSet {
+            cardParams.number = value?.object(forKey: "cardNumber") as? String
+            cardParams.cvc = value?.object(forKey: "cvc") as? String
+            cardParams.expMonth = value?.object(forKey: "expiryMonth") as? NSNumber
+            cardParams.expYear = value?.object(forKey: "expiryYear") as? NSNumber
+            cardField.cardParams = cardParams
+        }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -40,6 +40,18 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         self.addSubview(cardField)
     }
     
+    func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
+        if onCardChange != nil {
+            onCardChange!([
+                "cardNumber": textField.cardNumber ?? "",
+                "cvc": textField.cvc ?? "",
+                "postalCode": textField.postalCode ?? "",
+                "expiryMonth": textField.expirationMonth,
+                "expiryYear": textField.expirationYear
+            ])
+        }
+    }
+
     override func layoutSubviews() {
         cardField.frame = self.bounds
     }
