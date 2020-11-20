@@ -22,14 +22,18 @@ class StripeSdkView : SimpleViewManager<CardInputWidget>() {
 
   private lateinit var mEventDispatcher: EventDispatcher
 
-  private val cardDetails: MutableMap<String, String> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryDate" to "")
+  private val cardDetails: MutableMap<String, String> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "")
 
   @ReactProp(name = "value")
   fun setValue(view: CardInputWidget, value: ReadableMap) {
     if (value == null) return
     view.setCardNumber(value.getString("cardNumber"))
-    view.setCardNumber(value.getString("cvc"))
-    view.setCardNumber(value.getString("expiryDate"))
+    view.setCvcCode(value.getString("cvc"))
+    val month = value.getString("expiryMonth")?.toInt()
+    val year = value.getString("expiryYear")?.toInt()
+    if(month != null && year != null) {
+      view.setExpiryDate(month, year)
+    }
   }
 
   fun onCardChanged() {
@@ -48,39 +52,44 @@ class StripeSdkView : SimpleViewManager<CardInputWidget>() {
 
 
   private fun setListeners() {
-    inputWidget?.setCardInputListener(object :CardInputListener{
-      override fun onPostalCodeComplete() {}
+    inputWidget?.setCardInputListener(object : CardInputListener {
       override fun onCardComplete() {}
       override fun onExpirationComplete() {}
       override fun onCvcComplete() {}
-      override fun onFocusChange(focusField: String?) {
+      override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
           mEventDispatcher.dispatchEvent(
-            CardFocusEvent(inputWidget!!.id, focusField))
+            CardFocusEvent(inputWidget!!.id, focusField.name))
         }
       }
     })
-    inputWidget?.setCardNumberTextWatcher(object :TextWatcher{
+    inputWidget?.setCardNumberTextWatcher(object : TextWatcher {
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-      override fun afterTextChanged(p0: Editable?) { }
+      override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         cardDetails["cardNumber"] = var1.toString()
         onCardChanged()
       }
     })
-    inputWidget?.setCvcNumberTextWatcher(object :TextWatcher{
+    inputWidget?.setCvcNumberTextWatcher(object : TextWatcher {
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-      override fun afterTextChanged(p0: Editable?) { }
+      override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         cardDetails["cvc"] = var1.toString()
         onCardChanged()
       }
     })
-    inputWidget?.setExpiryDateTextWatcher(object :TextWatcher{
+    inputWidget?.setExpiryDateTextWatcher(object : TextWatcher {
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-      override fun afterTextChanged(p0: Editable?) { }
+      override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
-        cardDetails["expiryDate"] = var1.toString()
+        val splitted = var1.toString().split("/")
+        cardDetails["expiryMonth"] = splitted[0]
+
+        if (splitted.size == 2) {
+          cardDetails["expiryYear"] = var1.toString().split("/")[1]
+        }
+
         onCardChanged()
       }
     })
