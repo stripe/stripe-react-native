@@ -4,4 +4,15 @@
 
 RCT_EXTERN_METHOD(initialise:(NSString *)publishableKey)
 
+RCT_EXTERN_METHOD(
+                  registerConfirmPaymentCallbacks:(RCTResponseSenderBlock)onSuccess
+                  onError:(RCTResponseSenderBlock)onError)
+
+RCT_EXTERN_METHOD(
+                  confirmPaymentMethod:(NSString *)paymentIntentClientSecret
+                  params:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
 @end

@@ -1,6 +1,7 @@
 import type { CardDetails, Intent } from '../types';
 import StripeSdk from '../NativeStripeSdk';
 import { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 
 type Params = {
   onError: (errorMessage: string) => void;
@@ -10,7 +11,16 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    StripeSdk.registerConfirmPaymentCallbacks(onSuccess, onError);
+    const handleSuccess =
+      Platform.OS === 'ios'
+        ? (_: any, value: Intent) => onSuccess(value)
+        : onSuccess;
+    const handleError =
+      Platform.OS === 'ios'
+        ? (_: any, value: string) => onError(value)
+        : onError;
+
+    StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
   }, [onError, onSuccess]);
 
   const confirmPayment = useCallback(

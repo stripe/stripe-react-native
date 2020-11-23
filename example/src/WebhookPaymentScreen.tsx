@@ -15,7 +15,10 @@ export default function WebhookPaymentScreen() {
     },
     onSuccess: (intent) => {
       console.log('Success', intent);
-      Alert.alert('Success', 'The payment was confirmed successfully!');
+      Alert.alert(
+        'Success',
+        `The payment was confirmed successfully! curerency: ${intent.currency}`
+      );
     },
   });
 
