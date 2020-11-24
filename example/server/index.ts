@@ -54,11 +54,20 @@ app.get('/stripe-key', (_: express.Request, res: express.Response): void => {
 app.post(
   '/create-payment-intent',
   async (req: express.Request, res: express.Response): Promise<void> => {
-    const { items, currency }: { items: Order; currency: string } = req.body;
+    const {
+      items,
+      currency,
+      force3dSecure,
+    }: { items: Order; currency: string; force3dSecure?: boolean } = req.body;
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
       currency,
+      payment_method_options: {
+        card: {
+          request_three_d_secure: force3dSecure ? 'any' : 'automatic',
+        },
+      },
     };
 
     const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(

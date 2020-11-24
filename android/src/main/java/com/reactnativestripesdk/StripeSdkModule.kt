@@ -2,8 +2,10 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.content.Intent
+import androidx.annotation.IntRange
 import com.facebook.react.bridge.*
 import com.stripe.android.ApiResultCallback
+import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.PaymentIntentResult
 import com.stripe.android.Stripe
 import com.stripe.android.model.*
@@ -76,6 +78,36 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       null)
 
     return PaymentMethodCreateParams.createCard(cardParams)
+  }
+
+  @ReactMethod
+  fun configure3dSecure(params: ReadableMap) {
+    val bodyFontSize: Int = params.getInt("bodyFontSize")
+    val bodyTextColor: String = params.getString("bodyTextColor") ?: ""
+    val headingFontSize: Int = params.getInt("headingFontSize")
+    val headingTextColor: String = params.getString("headingTextColor") ?: ""
+    val timeout: Int = params.getInt("timeout")
+
+    val uiCustomization = PaymentAuthConfig.Stripe3ds2UiCustomization.Builder()
+      .setLabelCustomization(
+        PaymentAuthConfig.Stripe3ds2LabelCustomization.Builder()
+          .setTextFontSize(bodyFontSize)
+          .setTextColor(bodyTextColor)
+          .setHeadingTextFontSize(headingFontSize)
+          .setHeadingTextColor(headingTextColor)
+          .build()
+      )
+      .build()
+    PaymentAuthConfig.init(
+      PaymentAuthConfig.Builder()
+        .set3ds2Config(
+          PaymentAuthConfig.Stripe3ds2Config.Builder()
+            .setTimeout(timeout)
+            .setUiCustomization(uiCustomization)
+            .build()
+        )
+        .build()
+    )
   }
 
   @ReactMethod
