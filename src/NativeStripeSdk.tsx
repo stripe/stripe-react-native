@@ -1,5 +1,10 @@
 import { NativeModules } from 'react-native';
-import type { CardDetails, Intent, PaymentMethod } from './types';
+import type {
+  CardDetails,
+  Intent,
+  PaymentMethod,
+  ThreeDSecureConfigurationParams,
+} from './types';
 
 type NativeStripeSdkType = {
   initialise(publishableKey: string): void;
@@ -19,6 +24,7 @@ type NativeStripeSdkType = {
       | ((errorMessage: string) => void)
       | ((error: any, errorMessage: string) => void)
   ): void;
+  configure3dSecure(params: ThreeDSecureConfigurationParams): void;
 };
 
 const { StripeSdk } = NativeModules;

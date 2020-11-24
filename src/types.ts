@@ -26,6 +26,14 @@ export type Intent = {
   receiptEmail?: string;
 };
 
+export type ThreeDSecureConfigurationParams = {
+  bodyFontSize?: number;
+  bodyTextColor?: string;
+  headingFontSize?: number;
+  headingTextColor?: string;
+  timeout?: number;
+};
+
 export type PaymentMethod = {
   stripeId: string;
 };

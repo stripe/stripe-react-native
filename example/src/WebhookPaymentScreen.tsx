@@ -4,11 +4,15 @@ import {
   CardDetails,
   CardFieldNative,
   useConfirmPayment,
+  use3dSecureConfiguration,
 } from 'react-native-stripe-sdk';
 import { API_URL } from './Config';
 
 export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
+
+  use3dSecureConfiguration({ timeout: 10, headingTextColor: '#90b43c' });
+
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (message) => {
       Alert.alert('Error', message);
@@ -31,6 +35,7 @@ export default function WebhookPaymentScreen() {
       body: JSON.stringify({
         currency: 'usd',
         items: [{ id: 'id' }],
+        force3dSecure: true,
       }),
     });
     const { clientSecret } = await response.json();
@@ -60,7 +65,7 @@ export default function WebhookPaymentScreen() {
     <View>
       <CardFieldNative
         value={{
-          cardNumber: '4242424242424242',
+          cardNumber: '4000000000003238',
           cvc: '424',
           expiryMonth: '03',
           expiryYear: '22',
