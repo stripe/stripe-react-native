@@ -1,8 +1,12 @@
 import { NativeModules } from 'react-native';
-import type { CardDetails, Intent } from './types';
+import type { CardDetails, Intent, PaymentMethod } from './types';
 
 type NativeStripeSdkType = {
   initialise(publishableKey: string): void;
+  createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
+  handleNextPaymentAction(
+    paymentIntentClientSecret: string
+  ): Promise<Intent & { requiresConfirmation?: boolean }>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
     cardDetails: CardDetails

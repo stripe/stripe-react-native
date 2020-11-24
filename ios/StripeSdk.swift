@@ -15,13 +15,7 @@ class StripeSdk: NSObject {
         onPaymentErrorCallback = onError
     }
     
-    @objc(confirmPaymentMethod:params:resolver:rejecter:)
-    func confirmPaymentMethod(
-        paymentIntentClientSecret: String,
-        params: NSDictionary,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    func mapCardParams(params: NSDictionary) -> STPPaymentMethodParams {
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = RCTConvert.nsString(params["cardNumber"])
         cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
@@ -29,7 +23,83 @@ class StripeSdk: NSObject {
         cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
         
         let cardParams = STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
-        let paymentMethodParams = STPPaymentMethodParams(card: cardParams, billingDetails: nil, metadata: nil)
+        return STPPaymentMethodParams(card: cardParams, billingDetails: nil, metadata: nil)
+    }
+    
+    func mapFromIntent (paymentIntent: STPPaymentIntent?, requiresConfirmation: Bool?) -> NSDictionary {
+        let intent: NSDictionary = [
+            "id": paymentIntent?.paymentMethodId ?? "",
+            "currency": paymentIntent?.currency ?? "",
+            "status": paymentIntent?.status.rawValue ?? "",
+            "description": paymentIntent?.description ?? "",
+            "receiptEmail": paymentIntent?.receiptEmail ?? "",
+            "stripeId": paymentIntent?.stripeId ?? "",
+            "requiresConfirmation": requiresConfirmation ?? false,
+        ]
+        
+        return intent;
+    }
+    
+    @objc(createPaymentMethod:resolver:rejecter:)
+    func createPaymentMethod(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let paymentMethodParams = mapCardParams(params: params)
+        
+        STPAPIClient.shared().createPaymentMethod(with: paymentMethodParams) { [weak self] paymentMethod, error in
+            if let createError = error {
+                reject("PAYMENT_CREATION_FAILED", createError.localizedDescription, nil)
+            }
+            if let paymentMethodId = paymentMethod?.stripeId {
+                let method: NSDictionary = [
+                    "stripeId": paymentMethodId 
+                ]
+                resolve(method)
+            }
+        }
+    }
+    
+    @objc(handleNextPaymentAction:resolver:rejecter:)
+    func handleNextPaymentAction(
+        paymentIntentClientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ){
+        let paymentHandler = STPPaymentHandler.shared()
+        paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, authenticationContext: self, returnURL: nil) { status, paymentIntent, handleActionError in
+            switch (status) {
+            case .failed:
+                reject("HANDLE_NEXT_PAYMENT_FAILED", handleActionError?.localizedDescription ?? "", nil)
+                break
+            case .canceled:
+                reject("HANDLE_NEXT_PAYMENT_CANCELED", handleActionError?.localizedDescription ?? "", nil)
+                break
+            case .succeeded:
+                if let paymentIntent = paymentIntent, paymentIntent.status == STPPaymentIntentStatus.requiresConfirmation {
+                    print("Re-confirming PaymentIntent after handling action")
+                    resolve(self.mapFromIntent(paymentIntent: paymentIntent, requiresConfirmation: true)) // TODO: resolve with re-confirmation-needed
+                }
+                else {
+                    resolve(self.mapFromIntent(paymentIntent: paymentIntent, requiresConfirmation: false))
+                }
+                break
+            @unknown default:
+                fatalError()
+                break
+            }
+        }
+    }
+    
+    @objc(confirmPaymentMethod:params:resolver:rejecter:)
+    func confirmPaymentMethod(
+        paymentIntentClientSecret: String,
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let paymentMethodParams = mapCardParams(params: params)
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
         paymentIntentParams.paymentMethodParams = paymentMethodParams
 
@@ -45,13 +115,7 @@ class StripeSdk: NSObject {
                 self.onPaymentErrorCallback?([NSNull(), error?.localizedDescription ?? ""])
                 break
             case .succeeded:
-                let intent: NSDictionary = [
-                    "id": paymentIntent?.paymentMethodId ?? "",
-                    "currency": paymentIntent?.currency ?? "",
-                    "status": paymentIntent?.status.rawValue ?? "",
-                    "description": paymentIntent?.description ?? "",
-                    "receiptEmail": paymentIntent?.receiptEmail ?? "",
-                ]
+                let intent = self.mapFromIntent(paymentIntent: paymentIntent, requiresConfirmation: false)
                 resolve(intent)
                 self.onPaymentSuccessCallback?([NSNull(), intent])
                 break

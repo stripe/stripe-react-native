@@ -3,6 +3,7 @@ import type { CardFieldProps } from './types';
 
 // hooks
 export { useConfirmPayment } from './hooks/useConfirmPayment';
+export { useStripe } from './hooks/useStripe';
 
 //components
 export { StripeProvider } from './StripeProvider';

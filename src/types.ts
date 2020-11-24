@@ -21,6 +21,11 @@ export type Intent = {
   created: string;
   currency: string;
   status: string;
+  stripeId: string;
   description?: string;
   receiptEmail?: string;
+};
+
+export type PaymentMethod = {
+  stripeId: string;
 };

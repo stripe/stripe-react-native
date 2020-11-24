@@ -9,6 +9,18 @@ RCT_EXTERN_METHOD(
                   onError:(RCTResponseSenderBlock)onError)
 
 RCT_EXTERN_METHOD(
+                  createPaymentMethod:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+                  handleNextPaymentAction:(NSString *)paymentIntentClientSecret
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
                   confirmPaymentMethod:(NSString *)paymentIntentClientSecret
                   params:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
