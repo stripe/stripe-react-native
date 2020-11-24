@@ -17,8 +17,14 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
         : onSuccess;
     const handleError =
       Platform.OS === 'ios'
-        ? (_: any, value: string) => onError(value)
-        : onError;
+        ? (_: any, value: string) => {
+            setLoading(false);
+            onError(value);
+          }
+        : (value: string) => {
+            setLoading(false);
+            onError(value);
+          };
 
     StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
   }, [onError, onSuccess]);

@@ -8,10 +8,17 @@ import {
 } from 'react-native-stripe-sdk';
 import { API_URL } from './Config';
 
-export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+const defaultCard = {
+  cardNumber: '4000000000003238',
+  cvc: '424',
+  expiryMonth: 1,
+  expiryYear: 22,
+};
 
-  use3dSecureConfiguration({ timeout: 10, headingTextColor: '#90b43c' });
+export default function WebhookPaymentScreen() {
+  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+
+  use3dSecureConfiguration({ timeout: 5, headingTextColor: '#90b43c' });
 
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (message) => {
@@ -67,8 +74,8 @@ export default function WebhookPaymentScreen() {
         value={{
           cardNumber: '4000000000003238',
           cvc: '424',
-          expiryMonth: '03',
-          expiryYear: '22',
+          expiryMonth: 5,
+          expiryYear: 22,
         }}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {

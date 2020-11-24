@@ -3,8 +3,8 @@ import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 export type CardDetails = {
   cardNumber: string;
   cvc: string;
-  expiryMonth: string;
-  expiryYear: string;
+  expiryMonth: number;
+  expiryYear: number;
 };
 
 export type CardFieldProps = {

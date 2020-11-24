@@ -6,7 +6,18 @@ class StripeSdk: NSObject {
 
     @objc(initialise:)
     func initialise(publishableKey: String) -> Void {
-        Stripe.setDefaultPublishableKey(publishableKey)
+        STPAPIClient.shared().publishableKey = publishableKey
+    }
+    
+    @objc(configure3dSecure:)
+    func configure3dSecure(params: NSDictionary) {
+        let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
+        let uiCustomization = threeDSCustomizationSettings.uiCustomization
+        
+        threeDSCustomizationSettings.authenticationTimeout = RCTConvert.nsInteger(params["timeout"])
+        
+        uiCustomization.labelCustomization.headingTextColor = UIColor(hexString: RCTConvert.nsString(params["headingTextColor"]))
+        uiCustomization.labelCustomization.textColor = UIColor(hexString: RCTConvert.nsString(params["bodyTextColor"]))
     }
     
     @objc(registerConfirmPaymentCallbacks:onError:)
