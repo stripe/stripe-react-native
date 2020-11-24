@@ -14,6 +14,6 @@ class StripeSdkPackage : ReactPackage {
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        return Arrays.asList<ViewManager<*, *>>(StripeSdkView())
+        return Arrays.asList<ViewManager<*, *>>(StripeSdkViewManager())
     }
 }
