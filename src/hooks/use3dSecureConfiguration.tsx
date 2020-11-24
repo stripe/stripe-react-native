@@ -7,7 +7,7 @@ export type Params = ThreeDSecureConfigurationParams;
 const default3dParams = {
   bodyTextColor: '#000000',
   bodyFontSize: 11,
-  headingFontSize: 18,
+  headingFontSize: 21,
   headingTextColor: '#000000',
   timeout: 5,
 };

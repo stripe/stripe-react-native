@@ -119,8 +119,8 @@ export default function NoWebhookPaymentScreen() {
         value={{
           cardNumber: '4242424242424242',
           cvc: '424',
-          expiryMonth: '03',
-          expiryYear: '22',
+          expiryMonth: 3,
+          expiryYear: 22,
         }}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
