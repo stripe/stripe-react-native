@@ -81,9 +81,12 @@ export default function WebhookPaymentScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   cardField: {
     marginTop: 300,
     width: '100%',
-    height: 50,
+    height: 300,
   },
 });
