@@ -93,6 +93,10 @@ export default function NoWebhookPaymentScreen() {
           stripeId,
         } = await handleNextPaymentAction(clientSecret);
 
+        // TODO: handle requiresConfirmation differently.
+        // We should base on intent.status (enum) which can be requiresConfirmation
+        // instead of manually added boolean value to intent
+
         if (requiresConfirmation) {
           // 4. Call API to confirm intent
           confirmIntent(stripeId);
@@ -103,6 +107,7 @@ export default function NoWebhookPaymentScreen() {
       }
     } catch (e) {
       console.log('Paymentconfirmation error', e);
+      Alert.alert('Error', e);
     }
     setLoading(false);
   }, [
@@ -124,7 +129,6 @@ export default function NoWebhookPaymentScreen() {
         }}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
-          console.log('card details', cardDetails.nativeEvent);
           setCard(cardDetails.nativeEvent);
         }}
         onFocus={(focusField) => {
