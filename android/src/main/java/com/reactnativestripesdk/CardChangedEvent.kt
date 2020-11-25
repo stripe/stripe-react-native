@@ -10,7 +10,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, String>) : Event<CardChangedEvent>(viewTag) {
+internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>) : Event<CardChangedEvent>(viewTag) {
   override fun getEventName(): String {
     return EVENT_NAME
   }
@@ -21,9 +21,10 @@ internal class CardChangedEvent constructor(viewTag: Int, private val cardDetail
 
   private fun serializeEventData(): WritableMap {
     val eventData = Arguments.createMap()
-    for ((key, value) in cardDetails.entries) {
-      eventData.putString(key, value)
-    }
+    eventData.putString("number", cardDetails["cardNumber"].toString())
+    eventData.putString("cvc", cardDetails["cvc"].toString())
+    cardDetails["expiryMonth"]?.toString()?.toInt()?.let { eventData.putInt("expiryMonth", it) }
+    cardDetails["expiryYear"]?.toString()?.toInt()?.let { eventData.putInt("expiryYear", it) }
 
     return eventData
   }

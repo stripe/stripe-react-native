@@ -16,10 +16,10 @@ import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 
 
-class StripeSdkViewManager : SimpleViewManager<LinearLayout>() {
+class StripeSdkViewManager : SimpleViewManager<CardInputWidget>() {
   override fun getName() = "CardField"
 
-  private val cardDetails: MutableMap<String, String> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "")
+  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "")
   private lateinit var mEventDispatcher: EventDispatcher
   private lateinit var inputWidget: CardInputWidget
 
@@ -83,28 +83,23 @@ class StripeSdkViewManager : SimpleViewManager<LinearLayout>() {
   }
 
   @ReactProp(name = "value")
-  fun setValue(view: LinearLayout, value: ReadableMap) {
-    val input = view.findViewById<CardInputWidget>(inputWidget.id)
+  fun setValue(view: CardInputWidget, value: ReadableMap) {
     if (value == null) return
-    input.setCardNumber(value.getString("cardNumber"))
-    input.setCvcCode(value.getString("cvc"))
-    val month = value.getString("expiryMonth")?.toInt()
-    val year = value.getString("expiryYear")?.toInt()
+    view.setCardNumber(value.getString("cardNumber"))
+    view.setCvcCode(value.getString("cvc"))
+    val month = value.getInt("expiryMonth")
+    val year = value.getInt("expiryYear")
     if(month != null && year != null) {
-      input.setExpiryDate(month, year)
+      view.setExpiryDate(month, year)
     }
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): LinearLayout {
+  override fun createViewInstance(reactContext: ThemedReactContext): CardInputWidget {
     inputWidget = CardInputWidget(reactContext)
     mEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
 
     setListeners()
 
-    val inputWrapper = LinearLayout(reactContext)
-    inputWrapper.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
-    inputWrapper.addView(inputWidget)
-
-    return inputWrapper
+    return inputWidget
   }
 }
