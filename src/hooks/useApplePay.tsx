@@ -1,7 +1,7 @@
 import StripeSdk from '../NativeStripeSdk';
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import type { CartSummaryItem } from 'src/types';
+import { isiOS } from 'src/platform';
 
 type Params = {
   onError: (errorCode: string, errorMessage: string) => void;
@@ -14,14 +14,15 @@ export function useApplePay({ onSuccess, onError }: Params) {
 
   useEffect(() => {
     async function checkApplePaySupport() {
-      const isSupported =
-        Platform.OS === 'ios' ?? (await StripeSdk.isApplePaySupported());
+      const isSupported = isiOS ?? (await StripeSdk.isApplePaySupported());
       setApplePaySupported(isSupported);
     }
 
     checkApplePaySupport();
 
-    StripeSdk.registerApplePayCallbacks(onSuccess, onError);
+    if (isiOS) {
+      StripeSdk.registerApplePayCallbacks(onSuccess, onError);
+    }
   }, [onSuccess, onError]);
 
   const payWithApplePay = async (items: CartSummaryItem[]) => {
