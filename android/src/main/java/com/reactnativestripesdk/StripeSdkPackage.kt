@@ -1,7 +1,6 @@
 package com.reactnativestripesdk
 
 import java.util.Arrays
-import java.util.Collections
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
@@ -14,6 +13,6 @@ class StripeSdkPackage : ReactPackage {
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-        return Arrays.asList<ViewManager<*, *>>(StripeSdkViewManager())
+        return Arrays.asList<ViewManager<*, *>>(StripeSdkCardViewManager())
     }
 }
