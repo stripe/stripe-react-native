@@ -85,8 +85,8 @@ class StripeSdkViewManager : SimpleViewManager<CardInputWidget>() {
   @ReactProp(name = "value")
   fun setValue(view: CardInputWidget, value: ReadableMap) {
     if (value == null) return
-    view.setCardNumber(value.getString("cardNumber"))
-    view.setCvcCode(value.getString("cvc"))
+    input.setCardNumber(value.getString("cardNumber"))
+    input.setCvcCode(value.getString("cvc"))
     val month = value.getInt("expiryMonth")
     val year = value.getInt("expiryYear")
     if(month != null && year != null) {
