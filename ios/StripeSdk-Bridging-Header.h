@@ -4,3 +4,4 @@
 #import <React/RCTBridge.h>
 #import <React/RCTUIManager.h>
 #import <Stripe/Stripe.h>
+#import <PassKit/PassKit.h>
