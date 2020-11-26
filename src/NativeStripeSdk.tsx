@@ -4,10 +4,11 @@ import type {
   Intent,
   PaymentMethod,
   ThreeDSecureConfigurationParams,
+  CartSummaryItem,
 } from './types';
 
 type NativeStripeSdkType = {
-  initialise(publishableKey: string): void;
+  initialise(publishableKey: string, merchantIdentifier?: string): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
   handleNextPaymentAction(
     paymentIntentClientSecret: string
@@ -25,6 +26,13 @@ type NativeStripeSdkType = {
       | ((error: any, errorMessage: string) => void)
   ): void;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
+  isApplePaySupported(): Promise<boolean>;
+  payWithApplePay(items: CartSummaryItem[]): Promise<void>;
+  completePaymentWithApplePay(clientSecret: string): void;
+  registerApplePayCallbacks(
+    onSuccess: () => void,
+    onError: (errorCode: string, errorMessage: string) => void
+  ): void;
 };
 
 const { StripeSdk } = NativeModules;

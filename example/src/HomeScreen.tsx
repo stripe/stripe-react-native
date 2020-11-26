@@ -20,6 +20,12 @@ export default function HomeScreen() {
           navigation.navigate('NoWebhookPayment');
         }}
       />
+      <Button
+        title="Apple Pay payment"
+        onPress={() => {
+          navigation.navigate('ApplePay');
+        }}
+      />
     </View>
   );
 }

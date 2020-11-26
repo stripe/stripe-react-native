@@ -1,5 +1,9 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 
+export type Dictionary<T> = {
+  [key: string]: T;
+};
+
 export type CardDetails = {
   cardNumber: string;
   cvc: string;
@@ -36,4 +40,14 @@ export type ThreeDSecureConfigurationParams = {
 
 export type PaymentMethod = {
   stripeId: string;
+};
+
+export type ApplePayButtonProps = {
+  style?: StyleProp<ViewStyle>;
+  onPay(): void;
+};
+
+export type CartSummaryItem = {
+  label: string;
+  amount: string;
 };
