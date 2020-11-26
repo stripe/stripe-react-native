@@ -3,8 +3,6 @@ package com.reactnativestripesdk
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.LinearLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
@@ -13,15 +11,17 @@ import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.stripe.android.view.CardInputListener
-import com.stripe.android.view.CardInputWidget
+import com.stripe.android.view.CardMultilineWidget
 
 
-class StripeSdkViewManager : SimpleViewManager<CardInputWidget>() {
+class StripeSdkViewManager : SimpleViewManager<CardMultilineWidget>() {
   override fun getName() = "CardField"
 
   private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "")
   private lateinit var mEventDispatcher: EventDispatcher
-  private lateinit var inputWidget: CardInputWidget
+  //because of issue with animations in CardInputWidget while integration with react-native we replaced it with CardMultilineInput at the moment.
+  //https://github.com/stripe/stripe-android/issues/655
+  private lateinit var inputWidget: CardMultilineWidget
 
   fun onCardChanged() {
     Log.d("cardDetails", "onCardChanged: " + cardDetails.toString())
@@ -83,7 +83,7 @@ class StripeSdkViewManager : SimpleViewManager<CardInputWidget>() {
   }
 
   @ReactProp(name = "value")
-  fun setValue(view: CardInputWidget, value: ReadableMap) {
+  fun setValue(view: CardMultilineWidget, value: ReadableMap) {
     if (value == null) return
     input.setCardNumber(value.getString("cardNumber"))
     input.setCvcCode(value.getString("cvc"))
@@ -94,8 +94,8 @@ class StripeSdkViewManager : SimpleViewManager<CardInputWidget>() {
     }
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): CardInputWidget {
-    inputWidget = CardInputWidget(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): CardMultilineWidget {
+    inputWidget = CardMultilineWidget(reactContext)
     mEventDispatcher = reactContext.getNativeModule(UIManagerModule::class.java).eventDispatcher
 
     setListeners()
