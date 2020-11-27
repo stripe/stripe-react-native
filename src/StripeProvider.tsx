@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { StripeContextProvider } from './StripeContext';
 
 import NativeStripeSdk from './NativeStripeSdk';
-import { Platform } from 'react-native';
+import { isAndroid } from './platform';
 
 type Props = {
   publishableKey: string;
@@ -18,7 +18,7 @@ export const StripeProvider: React.FC<Props> = ({
     if (publishableKey === '') {
       return;
     }
-    if (Platform.OS === 'android') {
+    if (isAndroid) {
       NativeStripeSdk.initialise(publishableKey);
     } else {
       NativeStripeSdk.initialise(publishableKey, merchantIdentifier);

@@ -12,7 +12,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onApplePayErrorCallback: RCTResponseSenderBlock? = nil
     
     @objc(initialise:merchantIdentifier:)
-    func initialise(publishableKey: String, merchantIdentifier: String) -> Void {
+    func initialise(publishableKey: String, merchantIdentifier: String?) -> Void {
         STPAPIClient.shared().publishableKey = publishableKey
         self.merchantIdentifier = merchantIdentifier
     }
@@ -22,9 +22,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         self.applePayRequestResolver?([NSNull()])
     }
     
-    @objc(completePaymentWithApplePay:)
-    func completePaymentWithApplePay(clientSecret: String) {
+    @objc(completePaymentWithApplePay:resolver:rejecter:)
+    func completePaymentWithApplePay(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.applePayCompletionCallback?(clientSecret, nil)
+        resolve(NSNull())
     }
     
     @objc(registerApplePayCallbacks:onError:)
@@ -39,13 +40,13 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             onApplePaySuccessCallback?([NSNull()])
             break
         case .error:
-            onApplePayErrorCallback?(["APPLE_PAY_FAILED", "Apple pay request failed"])
+            onApplePayErrorCallback?([Mappers.createError(code: ApplePayErrorType.Failed.rawValue, message: "Apple pay completion failed")])
             break
         case .userCancellation:
-            // User cancelled the payment
+            onApplePayErrorCallback?([Mappers.createError(code: ApplePayErrorType.Canceled.rawValue, message: "Apple pay payment has been cancelled")])
             break
         @unknown default:
-            fatalError()
+            onApplePayErrorCallback?([Mappers.createError(code: ApplePayErrorType.Unknown.rawValue, message: "Cannot complete payment")])
         }
     }
     
@@ -60,7 +61,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func payWithApplePay(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (merchantIdentifier == nil) {
-             reject("APPLE_PAY_FAILED", "You must provide merchantIdentifier", nil)
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
+            return
         }
         
         let merchantIdentifier = self.merchantIdentifier ?? ""
@@ -83,7 +85,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 applePayContext.presentApplePay(on: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
             }
         } else {
-            reject("APPLE_PAY_FAILED", "Apple pay request failed", nil)
+            reject(ApplePayErrorType.Failed.rawValue, "Apple pay request failed", nil)
         }
     }
     
@@ -114,7 +116,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         
         STPAPIClient.shared().createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
-                reject("Failed", createError.localizedDescription, nil)
+                reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
             }
             if let paymentMethodId = paymentMethod?.stripeId {
                 let method: NSDictionary = [

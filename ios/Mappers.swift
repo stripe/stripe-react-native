@@ -2,6 +2,10 @@ enum ConfirmPaymentErrorType: String {
     case Failed, Canceled, Unknown
 }
 
+enum ApplePayErrorType: String {
+    case Failed, Canceled, Unknown
+}
+
 enum NextPaymentActionErrorType: String {
     case Failed, Canceled, Unknown
 }
