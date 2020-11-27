@@ -16,4 +16,14 @@ export const ApplePayButton = requireNativeComponent<ApplePayButtonProps>(
   'ApplePayButton'
 );
 // types
-export { CardDetails } from './types';
+export {
+  CardDetails,
+  Intent,
+  ThreeDSecureConfigurationParams,
+  PaymentMethod,
+  IntentStatus,
+  StripeError,
+  ConfirmPaymentError,
+  NextPaymentActionError,
+  CreatePaymentMethodError,
+} from './types';

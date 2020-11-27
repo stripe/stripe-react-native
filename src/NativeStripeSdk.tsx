@@ -1,8 +1,10 @@
 import { NativeModules } from 'react-native';
 import type {
   CardDetails,
+  ConfirmPaymentError,
   Intent,
   PaymentMethod,
+  StripeError,
   ThreeDSecureConfigurationParams,
   CartSummaryItem,
 } from './types';
@@ -22,8 +24,8 @@ type NativeStripeSdkType = {
       | ((intent: Intent) => void)
       | ((error: any, intent: Intent) => void),
     onError:
-      | ((errorMessage: string) => void)
-      | ((error: any, errorMessage: string) => void)
+      | ((error: StripeError<ConfirmPaymentError>) => void)
+      | ((data: any, error: StripeError<ConfirmPaymentError>) => void)
   ): void;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;

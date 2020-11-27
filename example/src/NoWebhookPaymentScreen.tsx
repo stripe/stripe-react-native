@@ -3,6 +3,7 @@ import { Alert, Button, StyleSheet, View } from 'react-native';
 import {
   CardDetails,
   CardFieldNative,
+  IntentStatus,
   useStripe,
 } from 'react-native-stripe-sdk';
 import { API_URL } from './Config';
@@ -88,16 +89,11 @@ export default function NoWebhookPaymentScreen() {
 
       if (clientSecret && requiresAction) {
         // 3. if payment requires action calling handleNextPaymentAction
-        const {
-          requiresConfirmation,
-          stripeId,
-        } = await handleNextPaymentAction(clientSecret);
+        const { status, stripeId } = await handleNextPaymentAction(
+          clientSecret
+        );
 
-        // TODO: handle requiresConfirmation differently.
-        // We should base on intent.status (enum) which can be requiresConfirmation
-        // instead of manually added boolean value to intent
-
-        if (requiresConfirmation) {
+        if (status === IntentStatus.RequiresConfirmation) {
           // 4. Call API to confirm intent
           confirmIntent(stripeId);
         } else {
@@ -107,7 +103,7 @@ export default function NoWebhookPaymentScreen() {
       }
     } catch (e) {
       console.log('Paymentconfirmation error', e);
-      Alert.alert('Error', e);
+      Alert.alert('Error', e.message);
     }
     setLoading(false);
   }, [
@@ -119,7 +115,7 @@ export default function NoWebhookPaymentScreen() {
   ]);
 
   return (
-    <View>
+    <View style={styles.container}>
       <CardFieldNative
         value={{
           cardNumber: '4242424242424242',
@@ -142,8 +138,11 @@ export default function NoWebhookPaymentScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
   cardField: {
-    marginTop: 300,
     width: '100%',
     height: 50,
   },

@@ -19,12 +19,23 @@ export type CardFieldProps = {
   onFocus(event: NativeSyntheticEvent<{ focusField: string }>): void;
 };
 
+export enum IntentStatus {
+  Succeeded = 'Succeeded',
+  RequiresPaymentMethod = 'RequiresPaymentMethod',
+  RequiresConfirmation = 'RequiresConfirmation',
+  Canceled = 'Canceled',
+  Processing = 'Processing',
+  RequiresAction = 'RequiresAction',
+  RequiresCapture = 'RequiresCapture',
+  Unknown = 'Unknown',
+}
+
 export type Intent = {
   id: string;
   amount: number;
   created: string;
   currency: string;
-  status: string;
+  status: IntentStatus;
   stripeId: string;
   description?: string;
   receiptEmail?: string;
@@ -40,6 +51,27 @@ export type ThreeDSecureConfigurationParams = {
 
 export type PaymentMethod = {
   stripeId: string;
+};
+
+export enum ConfirmPaymentError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
+export enum NextPaymentActionError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
+export enum CreatePaymentMethodError {
+  Failed = 'Failed',
+}
+
+export type StripeError<T> = {
+  message: string;
+  code: T;
 };
 
 export type ApplePayButtonProps = {
