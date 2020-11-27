@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, Button, StyleSheet, View } from 'react-native';
 import {
   CardDetails,
-  CardFieldNative,
+  CardField,
   useConfirmPayment,
   use3dSecureConfiguration,
 } from 'react-native-stripe-sdk';
@@ -70,7 +70,7 @@ export default function WebhookPaymentScreen() {
 
   return (
     <View style={styles.container}>
-      <CardFieldNative
+      <CardField
         value={{
           cardNumber: '4000000000003238',
           cvc: '424',
@@ -79,11 +79,10 @@ export default function WebhookPaymentScreen() {
         }}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
-          console.log('card details', cardDetails.nativeEvent);
-          setCard(cardDetails.nativeEvent);
+          setCard(cardDetails);
         }}
-        onFocus={(focusField) => {
-          console.log('focusField', focusField.nativeEvent.focusField);
+        onFocus={(focusedField) => {
+          console.log('focusField', focusedField);
         }}
         style={styles.cardField}
       />

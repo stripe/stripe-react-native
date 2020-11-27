@@ -4,6 +4,8 @@ export type Dictionary<T> = {
   [key: string]: T;
 };
 
+export type Nullable<T> = T | null;
+
 export type CardDetails = {
   cardNumber: string;
   cvc: string;
@@ -16,7 +18,9 @@ export type CardFieldProps = {
   value?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange(event: NativeSyntheticEvent<CardDetails>): void;
-  onFocus(event: NativeSyntheticEvent<{ focusField: string }>): void;
+  onFocus(
+    event: NativeSyntheticEvent<{ focusedField: Nullable<string> }>
+  ): void;
 };
 
 export enum IntentStatus {

@@ -21,7 +21,7 @@ internal class CardFocusEvent constructor(viewTag: Int, private val focusField: 
 
   private fun serializeEventData(): WritableMap {
     val eventData = Arguments.createMap()
-    eventData.putString("focusField", focusField)
+    eventData.putString("focusedField", focusField)
 
     return eventData
   }
