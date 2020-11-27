@@ -21,14 +21,14 @@ export default function WebhookPaymentScreen() {
   use3dSecureConfiguration({ timeout: 5, headingTextColor: '#90b43c' });
 
   const { confirmPayment, loading } = useConfirmPayment({
-    onError: (message) => {
-      Alert.alert('Error', message);
+    onError: (error) => {
+      Alert.alert('Error', error.message);
     },
     onSuccess: (intent) => {
       console.log('Success', intent);
       Alert.alert(
         'Success',
-        `The payment was confirmed successfully! curerency: ${intent.currency}`
+        `The payment was confirmed successfully! curerency: ${intent.status}`
       );
     },
   });
@@ -64,12 +64,12 @@ export default function WebhookPaymentScreen() {
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
-      console.log('Paymentconfirmation error', e);
+      console.log('Paymentconfirmation error', e.message);
     }
   }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
 
   return (
-    <View>
+    <View style={styles.container}>
       <CardFieldNative
         value={{
           cardNumber: '4000000000003238',
@@ -95,10 +95,10 @@ export default function WebhookPaymentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
   },
   cardField: {
-    marginTop: 300,
     width: '100%',
-    height: 300,
+    height: 50,
   },
 });

@@ -1,7 +1,7 @@
-import StripeSdk from '../NativeStripeSdk';
 import { useEffect, useState } from 'react';
-import type { CartSummaryItem } from 'src/types';
-import { isiOS } from 'src/platform';
+import StripeSdk from '../NativeStripeSdk';
+import type { CartSummaryItem } from '../types';
+import { isiOS } from '../platform';
 
 type Params = {
   onError: (errorCode: string, errorMessage: string) => void;
