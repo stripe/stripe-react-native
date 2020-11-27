@@ -1,5 +1,5 @@
 import { requireNativeComponent } from 'react-native';
-import type { ApplePayButtonProps, CardFieldProps } from './types';
+import type { ApplePayButtonProps } from './types';
 
 // hooks
 export { useConfirmPayment } from './hooks/useConfirmPayment';
@@ -9,9 +9,7 @@ export { useApplePay } from './hooks/useApplePay';
 
 //components
 export { StripeProvider } from './StripeProvider';
-export const CardFieldNative = requireNativeComponent<CardFieldProps>(
-  'CardField'
-);
+export { CardField } from './CardField';
 export const ApplePayButton = requireNativeComponent<ApplePayButtonProps>(
   'ApplePayButton'
 );
