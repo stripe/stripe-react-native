@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { ApplePayButton, useApplePay } from 'react-native-stripe-sdk';
+import {
+  ApplePayButton,
+  StripeError,
+  useApplePay,
+} from 'react-native-stripe-sdk';
+import type { PayWithApplePayError } from 'src/types';
 import { API_URL } from './Config';
 
 export default function ApplePayScreen() {
@@ -9,8 +14,8 @@ export default function ApplePayScreen() {
     completePaymentWithApplePay,
     isApplePaySupported,
   } = useApplePay({
-    onError: (errorCode, message) => {
-      Alert.alert(errorCode, message);
+    onError: (error) => {
+      Alert.alert(error.code, error.message);
     },
     onSuccess: () => {
       Alert.alert('Success', 'The payment was confirmed successfully!');
@@ -37,7 +42,14 @@ export default function ApplePayScreen() {
   const pay = async () => {
     await payWithApplePay([{ label: 'Example item name', amount: '10500.50' }]);
     const clientSecret = await fetchPaymentIntentClientSecret();
-    completePaymentWithApplePay(clientSecret);
+
+    try {
+      await completePaymentWithApplePay(clientSecret);
+      // success
+    } catch (e) {
+      const error: StripeError<PayWithApplePayError> = e;
+      Alert.alert(error.code, error.message);
+    }
   };
 
   return (

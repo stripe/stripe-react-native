@@ -9,20 +9,22 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   isApplePaySupported: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
+                  rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
                   payWithApplePay:(NSArray *)items
                   resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
+                  rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
                   registerApplePayCallbacks:(RCTResponseSenderBlock)onSuccess
                   onError:(RCTResponseSenderBlock)onError)
 
-RCT_EXTERN_METHOD(completePaymentWithApplePay:(NSString *)clientSecret)
+RCT_EXTERN_METHOD(
+                  completePaymentWithApplePay:(NSString *)clientSecret
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
 
 RCT_EXTERN_METHOD(
                   registerConfirmPaymentCallbacks:(RCTResponseSenderBlock)onSuccess

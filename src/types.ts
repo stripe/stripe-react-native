@@ -69,6 +69,12 @@ export enum NextPaymentActionError {
   Unknown = 'Unknown',
 }
 
+export enum PayWithApplePayError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
 export enum CreatePaymentMethodError {
   Failed = 'Failed',
 }

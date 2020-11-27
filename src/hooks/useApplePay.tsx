@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import StripeSdk from '../NativeStripeSdk';
-import type { CartSummaryItem } from '../types';
+import type {
+  CartSummaryItem,
+  PayWithApplePayError,
+  StripeError,
+} from '../types';
 import { isiOS } from '../platform';
 
 type Params = {
-  onError?(errorCode: string, errorMessage: string): void;
+  onError?(error: StripeError<PayWithApplePayError>): void;
   onSuccess?(): void;
 };
 
@@ -22,25 +26,34 @@ export function useApplePay({
     }
 
     checkApplePaySupport();
+  }, []);
 
+  const registerCallbacks = useCallback(() => {
     if (isiOS) {
       StripeSdk.registerApplePayCallbacks(onSuccess, onError);
     }
-  }, [onSuccess, onError]);
+  }, [onError, onSuccess]);
 
   const payWithApplePay = async (items: CartSummaryItem[]) => {
+    registerCallbacks();
+
     if (!isApplePaySupported) {
       return;
     }
     setLoading(true);
-    await StripeSdk.payWithApplePay(items);
+    try {
+      await StripeSdk.payWithApplePay(items);
+    } catch (e) {
+      const error: StripeError<PayWithApplePayError> = e;
+      onError(error);
+    }
   };
 
-  const completePaymentWithApplePay = (clientSecret: string) => {
+  const completePaymentWithApplePay = async (clientSecret: string) => {
     if (!isApplePaySupported) {
       return;
     }
-    StripeSdk.completePaymentWithApplePay(clientSecret);
+    await StripeSdk.completePaymentWithApplePay(clientSecret);
     setLoading(false);
   };
 
