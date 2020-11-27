@@ -4,11 +4,14 @@ import type { CartSummaryItem } from '../types';
 import { isiOS } from '../platform';
 
 type Params = {
-  onError: (errorCode: string, errorMessage: string) => void;
-  onSuccess: () => void;
+  onError?(errorCode: string, errorMessage: string): void;
+  onSuccess?(): void;
 };
 
-export function useApplePay({ onSuccess, onError }: Params) {
+export function useApplePay({
+  onSuccess = () => {},
+  onError = () => {},
+}: Params = {}) {
   const [loading, setLoading] = useState(false);
   const [isApplePaySupported, setApplePaySupported] = useState(false);
 
