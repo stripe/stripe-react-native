@@ -3,6 +3,7 @@ import type { ApplePayButtonProps } from './types';
 
 // hooks
 export { useConfirmPayment } from './hooks/useConfirmPayment';
+export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { use3dSecureConfiguration } from './hooks/use3dSecureConfiguration';
 export { useStripe } from './hooks/useStripe';
 export { useApplePay } from './hooks/useApplePay';
@@ -16,6 +17,7 @@ export const ApplePayButton = requireNativeComponent<ApplePayButtonProps>(
 // types
 export {
   CardDetails,
+  BillingDetails,
   Intent,
   ThreeDSecureConfigurationParams,
   PaymentMethod,
@@ -24,4 +26,6 @@ export {
   ConfirmPaymentError,
   NextPaymentActionError,
   CreatePaymentMethodError,
+  ConfirmSetupIntentError,
+  SetupIntent,
 } from './types';

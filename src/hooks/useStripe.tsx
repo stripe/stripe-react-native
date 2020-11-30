@@ -8,5 +8,6 @@ export function useStripe() {
     isApplePaySupported: () => StripeSdk.isApplePaySupported,
     payWithApplePay: StripeSdk.payWithApplePay,
     completePaymentWithApplePay: StripeSdk.completePaymentWithApplePay,
+    confirmSetupIntent: StripeSdk.confirmSetupIntent,
   };
 }

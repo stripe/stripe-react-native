@@ -2,11 +2,14 @@ import { NativeModules } from 'react-native';
 import type {
   CardDetails,
   ConfirmPaymentError,
+  ConfirmSetupIntentError,
   Intent,
   PaymentMethod,
   StripeError,
   ThreeDSecureConfigurationParams,
   CartSummaryItem,
+  BillingDetails,
+  SetupIntent,
   PayWithApplePayError,
 } from './types';
 
@@ -35,6 +38,19 @@ type NativeStripeSdkType = {
   registerApplePayCallbacks(
     onSuccess: () => void,
     onError: (error: StripeError<PayWithApplePayError>) => void
+  ): void;
+  confirmSetupIntent(
+    paymentIntentClientSecret: string,
+    cardDetails: CardDetails,
+    billingDetails: BillingDetails
+  ): Promise<Intent>;
+  registerConfirmSetupIntentCallbacks(
+    onSuccess:
+      | ((intent: SetupIntent) => void)
+      | ((error: any, intent: SetupIntent) => void),
+    onError:
+      | ((error: StripeError<ConfirmSetupIntentError>) => void)
+      | ((data: any, error: StripeError<ConfirmSetupIntentError>) => void)
   ): void;
 };
 
