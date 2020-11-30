@@ -31,6 +31,14 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future Payment"
+          onPress={() => {
+            navigation.navigate('SetupFuturePayment');
+          }}
+        />
+      </View>
     </View>
   );
 }

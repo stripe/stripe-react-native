@@ -5,38 +5,6 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.model.*
 
-enum class ConfirmPaymentErrorType {
-  Failed, Canceled, Unknown
-}
-
-enum class NextPaymentActionErrorType {
-  Failed, Canceled, Unknown
-}
-
-internal fun mapConfirmPaymentErrorType(confirmPaymentErrorType: ConfirmPaymentErrorType): String {
-  return when (confirmPaymentErrorType) {
-    ConfirmPaymentErrorType.Failed -> "Failed"
-    ConfirmPaymentErrorType.Canceled -> "Canceled"
-    ConfirmPaymentErrorType.Unknown -> "Unknown"
-  }
-}
-
-internal fun mapNextPaymentActionErrorType(nextPaymentActionErrorType: NextPaymentActionErrorType): String {
-  return when (nextPaymentActionErrorType) {
-    NextPaymentActionErrorType.Failed -> "Failed"
-    NextPaymentActionErrorType.Canceled -> "Canceled"
-    NextPaymentActionErrorType.Unknown -> "Unknown"
-  }
-}
-
-internal fun createError(errorType: String, message: String): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  map.putString("message", message)
-  map.putString("code", errorType)
-
-  return map
-}
-
 internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   return when (status) {
     StripeIntent.Status.Succeeded -> "Succeeded"
@@ -79,4 +47,47 @@ internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMetho
     null)
 
   return PaymentMethodCreateParams.createCard(cardParams)
+}
+
+internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
+  return PaymentMethodCreateParams.Card.Builder()
+    .setCvc(card.getString("cvc"))
+    .setExpiryMonth(card.getInt("expiryMonth"))
+    .setExpiryYear(card.getInt("expiryYear"))
+    .setNumber(card.getString("number").orEmpty())
+    .build()
+}
+
+private fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
+  return if (map.hasKey(key)) map.getString(key) else default
+}
+
+internal fun mapToBillingDetails(billingDatails: ReadableMap): PaymentMethod.BillingDetails {
+  val address = Address.Builder()
+    .setPostalCode(getValOr(billingDatails, "addressPostalCode"))
+    .setCity(getValOr(billingDatails, "addressCity"))
+    .setCountry(getValOr(billingDatails, "addressCountry"))
+    .setLine1(getValOr(billingDatails, "addressLine1"))
+    .setLine2(getValOr(billingDatails, "addressLine2"))
+    .setState(getValOr(billingDatails, "addressState"))
+    .build()
+
+  return PaymentMethod.BillingDetails.Builder()
+    .setAddress(address)
+    .setName(getValOr(billingDatails, "name"))
+    .setPhone(getValOr(billingDatails, "phone"))
+    .setEmail(getValOr(billingDatails, "email"))
+    .build()
+}
+
+internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
+  val map: WritableMap = WritableNativeMap()
+  map.putString("id", setupIntent.id)
+  map.putString("status", mapIntentStatus(setupIntent.status))
+  map.putString("description", setupIntent.description)
+  if(setupIntent.created != null) {
+    map.putInt("created", setupIntent.created.toInt())
+  }
+
+  return map
 }

@@ -13,6 +13,18 @@ export type CardDetails = {
   expiryYear: number;
 };
 
+export type BillingDetails = {
+  email?: string;
+  name?: string;
+  phone?: string;
+  addressPostalCode?: string;
+  addressCity?: string;
+  addressCountry?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressState?: string;
+};
+
 export type CardFieldProps = {
   style?: StyleProp<ViewStyle>;
   value?: Partial<CardDetails>;
@@ -45,6 +57,13 @@ export type Intent = {
   receiptEmail?: string;
 };
 
+export type SetupIntent = {
+  id: string;
+  created: string;
+  status: IntentStatus;
+  description?: string;
+};
+
 export type ThreeDSecureConfigurationParams = {
   bodyFontSize?: number;
   bodyTextColor?: string;
@@ -64,6 +83,12 @@ export enum ConfirmPaymentError {
 }
 
 export enum NextPaymentActionError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
+export enum ConfirmSetupIntentError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',

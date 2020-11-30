@@ -9,6 +9,7 @@ import WebhookPaymentScreen from './WebhookPaymentScreen';
 import HomeScreen from './HomeScreen';
 import NoWebhookPaymentScreen from './NoWebhookPaymentScreen';
 import ApplePayScreen from './ApplePayScreen';
+import SetupFuturePaymentScreen from './SetupFuturePaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -42,6 +43,10 @@ export default function App() {
             component={NoWebhookPaymentScreen}
           />
           <Stack.Screen name="ApplePay" component={ApplePayScreen} />
+          <Stack.Screen
+            name="SetupFuturePayment"
+            component={SetupFuturePaymentScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>

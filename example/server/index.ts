@@ -131,6 +131,16 @@ app.post(
   }
 );
 
+app.post('/create-setup-intent', async (_req, res) => {
+  const setupIntent = await stripe.setupIntents.create();
+
+  // Send publishable key and SetupIntent details to client
+  res.send({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    clientSecret: setupIntent.client_secret,
+  });
+});
+
 // Expose a endpoint as a webhook handler for asynchronous events.
 // Configure your webhook in the stripe developer dashboard:
 // https://dashboard.stripe.com/test/webhooks
@@ -167,12 +177,55 @@ app.post(
       // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds).
       console.log(`🔔  Webhook received: ${pi.object} ${pi.status}!`);
       console.log('💰 Payment captured!');
-    } else if (eventType === 'payment_intent.payment_failed') {
+    }
+    if (eventType === 'payment_intent.payment_failed') {
       // Cast the event into a PaymentIntent to make use of the types.
       const pi: Stripe.PaymentIntent = data.object as Stripe.PaymentIntent;
       console.log(`🔔  Webhook received: ${pi.object} ${pi.status}!`);
       console.log('❌ Payment failed.');
     }
+
+    if (eventType === 'setup_intent.setup_failed') {
+      console.log(`🔔  A SetupIntent has failed the to setup a PaymentMethod.`);
+    }
+
+    if (eventType === 'setup_intent.succeeded') {
+      console.log(
+        `🔔  A SetupIntent has successfully setup a PaymentMethod for future use.`
+      );
+
+      const setupIntent: Stripe.SetupIntent = data.object as Stripe.SetupIntent;
+      if (setupIntent.payment_method) {
+        // Get Customer billing details from the PaymentMethod
+        const paymentMethod = await stripe.paymentMethods.retrieve(
+          // @ts-ignore
+          setupIntent.payment_method // FIXME: fix types or usage
+        );
+
+        // Create a Customer to store the PaymentMethod ID for later use
+        const customer = await stripe.customers.create({
+          // @ts-ignore
+          payment_method: setupIntent.payment_method, // FIXME: fix types or usage
+          email: paymentMethod.billing_details.email,
+        });
+
+        // At this point, associate the ID of the Customer object with your
+        // own internal representation of a customer, if you have one.
+
+        console.log(
+          `🔔  A Customer has successfully been created ${customer.id}`
+        );
+
+        // You can also attach a PaymentMethod to an existing Customer
+        // https://stripe.com/docs/api/payment_methods/attach
+      }
+    }
+
+    if (eventType === 'setup_intent.created') {
+      const setupIntent: Stripe.SetupIntent = data.object as Stripe.SetupIntent;
+      console.log(`🔔  A new SetupIntent is created. ${setupIntent.id}`);
+    }
+
     res.sendStatus(200);
   }
 );
