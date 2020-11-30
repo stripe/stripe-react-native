@@ -8,6 +8,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
+    var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var onApplePaySuccessCallback: RCTResponseSenderBlock? = nil
     var onApplePayErrorCallback: RCTResponseSenderBlock? = nil
     var onConfirmSetupIntentErrorCallback: RCTResponseSenderBlock? = nil
@@ -66,6 +67,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     @objc(completePaymentWithApplePay:resolver:rejecter:)
     func completePaymentWithApplePay(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.applePayCompletionRejecter = reject
         self.applePayCompletionCallback?(clientSecret, nil)
         resolve(NSNull())
     }
@@ -82,13 +84,19 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             onApplePaySuccessCallback?([NSNull()])
             break
         case .error:
-            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Failed.rawValue, message: "Apple pay completion failed")])
+            let message = "Apple pay completion failed"
+            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Failed.rawValue, message: message)])
+            applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             break
         case .userCancellation:
-            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Canceled.rawValue, message: "Apple pay payment has been cancelled")])
+            let message = "Apple pay payment has been cancelled"
+            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Canceled.rawValue, message: message)])
+            applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             break
         @unknown default:
-            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Unknown.rawValue, message: "Cannot complete payment")])
+            let message = "Cannot complete payment"
+            onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Unknown.rawValue, message: message)])
+            applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
         }
     }
     
