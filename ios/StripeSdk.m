@@ -51,5 +51,18 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(configure3dSecure:(NSDictionary *)params)
 
 
+RCT_EXTERN_METHOD(
+                  registerConfirmSetupIntentCallbacks:(RCTResponseSenderBlock)onSuccess
+                  onError: (RCTResponseSenderBlock)onError
+                  )
+
+RCT_EXTERN_METHOD(
+                  confirmSetupIntent:(NSString *)setupIntentClientSecret
+                  card: (NSDictionary *)card
+                  billingDetails: (NSDictionary *)billingDetails
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
 
 @end

@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, Button, StyleSheet, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import {
+  BillingDetails,
   CardDetails,
   CardField,
   useConfirmSetupIntent,
@@ -47,9 +48,15 @@ export default function SetupFuturePaymentScreen() {
       const clientSecret = await createSetupIntentOnBackend();
 
       // 2. Gather customer billing information (ex. email)
-      const billingDetails = {
+      const billingDetails: BillingDetails = {
         email,
-      };
+        phone: '+48888000888',
+        addressCity: 'Wrocław',
+        addressCountry: 'PL',
+        addressLine1: 'Bolesława Drobnera',
+        addressLine2: '12/100',
+        addressPostalCode: '50-257',
+      }; // mocked data for tests
 
       // 3. Confirm setup intent
       const intent = await confirmSetupIntent(
@@ -61,7 +68,7 @@ export default function SetupFuturePaymentScreen() {
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
     } catch (e) {
-      Alert.alert(`Error: ${e.message}`);
+      Alert.alert(`Error code: ${e.code}\n${e.message}`);
       console.log('Setup intent creation error', e.message);
     }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
