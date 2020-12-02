@@ -10,11 +10,11 @@ import express from 'express';
 import Stripe from 'stripe';
 import { generateResponse } from './utils';
 
-const striptSecretKey = process.env.STRIPE_SECRET_KEY || '';
-const striptPublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-const stripe = new Stripe(striptSecretKey, {
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2020-08-27',
   typescript: true,
 });
@@ -48,7 +48,7 @@ const calculateOrderAmount = (_order: Order): number => {
 };
 
 app.get('/stripe-key', (_: express.Request, res: express.Response): void => {
-  res.send({ publishableKey: striptPublishableKey });
+  res.send({ publishableKey: stripePublishableKey });
 });
 
 app.post(
@@ -57,15 +57,19 @@ app.post(
     const {
       items,
       currency,
-      force3dSecure,
-    }: { items: Order; currency: string; force3dSecure?: boolean } = req.body;
+      request_three_d_secure,
+    }: {
+      items: Order;
+      currency: string;
+      request_three_d_secure: 'any' | 'automatic';
+    } = req.body;
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
       currency,
       payment_method_options: {
         card: {
-          request_three_d_secure: force3dSecure ? 'any' : 'automatic',
+          request_three_d_secure: request_three_d_secure || 'automatic',
         },
       },
     };

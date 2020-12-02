@@ -10,6 +10,7 @@ import HomeScreen from './HomeScreen';
 import NoWebhookPaymentScreen from './NoWebhookPaymentScreen';
 import ApplePayScreen from './ApplePayScreen';
 import SetupFuturePaymentScreen from './SetupFuturePaymentScreen';
+import ThreeDSecureScreen from './ThreeDSecureScreen';
 
 const Stack = createStackNavigator();
 
@@ -46,6 +47,10 @@ export default function App() {
           <Stack.Screen
             name="SetupFuturePayment"
             component={SetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="ThreeDSecureScreen"
+            component={ThreeDSecureScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
