@@ -28,11 +28,24 @@ export function useApplePay({
     checkApplePaySupport();
   }, []);
 
+  const handleSuccess = useCallback(() => {
+    onSuccess();
+    StripeSdk.unregisterApplePayCallbacks();
+  }, [onSuccess]);
+
+  const handleError = useCallback(
+    (error: StripeError<PayWithApplePayError>) => {
+      onError(error);
+      StripeSdk.unregisterApplePayCallbacks();
+    },
+    [onError]
+  );
+
   const registerCallbacks = useCallback(() => {
     if (isiOS) {
-      StripeSdk.registerApplePayCallbacks(onSuccess, onError);
+      StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
     }
-  }, [onError, onSuccess]);
+  }, [handleSuccess, handleError]);
 
   const payWithApplePay = async (items: CartSummaryItem[]) => {
     registerCallbacks();

@@ -8,7 +8,7 @@ import {
 import { API_URL } from './Config';
 
 const defaultCard = {
-  cardNumber: '4000000000003238',
+  cardNumber: '4242424242424242',
   cvc: '424',
   expiryMonth: 1,
   expiryYear: 22,
@@ -67,12 +67,7 @@ export default function WebhookPaymentScreen() {
   return (
     <View style={styles.container}>
       <CardField
-        value={{
-          cardNumber: '4000000000003238',
-          cvc: '424',
-          expiryMonth: 5,
-          expiryYear: 22,
-        }}
+        value={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);

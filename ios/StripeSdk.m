@@ -20,6 +20,8 @@ RCT_EXTERN_METHOD(
                   registerApplePayCallbacks:(RCTResponseSenderBlock)onSuccess
                   onError:(RCTResponseSenderBlock)onError)
 
+RCT_EXTERN_METHOD(unregisterApplePayCallbacks)
+
 RCT_EXTERN_METHOD(
                   completePaymentWithApplePay:(NSString *)clientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
@@ -29,6 +31,8 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(
                   registerConfirmPaymentCallbacks:(RCTResponseSenderBlock)onSuccess
                   onError:(RCTResponseSenderBlock)onError)
+
+RCT_EXTERN_METHOD(unregisterConfirmPaymentCallbacks)
 
 RCT_EXTERN_METHOD(
                   createPaymentMethod:(NSDictionary *)params
@@ -55,6 +59,8 @@ RCT_EXTERN_METHOD(
                   registerConfirmSetupIntentCallbacks:(RCTResponseSenderBlock)onSuccess
                   onError: (RCTResponseSenderBlock)onError
                   )
+
+RCT_EXTERN_METHOD(unregisterConfirmSetupIntentCallbacks)
 
 RCT_EXTERN_METHOD(
                   confirmSetupIntent:(NSString *)setupIntentClientSecret

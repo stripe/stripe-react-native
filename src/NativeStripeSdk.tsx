@@ -52,6 +52,9 @@ type NativeStripeSdkType = {
       | ((error: StripeError<ConfirmSetupIntentError>) => void)
       | ((data: any, error: StripeError<ConfirmSetupIntentError>) => void)
   ): void;
+  unregisterConfirmPaymentCallbacks(): void;
+  unregisterApplePayCallbacks(): void;
+  unregisterConfirmSetupIntentCallbacks(): void;
 };
 
 const { StripeSdk } = NativeModules;

@@ -19,24 +19,10 @@ export function useConfirmSetupIntent(params?: Params) {
 
   const { onError = () => {}, onSuccess = () => {} } = params || {};
 
-  const registerCallbacks = useCallback(() => {
-    if (onError || onSuccess) {
-      const handleSuccess = isiOS
-        ? (_: any, value: SetupIntent) => onSuccess(value)
-        : onSuccess;
-      const handleError = isiOS
-        ? (_: any, value: StripeError<ConfirmSetupIntentError>) => {
-            setLoading(false);
-            onError(value);
-          }
-        : (value: StripeError<ConfirmSetupIntentError>) => {
-            setLoading(false);
-            onError(value);
-          };
-
-      StripeSdk.registerConfirmSetupIntentCallbacks(handleSuccess, handleError);
-    }
-  }, [onError, onSuccess, setLoading]);
+  const handleFinishCallback = useCallback(() => {
+    setLoading(false);
+    StripeSdk.unregisterConfirmSetupIntentCallbacks();
+  }, []);
 
   const confirmSetupIntent = useCallback(
     async (
@@ -45,7 +31,26 @@ export function useConfirmSetupIntent(params?: Params) {
       billingDetails: BillingDetails
     ) => {
       setLoading(true);
-      registerCallbacks();
+
+      const handleSuccess = isiOS
+        ? (_: any, value: SetupIntent) => {
+            onSuccess(value);
+            handleFinishCallback();
+          }
+        : onSuccess;
+
+      const handleError = isiOS
+        ? (_: any, value: StripeError<ConfirmSetupIntentError>) => {
+            onError(value);
+            handleFinishCallback();
+          }
+        : (value: StripeError<ConfirmSetupIntentError>) => {
+            onError(value);
+            handleFinishCallback();
+          };
+
+      StripeSdk.registerConfirmSetupIntentCallbacks(handleSuccess, handleError);
+
       const result = await StripeSdk.confirmSetupIntent(
         paymentIntentClientSecret,
         cardDetails,
@@ -54,7 +59,7 @@ export function useConfirmSetupIntent(params?: Params) {
       setLoading(false);
       return result;
     },
-    [registerCallbacks]
+    [onError, onSuccess, handleFinishCallback]
   );
   return {
     confirmSetupIntent,

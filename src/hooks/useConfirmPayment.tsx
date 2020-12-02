@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type {
   CardDetails,
   ConfirmPaymentError,
@@ -12,28 +12,39 @@ type Params = {
   onError: (error: StripeError<ConfirmPaymentError>) => void;
   onSuccess: (intent: Intent) => void;
 };
+
 export function useConfirmPayment({ onError, onSuccess }: Params) {
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const handleSuccess = isiOS
-      ? (_: any, value: Intent) => onSuccess(value)
-      : onSuccess;
-    const handleError = isiOS
-      ? (_: any, value: StripeError<ConfirmPaymentError>) => {
-          setLoading(false);
-          onError(value);
-        }
-      : (value: StripeError<ConfirmPaymentError>) => {
-          setLoading(false);
-          onError(value);
-        };
-
-    StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
-  }, [onError, onSuccess]);
+  const handleFinishCallback = useCallback(() => {
+    setLoading(false);
+    StripeSdk.unregisterConfirmPaymentCallbacks();
+  }, []);
 
   const confirmPayment = useCallback(
     async (paymentIntentClientSecret: string, cardDetails: CardDetails) => {
+      const handleSuccess = isiOS
+        ? (_: any, value: Intent) => {
+            onSuccess(value);
+            handleFinishCallback();
+          }
+        : (value: Intent) => {
+            onSuccess(value);
+            handleFinishCallback();
+          };
+
+      const handleError = isiOS
+        ? (_: any, value: StripeError<ConfirmPaymentError>) => {
+            onError(value);
+            handleFinishCallback();
+          }
+        : (value: StripeError<ConfirmPaymentError>) => {
+            onError(value);
+            handleFinishCallback();
+          };
+
+      StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
+
       setLoading(true);
       const result = await StripeSdk.confirmPaymentMethod(
         paymentIntentClientSecret,
@@ -42,8 +53,9 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
       setLoading(false);
       return result;
     },
-    []
+    [handleFinishCallback, onSuccess, onError]
   );
+
   return {
     confirmPayment,
     loading,
