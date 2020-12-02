@@ -28,6 +28,12 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         onConfirmSetupIntentSuccessCallback = onSuccess
     }
     
+    @objc
+    func unregisterConfirmSetupIntentCallbacks() -> Void {
+        onConfirmSetupIntentErrorCallback = nil
+        onConfirmSetupIntentSuccessCallback = nil
+    }
+    
     @objc(confirmSetupIntent:card:billingDetails:resolver:rejecter:)
     func confirmSetupIntent (setupIntentClientSecret: String, card: NSDictionary, billingDetails: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -79,6 +85,12 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         onApplePayErrorCallback = onError
     }
     
+    @objc
+    func unregisterApplePayCallbacks() -> Void {
+        onApplePaySuccessCallback = nil
+        onApplePayErrorCallback = nil
+    }
+    
     func applePayContext(_ context: STPApplePayContext, didCompleteWith status: STPPaymentStatus, error: Error?) {
         switch status {
         case .success:
@@ -104,7 +116,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     @objc(isApplePaySupported:rejecter:)
     func isApplePaySupported(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let isSupported = Stripe.deviceSupportsApplePay()
+        let isSupported = StripeAPI.deviceSupportsApplePay()
         resolve([isSupported])
     }
     
@@ -117,7 +129,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
         
         let merchantIdentifier = self.merchantIdentifier ?? ""
-        let paymentRequest = Stripe.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: "US", currency: "USD")
+        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: "US", currency: "USD")
         applePayRequestResolver = resolve
         
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
@@ -155,6 +167,12 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func registerConfirmPaymentCallbacks(onSuccess: @escaping RCTResponseSenderBlock, onError: @escaping RCTResponseSenderBlock) -> Void  {
         onPaymentSuccessCallback = onSuccess
         onPaymentErrorCallback = onError
+    }
+    
+    @objc
+    func unregisterConfirmPaymentCallbacks() -> Void {
+        onPaymentSuccessCallback = nil
+        onPaymentErrorCallback = nil
     }
     
     @objc(createPaymentMethod:resolver:rejecter:)
@@ -214,7 +232,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         paymentIntentParams.paymentMethodParams = paymentMethodParams
         
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.confirmPayment(withParams: paymentIntentParams, authenticationContext: self) { (status, paymentIntent, error) in
+        paymentHandler.confirmPayment(paymentIntentParams, with: self) { (status, paymentIntent, error) in
             switch (status) {
             case .failed:
                 reject(ConfirmPaymentErrorType.Failed.rawValue, error?.localizedDescription ?? "", nil)

@@ -167,6 +167,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun unregisterConfirmPaymentCallbacks() {
+    onConfirmPaymentError = null
+    onConfirmPaymentSuccess = null
+  }
+  
+  @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, promise: Promise) {
     confirmPromise = promise
     val paymentMethodCreateParams = mapToPaymentMethodCreateParams(params)
@@ -184,6 +190,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun registerConfirmSetupIntentCallbacks(successCallback: Callback, errorCallback: Callback) {
     onConfirmSetupIntentError = errorCallback
     onConfirmSetupIntentSuccess = successCallback
+  }
+
+  @ReactMethod
+  fun unregisterConfirmSetupIntentCallbacks() {
+    onConfirmSetupIntentError = null
+    onConfirmSetupIntentSuccess = null
   }
 
   @ReactMethod
