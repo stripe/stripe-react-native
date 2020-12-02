@@ -1,10 +1,11 @@
 import Foundation
 import UIKit
+import Stripe
 
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
     
-    private var theme = STPTheme.default()
+    private var theme = STPTheme.defaultTheme
     
     private var cardField = STPPaymentCardTextField()
     
@@ -35,11 +36,11 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
         if onCardChange != nil {
             onCardChange!([
-                "cardNumber": textField.cardNumber ?? "",
-                "cvc": textField.cvc ?? "",
+                "cardNumber": textField.cardParams.number ?? "",
+                "cvc": textField.cardParams.cvc ?? "",
                 "postalCode": textField.postalCode ?? "",
-                "expiryMonth": textField.expirationMonth,
-                "expiryYear": textField.expirationYear
+                "expiryMonth": textField.cardParams.expMonth,
+                "expiryYear": textField.cardParams.expYear
             ])
         }
     }

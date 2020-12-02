@@ -8,9 +8,16 @@ import {
 } from 'react-native-stripe-sdk';
 import { API_URL } from './Config';
 
+const defaultCard = {
+  cardNumber: '4242424242424242',
+  cvc: '424',
+  expiryMonth: 3,
+  expiryYear: 22,
+};
+
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardDetails | undefined>(defaultCard);
   const { createPaymentMethod, handleNextPaymentAction } = useStripe();
 
   const callNoWebhookPayEndpoint = useCallback(
@@ -117,12 +124,7 @@ export default function NoWebhookPaymentScreen() {
   return (
     <View style={styles.container}>
       <CardField
-        value={{
-          cardNumber: '4242424242424242',
-          cvc: '424',
-          expiryMonth: 3,
-          expiryYear: 22,
-        }}
+        value={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
