@@ -1,3 +1,4 @@
+import Stripe
 
 class Mappers {
     class func mapIntentStatus(status: STPPaymentIntentStatus?) -> String {
@@ -92,7 +93,7 @@ class Mappers {
             "id": setupIntent.stripeID,
             "status": mapIntentStatus(status: setupIntent.status),
             "description": setupIntent.stripeDescription ?? "",
-            "created": Int(setupIntent.created.timeIntervalSince1970 * 1000) // convert to unix timestamp
+            "created": Int(setupIntent.created?.timeIntervalSince1970 ?? 0 * 1000) // convert to unix timestamp
         ]
         
         return intent

@@ -1,4 +1,5 @@
 import PassKit
+import Stripe
 
 @objc(StripeSdk)
 class StripeSdk: NSObject, STPApplePayContextDelegate  {
@@ -17,7 +18,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     @objc(initialise:merchantIdentifier:)
     func initialise(publishableKey: String, merchantIdentifier: String?) -> Void {
-        STPAPIClient.shared().publishableKey = publishableKey
+        STPAPIClient.shared.publishableKey = publishableKey
         self.merchantIdentifier = merchantIdentifier
     }
     
@@ -38,7 +39,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         setupIntentParams.paymentMethodParams = paymentMethodParams
         
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.confirmSetupIntent(withParams: setupIntentParams, authenticationContext: self) { status, setupIntent, error in
+        paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
             switch (status) {
             case .failed:
                 self.onConfirmSetupIntentErrorCallback?([NSNull(), Errors.createError(code: ConfirmSetupIntentErrorType.Failed.rawValue, message: error?.localizedDescription ?? "")])
@@ -163,8 +164,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: params)
-        
-        STPAPIClient.shared().createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
+        STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
             }
@@ -184,7 +184,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ){
         let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, authenticationContext: self, returnURL: nil) { status, paymentIntent, handleActionError in
+        paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, with: self, returnURL: nil) { status, paymentIntent, handleActionError in
             switch (status) {
             case .failed:
                 reject(NextPaymentActionErrorType.Failed.rawValue, handleActionError?.localizedDescription ?? "", nil)

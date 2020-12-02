@@ -237,7 +237,7 @@ PODS:
     - React-Core
   - react-native-stripe-sdk (0.1.0):
     - React
-    - Stripe
+    - Stripe (~> 21.0.0)
   - React-RCTActionSheet (0.62.2):
     - React-Core/RCTActionSheetHeaders (= 0.62.2)
   - React-RCTAnimation (0.62.2):
@@ -305,7 +305,7 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (19.4.0)
+  - Stripe (21.0.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -349,7 +349,6 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -459,7 +458,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 1540d1c01bb493ae3124ed83351b1b6a155db7da
   React-jsinspector: 512e560d0e985d0e8c479a54a4e5c147a9c83493
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
-  react-native-stripe-sdk: 3fe11d80e195722c2b85fd3a4d00d38902854e6b
+  react-native-stripe-sdk: f6566a9b2eb1ea4a0a98494feaf82d5279b409e2
   React-RCTActionSheet: f41ea8a811aac770e0cc6e0ad6b270c644ea8b7c
   React-RCTAnimation: 49ab98b1c1ff4445148b72a3d61554138565bad0
   React-RCTBlob: a332773f0ebc413a0ce85942a55b064471587a71
@@ -474,10 +473,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 92f1c73a9dbd3c54277ed06a1fea6e08f20414c6
+  Stripe: e8af052b05c82db783707938fb598d12ed352b94
   Yoga: 3ebccbdd559724312790e7742142d062476b698e
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 4c4624d52c9faf319dd45ed9bba3a4240476d0c1
+PODFILE CHECKSUM: e2b23d479fbba49921ea77ae5a187c100d7222dc
 
 COCOAPODS: 1.10.0
