@@ -1,12 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Button, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import {
   CardDetails,
   CardField,
   IntentStatus,
   useStripe,
 } from 'react-native-stripe-sdk';
-import { API_URL } from './Config';
+import { API_URL } from '../Config';
+import Button from '../components/Button';
+import Screen from '../components/Screen';
 
 const defaultCard = {
   cardNumber: '4242424242424242',
@@ -122,7 +124,7 @@ export default function NoWebhookPaymentScreen() {
   ]);
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <CardField
         value={defaultCard}
         postalCodeEnabled={false}
@@ -135,8 +137,13 @@ export default function NoWebhookPaymentScreen() {
         }}
         style={styles.cardField}
       />
-      <Button onPress={handlePayPress} title="Pay" disabled={loading} />
-    </View>
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Pay"
+        loading={loading}
+      />
+    </Screen>
   );
 }
 
@@ -148,5 +155,6 @@ const styles = StyleSheet.create({
   cardField: {
     width: '100%',
     height: 50,
+    marginBottom: 20,
   },
 });
