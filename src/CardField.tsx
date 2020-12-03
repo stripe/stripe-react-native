@@ -12,7 +12,7 @@ const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
-  value?: Partial<CardDetails>;
+  defaultValue?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange?(card: CardDetails): void;
   onFocus?(focusedField: Nullable<string>): void;

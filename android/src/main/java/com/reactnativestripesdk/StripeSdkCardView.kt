@@ -8,12 +8,13 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.stripe.android.model.CardParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
-  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "")
+  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "")
   private var mEventDispatcher: EventDispatcher
 
   init {
@@ -26,13 +27,18 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun setValue(value: ReadableMap) {
-    mCardWidget.setCardNumber(value.getString("cardNumber"))
-    mCardWidget.setCvcCode(value.getString("cvc"))
-    val month = value.getInt("expiryMonth")
-    val year = value.getInt("expiryYear")
-    if(month != null && year != null) {
+    mCardWidget.setCardNumber(getValOr(value, "cardNumber", null))
+    mCardWidget.setCvcCode(getValOr(value, "cvc", null))
+
+    if (value.hasKey("expiryMonth") && value.hasKey("expiryYear")) {
+      val month = value.getInt("expiryMonth")
+      val year = value.getInt("expiryYear")
       mCardWidget.setExpiryDate(month, year)
     }
+  }
+
+  fun getValue(): MutableMap<String, Any> {
+    return cardDetails
   }
 
   fun onCardChanged() {

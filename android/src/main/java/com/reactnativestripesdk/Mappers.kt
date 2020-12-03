@@ -58,7 +58,7 @@ internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
     .build()
 }
 
-private fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
+fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
 }
 

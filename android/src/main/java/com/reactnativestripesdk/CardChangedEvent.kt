@@ -6,6 +6,7 @@
  */
 package com.reactnativestripesdk
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -19,12 +20,18 @@ internal class CardChangedEvent constructor(viewTag: Int, private val cardDetail
     rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())
   }
 
+  private fun getValOr(map: MutableMap<String, Any>, key: String, default: String? = null): String? {
+    return if ((map[key] as CharSequence).isNotEmpty()) map[key] as String? else default
+  }
+
   private fun serializeEventData(): WritableMap {
     val eventData = Arguments.createMap()
     eventData.putString("number", cardDetails["cardNumber"].toString())
+    val expMonth = getValOr(cardDetails, "expiryMonth", null)
+    val expYear = getValOr(cardDetails, "expiryYear", null)
     eventData.putString("cvc", cardDetails["cvc"].toString())
-    cardDetails["expiryMonth"]?.toString()?.toInt()?.let { eventData.putInt("expiryMonth", it) }
-    cardDetails["expiryYear"]?.toString()?.toInt()?.let { eventData.putInt("expiryYear", it) }
+    expMonth?.toString()?.toInt()?.let { eventData.putInt("expiryMonth", it) }
+    expYear?.toString()?.toInt()?.let { eventData.putInt("expiryYear", it) }
 
     return eventData
   }
