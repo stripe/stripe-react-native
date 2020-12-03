@@ -50,6 +50,20 @@ export default function PaymentScreen() {
 
 // TODO: documentation here
 
+## Run example app
+
+- `cd ./example`
+- `yarn or npm install`
+- for ios you have to run `pod install` in `ios` directory
+- create `.env` file with mandatory variables (look at `.env.example`)
+- `yarn start:server`
+- `yarn ios`/`yarn android`
+
+##### additionall steps for webhook example
+
+- [install `stripe-cli`](https://stripe.com/docs/stripe-cli)
+- run command `stripe listen --forward-to localhost:4242/webhook`
+
 ## Guides
 
 - [Accept a payment - classic](./docs/accept-a-payment.md)
