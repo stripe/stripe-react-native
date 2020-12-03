@@ -34,7 +34,7 @@ export default function PaymentScreen() {
 
   return (
     <CardField
-      value={{
+      defaultValue={{
         cardNumber: '4242424242424242',
         cvc: '424',
         expiryMonth: 3,

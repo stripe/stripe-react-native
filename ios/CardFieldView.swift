@@ -16,13 +16,16 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-
-    @objc var value: NSDictionary? {
+    
+    @objc var defaultValue: NSDictionary? {
         didSet {
-            cardParams.number = value?.object(forKey: "cardNumber") as? String
-            cardParams.cvc = value?.object(forKey: "cvc") as? String
-            cardParams.expMonth = value?.object(forKey: "expiryMonth") as? NSNumber
-            cardParams.expYear = value?.object(forKey: "expiryYear") as? NSNumber
+            if (cardParams.number != nil || cardParams.cvc != nil || cardParams.expMonth != nil || cardParams.expYear != nil) {
+                return
+            }
+            cardParams.number = defaultValue?.object(forKey: "cardNumber") as? String
+            cardParams.cvc = defaultValue?.object(forKey: "cvc") as? String
+            cardParams.expMonth = defaultValue?.object(forKey: "expiryMonth") as? NSNumber
+            cardParams.expYear = defaultValue?.object(forKey: "expiryYear") as? NSNumber
             cardField.cardParams = cardParams
         }
     }
@@ -44,7 +47,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             ])
         }
     }
-
+    
     override func layoutSubviews() {
         cardField.frame = self.bounds
     }

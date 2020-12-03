@@ -16,10 +16,17 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
       CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
   }
 
-  @ReactProp(name = "value")
-  fun setValue(view: StripeSdkCardView, value: ReadableMap) {
-    if (value == null) return
-    view.setValue(value);
+  private fun isNotEmptyField(field: Any?): Boolean {
+    return (field as CharSequence).isNotEmpty()
+  }
+
+  @ReactProp(name = "defaultValue")
+  fun setValue(view: StripeSdkCardView, defaultValue: ReadableMap) {
+    val currentValue = view.getValue()
+    if (defaultValue == null || isNotEmptyField(currentValue["cardNumber"]) || isNotEmptyField(currentValue["cvc"] ) || isNotEmptyField(currentValue["expiryMonth"]) || isNotEmptyField(currentValue["expiryYear"]))  {
+      return
+    }
+    view.setValue(defaultValue);
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {

@@ -82,12 +82,7 @@ export default function SetupFuturePaymentScreen() {
         style={styles.input}
       />
       <CardField
-        value={{
-          cardNumber: '4242424242424242',
-          cvc: '424',
-          expiryMonth: 3,
-          expiryYear: 22,
-        }}
+        defaultValue={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('card details', cardDetails);

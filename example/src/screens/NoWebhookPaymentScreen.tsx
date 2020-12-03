@@ -126,7 +126,7 @@ export default function NoWebhookPaymentScreen() {
   return (
     <Screen>
       <CardField
-        value={defaultCard}
+        defaultValue={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
