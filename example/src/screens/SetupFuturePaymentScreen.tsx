@@ -1,13 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Button, StyleSheet, View } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
+import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
   BillingDetails,
   CardDetails,
   CardField,
   useConfirmSetupIntent,
 } from 'react-native-stripe-sdk';
-import { API_URL } from './Config';
+import { API_URL } from '../Config';
+import Button from '../components/Button';
 
 const defaultCard = {
   cardNumber: '4000000000003238',
@@ -76,9 +76,10 @@ export default function SetupFuturePaymentScreen() {
   return (
     <View style={styles.container}>
       <TextInput
-        onChangeText={setEmail}
-        style={styles.emailField}
-        placeholder="email"
+        placeholder="E-mail"
+        keyboardType="email-address"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
+        style={styles.input}
       />
       <CardField
         value={{
@@ -94,7 +95,14 @@ export default function SetupFuturePaymentScreen() {
         }}
         style={styles.cardField}
       />
-      <Button onPress={handlePayPress} title="Save" disabled={loading} />
+      <View style={styles.buttonContainer}>
+        <Button
+          variant="primary"
+          onPress={handlePayPress}
+          title="Save"
+          loading={loading}
+        />
+      </View>
     </View>
   );
 }
@@ -107,11 +115,20 @@ const styles = StyleSheet.create({
   cardField: {
     width: '100%',
     height: 50,
+    marginVertical: 30,
   },
   emailField: {
     borderWidth: 1,
     borderColor: 'lightgrey',
     borderRadius: 6,
     marginVertical: 8,
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  input: {
+    height: 44,
+    borderBottomColor: '#00695C',
+    borderBottomWidth: 1.5,
   },
 });

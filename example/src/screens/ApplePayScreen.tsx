@@ -6,7 +6,7 @@ import {
   useApplePay,
 } from 'react-native-stripe-sdk';
 import type { PayWithApplePayError } from 'src/types';
-import { API_URL } from './Config';
+import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
   const {

@@ -5,12 +5,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { API_URL } from './Config';
-import WebhookPaymentScreen from './WebhookPaymentScreen';
-import HomeScreen from './HomeScreen';
-import NoWebhookPaymentScreen from './NoWebhookPaymentScreen';
-import ApplePayScreen from './ApplePayScreen';
-import SetupFuturePaymentScreen from './SetupFuturePaymentScreen';
-import ThreeDSecureScreen from './ThreeDSecureScreen';
+import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
+import HomeScreen from './screens/HomeScreen';
+import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
+import ApplePayScreen from './screens/ApplePayScreen';
+import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
+import ThreeDSecureScreen from './screens/ThreeDSecureScreen';
+import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -32,8 +33,23 @@ export default function App() {
       publishableKey={publishableKey}
       merchantIdentifier="merchant.com.react.native.stripe.sdk"
     >
+      <StatusBar backgroundColor="#00796B" translucent />
       <NavigationContainer>
-        <Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            headerTintColor: '#FFF',
+            headerStyle: {
+              shadowOpacity: 0,
+              backgroundColor: '#00796B',
+            },
+            headerTitleStyle: {
+              color: '#FFF',
+            },
+            headerBackTitleStyle: {
+              color: '#FFF',
+            },
+          }}
+        >
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen
             name="WebhookPayment"

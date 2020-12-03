@@ -1,12 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Button, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import Button from '../components/Button';
+import Screen from '../components/Screen';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <View style={styles.buttonContainer}>
         <Button
           title="Card payment using webhooks"
@@ -23,14 +25,16 @@ export default function HomeScreen() {
           }}
         />
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Apple Pay payment"
-          onPress={() => {
-            navigation.navigate('ApplePay');
-          }}
-        />
-      </View>
+      {Platform.OS === 'ios' && (
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Apple Pay payment"
+            onPress={() => {
+              navigation.navigate('ApplePay');
+            }}
+          />
+        </View>
+      )}
       <View style={styles.buttonContainer}>
         <Button
           title="Setup Future Payment"
@@ -47,19 +51,19 @@ export default function HomeScreen() {
           }}
         />
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
   },
   buttonContainer: {
-    width: '100%',
     paddingHorizontal: 16,
     paddingVertical: 8,
+    borderBottomColor: '#BDBDBD',
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
 });

@@ -1,30 +1,22 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Button, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import {
   CardDetails,
   CardField,
   useConfirmPayment,
-  use3dSecureConfiguration,
 } from 'react-native-stripe-sdk';
-import { API_URL } from './Config';
+import Button from '../components/Button';
+import { API_URL } from '../Config';
 
 const defaultCard = {
-  cardNumber: '4000000000003238',
+  cardNumber: '4242424242424242',
   cvc: '424',
   expiryMonth: 1,
   expiryYear: 22,
 };
 
-export default function ThreeDSecureScreen() {
+export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
-
-  use3dSecureConfiguration({
-    timeout: 5,
-    headingTextColor: '#90b43c',
-    bodyTextColor: '#000000',
-    bodyFontSize: 16,
-    headingFontSize: 21,
-  });
 
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (error) => {
@@ -48,10 +40,6 @@ export default function ThreeDSecureScreen() {
       body: JSON.stringify({
         currency: 'usd',
         items: [{ id: 'id' }],
-        // We strongly recommend that you rely on our SCA Engine to automatically prompt your customers for authentication based on risk level and [other requirements](https://stripe.com/docs/strong-customer-authentication).
-        // However, if you wish to request 3D Secure based on logic from your own fraud engine, provide this option. Permitted values include: `automatic` or `any`. If not provided, defaults to `automatic`.
-        // Read our guide on [manually requesting 3D Secure](https://stripe.com/docs/payments/3d-secure#manual-three-ds) for more information on how this configuration interacts with Radar and our SCA Engine.
-        request_three_d_secure: 'any',
       }),
     });
     const { clientSecret } = await response.json();
@@ -90,7 +78,12 @@ export default function ThreeDSecureScreen() {
         }}
         style={styles.cardField}
       />
-      <Button onPress={handlePayPress} title="Pay" disabled={loading} />
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Pay"
+        loading={loading}
+      />
     </View>
   );
 }
@@ -103,5 +96,6 @@ const styles = StyleSheet.create({
   cardField: {
     width: '100%',
     height: 50,
+    marginBottom: 20,
   },
 });
