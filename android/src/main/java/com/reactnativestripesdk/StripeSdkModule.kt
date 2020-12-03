@@ -130,6 +130,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun initialise(publishableKey: String) {
+    Stripe.appInfo = AppInfo.create("react-native-stripe-sdk", "0.0.1", "")
     stripe = Stripe(reactApplicationContext, publishableKey)
   }
 
@@ -171,7 +172,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     onConfirmPaymentError = null
     onConfirmPaymentSuccess = null
   }
-  
+
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, promise: Promise) {
     confirmPromise = promise

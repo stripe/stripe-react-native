@@ -19,6 +19,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     @objc(initialise:merchantIdentifier:)
     func initialise(publishableKey: String, merchantIdentifier: String?) -> Void {
         STPAPIClient.shared.publishableKey = publishableKey
+        STPAPIClient.shared.appInfo = STPAppInfo(name: "react-native-stripe-sdk", partnerId: "", version: "0.0.1", url: "")
         self.merchantIdentifier = merchantIdentifier
     }
     
