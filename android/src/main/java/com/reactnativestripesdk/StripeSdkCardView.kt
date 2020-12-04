@@ -2,19 +2,17 @@ package com.reactnativestripesdk
 
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
-import com.stripe.android.model.CardParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
-  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "")
+  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
   private var mEventDispatcher: EventDispatcher
 
   init {
@@ -35,6 +33,11 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       val year = value.getInt("expiryYear")
       mCardWidget.setExpiryDate(month, year)
     }
+  }
+
+  fun setPostalCodeEnabled(isEnabled: Boolean) {
+    mCardWidget.postalCodeEnabled = isEnabled
+    mCardWidget.usZipCodeRequired = isEnabled
   }
 
   fun getValue(): MutableMap<String, Any> {
@@ -91,6 +94,16 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         onCardChanged()
       }
     })
+
+    mCardWidget.setPostalCodeTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        cardDetails["postalCode"] = var1.toString()
+        onCardChanged()
+      }
+    })
+
   }
 
   override fun requestLayout() {

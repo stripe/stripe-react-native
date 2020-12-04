@@ -69,7 +69,7 @@ export default function WebhookPaymentScreen() {
     <View style={styles.container}>
       <CardField
         defaultValue={defaultCard}
-        postalCodeEnabled={false}
+        postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
         }}
