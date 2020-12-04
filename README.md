@@ -14,7 +14,7 @@ For iOS you will have to run `pod install` in `ios` directory to install native 
 
 ## Usage example
 
-```js
+```tsx
 // App.ts
 import { StripeProvider } from 'react-native-stripe-sdk';
 
@@ -48,7 +48,37 @@ export default function PaymentScreen() {
 
 ## Stripe initialisation
 
-// TODO: documentation here
+To initialise Stripe in React Native App use `StripeProvider` component in the root component of your application.
+
+`StripeProvider` can acceppt `publishableKey` and `merchantIdentifier` as a props. You can init it with a static values or in example fetch `publishableKey` from your server and then use it in `StripeProvider`.
+
+```tsx
+import { StripeProvider } from 'react-native-stripe-sdk';
+
+function App() {
+  const [publishableKey, setPublishableKey] = useState('');
+
+  const fetchPublishableKey = async () => {
+    const key = await fetchKey(); // fetch key from your server here
+    setPublishableKey(key);
+  };
+
+  useEffect(() => {
+    fetchPublishableKey();
+  }, []);
+
+  return (
+    <StripeProvider
+      publishableKey={publishableKey}
+      merchantIdentifier="merchant.identifier"
+    >
+      // Your app code here
+    </StripeProvider>
+  );
+}
+```
+
+You can find more details about StripeProvider in [API reference](./docs/reference.md#stripeprovider).
 
 ## Run example app
 
