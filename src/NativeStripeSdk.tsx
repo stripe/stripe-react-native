@@ -16,9 +16,7 @@ import type {
 type NativeStripeSdkType = {
   initialise(publishableKey: string, merchantIdentifier?: string): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
-  handleNextPaymentAction(
-    paymentIntentClientSecret: string
-  ): Promise<Intent & { requiresConfirmation?: boolean }>;
+  handleNextPaymentAction(paymentIntentClientSecret: string): Promise<Intent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
     cardDetails: CardDetails
@@ -43,7 +41,7 @@ type NativeStripeSdkType = {
     paymentIntentClientSecret: string,
     cardDetails: CardDetails,
     billingDetails: BillingDetails
-  ): Promise<Intent>;
+  ): Promise<SetupIntent>;
   registerConfirmSetupIntentCallbacks(
     onSuccess:
       | ((intent: SetupIntent) => void)
