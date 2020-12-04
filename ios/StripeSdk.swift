@@ -96,21 +96,25 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         switch status {
         case .success:
             onApplePaySuccessCallback?([NSNull()])
+            applePayCompletionRejecter = nil
             break
         case .error:
             let message = "Apple pay completion failed"
             onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Failed.rawValue, message: message)])
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
+            applePayCompletionRejecter = nil
             break
         case .userCancellation:
             let message = "Apple pay payment has been cancelled"
             onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Canceled.rawValue, message: message)])
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
+            applePayCompletionRejecter = nil
             break
         @unknown default:
             let message = "Cannot complete payment"
             onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Unknown.rawValue, message: message)])
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
+            applePayCompletionRejecter = nil
         }
     }
     
