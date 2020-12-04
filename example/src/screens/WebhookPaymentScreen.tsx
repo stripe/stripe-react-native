@@ -57,7 +57,7 @@ export default function WebhookPaymentScreen() {
       const clientSecret = await fetchPaymentIntentClientSecret();
 
       // 2. Confirm payment with card details
-      // The reset will be done automatically using webhooks
+      // The rest will be done automatically using webhooks
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
