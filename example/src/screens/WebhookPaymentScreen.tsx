@@ -9,7 +9,7 @@ import Button from '../components/Button';
 import { API_URL } from '../Config';
 
 const defaultCard = {
-  cardNumber: '4242424242424242',
+  number: '4242424242424242',
   cvc: '424',
   expiryMonth: 1,
   expiryYear: 22,

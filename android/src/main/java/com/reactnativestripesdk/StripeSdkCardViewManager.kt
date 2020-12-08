@@ -23,7 +23,7 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   @ReactProp(name = "defaultValue")
   fun setValue(view: StripeSdkCardView, defaultValue: ReadableMap) {
     val currentValue = view.getValue()
-    if (defaultValue == null || isNotEmptyField(currentValue["cardNumber"]) || isNotEmptyField(currentValue["cvc"] ) || isNotEmptyField(currentValue["expiryMonth"]) || isNotEmptyField(currentValue["expiryYear"]))  {
+    if (defaultValue == null || isNotEmptyField(currentValue["number"]) || isNotEmptyField(currentValue["cvc"] ) || isNotEmptyField(currentValue["expiryMonth"]) || isNotEmptyField(currentValue["expiryYear"]))  {
       return
     }
     view.setValue(defaultValue);

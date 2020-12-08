@@ -1,17 +1,11 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
 package com.reactnativestripesdk
+
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>) : Event<CardChangedEvent>(viewTag) {
+internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>, private val postalCodeEnabled: Boolean) : Event<CardChangedEvent>(viewTag) {
   override fun getEventName(): String {
     return EVENT_NAME
   }
@@ -26,12 +20,16 @@ internal class CardChangedEvent constructor(viewTag: Int, private val cardDetail
 
   private fun serializeEventData(): WritableMap {
     val eventData = Arguments.createMap()
-    eventData.putString("number", cardDetails["cardNumber"].toString())
+    eventData.putString("number", cardDetails["number"].toString())
     val expMonth = getValOr(cardDetails, "expiryMonth", null)
     val expYear = getValOr(cardDetails, "expiryYear", null)
     eventData.putString("cvc", cardDetails["cvc"].toString())
-    expMonth?.toString()?.toInt()?.let { eventData.putInt("expiryMonth", it) }
-    expYear?.toString()?.toInt()?.let { eventData.putInt("expiryYear", it) }
+    eventData.putInt("expiryMonth", expMonth?.toInt() ?: 0)
+    eventData.putInt("expiryYear", expYear?.toInt() ?: 0)
+
+    if (postalCodeEnabled) {
+      eventData.putString("postalCode", cardDetails["postalCode"]?.toString())
+    }
 
     return eventData
   }

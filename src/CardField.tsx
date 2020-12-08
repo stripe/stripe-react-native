@@ -25,7 +25,17 @@ export const CardField: React.FC<Props> = ({
 }) => {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<CardDetails>) => {
-      onCardChange?.(event.nativeEvent);
+      const card = event.nativeEvent;
+      const data: CardDetails = {
+        number: card.number || '',
+        cvc: card.cvc || '',
+        expiryMonth: card.expiryMonth || 0,
+        expiryYear: card.expiryYear || 0,
+      };
+      if (card.hasOwnProperty('postalCode')) {
+        data.postalCode = card.postalCode || '';
+      }
+      onCardChange?.(data);
     },
     [onCardChange]
   );
