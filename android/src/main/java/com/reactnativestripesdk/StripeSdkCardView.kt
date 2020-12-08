@@ -12,7 +12,7 @@ import com.stripe.android.view.CardInputWidget
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
-  private val cardDetails: MutableMap<String, Any> = mutableMapOf("cardNumber" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
+  private val cardDetails: MutableMap<String, Any> = mutableMapOf("number" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
   private var mEventDispatcher: EventDispatcher
 
   init {
@@ -25,7 +25,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun setValue(value: ReadableMap) {
-    mCardWidget.setCardNumber(getValOr(value, "cardNumber", null))
+    mCardWidget.setCardNumber(getValOr(value, "number", null))
     mCardWidget.setCvcCode(getValOr(value, "cvc", null))
 
     if (value.hasKey("expiryMonth") && value.hasKey("expiryYear")) {
@@ -46,7 +46,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun onCardChanged() {
     mEventDispatcher.dispatchEvent(
-      CardChangedEvent(id, cardDetails))
+      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled))
   }
 
   private fun setListeners() {
@@ -66,7 +66,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
-        cardDetails["cardNumber"] = var1.toString()
+        cardDetails["number"] = var1.toString()
         onCardChanged()
       }
     })
