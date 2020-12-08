@@ -76,11 +76,11 @@ Possible configuration options:
 
 ```ts
 type ThreeDSecureConfigurationParams = {
-  bodyFontSize?: number; // font size of thr text - default `11`
+  bodyFontSize?: number; // font size of the text - default `11`
   bodyTextColor?: string; // color of the text - default `#000000`
   headingFontSize?: number; // font size of the text in header - default `21`
   headingTextColor?: string; // color size of the text in header - default `#000000`
-  timeout?: number; // timeout value - default `5`
+  timeout?: number; // timeout value in minutes - default `5`
 };
 ```
 
