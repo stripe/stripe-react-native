@@ -76,7 +76,7 @@ Initiates the Apple Pay payment.
 
 ### Arguments
 
-- `items: CartSummaryItem[]` - cart items to be displayed in Apple Pay modal
+- `items: CartSummaryItem[]` - cart items to be displayed in Apple Pay sheet
 
 ### Return value
 
