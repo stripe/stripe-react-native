@@ -129,13 +129,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initialise(publishableKey: String, appInfo: ReadableMap) {
+  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?) {
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")
     val version = getValOr(appInfo, "version", "")
     val url = getValOr(appInfo, "url", "")
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
-    stripe = Stripe(reactApplicationContext, publishableKey)
+    stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
   }
 
   @ReactMethod

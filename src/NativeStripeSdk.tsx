@@ -18,6 +18,7 @@ type NativeStripeSdkType = {
   initialise(
     publishableKey: string,
     appInfo?: AppInfo,
+    stripeAccountId?: string,
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
