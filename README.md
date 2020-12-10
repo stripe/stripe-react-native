@@ -21,6 +21,12 @@ import { StripeProvider } from 'react-native-stripe-sdk';
 <StripeProvider
   publishableKey={publishableKey}
   merchantIdentifier="merchant.identifier"
+  appInfo={{
+    name: 'react-native-stripe-sdk',
+    version: '0.0.1',
+    partnerId: 'id',
+    url: 'http://your-website.com',
+  }}
 >
   <PaymentScreen />
 </StripeProvider>;
@@ -50,7 +56,7 @@ export default function PaymentScreen() {
 
 To initialise Stripe in React Native App use `StripeProvider` component in the root component of your application.
 
-`StripeProvider` can acceppt `publishableKey` and `merchantIdentifier` as a props. You can init it with a static values or in example fetch `publishableKey` from your server and then use it in `StripeProvider`.
+`StripeProvider` can acceppt `publishableKey`, `appInfo` and `merchantIdentifier` as a props. You can init it with a static values or in example fetch `publishableKey` from your server and then use it in `StripeProvider`.
 
 ```tsx
 import { StripeProvider } from 'react-native-stripe-sdk';
@@ -71,6 +77,12 @@ function App() {
     <StripeProvider
       publishableKey={publishableKey}
       merchantIdentifier="merchant.identifier"
+      appInfo={{
+        name: 'react-native-stripe-sdk',
+        version: '0.0.1',
+        partnerId: 'id',
+        url: 'http://your-website.com',
+      }}
     >
       // Your app code here
     </StripeProvider>
