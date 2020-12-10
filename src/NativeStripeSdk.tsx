@@ -11,10 +11,15 @@ import type {
   BillingDetails,
   SetupIntent,
   PayWithApplePayError,
+  AppInfo,
 } from './types';
 
 type NativeStripeSdkType = {
-  initialise(publishableKey: string, merchantIdentifier?: string): void;
+  initialise(
+    publishableKey: string,
+    appInfo?: AppInfo,
+    merchantIdentifier?: string
+  ): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
   handleNextPaymentAction(paymentIntentClientSecret: string): Promise<Intent>;
   confirmPaymentMethod(

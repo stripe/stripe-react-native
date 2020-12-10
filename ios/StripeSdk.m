@@ -4,6 +4,7 @@
 
 RCT_EXTERN_METHOD(
                   initialise:(NSString *)publishableKey
+                  appInfo: (NSDictionary *)appInfo
                   merchantIdentifier: (NSString *)merchantIdentifier
                   )
 

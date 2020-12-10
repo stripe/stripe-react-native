@@ -31,6 +31,12 @@ export default function App() {
   return (
     <StripeProvider
       publishableKey={publishableKey}
+      appInfo={{
+        name: 'react-native-stripe-sdk',
+        version: '0.0.1',
+        partnerId: 'partnerId',
+        url: 'http://your-website.com',
+      }}
       merchantIdentifier="merchant.com.react.native.stripe.sdk"
     >
       <StatusBar backgroundColor="#00796B" translucent />

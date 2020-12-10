@@ -16,10 +16,16 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onConfirmSetupIntentSuccessCallback: RCTResponseSenderBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     
-    @objc(initialise:merchantIdentifier:)
-    func initialise(publishableKey: String, merchantIdentifier: String?) -> Void {
+    @objc(initialise:appInfo:merchantIdentifier:)
+    func initialise(publishableKey: String, appInfo: NSDictionary, merchantIdentifier: String?) -> Void {
         STPAPIClient.shared.publishableKey = publishableKey
-        STPAPIClient.shared.appInfo = STPAppInfo(name: "react-native-stripe-sdk", partnerId: "", version: "0.0.1", url: "")
+        
+        let name = RCTConvert.nsString(appInfo["name"]) ?? "react-native-stripe-sdk"
+        let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
+        let version = RCTConvert.nsString(appInfo["version"]) ?? "0.0.1"
+        let url = RCTConvert.nsString(appInfo["url"]) ?? ""
+        
+        STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
     }
     
