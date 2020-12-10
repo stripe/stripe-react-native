@@ -9,6 +9,7 @@ type Props = {
   publishableKey: string;
   merchantIdentifier?: string;
   appInfo?: AppInfo;
+  stripeAccountId?: string;
 };
 
 export const StripeProvider: React.FC<Props> = ({
@@ -16,17 +17,23 @@ export const StripeProvider: React.FC<Props> = ({
   publishableKey,
   merchantIdentifier,
   appInfo = {},
+  stripeAccountId,
 }) => {
   useEffect(() => {
     if (publishableKey === '') {
       return;
     }
     if (isAndroid) {
-      NativeStripeSdk.initialise(publishableKey, appInfo);
+      NativeStripeSdk.initialise(publishableKey, appInfo, stripeAccountId);
     } else {
-      NativeStripeSdk.initialise(publishableKey, appInfo, merchantIdentifier);
+      NativeStripeSdk.initialise(
+        publishableKey,
+        appInfo,
+        stripeAccountId,
+        merchantIdentifier
+      );
     }
-  }, [publishableKey, merchantIdentifier, appInfo]);
+  }, [publishableKey, merchantIdentifier, appInfo, stripeAccountId]);
 
   return (
     <StripeContextProvider value={{ publishableKey, cardDetails: {} }}>

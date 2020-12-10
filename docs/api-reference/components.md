@@ -27,6 +27,12 @@ Merchant identifier needed for Apple Pay actions
 
 type: `string`
 
+#### stripeAccountId _(optional)_
+
+Stripe account ID
+
+type: `string`
+
 ## CardField
 
 Card field component allowing to collect card details.
