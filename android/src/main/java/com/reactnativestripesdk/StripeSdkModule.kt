@@ -6,6 +6,7 @@ import androidx.annotation.IntRange
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
+import com.stripe.android.stripe3ds2.init.ui.StripeLabelCustomization
 
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -98,29 +99,17 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     reactContext.addActivityEventListener(mActivityEventListener);
   }
 
-  @ReactMethod
-  fun configure3dSecure(params: ReadableMap) {
-    val bodyFontSize: Int = params.getInt("bodyFontSize")
-    val bodyTextColor: String = params.getString("bodyTextColor") ?: ""
-    val headingFontSize: Int = params.getInt("headingFontSize")
-    val headingTextColor: String = params.getString("headingTextColor") ?: ""
-    val timeout: Int = params.getInt("timeout")
+  private fun configure3dSecure(params: ReadableMap) {
+    val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
 
-    val uiCustomization = PaymentAuthConfig.Stripe3ds2UiCustomization.Builder()
-      .setLabelCustomization(
-        PaymentAuthConfig.Stripe3ds2LabelCustomization.Builder()
-          .setTextFontSize(bodyFontSize)
-          .setTextColor(bodyTextColor)
-          .setHeadingTextFontSize(headingFontSize)
-          .setHeadingTextColor(headingTextColor)
-          .build()
-      )
-      .build()
+    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
+
+    val uiCustomization = mapToUICustomization(params)
+
     PaymentAuthConfig.init(
       PaymentAuthConfig.Builder()
         .set3ds2Config(
-          PaymentAuthConfig.Stripe3ds2Config.Builder()
-            .setTimeout(timeout)
+          stripe3dsConfigBuilder
             .setUiCustomization(uiCustomization)
             .build()
         )
@@ -129,7 +118,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?) {
+  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?, params: ReadableMap?) {
+    if (params != null) {
+      configure3dSecure(params)
+    }
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")
     val version = getValOr(appInfo, "version", "")

@@ -11,7 +11,7 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 
 const defaultCard = {
-  number: '4242424242424242',
+  number: '4000000000003238',
   cvc: '424',
   expiryMonth: 3,
   expiryYear: 22,

@@ -40,7 +40,7 @@ class Mappers {
         
         return intent;
     }
-
+    
     class func mapToBillingDetails(billingDetails: NSDictionary) -> STPPaymentMethodBillingDetails {
         let billing = STPPaymentMethodBillingDetails()
         billing.email = RCTConvert.nsString(billingDetails["email"])
@@ -48,7 +48,7 @@ class Mappers {
         billing.name = RCTConvert.nsString(billingDetails["name"])
         
         let billingAddres = STPPaymentMethodAddress()
-
+        
         billingAddres.city = RCTConvert.nsString(billingDetails["addressCity"])
         billingAddres.postalCode = RCTConvert.nsString(billingDetails["addressPostalCode"])
         billingAddres.country = RCTConvert.nsString(billingDetails["addressCountry"])
@@ -97,6 +97,104 @@ class Mappers {
         ]
         
         return intent
+    }
+    
+    class func mapUICustomization(_ params: NSDictionary) -> STPThreeDSUICustomization {
+        let uiCustomization = STPThreeDSUICustomization()
+        if let labelSettings = params["label"] as? Dictionary<String, Any?> {
+            if let headingTextColor = labelSettings["headingTextColor"] as? String {
+                uiCustomization.labelCustomization.headingTextColor = UIColor(hexString: headingTextColor)
+            }
+            if let textColor = labelSettings["textColor"] as? String {
+                uiCustomization.labelCustomization.textColor = UIColor(hexString: textColor)
+            }
+            if let headingFontSize = labelSettings["headingFontSize"] as? Int {
+                uiCustomization.labelCustomization.headingFont = UIFont.systemFont(ofSize: CGFloat(headingFontSize))
+            }
+            if let textFontSize = labelSettings["textFontSize"] as? Int {
+                uiCustomization.labelCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+        }
+        
+        if let navigationBarSettings = params["navigationBar"] as? Dictionary<String, Any?> {
+            if let barTintColor = navigationBarSettings["barTintColor"] as? String {
+                uiCustomization.navigationBarCustomization.barTintColor = UIColor(hexString: barTintColor)
+            }
+            if let barStyle = navigationBarSettings["barStyle"] as? Int {
+                uiCustomization.navigationBarCustomization.barStyle = UIBarStyle(rawValue: barStyle) ?? .default
+            }
+            if let headerText = navigationBarSettings["headerText"] as? String {
+                uiCustomization.navigationBarCustomization.headerText = headerText
+            }
+            if let buttonText = navigationBarSettings["buttonText"] as? String {
+                uiCustomization.navigationBarCustomization.buttonText = buttonText
+            }
+            if let textFontSize = navigationBarSettings["textFontSize"] as? Int {
+                uiCustomization.navigationBarCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = navigationBarSettings["textColor"] as? String {
+                uiCustomization.navigationBarCustomization.textColor = UIColor(hexString: textColor)
+            }
+            if let translucent = navigationBarSettings["translucent"] as? Bool {
+                uiCustomization.navigationBarCustomization.translucent = translucent
+            }
+        }
+        
+        if let textFieldSettings = params["textField"] as? Dictionary<String, Any?> {
+            if let borderColor = textFieldSettings["borderColor"] as? String {
+                uiCustomization.textFieldCustomization.borderColor = UIColor(hexString: borderColor)
+            }
+            if let borderWidth = textFieldSettings["borderWidth"] as? Int {
+                uiCustomization.textFieldCustomization.borderWidth = CGFloat(borderWidth)
+            }
+            if let cornerRadius = textFieldSettings["cornerRadius"] as? Int {
+                uiCustomization.textFieldCustomization.cornerRadius = CGFloat(cornerRadius)
+            }
+            if let textColor = textFieldSettings["textColor"] as? String {
+                uiCustomization.textFieldCustomization.textColor = UIColor(hexString: textColor)
+            }
+            if let textFontSize = textFieldSettings["textFontSize"] as? Int {
+                uiCustomization.textFieldCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+        }
+        
+        if let footerSettings = params["footer"] as? Dictionary<String, Any?> {
+            if let backgroundColor = footerSettings["backgroundColor"] as? String {
+                uiCustomization.footerCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let chevronColor = footerSettings["chevronColor"] as? String {
+                uiCustomization.footerCustomization.chevronColor = UIColor(hexString: chevronColor)
+            }
+            if let headingTextColor = footerSettings["headingTextColor"] as? String {
+                uiCustomization.footerCustomization.headingTextColor = UIColor(hexString: headingTextColor)
+            }
+            if let textColor = footerSettings["textColor"] as? String {
+                uiCustomization.footerCustomization.textColor = UIColor(hexString: textColor)
+            }
+        }
+        
+        if let submitButtonSettings = params["submitButton"] as? Dictionary<String, Any?> {
+            let buttonCustomization = uiCustomization.buttonCustomization(for: STPThreeDSCustomizationButtonType.submit)
+            
+            if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
+                buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let cornerRadius = submitButtonSettings["cornerRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(cornerRadius)
+            }
+            if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
+                buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = submitButtonSettings["textColor"] as? String {
+                buttonCustomization.textColor = UIColor(hexString: textColor)
+            }
+        }
+        
+        if let backgroundColor = params["backgroundColor"] as? String {
+            uiCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+        }
+        
+        return uiCustomization
     }
     
 }

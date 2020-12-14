@@ -8,6 +8,9 @@ Stripe initialisation provider. Needed to properly initialise stripe SDK. Should
 <StripeProvider
   publishableKey="publishable_key"
   merchantIdentifier="merchant.com.react.native.stripe.sdk"
+  threeDSecureParams={{
+    timeout: 5,
+  }}
 >
   // Your app here
 </StripeProvider>
@@ -32,6 +35,25 @@ type: `string`
 Stripe account ID
 
 type: `string`
+
+#### threeDSecureParams _(optional)_
+
+3d secure configuration.
+check configuration details [here](../3d-secure.md)
+
+type:
+
+```ts
+Partial<{
+  timeout: number;
+  label: ThreeDsLabelProps;
+  navigationBar: NavigationBarProps;
+  textField: ThreeDsTextFieldProps;
+  submitButton: ThreeDsSubmitButtonProps;
+  backgroundColor: string; // iOS only
+  footer: ThreeDSecureFooterProps; // iOS only
+}>;
+```
 
 ## CardField
 

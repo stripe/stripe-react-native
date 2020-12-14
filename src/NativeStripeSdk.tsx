@@ -17,8 +17,9 @@ import type {
 type NativeStripeSdkType = {
   initialise(
     publishableKey: string,
-    appInfo?: AppInfo,
+    appInfo: AppInfo,
     stripeAccountId?: string,
+    threeDSecureParams?: ThreeDSecureConfigurationParams,
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;

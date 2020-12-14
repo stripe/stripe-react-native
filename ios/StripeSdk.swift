@@ -16,8 +16,11 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onConfirmSetupIntentSuccessCallback: RCTResponseSenderBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     
-    @objc(initialise:appInfo:stripeAccountId:merchantIdentifier:)
-    func initialise(publishableKey: String, appInfo: NSDictionary, stripeAccountId: String?, merchantIdentifier: String?) -> Void {
+    @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
+    func initialise(publishableKey: String,  appInfo: NSDictionary, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
+        if let params = params {
+            configure3dSecure(params)
+        }
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
         
@@ -164,15 +167,11 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
     }
     
-    @objc(configure3dSecure:)
-    func configure3dSecure(params: NSDictionary) {
+    func configure3dSecure(_ params: NSDictionary) {
         let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
-        let uiCustomization = threeDSCustomizationSettings.uiCustomization
-        
-        threeDSCustomizationSettings.authenticationTimeout = RCTConvert.nsInteger(params["timeout"])
-        
-        uiCustomization.labelCustomization.headingTextColor = UIColor(hexString: RCTConvert.nsString(params["headingTextColor"]))
-        uiCustomization.labelCustomization.textColor = UIColor(hexString: RCTConvert.nsString(params["bodyTextColor"]))
+        let uiCustomization = Mappers.mapUICustomization(params)
+                
+        threeDSCustomizationSettings.uiCustomization = uiCustomization
     }
     
     @objc(registerConfirmPaymentCallbacks:onError:)
