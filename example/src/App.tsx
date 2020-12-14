@@ -10,7 +10,6 @@ import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import ThreeDSecureScreen from './screens/ThreeDSecureScreen';
 import { StatusBar } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -38,6 +37,24 @@ export default function App() {
         url: 'http://your-website.com',
       }}
       merchantIdentifier="merchant.com.react.native.stripe.sdk"
+      threeDSecureParams={{
+        backgroundColor: '#FFFFFF',
+        timeout: 5,
+        label: {
+          headingTextColor: '#000000',
+          headingFontSize: 13,
+        },
+        navigationBar: {
+          headerText: '3d secure',
+        },
+        footer: {
+          backgroundColor: '#FFFFFF',
+        },
+        submitButton: {
+          textColor: '#FFFFFF',
+          textFontSize: 12,
+        },
+      }}
     >
       <StatusBar backgroundColor="#00796B" translucent />
       <NavigationContainer>
@@ -69,10 +86,6 @@ export default function App() {
           <Stack.Screen
             name="SetupFuturePayment"
             component={SetupFuturePaymentScreen}
-          />
-          <Stack.Screen
-            name="ThreeDSecureScreen"
-            component={ThreeDSecureScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

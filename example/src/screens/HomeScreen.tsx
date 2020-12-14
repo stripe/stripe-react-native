@@ -43,14 +43,6 @@ export default function HomeScreen() {
           }}
         />
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="3d Secure configuration"
-          onPress={() => {
-            navigation.navigate('ThreeDSecureScreen');
-          }}
-        />
-      </View>
     </Screen>
   );
 }

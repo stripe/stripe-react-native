@@ -6,6 +6,7 @@ RCT_EXTERN_METHOD(
                   initialise:(NSString *)publishableKey
                   appInfo: (NSDictionary *)appInfo
                   stripeAccountId: (NSString *)stripeAccountId
+                  params: (NSDictionary *)params
                   merchantIdentifier: (NSString *)merchantIdentifier
                   )
 

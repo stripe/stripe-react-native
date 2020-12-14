@@ -9,7 +9,7 @@ import Button from '../components/Button';
 import { API_URL } from '../Config';
 
 const defaultCard = {
-  number: '4242424242424242',
+  number: '4000000000003238',
   cvc: '424',
   expiryMonth: 1,
   expiryYear: 22,
@@ -26,7 +26,7 @@ export default function WebhookPaymentScreen() {
       console.log('Success', intent);
       Alert.alert(
         'Success',
-        `The payment was confirmed successfully! curerency: ${intent.status}`
+        `The payment was confirmed successfully! currency: ${intent.currency}`
       );
     },
   });

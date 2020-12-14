@@ -65,13 +65,81 @@ export type SetupIntent = {
   description?: string;
 };
 
-export type ThreeDSecureConfigurationParams = {
-  bodyFontSize?: number;
-  bodyTextColor?: string;
-  headingFontSize?: number;
-  headingTextColor?: string;
-  timeout?: number;
-};
+export enum NavigationBarStyle {
+  default = 0,
+  black = 1,
+  blackTranslucent = 2,
+}
+
+type NavigationBarPropsIOS = Partial<{
+  barStyle: NavigationBarStyle;
+  translucent: boolean;
+  barTintColor: string;
+}>;
+
+type NavigationBarPropsAndroid = Partial<{
+  statusBarColor: string;
+  backgroundColor: string;
+}>;
+
+type NavigationBarProps = NavigationBarPropsAndroid &
+  NavigationBarPropsIOS &
+  Partial<{
+    headerText: string;
+    buttonText: string;
+    textColor: string;
+    textFontSize: number;
+  }>;
+
+type ThreeDSecureFooterProps = Partial<{
+  backgroundColor: string;
+  chevronColor: string;
+  headingTextColor: string;
+  textColor: string;
+}>;
+
+type ThreeDSecureMainPropsIOS = Partial<{
+  backgroundColor: string;
+  footer: ThreeDSecureFooterProps;
+}>;
+
+type ThreeDSecureMainPropsAndroid = Partial<{
+  accentColor: string;
+}>;
+
+type ThreeDSecureMainProps = ThreeDSecureMainPropsIOS &
+  ThreeDSecureMainPropsAndroid;
+
+type ThreeDsLabelProps = Partial<{
+  headingTextColor: string;
+  textColor: string;
+  textFontSize: number;
+  headingFontSize: number;
+}>;
+
+type ThreeDSecureTextFieldProps = Partial<{
+  borderColor: string;
+  borderWidth: number;
+  cornerRadius: number;
+  textColor: string;
+  textFontSize: number;
+}>;
+
+type ThreeDSecureSubmitButtonProps = Partial<{
+  backgroundColor: string;
+  cornerRadius: number;
+  textColor: string;
+  textFontSize: number;
+}>;
+
+export type ThreeDSecureConfigurationParams = ThreeDSecureMainProps &
+  Partial<{
+    timeout: number;
+    label: ThreeDsLabelProps;
+    navigationBar: NavigationBarProps;
+    textField: ThreeDSecureTextFieldProps;
+    submitButton: ThreeDSecureSubmitButtonProps;
+  }>;
 
 export type PaymentMethod = {
   stripeId: string;
