@@ -6,7 +6,12 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type { CardDetails, CardFieldProps, Nullable } from './types';
+import type {
+  CardDetails,
+  CardFieldProps,
+  Nullable,
+  FocusFieldNames,
+} from './types';
 
 const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 
@@ -15,7 +20,7 @@ type Props = AccessibilityProps & {
   defaultValue?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange?(card: CardDetails): void;
-  onFocus?(focusedField: Nullable<string>): void;
+  onFocus?(focusedField: Nullable<FocusFieldNames>): void;
 };
 
 export const CardField: React.FC<Props> = ({
@@ -41,7 +46,9 @@ export const CardField: React.FC<Props> = ({
   );
 
   const onFocusHandler = useCallback(
-    (event: NativeSyntheticEvent<{ focusedField: Nullable<string> }>) => {
+    (
+      event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
+    ) => {
       onFocus?.(event.nativeEvent.focusedField);
     },
     [onFocus]
@@ -50,7 +57,7 @@ export const CardField: React.FC<Props> = ({
   return (
     <CardFieldNative
       onCardChange={onCardChangeHandler}
-      onFocus={onFocusHandler}
+      onFocusChange={onFocusHandler}
       {...props}
     />
   );

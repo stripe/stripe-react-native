@@ -31,10 +31,16 @@ export type CardFieldProps = {
   value?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange(event: NativeSyntheticEvent<CardDetails>): void;
-  onFocus(
-    event: NativeSyntheticEvent<{ focusedField: Nullable<string> }>
+  onFocusChange(
+    event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
   ): void;
 };
+
+export type FocusFieldNames =
+  | 'CardNumber'
+  | 'Cvc'
+  | 'ExpiryDate'
+  | 'PostalCode';
 
 export enum IntentStatus {
   Succeeded = 'Succeeded',
