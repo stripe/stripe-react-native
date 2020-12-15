@@ -10,7 +10,8 @@ import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
+import { colors } from './colors';
 
 const Stack = createStackNavigator();
 
@@ -38,38 +39,44 @@ export default function App() {
       }}
       merchantIdentifier="merchant.com.react.native.stripe.sdk"
       threeDSecureParams={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.white,
         timeout: 5,
         label: {
-          headingTextColor: '#000000',
+          headingTextColor: colors.slate,
           headingFontSize: 13,
         },
         navigationBar: {
           headerText: '3d secure',
         },
         footer: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.white,
         },
         submitButton: {
-          textColor: '#FFFFFF',
+          textColor: colors.white,
           textFontSize: 12,
         },
       }}
     >
-      <StatusBar backgroundColor="#00796B" translucent />
+      <StatusBar
+        backgroundColor={colors.blurple_dark}
+        barStyle="light-content"
+        translucent
+      />
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
-            headerTintColor: '#FFF',
+            headerTintColor: colors.white,
             headerStyle: {
               shadowOpacity: 0,
-              backgroundColor: '#00796B',
+              backgroundColor: colors.blurple,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: colors.slate,
             },
             headerTitleStyle: {
-              color: '#FFF',
+              color: colors.white,
             },
             headerBackTitleStyle: {
-              color: '#FFF',
+              color: colors.white,
             },
           }}
         >

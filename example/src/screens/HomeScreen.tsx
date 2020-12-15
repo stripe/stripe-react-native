@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import { colors } from '../colors';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderBottomColor: '#BDBDBD',
+    borderBottomColor: colors.light_gray,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
 });
