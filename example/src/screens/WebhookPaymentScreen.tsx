@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import {
   CardDetails,
   CardField,
   useConfirmPayment,
 } from 'react-native-stripe-sdk';
 import Button from '../components/Button';
+import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 const defaultCard = {
@@ -66,7 +67,7 @@ export default function WebhookPaymentScreen() {
   }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <CardField
         defaultValue={defaultCard}
         postalCodeEnabled={true}
@@ -84,15 +85,11 @@ export default function WebhookPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
   cardField: {
     width: '100%',
     height: 50,

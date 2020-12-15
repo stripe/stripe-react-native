@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import {
   ApplePayButton,
   StripeError,
   useApplePay,
 } from 'react-native-stripe-sdk';
 import type { PayWithApplePayError } from 'src/types';
+import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
@@ -53,20 +54,15 @@ export default function ApplePayScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Screen>
       {isApplePaySupported && (
         <ApplePayButton onPay={pay} style={styles.payButton} />
       )}
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 22,
-  },
   payButton: {
     width: '50%',
     height: 50,

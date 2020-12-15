@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { colors } from '../colors';
 
 type Props = {
   title: string;
@@ -32,7 +33,7 @@ export default function Button({
         onPress={onPress}
       >
         {loading ? (
-          <ActivityIndicator color="#FFF" size="small" />
+          <ActivityIndicator color={colors.white} size="small" />
         ) : (
           <Text
             style={[styles.text, variant === 'primary' && styles.textPrimary]}
@@ -48,18 +49,19 @@ export default function Button({
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 12,
+    borderRadius: 12,
   },
   primaryContainer: {
-    backgroundColor: '#00695C',
+    backgroundColor: colors.slate,
     alignItems: 'center',
   },
   text: {
-    color: '#212121',
+    color: colors.slate,
     fontWeight: '600',
     fontSize: 16,
   },
   textPrimary: {
-    color: '#FFF',
+    color: colors.white,
   },
   disabled: {
     opacity: 0.3,

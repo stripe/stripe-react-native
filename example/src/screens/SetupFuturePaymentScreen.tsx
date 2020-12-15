@@ -8,6 +8,8 @@ import {
 } from 'react-native-stripe-sdk';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
+import { colors } from '../colors';
+import Screen from '../components/Screen';
 
 const defaultCard = {
   number: '4000000000003238',
@@ -74,7 +76,7 @@ export default function SetupFuturePaymentScreen() {
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
   return (
-    <View style={styles.container}>
+    <Screen>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
@@ -98,15 +100,11 @@ export default function SetupFuturePaymentScreen() {
           loading={loading}
         />
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
   cardField: {
     width: '100%',
     height: 50,
@@ -123,7 +121,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 44,
-    borderBottomColor: '#00695C',
+    borderBottomColor: colors.slate,
     borderBottomWidth: 1.5,
   },
 });
