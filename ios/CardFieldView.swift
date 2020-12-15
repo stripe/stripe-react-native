@@ -4,6 +4,7 @@ import Stripe
 
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
+    @objc var onFocusChange: RCTDirectEventBlock?
     
     private var theme = STPTheme.defaultTheme
     
@@ -34,6 +35,22 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         super.init(frame: frame)
         cardField.delegate = self
         self.addSubview(cardField)
+    }
+    
+    func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": "CardNumber"])
+    }
+    
+    func paymentCardTextFieldDidBeginEditingCVC(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": "Cvc"])
+    }
+    
+    func paymentCardTextFieldDidBeginEditingExpiration(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": "ExpiryDate"])
+    }
+    
+    func paymentCardTextFieldDidBeginEditingPostalCode(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": "PostalCode"])
     }
     
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
