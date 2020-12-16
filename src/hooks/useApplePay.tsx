@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import StripeSdk from '../NativeStripeSdk';
 import type {
   CartSummaryItem,
@@ -6,6 +6,7 @@ import type {
   StripeError,
 } from '../types';
 import { isiOS } from '../platform';
+import { useStripe } from './useStripe';
 
 type Params = {
   onError?(error: StripeError<PayWithApplePayError>): void;
@@ -16,17 +17,8 @@ export function useApplePay({
   onSuccess = () => {},
   onError = () => {},
 }: Params = {}) {
+  const { isApplePaySupported } = useStripe();
   const [loading, setLoading] = useState(false);
-  const [isApplePaySupported, setApplePaySupported] = useState(false);
-
-  useEffect(() => {
-    async function checkApplePaySupport() {
-      const isSupported = isiOS ?? (await StripeSdk.isApplePaySupported());
-      setApplePaySupported(isSupported);
-    }
-
-    checkApplePaySupport();
-  }, []);
 
   const handleSuccess = useCallback(() => {
     onSuccess();
