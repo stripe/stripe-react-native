@@ -21,7 +21,7 @@ export default function WebhookPaymentScreen() {
 
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (error) => {
-      Alert.alert('Error', error.message);
+      Alert.alert(`Error code: ${error.code}`, error.message);
     },
     onSuccess: (intent) => {
       console.log('Success', intent);
@@ -41,6 +41,7 @@ export default function WebhookPaymentScreen() {
       body: JSON.stringify({
         currency: 'usd',
         items: [{ id: 'id' }],
+        request_three_d_secure: 'any',
       }),
     });
     const { clientSecret } = await response.json();
@@ -62,7 +63,7 @@ export default function WebhookPaymentScreen() {
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
-      console.log('Paymentconfirmation error', e.message);
+      console.log('Payment confirmation error', e.message);
     }
   }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
 
@@ -70,7 +71,7 @@ export default function WebhookPaymentScreen() {
     <Screen>
       <CardField
         defaultValue={defaultCard}
-        postalCodeEnabled={true}
+        postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
         }}
