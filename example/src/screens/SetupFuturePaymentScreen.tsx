@@ -22,8 +22,8 @@ export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
   const [email, setEmail] = useState('');
 
-  // It  is also possible to use `useStripe` and than `stripe.confirmSetupIntent`
-  // The only difference is that this appraoch will not have `loading` status support and `onError`, `onSuccess` callbacks
+  // It  is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
+  // The only difference is that this approach will not have `loading` status support and `onError`, `onSuccess` callbacks
   // But the Promise returned by the method will work the same allowing to catch errors and success states
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
@@ -70,7 +70,7 @@ export default function SetupFuturePaymentScreen() {
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
     } catch (e) {
-      Alert.alert(`Error code: ${e.code}\n${e.message}`);
+      Alert.alert(`Error code: ${e.code}`, e.message);
       console.log('Setup intent creation error', e.message);
     }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);

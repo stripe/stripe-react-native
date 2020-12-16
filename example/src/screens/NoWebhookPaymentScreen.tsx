@@ -11,7 +11,7 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 
 const defaultCard = {
-  number: '4000000000003238',
+  number: '4000 0027 6000 3184',
   cvc: '424',
   expiryMonth: 3,
   expiryYear: 22,
@@ -59,7 +59,7 @@ export default function NoWebhookPaymentScreen() {
       if (error) {
         // Error during confirming Intent
         Alert.alert('Error', error);
-      } else if (!clientSecret && !requiresAction) {
+      } else if (clientSecret && !requiresAction) {
         Alert.alert('Success', 'The payment was confirmed successfully!');
       }
     },
@@ -104,15 +104,15 @@ export default function NoWebhookPaymentScreen() {
 
         if (status === IntentStatus.RequiresConfirmation) {
           // 4. Call API to confirm intent
-          confirmIntent(stripeId);
+          await confirmIntent(stripeId);
         } else {
           // Payment succedeed
           Alert.alert('Success', 'The payment was confirmed successfully!');
         }
       }
     } catch (e) {
-      console.log('Paymentconfirmation error', e);
-      Alert.alert('Error', e.message);
+      console.log('Payment confirmation error', e);
+      Alert.alert(`Error code: ${e.code}`, e.message);
     }
     setLoading(false);
   }, [
@@ -127,7 +127,7 @@ export default function NoWebhookPaymentScreen() {
     <Screen>
       <CardField
         defaultValue={defaultCard}
-        postalCodeEnabled={false}
+        postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
           setCard(cardDetails);

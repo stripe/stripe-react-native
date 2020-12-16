@@ -144,7 +144,7 @@ function PaymentScreen() {
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
-      console.log('Paymentconfirmation error', e.code);
+      console.log('Payment confirmation error', e.code);
     }
   }, [card, fetchPaymentIntentClientSecret]);
 
@@ -212,7 +212,7 @@ function PaymentScreen() {
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
-      console.log('Paymentconfirmation error', e.code);
+      console.log('Payment confirmation error', e.code);
     }
   }, [card, fetchPaymentIntentClientSecret]);
 
