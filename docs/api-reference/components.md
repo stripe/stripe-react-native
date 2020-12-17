@@ -95,3 +95,16 @@ type: `(card: CardDetails) => void`
 Callback that will be called on every card change with the name of the focused field.
 
 type: `(focusedField: Nullable<string>) => void`
+
+## ApplePayButton
+
+Component which provides the Apple Pay button for use inside of your app
+and can be used to prompt the user to pay with Apple Pay.
+
+### props
+
+#### onPress
+
+Handler to be called when the user taps the button.
+
+type: `() => void`
