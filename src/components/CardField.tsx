@@ -11,7 +11,7 @@ import type {
   CardFieldProps,
   Nullable,
   FocusFieldNames,
-} from './types';
+} from '../types';
 
 const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 

@@ -56,7 +56,7 @@ export default function ApplePayScreen() {
   return (
     <Screen>
       {isApplePaySupported && (
-        <ApplePayButton onPay={pay} style={styles.payButton} />
+        <ApplePayButton onPress={pay} style={styles.payButton} />
       )}
     </Screen>
   );

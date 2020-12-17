@@ -7,17 +7,18 @@ import type {
   StripeError,
 } from '../types';
 import StripeSdk from '../NativeStripeSdk';
-import { isiOS } from '../platform';
+import { createHandler } from '../helpers';
 
 type Params = {
   onError?: (error: StripeError<ConfirmSetupIntentError>) => void;
   onSuccess?: (intent: SetupIntent) => void;
 };
 
-export function useConfirmSetupIntent(params?: Params) {
+export function useConfirmSetupIntent({
+  onError = () => {},
+  onSuccess = () => {},
+}: Params = {}) {
   const [loading, setLoading] = useState(false);
-
-  const { onError = () => {}, onSuccess = () => {} } = params || {};
 
   const handleFinishCallback = useCallback(() => {
     setLoading(false);
@@ -32,22 +33,17 @@ export function useConfirmSetupIntent(params?: Params) {
     ) => {
       setLoading(true);
 
-      const handleSuccess = isiOS
-        ? (_: any, value: SetupIntent) => {
-            onSuccess(value);
-            handleFinishCallback();
-          }
-        : onSuccess;
+      const handleSuccess = createHandler((value: SetupIntent) => {
+        onSuccess(value);
+        handleFinishCallback();
+      });
 
-      const handleError = isiOS
-        ? (_: any, value: StripeError<ConfirmSetupIntentError>) => {
-            onError(value);
-            handleFinishCallback();
-          }
-        : (value: StripeError<ConfirmSetupIntentError>) => {
-            onError(value);
-            handleFinishCallback();
-          };
+      const handleError = createHandler(
+        (value: StripeError<ConfirmSetupIntentError>) => {
+          onError(value);
+          handleFinishCallback();
+        }
+      );
 
       StripeSdk.registerConfirmSetupIntentCallbacks(handleSuccess, handleError);
 
@@ -57,10 +53,12 @@ export function useConfirmSetupIntent(params?: Params) {
         billingDetails
       );
       setLoading(false);
+
       return result;
     },
     [onError, onSuccess, handleFinishCallback]
   );
+
   return {
     confirmSetupIntent,
     loading,
