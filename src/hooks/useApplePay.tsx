@@ -5,7 +5,6 @@ import type {
   PayWithApplePayError,
   StripeError,
 } from '../types';
-import { isiOS } from '../platform';
 import { useStripe } from './useStripe';
 
 type Params = {
@@ -34,17 +33,15 @@ export function useApplePay({
   );
 
   const registerCallbacks = useCallback(() => {
-    if (isiOS) {
-      StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
-    }
+    StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
   }, [handleSuccess, handleError]);
 
   const payWithApplePay = async (items: CartSummaryItem[]) => {
-    registerCallbacks();
-
     if (!isApplePaySupported) {
       return;
     }
+    registerCallbacks();
+
     setLoading(true);
     try {
       await StripeSdk.payWithApplePay(items);

@@ -6,7 +6,7 @@ import type {
   StripeError,
 } from '../types';
 import StripeSdk from '../NativeStripeSdk';
-import { isiOS } from '../platform';
+import { createHandler } from '../helpers';
 
 type Params = {
   onError: (error: StripeError<ConfirmPaymentError>) => void;
@@ -23,25 +23,17 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
 
   const confirmPayment = useCallback(
     async (paymentIntentClientSecret: string, cardDetails: CardDetails) => {
-      const handleSuccess = isiOS
-        ? (_: any, value: Intent) => {
-            onSuccess(value);
-            handleFinishCallback();
-          }
-        : (value: Intent) => {
-            onSuccess(value);
-            handleFinishCallback();
-          };
+      const handleSuccess = createHandler((value: Intent) => {
+        onSuccess(value);
+        handleFinishCallback();
+      });
 
-      const handleError = isiOS
-        ? (_: any, value: StripeError<ConfirmPaymentError>) => {
-            onError(value);
-            handleFinishCallback();
-          }
-        : (value: StripeError<ConfirmPaymentError>) => {
-            onError(value);
-            handleFinishCallback();
-          };
+      const handleError = createHandler(
+        (value: StripeError<ConfirmPaymentError>) => {
+          onError(value);
+          handleFinishCallback();
+        }
+      );
 
       StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
 
@@ -51,6 +43,7 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
         cardDetails
       );
       setLoading(false);
+
       return result;
     },
     [handleFinishCallback, onSuccess, onError]

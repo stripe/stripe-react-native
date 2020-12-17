@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
-import { StripeContextProvider } from './StripeContext';
 
-import NativeStripeSdk from './NativeStripeSdk';
-import { isAndroid } from './platform';
-import type { ThreeDSecureConfigurationParams } from './types';
-import type { AppInfo } from './types';
+import NativeStripeSdk from '../NativeStripeSdk';
+import { isAndroid } from '../helpers';
+import type { ThreeDSecureConfigurationParams } from '../types';
+import type { AppInfo } from '../types';
 
 type Props = {
   publishableKey: string;
@@ -50,9 +49,5 @@ export const StripeProvider: React.FC<Props> = ({
     threeDSecureParams,
   ]);
 
-  return (
-    <StripeContextProvider value={{ publishableKey, cardDetails: {} }}>
-      {children}
-    </StripeContextProvider>
-  );
+  return <>{children}</>;
 };

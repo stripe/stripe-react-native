@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { isiOS } from '../platform';
+import { isiOS } from '../helpers';
 import StripeSdk from '../NativeStripeSdk';
 
 export function useStripe() {
