@@ -186,8 +186,34 @@ export type StripeError<T> = {
 
 export type ApplePayButtonProps = {
   style?: StyleProp<ViewStyle>;
+  type?: number;
+  buttonStyle?: number;
   onPay(): void;
 };
+
+export type ApplePayButtonType =
+  | 'plain'
+  | 'buy'
+  | 'setUp'
+  | 'inStore'
+  | 'donate'
+  | 'checkout'
+  | 'book'
+  | 'subscribe'
+  | 'reload'
+  | 'addMoney'
+  | 'topUp'
+  | 'order'
+  | 'rent'
+  | 'support'
+  | 'contribute'
+  | 'tip';
+
+export type ApplePayButtonStyle =
+  | 'white'
+  | 'whiteOutline'
+  | 'black'
+  | 'automatic';
 
 export type CartSummaryItem = {
   label: string;

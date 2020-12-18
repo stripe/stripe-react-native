@@ -108,3 +108,39 @@ and can be used to prompt the user to pay with Apple Pay.
 Handler to be called when the user taps the button.
 
 type: `() => void`
+
+#### type
+
+The button type you can display to initiate Apple Pay transactions.
+
+type:
+
+```ts
+type ApplePayButtonType =
+  | 'plain'
+  | 'buy'
+  | 'setUp'
+  | 'inStore'
+  | 'donate'
+  | 'checkout'
+  | 'book'
+  | 'subscribe'
+  | 'reload'
+  | 'addMoney'
+  | 'topUp'
+  | 'order'
+  | 'rent'
+  | 'support'
+  | 'contribute'
+  | 'tip';
+```
+
+#### buttonStyle
+
+The appearance of the apple pay button.
+
+type:
+
+```ts
+type ApplePayButtonStyle = 'white' | 'whiteOutline' | 'black' | 'automatic';
+```
