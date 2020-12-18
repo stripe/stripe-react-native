@@ -3,9 +3,11 @@ import UIKit
 
 @objc(ApplePayButtonView)
 class ApplePayButtonView: UIView {
-    let applePayButton: PKPaymentButton = PKPaymentButton(paymentButtonType: .plain, paymentButtonStyle: .black)
+    var applePayButton: PKPaymentButton?
     
     @objc var onPay: RCTDirectEventBlock?
+    @objc var type: NSNumber?
+    @objc var buttonStyle: NSNumber?
     
     @objc func handleApplePayButtonTapped() {
         if onPay != nil {
@@ -13,14 +15,28 @@ class ApplePayButtonView: UIView {
         }
     }
     
+    override func didSetProps(_ changedProps: [String]!) {
+        if let applePayButton = self.applePayButton {
+            applePayButton.removeFromSuperview()
+        }
+        let paymentButtonType = PKPaymentButtonType(rawValue: self.type as? Int ?? 0) ?? .plain
+        let paymentButtonStyle = PKPaymentButtonStyle(rawValue: self.buttonStyle as? Int ?? 2) ?? .black
+        self.applePayButton = PKPaymentButton(paymentButtonType: paymentButtonType, paymentButtonStyle: paymentButtonStyle)
+        
+        if let applePayButton = self.applePayButton {
+            applePayButton.addTarget(self, action: #selector(handleApplePayButtonTapped), for: .touchUpInside)
+            self.addSubview(applePayButton)
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        applePayButton.addTarget(self, action: #selector(handleApplePayButtonTapped), for: .touchUpInside)
-        self.addSubview(applePayButton)
     }
     
     override func layoutSubviews() {
-        applePayButton.frame = self.bounds
+        if let applePayButton = self.applePayButton {
+            applePayButton.frame = self.bounds
+        }
     }
     
     required init?(coder: NSCoder) {
