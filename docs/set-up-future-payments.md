@@ -34,11 +34,11 @@ function App() {
 
 ## Create a Customer before setup
 
-Create a Customer on you server.
+Create a Customer on your server.
 
 ## Create a SetupIntent
 
-Create a SetupIntent on you server.
+Create a SetupIntent on your server.
 
 ## Collect card details
 

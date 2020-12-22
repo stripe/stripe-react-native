@@ -35,7 +35,7 @@ import { StripeProvider } from 'react-native-stripe-sdk';
 import { CardField, useStripe } from 'react-native-stripe-sdk';
 
 export default function PaymentScreen() {
-  const [card, setCard] = (useState < CardDetails) | (null > null);
+  const [card, setCard] = useState<CardDetails | null>(null);
   const { confirmPayment, handleNextPaymentAction } = useStripe();
 
   return (
@@ -56,7 +56,7 @@ export default function PaymentScreen() {
 
 To initialise Stripe in React Native App use `StripeProvider` component in the root component of your application.
 
-`StripeProvider` can accept `publishableKey`, `appInfo`, `stripeAccountId` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or in example fetch `publishableKey` from your server and then use it in `StripeProvider`.
+`StripeProvider` can accept `publishableKey`, `appInfo`, `stripeAccountId` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch `publishableKey` from your server and then use it in `StripeProvider`.
 
 ```tsx
 import { StripeProvider } from 'react-native-stripe-sdk';
@@ -90,16 +90,16 @@ function App() {
 }
 ```
 
-You can find more details about StripeProvider in [API reference](./docs/reference.md#stripeprovider).
+You can find more details about StripeProvider in [API reference](./docs/api-reference.md#stripeprovider).
 
 ## Run example app
 
 - `cd ./example`
-- `yarn or npm install`
+- `yarn` or `npm install`
 - for ios you have to run `pod install` in `ios` directory
 - create `.env` file with mandatory variables (look at `.env.example`)
 - `yarn start:server`
-- `yarn ios`/`yarn android`
+- `yarn ios` / `yarn android`
 
 ##### additionall steps for webhook example
 
@@ -116,7 +116,7 @@ You can find more details about StripeProvider in [API reference](./docs/referen
 
 ## API reference
 
-You can find API reference [here](./docs/reference.md)
+You can find API reference [here](./docs/api-reference.md)
 
 ## Contributing
 

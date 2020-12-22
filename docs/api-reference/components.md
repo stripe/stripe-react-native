@@ -82,6 +82,8 @@ Partial<{
 
 Indicates if the postal code field is enabled for the card field.
 
+type: `string`
+
 #### onCardChange _(optional)_
 
 Callback that will be called on every card change with Card details.
