@@ -1,8 +1,8 @@
 # Accept a payment - classic
 
-Collecting payments in your React Native app consists of creating an object to track payment on your server, collecting card information in your app, and submitting the payment to Stripe for processing.
+Collecting payments in your React Native app consists of three steps. Creating an object to track payment on your server, collecting card information in your app, and submitting the payment to Stripe for processing.
 
-Stripe uses this payment object, called a PaymentIntent, to track and handle all the states of the payment until it’s completed—even when the bank requires customer intervention, like two-factor authentication.
+Stripe uses this payment object, called a `PaymentIntent`, to track and handle all the states of the payment until it’s completed—even when the bank requires customer intervention, like two-factor authentication.
 
 ## Setup Stripe
 
@@ -38,7 +38,7 @@ Securely collect card information on the client with `CardField` component.
 
 ![CardField component](./assets/card-field-example.gif 'CardField component')
 
-Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and keep received data in component state. To set the default value for card `defaultValue` prop can be used.
+Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and save received data in component state. To set the default value for card `defaultValue` prop can be used.
 
 ```tsx
 function PaymentScreen() {
@@ -65,7 +65,7 @@ Stripe uses a PaymentIntent object to represent your intent to collect payment f
 
 ### Client side
 
-On the client, request a PaymentIntent from your server and store its client secret. Connect this action with `onPress` handler on `Pay` button.
+On the client, request a PaymentIntent from your server and store its client secret. Make this action inside `onPress` handler for the payment button.
 
 ```tsx
 function PaymentScreen() {
@@ -93,7 +93,7 @@ function PaymentScreen() {
     }
 
     try {
-      // 1. fetch Intent Client Secret from backend
+      // Fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
       // ...
@@ -121,8 +121,8 @@ function PaymentScreen() {
 
 When the customer taps the Pay button, confirm the PaymentIntent to complete the payment.
 
-In order to do that you will need card details from component state and clientSecret from the previous step.
-Use `useConfirmPayment` hook from SDK. The hook returns `confirmPayment` method and `loading` value indicates the state of the async action.
+In order to do that you will need card details from component state and client secret from the previous step.
+Use `useConfirmPayment` hook from SDK. The hook returns `confirmPayment` method and `loading` value which indicates the state of the async action.
 
 ```tsx
 function PaymentScreen() {
@@ -137,10 +137,10 @@ function PaymentScreen() {
     }
 
     try {
-      // 1. fetch Intent Client Secret from backend
+      // Fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // 2. Confirm payment with card details
+      // Confirm payment with card details
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
@@ -156,11 +156,11 @@ function PaymentScreen() {
 
 If authentication is required by regulation such as Strong Customer Authentication, the SDK presents additional activities and walks the customer through that process. See Supporting [3D Secure Authentication](./3d-secure.md) to learn more.
 
-`useConfirmPayment` returns a promise will be resolved when the payment completes. It will be rejected with error object. Inspect `code` field to determine the cause.
+`useConfirmPayment` function returns a promise that will be resolved when the payment completes. If error it will be rejected with `error` object. Inspect `code` field to determine the cause.
 
 You can also check the status of a PaymentIntent in the Dashboard or by inspecting the status property on the object.
 
-If you prefer using onSuccess/onError callbacks instead of the promise returned by `confirmPayment` there is a possibility to pass them as arguments to `useConfirmPayment` hook.
+If you prefer using `onSuccess`/`onError` callbacks instead of the promise returned by `confirmPayment` there is a possibility to pass them as arguments to `useConfirmPayment` hook.
 
 ```tsx
 const { confirmPayment, loading } = useConfirmPayment({
@@ -189,7 +189,7 @@ For the full list of test cards see our guide on [testing](https://stripe.com/do
 
 ## Optional - use `useStripe` hook instead of `useConfirmPayment`
 
-You can also use `useStripe` hook to confirm payment. This hook returns a whole list of stripe methods you can trigger. The only difference is that you will have to manage `loading` state by yourself and there won't be a possibility to use classic onSuccess/onError callbacks in addition to promise.
+You can also use `useStripe` hook to confirm the payment. This hook returns a whole list of stripe methods you can use. The only difference is that you will have to manage `loading` state by yourself and there won't be a possibility to use classic `onSuccess`/`onError` callbacks in addition to promise.
 
 ```tsx
 function PaymentScreen() {
@@ -205,10 +205,10 @@ function PaymentScreen() {
     }
 
     try {
-      // 1. fetch Intent Client Secret from backend
+      // Fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // 2. Confirm payment with card details
+      // Confirm payment with card details
       const intent = await confirmPayment(clientSecret, card);
       console.log('Success from promise', intent);
     } catch (e) {
