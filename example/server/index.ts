@@ -135,8 +135,12 @@ app.post(
   }
 );
 
-app.post('/create-setup-intent', async (_req, res) => {
-  const setupIntent = await stripe.setupIntents.create();
+app.post('/create-setup-intent', async (req, res) => {
+  const { email }: { email: string } = req.body;
+  const customer = await stripe.customers.create({ email });
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
+  });
 
   // Send publishable key and SetupIntent details to client
   res.send({
