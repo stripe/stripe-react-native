@@ -53,6 +53,14 @@ To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` i
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
+### Install library as local repository
+
+To install local/private packages across local environment we recommend use [yalc](https://github.com/wclr/yalc) tool.
+
+- Run `yalc publish` in `react-native-stripe-sdk` package to publish all the files that should be published in remote NPM registry.
+- Run `yalc add react-native-stripe-sdk` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/react-native-stripe-sdk into package.json.
+- In your dependent project run `yarn install` and `cd ios && pod install`
+
 ### Commit message convention
 
 We follow the [conventional commits specification](https://www.conventionalcommits.org/en) for our commit messages:
