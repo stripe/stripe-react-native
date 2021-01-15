@@ -20,20 +20,75 @@ internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   }
 }
 
+
+internal fun mapCaptureMethod(captureMethod: PaymentIntent.CaptureMethod?): String {
+  return when (captureMethod) {
+    PaymentIntent.CaptureMethod.Automatic -> "Automatic"
+    PaymentIntent.CaptureMethod.Manual -> "Manual"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMethod?): String {
+  return when (captureMethod) {
+    PaymentIntent.ConfirmationMethod.Automatic -> "Automatic"
+    PaymentIntent.ConfirmationMethod.Manual -> "Manual"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {
+  val map: WritableMap = WritableNativeMap()
+  val address: WritableMap = WritableNativeMap()
+
+  address.putString("city", shipping.address.city)
+  address.putString("country", shipping.address.country)
+  address.putString("line1", shipping.address.line1)
+  address.putString("line2", shipping.address.line2)
+  address.putString("postalCode", shipping.address.postalCode)
+  address.putString("state", shipping.address.state)
+  map.putMap("address", address)
+  map.putString("name", shipping.name)
+  map.putString("carrier", shipping.carrier)
+  map.putString("phone", shipping.phone)
+  map.putString("trackingNumber", shipping.trackingNumber)
+
+  return map
+}
+
 internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableMap {
   val map: WritableMap = WritableNativeMap()
   map.putString("id", paymentIntent.id)
+  map.putString("clientSecret", paymentIntent.clientSecret)
+  map.putBoolean("isLiveMode", paymentIntent.isLiveMode)
+  map.putString("paymentMethodId", paymentIntent.paymentMethodId)
+  map.putString("receiptEmail", paymentIntent.receiptEmail)
   map.putString("currency", paymentIntent.currency)
   map.putString("status", mapIntentStatus(paymentIntent.status))
   map.putString("description", paymentIntent.description)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
-  if(paymentIntent.amount != null) {
-    map.putDouble("amount", paymentIntent.amount!!.toDouble())
-  }
-  if(paymentIntent.created != null) {
-    map.putInt("created", paymentIntent.created.toInt())
+  map.putInt("created", paymentIntent.created.toInt())
+  map.putString("captureMethod", mapCaptureMethod(paymentIntent.captureMethod))
+  map.putString("confirmationMethod", mapConfirmationMethod(paymentIntent.confirmationMethod))
+
+  paymentIntent.lastPaymentError?.let {
+    val paymentError: WritableMap = WritableNativeMap()
+    paymentError.putString("code", it.code)
+    paymentError.putString("message", it.message)
+
+    map.putMap("lastPaymentError", paymentError)
   }
 
+  paymentIntent.shipping?.let {
+    map.putMap("shipping", mapIntentShipping(it))
+  }
+
+  paymentIntent.amount?.let {
+    map.putDouble("amount", it.toDouble())
+  }
+  paymentIntent.canceledAt?.let {
+    map.putInt("canceledAt", it.toInt())
+  }
   return map
 }
 
