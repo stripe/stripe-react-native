@@ -98,13 +98,11 @@ export default function NoWebhookPaymentScreen() {
 
       if (clientSecret && requiresAction) {
         // 3. if payment requires action calling handleNextPaymentAction
-        const { status, stripeId } = await handleNextPaymentAction(
-          clientSecret
-        );
+        const { status, id } = await handleNextPaymentAction(clientSecret);
 
         if (status === IntentStatus.RequiresConfirmation) {
           // 4. Call API to confirm intent
-          await confirmIntent(stripeId);
+          await confirmIntent(id);
         } else {
           // Payment succedeed
           Alert.alert('Success', 'The payment was confirmed successfully!');
