@@ -36,7 +36,7 @@ function PaymentScreen() {
 
   // ...
 
-  return <View>{isApplePaySupported && <ApplePayButton onPay={pay} />}</View>;
+  return <View>{isApplePaySupported && <ApplePayButton onPress={pay} />}</View>;
 }
 ```
 
