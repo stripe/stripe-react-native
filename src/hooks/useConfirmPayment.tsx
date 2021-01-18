@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import type {
   CardDetails,
   ConfirmPaymentError,
-  Intent,
+  PaymentIntent,
   StripeError,
 } from '../types';
 import StripeSdk from '../NativeStripeSdk';
@@ -10,7 +10,7 @@ import { createHandler } from '../helpers';
 
 type Params = {
   onError: (error: StripeError<ConfirmPaymentError>) => void;
-  onSuccess: (intent: Intent) => void;
+  onSuccess: (intent: PaymentIntent) => void;
 };
 
 export function useConfirmPayment({ onError, onSuccess }: Params) {
@@ -23,7 +23,7 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
 
   const confirmPayment = useCallback(
     async (paymentIntentClientSecret: string, cardDetails: CardDetails) => {
-      const handleSuccess = createHandler((value: Intent) => {
+      const handleSuccess = createHandler((value: PaymentIntent) => {
         onSuccess(value);
         handleFinishCallback();
       });

@@ -3,7 +3,7 @@ import type {
   CardDetails,
   ConfirmPaymentError,
   ConfirmSetupIntentError,
-  Intent,
+  PaymentIntent,
   PaymentMethod,
   StripeError,
   ThreeDSecureConfigurationParams,
@@ -23,15 +23,17 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
-  handleNextPaymentAction(paymentIntentClientSecret: string): Promise<Intent>;
+  handleNextPaymentAction(
+    paymentIntentClientSecret: string
+  ): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
     cardDetails: CardDetails
-  ): Promise<Intent>;
+  ): Promise<PaymentIntent>;
   registerConfirmPaymentCallbacks(
     onSuccess:
-      | ((intent: Intent) => void)
-      | ((error: any, intent: Intent) => void),
+      | ((intent: PaymentIntent) => void)
+      | ((error: any, intent: PaymentIntent) => void),
     onError:
       | ((error: StripeError<ConfirmPaymentError>) => void)
       | ((data: any, error: StripeError<ConfirmPaymentError>) => void)
