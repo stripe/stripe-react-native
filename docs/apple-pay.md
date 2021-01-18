@@ -43,13 +43,13 @@ function PaymentScreen() {
 ## Step 6: Present the payment sheet
 
 Use `useApplePay` hook to handle this kind of payment,
-it returns `payWithApplePay`, `completePaymentWithApplePay` methods, `loading` value and `isApplePaySupported`.
-When the user taps the Apple Pay button, call `payWithApplePay` to open sheet.
+it returns `presentApplePay`, `confirmPayment` methods, `loading` value and `isApplePaySupported`.
+When the user taps the Apple Pay button, call `presentApplePay` to open sheet.
 In argument you should pass cart items which will be displayed in Apple Pay sheet.
 
 ```tsx
 function PaymentScreen() {
-  const { payWithApplePay, isApplePaySupported } = useApplePay();
+  const { presentApplePay, isApplePaySupported } = useApplePay();
 
   // ...
 
@@ -57,7 +57,7 @@ function PaymentScreen() {
     try {
       if (!isApplePaySupported) return;
       // ...
-      await payWithApplePay([
+      await presentApplePay([
         {
           label: 'item label',
           amount: 120,
@@ -84,7 +84,7 @@ passed to `useApplePay` hook.
 
 ```tsx
 function PaymentScreen() {
-  const { payWithApplePay, isApplePaySupported } = useApplePay({
+  const { presentApplePay, isApplePaySupported } = useApplePay({
     onSuccess: () => {
       // ...
     },
@@ -99,7 +99,7 @@ function PaymentScreen() {
     try {
       if (!isApplePaySupported) return;
 
-      await payWithApplePay([
+      await presentApplePay([
         {
           label: 'item label',
           amount: 120,

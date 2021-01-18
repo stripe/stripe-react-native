@@ -66,7 +66,7 @@ An asynchronous function returns information about ApplePay support on the devic
 
 A promise with information about ApplePay support on the device.
 
-## payWithApplePay
+## presentApplePay
 
 Initiates the Apple Pay payment.
 
