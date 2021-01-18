@@ -118,21 +118,19 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initialise(publishableKey: String, stripeAccountId: String?, params: ReadableMap?) {
+  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?, params: ReadableMap?) {
     if (params != null) {
       configure3dSecure(params)
     }
 
-    var version: String = ""
+   
 
-    try {
-      val pInfo: PackageInfo = reactApplicationContext.getPackageManager().getPackageInfo(reactApplicationContext.getPackageName(), 0)
-      version = pInfo.versionName
-    } catch (e: PackageManager.NameNotFoundException) {
-      e.printStackTrace()
-    }
+    val name = getValOr(appInfo, "name", "") as String
+    val partnerId = getValOr(appInfo, "partnerId", "")
+    val version = getValOr(appInfo, "version", "")
 
-    Stripe.appInfo = AppInfo.create("stripe-react-native", version, "https://github.com/stripe/stripe-react-native")
+    val url = getValOr(appInfo, "url", "")
+    Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
   }
 
