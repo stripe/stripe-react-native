@@ -135,8 +135,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         resolve([isSupported])
     }
     
-    @objc(payWithApplePay:resolver:rejecter:)
-    func payWithApplePay(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(presentApplePay:resolver:rejecter:)
+    func presentApplePay(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (merchantIdentifier == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)

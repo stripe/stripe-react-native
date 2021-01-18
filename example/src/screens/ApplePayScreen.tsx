@@ -5,13 +5,13 @@ import {
   StripeError,
   useApplePay,
 } from 'react-native-stripe-sdk';
-import type { PayWithApplePayError } from 'src/types';
+import type { PresentApplePayError } from 'src/types';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
   const {
-    payWithApplePay,
+    presentApplePay,
     completePaymentWithApplePay,
     isApplePaySupported,
   } = useApplePay({
@@ -41,14 +41,14 @@ export default function ApplePayScreen() {
   }, []);
 
   const pay = async () => {
-    await payWithApplePay([{ label: 'Example item name', amount: '10500.50' }]);
+    await presentApplePay([{ label: 'Example item name', amount: '10500.50' }]);
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     try {
       await completePaymentWithApplePay(clientSecret);
       // success
     } catch (e) {
-      const error: StripeError<PayWithApplePayError> = e;
+      const error: StripeError<PresentApplePayError> = e;
       Alert.alert(error.code, error.message);
     }
   };

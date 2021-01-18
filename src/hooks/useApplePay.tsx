@@ -2,13 +2,13 @@ import { useCallback, useState } from 'react';
 import StripeSdk from '../NativeStripeSdk';
 import type {
   CartSummaryItem,
-  PayWithApplePayError,
+  PresentApplePayError,
   StripeError,
 } from '../types';
 import { useStripe } from './useStripe';
 
 type Params = {
-  onError?(error: StripeError<PayWithApplePayError>): void;
+  onError?(error: StripeError<PresentApplePayError>): void;
   onSuccess?(): void;
 };
 
@@ -25,7 +25,7 @@ export function useApplePay({
   }, [onSuccess]);
 
   const handleError = useCallback(
-    (error: StripeError<PayWithApplePayError>) => {
+    (error: StripeError<PresentApplePayError>) => {
       onError(error);
       StripeSdk.unregisterApplePayCallbacks();
     },
@@ -36,7 +36,7 @@ export function useApplePay({
     StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
   }, [handleSuccess, handleError]);
 
-  const payWithApplePay = async (items: CartSummaryItem[]) => {
+  const presentApplePay = async (items: CartSummaryItem[]) => {
     if (!isApplePaySupported) {
       return;
     }
@@ -44,9 +44,9 @@ export function useApplePay({
 
     setLoading(true);
     try {
-      await StripeSdk.payWithApplePay(items);
+      await StripeSdk.presentApplePay(items);
     } catch (e) {
-      const error: StripeError<PayWithApplePayError> = e;
+      const error: StripeError<PresentApplePayError> = e;
       onError(error);
     }
   };
@@ -61,7 +61,7 @@ export function useApplePay({
 
   return {
     loading,
-    payWithApplePay,
+    presentApplePay,
     completePaymentWithApplePay,
     isApplePaySupported,
   };

@@ -169,7 +169,7 @@ export enum ConfirmSetupIntentError {
   Unknown = 'Unknown',
 }
 
-export enum PayWithApplePayError {
+export enum PresentApplePayError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',
