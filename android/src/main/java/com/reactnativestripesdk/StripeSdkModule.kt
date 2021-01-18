@@ -2,11 +2,11 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.content.Intent
-import androidx.annotation.IntRange
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
-import com.stripe.android.stripe3ds2.init.ui.StripeLabelCustomization
 
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -118,15 +118,21 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?, params: ReadableMap?) {
+  fun initialise(publishableKey: String, stripeAccountId: String?, params: ReadableMap?) {
     if (params != null) {
       configure3dSecure(params)
     }
-    val name = getValOr(appInfo, "name", "") as String
-    val partnerId = getValOr(appInfo, "partnerId", "")
-    val version = getValOr(appInfo, "version", "")
-    val url = getValOr(appInfo, "url", "")
-    Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
+
+    var version: String = ""
+
+    try {
+      val pInfo: PackageInfo = reactApplicationContext.getPackageManager().getPackageInfo(reactApplicationContext.getPackageName(), 0)
+      version = pInfo.versionName
+    } catch (e: PackageManager.NameNotFoundException) {
+      e.printStackTrace()
+    }
+
+    Stripe.appInfo = AppInfo.create("stripe-react-native", version, "https://github.com/stripe/stripe-react-native")
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
   }
 
