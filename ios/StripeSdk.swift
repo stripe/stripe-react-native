@@ -16,16 +16,20 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onConfirmSetupIntentSuccessCallback: RCTResponseSenderBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     
-    @objc(initialise:stripeAccountId:params:merchantIdentifier:)
-    func initialise(publishableKey: String, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
+    @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
+    func initialise(publishableKey: String,  appInfo: NSDictionary, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
         if let params = params {
             configure3dSecure(params)
         }
-        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
-
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
-        STPAPIClient.shared.appInfo = STPAppInfo(name: "stripe-react-native", partnerId: "", version: appVersion, url: "https://github.com/stripe/stripe-react-native")
+        
+        let name = RCTConvert.nsString(appInfo["name"]) ?? ""
+        let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
+        let version = RCTConvert.nsString(appInfo["version"]) ?? ""
+        let url = RCTConvert.nsString(appInfo["url"]) ?? ""
+        
+        STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
     }
     

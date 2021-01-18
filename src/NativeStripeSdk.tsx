@@ -11,11 +11,13 @@ import type {
   BillingDetails,
   SetupIntent,
   PayWithApplePayError,
+  AppInfo,
 } from './types';
 
 type NativeStripeSdkType = {
   initialise(
     publishableKey: string,
+    appInfo: AppInfo,
     stripeAccountId?: string,
     threeDSecureParams?: ThreeDSecureConfigurationParams,
     merchantIdentifier?: string

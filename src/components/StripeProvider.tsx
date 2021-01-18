@@ -2,13 +2,20 @@ import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../NativeStripeSdk';
 import { isAndroid } from '../helpers';
-import type { ThreeDSecureConfigurationParams } from '../types';
+import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
+import pjson from '../../package.json';
 
 type Props = {
   publishableKey: string;
   merchantIdentifier?: string;
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   stripeAccountId?: string;
+};
+
+const appInfo: AppInfo = {
+  name: 'stripe-react-native',
+  url: 'https://github.com/stripe/stripe-react-native',
+  version: pjson.version,
 };
 
 export const StripeProvider: React.FC<Props> = ({
@@ -25,12 +32,14 @@ export const StripeProvider: React.FC<Props> = ({
     if (isAndroid) {
       NativeStripeSdk.initialise(
         publishableKey,
+        appInfo,
         stripeAccountId,
         threeDSecureParams
       );
     } else {
       NativeStripeSdk.initialise(
         publishableKey,
+        appInfo,
         stripeAccountId,
         threeDSecureParams,
         merchantIdentifier
