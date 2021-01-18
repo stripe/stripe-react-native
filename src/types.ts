@@ -70,7 +70,7 @@ type ShippingDetails = {
   trackingNumber: string;
 };
 
-export type Intent = {
+export type PaymentIntent = {
   id: string;
   amount?: number;
   created: string;
