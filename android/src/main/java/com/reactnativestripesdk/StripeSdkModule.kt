@@ -2,12 +2,9 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
-
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -122,8 +119,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     if (params != null) {
       configure3dSecure(params)
     }
-
-   
 
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")
