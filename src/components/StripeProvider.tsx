@@ -13,8 +13,8 @@ type Props = {
 };
 
 const appInfo: AppInfo = {
-  name: 'stripe-react-native',
-  url: 'https://github.com/stripe/stripe-react-native',
+  name: pjson.name,
+  url: pjson.repository,
   version: pjson.version,
 };
 
