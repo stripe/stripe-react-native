@@ -171,7 +171,7 @@ Usage example:
 
 ```tsx
 function PaymentScreen() {
-  const { createPaymentMethod, handleNextPaymentAction } = useStripe();
+  const { createPaymentMethod, handleCardAction } = useStripe();
 
   // ...
 }
