@@ -17,7 +17,7 @@ export function useStripe() {
   return {
     confirmPayment: StripeSdk.confirmPaymentMethod,
     createPaymentMethod: StripeSdk.createPaymentMethod,
-    handleNextPaymentAction: StripeSdk.handleNextPaymentAction,
+    handleCardAction: StripeSdk.handleCardAction,
     isApplePaySupported: isApplePaySupported,
     payWithApplePay: StripeSdk.payWithApplePay,
     completePaymentWithApplePay: StripeSdk.completePaymentWithApplePay,

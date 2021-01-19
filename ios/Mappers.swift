@@ -28,15 +28,83 @@ class Mappers {
         return STPPaymentMethodParams(card: cardParams, billingDetails: nil, metadata: nil)
     }
     
+    
+    class func mapCaptureMethod(_ captureMethod: STPPaymentIntentCaptureMethod?) -> String {
+        if let captureMethod = captureMethod {
+            switch captureMethod {
+            case STPPaymentIntentCaptureMethod.automatic: return "Automatic"
+            case STPPaymentIntentCaptureMethod.manual: return "Manual"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
+    }
+    
+    class func mapConfirmationMethod(_ confirmationMethod: STPPaymentIntentConfirmationMethod?) -> String {
+        if let confirmationMethod = confirmationMethod {
+            switch confirmationMethod {
+            case STPPaymentIntentConfirmationMethod.automatic: return "Automatic"
+            case STPPaymentIntentConfirmationMethod.manual: return "Manual"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
+    }
+    
+    class func mapIntentShipping(_ shipping: STPPaymentIntentShippingDetails) -> NSDictionary {
+        var addressDetails = NSDictionary()
+        if let address = shipping.address {
+            addressDetails = [
+                "city": address.city ?? "",
+                "country": address.country ?? "",
+                "line1": address.line1 ?? "",
+                "line2":address.line2 ?? "",
+                "postalCode": address.postalCode ?? "",
+            ]
+        }
+        let shippingDetails: NSDictionary = [
+            "address": addressDetails,
+            "name": shipping.name ?? "",
+            "phone": shipping.phone ?? "",
+            "trackingNumber": shipping.trackingNumber ?? "",
+            "carrier": shipping.carrier ?? "",
+        ]
+        return shippingDetails
+    }
+    
     class func mapFromIntent (paymentIntent: STPPaymentIntent?) -> NSDictionary {
-        let intent: NSDictionary = [
-            "id": paymentIntent?.paymentMethodId ?? "",
+        let intent: NSMutableDictionary = [
+            "id": paymentIntent?.stripeId ?? "",
             "currency": paymentIntent?.currency ?? "",
             "status": Mappers.mapIntentStatus(status: paymentIntent?.status),
             "description": paymentIntent?.description ?? "",
+            "created": Int(paymentIntent?.created.timeIntervalSince1970 ?? 0 * 1000),
+            "clientSecret": paymentIntent?.clientSecret ?? "",
             "receiptEmail": paymentIntent?.receiptEmail ?? "",
-            "stripeId": paymentIntent?.stripeId ?? "",
+            "isLiveMode": paymentIntent?.livemode ?? false,
+            "paymentMethodId": paymentIntent?.paymentMethodId ?? "",
+            "captureMethod": mapCaptureMethod(paymentIntent?.captureMethod),
+            "confirmationMethod": mapConfirmationMethod(paymentIntent?.confirmationMethod)
         ]
+        
+        if let lastPaymentError = paymentIntent?.lastPaymentError {
+            let paymentError = [
+                "code": lastPaymentError.code,
+                "message": lastPaymentError.description
+            ]
+            intent.setValue(paymentError, forKey: "lastPaymentError")
+        }
+        
+        if let shipping = paymentIntent?.shipping {
+            intent.setValue(mapIntentShipping(shipping), forKey: "shipping")
+        }
+        
+        if let amount = paymentIntent?.amount {
+            intent.setValue(amount, forKey: "amount")
+        }
+        if let canceledAt = paymentIntent?.canceledAt {
+            intent.setValue(Int(canceledAt.timeIntervalSince1970 * 1000), forKey: "canceledAt")
+        }
         
         return intent;
     }

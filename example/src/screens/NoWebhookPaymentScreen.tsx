@@ -20,7 +20,7 @@ const defaultCard = {
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [card, setCard] = useState<CardDetails | undefined>(defaultCard);
-  const { createPaymentMethod, handleNextPaymentAction } = useStripe();
+  const { createPaymentMethod, handleCardAction } = useStripe();
 
   const callNoWebhookPayEndpoint = useCallback(
     async (
@@ -97,14 +97,12 @@ export default function NoWebhookPaymentScreen() {
       }
 
       if (clientSecret && requiresAction) {
-        // 3. if payment requires action calling handleNextPaymentAction
-        const { status, stripeId } = await handleNextPaymentAction(
-          clientSecret
-        );
+        // 3. if payment requires action calling handleCardAction
+        const { status, id } = await handleCardAction(clientSecret);
 
         if (status === IntentStatus.RequiresConfirmation) {
           // 4. Call API to confirm intent
-          await confirmIntent(stripeId);
+          await confirmIntent(id);
         } else {
           // Payment succedeed
           Alert.alert('Success', 'The payment was confirmed successfully!');
@@ -120,7 +118,7 @@ export default function NoWebhookPaymentScreen() {
     createPaymentMethod,
     callNoWebhookPayEndpoint,
     confirmIntent,
-    handleNextPaymentAction,
+    handleCardAction,
   ]);
 
   return (
