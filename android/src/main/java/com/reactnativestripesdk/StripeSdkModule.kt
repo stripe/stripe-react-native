@@ -19,7 +19,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var onConfirmSetupIntentError: Callback? = null
   private var onConfirmSetupIntentSuccess: Callback? = null
   private var confirmPromise: Promise? = null
-  private var handleNextPaymentActionPromise: Promise? = null
+  private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
@@ -57,29 +57,29 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           when (paymentIntent.status) {
             StripeIntent.Status.Succeeded -> {
               confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-              handleNextPaymentActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
               onConfirmPaymentSuccess?.invoke(mapFromPaymentIntentResult(paymentIntent))
             }
             StripeIntent.Status.RequiresPaymentMethod -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
               onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Failed.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), errorMessage)
-              handleNextPaymentActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), errorMessage)
+              handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), errorMessage)
             }
             StripeIntent.Status.RequiresConfirmation -> {
-              handleNextPaymentActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
             }
             StripeIntent.Status.Canceled -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
               onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Canceled.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
-              handleNextPaymentActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+              handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
             }
             else -> {
               val errorMessage = "unhandled error: ${paymentIntent.status}"
               onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Unknown.toString(), errorMessage)
-              handleNextPaymentActionPromise?.reject(NextPaymentActionErrorType.Unknown.toString(), errorMessage)
+              handleCardActionPromise?.reject(NextPaymentActionErrorType.Unknown.toString(), errorMessage)
             }
           }
         }
@@ -87,7 +87,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         override fun onError(e: Exception) {
           onConfirmPaymentError?.invoke(e.toString())
           confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), e.toString())
-          handleNextPaymentActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
+          handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
         }
       })
     }
@@ -149,10 +149,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun handleNextPaymentAction(paymentIntentClientSecret: String, promise: Promise) {
+  fun handleCardAction(paymentIntentClientSecret: String, promise: Promise) {
     val activity = currentActivity
     if (activity != null) {
-      handleNextPaymentActionPromise = promise
+      handleCardActionPromise = promise
       stripe.handleNextActionForPayment(activity, paymentIntentClientSecret)
     }
   }

@@ -12,7 +12,7 @@ export { ApplePayButton } from './components/ApplePayButton';
 export {
   CardDetails,
   BillingDetails,
-  Intent,
+  PaymentIntent,
   ThreeDSecureConfigurationParams,
   PaymentMethod,
   IntentStatus,

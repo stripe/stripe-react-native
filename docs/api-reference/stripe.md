@@ -38,7 +38,7 @@ Converts a card details object into a Stripe Payment Method using the Stripe API
 
 A promise with `PaymentMethod` object.
 
-## handleNextPaymentAction
+## handleCardAction
 
 Handles any `nextAction` required to authenticate the Intent.
 

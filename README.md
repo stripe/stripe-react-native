@@ -36,7 +36,7 @@ import { CardField, useStripe } from 'react-native-stripe-sdk';
 
 export default function PaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
-  const { confirmPayment, handleNextPaymentAction } = useStripe();
+  const { confirmPayment, handleCardAction } = useStripe();
 
   return (
     <CardField

@@ -44,7 +44,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  handleNextPaymentAction:(NSString *)paymentIntentClientSecret
+                  handleCardAction:(NSString *)paymentIntentClientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

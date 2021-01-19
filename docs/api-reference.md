@@ -16,7 +16,7 @@ React Native Stripe SKD consists of different components, hooks and functions to
 - [Stripe](./api-reference/stripe.md)
   - [confirmPayment](./api-reference/stripe.md#confirmpayment)
   - [createPaymentMethod](./api-reference/stripe.md#createpaymentmethod)
-  - [handleNextPaymentAction](./api-reference/stripe.md#handlenextpaymentaction)
+  - [handleCardAction](./api-reference/stripe.md#handlecardaction)
   - [isApplePaySupported](./api-reference/stripe.md#isapplepaysupported)
   - [payWithApplePay](./api-reference/stripe.md#paywithapplepay)
   - [completePaymentWithApplePay](./api-reference/stripe.md#completepaymentwithapplepay)

@@ -53,15 +53,40 @@ export enum IntentStatus {
   Unknown = 'Unknown',
 }
 
-export type Intent = {
+type ShippingAddres = {
+  city: string;
+  county: string;
+  line1: string;
+  line2: string;
+  postalCode: string;
+  state: string;
+};
+
+type ShippingDetails = {
+  address: ShippingAddres;
+  name: string;
+  carrier: string;
+  phone: string;
+  trackingNumber: string;
+};
+
+export type PaymentIntent = {
   id: string;
-  amount: number;
+  amount?: number;
   created: string;
   currency: string;
   status: IntentStatus;
   stripeId: string;
-  description?: string;
-  receiptEmail?: string;
+  description: Nullable<string>;
+  receiptEmail: Nullable<string>;
+  canceledAt?: string;
+  clientSecret?: string;
+  isLiveMode: boolean;
+  paymentMethodId: string;
+  captureMethod: 'Automatic' | 'Manual';
+  confirmationMethod: 'Automatic' | 'Manual';
+  lastPaymentError?: StripeError<string>;
+  shipping?: ShippingDetails;
 };
 
 export type SetupIntent = {
