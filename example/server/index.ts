@@ -135,8 +135,12 @@ app.post(
   }
 );
 
-app.post('/create-setup-intent', async (_req, res) => {
-  const setupIntent = await stripe.setupIntents.create();
+app.post('/create-setup-intent', async (req, res) => {
+  const { email }: { email: string } = req.body;
+  const customer = await stripe.customers.create({ email });
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
+  });
 
   // Send publishable key and SetupIntent details to client
   res.send({
@@ -155,7 +159,7 @@ app.post(
   async (req: express.Request, res: express.Response): Promise<void> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event: Stripe.Event;
-    console.log('webhook!', req);
+    // console.log('webhook!', req);
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
@@ -197,32 +201,6 @@ app.post(
       console.log(
         `🔔  A SetupIntent has successfully setup a PaymentMethod for future use.`
       );
-
-      const setupIntent: Stripe.SetupIntent = data.object as Stripe.SetupIntent;
-      if (setupIntent.payment_method) {
-        // Get Customer billing details from the PaymentMethod
-        const paymentMethod = await stripe.paymentMethods.retrieve(
-          // @ts-ignore
-          setupIntent.payment_method // FIXME: fix types or usage
-        );
-
-        // Create a Customer to store the PaymentMethod ID for later use
-        const customer = await stripe.customers.create({
-          // @ts-ignore
-          payment_method: setupIntent.payment_method, // FIXME: fix types or usage
-          email: paymentMethod.billing_details.email,
-        });
-
-        // At this point, associate the ID of the Customer object with your
-        // own internal representation of a customer, if you have one.
-
-        console.log(
-          `🔔  A Customer has successfully been created ${customer.id}`
-        );
-
-        // You can also attach a PaymentMethod to an existing Customer
-        // https://stripe.com/docs/api/payment_methods/attach
-      }
     }
 
     if (eventType === 'setup_intent.created') {
