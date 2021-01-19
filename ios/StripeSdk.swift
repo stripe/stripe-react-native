@@ -206,8 +206,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
     }
     
-    @objc(handleNextPaymentAction:resolver:rejecter:)
-    func handleNextPaymentAction(
+    @objc(handleCardAction:resolver:rejecter:)
+    func handleCardAction(
         paymentIntentClientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock

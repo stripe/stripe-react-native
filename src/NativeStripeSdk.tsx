@@ -23,9 +23,7 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(cardDetails: CardDetails): Promise<PaymentMethod>;
-  handleNextPaymentAction(
-    paymentIntentClientSecret: string
-  ): Promise<PaymentIntent>;
+  handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
     cardDetails: CardDetails
