@@ -27,18 +27,21 @@ export default function SetupFuturePaymentScreen() {
   // But the Promise returned by the method will work the same allowing to catch errors and success states
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
-  const createSetupIntentOnBackend = useCallback(async () => {
-    const response = await fetch(`${API_URL}/create-setup-intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: '',
-    });
-    const { clientSecret } = await response.json();
+  const createSetupIntentOnBackend = useCallback(
+    async (customerEmail: string) => {
+      const response = await fetch(`${API_URL}/create-setup-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: customerEmail }),
+      });
+      const { clientSecret } = await response.json();
 
-    return clientSecret;
-  }, []);
+      return clientSecret;
+    },
+    []
+  );
 
   const handlePayPress = useCallback(async () => {
     if (!card) {
@@ -47,7 +50,7 @@ export default function SetupFuturePaymentScreen() {
 
     try {
       // 1. Create setup intent on backend
-      const clientSecret = await createSetupIntentOnBackend();
+      const clientSecret = await createSetupIntentOnBackend(email);
 
       // 2. Gather customer billing information (ex. email)
       const billingDetails: BillingDetails = {
