@@ -51,7 +51,7 @@ Partial<{
   textField: ThreeDsTextFieldProps;
   submitButton: ThreeDsSubmitButtonProps;
   backgroundColor: string; // iOS only
-  footer: ThreeDSecureFooterProps; // iOS only
+  footer: ThreeDsFooterProps; // iOS only
 }>;
 ```
 
