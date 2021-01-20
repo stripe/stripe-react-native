@@ -35,7 +35,7 @@ export const ApplePayButton: React.FC<Props> = ({
     <ApplePayButtonNative
       type={buttonType}
       buttonStyle={style}
-      onPress={onPress}
+      onPressAction={onPress}
       {...props}
     />
   );

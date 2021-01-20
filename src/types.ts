@@ -188,7 +188,7 @@ export type ApplePayButtonProps = {
   style?: StyleProp<ViewStyle>;
   type?: number;
   buttonStyle?: number;
-  onPress(): void;
+  onPressAction(): void;
 };
 
 export type ApplePayButtonType =
