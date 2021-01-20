@@ -17,6 +17,30 @@ class Mappers {
         return "Unknown"
     }
     
+    class func mapPaymentMethodType(type: STPPaymentMethodType) -> String {
+        switch type {
+        case STPPaymentMethodType.card: return "Card"
+        case STPPaymentMethodType.alipay: return "Alipay"
+        case STPPaymentMethodType.grabPay: return "GrabPay"
+        case STPPaymentMethodType.iDEAL: return "Ideal"
+        case STPPaymentMethodType.FPX: return "Fpx"
+        case STPPaymentMethodType.cardPresent: return "CardPresent"
+        case STPPaymentMethodType.SEPADebit: return "SepaDebit"
+        case STPPaymentMethodType.AUBECSDebit: return "AuBecsDebit"
+        case STPPaymentMethodType.bacsDebit: return "BacsDebit"
+        case STPPaymentMethodType.giropay: return "Giropay"
+        case STPPaymentMethodType.przelewy24: return "P24"
+        case STPPaymentMethodType.EPS: return "Eps"
+        case STPPaymentMethodType.bancontact: return "Bancontact"
+        case STPPaymentMethodType.OXXO: return "Oxxo"
+        case STPPaymentMethodType.sofort: return "Sofort"
+        case STPPaymentMethodType.UPI: return "Upi"
+        case STPPaymentMethodType.payPal: return "PayPal"
+        case STPPaymentMethodType.unknown: return "Unknown"
+        default: return "Unknown"
+        }
+    }
+    
     class func mapCardParamsToPaymentMethodParams(params: NSDictionary) -> STPPaymentMethodParams {
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = RCTConvert.nsString(params["number"])
@@ -127,6 +151,94 @@ class Mappers {
         billing.address = billingAddres
         
         return billing
+    }
+    
+    class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
+        let billing: NSDictionary = [
+            "email": billingDetails?.email ?? "",
+            "phone": billingDetails?.phone ?? "",
+            "name": billingDetails?.name ?? "",
+            "address": [
+                "city": billingDetails?.address?.city,
+                "postalCode": billingDetails?.address?.postalCode,
+                "country": billingDetails?.address?.country,
+                "line1": billingDetails?.address?.line1,
+                "line2": billingDetails?.address?.line2,
+                "state": billingDetails?.address?.state,
+            ],
+        ]
+        
+        return billing
+    }
+    
+    class func mapCardBrand(_ brand: STPCardBrand?) -> String {
+        if let brand = brand {
+            switch brand {
+            case STPCardBrand.visa: return "Visa"
+            case STPCardBrand.amex: return "AmericanExpress"
+            case STPCardBrand.mastercard: return "MasterCard"
+            case STPCardBrand.discover: return "Discover"
+            case STPCardBrand.JCB: return "JCB"
+            case STPCardBrand.dinersClub: return "DinersClub"
+            case STPCardBrand.unionPay: return "UnionPay"
+            case STPCardBrand.unknown: return "Unknown"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
+    }
+    
+    class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod) -> NSDictionary {
+        let card: NSDictionary = [
+            "brand": Mappers.mapCardBrand(paymentMethod.card?.brand),
+            "country": paymentMethod.card?.country ?? "",
+            "expYear": paymentMethod.card?.expYear ?? "",
+            "expMonth": paymentMethod.card?.expMonth ?? "",
+            "fingerprint": paymentMethod.card?.fingerprint ?? "",
+            "funding": paymentMethod.card?.funding ?? "",
+            "last4": paymentMethod.card?.last4 ?? ""
+        ]
+        let sepaDebit: NSDictionary = [
+            "bankCode": paymentMethod.sepaDebit?.bankCode ?? "",
+            "country": paymentMethod.sepaDebit?.country ?? "",
+            "fingerprint": paymentMethod.sepaDebit?.fingerprint ?? "",
+            "last4": paymentMethod.sepaDebit?.last4 ?? "",
+        ]
+        let bacsDebit: NSDictionary = [
+            "fingerprint": paymentMethod.bacsDebit?.fingerprint ?? "",
+            "last4": paymentMethod.bacsDebit?.last4 ?? "",
+            "sortCode": paymentMethod.bacsDebit?.sortCode ?? ""
+        ]
+        let auBECSDebit: NSDictionary = [
+            "bsbNumber": paymentMethod.auBECSDebit?.bsbNumber ?? "",
+            "fingerprint": paymentMethod.auBECSDebit?.fingerprint ?? "",
+            "last4": paymentMethod.auBECSDebit?.last4 ?? ""
+        ]
+        let method: NSDictionary = [
+            "id": paymentMethod.stripeId,
+            "type": Mappers.mapPaymentMethodType(type: paymentMethod.type),
+            "liveMode": paymentMethod.liveMode,
+            "customerId": paymentMethod.customerId ?? "",
+            "billingDetails": Mappers.mapFromBillingDetails(billingDetails: paymentMethod.billingDetails),
+            "Card": card,
+            "Ideal": [
+                "bankIdentifierCode": paymentMethod.iDEAL?.bankIdentifierCode ?? "",
+                "bankName": paymentMethod.iDEAL?.bankName ?? ""
+            ],
+            "Fpx": [
+                "bank": paymentMethod.fpx?.bankIdentifierCode ?? "",
+            ],
+            "SepaDebit": sepaDebit,
+            "BacsDebit": bacsDebit,
+            "AuBecsDebit": auBECSDebit,
+            "Sofort": [
+                "country": paymentMethod.sofort?.country
+            ],
+            "Upi": [
+                "vpa": paymentMethod.upi?.vpa
+            ],
+        ]
+        return method
     }
     
     class func mapCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
