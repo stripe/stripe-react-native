@@ -8,7 +8,17 @@ Stripe SDK for React Native
 yarn add react-native-stripe-sdk
 ```
 
+### Android
+
+##### Requirements
+
+- Minimum SDK version is `21`
+
 ### iOS
+
+##### Requirements
+
+- Minimum deployment target is `11.0`
 
 For iOS you will have to run `pod install` in `ios` directory to install native dependencies.
 
@@ -105,6 +115,26 @@ You can find more details about StripeProvider in [API reference](./docs/api-ref
 
 - [install `stripe-cli`](https://stripe.com/docs/stripe-cli)
 - run command `stripe listen --forward-to localhost:4242/webhook`
+
+## Troubleshooting
+
+While building your iOS project there might appear an issue with says about undefined symbols for architecture x86_64. It follows from some specific `react-native init` template configuration which is not fully compatibile with `swift 5.1` which is used in our SDK.
+
+example for an error
+
+```
+Undefined symbols for architecture x86_64:
+  "(extension in Foundation):__C.NSScanner.scanUpToString(Swift.String) -> Swift.String?", referenced from:
+      static Stripe.STPPhoneNumberValidator.formattedRedactedPhoneNumber(for: Swift.String, forCountryCode: Swift.String?) -> Swift.String in libStripe.a(STPPhoneNumberValidator.o)
+  "__swift_FORCE_LOAD_$_swiftUniformTypeIdentifiers", referenced from:
+      __swift_FORCE_LOAD_$_swiftUniformTypeIdentifiers_$_Stripe in libStripe.a(PKPaymentAuthorizationViewController+Stripe_Blocks.o)
+```
+
+Temprary workaround for this issue is following these steps:
+
+- Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
+  `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
+- Add a new Swift file to the project (File > New > File > Swift), call it whatever you want and create bridging header when it ask about it.
 
 ## Guides
 
