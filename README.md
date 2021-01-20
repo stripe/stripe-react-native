@@ -120,7 +120,7 @@ You can find more details about StripeProvider in [API reference](./docs/api-ref
 
 While building your iOS project there might appear an issue with says about undefined symbols for architecture x86_64. It follows from some specific `react-native init` template configuration which is not fully compatibile with `swift 5.1` which is used in our SDK.
 
-example for an error
+error example:
 
 ```
 Undefined symbols for architecture x86_64:
