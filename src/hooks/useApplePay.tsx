@@ -51,18 +51,18 @@ export function useApplePay({
     }
   };
 
-  const completePaymentWithApplePay = async (clientSecret: string) => {
+  const confirmApplePayPayment = async (clientSecret: string) => {
     if (!isApplePaySupported) {
       return;
     }
-    await StripeSdk.completePaymentWithApplePay(clientSecret);
+    await StripeSdk.confirmApplePayPayment(clientSecret);
     setLoading(false);
   };
 
   return {
     loading,
     presentApplePay,
-    completePaymentWithApplePay,
+    confirmApplePayPayment,
     isApplePaySupported,
   };
 }

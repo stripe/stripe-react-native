@@ -12,7 +12,7 @@ import { API_URL } from '../Config';
 export default function ApplePayScreen() {
   const {
     presentApplePay,
-    completePaymentWithApplePay,
+    confirmApplePayPayment,
     isApplePaySupported,
   } = useApplePay({
     onError: (error) => {
@@ -45,7 +45,7 @@ export default function ApplePayScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     try {
-      await completePaymentWithApplePay(clientSecret);
+      await confirmApplePayPayment(clientSecret);
       // success
     } catch (e) {
       const error: StripeError<PresentApplePayError> = e;

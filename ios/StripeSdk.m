@@ -26,7 +26,7 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(unregisterApplePayCallbacks)
 
 RCT_EXTERN_METHOD(
-                  completePaymentWithApplePay:(NSString *)clientSecret
+                  confirmApplePayPayment:(NSString *)clientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

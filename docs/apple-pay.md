@@ -43,7 +43,7 @@ function PaymentScreen() {
 ## Step 6: Present the payment sheet
 
 Use `useApplePay` hook to handle this kind of payment,
-it returns `presentApplePay`, `confirmPayment` methods, `loading` value and `isApplePaySupported`.
+it returns `presentApplePay`, `confirmApplePayPayment` methods, `loading` value and `isApplePaySupported`.
 When the user taps the Apple Pay button, call `presentApplePay` to open sheet.
 In argument you should pass cart items which will be displayed in Apple Pay sheet.
 
@@ -77,14 +77,18 @@ function PaymentScreen() {
 ### Client side
 
 On the client, request a PaymentIntent from your server and store its client secret.
-Call `completePaymentWithApplePay` with clientSecrect to complete the payment.
+Call `confirmApplePayPayment` with clientSecrect to complete the payment.
 
 Please note that you can handle error and success statements both by promise returned from particular methods or onSuccess/onError callbacks
 passed to `useApplePay` hook.
 
 ```tsx
 function PaymentScreen() {
-  const { presentApplePay, isApplePaySupported } = useApplePay({
+  const {
+    presentApplePay,
+    confirmApplePayPayment,
+    isApplePaySupported,
+  } = useApplePay({
     onSuccess: () => {
       // ...
     },
@@ -108,7 +112,7 @@ function PaymentScreen() {
 
       const clientSecret = await fetchPaymentIntentClientSecret();
 
-      await completePaymentWithApplePay(clientSecret);
+      await confirmApplePayPayment(clientSecret);
 
       // ...
     } catch (e) {

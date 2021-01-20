@@ -83,8 +83,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         self.applePayRequestResolver?([NSNull()])
     }
     
-    @objc(completePaymentWithApplePay:resolver:rejecter:)
-    func completePaymentWithApplePay(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(confirmApplePayPayment:resolver:rejecter:)
+    func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.applePayCompletionRejecter = reject
         self.applePayCompletionCallback?(clientSecret, nil)
         resolve(NSNull())

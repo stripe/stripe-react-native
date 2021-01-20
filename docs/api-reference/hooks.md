@@ -39,7 +39,7 @@ A react hook for making ApplePay payments. It accepts `onError` and `onSuccess` 
 It returns an object with:
 
 - `presentApplePay: (items: CartSummaryItem[]) => Promise<void>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
-- `completePaymentWithApplePay: (clientSecret: string) => Promise<void>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [completepaymentwithapplepay](#completePaymentWithApplePay) section.
+- `confirmApplePayPayment: (clientSecret: string) => Promise<void>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
 - `isApplePaySupported: boolean` - boolean value indicates if Apple Pay is supported on the device
 - `loading: boolean` - state that indicates the status of the payment
 
@@ -54,7 +54,7 @@ Usage example:
 function PaymentScreen() {
   const {
     presentApplePay,
-    completePaymentWithApplePay,
+    confirmApplePayPayment,
     isApplePaySupported,
   } = useApplePay({
     onSuccess: () => console.log('Successfully payed'),
@@ -68,7 +68,7 @@ function PaymentScreen() {
         { label: 'Example item name', amount: '10500.50' },
       ]);
       const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
-      await completePaymentWithApplePay(clientSecret);
+      await confirmApplePayPayment(clientSecret);
       // ...
     } catch (e) {
       // ...

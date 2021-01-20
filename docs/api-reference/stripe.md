@@ -82,12 +82,12 @@ Initiates the Apple Pay payment.
 
 Promise without any data.
 
-## completePaymentWithApplePay
+## confirmApplePayPayment
 
 Apple Pay payment completion method. Should be called with clientSecret after payment intent creation on server side.
 
 ```ts
-completePaymentWithApplePay(clientSecret: string): Promise<void>
+confirmApplePayPayment(clientSecret: string): Promise<void>
 ```
 
 ### Arguments
