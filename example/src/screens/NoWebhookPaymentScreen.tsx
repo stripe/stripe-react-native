@@ -78,7 +78,6 @@ export default function NoWebhookPaymentScreen() {
         type: 'Card',
         card,
       });
-      console.log('paymentMethod', paymentMethod);
 
       // 2. call API to crfeate and get Intent
       const result = await callNoWebhookPayEndpoint({
