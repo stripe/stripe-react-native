@@ -20,7 +20,7 @@ export function useStripe() {
     handleNextPaymentAction: StripeSdk.handleNextPaymentAction,
     isApplePaySupported: isApplePaySupported,
     presentApplePay: StripeSdk.presentApplePay,
-    completePaymentWithApplePay: StripeSdk.completePaymentWithApplePay,
+    confirmApplePayPayment: StripeSdk.confirmApplePayPayment,
     confirmSetupIntent: StripeSdk.confirmSetupIntent,
   };
 }
