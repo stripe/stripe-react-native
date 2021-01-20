@@ -5,13 +5,13 @@ import UIKit
 class ApplePayButtonView: UIView {
     var applePayButton: PKPaymentButton?
     
-    @objc var onPress: RCTDirectEventBlock?
+    @objc var onPressAction: RCTDirectEventBlock?
     @objc var type: NSNumber?
     @objc var buttonStyle: NSNumber?
     
     @objc func handleApplePayButtonTapped() {
-        if onPress != nil {
-            onPress!(["true": true])
+        if onPressAction != nil {
+            onPressAction!(["true": true])
         }
     }
     
