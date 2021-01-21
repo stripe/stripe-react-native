@@ -2,15 +2,20 @@ import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../NativeStripeSdk';
 import { isAndroid } from '../helpers';
-import type { ThreeDSecureConfigurationParams } from '../types';
-import type { AppInfo } from '../types';
+import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
+import pjson from '../../package.json';
 
 type Props = {
   publishableKey: string;
   merchantIdentifier?: string;
   threeDSecureParams?: ThreeDSecureConfigurationParams;
-  appInfo?: AppInfo;
   stripeAccountId?: string;
+};
+
+const appInfo: AppInfo = {
+  name: pjson.name,
+  url: pjson.repository,
+  version: pjson.version,
 };
 
 export const StripeProvider: React.FC<Props> = ({
@@ -18,7 +23,6 @@ export const StripeProvider: React.FC<Props> = ({
   publishableKey,
   merchantIdentifier,
   threeDSecureParams,
-  appInfo = {},
   stripeAccountId,
 }) => {
   useEffect(() => {
@@ -41,13 +45,7 @@ export const StripeProvider: React.FC<Props> = ({
         merchantIdentifier
       );
     }
-  }, [
-    publishableKey,
-    merchantIdentifier,
-    appInfo,
-    stripeAccountId,
-    threeDSecureParams,
-  ]);
+  }, [publishableKey, merchantIdentifier, stripeAccountId, threeDSecureParams]);
 
   return <>{children}</>;
 };
