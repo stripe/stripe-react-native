@@ -193,9 +193,12 @@ export type PaymentMethodTypes =
   | 'Unknown';
 
 export type CreatePaymentMethodData = CreatePaymentMethodCardData;
+interface CreatePaymentMethodBaseData<T extends PaymentMethodTypes> {
+  type: T;
+}
 
-interface CreatePaymentMethodCardData {
-  type: 'Card';
+interface CreatePaymentMethodCardData
+  extends CreatePaymentMethodBaseData<'Card'> {
   card: CardDetails;
 }
 
