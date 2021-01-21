@@ -35,7 +35,6 @@ class Mappers {
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
-        case STPPaymentMethodType.payPal: return "PayPal"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }

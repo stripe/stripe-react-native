@@ -87,7 +87,6 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.Netbanking -> "Netbanking"
     PaymentMethod.Type.Oxxo -> "Oxxo"
     PaymentMethod.Type.P24 -> "P24"
-    PaymentMethod.Type.PayPal -> "PayPal"
     PaymentMethod.Type.SepaDebit -> "SepaDebit"
     PaymentMethod.Type.Sofort -> "Sofort"
     PaymentMethod.Type.Upi -> "Upi"

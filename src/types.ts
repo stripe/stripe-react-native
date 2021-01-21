@@ -190,7 +190,6 @@ export type PaymentMethodTypes =
   | 'Oxxo'
   | 'Sofort'
   | 'Upi'
-  | 'PayPal'
   | 'Unknown';
 
 export type CreatePaymentMethodData = CreatePaymentMethodCardData;
