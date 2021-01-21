@@ -56,6 +56,126 @@ internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {
   return map
 }
 
+internal fun mapCardBrand(brand: CardBrand?): String {
+  return when (brand) {
+    CardBrand.AmericanExpress -> "AmericanExpress"
+    CardBrand.DinersClub -> "DinersClub"
+    CardBrand.Discover -> "Discover"
+    CardBrand.JCB -> "JCB"
+    CardBrand.MasterCard -> "MasterCard"
+    CardBrand.UnionPay -> "UnionPay"
+    CardBrand.Visa -> "Visa"
+    CardBrand.Unknown -> "Unknown"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
+  return when (type) {
+    PaymentMethod.Type.AfterpayClearpay -> "AfterpayClearpay"
+    PaymentMethod.Type.Alipay -> "Alipay"
+    PaymentMethod.Type.AuBecsDebit -> "AuBecsDebit"
+    PaymentMethod.Type.BacsDebit -> "BacsDebit"
+    PaymentMethod.Type.Bancontact -> "Bancontact"
+    PaymentMethod.Type.Card -> "Card"
+    PaymentMethod.Type.CardPresent -> "CardPresent"
+    PaymentMethod.Type.Eps -> "Eps"
+    PaymentMethod.Type.Fpx -> "Fpx"
+    PaymentMethod.Type.Giropay -> "Giropay"
+    PaymentMethod.Type.GrabPay -> "GrabPay"
+    PaymentMethod.Type.Ideal -> "Ideal"
+    PaymentMethod.Type.Netbanking -> "Netbanking"
+    PaymentMethod.Type.Oxxo -> "Oxxo"
+    PaymentMethod.Type.P24 -> "P24"
+    PaymentMethod.Type.SepaDebit -> "SepaDebit"
+    PaymentMethod.Type.Sofort -> "Sofort"
+    PaymentMethod.Type.Upi -> "Upi"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?): WritableMap {
+  val details: WritableMap = WritableNativeMap()
+  val address: WritableMap = WritableNativeMap()
+
+  address.putString("country", billingDatails?.address?.country)
+  address.putString("city", billingDatails?.address?.city)
+  address.putString("line1", billingDatails?.address?.line1)
+  address.putString("line2", billingDatails?.address?.line2)
+  address.putString("postalCode", billingDatails?.address?.postalCode)
+  address.putString("state", billingDatails?.address?.state)
+
+  details.putString("email", billingDatails?.email)
+  details.putString("phone", billingDatails?.phone)
+  details.putString("name", billingDatails?.name)
+  details.putMap("address", address)
+
+  return details
+}
+
+internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
+  val pm: WritableMap = WritableNativeMap()
+  val card: WritableMap = WritableNativeMap()
+  val sepaDebit: WritableMap = WritableNativeMap()
+  val bacsDebit: WritableMap = WritableNativeMap()
+  val auBECSDebit: WritableMap = WritableNativeMap()
+  val sofort: WritableMap = WritableNativeMap()
+  val ideal: WritableMap = WritableNativeMap()
+  val fpx: WritableMap = WritableNativeMap()
+  val upi: WritableMap = WritableNativeMap()
+
+  card.putString("brand", mapCardBrand(paymentMethod.card?.brand))
+  card.putString("country", paymentMethod.card?.country)
+
+  paymentMethod.card?.expiryYear.let {
+    card.putInt("expYear", it as Int)
+  }
+  paymentMethod.card?.expiryMonth.let {
+    card.putInt("expMonth", it as Int)
+  }
+  card.putString("funding", paymentMethod.card?.funding)
+  card.putString("last4", paymentMethod.card?.last4)
+
+  sepaDebit.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
+  sepaDebit.putString("country", paymentMethod.sepaDebit?.country)
+  sepaDebit.putString("fingerprint", paymentMethod.sepaDebit?.fingerprint)
+  sepaDebit.putString("last4", paymentMethod.sepaDebit?.branchCode)
+
+  bacsDebit.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
+  bacsDebit.putString("last4", paymentMethod.bacsDebit?.last4)
+  bacsDebit.putString("sortCode", paymentMethod.bacsDebit?.sortCode)
+
+  auBECSDebit.putString("bsbNumber", paymentMethod.bacsDebit?.sortCode)
+  auBECSDebit.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
+  auBECSDebit.putString("last4", paymentMethod.bacsDebit?.last4)
+
+  sofort.putString("country", paymentMethod.sofort?.country)
+
+  ideal.putString("bankName", paymentMethod.ideal?.bank)
+  ideal.putString("bankIdentifierCode", paymentMethod.ideal?.bankIdentifierCode)
+
+  fpx.putString("accountHolderType", paymentMethod.fpx?.accountHolderType)
+  fpx.putString("bank", paymentMethod.fpx?.bank)
+
+  upi.putString("vpa", paymentMethod.upi?.vpa)
+
+  pm.putString("id", paymentMethod.id)
+  pm.putString("type", mapPaymentMethodType(paymentMethod.type))
+  pm.putBoolean("liveMode", paymentMethod.liveMode)
+  pm.putString("customerId", paymentMethod.customerId)
+  pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
+  pm.putMap("Card", card)
+  pm.putMap("SepaDebit", sepaDebit)
+  pm.putMap("BacsDebit", bacsDebit)
+  pm.putMap("AuBecsDebit", auBECSDebit)
+  pm.putMap("Sofort", sofort)
+  pm.putMap("Ideal", ideal)
+  pm.putMap("Fpx", fpx)
+  pm.putMap("Upi", upi)
+
+  return pm
+}
+
 internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableMap {
   val map: WritableMap = WritableNativeMap()
   map.putString("id", paymentIntent.id)

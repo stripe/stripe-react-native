@@ -74,12 +74,15 @@ export default function NoWebhookPaymentScreen() {
     setLoading(true);
     try {
       // 1. Create payment method
-      const paymentMethod = await createPaymentMethod(card);
+      const paymentMethod = await createPaymentMethod({
+        type: 'Card',
+        card,
+      });
 
-      // 2. call API to crfeate and get Intent
+      // 2. call API to create PaymentIntent
       const result = await callNoWebhookPayEndpoint({
         useStripeSdk: true,
-        paymentMethodId: paymentMethod.stripeId,
+        paymentMethodId: paymentMethod.id,
         currency: 'usd', // mocked data
         items: [{ id: 'id' }],
       });

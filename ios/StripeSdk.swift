@@ -192,20 +192,20 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: params)
+        let cardDetails = params.object(forKey: "card")
+        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails as! NSDictionary)
         STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
             }
-            if let paymentMethodId = paymentMethod?.stripeId {
-                let method: NSDictionary = [
-                    "stripeId": paymentMethodId 
-                ]
+            
+            if let paymentMethod = paymentMethod {
+                let method = Mappers.mapFromPaymentMethod(paymentMethod)
                 resolve(method)
             }
         }
     }
-    
+
     @objc(handleCardAction:resolver:rejecter:)
     func handleCardAction(
         paymentIntentClientSecret: String,
