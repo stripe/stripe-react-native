@@ -122,7 +122,7 @@ type NavigationBarProps = NavigationBarPropsAndroid &
     textFontSize: number;
   }>;
 
-type ThreeDSecureFooterProps = Partial<{
+type ThreeDsFooterProps = Partial<{
   backgroundColor: string;
   chevronColor: string;
   headingTextColor: string;
@@ -131,7 +131,7 @@ type ThreeDSecureFooterProps = Partial<{
 
 type ThreeDSecureMainPropsIOS = Partial<{
   backgroundColor: string;
-  footer: ThreeDSecureFooterProps;
+  footer: ThreeDsFooterProps;
 }>;
 
 type ThreeDSecureMainPropsAndroid = Partial<{
