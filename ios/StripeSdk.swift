@@ -24,9 +24,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
         
-        let name = RCTConvert.nsString(appInfo["name"]) ?? "react-native-stripe-sdk"
+        let name = RCTConvert.nsString(appInfo["name"]) ?? ""
         let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
-        let version = RCTConvert.nsString(appInfo["version"]) ?? "0.0.1"
+        let version = RCTConvert.nsString(appInfo["version"]) ?? ""
         let url = RCTConvert.nsString(appInfo["url"]) ?? ""
         
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)

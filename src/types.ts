@@ -248,6 +248,6 @@ export type CartSummaryItem = {
 export type AppInfo = Partial<{
   name: string;
   partnerId: string;
-  version: string;
   url: string;
+  version: string;
 }>;
