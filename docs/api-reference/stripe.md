@@ -66,7 +66,7 @@ An asynchronous function returns information about ApplePay support on the devic
 
 A promise with information about ApplePay support on the device.
 
-## payWithApplePay
+## presentApplePay
 
 Initiates the Apple Pay payment.
 
@@ -82,12 +82,12 @@ Initiates the Apple Pay payment.
 
 Promise without any data.
 
-## completePaymentWithApplePay
+## confirmApplePayPayment
 
 Apple Pay payment completion method. Should be called with clientSecret after payment intent creation on server side.
 
 ```ts
-completePaymentWithApplePay(clientSecret: string): Promise<void>
+confirmApplePayPayment(clientSecret: string): Promise<void>
 ```
 
 ### Arguments
