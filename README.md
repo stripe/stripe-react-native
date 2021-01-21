@@ -134,7 +134,7 @@ Temprary workaround for this issue is following these steps:
 
 - Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
   `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
-- Add a new Swift file to the project (File > New > File > Swift), call it whatever you want and create bridging header when it ask about it.
+- Open Xcode and create a new Swift file to the project (File > New > File > Swift), call it whatever you want and create bridging header when it ask about it.
 
 ## Guides
 
