@@ -79,7 +79,7 @@ export default function NoWebhookPaymentScreen() {
         card,
       });
 
-      // 2. call API to crfeate and get Intent
+      // 2. call API to create PaymentIntent
       const result = await callNoWebhookPayEndpoint({
         useStripeSdk: true,
         paymentMethodId: paymentMethod.id,
