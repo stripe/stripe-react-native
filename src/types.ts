@@ -53,7 +53,7 @@ export enum IntentStatus {
   Unknown = 'Unknown',
 }
 
-type ShippingAddres = {
+type Address = {
   city: string;
   county: string;
   line1: string;
@@ -63,7 +63,7 @@ type ShippingAddres = {
 };
 
 type ShippingDetails = {
-  address: ShippingAddres;
+  address: Address;
   name: string;
   carrier: string;
   phone: string;
@@ -172,9 +172,96 @@ export type ThreeDSecureConfigurationParams = ThreeDSecureMainProps &
     submitButton: ThreeDSecureSubmitButtonProps;
   }>;
 
-export type PaymentMethod = {
-  stripeId: string;
-};
+export type PaymentMethodTypes =
+  | 'AfterpayClearpay'
+  | 'Card'
+  | 'Alipay'
+  | 'Grabpay'
+  | 'Ideal'
+  | 'Fpx'
+  | 'CardPresent'
+  | 'SepaDebit'
+  | 'AuBecsDebit'
+  | 'BacsDebit'
+  | 'Giropay'
+  | 'P24'
+  | 'Eps'
+  | 'Bancontact'
+  | 'Oxxo'
+  | 'Sofort'
+  | 'Upi'
+  | 'Unknown';
+
+export type CreatePaymentMethodData = CreatePaymentMethodCardData;
+interface CreatePaymentMethodBaseData<T extends PaymentMethodTypes> {
+  type: T;
+}
+
+interface CreatePaymentMethodCardData
+  extends CreatePaymentMethodBaseData<'Card'> {
+  card: CardDetails;
+}
+
+type CardBrand =
+  | 'AmericanExpress'
+  | 'DinersClub'
+  | 'Discover'
+  | 'JCB'
+  | 'MasterCard'
+  | 'UnionPay'
+  | 'Visa'
+  | 'Unknown';
+
+export interface PaymentMethod {
+  id: string;
+  liveMode: boolean;
+  customerId: string;
+  billingDetails: {
+    email?: string;
+    phone?: string;
+    name?: string;
+    address?: Address;
+  };
+  type: PaymentMethodTypes;
+  AuBecsDebit: {
+    fingerprint?: string;
+    last4?: string;
+    bsbNumber?: string;
+  };
+  BacsDebit: {
+    sortCode?: string;
+    last4?: string;
+    fingerprint?: string;
+  };
+  Card: {
+    brand?: CardBrand;
+    country?: string;
+    expYear?: string;
+    expMonth?: string;
+    fingerprint?: string;
+    funding?: string;
+    last4?: string;
+  };
+  Fpx: {
+    bank?: string;
+  };
+  Ideal: {
+    bankIdentifierCode?: string;
+    bank?: string;
+  };
+  SepaDebit: {
+    bankCode?: string;
+    country?: string;
+    fingerprint?: string;
+    last4?: string;
+  };
+  Sofort: {
+    country?: string;
+  };
+  Upi: {
+    vpa?: string;
+  };
+}
 
 export enum ConfirmPaymentError {
   Canceled = 'Canceled',

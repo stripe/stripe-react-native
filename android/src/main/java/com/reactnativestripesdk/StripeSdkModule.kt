@@ -131,7 +131,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun createPaymentMethod(params: ReadableMap, promise: Promise) {
-    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(params)
+    val cardDetails = params.getMap("card") as ReadableMap
+    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
@@ -140,8 +141,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         override fun onSuccess(result: PaymentMethod) {
-          val paymentMethodMap: WritableMap = WritableNativeMap()
-          paymentMethodMap.putString("stripeId", result.id)
+          val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
           promise.resolve(paymentMethodMap)
         }
       })
