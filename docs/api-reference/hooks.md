@@ -38,14 +38,14 @@ A react hook for making ApplePay payments. It accepts `onError` and `onSuccess` 
 
 It returns an object with:
 
-- `payWithApplePay: (items: CartSummaryItem[]) => Promise<void>` - function to initiate apple payment. Read more in [payWithApplePay](#paywithapplepay) section.
-- `completePaymentWithApplePay: (clientSecret: string) => Promise<void>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [completepaymentwithapplepay](#completePaymentWithApplePay) section.
+- `presentApplePay: (items: CartSummaryItem[]) => Promise<void>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
+- `confirmApplePayPayment: (clientSecret: string) => Promise<void>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
 - `isApplePaySupported: boolean` - boolean value indicates if Apple Pay is supported on the device
 - `loading: boolean` - state that indicates the status of the payment
 
 Possible configuration options:
 
-- `onError: (error: StripeError<PayWithApplePayError>) => void` - callback that will be called on payment error
+- `onError: (error: StripeError<PresentApplePayError>) => void` - callback that will be called on payment error
 - `onSuccess: () => void` - callback that will be called on payment success
 
 Usage example:
@@ -53,8 +53,8 @@ Usage example:
 ```tsx
 function PaymentScreen() {
   const {
-    payWithApplePay,
-    completePaymentWithApplePay,
+    presentApplePay,
+    confirmApplePayPayment,
     isApplePaySupported,
   } = useApplePay({
     onSuccess: () => console.log('Successfully payed'),
@@ -64,11 +64,11 @@ function PaymentScreen() {
 
   const pay = async () => {
     try {
-      await payWithApplePay([
+      await presentApplePay([
         { label: 'Example item name', amount: '10500.50' },
       ]);
       const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
-      await completePaymentWithApplePay(clientSecret);
+      await confirmApplePayPayment(clientSecret);
       // ...
     } catch (e) {
       // ...

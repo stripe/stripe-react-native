@@ -10,7 +10,7 @@ import type {
   CartSummaryItem,
   BillingDetails,
   SetupIntent,
-  PayWithApplePayError,
+  PresentApplePayError,
   AppInfo,
 } from './types';
 
@@ -38,11 +38,11 @@ type NativeStripeSdkType = {
   ): void;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;
-  payWithApplePay(items: CartSummaryItem[]): Promise<void>;
-  completePaymentWithApplePay(clientSecret: string): Promise<void>;
+  presentApplePay(items: CartSummaryItem[]): Promise<void>;
+  confirmApplePayPayment(clientSecret: string): Promise<void>;
   registerApplePayCallbacks(
     onSuccess: () => void,
-    onError: (error: StripeError<PayWithApplePayError>) => void
+    onError: (error: StripeError<PresentApplePayError>) => void
   ): void;
   confirmSetupIntent(
     paymentIntentClientSecret: string,

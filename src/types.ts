@@ -194,7 +194,7 @@ export enum ConfirmSetupIntentError {
   Unknown = 'Unknown',
 }
 
-export enum PayWithApplePayError {
+export enum PresentApplePayError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',
@@ -213,7 +213,7 @@ export type ApplePayButtonProps = {
   style?: StyleProp<ViewStyle>;
   type?: number;
   buttonStyle?: number;
-  onPay(): void;
+  onPressAction(): void;
 };
 
 export type ApplePayButtonType =
