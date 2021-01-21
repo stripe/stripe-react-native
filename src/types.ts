@@ -197,7 +197,7 @@ interface CreatePaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
 }
 
-interface CreatePaymentMethodCardData
+export interface CreatePaymentMethodCardData
   extends CreatePaymentMethodBaseData<'Card'> {
   card: CardDetails;
 }
