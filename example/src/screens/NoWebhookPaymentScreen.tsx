@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import {
+  BillingDetails,
   CardDetails,
   CardField,
   IntentStatus,
@@ -73,10 +74,22 @@ export default function NoWebhookPaymentScreen() {
 
     setLoading(true);
     try {
+      // 2. Gather customer billing information (ex. email)
+      const billingDetails: BillingDetails = {
+        email: 'email@stripe.com',
+        phone: '+48888000888',
+        addressCity: 'Houston',
+        addressCountry: 'US',
+        addressLine1: '1459  Circle Drive',
+        addressLine2: 'Texas',
+        addressPostalCode: '77063',
+      }; // mocked data for tests
+
       // 1. Create payment method
       const paymentMethod = await createPaymentMethod({
         type: 'Card',
         card,
+        billingDetails,
       });
 
       // 2. call API to create PaymentIntent

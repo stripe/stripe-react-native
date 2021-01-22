@@ -12,7 +12,7 @@ import type {
   SetupIntent,
   PresentApplePayError,
   AppInfo,
-  CreatePaymentMethodData,
+  PaymentMethodTypes,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -23,10 +23,15 @@ type NativeStripeSdkType = {
     threeDSecureParams?: ThreeDSecureConfigurationParams,
     merchantIdentifier?: string
   ): void;
-  createPaymentMethod(data: CreatePaymentMethodData): Promise<PaymentMethod>;
+  createPaymentMethod(
+    type: PaymentMethodTypes,
+    billingDetails: BillingDetails,
+    cardDetails?: CardDetails
+  ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
+    billingDetails: BillingDetails,
     cardDetails: CardDetails
   ): Promise<PaymentIntent>;
   registerConfirmPaymentCallbacks(

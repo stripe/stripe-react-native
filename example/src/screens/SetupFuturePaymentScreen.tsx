@@ -54,13 +54,13 @@ export default function SetupFuturePaymentScreen() {
 
       // 2. Gather customer billing information (ex. email)
       const billingDetails: BillingDetails = {
-        email,
+        email: 'email@stripe.com',
         phone: '+48888000888',
-        addressCity: 'Wrocław',
-        addressCountry: 'PL',
-        addressLine1: 'Bolesława Drobnera',
-        addressLine2: '12/100',
-        addressPostalCode: '50-257',
+        addressCity: 'Houston',
+        addressCountry: 'US',
+        addressLine1: '1459  Circle Drive',
+        addressLine2: 'Texas',
+        addressPostalCode: '77063',
       }; // mocked data for tests
 
       // 3. Confirm setup intent
