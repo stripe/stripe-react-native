@@ -16,6 +16,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onConfirmSetupIntentSuccessCallback: RCTResponseSenderBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     
+    @objc static func requiresMainQueueSetup() -> Bool {
+        return false
+    }
+    
     @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
     func initialise(publishableKey: String,  appInfo: NSDictionary, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
         if let params = params {
