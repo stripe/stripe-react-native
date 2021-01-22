@@ -174,7 +174,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func configure3dSecure(_ params: NSDictionary) {
         let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
         let uiCustomization = Mappers.mapUICustomization(params)
-                
+        
         threeDSCustomizationSettings.uiCustomization = uiCustomization
     }
     
@@ -190,14 +190,17 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         onPaymentErrorCallback = nil
     }
     
-    @objc(createPaymentMethod:resolver:rejecter:)
+    @objc(createPaymentMethod:billingDetails:cardParams:resolver:rejecter:)
     func createPaymentMethod(
-        params: NSDictionary,
+        type: NSString,
+        billingDetails: NSDictionary,
+        cardParams: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let cardDetails = params.object(forKey: "card")
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails as! NSDictionary)
+        let billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        
+        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardParams, billingDetails: billing)
         STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
@@ -209,7 +212,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             }
         }
     }
-
+    
     @objc(handleCardAction:resolver:rejecter:)
     func handleCardAction(
         paymentIntentClientSecret: String,
@@ -235,14 +238,16 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
     }
     
-    @objc(confirmPaymentMethod:params:resolver:rejecter:)
+    @objc(confirmPaymentMethod:billingDetails:cardParams:resolver:rejecter:)
     func confirmPaymentMethod(
         paymentIntentClientSecret: String,
-        params: NSDictionary,
+        billingDetails: NSDictionary,
+        cardParams: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: params)
+        let billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardParams, billingDetails: billing)
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
         paymentIntentParams.paymentMethodParams = paymentMethodParams
         

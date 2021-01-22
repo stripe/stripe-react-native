@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import type {
+  BillingDetails,
   CardDetails,
   ConfirmPaymentError,
   PaymentIntent,
@@ -22,7 +23,11 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
   }, []);
 
   const confirmPayment = useCallback(
-    async (paymentIntentClientSecret: string, cardDetails: CardDetails) => {
+    async (
+      paymentIntentClientSecret: string,
+      billingDetails: BillingDetails,
+      cardDetails: CardDetails
+    ) => {
       const handleSuccess = createHandler((value: PaymentIntent) => {
         onSuccess(value);
         handleFinishCallback();
@@ -40,6 +45,7 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
       setLoading(true);
       const result = await StripeSdk.confirmPaymentMethod(
         paymentIntentClientSecret,
+        billingDetails,
         cardDetails
       );
       setLoading(false);
