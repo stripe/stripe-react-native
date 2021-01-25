@@ -38,9 +38,8 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(unregisterConfirmPaymentCallbacks)
 
 RCT_EXTERN_METHOD(
-                  createPaymentMethod:(NSString *)type
-                  billingDetails:(NSDictionary *)billingDetails
-                  cardParams:(NSDictionary *)cardParams
+                  createPaymentMethod:(NSDictionary *)data
+                  options:(NSDictionary *)options
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
@@ -53,8 +52,8 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   confirmPaymentMethod:(NSString *)paymentIntentClientSecret
-                  billingDetails:(NSDictionary *)billingDetails
-                  cardParams:(NSDictionary *)cardParams
+                  data:(NSDictionary *)data
+                  options:(NSDictionary *)options
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
@@ -70,8 +69,8 @@ RCT_EXTERN_METHOD(unregisterConfirmSetupIntentCallbacks)
 
 RCT_EXTERN_METHOD(
                   confirmSetupIntent:(NSString *)setupIntentClientSecret
-                  card: (NSDictionary *)card
-                  billingDetails: (NSDictionary *)billingDetails
+                  data:(NSDictionary *)data
+                  options:(NSDictionary *)options
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

@@ -1,13 +1,14 @@
 import { useCallback, useState } from 'react';
 import type {
-  BillingDetails,
-  CardDetails,
   ConfirmPaymentError,
   PaymentIntent,
+  PaymentMethodData,
+  PaymentMethodOptions,
   StripeError,
 } from '../types';
 import StripeSdk from '../NativeStripeSdk';
 import { createHandler } from '../helpers';
+import { useStripe } from './useStripe';
 
 type Params = {
   onError: (error: StripeError<ConfirmPaymentError>) => void;
@@ -16,6 +17,7 @@ type Params = {
 
 export function useConfirmPayment({ onError, onSuccess }: Params) {
   const [loading, setLoading] = useState(false);
+  const { confirmPayment: confirmPaymentMethod } = useStripe();
 
   const handleFinishCallback = useCallback(() => {
     setLoading(false);
@@ -25,8 +27,8 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
   const confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
-      billingDetails: BillingDetails,
-      cardDetails: CardDetails
+      data: PaymentMethodData,
+      options: PaymentMethodOptions = {}
     ) => {
       const handleSuccess = createHandler((value: PaymentIntent) => {
         onSuccess(value);
@@ -43,16 +45,16 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
       StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
 
       setLoading(true);
-      const result = await StripeSdk.confirmPaymentMethod(
+      const result = await confirmPaymentMethod(
         paymentIntentClientSecret,
-        billingDetails,
-        cardDetails
+        data,
+        options
       );
       setLoading(false);
 
       return result;
     },
-    [handleFinishCallback, onSuccess, onError]
+    [handleFinishCallback, onSuccess, onError, confirmPaymentMethod]
   );
 
   return {

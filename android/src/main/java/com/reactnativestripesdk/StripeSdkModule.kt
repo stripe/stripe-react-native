@@ -130,8 +130,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun createPaymentMethod(params: ReadableMap, promise: Promise) {
-    val cardDetails = params.getMap("card") as ReadableMap
+  fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
+    val cardDetails = data.getMap("cardDetails") as ReadableMap
     val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
@@ -169,9 +169,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, promise: Promise) {
+  fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
-    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(params)
+    val cardDetails = data.getMap("cardDetails") as ReadableMap
+    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
 
     val confirmParams = ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
@@ -195,10 +196,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun confirmSetupIntent (setupIntentClientSecret: String, card: ReadableMap, billingDatails: ReadableMap, promise: Promise) {
+  fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
-    val billing = mapToBillingDetails(billingDatails)
-    val card = mapToCard(card)
+    val billing = mapToBillingDetails(data.getMap("billingDetails") as ReadableMap)
+    val card = mapToCard(data.getMap("cardDetails") as ReadableMap)
 
     val paymentMethodParams = PaymentMethodCreateParams
       .create(card, billing, null)
