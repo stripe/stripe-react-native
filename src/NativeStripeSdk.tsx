@@ -1,6 +1,5 @@
 import { NativeModules } from 'react-native';
 import type {
-  CardDetails,
   ConfirmPaymentError,
   ConfirmSetupIntentError,
   PaymentIntent,
@@ -8,11 +7,11 @@ import type {
   StripeError,
   ThreeDSecureConfigurationParams,
   CartSummaryItem,
-  BillingDetails,
   SetupIntent,
   PresentApplePayError,
   AppInfo,
-  PaymentMethodTypes,
+  PaymentMethodData,
+  PaymentMethodOptions,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -24,15 +23,14 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(
-    type: PaymentMethodTypes,
-    billingDetails: BillingDetails,
-    cardDetails?: CardDetails
+    data: PaymentMethodData,
+    options: PaymentMethodOptions
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    billingDetails: BillingDetails,
-    cardDetails: CardDetails
+    data: PaymentMethodData,
+    options: PaymentMethodOptions
   ): Promise<PaymentIntent>;
   registerConfirmPaymentCallbacks(
     onSuccess:
@@ -52,8 +50,8 @@ type NativeStripeSdkType = {
   ): void;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    cardDetails: CardDetails,
-    billingDetails: BillingDetails
+    data: PaymentMethodData,
+    options: PaymentMethodOptions
   ): Promise<SetupIntent>;
   registerConfirmSetupIntentCallbacks(
     onSuccess:

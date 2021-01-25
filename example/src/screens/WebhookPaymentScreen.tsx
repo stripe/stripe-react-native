@@ -72,7 +72,11 @@ export default function WebhookPaymentScreen() {
 
       // 3. Confirm payment with card details
       // The rest will be done automatically using webhooks
-      const intent = await confirmPayment(clientSecret, billingDetails, card);
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        billingDetails,
+        cardDetails: card,
+      });
       console.log('Success from promise', intent);
     } catch (e) {
       console.log('Payment confirmation error', e.message);

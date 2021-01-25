@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { CreatePaymentMethodData } from 'src/types';
+import type { PaymentMethodData, PaymentMethodOptions } from 'src/types';
 import { isiOS } from '../helpers';
+import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
 
 export function useStripe() {
@@ -15,16 +16,15 @@ export function useStripe() {
     checkApplePaySupport();
   }, []);
 
-  const createPaymentMethod = (data: CreatePaymentMethodData) => {
-    const { billingDetails, type } = data;
-    if ('card' in data) {
-      return StripeSdk.createPaymentMethod(type, billingDetails, data.card);
-    }
-    return StripeSdk.createPaymentMethod(type, billingDetails);
+  const createPaymentMethod = (
+    data: PaymentMethodData,
+    options: PaymentMethodOptions = {}
+  ) => {
+    return NativeStripeSdk.createPaymentMethod(data, options);
   };
 
   return {
-    confirmPayment: StripeSdk.confirmPaymentMethod,
+    confirmPayment: NativeStripeSdk.confirmPaymentMethod,
     createPaymentMethod: createPaymentMethod,
     handleCardAction: StripeSdk.handleCardAction,
     isApplePaySupported: isApplePaySupported,

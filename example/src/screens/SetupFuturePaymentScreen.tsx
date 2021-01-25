@@ -64,11 +64,11 @@ export default function SetupFuturePaymentScreen() {
       }; // mocked data for tests
 
       // 3. Confirm setup intent
-      const intent = await confirmSetupIntent(
-        clientSecret,
-        card,
-        billingDetails
-      );
+      const intent = await confirmSetupIntent(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
