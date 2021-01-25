@@ -172,15 +172,11 @@ export type ThreeDSecureConfigurationParams = ThreeDSecureMainProps &
     submitButton: ThreeDSecureSubmitButtonProps;
   }>;
 
-export interface PaymentsData {
-  billingDetails: BillingDetails;
-  cardDetails: CardDetails;
-}
-
 export interface PaymentMethodOptions {}
 
 export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
-interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
+
+export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
   billingDetails: BillingDetails;
 }
