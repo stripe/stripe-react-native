@@ -78,37 +78,45 @@ class Mappers {
         var addressDetails = NSDictionary()
         if let address = shipping.address {
             addressDetails = [
-                "city": address.city ?? "",
-                "country": address.country ?? "",
-                "line1": address.line1 ?? "",
-                "line2":address.line2 ?? "",
-                "postalCode": address.postalCode ?? "",
+                "city": address.city ?? NSNull(),
+                "country": address.country ?? NSNull(),
+                "line1": address.line1 ?? NSNull(),
+                "line2":address.line2 ?? NSNull(),
+                "postalCode": address.postalCode ?? NSNull(),
             ]
         }
         let shippingDetails: NSDictionary = [
             "address": addressDetails,
-            "name": shipping.name ?? "",
-            "phone": shipping.phone ?? "",
-            "trackingNumber": shipping.trackingNumber ?? "",
-            "carrier": shipping.carrier ?? "",
+            "name": shipping.name ?? NSNull(),
+            "phone": shipping.phone ?? NSNull(),
+            "trackingNumber": shipping.trackingNumber ?? NSNull(),
+            "carrier": shipping.carrier ?? NSNull(),
         ]
         return shippingDetails
     }
     
     class func mapFromIntent (paymentIntent: STPPaymentIntent?) -> NSDictionary {
         let intent: NSMutableDictionary = [
-            "id": paymentIntent?.stripeId ?? "",
-            "currency": paymentIntent?.currency ?? "",
+            "id": paymentIntent?.stripeId ?? NSNull(),
+            "currency": paymentIntent?.currency ?? NSNull(),
             "status": Mappers.mapIntentStatus(status: paymentIntent?.status),
-            "description": paymentIntent?.description ?? "",
-            "created": Int(paymentIntent?.created.timeIntervalSince1970 ?? 0 * 1000),
-            "clientSecret": paymentIntent?.clientSecret ?? "",
-            "receiptEmail": paymentIntent?.receiptEmail ?? "",
-            "isLiveMode": paymentIntent?.livemode ?? false,
-            "paymentMethodId": paymentIntent?.paymentMethodId ?? "",
+            "description": paymentIntent?.description ?? NSNull(),
+            "clientSecret": paymentIntent?.clientSecret ?? NSNull(),
+            "receiptEmail": paymentIntent?.receiptEmail ?? NSNull(),
+            "livemode": paymentIntent?.livemode ?? false,
+            "paymentMethodId": paymentIntent?.paymentMethodId ?? NSNull(),
             "captureMethod": mapCaptureMethod(paymentIntent?.captureMethod),
-            "confirmationMethod": mapConfirmationMethod(paymentIntent?.confirmationMethod)
+            "confirmationMethod": mapConfirmationMethod(paymentIntent?.confirmationMethod),
+            "created": NSNull(),
+            "lastPaymentError": NSNull(),
+            "shipping": NSNull(),
+            "amount": NSNull(),
+            "canceledAt": NSNull()
         ]
+        
+        if let created = paymentIntent?.created {
+            intent.setValue(convertDateToUnixTimestamp(date: created), forKey: "created")
+        }
         
         if let lastPaymentError = paymentIntent?.lastPaymentError {
             let paymentError = [
@@ -126,7 +134,7 @@ class Mappers {
             intent.setValue(amount, forKey: "amount")
         }
         if let canceledAt = paymentIntent?.canceledAt {
-            intent.setValue(Int(canceledAt.timeIntervalSince1970 * 1000), forKey: "canceledAt")
+            intent.setValue(convertDateToUnixTimestamp(date: canceledAt), forKey: "canceledAt")
         }
         
         return intent;
@@ -154,9 +162,9 @@ class Mappers {
     
     class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
         let billing: NSDictionary = [
-            "email": billingDetails?.email ?? "",
-            "phone": billingDetails?.phone ?? "",
-            "name": billingDetails?.name ?? "",
+            "email": billingDetails?.email ?? NSNull(),
+            "phone": billingDetails?.phone ?? NSNull(),
+            "name": billingDetails?.name ?? NSNull(),
             "address": [
                 "city": billingDetails?.address?.city,
                 "postalCode": billingDetails?.address?.postalCode,
@@ -190,34 +198,34 @@ class Mappers {
     class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod) -> NSDictionary {
         let card: NSDictionary = [
             "brand": Mappers.mapCardBrand(paymentMethod.card?.brand),
-            "country": paymentMethod.card?.country ?? "",
-            "expYear": paymentMethod.card?.expYear ?? "",
-            "expMonth": paymentMethod.card?.expMonth ?? "",
-            "fingerprint": paymentMethod.card?.fingerprint ?? "",
-            "funding": paymentMethod.card?.funding ?? "",
-            "last4": paymentMethod.card?.last4 ?? ""
+            "country": paymentMethod.card?.country ?? NSNull(),
+            "expYear": paymentMethod.card?.expYear ?? NSNull(),
+            "expMonth": paymentMethod.card?.expMonth ?? NSNull(),
+            "fingerprint": paymentMethod.card?.fingerprint ?? NSNull(),
+            "funding": paymentMethod.card?.funding ?? NSNull(),
+            "last4": paymentMethod.card?.last4 ?? NSNull()
         ]
         let sepaDebit: NSDictionary = [
-            "bankCode": paymentMethod.sepaDebit?.bankCode ?? "",
-            "country": paymentMethod.sepaDebit?.country ?? "",
-            "fingerprint": paymentMethod.sepaDebit?.fingerprint ?? "",
-            "last4": paymentMethod.sepaDebit?.last4 ?? "",
+            "bankCode": paymentMethod.sepaDebit?.bankCode ?? NSNull(),
+            "country": paymentMethod.sepaDebit?.country ?? NSNull(),
+            "fingerprint": paymentMethod.sepaDebit?.fingerprint ?? NSNull(),
+            "last4": paymentMethod.sepaDebit?.last4 ?? NSNull(),
         ]
         let bacsDebit: NSDictionary = [
-            "fingerprint": paymentMethod.bacsDebit?.fingerprint ?? "",
-            "last4": paymentMethod.bacsDebit?.last4 ?? "",
-            "sortCode": paymentMethod.bacsDebit?.sortCode ?? ""
+            "fingerprint": paymentMethod.bacsDebit?.fingerprint ?? NSNull(),
+            "last4": paymentMethod.bacsDebit?.last4 ?? NSNull(),
+            "sortCode": paymentMethod.bacsDebit?.sortCode ?? NSNull()
         ]
         let auBECSDebit: NSDictionary = [
-            "bsbNumber": paymentMethod.auBECSDebit?.bsbNumber ?? "",
-            "fingerprint": paymentMethod.auBECSDebit?.fingerprint ?? "",
-            "last4": paymentMethod.auBECSDebit?.last4 ?? ""
+            "bsbNumber": paymentMethod.auBECSDebit?.bsbNumber ?? NSNull(),
+            "fingerprint": paymentMethod.auBECSDebit?.fingerprint ?? NSNull(),
+            "last4": paymentMethod.auBECSDebit?.last4 ?? NSNull()
         ]
         let method: NSDictionary = [
             "id": paymentMethod.stripeId,
             "type": Mappers.mapPaymentMethodType(type: paymentMethod.type),
             "liveMode": paymentMethod.liveMode,
-            "customerId": paymentMethod.customerId ?? "",
+            "customerId": paymentMethod.customerId ?? NSNull(),
             "billingDetails": Mappers.mapFromBillingDetails(billingDetails: paymentMethod.billingDetails),
             "Card": card,
             "Ideal": [
@@ -264,16 +272,52 @@ class Mappers {
             }
         }
         return "Unknown"
+    }
+    
+    class func mapSetupIntentUsage(usage: STPSetupIntentUsage?) -> String {
+        if let usage = usage {
+            switch usage {
+            case STPSetupIntentUsage.none: return "None"
+            case STPSetupIntentUsage.offSession: return "OffSession"
+            case STPSetupIntentUsage.onSession: return "OnSession"
+            case STPSetupIntentUsage.unknown: return "Unknown"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
         
     }
     
     class func mapFromSetupIntentResult(setupIntent: STPSetupIntent) -> NSDictionary {
-        let intent: NSDictionary = [
+        let intent: NSMutableDictionary = [
             "id": setupIntent.stripeID,
+            "clientSecret": setupIntent.clientSecret,
             "status": mapIntentStatus(status: setupIntent.status),
-            "description": setupIntent.stripeDescription ?? "",
-            "created": Int(setupIntent.created?.timeIntervalSince1970 ?? 0 * 1000) // convert to unix timestamp
+            "description": setupIntent.stripeDescription ?? NSNull(),
+            "lastSetupError": setupIntent.lastSetupError ?? NSNull(),
+            "livemode": setupIntent.livemode,
+            "paymentMethodTypes": setupIntent.paymentMethodTypes ?? NSArray(),
+            "usage": mapSetupIntentUsage(usage: setupIntent.usage),
+            "customerID": setupIntent.customerID ?? NSNull(),
+            "paymentMethodID": setupIntent.paymentMethodID ?? NSNull(),
+            "cancellationReason": NSNull(),
+            "paymentMethod": NSNull(),
+            "created": NSNull(),
+            "lastSetupError": NSNull()
         ]
+        
+        if let created = setupIntent.created {
+            intent.setValue(convertDateToUnixTimestamp(date: created), forKey: "created")
+        }
+        
+        if let lastSetupError = setupIntent.lastSetupError {
+            let setupError = [
+                "code": lastSetupError.code,
+                "message": lastSetupError.description
+            ]
+            intent.setValue(setupError, forKey: "lastSetupError")
+        }
+        
         
         return intent
     }
@@ -374,6 +418,10 @@ class Mappers {
         }
         
         return uiCustomization
+    }
+    
+    class func convertDateToUnixTimestamp(date: Date) -> UInt64 {
+        return UInt64(date.timeIntervalSince1970 * 1000.0)
     }
     
 }
