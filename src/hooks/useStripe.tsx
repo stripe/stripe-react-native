@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { PaymentMethodData, PaymentMethodOptions } from 'src/types';
+import type { PaymentMethodData, PaymentMethodOptions } from '../types';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
