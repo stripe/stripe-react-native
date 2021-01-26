@@ -54,22 +54,21 @@ export default function SetupFuturePaymentScreen() {
 
       // 2. Gather customer billing information (ex. email)
       const billingDetails: BillingDetails = {
-        email,
+        email: 'email@stripe.com',
         phone: '+48888000888',
-        addressCity: 'Wrocław',
-        addressCountry: 'PL',
-        addressLine1: 'Bolesława Drobnera',
-        addressLine2: '12/100',
-        addressPostalCode: '50-257',
+        addressCity: 'Houston',
+        addressCountry: 'US',
+        addressLine1: '1459  Circle Drive',
+        addressLine2: 'Texas',
+        addressPostalCode: '77063',
       }; // mocked data for tests
 
       // 3. Confirm setup intent
-      const intent = await confirmSetupIntent(
-        clientSecret,
-        card,
-        billingDetails
-      );
-
+      const intent = await confirmSetupIntent(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
