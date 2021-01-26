@@ -7,7 +7,7 @@ Stripe initialisation provider. Needed to properly initialise stripe SDK. Should
 ```tsx
 <StripeProvider
   publishableKey="publishable_key"
-  merchantIdentifier="merchant.com.react.native.stripe.sdk"
+  merchantIdentifier="merchant.com.stripe.react.native"
   threeDSecureParams={{
     timeout: 5,
   }}

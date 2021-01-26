@@ -11,7 +11,7 @@
 To install the SDK run the following command in your terminal:
 
 ```sh
-yarn add react-native-stripe-sdk
+yarn add stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -60,11 +60,7 @@ The other way is to use `onError` and `onSuccess` callbacks you can pass to the 
 
 import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import {
-  CardDetails,
-  CardField,
-  useConfirmPayment,
-} from 'react-native-stripe-sdk';
+import { CardDetails, CardField, useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import { API_URL } from '../Config';
 
@@ -166,7 +162,7 @@ export default function WebhookPaymentScreen() {
 // App.tsx
 
 import WebhookPaymentScreen from './WebhookPaymentScreen';
-import StripeProvider from 'react-native-stripe-sdk';
+import StripeProvider from 'stripe-react-native';
 
 export default function App() {
   // 2.A. ------

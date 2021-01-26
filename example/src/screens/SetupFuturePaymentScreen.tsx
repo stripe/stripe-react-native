@@ -5,7 +5,7 @@ import {
   CardDetails,
   CardField,
   useConfirmSetupIntent,
-} from 'react-native-stripe-sdk';
+} from 'stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';

@@ -49,7 +49,7 @@ Remember to add tests for your change if possible. Run the unit tests by:
 yarn test
 ```
 
-To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-stripe-sdk`.
+To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
@@ -57,8 +57,8 @@ To edit the Kotlin files, open `example/android` in Android studio and find the 
 
 To install local/private packages across local environment we recommend use [yalc](https://github.com/wclr/yalc) tool.
 
-- Run `yalc publish` in `react-native-stripe-sdk` package to publish all the files that should be published in remote NPM registry.
-- Run `yalc add react-native-stripe-sdk` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/react-native-stripe-sdk into package.json.
+- Run `yalc publish` in `stripe-react-native` package to publish all the files that should be published in remote NPM registry.
+- Run `yalc add stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/stripe-react-native into package.json.
 - In your dependent project run `yarn install` and `cd ios && pod install`
 
 ### Commit message convention

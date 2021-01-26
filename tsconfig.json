@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "react-native-stripe-sdk": ["./src/index"]
+      "stripe-react-native": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
