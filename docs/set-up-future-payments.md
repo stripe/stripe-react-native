@@ -81,11 +81,11 @@ function PaymentScreen() {
         email,
       }; // Gather customer billing information (ex. email)
       const clientSecret = await createSetupIntentOnBackend(); // Create setup intent on backend
-      const intent = await confirmSetupIntent(
-        clientSecret,
-        card,
-        billingDetails
-      );
+      const intent = await confirmSetupIntent(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       // ...
     } catch (e) {
       // ...

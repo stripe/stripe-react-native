@@ -85,13 +85,13 @@ A react hook for confirming simple payments with webhooks. It that accepts `onEr
 
 It returns an object with:
 
-- `confirmPayment: (paymentIntentClientSecret: string, cardDetails: CardDetails) => Promise<Intent>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
+- `confirmPayment: (paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<PaymentIntent>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
 - `loading: boolean` - state that indicates the status of the payment
 
 Configuration options you can set:
 
 - `onError: (error: StripeError<ConfirmPaymentError>) => void` - callback that will be called on payment error
-- `onSuccess: (intent: Intent) => void` - callback that will be called on payment success
+- `onSuccess: (intent: PaymentIntent) => void` - callback that will be called on payment success
 
 Usage example:
 
@@ -104,9 +104,16 @@ function PaymentScreen() {
   // ...
 
   const handlePayPress = () => {
+    const clientSecret = await fetchPaymentIntentClientSecret(); // fetching client secret from backend
     try {
-      const clientSecret = await fetchPaymentIntentClientSecret(); // fetching client secret from backend
-      const intent = await confirmPayment(clientSecret, card);
+      const billingDetails: BillingDetails = {
+        email,
+      }; // Gather customer billing information (ex. email)
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetils,
+      });
       // ...
     } catch (e) {
       // ...
@@ -123,7 +130,7 @@ A react hook for confirming simple payments with webhooks. It that accepts `onEr
 
 It returns an object with:
 
-- `confirmSetupIntent: ( paymentIntentClientSecret: string, cardDetails: CardDetails, billingDetails: BillingDetails ) => Promise<SetupIntent>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
+- `confirmSetupIntent: ( paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<SetupIntent>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
 - `loading: boolean` - state that indicates the status of the payment
 
 Configuration options you can set:
@@ -147,11 +154,11 @@ function PaymentScreen() {
       const billingDetails: BillingDetails = {
         email,
       };
-      const intent = await confirmSetupIntent(
-        clientSecret,
-        card,
-        billingDetails
-      );
+      const intent = await confirmSetupIntent(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       // ...
     } catch (e) {
       // ...

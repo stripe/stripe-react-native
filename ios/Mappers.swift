@@ -40,7 +40,7 @@ class Mappers {
         }
     }
     
-    class func mapCardParamsToPaymentMethodParams(params: NSDictionary) -> STPPaymentMethodParams {
+    class func mapCardParamsToPaymentMethodParams(params: NSDictionary, billingDetails: STPPaymentMethodBillingDetails?) -> STPPaymentMethodParams {
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = RCTConvert.nsString(params["number"])
         cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
@@ -48,7 +48,7 @@ class Mappers {
         cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
         
         let cardParams = STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
-        return STPPaymentMethodParams(card: cardParams, billingDetails: nil, metadata: nil)
+        return STPPaymentMethodParams(card: cardParams, billingDetails: billingDetails, metadata: nil)
     }
     
     

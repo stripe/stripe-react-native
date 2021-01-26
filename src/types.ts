@@ -172,6 +172,22 @@ export type ThreeDSecureConfigurationParams = ThreeDSecureMainProps &
     submitButton: ThreeDSecureSubmitButtonProps;
   }>;
 
+export interface PaymentMethodOptions {}
+
+export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
+
+export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
+  type: T;
+  billingDetails: BillingDetails;
+}
+
+export interface PaymentMethodCardData extends PaymentMethodBaseData<'Card'> {
+  cardDetails: CardDetails;
+}
+
+export interface PaymentMethodAliPayData
+  extends PaymentMethodBaseData<'Alipay'> {}
+
 export type PaymentMethodTypes =
   | 'AfterpayClearpay'
   | 'Card'
@@ -191,16 +207,6 @@ export type PaymentMethodTypes =
   | 'Sofort'
   | 'Upi'
   | 'Unknown';
-
-export type CreatePaymentMethodData = CreatePaymentMethodCardData;
-interface CreatePaymentMethodBaseData<T extends PaymentMethodTypes> {
-  type: T;
-}
-
-export interface CreatePaymentMethodCardData
-  extends CreatePaymentMethodBaseData<'Card'> {
-  card: CardDetails;
-}
 
 type CardBrand =
   | 'AmericanExpress'

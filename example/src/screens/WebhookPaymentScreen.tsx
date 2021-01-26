@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import {
+  BillingDetails,
   CardDetails,
   CardField,
   useConfirmPayment,
@@ -58,9 +59,24 @@ export default function WebhookPaymentScreen() {
       // 1. fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // 2. Confirm payment with card details
+      // 2. Gather customer billing information (ex. email)
+      const billingDetails: BillingDetails = {
+        email: 'email@stripe.com',
+        phone: '+48888000888',
+        addressCity: 'Houston',
+        addressCountry: 'US',
+        addressLine1: '1459  Circle Drive',
+        addressLine2: 'Texas',
+        addressPostalCode: '77063',
+      }; // mocked data for tests
+
+      // 3. Confirm payment with card details
       // The rest will be done automatically using webhooks
-      const intent = await confirmPayment(clientSecret, card);
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        billingDetails,
+        cardDetails: card,
+      });
       console.log('Success from promise', intent);
     } catch (e) {
       console.log('Payment confirmation error', e.message);
