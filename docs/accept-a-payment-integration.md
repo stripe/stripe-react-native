@@ -118,13 +118,21 @@ export default function WebhookPaymentScreen() {
       return;
     }
 
+    const billingDetails: BillingDetails = {
+      email,
+    }; // Gather customer billing information (ex. email)
+
     try {
       // 3.A. ------
       const clientSecret = await fetchPaymentIntentClientSecret();
       // ----------
 
       // 3.B. ------
-      const intent = await confirmPayment(clientSecret, card);
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       console.log('Success from promise', intent);
       // --------
     } catch (e) {

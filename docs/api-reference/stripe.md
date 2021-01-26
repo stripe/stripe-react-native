@@ -9,14 +9,16 @@ Confirms the PaymentIntent with the provided parameters. Call this method if you
 ```ts
 (
   paymentIntentClientSecret: string,
-  cardDetails: CardDetails
+  data: PaymentMethodData,
+  options?: PaymentMethodOptions
 ) =>  Promise<Intent>
 ```
 
 ### Arguments
 
 - `paymentIntentClientSecret: string` - client secret
-- `cardDetails: CardDetails` - card details collected by `CardField`
+- `data: PaymentMethodData` - data needs for particular payment like `type`, `cardDetails` or `billingDetails`
+- `options: PaymentMethodOptions` - payment options
 
 ### Return value
 
@@ -27,12 +29,13 @@ A promise with `Intent` object.
 Converts a card details object into a Stripe Payment Method using the Stripe API.
 
 ```ts
-(cardDetails: CardDetails) => Promise<PaymentMethod>;
+(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<PaymentMethod>;
 ```
 
 ### Arguments
 
-- `cardDetails: CardDetails` - card details collected by `CardField`
+- `data: PaymentMethodData` - data needs for particular payment like `type`, `cardDetails` or `billingDetails`
+- `options: PaymentMethodOptions` - payment options
 
 ### Return value
 
@@ -105,16 +108,16 @@ Confirms setup intent creation for future payments. Requires client secret and c
 ```ts
 (
   paymentIntentClientSecret: string,
-  cardDetails: CardDetails,
-  billingDetails: BillingDetails
+  data: PaymentMethodData,
+  options?: PaymentMethodOptions
 ) => Promise<SetupIntent>;
 ```
 
 ### Arguments
 
 - `paymentIntentClientSecret: string` - client secret
-- `cardDetails: CardDetails` - card details collected by `CardField`
-- `billingDetails: BillingDetails` - billing details like address or email
+- `data: PaymentMethodData` - data needs for particular payment like `type`, `cardDetails` or `billingDetails`
+- `options: PaymentMethodOptions` - payment options
 
 ### Return value
 
