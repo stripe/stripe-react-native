@@ -1,11 +1,9 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.*
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
-import com.stripe.android.stripe3ds2.init.ui.StripeUiCustomization
+
 
 internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   return when (status) {
@@ -180,7 +178,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   val map: WritableMap = WritableNativeMap()
   map.putString("id", paymentIntent.id)
   map.putString("clientSecret", paymentIntent.clientSecret)
-  map.putBoolean("isLiveMode", paymentIntent.isLiveMode)
+  map.putBoolean("livemode", paymentIntent.isLiveMode)
   map.putString("paymentMethodId", paymentIntent.paymentMethodId)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
   map.putString("currency", paymentIntent.currency)
@@ -363,12 +361,41 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
 
 internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   val map: WritableMap = WritableNativeMap()
+  val paymentMethodTypes: WritableArray = Arguments.createArray()
   map.putString("id", setupIntent.id)
   map.putString("status", mapIntentStatus(setupIntent.status))
   map.putString("description", setupIntent.description)
+  map.putBoolean("livemode", setupIntent.isLiveMode)
+  map.putNull("customerID", null)
+  map.putArray("paymentMethodTypes", paymentMethodTypes)
+  map.putString("clientSecret", setupIntent.clientSecret)
+  map.putString("paymentMethodID", setupIntent.paymentMethodId)
+  map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
+
   if(setupIntent.created != null) {
     map.putInt("created", setupIntent.created.toInt())
   }
 
+  setupIntent.lastSetupError?.let {
+    val setupError: WritableMap = WritableNativeMap()
+    setupError.putString("code", it.code)
+    setupError.putString("message", it.message)
+
+    map.putMap("lastSetupError", setupError)
+  }
+
+  setupIntent.paymentMethodTypes.forEach {
+    paymentMethodTypes.pushString(it)
+  }
+
   return map
+}
+
+internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String {
+  return when (type) {
+    StripeIntent.Usage.OffSession -> "OffSession"
+    StripeIntent.Usage.OnSession -> "OnSession"
+    StripeIntent.Usage.OneTime -> "OneTime"
+    else -> "Unknown"
+  }
 }

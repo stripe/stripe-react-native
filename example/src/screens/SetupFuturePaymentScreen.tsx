@@ -69,6 +69,7 @@ export default function SetupFuturePaymentScreen() {
         card,
         billingDetails
       );
+
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );

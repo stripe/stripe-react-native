@@ -89,10 +89,24 @@ export type PaymentIntent = {
   shipping?: ShippingDetails;
 };
 
+type SetupIntentUsage =
+  | 'Unknown'
+  | 'None'
+  | 'OnSession'
+  | 'OffSession'
+  | 'OneTime';
+
 export type SetupIntent = {
   id: string;
+  clientSecret: string;
+  customerID: string;
+  lastSetupError: string;
   created: string;
+  livemode: boolean;
+  paymentMethodID?: string;
   status: IntentStatus;
+  paymentMethodTypes: PaymentMethodTypes[];
+  usage: SetupIntentUsage;
   description?: string;
 };
 
