@@ -367,7 +367,6 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putString("description", setupIntent.description)
   map.putBoolean("livemode", setupIntent.isLiveMode)
   map.putNull("customerID", null)
-  map.putArray("paymentMethodTypes", paymentMethodTypes)
   map.putString("clientSecret", setupIntent.clientSecret)
   map.putString("paymentMethodID", setupIntent.paymentMethodId)
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
@@ -387,6 +386,8 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   setupIntent.paymentMethodTypes.forEach {
     paymentMethodTypes.pushString(it)
   }
+
+  map.putArray("paymentMethodTypes", paymentMethodTypes)
 
   return map
 }
