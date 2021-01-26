@@ -1,5 +1,5 @@
 {
-  "name": "react-native-stripe-sdk",
+  "name": "stripe-react-native",
   "version": "0.1.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
@@ -14,7 +14,7 @@
     "android",
     "ios",
     "cpp",
-    "react-native-stripe-sdk.podspec",
+    "stripe-react-native.podspec",
     "!lib/typescript/example",
     "!**/__tests__",
     "!**/__fixtures__",

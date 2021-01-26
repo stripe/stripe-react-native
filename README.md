@@ -1,11 +1,11 @@
-# react-native-stripe-sdk
+# stripe-react-native
 
 Stripe SDK for React Native
 
 ## Installation
 
 ```sh
-yarn add react-native-stripe-sdk
+yarn add stripe-react-native
 ```
 
 ### Android
@@ -26,7 +26,7 @@ For iOS you will have to run `pod install` in `ios` directory to install native 
 
 ```tsx
 // App.ts
-import { StripeProvider } from 'react-native-stripe-sdk';
+import { StripeProvider } from 'stripe-react-native';
 
 <StripeProvider
   publishableKey={publishableKey}
@@ -36,7 +36,7 @@ import { StripeProvider } from 'react-native-stripe-sdk';
 </StripeProvider>;
 
 // PaymentScreen.ts
-import { CardField, useStripe } from 'react-native-stripe-sdk';
+import { CardField, useStripe } from 'stripe-react-native';
 
 export default function PaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
@@ -63,7 +63,7 @@ To initialise Stripe in React Native App use `StripeProvider` component in the r
 `StripeProvider` can accept `publishableKey`, `stripeAccountId` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch `publishableKey` from your server and then use it in `StripeProvider`.
 
 ```tsx
-import { StripeProvider } from 'react-native-stripe-sdk';
+import { StripeProvider } from 'stripe-react-native';
 
 function App() {
   const [publishableKey, setPublishableKey] = useState('');

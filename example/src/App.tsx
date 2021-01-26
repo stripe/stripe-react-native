@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import 'react-native-gesture-handler';
-import { StripeProvider } from 'react-native-stripe-sdk';
+import { StripeProvider } from 'stripe-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -31,7 +31,7 @@ export default function App() {
   return (
     <StripeProvider
       publishableKey={publishableKey}
-      merchantIdentifier="merchant.com.react.native.stripe.sdk"
+      merchantIdentifier="merchant.com.stripe.react.native"
       threeDSecureParams={{
         backgroundColor: colors.white,
         timeout: 5,
