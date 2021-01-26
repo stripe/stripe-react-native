@@ -137,11 +137,19 @@ function PaymentScreen() {
     }
 
     try {
+      const billingDetails: BillingDetails = {
+        email,
+      }; // Gather customer billing information (ex. email)
+
       // Fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
       // Confirm payment with card details
-      const intent = await confirmPayment(clientSecret, card);
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       console.log('Success from promise', intent);
     } catch (e) {
       console.log('Payment confirmation error', e.code);
@@ -205,11 +213,19 @@ function PaymentScreen() {
     }
 
     try {
+      const billingDetails: BillingDetails = {
+        email,
+      }; // Gather customer billing information (ex. email)
+
       // Fetch Intent Client Secret from backend
       const clientSecret = await fetchPaymentIntentClientSecret();
 
       // Confirm payment with card details
-      const intent = await confirmPayment(clientSecret, card);
+      const intent = await confirmPayment(clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+      });
       console.log('Success from promise', intent);
     } catch (e) {
       console.log('Payment confirmation error', e.code);
