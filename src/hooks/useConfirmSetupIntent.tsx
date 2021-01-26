@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import type {
-  BillingDetails,
-  CardDetails,
   ConfirmSetupIntentError,
+  PaymentMethodData,
   SetupIntent,
   StripeError,
+  PaymentMethodOptions,
 } from '../types';
 import StripeSdk from '../NativeStripeSdk';
 import { createHandler } from '../helpers';
@@ -28,8 +28,8 @@ export function useConfirmSetupIntent({
   const confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
-      cardDetails: CardDetails,
-      billingDetails: BillingDetails
+      data: PaymentMethodData,
+      options: PaymentMethodOptions = {}
     ) => {
       setLoading(true);
 
@@ -49,8 +49,8 @@ export function useConfirmSetupIntent({
 
       const result = await StripeSdk.confirmSetupIntent(
         paymentIntentClientSecret,
-        cardDetails,
-        billingDetails
+        data,
+        options
       );
       setLoading(false);
 
