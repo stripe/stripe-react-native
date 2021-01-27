@@ -72,7 +72,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(ConfirmSetupIntentErrorType.Canceled.rawValue, error?.localizedDescription ?? "", nil)
                 break
             case .succeeded:
-                let intent = Mappers.mapFromSetupIntentResult(setupIntent: setupIntent!)
+                let intent = Mappers.mapFromSetupIntent(setupIntent: setupIntent!)
                 self.onConfirmSetupIntentSuccessCallback?([NSNull(), intent])
                 resolve(intent)
             @unknown default:
@@ -228,7 +228,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(NextPaymentActionErrorType.Canceled.rawValue, handleActionError?.localizedDescription ?? "", nil)
                 break
             case .succeeded:
-                resolve(Mappers.mapFromIntent(paymentIntent: paymentIntent))
+                resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
                 break
             @unknown default:
                 reject(NextPaymentActionErrorType.Unknown.rawValue, "Cannot complete payment", nil)
@@ -262,7 +262,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 self.onPaymentErrorCallback?([NSNull(), Errors.createError(code: ConfirmPaymentErrorType.Canceled.rawValue, message: error?.localizedDescription ?? "")])
                 break
             case .succeeded:
-                let intent = Mappers.mapFromIntent(paymentIntent: paymentIntent)
+                let intent = Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)
                 resolve(intent)
                 self.onPaymentSuccessCallback?([NSNull(), intent])
                 break

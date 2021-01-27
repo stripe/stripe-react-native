@@ -188,6 +188,10 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putInt("created", paymentIntent.created.toInt())
   map.putString("captureMethod", mapCaptureMethod(paymentIntent.captureMethod))
   map.putString("confirmationMethod", mapConfirmationMethod(paymentIntent.confirmationMethod))
+  map.putNull("lastPaymentError")
+  map.putNull("shipping")
+  map.putNull("amount")
+  map.putNull("canceledAt")
 
   paymentIntent.lastPaymentError?.let {
     val paymentError: WritableMap = WritableNativeMap()
@@ -366,9 +370,8 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putString("status", mapIntentStatus(setupIntent.status))
   map.putString("description", setupIntent.description)
   map.putBoolean("livemode", setupIntent.isLiveMode)
-  map.putNull("customerID", null)
   map.putString("clientSecret", setupIntent.clientSecret)
-  map.putString("paymentMethodID", setupIntent.paymentMethodId)
+  map.putString("paymentMethodId", setupIntent.paymentMethodId)
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
 
   if(setupIntent.created != null) {
