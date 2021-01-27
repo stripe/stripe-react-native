@@ -95,30 +95,26 @@ class Mappers {
         return shippingDetails
     }
     
-    class func mapFromIntent (paymentIntent: STPPaymentIntent?) -> NSDictionary {
+    class func mapFromPaymentIntent (paymentIntent: STPPaymentIntent) -> NSDictionary {
         let intent: NSMutableDictionary = [
-            "id": paymentIntent?.stripeId ?? NSNull(),
-            "currency": paymentIntent?.currency ?? NSNull(),
-            "status": Mappers.mapIntentStatus(status: paymentIntent?.status),
-            "description": paymentIntent?.description ?? NSNull(),
-            "clientSecret": paymentIntent?.clientSecret ?? NSNull(),
-            "receiptEmail": paymentIntent?.receiptEmail ?? NSNull(),
-            "livemode": paymentIntent?.livemode ?? false,
-            "paymentMethodId": paymentIntent?.paymentMethodId ?? NSNull(),
-            "captureMethod": mapCaptureMethod(paymentIntent?.captureMethod),
-            "confirmationMethod": mapConfirmationMethod(paymentIntent?.confirmationMethod),
-            "created": NSNull(),
+            "id": paymentIntent.stripeId,
+            "currency": paymentIntent.currency,
+            "status": Mappers.mapIntentStatus(status: paymentIntent.status),
+            "description": paymentIntent.description,
+            "clientSecret": paymentIntent.clientSecret,
+            "receiptEmail": paymentIntent.receiptEmail ?? NSNull(),
+            "livemode": paymentIntent.livemode,
+            "paymentMethodId": paymentIntent.paymentMethodId ?? NSNull(),
+            "captureMethod": mapCaptureMethod(paymentIntent.captureMethod),
+            "confirmationMethod": mapConfirmationMethod(paymentIntent.confirmationMethod),
+            "created": convertDateToUnixTimestamp(date: paymentIntent.created),
+            "amount": paymentIntent.amount,
             "lastPaymentError": NSNull(),
             "shipping": NSNull(),
-            "amount": NSNull(),
             "canceledAt": NSNull()
         ]
-        
-        if let created = paymentIntent?.created {
-            intent.setValue(convertDateToUnixTimestamp(date: created), forKey: "created")
-        }
-        
-        if let lastPaymentError = paymentIntent?.lastPaymentError {
+ 
+        if let lastPaymentError = paymentIntent.lastPaymentError {
             let paymentError = [
                 "code": lastPaymentError.code,
                 "message": lastPaymentError.description
@@ -126,14 +122,11 @@ class Mappers {
             intent.setValue(paymentError, forKey: "lastPaymentError")
         }
         
-        if let shipping = paymentIntent?.shipping {
+        if let shipping = paymentIntent.shipping {
             intent.setValue(mapIntentShipping(shipping), forKey: "shipping")
         }
         
-        if let amount = paymentIntent?.amount {
-            intent.setValue(amount, forKey: "amount")
-        }
-        if let canceledAt = paymentIntent?.canceledAt {
+        if let canceledAt = paymentIntent.canceledAt {
             intent.setValue(convertDateToUnixTimestamp(date: canceledAt), forKey: "canceledAt")
         }
         
@@ -288,20 +281,16 @@ class Mappers {
         
     }
     
-    class func mapFromSetupIntentResult(setupIntent: STPSetupIntent) -> NSDictionary {
+    class func mapFromSetupIntent(setupIntent: STPSetupIntent) -> NSDictionary {
         let intent: NSMutableDictionary = [
             "id": setupIntent.stripeID,
             "clientSecret": setupIntent.clientSecret,
             "status": mapIntentStatus(status: setupIntent.status),
             "description": setupIntent.stripeDescription ?? NSNull(),
-            "lastSetupError": setupIntent.lastSetupError ?? NSNull(),
             "livemode": setupIntent.livemode,
             "paymentMethodTypes": setupIntent.paymentMethodTypes ?? NSArray(),
             "usage": mapSetupIntentUsage(usage: setupIntent.usage),
-            "customerID": setupIntent.customerID ?? NSNull(),
-            "paymentMethodID": setupIntent.paymentMethodID ?? NSNull(),
-            "cancellationReason": NSNull(),
-            "paymentMethod": NSNull(),
+            "paymentMethodId": setupIntent.paymentMethodID ?? NSNull(),
             "created": NSNull(),
             "lastSetupError": NSNull()
         ]

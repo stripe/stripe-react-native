@@ -72,21 +72,20 @@ type ShippingDetails = {
 
 export type PaymentIntent = {
   id: string;
-  amount?: number;
+  amount: number;
   created: string;
   currency: string;
   status: IntentStatus;
-  stripeId: string;
   description: Nullable<string>;
   receiptEmail: Nullable<string>;
-  canceledAt?: string;
-  clientSecret?: string;
-  isLiveMode: boolean;
+  canceledAt: Nullable<string>;
+  clientSecret: string;
+  livemode: boolean;
   paymentMethodId: string;
   captureMethod: 'Automatic' | 'Manual';
   confirmationMethod: 'Automatic' | 'Manual';
-  lastPaymentError?: StripeError<string>;
-  shipping?: ShippingDetails;
+  lastPaymentError: Nullable<StripeError<string>>;
+  shipping: Nullable<ShippingDetails>;
 };
 
 type SetupIntentUsage =
@@ -99,15 +98,14 @@ type SetupIntentUsage =
 export type SetupIntent = {
   id: string;
   clientSecret: string;
-  customerID: string;
-  lastSetupError: string;
-  created: string;
+  lastSetupError: Nullable<StripeError<string>>;
+  created: Nullable<string>;
   livemode: boolean;
-  paymentMethodID?: string;
+  paymentMethodId: Nullable<string>;
   status: IntentStatus;
   paymentMethodTypes: PaymentMethodTypes[];
   usage: SetupIntentUsage;
-  description?: string;
+  description: Nullable<string>;
 };
 
 export enum NavigationBarStyle {
