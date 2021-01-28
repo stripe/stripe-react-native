@@ -4,7 +4,7 @@ declare module '@stripe/stripe-react-native' {
     amount: number;
     created: string;
     currency: string;
-    status: IntentStatus;
+    status: PaymentIntents.Status;
     description: Nullable<string>;
     receiptEmail: Nullable<string>;
     canceledAt: Nullable<string>;
@@ -17,13 +17,24 @@ declare module '@stripe/stripe-react-native' {
     shipping: Nullable<PaymentIntent.ShippingDetails>;
   }
 
-  namespace PaymentIntents {
+  export namespace PaymentIntents {
     export interface ShippingDetails {
       address: Address;
       name: string;
       carrier: string;
       phone: string;
       trackingNumber: string;
+    }
+
+    export enum Status {
+      Succeeded = 'Succeeded',
+      RequiresPaymentMethod = 'RequiresPaymentMethod',
+      RequiresConfirmation = 'RequiresConfirmation',
+      Canceled = 'Canceled',
+      Processing = 'Processing',
+      RequiresAction = 'RequiresAction',
+      RequiresCapture = 'RequiresCapture',
+      Unknown = 'Unknown',
     }
   }
 }

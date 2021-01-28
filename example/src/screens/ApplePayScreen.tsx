@@ -1,11 +1,10 @@
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import {
-  ApplePayButton,
+import { ApplePayButton, useApplePay } from 'react-native-stripe-sdk';
+import type {
+  PresentApplePayError,
   StripeError,
-  useApplePay,
-} from 'react-native-stripe-sdk';
-import type { PresentApplePayError } from 'src/types';
+} from '@stripe/stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 

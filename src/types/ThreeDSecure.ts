@@ -18,13 +18,13 @@ declare module '@stripe/stripe-react-native' {
 
     namespace IOS {
       export interface Props {
-        backgroundColor: string;
-        footer: FooterProps;
+        backgroundColor?: string;
+        footer?: FooterProps;
       }
       export interface NavigationBarProps {
-        barStyle: NavigationBarStyle;
-        translucent: boolean;
-        barTintColor: string;
+        barStyle?: NavigationBarStyle;
+        translucent?: boolean;
+        barTintColor?: string;
       }
     }
 
