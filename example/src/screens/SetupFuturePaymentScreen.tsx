@@ -4,6 +4,7 @@ import {
   BillingDetails,
   CardDetails,
   CardField,
+  SetupIntent,
   useConfirmSetupIntent,
 } from 'react-native-stripe-sdk';
 import { API_URL } from '../Config';
@@ -21,12 +22,14 @@ const defaultCard = {
 export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
   const [email, setEmail] = useState('');
+  const [paymentError, setPaymentError] = useState<string | null>();
 
   // It  is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support and `onError`, `onSuccess` callbacks
   // But the Promise returned by the method will work the same allowing to catch errors and success states
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
-
+  const [savedIntent, setSavedIntent] = useState<SetupIntent | null>(null);
+  console.log('savedIntent', savedIntent);
   const createSetupIntentOnBackend = useCallback(
     async (customerEmail: string) => {
       const response = await fetch(`${API_URL}/create-setup-intent`, {
@@ -42,6 +45,17 @@ export default function SetupFuturePaymentScreen() {
     },
     []
   );
+
+  const chargeCardOffSession = useCallback(async () => {
+    const response = await fetch(`${API_URL}/charge-card-off-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: email }),
+    });
+    return await response.json();
+  }, [email]);
 
   const handlePayPress = useCallback(async () => {
     if (!card) {
@@ -69,6 +83,8 @@ export default function SetupFuturePaymentScreen() {
         cardDetails: card,
         billingDetails,
       });
+
+      setSavedIntent(intent);
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
@@ -77,6 +93,11 @@ export default function SetupFuturePaymentScreen() {
       console.log('Setup intent creation error', e.message);
     }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
+
+  const handleRecoveryFlow = async () => {
+    const res = await chargeCardOffSession();
+    console.log('charge off session result', res);
+  };
 
   return (
     <Screen>
@@ -101,6 +122,22 @@ export default function SetupFuturePaymentScreen() {
           onPress={handlePayPress}
           title="Save"
           loading={loading}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          variant="primary"
+          onPress={handleRecoveryFlow}
+          title="Pay with saved setup intent"
+          disabled={!savedIntent}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          variant="primary"
+          onPress={handleRecoveryFlow}
+          title="Recovery flow"
+          disabled={!paymentError}
         />
       </View>
     </Screen>

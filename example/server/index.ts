@@ -40,7 +40,7 @@ interface Order {
   items: object[];
 }
 
-const calculateOrderAmount = (_order: Order): number => {
+const calculateOrderAmount = (_order?: Order): number => {
   // Replace this constant with a calculation of the order's amount.
   // Calculate the order total on the server to prevent
   // people from directly manipulating the amount on the client.
@@ -211,6 +211,75 @@ app.post(
     res.sendStatus(200);
   }
 );
+
+// An endpoint to charge a saved card
+// In your application you may want a cron job / other internal process
+app.post('/charge-card-off-session', async (req, res) => {
+  let paymentIntent, customer;
+  try {
+    // You need to attach the PaymentMethod to a Customer in order to reuse
+    // Since we are using test cards, create a new Customer here
+    // You would do this in your payment flow that saves cards
+    customer = await stripe.customers.list({
+      email: req.body.email,
+    });
+
+    console.log('req.body.email', req.body.email);
+    console.log('customer', customer);
+
+    // List the customer's payment methods to find one to charge
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customer.data[0].id,
+      type: 'card',
+    });
+
+    // Create and confirm a PaymentIntent with the order amount, currency,
+    // Customer and PaymentMethod ID
+    paymentIntent = await stripe.paymentIntents.create({
+      amount: calculateOrderAmount(),
+      currency: 'usd',
+      payment_method: paymentMethods.data[0].id,
+      customer: customer.data[0].id,
+      off_session: true,
+      confirm: true,
+    });
+
+    res.send({
+      succeeded: true,
+      clientSecret: paymentIntent.client_secret,
+      publicKey: stripePublishableKey,
+    });
+  } catch (err) {
+    if (err.code === 'authentication_required') {
+      // Bring the customer back on-session to authenticate the purchase
+      // You can do this by sending an email or app notification to let them know
+      // the off-session purchase failed
+      // Use the PM ID and client_secret to authenticate the purchase
+      // without asking your customers to re-enter their details
+      res.send({
+        error: 'authentication_required',
+        paymentMethod: err.raw.payment_method.id,
+        clientSecret: err.raw.payment_intent.client_secret,
+        publicKey: stripePublishableKey,
+        amount: calculateOrderAmount(),
+        card: {
+          brand: err.raw.payment_method.card.brand,
+          last4: err.raw.payment_method.card.last4,
+        },
+      });
+    } else if (err.code) {
+      // The card was declined for other reasons (e.g. insufficient funds)
+      // Bring the customer back on-session to ask them for a new payment method
+      res.send({
+        error: err.code,
+        clientSecret: err.raw.payment_intent.client_secret,
+        publicKey: stripePublishableKey,
+      });
+    } else {
+      console.log('Unknown error occurred', err);
+    }
+  }
+});
 
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)

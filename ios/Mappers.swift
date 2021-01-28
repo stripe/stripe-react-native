@@ -272,7 +272,8 @@ class Mappers {
             "id": setupIntent.stripeID,
             "status": mapIntentStatus(status: setupIntent.status),
             "description": setupIntent.stripeDescription ?? "",
-            "created": Int(setupIntent.created?.timeIntervalSince1970 ?? 0 * 1000) // convert to unix timestamp
+            "created": Int(setupIntent.created?.timeIntervalSince1970 ?? 0 * 1000), // convert to unix timestamp,
+            "paymentMethodId": setupIntent.paymentMethodID ?? ""
         ]
         
         return intent
@@ -374,6 +375,6 @@ class Mappers {
         }
         
         return uiCustomization
-    }
-    
+    }    
 }
+

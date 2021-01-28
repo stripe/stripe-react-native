@@ -94,6 +94,7 @@ export type SetupIntent = {
   created: string;
   status: IntentStatus;
   description?: string;
+  paymentMethodId: string;
 };
 
 export enum NavigationBarStyle {
