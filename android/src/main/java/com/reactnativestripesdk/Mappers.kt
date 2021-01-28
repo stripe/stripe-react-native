@@ -391,11 +391,8 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   }
 
   setupIntent.paymentMethodTypes.forEach { code ->
-    var type: PaymentMethod.Type? = null
-      PaymentMethod.Type.values().forEach {
-      if (code == it.code) {
-        type = it
-      }
+    val type: PaymentMethod.Type? = PaymentMethod.Type.values().find {
+      code == it.code
     }
     type?.let {
       paymentMethodTypes.pushString(mapPaymentMethodType(it))
