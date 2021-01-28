@@ -1,11 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
-import {
-  BillingDetails,
-  CardDetails,
-  CardField,
-  useConfirmSetupIntent,
-} from 'react-native-stripe-sdk';
+import { CardField, useConfirmSetupIntent } from 'react-native-stripe-sdk';
+import type {
+  CardFieldInput,
+  CreatePaymentMethod,
+} from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
@@ -19,7 +18,7 @@ const defaultCard = {
 };
 
 export default function SetupFuturePaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(defaultCard);
   const [email, setEmail] = useState('');
 
   // It  is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
@@ -53,7 +52,7 @@ export default function SetupFuturePaymentScreen() {
       const clientSecret = await createSetupIntentOnBackend(email);
 
       // 2. Gather customer billing information (ex. email)
-      const billingDetails: BillingDetails = {
+      const billingDetails: CreatePaymentMethod.BillingDetails = {
         email: 'email@stripe.com',
         phone: '+48888000888',
         addressCity: 'Houston',

@@ -1,12 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
+import { CardField, useStripe } from 'react-native-stripe-sdk';
 import {
-  BillingDetails,
-  CardDetails,
-  CardField,
-  IntentStatus,
-  useStripe,
-} from 'react-native-stripe-sdk';
+  CardFieldInput,
+  CreatePaymentMethod,
+  PaymentIntents,
+} from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -20,7 +19,9 @@ const defaultCard = {
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardDetails | undefined>(defaultCard);
+  const [card, setCard] = useState<CardFieldInput.Details | undefined>(
+    defaultCard
+  );
   const { createPaymentMethod, handleCardAction } = useStripe();
 
   const callNoWebhookPayEndpoint = useCallback(
@@ -75,7 +76,7 @@ export default function NoWebhookPaymentScreen() {
     setLoading(true);
     try {
       // 2. Gather customer billing information (ex. email)
-      const billingDetails: BillingDetails = {
+      const billingDetails: CreatePaymentMethod.BillingDetails = {
         email: 'email@stripe.com',
         phone: '+48888000888',
         addressCity: 'Houston',
@@ -116,7 +117,7 @@ export default function NoWebhookPaymentScreen() {
         // 3. if payment requires action calling handleCardAction
         const { status, id } = await handleCardAction(clientSecret);
 
-        if (status === IntentStatus.RequiresConfirmation) {
+        if (status === PaymentIntents.Status.RequiresConfirmation) {
           // 4. Call API to confirm intent
           await confirmIntent(id);
         } else {
