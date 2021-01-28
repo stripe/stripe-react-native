@@ -273,6 +273,37 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             }
         }
     }
+    
+    
+    func startRecoveryFlow(
+        clientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
+            guard error == nil, let lastPaymentError = paymentIntent?.lastPaymentError else {
+                // Handle error (e.g. allow your customer to retry)
+                return
+            }
+            var failureReason = Errors.createError(code: RecoveryFlowErrorType.Unknown.rawValue, message: "Payment failed, try again.")
+            if lastPaymentError.type == .card {
+                failureReason = Errors.createError(code: RecoveryFlowErrorType.Card.rawValue, message: lastPaymentError.message ?? "")
+            }
+            
+            let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
+            if paymentIntent?.lastPaymentError?.code == STPPaymentIntentLastPaymentError.ErrorCodeAuthenticationFailure {
+                if let paymentMethod = paymentIntent?.lastPaymentError?.paymentMethod {
+                    paymentIntentParams.paymentMethodId = paymentMethod.stripeId
+                }
+            } else {
+                // Collect a new PaymentMethod from the customer...
+//                let paymentMethodParams = STPPaymentMethodParams(card: paymentIntentParams.paymentMethodParams!.card, billingDetails: paymentIntentParams.paymentMethodParams?.billingDetails, metadata: nil)
+//                paymentIntentParams.paymentMethodParams = paymentMethodParams
+            }
+            
+        }
+    }
+    
 }
 
 extension StripeSdk: STPAuthenticationContext {

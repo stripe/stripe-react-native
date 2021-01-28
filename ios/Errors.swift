@@ -14,6 +14,10 @@ enum ConfirmSetupIntentErrorType: String {
     case Failed, Canceled, Unknown
 }
 
+enum RecoveryFlowErrorType: String {
+    case Unknown, Card
+}
+
 class Errors {
     class func createError (code: String, message: String) -> NSDictionary {
         let error: NSDictionary = [
