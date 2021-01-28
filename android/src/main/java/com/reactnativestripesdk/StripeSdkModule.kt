@@ -198,7 +198,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
-    val billing = mapToBillingDetails(data.getMap("billingDetails") as ReadableMap)
+    var billing: PaymentMethod.BillingDetails? = null
+    (data.getMap("billingDetails"))?.let {
+      billing = mapToBillingDetails(it)
+    }
+
     val card = mapToCard(data.getMap("cardDetails") as ReadableMap)
 
     val paymentMethodParams = PaymentMethodCreateParams

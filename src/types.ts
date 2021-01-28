@@ -190,7 +190,7 @@ export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 
 export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
-  billingDetails: BillingDetails;
+  billingDetails?: BillingDetails;
 }
 
 export interface PaymentMethodCardData extends PaymentMethodBaseData<'Card'> {
@@ -232,7 +232,7 @@ type CardBrand =
 
 export interface PaymentMethod {
   id: string;
-  liveMode: boolean;
+  livemode: boolean;
   customerId: string;
   billingDetails: {
     email?: string;
