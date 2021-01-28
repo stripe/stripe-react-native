@@ -6,21 +6,18 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type {
-  CardDetails,
-  CardFieldProps,
-  Nullable,
-  FocusFieldNames,
-} from '../types';
+import type { CardFieldInput, Nullable } from '@stripe/stripe-react-native';
 
-const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
+const CardFieldNative = requireNativeComponent<CardFieldInput.Props>(
+  'CardField'
+);
 
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
-  defaultValue?: Partial<CardDetails>;
+  defaultValue?: Partial<CardFieldInput.Details>;
   postalCodeEnabled?: boolean;
-  onCardChange?(card: CardDetails): void;
-  onFocus?(focusedField: Nullable<FocusFieldNames>): void;
+  onCardChange?(card: CardFieldInput.Details): void;
+  onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 };
 
 export const CardField: React.FC<Props> = ({
@@ -29,9 +26,9 @@ export const CardField: React.FC<Props> = ({
   ...props
 }) => {
   const onCardChangeHandler = useCallback(
-    (event: NativeSyntheticEvent<CardDetails>) => {
+    (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
       const card = event.nativeEvent;
-      const data: CardDetails = {
+      const data: CardFieldInput.Details = {
         number: card.number || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
@@ -47,7 +44,9 @@ export const CardField: React.FC<Props> = ({
 
   const onFocusHandler = useCallback(
     (
-      event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
+      event: NativeSyntheticEvent<{
+        focusedField: Nullable<CardFieldInput.Names>;
+      }>
     ) => {
       onFocus?.(event.nativeEvent.focusedField);
     },

@@ -10,9 +10,8 @@ import type {
   SetupIntent,
   PresentApplePayError,
   AppInfo,
-  PaymentMethodData,
-  PaymentMethodOptions,
-} from './types';
+  CreatePaymentMethod,
+} from '@stripe/stripe-react-native';
 
 type NativeStripeSdkType = {
   initialise(
@@ -23,14 +22,14 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentIntent>;
   registerConfirmPaymentCallbacks(
     onSuccess:
@@ -50,8 +49,8 @@ type NativeStripeSdkType = {
   ): void;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<SetupIntent>;
   registerConfirmSetupIntentCallbacks(
     onSuccess:

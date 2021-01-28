@@ -8,19 +8,3 @@ export { useApplePay } from './hooks/useApplePay';
 export { StripeProvider } from './components/StripeProvider';
 export { CardField } from './components/CardField';
 export { ApplePayButton } from './components/ApplePayButton';
-// types
-export {
-  CardDetails,
-  BillingDetails,
-  PaymentIntent,
-  ThreeDSecureConfigurationParams,
-  PaymentMethod,
-  IntentStatus,
-  StripeError,
-  ConfirmPaymentError,
-  NextPaymentActionError,
-  CreatePaymentMethodError,
-  ConfirmSetupIntentError,
-  SetupIntent,
-  NavigationBarStyle,
-} from './types';
