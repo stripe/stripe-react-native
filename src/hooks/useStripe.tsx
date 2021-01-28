@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { PaymentMethodData, PaymentMethodOptions } from 'src/types';
+import type { CreatePaymentMethod } from '@stripe/stripe-react-native';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
@@ -17,8 +17,8 @@ export function useStripe() {
   }, []);
 
   const createPaymentMethod = (
-    data: PaymentMethodData,
-    options: PaymentMethodOptions = {}
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options = {}
   ) => {
     return NativeStripeSdk.createPaymentMethod(data, options);
   };

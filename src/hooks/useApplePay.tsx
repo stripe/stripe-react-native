@@ -4,7 +4,7 @@ import type {
   CartSummaryItem,
   PresentApplePayError,
   StripeError,
-} from '../types';
+} from '@stripe/stripe-react-native';
 import { useStripe } from './useStripe';
 
 type Params = {

@@ -1,11 +1,10 @@
 import { useCallback, useState } from 'react';
 import type {
   ConfirmPaymentError,
+  CreatePaymentMethod,
   PaymentIntent,
-  PaymentMethodData,
-  PaymentMethodOptions,
   StripeError,
-} from '../types';
+} from '@stripe/stripe-react-native';
 import StripeSdk from '../NativeStripeSdk';
 import { createHandler } from '../helpers';
 import { useStripe } from './useStripe';
@@ -27,8 +26,8 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
   const confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: PaymentMethodData,
-      options: PaymentMethodOptions = {}
+      data: CreatePaymentMethod.Params,
+      options: CreatePaymentMethod.Options = {}
     ) => {
       const handleSuccess = createHandler((value: PaymentIntent) => {
         onSuccess(value);
