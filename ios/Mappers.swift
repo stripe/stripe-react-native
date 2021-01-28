@@ -217,7 +217,7 @@ class Mappers {
         let method: NSDictionary = [
             "id": paymentMethod.stripeId,
             "type": Mappers.mapPaymentMethodType(type: paymentMethod.type),
-            "liveMode": paymentMethod.liveMode,
+            "livemod": paymentMethod.liveMode,
             "customerId": paymentMethod.customerId ?? NSNull(),
             "billingDetails": Mappers.mapFromBillingDetails(billingDetails: paymentMethod.billingDetails),
             "Card": card,
@@ -288,12 +288,19 @@ class Mappers {
             "status": mapIntentStatus(status: setupIntent.status),
             "description": setupIntent.stripeDescription ?? NSNull(),
             "livemode": setupIntent.livemode,
-            "paymentMethodTypes": setupIntent.paymentMethodTypes ?? NSArray(),
+            "paymentMethodTypes": NSArray(),
             "usage": mapSetupIntentUsage(usage: setupIntent.usage),
             "paymentMethodId": setupIntent.paymentMethodID ?? NSNull(),
             "created": NSNull(),
             "lastSetupError": NSNull()
         ]
+        
+        if let paymentMethodTypes = setupIntent.paymentMethodTypes {
+            let types = paymentMethodTypes.map {
+                mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
+            }
+            intent.setValue(types, forKey: "paymentMethodTypes")
+        }
         
         if let created = setupIntent.created {
             intent.setValue(convertDateToUnixTimestamp(date: created), forKey: "created")

@@ -125,11 +125,11 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   card.putString("brand", mapCardBrand(paymentMethod.card?.brand))
   card.putString("country", paymentMethod.card?.country)
 
-  paymentMethod.card?.expiryYear.let {
-    card.putInt("expYear", it as Int)
+  paymentMethod.card?.expiryYear?.let {
+    card.putInt("expYear", it)
   }
-  paymentMethod.card?.expiryMonth.let {
-    card.putInt("expMonth", it as Int)
+  paymentMethod.card?.expiryMonth?.let {
+    card.putInt("expMonth", it)
   }
   card.putString("funding", paymentMethod.card?.funding)
   card.putString("last4", paymentMethod.card?.last4)
@@ -159,7 +159,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 
   pm.putString("id", paymentMethod.id)
   pm.putString("type", mapPaymentMethodType(paymentMethod.type))
-  pm.putBoolean("liveMode", paymentMethod.liveMode)
+  pm.putBoolean("livemode", paymentMethod.liveMode)
   pm.putString("customerId", paymentMethod.customerId)
   pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
   pm.putMap("Card", card)
@@ -386,8 +386,16 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
     map.putMap("lastSetupError", setupError)
   }
 
-  setupIntent.paymentMethodTypes.forEach {
-    paymentMethodTypes.pushString(it)
+  setupIntent.paymentMethodTypes.forEach { code ->
+    var type: PaymentMethod.Type? = null
+      PaymentMethod.Type.values().forEach {
+      if (code == it.code) {
+        type = it
+      }
+    }
+    type?.let {
+      paymentMethodTypes.pushString(mapPaymentMethodType(it))
+    }
   }
 
   map.putArray("paymentMethodTypes", paymentMethodTypes)
