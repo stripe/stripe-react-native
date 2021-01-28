@@ -53,7 +53,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func confirmSetupIntent (setupIntentClientSecret: String, data: NSDictionary,
                              options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let billing = Mappers.mapToBillingDetails(billingDetails: data.object(forKey: "billingDetails") as! NSDictionary)
+        var billing: STPPaymentMethodBillingDetails? = nil
+        if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
+            billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        }
         let cardParams = Mappers.mapCardParams(params: data.object(forKey: "cardDetails") as! NSDictionary)
         
         let paymentMethodParams = STPPaymentMethodParams(card: cardParams, billingDetails: billing, metadata: nil)
@@ -72,7 +75,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(ConfirmSetupIntentErrorType.Canceled.rawValue, error?.localizedDescription ?? "", nil)
                 break
             case .succeeded:
-                let intent = Mappers.mapFromSetupIntentResult(setupIntent: setupIntent!)
+                let intent = Mappers.mapFromSetupIntent(setupIntent: setupIntent!)
                 self.onConfirmSetupIntentSuccessCallback?([NSNull(), intent])
                 resolve(intent)
             @unknown default:
@@ -198,8 +201,11 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let billingDetails = Mappers.mapToBillingDetails(billingDetails: data.object(forKey: "billingDetails") as! NSDictionary)
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billingDetails)
+        var billing: STPPaymentMethodBillingDetails? = nil
+        if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
+            billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        }
+        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
         STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
@@ -228,7 +234,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(NextPaymentActionErrorType.Canceled.rawValue, handleActionError?.localizedDescription ?? "", nil)
                 break
             case .succeeded:
-                resolve(Mappers.mapFromIntent(paymentIntent: paymentIntent))
+                if let paymentIntent = paymentIntent {
+                    resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
+                }
                 break
             @unknown default:
                 reject(NextPaymentActionErrorType.Unknown.rawValue, "Cannot complete payment", nil)
@@ -245,7 +253,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let billing = Mappers.mapToBillingDetails(billingDetails: data.object(forKey: "billingDetails") as! NSDictionary)
+        var billing: STPPaymentMethodBillingDetails? = nil
+        if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
+            billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        }
         let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
         paymentIntentParams.paymentMethodParams = paymentMethodParams
@@ -262,9 +273,11 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 self.onPaymentErrorCallback?([NSNull(), Errors.createError(code: ConfirmPaymentErrorType.Canceled.rawValue, message: error?.localizedDescription ?? "")])
                 break
             case .succeeded:
-                let intent = Mappers.mapFromIntent(paymentIntent: paymentIntent)
-                resolve(intent)
-                self.onPaymentSuccessCallback?([NSNull(), intent])
+                if let paymentIntent = paymentIntent {
+                    let intent = Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)
+                    resolve(intent)
+                    self.onPaymentSuccessCallback?([NSNull(), intent])
+                }
                 break
             @unknown default:
                 reject(ConfirmPaymentErrorType.Unknown.rawValue, "Cannot complete payment", nil)
