@@ -4,8 +4,8 @@ import {
   ApplePayButton,
   StripeError,
   useApplePay,
+  PresentApplePayError,
 } from 'react-native-stripe-sdk';
-import type { PresentApplePayError } from 'src/types';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 

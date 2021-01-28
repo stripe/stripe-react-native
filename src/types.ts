@@ -72,29 +72,40 @@ type ShippingDetails = {
 
 export type PaymentIntent = {
   id: string;
-  amount?: number;
+  amount: number;
   created: string;
   currency: string;
   status: IntentStatus;
-  stripeId: string;
   description: Nullable<string>;
   receiptEmail: Nullable<string>;
-  canceledAt?: string;
-  clientSecret?: string;
-  isLiveMode: boolean;
+  canceledAt: Nullable<string>;
+  clientSecret: string;
+  livemode: boolean;
   paymentMethodId: string;
   captureMethod: 'Automatic' | 'Manual';
   confirmationMethod: 'Automatic' | 'Manual';
-  lastPaymentError?: StripeError<string>;
-  shipping?: ShippingDetails;
+  lastPaymentError: Nullable<StripeError<string>>;
+  shipping: Nullable<ShippingDetails>;
 };
+
+type SetupIntentUsage =
+  | 'Unknown'
+  | 'None'
+  | 'OnSession'
+  | 'OffSession'
+  | 'OneTime';
 
 export type SetupIntent = {
   id: string;
-  created: string;
+  clientSecret: string;
+  lastSetupError: Nullable<StripeError<string>>;
+  created: Nullable<string>;
+  livemode: boolean;
+  paymentMethodId: Nullable<string>;
   status: IntentStatus;
-  description?: string;
-  paymentMethodId: string;
+  paymentMethodTypes: PaymentMethodTypes[];
+  usage: SetupIntentUsage;
+  description: Nullable<string>;
 };
 
 export enum NavigationBarStyle {
@@ -179,7 +190,7 @@ export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 
 export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
-  billingDetails: BillingDetails;
+  billingDetails?: BillingDetails;
 }
 
 export interface PaymentMethodCardData extends PaymentMethodBaseData<'Card'> {
@@ -221,7 +232,7 @@ type CardBrand =
 
 export interface PaymentMethod {
   id: string;
-  liveMode: boolean;
+  livemode: boolean;
   customerId: string;
   billingDetails: {
     email?: string;

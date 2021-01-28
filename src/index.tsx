@@ -23,4 +23,5 @@ export {
   ConfirmSetupIntentError,
   SetupIntent,
   NavigationBarStyle,
+  PresentApplePayError,
 } from './types';
