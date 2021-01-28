@@ -199,7 +199,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
     var billing: PaymentMethod.BillingDetails? = null
-    (data.getMap("billingDetails"))?.let {
+
+    (getMapOrNull(data, "billingDetails"))?.let {
       billing = mapToBillingDetails(it)
     }
 

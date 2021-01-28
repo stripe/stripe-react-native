@@ -217,7 +217,7 @@ class Mappers {
         let method: NSDictionary = [
             "id": paymentMethod.stripeId,
             "type": Mappers.mapPaymentMethodType(type: paymentMethod.type),
-            "livemod": paymentMethod.liveMode,
+            "livemode": paymentMethod.liveMode,
             "customerId": paymentMethod.customerId ?? NSNull(),
             "billingDetails": Mappers.mapFromBillingDetails(billingDetails: paymentMethod.billingDetails),
             "Card": card,
