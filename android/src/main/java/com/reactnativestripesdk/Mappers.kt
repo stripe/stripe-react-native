@@ -1,11 +1,9 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.*
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
-import com.stripe.android.stripe3ds2.init.ui.StripeUiCustomization
+
 
 internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   return when (status) {
@@ -127,11 +125,11 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   card.putString("brand", mapCardBrand(paymentMethod.card?.brand))
   card.putString("country", paymentMethod.card?.country)
 
-  paymentMethod.card?.expiryYear.let {
-    card.putInt("expYear", it as Int)
+  paymentMethod.card?.expiryYear?.let {
+    card.putInt("expYear", it)
   }
-  paymentMethod.card?.expiryMonth.let {
-    card.putInt("expMonth", it as Int)
+  paymentMethod.card?.expiryMonth?.let {
+    card.putInt("expMonth", it)
   }
   card.putString("funding", paymentMethod.card?.funding)
   card.putString("last4", paymentMethod.card?.last4)
@@ -161,7 +159,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 
   pm.putString("id", paymentMethod.id)
   pm.putString("type", mapPaymentMethodType(paymentMethod.type))
-  pm.putBoolean("liveMode", paymentMethod.liveMode)
+  pm.putBoolean("livemode", paymentMethod.liveMode)
   pm.putString("customerId", paymentMethod.customerId)
   pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
   pm.putMap("Card", card)
@@ -180,16 +178,20 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   val map: WritableMap = WritableNativeMap()
   map.putString("id", paymentIntent.id)
   map.putString("clientSecret", paymentIntent.clientSecret)
-  map.putBoolean("isLiveMode", paymentIntent.isLiveMode)
+  map.putBoolean("livemode", paymentIntent.isLiveMode)
   map.putString("paymentMethodId", paymentIntent.paymentMethodId)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
   map.putString("currency", paymentIntent.currency)
   map.putString("status", mapIntentStatus(paymentIntent.status))
   map.putString("description", paymentIntent.description)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
-  map.putInt("created", paymentIntent.created.toInt())
+  map.putInt("created", convertToUnixTimestamp(paymentIntent.created))
   map.putString("captureMethod", mapCaptureMethod(paymentIntent.captureMethod))
   map.putString("confirmationMethod", mapConfirmationMethod(paymentIntent.confirmationMethod))
+  map.putNull("lastPaymentError")
+  map.putNull("shipping")
+  map.putNull("amount")
+  map.putNull("canceledAt")
 
   paymentIntent.lastPaymentError?.let {
     val paymentError: WritableMap = WritableNativeMap()
@@ -207,7 +209,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
     map.putDouble("amount", it.toDouble())
   }
   paymentIntent.canceledAt?.let {
-    map.putInt("canceledAt", it.toInt())
+    map.putInt("canceledAt", convertToUnixTimestamp(it))
   }
   return map
 }
@@ -265,8 +267,12 @@ private fun getIntOrNull(map: ReadableMap?, key: String): Int? {
   return if (map?.hasKey(key) == true) map.getInt(key) else null
 }
 
-private fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
+fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
   return if (map?.hasKey(key) == true) map.getMap(key) else null
+}
+
+private fun convertToUnixTimestamp(timestamp: Long): Int {
+  return (timestamp * 1000).toInt()
 }
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
@@ -363,12 +369,46 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
 
 internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   val map: WritableMap = WritableNativeMap()
+  val paymentMethodTypes: WritableArray = Arguments.createArray()
   map.putString("id", setupIntent.id)
   map.putString("status", mapIntentStatus(setupIntent.status))
   map.putString("description", setupIntent.description)
+  map.putBoolean("livemode", setupIntent.isLiveMode)
+  map.putString("clientSecret", setupIntent.clientSecret)
+  map.putString("paymentMethodId", setupIntent.paymentMethodId)
+  map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
+
   if(setupIntent.created != null) {
-    map.putInt("created", setupIntent.created.toInt())
+    map.putInt("created", convertToUnixTimestamp(setupIntent.created))
   }
 
+  setupIntent.lastSetupError?.let {
+    val setupError: WritableMap = WritableNativeMap()
+    setupError.putString("code", it.code)
+    setupError.putString("message", it.message)
+
+    map.putMap("lastSetupError", setupError)
+  }
+
+  setupIntent.paymentMethodTypes.forEach { code ->
+    val type: PaymentMethod.Type? = PaymentMethod.Type.values().find {
+      code == it.code
+    }
+    type?.let {
+      paymentMethodTypes.pushString(mapPaymentMethodType(it))
+    }
+  }
+
+  map.putArray("paymentMethodTypes", paymentMethodTypes)
+
   return map
+}
+
+internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String {
+  return when (type) {
+    StripeIntent.Usage.OffSession -> "OffSession"
+    StripeIntent.Usage.OnSession -> "OnSession"
+    StripeIntent.Usage.OneTime -> "OneTime"
+    else -> "Unknown"
+  }
 }
