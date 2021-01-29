@@ -195,6 +195,11 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
 
   paymentIntent.lastPaymentError?.let {
     val paymentError: WritableMap = WritableNativeMap()
+
+    paymentIntent.lastPaymentError?.paymentMethod?.let { paymentMethod ->
+      paymentError.putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+    }
+
     paymentError.putString("code", it.code)
     paymentError.putString("message", it.message)
 

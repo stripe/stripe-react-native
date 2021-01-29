@@ -4,8 +4,11 @@ import {
   BillingDetails,
   CardDetails,
   CardField,
+  PaymentIntent,
   SetupIntent,
+  useConfirmPayment,
   useConfirmSetupIntent,
+  useStripe,
 } from 'stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
@@ -13,7 +16,7 @@ import { colors } from '../colors';
 import Screen from '../components/Screen';
 
 const defaultCard = {
-  number: '4000000000003238',
+  number: '4000002760003184',
   cvc: '424',
   expiryMonth: 1,
   expiryYear: 22,
@@ -23,13 +26,33 @@ export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
+  const [offSessiongLoading, setOffSessiongLoading] = useState(false);
+  const [
+    retrievedPaymentIntent,
+    setRetrievedPaymentIntent,
+  ] = useState<PaymentIntent | null>(null);
+  const [setupIntent, setSetupIntent] = useState<SetupIntent | null>(null);
 
   // It  is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support and `onError`, `onSuccess` callbacks
   // But the Promise returned by the method will work the same allowing to catch errors and success states
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
-  const [savedIntent, setSavedIntent] = useState<SetupIntent | null>(null);
-  console.log('savedIntent', savedIntent);
+
+  const { confirmPayment, loading: confirmPaymentLoading } = useConfirmPayment({
+    onError: (error) => {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    },
+    onSuccess: (intent) => {
+      console.log('Success', intent);
+      Alert.alert(
+        'Success',
+        `The payment was confirmed successfully! currency: ${intent.currency}`
+      );
+    },
+  });
+
+  const { retrievePaymentIntent } = useStripe();
+
   const createSetupIntentOnBackend = useCallback(
     async (customerEmail: string) => {
       const response = await fetch(`${API_URL}/create-setup-intent`, {
@@ -54,7 +77,9 @@ export default function SetupFuturePaymentScreen() {
       },
       body: JSON.stringify({ email: email }),
     });
-    return await response.json();
+    const { clientSecret, error } = await response.json();
+
+    return { clientSecret, error };
   }, [email]);
 
   const handlePayPress = useCallback(async () => {
@@ -63,12 +88,13 @@ export default function SetupFuturePaymentScreen() {
     }
 
     try {
+      console.log('email', email);
       // 1. Create setup intent on backend
       const clientSecret = await createSetupIntentOnBackend(email);
 
       // 2. Gather customer billing information (ex. email)
       const billingDetails: BillingDetails = {
-        email: 'email@stripe.com',
+        email: email,
         phone: '+48888000888',
         addressCity: 'Houston',
         addressCountry: 'US',
@@ -83,8 +109,8 @@ export default function SetupFuturePaymentScreen() {
         cardDetails: card,
         billingDetails,
       });
+      setSetupIntent(intent);
 
-      setSavedIntent(intent);
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
@@ -94,9 +120,55 @@ export default function SetupFuturePaymentScreen() {
     }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
-  const handleRecoveryFlow = async () => {
+  const handleOffSessionPayment = async () => {
+    setOffSessiongLoading(true);
     const res = await chargeCardOffSession();
+    if (res.error) {
+      Alert.alert(res.error);
+      setPaymentError(res.error);
+
+      if (res.error === 'authentication_required') {
+        handleRetrievePaymentIntent(res.clientSecret);
+      }
+    } else {
+      Alert.alert('Success!', 'The payment was confirmed successfully!');
+    }
+
+    setOffSessiongLoading(false);
+
     console.log('charge off session result', res);
+  };
+
+  const handleRetrievePaymentIntent = async (clientSecret: string) => {
+    try {
+      const paymentIntent = await retrievePaymentIntent(clientSecret);
+
+      setRetrievedPaymentIntent(paymentIntent);
+    } catch (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    }
+  };
+
+  const handleRecoveryFlow = async () => {
+    const billingDetails: BillingDetails = {
+      email: email,
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
+    }; // mocked data for tests
+
+    if (retrievedPaymentIntent && card) {
+      confirmPayment(retrievedPaymentIntent.clientSecret, {
+        type: 'Card',
+        cardDetails: card,
+        billingDetails,
+        paymentMethodId:
+          retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+      });
+    }
   };
 
   return (
@@ -127,17 +199,19 @@ export default function SetupFuturePaymentScreen() {
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
-          onPress={handleRecoveryFlow}
-          title="Pay with saved setup intent"
-          disabled={!savedIntent}
+          onPress={handleOffSessionPayment}
+          title="Pay with saved off-session setup intent"
+          disabled={!setupIntent}
+          loading={offSessiongLoading}
         />
       </View>
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
           onPress={handleRecoveryFlow}
-          title="Recovery flow"
-          disabled={!paymentError}
+          title="Pay by Recovery Flow"
+          loading={confirmPaymentLoading}
+          disabled={paymentError !== 'authentication_required'}
         />
       </View>
     </Screen>

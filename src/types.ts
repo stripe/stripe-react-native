@@ -84,8 +84,12 @@ export type PaymentIntent = {
   paymentMethodId: string;
   captureMethod: 'Automatic' | 'Manual';
   confirmationMethod: 'Automatic' | 'Manual';
-  lastPaymentError: Nullable<StripeError<string>>;
+  lastPaymentError: Nullable<lastPaymentError>;
   shipping: Nullable<ShippingDetails>;
+};
+
+type lastPaymentError = StripeError<string> & {
+  paymentMethod: PaymentMethod;
 };
 
 type SetupIntentUsage =
@@ -191,6 +195,7 @@ export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
   billingDetails?: BillingDetails;
+  paymentMethodId?: string;
 }
 
 export interface PaymentMethodCardData extends PaymentMethodBaseData<'Card'> {

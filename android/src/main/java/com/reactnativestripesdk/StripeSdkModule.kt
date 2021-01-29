@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.content.Intent
+import android.os.AsyncTask
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -171,15 +172,30 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
+    val paymentMethodId = data.getString("paymentMethodId")
     val cardDetails = data.getMap("cardDetails") as ReadableMap
     val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
 
-    val confirmParams = ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
+    val confirmParams = if(paymentMethodId != null) {
+      ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
+    } else {
+      ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
+    }
 
     val activity = currentActivity
     if (activity != null) {
       stripe.confirmPayment(activity, confirmParams)
+    }
+  }
+
+  @ReactMethod
+  fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
+    AsyncTask.execute {
+      val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
+      paymentIntent?.let {
+        promise.resolve(mapFromPaymentIntentResult(it))
+      }
     }
   }
 
