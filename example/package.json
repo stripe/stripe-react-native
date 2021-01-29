@@ -1,6 +1,6 @@
 {
-  "name": "react-native-stripe-sdk-example",
-  "description": "Example app for react-native-stripe-sdk",
+  "name": "stripe-react-native-example",
+  "description": "Example app for stripe-react-native",
   "version": "0.0.1",
   "private": true,
   "scripts": {
