@@ -5,7 +5,7 @@ import {
   CardDetails,
   CardField,
   useConfirmPayment,
-} from 'react-native-stripe-sdk';
+} from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
