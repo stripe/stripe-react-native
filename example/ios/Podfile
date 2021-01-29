@@ -53,7 +53,7 @@ target 'StripeSdkExample' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  pod 'react-native-stripe-sdk', :path => '../..'
+  pod 'stripe-react-native', :path => '../..'
 use_native_modules!
 
   # Enables Flipper.

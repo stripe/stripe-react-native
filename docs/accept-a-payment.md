@@ -13,7 +13,7 @@ The React Native SDK is open source and fully documented. Under the hood it uses
 To install the SDK run the following command in your terminal:
 
 ```sh
-yarn add react-native-stripe-sdk
+yarn add stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -21,7 +21,7 @@ For iOS you will have to run `pod install` inside `ios` directory in order to in
 Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
 
 ```tsx
-import { StripeProvider } from 'react-native-stripe-sdk';
+import { StripeProvider } from 'stripe-react-native';
 
 function App() {
   return (

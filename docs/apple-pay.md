@@ -10,7 +10,7 @@ Apple Pay is available to cardholders at participating banks in supported countr
 
 ## Accept Apple Pay in your React Native app
 
-Stripe’s [React Native SDK](https://github.com/callstack-internal/react-native-stripe-sdk) makes it easy to accept both Apple Pay and regular credit card payments. Before you start, you’ll need to be enrolled in the [Apple Developer Program](https://developer.apple.com/programs/) and [set up Stripe on your server and in your app](../README.md#stripe-initialisation). Next, follow these steps:
+Stripe’s [React Native SDK](https://github.com/stripe/stripe-react-native/) makes it easy to accept both Apple Pay and regular credit card payments. Before you start, you’ll need to be enrolled in the [Apple Developer Program](https://developer.apple.com/programs/) and [set up Stripe on your server and in your app](../README.md#stripe-initialisation). Next, follow these steps:
 
 1. [Register for an Apple Merchant ID](https://stripe.com/docs/apple-pay#merchantid)
 2. [Create a new Apple Pay certificate](https://stripe.com/docs/apple-pay#csr)
