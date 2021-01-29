@@ -6,7 +6,7 @@ import {
   CardField,
   IntentStatus,
   useStripe,
-} from 'react-native-stripe-sdk';
+} from 'stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';

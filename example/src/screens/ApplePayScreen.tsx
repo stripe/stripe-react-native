@@ -5,7 +5,7 @@ import {
   StripeError,
   useApplePay,
   PresentApplePayError,
-} from 'react-native-stripe-sdk';
+} from 'stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
