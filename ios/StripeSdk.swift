@@ -253,13 +253,19 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
+        let paymentMethodId = data.object(forKey: "paymentMethodId") as! String?
+        let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
+
         var billing: STPPaymentMethodBillingDetails? = nil
         if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
             billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
         }
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
-        let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-        paymentIntentParams.paymentMethodParams = paymentMethodParams
+        if paymentMethodId != nil {
+            paymentIntentParams.paymentMethodId = paymentMethodId
+        } else {
+            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
+            paymentIntentParams.paymentMethodParams = paymentMethodParams
+        }
         
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmPayment(paymentIntentParams, with: self) { (status, paymentIntent, error) in
@@ -285,35 +291,25 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 break
             }
         }
+        
     }
     
-    
-    func startRecoveryFlow(
+    @objc(retrievePaymentIntent:resolver:rejecter:)
+    func retrievePaymentIntent(
         clientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
-            guard error == nil, let lastPaymentError = paymentIntent?.lastPaymentError else {
-                // Handle error (e.g. allow your customer to retry)
+            guard error != nil else {
+                reject(RetrievePaymentIntentErrorType.Failed.rawValue, error?.localizedDescription ?? "", nil)
                 return
             }
-            var failureReason = Errors.createError(code: RecoveryFlowErrorType.Unknown.rawValue, message: "Payment failed, try again.")
-            if lastPaymentError.type == .card {
-                failureReason = Errors.createError(code: RecoveryFlowErrorType.Card.rawValue, message: lastPaymentError.message ?? "")
-            }
-            
-            let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
-            if paymentIntent?.lastPaymentError?.code == STPPaymentIntentLastPaymentError.ErrorCodeAuthenticationFailure {
-                if let paymentMethod = paymentIntent?.lastPaymentError?.paymentMethod {
-                    paymentIntentParams.paymentMethodId = paymentMethod.stripeId
-                }
+            if let paymentIntent = paymentIntent {
+                resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
             } else {
-                // Collect a new PaymentMethod from the customer...
-//                let paymentMethodParams = STPPaymentMethodParams(card: paymentIntentParams.paymentMethodParams!.card, billingDetails: paymentIntentParams.paymentMethodParams?.billingDetails, metadata: nil)
-//                paymentIntentParams.paymentMethodParams = paymentMethodParams
+                reject(ConfirmSetupIntentErrorType.Unknown.rawValue, error?.localizedDescription ?? "", nil)
             }
-            
         }
     }
     
