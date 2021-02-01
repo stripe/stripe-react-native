@@ -15,7 +15,7 @@ enum ConfirmSetupIntentErrorType: String {
 }
 
 enum RetrievePaymentIntentErrorType: String {
-    case Failed, Unknown
+    case Unknown
 }
 
 class Errors {

@@ -195,6 +195,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
       paymentIntent?.let {
         promise.resolve(mapFromPaymentIntentResult(it))
+      } ?: run {
+        promise.reject(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed")
       }
     }
   }

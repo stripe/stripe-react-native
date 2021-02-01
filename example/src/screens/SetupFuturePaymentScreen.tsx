@@ -33,7 +33,7 @@ export default function SetupFuturePaymentScreen() {
   ] = useState<PaymentIntent | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntent | null>(null);
 
-  // It  is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
+  // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support and `onError`, `onSuccess` callbacks
   // But the Promise returned by the method will work the same allowing to catch errors and success states
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
@@ -109,27 +109,29 @@ export default function SetupFuturePaymentScreen() {
         cardDetails: card,
         billingDetails,
       });
-      setSetupIntent(intent);
 
       Alert.alert(
         `Success: Setup intent created. Intent status: ${intent.status}`
       );
+
+      setSetupIntent(intent);
     } catch (e) {
       Alert.alert(`Error code: ${e.code}`, e.message);
       console.log('Setup intent creation error', e.message);
     }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
+  // It's only for example purposes
+  // This actions is responsible for charging your previously added card and should be called independently of payment flow.
   const handleOffSessionPayment = async () => {
     setOffSessiongLoading(true);
     const res = await chargeCardOffSession();
     if (res.error) {
-      Alert.alert(res.error);
-      setPaymentError(res.error);
+      // If the PaymentIntent has any other status, the payment did not succeed and the request fails.
+      // Notify your customer e.g., by email, text, push notification) to complete the payment.
+      // We recommend creating a recovery flow in your app that shows why the payment failed initially and lets your customer retry.
 
-      if (res.error === 'authentication_required') {
-        handleRetrievePaymentIntent(res.clientSecret);
-      }
+      handleRetrievePaymentIntent(res.clientSecret);
     } else {
       Alert.alert('Success!', 'The payment was confirmed successfully!');
     }
@@ -139,16 +141,31 @@ export default function SetupFuturePaymentScreen() {
     console.log('charge off session result', res);
   };
 
+  // When customer back to the App to complete the payment, retrieve the PaymentIntent via clientSecret.
+  // Check the PaymentIntent’s lastPaymentError to inspect why the payment attempt failed.
+  // For card errors, you can show the user the last payment error’s message. Otherwise, you can show a generic failure message.
   const handleRetrievePaymentIntent = async (clientSecret: string) => {
     try {
       const paymentIntent = await retrievePaymentIntent(clientSecret);
+      const errorCode = paymentIntent.lastPaymentError?.code;
 
+      if (errorCode) {
+        Alert.alert(errorCode);
+        setPaymentError(errorCode);
+      }
+      // If the last payment error is authentication_required allow customer to complete the payment with the same card and billing data.
+      if (errorCode === 'authentication_required') {
+        // Allow to complete the payment with the existing PaymentMethod.
+      } else {
+        // Collect a new PaymentMethod from the customer...
+      }
       setRetrievedPaymentIntent(paymentIntent);
     } catch (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     }
   };
 
+  // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
   const handleRecoveryFlow = async () => {
     const billingDetails: BillingDetails = {
       email: email,
@@ -209,7 +226,7 @@ export default function SetupFuturePaymentScreen() {
         <Button
           variant="primary"
           onPress={handleRecoveryFlow}
-          title="Pay by Recovery Flow"
+          title="Pay via Recovery Flow"
           loading={confirmPaymentLoading}
           disabled={paymentError !== 'authentication_required'}
         />
