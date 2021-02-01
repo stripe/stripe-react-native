@@ -84,11 +84,11 @@ export type PaymentIntent = {
   paymentMethodId: string;
   captureMethod: 'Automatic' | 'Manual';
   confirmationMethod: 'Automatic' | 'Manual';
-  lastPaymentError: Nullable<lastPaymentError>;
+  lastPaymentError: Nullable<LastPaymentError>;
   shipping: Nullable<ShippingDetails>;
 };
 
-type lastPaymentError = StripeError<string> & {
+type LastPaymentError = StripeError<string> & {
   paymentMethod: PaymentMethod;
 };
 
