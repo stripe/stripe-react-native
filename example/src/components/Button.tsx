@@ -26,6 +26,7 @@ export default function Button({
   return (
     <View style={disabled && styles.disabled}>
       <TouchableOpacity
+        disabled={disabled}
         style={[
           styles.container,
           variant === 'primary' && styles.primaryContainer,
