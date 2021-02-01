@@ -122,7 +122,7 @@ export default function SetupFuturePaymentScreen() {
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
   // It's only for example purposes
-  // This actions is responsible for charging your previously added card and should be called independently of payment flow.
+  // This actions is responsible for charging your previously added card and should be called independently of the payment flow.
   const handleOffSessionPayment = async () => {
     setOffSessiongLoading(true);
     const res = await chargeCardOffSession();
@@ -153,7 +153,7 @@ export default function SetupFuturePaymentScreen() {
         Alert.alert(errorCode);
         setPaymentError(errorCode);
       }
-      // If the last payment error is authentication_required allow customer to complete the payment with the same card and billing data.
+      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
       if (errorCode === 'authentication_required') {
         // Allow to complete the payment with the existing PaymentMethod.
       } else {
@@ -166,6 +166,7 @@ export default function SetupFuturePaymentScreen() {
   };
 
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
+  // Otherwise collect new details and create new PaymentMethod.
   const handleRecoveryFlow = async () => {
     const billingDetails: BillingDetails = {
       email: email,
