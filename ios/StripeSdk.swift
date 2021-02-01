@@ -255,7 +255,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     ) -> Void {
         let paymentMethodId = data.object(forKey: "paymentMethodId") as! String?
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-
+        
         var billing: STPPaymentMethodBillingDetails? = nil
         if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
             billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
@@ -301,14 +301,15 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
-            guard error != nil else {
-                reject(RetrievePaymentIntentErrorType.Failed.rawValue, error?.localizedDescription ?? "", nil)
+            guard error == nil else {
+                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil)
                 return
             }
+      
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
             } else {
-                reject(ConfirmSetupIntentErrorType.Unknown.rawValue, error?.localizedDescription ?? "", nil)
+                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription ?? "", nil)
             }
         }
     }
