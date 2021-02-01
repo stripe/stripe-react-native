@@ -105,6 +105,99 @@ function PaymentScreen() {
 
 Charge the card on your server.
 
+## Start a recovery flow
+
+If the PaymentIntent has any other status, the payment did not succeed and the request fails. Notify your customer to return to your application (e.g., by email, text, push notification) to complete the payment. We recommend creating a recovery flow in your app that shows why the payment failed initially and lets your customer retry.
+
+In your recovery flow, retrieve the PaymentIntent via its [client secret](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-client_secret). Check the PaymentIntent’s `lastPaymentError` to inspect why the payment attempt failed. For card errors, you can show the user the last payment error’s [message](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-last_payment_error-message). Otherwise, you can show a generic failure message.
+
+```tsx
+function PaymentScreen() {
+  // ...
+
+  const { retrievePaymentIntent } = useStripe();
+
+  // ...
+
+  const handleRecoveryFlow = async () => {
+    try {
+      const paymentIntent = await retrievePaymentIntent(clientSecret);
+
+      const failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent.lastPaymentError.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
+    } catch (error) {
+      Alert.alert(`Error: ${error.code}`, error.message);
+    }
+  };
+
+  return (
+    <View>
+      // ...
+      <Button
+        onPress={handleRecoveryFlow}
+        title="Recovery flow"
+        loading={loading}
+      />
+    </View>
+  );
+}
+```
+
+## Let your customer try again
+
+Give the customer the option to [update](https://stripe.com/docs/api/payment_methods/update) or [remove](https://stripe.com/docs/api/payment_methods/detach) their saved card and try payment again in your recovery flow. Follow the same steps you did to accept their initial payment with one difference—confirm the original, failed PaymentIntent by reusing its [client secret](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-client_secret) instead of creating a new one.
+
+If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
+
+```tsx
+function PaymentScreen() {
+  // ...
+
+  const { retrievePaymentIntent } = useStripe();
+
+  // ...
+
+  const handleRecoveryFlow = async () => {
+    try {
+      const paymentIntent = await retrievePaymentIntent(clientSecret);
+
+      const failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent.lastPaymentError.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
+
+      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
+      if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
+        // Allow to complete the payment with the existing PaymentMethod.
+        confirmPayment(paymentIntent.clientSecret, {
+          type: 'Card',
+          cardDetails: card,
+          billingDetails,
+          paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
+        });
+      } else {
+        // Collect a new PaymentMethod from the customer...
+      }
+    } catch (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    }
+  };
+
+  return (
+    <View>
+      // ...
+      <Button
+        onPress={handleRecoveryFlow}
+        title="Recovery flow"
+        loading={loading}
+      />
+    </View>
+  );
+}
+```
+
 ## Test the integration
 
 By this point you should have an integration that:

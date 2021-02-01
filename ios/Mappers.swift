@@ -118,6 +118,7 @@ class Mappers {
             let paymentError: NSMutableDictionary = [
                 "code": lastPaymentError.code ?? NSNull(),
                 "message": lastPaymentError.description,
+                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type)
             ]
 
             if let paymentMethod = paymentIntent.lastPaymentError?.paymentMethod {
@@ -135,6 +136,23 @@ class Mappers {
         }
         
         return intent;
+    }
+    
+    class func mapFromPaymentIntentLastPaymentErrorType(_ errorType: STPPaymentIntentLastPaymentErrorType?) -> String {
+        if let errorType = errorType {
+            switch errorType {
+            case STPPaymentIntentLastPaymentErrorType.apiConnection: return "ApiConnection"
+            case STPPaymentIntentLastPaymentErrorType.api: return "Api"
+            case STPPaymentIntentLastPaymentErrorType.authentication: return "Authentication"
+            case STPPaymentIntentLastPaymentErrorType.card: return "Card"
+            case STPPaymentIntentLastPaymentErrorType.idempotency: return "Idempotency"
+            case STPPaymentIntentLastPaymentErrorType.invalidRequest: return "InvalidRequest"
+            case STPPaymentIntentLastPaymentErrorType.rateLimit: return "RateLimit"
+            case STPPaymentIntentLastPaymentErrorType.unknown: return "Unknown"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
     }
     
     class func mapToBillingDetails(billingDetails: NSDictionary) -> STPPaymentMethodBillingDetails {
