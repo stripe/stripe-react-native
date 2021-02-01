@@ -202,6 +202,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
 
     paymentError.putString("code", it.code)
     paymentError.putString("message", it.message)
+    paymentError.putString("type", mapFromPaymentIntentLastErrorType(it.type))
 
     map.putMap("lastPaymentError", paymentError)
   }
@@ -217,6 +218,19 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
     map.putInt("canceledAt", convertToUnixTimestamp(it))
   }
   return map
+}
+
+internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Type?): String? {
+  return when (errorType) {
+    PaymentIntent.Error.Type.ApiConnectionError -> "ApiConnection"
+    PaymentIntent.Error.Type.AuthenticationError -> "Authentication"
+    PaymentIntent.Error.Type.ApiError -> "Api"
+    PaymentIntent.Error.Type.CardError -> "Card"
+    PaymentIntent.Error.Type.IdempotencyError -> "Idempotency"
+    PaymentIntent.Error.Type.InvalidRequestError -> "InvalidRequest"
+    PaymentIntent.Error.Type.RateLimitError -> "RateLimit"
+    else -> "Unknown"
+  }
 }
 
 internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMethodCreateParams {
