@@ -32,7 +32,7 @@ export const CardField: React.FC<Props> = ({
     (event: NativeSyntheticEvent<CardDetails>) => {
       const card = event.nativeEvent;
       const data: CardDetails = {
-        number: card.number || '',
+        last4: card.last4 || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
         expiryYear: card.expiryYear || 0,
