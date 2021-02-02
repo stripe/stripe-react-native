@@ -90,7 +90,18 @@ export type PaymentIntent = {
 
 type LastPaymentError = StripeError<string> & {
   paymentMethod: PaymentMethod;
+  type: PaymentIntentLastPaymentErrorType;
 };
+
+type PaymentIntentLastPaymentErrorType =
+  | 'ApiConnection'
+  | 'Api'
+  | 'Authentication'
+  | 'Card'
+  | 'Idempotency'
+  | 'InvalidRequest'
+  | 'RateLimit'
+  | 'Unknown';
 
 type SetupIntentUsage =
   | 'Unknown'
@@ -195,12 +206,15 @@ export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
   billingDetails?: BillingDetails;
-  paymentMethodId?: string;
 }
 
-export interface PaymentMethodCardData extends PaymentMethodBaseData<'Card'> {
-  cardDetails: CardDetails;
-}
+export type PaymentMethodCardData =
+  | (PaymentMethodBaseData<'Card'> & {
+      cardDetails: CardDetails;
+    })
+  | (PaymentMethodBaseData<'Card'> & {
+      paymentMethodId: string;
+    });
 
 export interface PaymentMethodAliPayData
   extends PaymentMethodBaseData<'Alipay'> {}

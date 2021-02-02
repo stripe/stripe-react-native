@@ -263,7 +263,11 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
-            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
+            guard let cardDetails = data.object(forKey: "cardDetails") as! NSDictionary? else {
+                reject(ConfirmPaymentErrorType.Failed.rawValue, "To confirm the payment you must provide card details or paymentMethodId", nil)
+                return
+            }
+            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billing)
             paymentIntentParams.paymentMethodParams = paymentMethodParams
         }
         
@@ -309,7 +313,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
             } else {
-                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription ?? "", nil)
+                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent", nil)
             }
         }
     }

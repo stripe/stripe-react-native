@@ -122,7 +122,7 @@ export default function SetupFuturePaymentScreen() {
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
   // It's only for example purposes
-  // This actions is responsible for charging your previously added card and should be called independently of the payment flow.
+  // This action is responsible for charging your previously added card and should be called independently of the payment flow.
   const handleOffSessionPayment = async () => {
     setOffSessiongLoading(true);
     const res = await chargeCardOffSession();
@@ -130,7 +130,6 @@ export default function SetupFuturePaymentScreen() {
       // If the PaymentIntent has any other status, the payment did not succeed and the request fails.
       // Notify your customer e.g., by email, text, push notification) to complete the payment.
       // We recommend creating a recovery flow in your app that shows why the payment failed initially and lets your customer retry.
-
       handleRetrievePaymentIntent(res.clientSecret);
     } else {
       Alert.alert('Success!', 'The payment was confirmed successfully!');
@@ -149,10 +148,16 @@ export default function SetupFuturePaymentScreen() {
       const paymentIntent = await retrievePaymentIntent(clientSecret);
       const errorCode = paymentIntent.lastPaymentError?.code;
 
+      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent?.lastPaymentError?.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
+
       if (errorCode) {
-        Alert.alert(errorCode);
+        Alert.alert(failureReason);
         setPaymentError(errorCode);
       }
+
       // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
       if (errorCode === 'authentication_required') {
         // Allow to complete the payment with the existing PaymentMethod.
@@ -178,14 +183,17 @@ export default function SetupFuturePaymentScreen() {
       addressPostalCode: '77063',
     }; // mocked data for tests
 
-    if (retrievedPaymentIntent && card) {
-      confirmPayment(retrievedPaymentIntent.clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-        paymentMethodId:
-          retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
-      });
+    if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id && card) {
+      try {
+        await confirmPayment(retrievedPaymentIntent.clientSecret, {
+          type: 'Card',
+          billingDetails,
+          paymentMethodId:
+            retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+        });
+      } catch (error) {
+        Alert.alert(`Error code: ${error.code}`, error.message);
+      }
     }
   };
 
