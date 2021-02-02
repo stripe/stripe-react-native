@@ -171,7 +171,7 @@ function PaymentScreen() {
       // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
       if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
         // Allow to complete the payment with the existing PaymentMethod.
-        await confirmPayment(paymentIntent.clientSecret, {
+        confirmPayment(paymentIntent.clientSecret, {
           type: 'Card',
           billingDetails,
           paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,

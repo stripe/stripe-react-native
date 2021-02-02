@@ -264,7 +264,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
             guard let cardDetails = data.object(forKey: "cardDetails") as! NSDictionary? else {
-                reject(ConfirmPaymentErrorType.Failed.rawValue, "To confirm the payment you must provide card details or paymentMethodId", nil)
+                let message = "To confirm the payment you must provide card details or paymentMethodId"
+                reject(ConfirmPaymentErrorType.Failed.rawValue, message, nil)
+                self.onPaymentErrorCallback?([NSNull(), Errors.createError(code: ConfirmPaymentErrorType.Failed.rawValue, message: message)])
                 return
             }
             let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billing)

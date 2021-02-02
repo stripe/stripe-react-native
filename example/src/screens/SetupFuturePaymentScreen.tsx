@@ -184,16 +184,12 @@ export default function SetupFuturePaymentScreen() {
     }; // mocked data for tests
 
     if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id && card) {
-      try {
-        await confirmPayment(retrievedPaymentIntent.clientSecret, {
-          type: 'Card',
-          billingDetails,
-          paymentMethodId:
-            retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
-        });
-      } catch (error) {
-        Alert.alert(`Error code: ${error.code}`, error.message);
-      }
+      confirmPayment(retrievedPaymentIntent.clientSecret, {
+        type: 'Card',
+        billingDetails,
+        paymentMethodId:
+          retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+      });
     }
   };
 

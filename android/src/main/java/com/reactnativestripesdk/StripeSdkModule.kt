@@ -177,7 +177,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
     } else {
       val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
-        promise.reject(ConfirmPaymentErrorType.Failed.toString(), "To confirm the payment you must provide card details or paymentMethodId")
+        val message = "To confirm the payment you must provide card details or paymentMethodId"
+        onConfirmSetupIntentError?.invoke(createError(ConfirmPaymentErrorType.Failed.toString(), message))
+        promise.reject(ConfirmPaymentErrorType.Failed.toString(), message)
         return
       }
 
