@@ -163,7 +163,7 @@ function PaymentScreen() {
     try {
       const paymentIntent = await retrievePaymentIntent(clientSecret);
 
-      const failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
       if (paymentIntent.lastPaymentError.type === 'Card') {
         failureReason = paymentIntent.lastPaymentError.message;
       }
@@ -171,9 +171,8 @@ function PaymentScreen() {
       // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
       if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
         // Allow to complete the payment with the existing PaymentMethod.
-        confirmPayment(paymentIntent.clientSecret, {
+        await confirmPayment(paymentIntent.clientSecret, {
           type: 'Card',
-          cardDetails: card,
           billingDetails,
           paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
         });
@@ -207,10 +206,12 @@ By this point you should have an integration that:
 
 There are several test cards you can use to make sure this integration is ready for production. Use them with any CVC, postal code, and future expiration date.
 
-| NUMBER              | DESCRIPTION                                                                                     |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| 4242 4242 4242 4242 | Succeeds and immediately processes the payment\.                                                |
-| 4000 0025 0000 3155 | Requires authentication\. Stripe will trigger a modal asking for the customer to authenticate\. |
-| 4000 0000 0000 9995 | Always fails                                                                                    |
+| NUMBER              | DESCRIPTION                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4242 4242 4242 4242 | Succeeds and immediately processes the payment\.                                                                                                                    |
+| 4000 0027 6000 3184 | Requires authentication for the initial purchase, and fails for subsequent\.payments (including off-session ones) with an authentication_required\. decline code.\. |
+| 4000 0082 6000 3178 | Requires authentication for the initial purchase, but fails for subsequent payments (including off-session ones) with an insufficient_funds decline code.\.         |
+| 4000 0025 0000 3155 | Requires authentication\. Stripe will trigger a modal asking for the customer to authenticate\.                                                                     |
+| 4000 0000 0000 9995 | Always fails                                                                                                                                                        |
 
 For the full list of test cards see our guide on [testing](https://stripe.com/docs/testing).

@@ -172,13 +172,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
-    val paymentMethodId = data.getString("paymentMethodId")
-    val cardDetails = data.getMap("cardDetails") as ReadableMap
-    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
-
+    val paymentMethodId = getValOr(data, "paymentMethodId", null)
     val confirmParams = if(paymentMethodId != null) {
       ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
     } else {
+      val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
+        promise.reject(ConfirmPaymentErrorType.Failed.toString(), "To confirm the payment you must provide card details or paymentMethodId")
+        return
+      }
+
+      val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
       ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
     }

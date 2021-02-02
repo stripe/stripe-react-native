@@ -117,7 +117,7 @@ class Mappers {
         if let lastPaymentError = paymentIntent.lastPaymentError {
             let paymentError: NSMutableDictionary = [
                 "code": lastPaymentError.code ?? NSNull(),
-                "message": lastPaymentError.description,
+                "message": lastPaymentError.message ?? NSNull(),
                 "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type)
             ]
 
