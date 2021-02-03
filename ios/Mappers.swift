@@ -115,10 +115,15 @@ class Mappers {
         ]
  
         if let lastPaymentError = paymentIntent.lastPaymentError {
-            let paymentError = [
-                "code": lastPaymentError.code,
-                "message": lastPaymentError.description
+            let paymentError: NSMutableDictionary = [
+                "code": lastPaymentError.code ?? NSNull(),
+                "message": lastPaymentError.message ?? NSNull(),
+                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type)
             ]
+
+            if let paymentMethod = paymentIntent.lastPaymentError?.paymentMethod {
+                paymentError.setValue(mapFromPaymentMethod(paymentMethod), forKey: "paymentMethod")
+            }
             intent.setValue(paymentError, forKey: "lastPaymentError")
         }
         
@@ -131,6 +136,23 @@ class Mappers {
         }
         
         return intent;
+    }
+    
+    class func mapFromPaymentIntentLastPaymentErrorType(_ errorType: STPPaymentIntentLastPaymentErrorType?) -> String {
+        if let errorType = errorType {
+            switch errorType {
+            case STPPaymentIntentLastPaymentErrorType.apiConnection: return "ApiConnection"
+            case STPPaymentIntentLastPaymentErrorType.api: return "Api"
+            case STPPaymentIntentLastPaymentErrorType.authentication: return "Authentication"
+            case STPPaymentIntentLastPaymentErrorType.card: return "Card"
+            case STPPaymentIntentLastPaymentErrorType.idempotency: return "Idempotency"
+            case STPPaymentIntentLastPaymentErrorType.invalidRequest: return "InvalidRequest"
+            case STPPaymentIntentLastPaymentErrorType.rateLimit: return "RateLimit"
+            case STPPaymentIntentLastPaymentErrorType.unknown: return "Unknown"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
     }
     
     class func mapToBillingDetails(billingDetails: NSDictionary) -> STPPaymentMethodBillingDetails {
@@ -419,5 +441,4 @@ class Mappers {
     class func convertDateToUnixTimestamp(date: Date) -> UInt64 {
         return UInt64(date.timeIntervalSince1970 * 1000.0)
     }
-    
 }

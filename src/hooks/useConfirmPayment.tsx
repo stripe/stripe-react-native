@@ -45,12 +45,16 @@ export function useConfirmPayment({ onError, onSuccess }: Params) {
       StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
 
       setLoading(true);
-      const result = await confirmPaymentMethod(
-        paymentIntentClientSecret,
-        data,
-        options
-      );
-      setLoading(false);
+      let result: PaymentIntent;
+      try {
+        result = await confirmPaymentMethod(
+          paymentIntentClientSecret,
+          data,
+          options
+        );
+      } finally {
+        setLoading(false);
+      }
 
       return result;
     },
