@@ -13,8 +13,6 @@ import { API_URL } from '../Config';
 export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
 
-  console.log('card', card);
-
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (error) => {
       Alert.alert(`Error code: ${error.code}`, error.message);
