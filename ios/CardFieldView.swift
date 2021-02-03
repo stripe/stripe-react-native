@@ -49,7 +49,8 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 "expiryMonth": textField.cardParams.expMonth ?? 0,
                 "expiryYear": textField.cardParams.expYear ?? 0,
                 "complete": textField.isValid,
-                "brand": Mappers.mapCardBrand(brand)
+                "brand": Mappers.mapCardBrand(brand),
+                "last4": textField.cardParams.last4 ?? ""
             ]
             if (cardField.postalCodeEntryEnabled) {
                 cardData["postalCode"] = textField.postalCode ?? ""
