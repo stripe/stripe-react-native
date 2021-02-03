@@ -15,6 +15,10 @@ enum class ConfirmSetupIntentErrorType {
   Failed, Canceled, Unknown
 }
 
+enum class RetrievePaymentIntentErrorType {
+  Unknown
+}
+
 internal fun createError(errorType: String, message: String): WritableMap {
   val map: WritableMap = WritableNativeMap()
   map.putString("message", message)
