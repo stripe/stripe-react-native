@@ -15,15 +15,8 @@ import Button from '../components/Button';
 import { colors } from '../colors';
 import Screen from '../components/Screen';
 
-const defaultCard = {
-  number: '4000002760003184',
-  cvc: '424',
-  expiryMonth: 1,
-  expiryYear: 22,
-};
-
 export default function SetupFuturePaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
@@ -202,7 +195,6 @@ export default function SetupFuturePaymentScreen() {
         style={styles.input}
       />
       <CardField
-        defaultValue={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('card details', cardDetails);

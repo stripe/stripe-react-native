@@ -18,19 +18,6 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
-    @objc var defaultValue: NSDictionary? {
-        didSet {
-            if (cardParams.number != nil || cardParams.cvc != nil || cardParams.expMonth != nil || cardParams.expYear != nil) {
-                return
-            }
-            cardParams.number = defaultValue?.object(forKey: "number") as? String
-            cardParams.cvc = defaultValue?.object(forKey: "cvc") as? String
-            cardParams.expMonth = defaultValue?.object(forKey: "expiryMonth") as? NSNumber
-            cardParams.expYear = defaultValue?.object(forKey: "expiryYear") as? NSNumber
-            cardField.cardParams = cardParams
-        }
-    }
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
@@ -55,11 +42,14 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
         if onCardChange != nil {
+            let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
             var cardData: [String: Any] = [
                 "number": textField.cardParams.number ?? "",
                 "cvc": textField.cardParams.cvc ?? "",
                 "expiryMonth": textField.cardParams.expMonth ?? 0,
-                "expiryYear": textField.cardParams.expYear ?? 0
+                "expiryYear": textField.cardParams.expYear ?? 0,
+                "complete": textField.isValid,
+                "brand": Mappers.mapCardBrand(brand)
             ]
             if (cardField.postalCodeEntryEnabled) {
                 cardData["postalCode"] = textField.postalCode ?? ""

@@ -10,15 +10,10 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
-const defaultCard = {
-  number: '4000000000003238',
-  cvc: '424',
-  expiryMonth: 1,
-  expiryYear: 22,
-};
-
 export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
+
+  console.log('card', card);
 
   const { confirmPayment, loading } = useConfirmPayment({
     onError: (error) => {
@@ -86,7 +81,6 @@ export default function WebhookPaymentScreen() {
   return (
     <Screen>
       <CardField
-        defaultValue={defaultCard}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
