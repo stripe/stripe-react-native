@@ -13,7 +13,7 @@ import Screen from '../components/Screen';
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardDetails | undefined>();
+  const [card, setCard] = useState<CardDetails | null>(null);
   const { createPaymentMethod, handleCardAction } = useStripe();
 
   const callNoWebhookPayEndpoint = useCallback(
