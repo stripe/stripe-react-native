@@ -26,7 +26,7 @@ export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
-  const [offSessiongLoading, setOffSessiongLoading] = useState(false);
+  const [offSessionLoading, setOffSessionLoading] = useState(false);
   const [
     retrievedPaymentIntent,
     setRetrievedPaymentIntent,
@@ -124,7 +124,7 @@ export default function SetupFuturePaymentScreen() {
   // It's only for example purposes
   // This action is responsible for charging your previously added card and should be called independently of the payment flow.
   const handleOffSessionPayment = async () => {
-    setOffSessiongLoading(true);
+    setOffSessionLoading(true);
     const res = await chargeCardOffSession();
     if (res.error) {
       // If the PaymentIntent has any other status, the payment did not succeed and the request fails.
@@ -135,7 +135,7 @@ export default function SetupFuturePaymentScreen() {
       Alert.alert('Success!', 'The payment was confirmed successfully!');
     }
 
-    setOffSessiongLoading(false);
+    setOffSessionLoading(false);
 
     console.log('charge off session result', res);
   };
@@ -222,16 +222,16 @@ export default function SetupFuturePaymentScreen() {
         <Button
           variant="primary"
           onPress={handleOffSessionPayment}
-          title="Pay with saved off-session setup intent"
+          title="Pay with saved card off-session"
           disabled={!setupIntent}
-          loading={offSessiongLoading}
+          loading={offSessionLoading}
         />
       </View>
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
           onPress={handleRecoveryFlow}
-          title="Pay via Recovery Flow"
+          title="Authenticate payment (recovery flow)"
           loading={confirmPaymentLoading}
           disabled={paymentError !== 'authentication_required'}
         />
