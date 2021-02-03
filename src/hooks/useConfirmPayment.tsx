@@ -11,14 +11,11 @@ import { createHandler } from '../helpers';
 import { useStripe } from './useStripe';
 
 type Params = {
-  onError?(error: StripeError<ConfirmPaymentError>): void;
-  onSuccess?(intent: PaymentIntent): void;
+  onError: (error: StripeError<ConfirmPaymentError>) => void;
+  onSuccess: (intent: PaymentIntent) => void;
 };
 
-export function useConfirmPayment({
-  onSuccess = () => {},
-  onError = () => {},
-}: Params = {}) {
+export function useConfirmPayment({ onError, onSuccess }: Params) {
   const [loading, setLoading] = useState(false);
   const { confirmPayment: confirmPaymentMethod } = useStripe();
 
