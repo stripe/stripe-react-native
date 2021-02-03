@@ -24,6 +24,7 @@ export function useStripe() {
   };
 
   return {
+    retrievePaymentIntent: NativeStripeSdk.retrievePaymentIntent,
     confirmPayment: NativeStripeSdk.confirmPaymentMethod,
     createPaymentMethod: createPaymentMethod,
     handleCardAction: StripeSdk.handleCardAction,

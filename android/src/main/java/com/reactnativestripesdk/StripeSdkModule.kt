@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.content.Intent
+import android.os.AsyncTask
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -171,15 +172,37 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
-    val cardDetails = data.getMap("cardDetails") as ReadableMap
-    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
+    val paymentMethodId = getValOr(data, "paymentMethodId", null)
+    val confirmParams = if(paymentMethodId != null) {
+      ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
+    } else {
+      val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
+        val message = "To confirm the payment you must provide card details or paymentMethodId"
+        onConfirmSetupIntentError?.invoke(createError(ConfirmPaymentErrorType.Failed.toString(), message))
+        promise.reject(ConfirmPaymentErrorType.Failed.toString(), message)
+        return
+      }
 
-    val confirmParams = ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
+      val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
+      ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
+    }
 
     val activity = currentActivity
     if (activity != null) {
       stripe.confirmPayment(activity, confirmParams)
+    }
+  }
+
+  @ReactMethod
+  fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
+    AsyncTask.execute {
+      val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
+      paymentIntent?.let {
+        promise.resolve(mapFromPaymentIntentResult(it))
+      } ?: run {
+        promise.reject(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed")
+      }
     }
   }
 
