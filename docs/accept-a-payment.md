@@ -164,7 +164,7 @@ function PaymentScreen() {
 
 If authentication is required by regulation such as Strong Customer Authentication, the SDK presents additional activities and walks the customer through that process. See Supporting [3D Secure Authentication](./3d-secure.md) to learn more.
 
-`useConfirmPayment` function returns a promise that will be resolved when the payment completes. If error it will be rejected with `error` object. Inspect `code` field to determine the cause.
+The `confirmPayment` function returns a `Promise` that resolves withe the `PaymentIntent` when the payment completes. In case of an error, the `Promise` will reject with an `error` object. Inspect the `code` field on the `error` object to determine the cause.
 
 You can also check the status of a PaymentIntent in the Dashboard or by inspecting the status property on the object.
 
