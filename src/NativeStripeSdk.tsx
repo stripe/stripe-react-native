@@ -53,6 +53,7 @@ type NativeStripeSdkType = {
     data: PaymentMethodData,
     options: PaymentMethodOptions
   ): Promise<SetupIntent>;
+  retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   registerConfirmSetupIntentCallbacks(
     onSuccess:
       | ((intent: SetupIntent) => void)

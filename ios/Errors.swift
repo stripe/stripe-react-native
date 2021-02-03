@@ -14,6 +14,10 @@ enum ConfirmSetupIntentErrorType: String {
     case Failed, Canceled, Unknown
 }
 
+enum RetrievePaymentIntentErrorType: String {
+    case Unknown
+}
+
 class Errors {
     class func createError (code: String, message: String) -> NSDictionary {
         let error: NSDictionary = [

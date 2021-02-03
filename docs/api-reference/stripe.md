@@ -101,6 +101,22 @@ confirmApplePayPayment(clientSecret: string): Promise<void>
 
 Promise without any data.
 
+## retrievePaymentIntent
+
+Retrieve payment intent which may be useful for the recovery flow.
+
+```ts
+(clientSecret: string) => Promise<PaymentIntent>
+```
+
+### Arguments
+
+- `clientSecret: string` - client secret
+
+### Return value
+
+Promise with `PaymentIntent` object.
+
 ## confirmSetupIntent
 
 Confirms setup intent creation for future payments. Requires client secret and card and billing details.
