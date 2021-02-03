@@ -24,7 +24,7 @@ Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.co
 
 Securely collect card information on the client with `CardField` component.
 
-Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and keep received data in the component state. To set the default value for the card `defaultValue` prop can be used.
+Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and keep received data in the component state.
 
 #### 2.D. Create a function to fetch a PaymentIntent
 
@@ -64,15 +64,8 @@ import { CardDetails, CardField, useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import { API_URL } from '../Config';
 
-const defaultCard = {
-  number: '4242424242424242',
-  cvc: '424',
-  expiryMonth: 1,
-  expiryYear: 22,
-};
-
 export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
 
   // 2.E. ------
   const { confirmPayment, loading } = useConfirmPayment({
@@ -140,7 +133,6 @@ export default function WebhookPaymentScreen() {
     <View>
       {/* 2.C. ------ */}
       <CardField
-        defaultValue={defaultCard}
         postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);

@@ -12,6 +12,8 @@ export type CardDetails = {
   expiryMonth: number;
   expiryYear: number;
   postalCode?: string;
+  brand: CardBrand;
+  complete: boolean;
 };
 
 export type BillingDetails = {

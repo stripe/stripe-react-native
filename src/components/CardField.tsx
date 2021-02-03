@@ -7,20 +7,23 @@ import {
   ViewStyle,
 } from 'react-native';
 import type {
-  CardDetails,
   CardFieldProps,
   Nullable,
   FocusFieldNames,
+  CardDetails,
 } from '../types';
 
 const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
-  defaultValue?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange?(card: CardDetails): void;
   onFocus?(focusedField: Nullable<FocusFieldNames>): void;
+};
+
+type NativeCardDetails = CardDetails & {
+  number: string;
 };
 
 export const CardField: React.FC<Props> = ({
@@ -29,13 +32,16 @@ export const CardField: React.FC<Props> = ({
   ...props
 }) => {
   const onCardChangeHandler = useCallback(
-    (event: NativeSyntheticEvent<CardDetails>) => {
+    (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
-      const data: CardDetails = {
-        last4: card.last4 || '',
+      const data: NativeCardDetails = {
+        last4: card.number || '',
+        number: card.number || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
         expiryYear: card.expiryYear || 0,
+        complete: card.complete,
+        brand: card.brand,
       };
       if (card.hasOwnProperty('postalCode')) {
         data.postalCode = card.postalCode || '';
