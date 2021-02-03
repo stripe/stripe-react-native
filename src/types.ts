@@ -7,7 +7,7 @@ export type Dictionary<T> = {
 export type Nullable<T> = T | null;
 
 export type CardDetails = {
-  last4?: string;
+  last4: string;
   cvc: string;
   expiryMonth: number;
   expiryYear: number;
