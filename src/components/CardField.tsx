@@ -41,7 +41,7 @@ export const CardField: React.FC<Props> = ({
       );
 
       const data: NativeCardDetails = {
-        last4: card.last4 || '',
+        last4: card.last4 || (card.number || '').slice(card.number.length - 4),
         number: card.number || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
