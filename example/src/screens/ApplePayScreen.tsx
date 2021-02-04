@@ -41,7 +41,11 @@ export default function ApplePayScreen() {
   }, []);
 
   const pay = async () => {
-    await presentApplePay([{ label: 'Example item name', amount: '10500.50' }]);
+    await presentApplePay({
+      cartItems: [{ label: 'Example item name', amount: '10500.50' }],
+      country: 'US',
+      currency: 'USD',
+    });
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     try {

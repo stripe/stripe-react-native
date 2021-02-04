@@ -144,15 +144,28 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     }
     
     @objc(presentApplePay:resolver:rejecter:)
-    func presentApplePay(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock,
+    func presentApplePay(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (merchantIdentifier == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
             return
         }
         
+        guard let summaryItems = params.object(forKey: "cartItems") as? NSArray else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
+            return
+        }
+        guard let country = params.object(forKey: "country") as? String else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the country", nil)
+            return
+        }
+        guard let currency = params.object(forKey: "currency") as? String else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the payment currency", nil)
+            return
+        }
+        
         let merchantIdentifier = self.merchantIdentifier ?? ""
-        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: "US", currency: "USD")
+        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
         applePayRequestResolver = resolve
         
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
