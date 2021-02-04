@@ -23,7 +23,7 @@ class Mappers {
         return PKPaymentSummaryItemType.final
     }
     
-    class func mapToShippingMethods(shippingMethods: NSArray) -> [PKShippingMethod] {
+    class func mapToShippingMethods(shippingMethods: NSArray?) -> [PKShippingMethod] {
         var shippingMethodsList: [PKShippingMethod] = []
         
         if let methods = shippingMethods as? [[String : Any]] {
