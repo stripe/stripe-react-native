@@ -24,6 +24,7 @@ type Props = AccessibilityProps & {
 
 type NativeCardDetails = CardDetails & {
   number: string;
+  cvc: string;
 };
 
 export const CardField: React.FC<Props> = ({
@@ -34,8 +35,13 @@ export const CardField: React.FC<Props> = ({
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
+
+      console.warn(
+        '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
+      );
+
       const data: NativeCardDetails = {
-        last4: card.number || '',
+        last4: card.last4 || '',
         number: card.number || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,

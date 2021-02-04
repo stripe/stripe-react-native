@@ -8,7 +8,6 @@ export type Nullable<T> = T | null;
 
 export type CardDetails = {
   last4: string;
-  cvc: string;
   expiryMonth: number;
   expiryYear: number;
   postalCode?: string;
