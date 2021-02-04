@@ -68,6 +68,15 @@ function PaymentScreen() {
         items: [{ label: 'Example item name', amount: '10500.50' }],
         country: 'US',
         currency: 'USD',
+        shippingMethods: [
+          {
+            amount: '20.00',
+            identifier: 'DPS',
+            label: 'Courier',
+            detail: 'Delivery',
+            type: 'final',
+          },
+        ],
       });
       const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
       await confirmApplePayPayment(clientSecret);

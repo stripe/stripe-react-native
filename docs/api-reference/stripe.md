@@ -79,7 +79,7 @@ Initiates the Apple Pay payment.
 
 ### Arguments
 
-- `params: PresentApplePayParams` - Apple pay params like `cartItems`, `currency` and `country` to be displayed in Apple Pay sheet.
+- `params: PresentApplePayParams` - Apple pay params like `cartItems`, `currency`, `country` and `shippingMethods` to be displayed in Apple Pay sheet.
 
 ### Return value
 
