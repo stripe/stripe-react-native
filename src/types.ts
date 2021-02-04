@@ -364,7 +364,7 @@ export interface PresentApplePayParams {
   currency: string;
   requiredShippingAddressFields?: ContactField[];
   requiredBillingContactFields?: ContactField[];
-  shippingMethods: ShippingMethod[];
+  shippingMethods?: ShippingMethod[];
 }
 
 export type ApplePayButtonType =
