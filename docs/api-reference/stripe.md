@@ -74,12 +74,12 @@ A promise with information about ApplePay support on the device.
 Initiates the Apple Pay payment.
 
 ```ts
-(items: CartSummaryItem[]): Promise<void>
+(params: PresentApplePayParams): Promise<void>
 ```
 
 ### Arguments
 
-- `items: CartSummaryItem[]` - cart items to be displayed in Apple Pay sheet
+- `params: PresentApplePayParams` - Apple pay params like `cartItems`, `currency` and `country`
 
 ### Return value
 

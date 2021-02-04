@@ -340,6 +340,12 @@ export type ApplePayButtonProps = {
   onPressAction(): void;
 };
 
+export interface PresentApplePayParams {
+  cartItems: CartSummaryItem[];
+  country: string;
+  currency: string;
+}
+
 export type ApplePayButtonType =
   | 'plain'
   | 'buy'
