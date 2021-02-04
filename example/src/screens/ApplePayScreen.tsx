@@ -45,6 +45,15 @@ export default function ApplePayScreen() {
       cartItems: [{ label: 'Example item name', amount: '10500.50' }],
       country: 'US',
       currency: 'USD',
+      shippingMethods: [
+        {
+          amount: '20.00',
+          identifier: 'DPS',
+          label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+      ],
     });
     const clientSecret = await fetchPaymentIntentClientSecret();
 

@@ -17,9 +17,8 @@ Stripe’s [React Native SDK](https://github.com/stripe/stripe-react-native/) ma
 3. [Integrate with Xcode](https://stripe.com/docs/apple-pay#setup)
 4. [Setup marchantId in StripeProvider](#step-4-set-up-merchantid-in-stripe-provider)
 5. [Check if Apple Pay is supported](#step-5-check-if-apple-pay-is-supported)
-6. [Create the payment request](https://stripe.com/docs/apple-pay#create-payment-request)
-7. [Present the payment sheet](#step-7-present-the-payment-sheet)
-8. [Submit the payment to Stripe](#step-8-submit-the-payment-to-stripe)
+6. [Present the payment sheet](#step-6-present-the-payment-sheet)
+7. [Submit the payment to Stripe](#step-7-submit-the-payment-to-stripe)
 
 ## Step 4: Set up marchantId in Stripe Provider
 
@@ -55,7 +54,7 @@ function PaymentScreen() {
 }
 ```
 
-## Step 7: Present the payment sheet
+## Step 6: Present the payment sheet
 
 Use `useApplePay` hook to handle this kind of payment,
 it returns `presentApplePay`, `confirmApplePayPayment` methods, `loading` value and `isApplePaySupported`.
@@ -86,7 +85,7 @@ function PaymentScreen() {
 }
 ```
 
-## Step 8: Submit the payment to Stripe
+## Step 7: Submit the payment to Stripe
 
 ### Client side
 

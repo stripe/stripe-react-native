@@ -340,10 +340,31 @@ export type ApplePayButtonProps = {
   onPressAction(): void;
 };
 
+type ShippingMethodType = 'final' | 'pending';
+
+interface ContactField {
+  emailAddress?: string;
+  name?: string;
+  phoneNumber?: string;
+  phoneticName?: string;
+  postalAddress?: string;
+}
+
+interface ShippingMethod {
+  label: string;
+  amount: string;
+  type?: ShippingMethodType;
+  identifier: string;
+  detail?: string;
+}
+
 export interface PresentApplePayParams {
   cartItems: CartSummaryItem[];
   country: string;
   currency: string;
+  requiredShippingAddressFields?: ContactField[];
+  requiredBillingContactFields?: ContactField[];
+  shippingMethods: ShippingMethod[];
 }
 
 export type ApplePayButtonType =

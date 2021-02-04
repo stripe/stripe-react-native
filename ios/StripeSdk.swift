@@ -164,10 +164,25 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             return
         }
         
+        applePayRequestResolver = resolve
+
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
-        applePayRequestResolver = resolve
         
+        let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
+        let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
+        let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
+
+        paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
+            Mappers.mapToPKContactField(field: $0 as! String)
+        })
+        
+        paymentRequest.requiredBillingContactFields = Set(requiredBillingContactFields.map {
+            Mappers.mapToPKContactField(field: $0 as! String)
+        })
+        
+        paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
+
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
         
         if let items = summaryItems as? [[String : Any]] {
