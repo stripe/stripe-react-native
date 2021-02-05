@@ -84,6 +84,8 @@ function PaymentScreen() {
             type: 'final',
           },
         ],
+        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+        requiredBillingContactFields: ['phoneNumber', 'name'],
       });
       // ...
     } catch (e) {
@@ -138,6 +140,8 @@ function PaymentScreen() {
             type: 'final',
           },
         ],
+        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+        requiredBillingContactFields: ['phoneNumber', 'name'],
       });
 
       const clientSecret = await fetchPaymentIntentClientSecret();
