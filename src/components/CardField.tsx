@@ -40,8 +40,10 @@ export const CardField: React.FC<Props> = ({
         '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
       );
 
+      const cardNumber = card.number || '';
+
       const data: NativeCardDetails = {
-        last4: card.last4 || (card.number || '').slice(card.number.length - 4),
+        last4: card.last4 || cardNumber.slice(cardNumber.length - 4),
         number: card.number || '',
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
