@@ -77,6 +77,8 @@ function PaymentScreen() {
             type: 'final',
           },
         ],
+        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+        requiredBillingContactFields: ['phoneNumber', 'name'],
       });
       const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
       await confirmApplePayPayment(clientSecret);

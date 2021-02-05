@@ -342,13 +342,12 @@ export type ApplePayButtonProps = {
 
 type ShippingMethodType = 'final' | 'pending';
 
-interface ContactField {
-  emailAddress?: string;
-  name?: string;
-  phoneNumber?: string;
-  phoneticName?: string;
-  postalAddress?: string;
-}
+type ContactFieldsType =
+  | 'emailAddress'
+  | 'name'
+  | 'phoneNumber'
+  | 'phoneticName'
+  | 'postalAddress';
 
 interface ShippingMethod {
   label: string;
@@ -362,8 +361,8 @@ export interface PresentApplePayParams {
   cartItems: CartSummaryItem[];
   country: string;
   currency: string;
-  requiredShippingAddressFields?: ContactField[];
-  requiredBillingContactFields?: ContactField[];
+  requiredShippingAddressFields?: ContactFieldsType[];
+  requiredBillingContactFields?: ContactFieldsType[];
   shippingMethods?: ShippingMethod[];
 }
 

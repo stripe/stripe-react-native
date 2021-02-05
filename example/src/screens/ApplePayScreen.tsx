@@ -54,6 +54,8 @@ export default function ApplePayScreen() {
           type: 'final',
         },
       ],
+      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredBillingContactFields: ['phoneNumber', 'name'],
     });
     const clientSecret = await fetchPaymentIntentClientSecret();
 
