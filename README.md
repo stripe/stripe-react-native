@@ -42,17 +42,7 @@ export default function PaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
   const { confirmPayment, handleCardAction } = useStripe();
 
-  return (
-    <CardField
-      defaultValue={{
-        number: '4242424242424242',
-        cvc: '424',
-        expiryMonth: 3,
-        expiryYear: 22,
-      }}
-      onCardChange={setCard}
-    />
-  );
+  return <CardField onCardChange={setCard} />;
 }
 ```
 

@@ -7,11 +7,12 @@ export type Dictionary<T> = {
 export type Nullable<T> = T | null;
 
 export type CardDetails = {
-  number: string;
-  cvc: string;
+  last4: string;
   expiryMonth: number;
   expiryYear: number;
   postalCode?: string;
+  brand: CardBrand;
+  complete: boolean;
 };
 
 export type BillingDetails = {

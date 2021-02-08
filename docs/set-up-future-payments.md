@@ -46,20 +46,17 @@ Securely collect card information on the client with `CardField` component.
 
 ![CardField component](./assets/card-field-example.gif 'CardField component')
 
-Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and keep received data in component state. To set the default value for card `defaultValue` prop can be used.
+Add `CardField` component to your payment screen. To collect card details you can use `onCardChange` prop and keep received data in component state.
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
 
   // ...
 
   return (
     <View>
-      <CardField
-        defaultValue={defaultCard}
-        onCardChange={(cardDetails) => setCard(cardDetails)}
-      />
+      <CardField onCardChange={(cardDetails) => setCard(cardDetails)} />
     </View>
   );
 }
