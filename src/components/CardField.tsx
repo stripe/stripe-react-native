@@ -43,9 +43,8 @@ export const CardField: React.FC<Props> = ({
       }
 
       const cardNumber = card.number || '';
-      const last4 = card.complete
-        ? cardNumber.slice(cardNumber.length - 4)
-        : '';
+      const last4 =
+        cardNumber.length >= 4 ? cardNumber.slice(cardNumber.length - 4) : '';
 
       const data: NativeCardDetails = {
         last4: card.last4 || last4,
@@ -56,6 +55,7 @@ export const CardField: React.FC<Props> = ({
         complete: card.complete,
         brand: card.brand,
       };
+      console.log(data);
       if (card.hasOwnProperty('postalCode')) {
         data.postalCode = card.postalCode || '';
       }
