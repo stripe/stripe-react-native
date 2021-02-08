@@ -20,15 +20,6 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
     return (field as CharSequence).isNotEmpty()
   }
 
-  @ReactProp(name = "defaultValue")
-  fun setValue(view: StripeSdkCardView, defaultValue: ReadableMap) {
-    val currentValue = view.getValue()
-    if (defaultValue == null || isNotEmptyField(currentValue["number"]) || isNotEmptyField(currentValue["cvc"] ) || isNotEmptyField(currentValue["expiryMonth"]) || isNotEmptyField(currentValue["expiryYear"]))  {
-      return
-    }
-    view.setValue(defaultValue);
-  }
-
   @ReactProp(name = "postalCodeEnabled")
   fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean) {
     view.setPostalCodeEnabled(postalCodeEnabled);

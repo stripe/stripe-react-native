@@ -63,21 +63,6 @@ Card field component allowing to collect card details.
 
 ### props
 
-#### defaultValue _(optional)_
-
-Default value for the card details
-
-type:
-
-```ts
-Partial<{
-  number: string;
-  cvc: string;
-  expiryMonth: number;
-  expiryYear: number;
-}>
-```
-
 #### postalCodeEnabled _(optional)_
 
 Indicates if the postal code field is enabled for the card field.

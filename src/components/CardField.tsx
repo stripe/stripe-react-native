@@ -7,20 +7,24 @@ import {
   ViewStyle,
 } from 'react-native';
 import type {
-  CardDetails,
   CardFieldProps,
   Nullable,
   FocusFieldNames,
+  CardDetails,
 } from '../types';
 
 const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
-  defaultValue?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
   onCardChange?(card: CardDetails): void;
   onFocus?(focusedField: Nullable<FocusFieldNames>): void;
+};
+
+type NativeCardDetails = CardDetails & {
+  number: string;
+  cvc: string;
 };
 
 export const CardField: React.FC<Props> = ({
@@ -29,14 +33,29 @@ export const CardField: React.FC<Props> = ({
   ...props
 }) => {
   const onCardChangeHandler = useCallback(
-    (event: NativeSyntheticEvent<CardDetails>) => {
+    (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
-      const data: CardDetails = {
-        number: card.number || '',
+
+      if (__DEV__) {
+        console.warn(
+          '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
+        );
+      }
+
+      const cardNumber = card.number || '';
+      const last4 =
+        cardNumber.length >= 4 ? cardNumber.slice(cardNumber.length - 4) : '';
+
+      const data: NativeCardDetails = {
+        last4: card.last4 || last4,
+        number: cardNumber,
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
         expiryYear: card.expiryYear || 0,
+        complete: card.complete,
+        brand: card.brand,
       };
+
       if (card.hasOwnProperty('postalCode')) {
         data.postalCode = card.postalCode || '';
       }

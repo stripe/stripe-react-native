@@ -11,16 +11,9 @@ import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 
-const defaultCard = {
-  number: '4000 0027 6000 3184',
-  cvc: '424',
-  expiryMonth: 3,
-  expiryYear: 22,
-};
-
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardDetails | undefined>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
   const { createPaymentMethod, handleCardAction } = useStripe();
 
   const callNoWebhookPayEndpoint = useCallback(
@@ -140,7 +133,6 @@ export default function NoWebhookPaymentScreen() {
   return (
     <Screen>
       <CardField
-        defaultValue={defaultCard}
         postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
