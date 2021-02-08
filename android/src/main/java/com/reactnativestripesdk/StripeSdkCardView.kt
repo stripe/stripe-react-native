@@ -45,8 +45,9 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun onCardChanged() {
+    val complete = mCardWidget.cardParams != null
     mEventDispatcher.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled))
+      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, complete))
   }
 
   private fun setListeners() {

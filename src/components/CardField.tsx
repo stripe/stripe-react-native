@@ -36,15 +36,20 @@ export const CardField: React.FC<Props> = ({
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
 
-      console.warn(
-        '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
-      );
+      if (__DEV__) {
+        console.warn(
+          '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
+        );
+      }
 
       const cardNumber = card.number || '';
+      const last4 = card.complete
+        ? cardNumber.slice(cardNumber.length - 4)
+        : '';
 
       const data: NativeCardDetails = {
-        last4: card.last4 || cardNumber.slice(cardNumber.length - 4),
-        number: card.number || '',
+        last4: card.last4 || last4,
+        number: cardNumber,
         cvc: card.cvc || '',
         expiryMonth: card.expiryMonth || 0,
         expiryYear: card.expiryYear || 0,
