@@ -42,7 +42,7 @@ export default function ApplePayScreen() {
 
   const pay = async () => {
     await presentApplePay({
-      cartItems: [{ label: 'Example item name', amount: '10500.50' }],
+      cartItems: [{ label: 'Example item name', amount: '14.00' }],
       country: 'US',
       currency: 'USD',
       shippingMethods: [

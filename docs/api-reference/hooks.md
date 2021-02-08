@@ -65,7 +65,7 @@ function PaymentScreen() {
   const pay = async () => {
     try {
       await presentApplePay({
-        items: [{ label: 'Example item name', amount: '10500.50' }],
+        items: [{ label: 'Example item name', amount: '14.00' }],
         country: 'US',
         currency: 'USD',
         shippingMethods: [

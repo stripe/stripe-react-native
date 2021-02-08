@@ -72,7 +72,7 @@ function PaymentScreen() {
       if (!isApplePaySupported) return;
       // ...
       await presentApplePay({
-        items: [{ label: 'Example item name', amount: '10500.50' }],
+        items: [{ label: 'Example item name', amount: '14.00' }],
         country: 'US',
         currency: 'USD',
         shippingMethods: [
@@ -128,7 +128,7 @@ function PaymentScreen() {
       if (!isApplePaySupported) return;
 
       await presentApplePay({
-        items: [{ label: 'Example item name', amount: '10500.50' }],
+        items: [{ label: 'Example item name', amount: '14.00' }],
         country: 'US',
         currency: 'USD',
         shippingMethods: [
