@@ -1,16 +1,16 @@
 import { useCallback, useState } from 'react';
 import StripeSdk from '../NativeStripeSdk';
 import type {
-  CartSummaryItem,
+  PresentApplePayParams,
   PresentApplePayError,
   StripeError,
 } from '../types';
 import { useStripe } from './useStripe';
 
-type Params = {
+interface Params {
   onError?(error: StripeError<PresentApplePayError>): void;
   onSuccess?(): void;
-};
+}
 
 export function useApplePay({
   onSuccess = () => {},
@@ -36,7 +36,7 @@ export function useApplePay({
     StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
   }, [handleSuccess, handleError]);
 
-  const presentApplePay = async (items: CartSummaryItem[]) => {
+  const presentApplePay = async (data: PresentApplePayParams) => {
     if (!isApplePaySupported) {
       return;
     }
@@ -44,7 +44,7 @@ export function useApplePay({
 
     setLoading(true);
     try {
-      await StripeSdk.presentApplePay(items);
+      await StripeSdk.presentApplePay(data);
     } catch (e) {
       const error: StripeError<PresentApplePayError> = e;
       onError(error);

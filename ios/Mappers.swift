@@ -1,6 +1,49 @@
 import Stripe
 
 class Mappers {
+    class func mapToPKContactField(field: String) -> PKContactField {
+        switch field {
+        case "emailAddress": return PKContactField.emailAddress
+        case "name": return PKContactField.name
+        case "phoneNumber": return PKContactField.phoneNumber
+        case "phoneticName": return PKContactField.phoneticName
+        case "postalAddress": return PKContactField.postalAddress
+        default: return PKContactField.name
+        }
+    }
+    
+    class func mapToShippingMethodType(type: String?) -> PKPaymentSummaryItemType {
+        if let type = type {
+            switch type {
+            case "pending": return PKPaymentSummaryItemType.pending
+            case "final": return PKPaymentSummaryItemType.final
+            default: return PKPaymentSummaryItemType.final
+            }
+        }
+        return PKPaymentSummaryItemType.final
+    }
+    
+    class func mapToShippingMethods(shippingMethods: NSArray?) -> [PKShippingMethod] {
+        var shippingMethodsList: [PKShippingMethod] = []
+        
+        if let methods = shippingMethods as? [[String : Any]] {
+            for method in methods {
+                let label = method["label"] as? String ?? ""
+                let amount = NSDecimalNumber(string: method["amount"] as? String ?? "")
+                let identifier = method["identifier"] as! String
+                let detail = method["detail"] as? String ?? ""
+                let type = Mappers.mapToShippingMethodType(type: method["type"] as? String)
+                let pm = PKShippingMethod.init(label: label, amount: amount, type: type)
+                pm.identifier = identifier
+                pm.detail = detail
+                shippingMethodsList.append(pm)
+            }
+        }
+        
+        return shippingMethodsList
+    }
+    
+    
     class func mapIntentStatus(status: STPPaymentIntentStatus?) -> String {
         if let status = status {
             switch status {
@@ -113,14 +156,14 @@ class Mappers {
             "shipping": NSNull(),
             "canceledAt": NSNull()
         ]
- 
+        
         if let lastPaymentError = paymentIntent.lastPaymentError {
             let paymentError: NSMutableDictionary = [
                 "code": lastPaymentError.code ?? NSNull(),
                 "message": lastPaymentError.message ?? NSNull(),
                 "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type)
             ]
-
+            
             if let paymentMethod = paymentIntent.lastPaymentError?.paymentMethod {
                 paymentError.setValue(mapFromPaymentMethod(paymentMethod), forKey: "paymentMethod")
             }

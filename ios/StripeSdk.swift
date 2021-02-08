@@ -144,17 +144,45 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     }
     
     @objc(presentApplePay:resolver:rejecter:)
-    func presentApplePay(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock,
+    func presentApplePay(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (merchantIdentifier == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
             return
         }
         
-        let merchantIdentifier = self.merchantIdentifier ?? ""
-        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: "US", currency: "USD")
-        applePayRequestResolver = resolve
+        guard let summaryItems = params.object(forKey: "cartItems") as? NSArray else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
+            return
+        }
+        guard let country = params.object(forKey: "country") as? String else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the country", nil)
+            return
+        }
+        guard let currency = params.object(forKey: "currency") as? String else {
+            reject(ApplePayErrorType.Failed.rawValue, "You must provide the payment currency", nil)
+            return
+        }
         
+        applePayRequestResolver = resolve
+
+        let merchantIdentifier = self.merchantIdentifier ?? ""
+        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
+        
+        let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
+        let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
+        let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
+
+        paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
+            Mappers.mapToPKContactField(field: $0 as! String)
+        })
+        
+        paymentRequest.requiredBillingContactFields = Set(requiredBillingContactFields.map {
+            Mappers.mapToPKContactField(field: $0 as! String)
+        })
+        
+        paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
+
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
         
         if let items = summaryItems as? [[String : Any]] {

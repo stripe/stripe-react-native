@@ -41,7 +41,22 @@ export default function ApplePayScreen() {
   }, []);
 
   const pay = async () => {
-    await presentApplePay([{ label: 'Example item name', amount: '10500.50' }]);
+    await presentApplePay({
+      cartItems: [{ label: 'Example item name', amount: '14.00' }],
+      country: 'US',
+      currency: 'USD',
+      shippingMethods: [
+        {
+          amount: '20.00',
+          identifier: 'DPS',
+          label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+      ],
+      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredBillingContactFields: ['phoneNumber', 'name'],
+    });
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     try {

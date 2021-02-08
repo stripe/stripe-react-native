@@ -15,12 +15,26 @@ Stripe’s [React Native SDK](https://github.com/stripe/stripe-react-native/) ma
 1. [Register for an Apple Merchant ID](https://stripe.com/docs/apple-pay#merchantid)
 2. [Create a new Apple Pay certificate](https://stripe.com/docs/apple-pay#csr)
 3. [Integrate with Xcode](https://stripe.com/docs/apple-pay#setup)
-4. [Check if Apple Pay is supported](#step-4-check-if-apple-pay-is-supported)
-5. [Create the payment request](https://stripe.com/docs/apple-pay#create-payment-request)
+4. [Setup marchantId in StripeProvider](#step-4-set-up-merchantid-in-stripe-provider)
+5. [Check if Apple Pay is supported](#step-5-check-if-apple-pay-is-supported)
 6. [Present the payment sheet](#step-6-present-the-payment-sheet)
 7. [Submit the payment to Stripe](#step-7-submit-the-payment-to-stripe)
 
-## Step 4: Check if Apple Pay is supported
+## Step 4: Set up marchantId in Stripe Provider
+
+Next, you need to set up previously registered marchantId in `StripeProvider` component.
+
+```tsx
+<StripeProvider
+  publishableKey={publishableKey}
+  merchantIdentifier="merchant.com.stripe.react.native"
+  // ..
+>
+  <App>
+</StripeProvider>
+```
+
+## Step 5: Check if Apple Pay is supported
 
 Before displaying Apple Pay as a payment option in your app, determine if the user’s device supports Apple Pay and they have a card added to their wallet.
 
@@ -57,12 +71,22 @@ function PaymentScreen() {
     try {
       if (!isApplePaySupported) return;
       // ...
-      await presentApplePay([
-        {
-          label: 'item label',
-          amount: 120,
-        },
-      ]);
+      await presentApplePay({
+        items: [{ label: 'Example item name', amount: '14.00' }],
+        country: 'US',
+        currency: 'USD',
+        shippingMethods: [
+          {
+            amount: '20.00',
+            identifier: 'DPS',
+            label: 'Courier',
+            detail: 'Delivery',
+            type: 'final',
+          },
+        ],
+        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+        requiredBillingContactFields: ['phoneNumber', 'name'],
+      });
       // ...
     } catch (e) {
       // ...
@@ -103,12 +127,22 @@ function PaymentScreen() {
     try {
       if (!isApplePaySupported) return;
 
-      await presentApplePay([
-        {
-          label: 'item label',
-          amount: 120,
-        },
-      ]);
+      await presentApplePay({
+        items: [{ label: 'Example item name', amount: '14.00' }],
+        country: 'US',
+        currency: 'USD',
+        shippingMethods: [
+          {
+            amount: '20.00',
+            identifier: 'DPS',
+            label: 'Courier',
+            detail: 'Delivery',
+            type: 'final',
+          },
+        ],
+        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+        requiredBillingContactFields: ['phoneNumber', 'name'],
+      });
 
       const clientSecret = await fetchPaymentIntentClientSecret();
 
