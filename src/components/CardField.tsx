@@ -55,7 +55,7 @@ export const CardField: React.FC<Props> = ({
         complete: card.complete,
         brand: card.brand,
       };
-      console.log(data);
+
       if (card.hasOwnProperty('postalCode')) {
         data.postalCode = card.postalCode || '';
       }
