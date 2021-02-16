@@ -1,29 +1,10 @@
 import { useCallback, useState } from 'react';
-import type {
-  ConfirmSetupIntentError,
-  PaymentMethodData,
-  SetupIntent,
-  StripeError,
-  PaymentMethodOptions,
-} from '../types';
-import StripeSdk from '../NativeStripeSdk';
-import { createHandler } from '../helpers';
+import type { PaymentMethodData, PaymentMethodOptions } from '../types';
+import { useStripe } from './useStripe';
 
-type Params = {
-  onError?: (error: StripeError<ConfirmSetupIntentError>) => void;
-  onSuccess?: (intent: SetupIntent) => void;
-};
-
-export function useConfirmSetupIntent({
-  onError = () => {},
-  onSuccess = () => {},
-}: Params = {}) {
+export function useConfirmSetupIntent() {
   const [loading, setLoading] = useState(false);
-
-  const handleFinishCallback = useCallback(() => {
-    setLoading(false);
-    StripeSdk.unregisterConfirmSetupIntentCallbacks();
-  }, []);
+  const { confirmSetupIntent: confirmSetupIntentNative } = useStripe();
 
   const confirmSetupIntent = useCallback(
     async (
@@ -33,30 +14,17 @@ export function useConfirmSetupIntent({
     ) => {
       setLoading(true);
 
-      const handleSuccess = createHandler((value: SetupIntent) => {
-        onSuccess(value);
-        handleFinishCallback();
-      });
-
-      const handleError = createHandler(
-        (value: StripeError<ConfirmSetupIntentError>) => {
-          onError(value);
-          handleFinishCallback();
-        }
-      );
-
-      StripeSdk.registerConfirmSetupIntentCallbacks(handleSuccess, handleError);
-
-      const result = await StripeSdk.confirmSetupIntent(
+      const result = await confirmSetupIntentNative(
         paymentIntentClientSecret,
         data,
         options
       );
+
       setLoading(false);
 
       return result;
     },
-    [onError, onSuccess, handleFinishCallback]
+    [confirmSetupIntentNative]
   );
 
   return {

@@ -1,62 +1,27 @@
-import { useCallback, useState } from 'react';
-import StripeSdk from '../NativeStripeSdk';
-import type {
-  PresentApplePayParams,
-  PresentApplePayError,
-  StripeError,
-} from '../types';
+import { useState } from 'react';
+import type { PresentApplePayParams } from '../types';
 import { useStripe } from './useStripe';
 
-interface Params {
-  onError?(error: StripeError<PresentApplePayError>): void;
-  onSuccess?(): void;
-}
-
-export function useApplePay({
-  onSuccess = () => {},
-  onError = () => {},
-}: Params = {}) {
-  const { isApplePaySupported } = useStripe();
+export function useApplePay() {
+  const {
+    isApplePaySupported,
+    presentApplePay: presentApplePayNative,
+    confirmApplePayPayment: confirmApplePayPaymentNative,
+  } = useStripe();
   const [loading, setLoading] = useState(false);
 
-  const handleSuccess = useCallback(() => {
-    onSuccess();
-    StripeSdk.unregisterApplePayCallbacks();
-  }, [onSuccess]);
-
-  const handleError = useCallback(
-    (error: StripeError<PresentApplePayError>) => {
-      onError(error);
-      StripeSdk.unregisterApplePayCallbacks();
-    },
-    [onError]
-  );
-
-  const registerCallbacks = useCallback(() => {
-    StripeSdk.registerApplePayCallbacks(handleSuccess, handleError);
-  }, [handleSuccess, handleError]);
-
   const presentApplePay = async (data: PresentApplePayParams) => {
-    if (!isApplePaySupported) {
-      return;
-    }
-    registerCallbacks();
-
     setLoading(true);
-    try {
-      await StripeSdk.presentApplePay(data);
-    } catch (e) {
-      const error: StripeError<PresentApplePayError> = e;
-      onError(error);
-    }
+    const result = await presentApplePayNative(data);
+    setLoading(false);
+    return result;
   };
 
   const confirmApplePayPayment = async (clientSecret: string) => {
-    if (!isApplePaySupported) {
-      return;
-    }
-    await StripeSdk.confirmApplePayPayment(clientSecret);
+    setLoading(true);
+    const result = await confirmApplePayPaymentNative(clientSecret);
     setLoading(false);
+    return result;
   };
 
   return {

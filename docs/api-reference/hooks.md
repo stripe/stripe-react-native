@@ -1,52 +1,15 @@
 # Hooks
 
-## use3dSecureConfiguration
-
-A React hook that accepts a configuration to 3D secure UI.
-
-Possible configuration options:
-
-```ts
-type ThreeDSecureConfigurationParams = {
-  bodyFontSize?: number; // font size of the text - default `11`
-  bodyTextColor?: string; // color of the text - default `#000000`
-  headingFontSize?: number; // font size of the text in header - default `21`
-  headingTextColor?: string; // color size of the text in header - default `#000000`
-  timeout?: number; // timeout value in minutes - default `5`
-};
-```
-
-Usage example:
-
-```tsx
-function PaymentScreen() {
-  use3dSecureConfiguration({
-    timeout: 5,
-    headingTextColor: '#90b43c',
-    bodyTextColor: '#000000',
-    bodyFontSize: 16,
-    headingFontSize: 21,
-  });
-
-  // ...
-}
-```
-
 ## useApplePay
 
-A react hook for making ApplePay payments. It accepts `onError` and `onSuccess` callbacks.
+A react hook for making ApplePay payments.
 
 It returns an object with:
 
-- `presentApplePay: (prams: PresentApplePayParams) => Promise<void>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
-- `confirmApplePayPayment: (clientSecret: string) => Promise<void>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
+- `presentApplePay: (prams: PresentApplePayParams) => Promise<Result<{}, PresentApplePayError>>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
+- `confirmApplePayPayment: (clientSecret: string) => Promise<Result<{}, string>>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
 - `isApplePaySupported: boolean` - boolean value indicates if Apple Pay is supported on the device
 - `loading: boolean` - state that indicates the status of the payment
-
-Possible configuration options:
-
-- `onError: (error: StripeError<PresentApplePayError>) => void` - callback that will be called on payment error
-- `onSuccess: () => void` - callback that will be called on payment success
 
 Usage example:
 
@@ -56,36 +19,38 @@ function PaymentScreen() {
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
-  } = useApplePay({
-    onSuccess: () => console.log('Successfully payed'),
-  });
+  } = useApplePay();
 
   // ...
 
   const pay = async () => {
-    try {
-      await presentApplePay({
-        items: [{ label: 'Example item name', amount: '14.00' }],
-        country: 'US',
-        currency: 'USD',
-        shippingMethods: [
-          {
-            amount: '20.00',
-            identifier: 'DPS',
-            label: 'Courier',
-            detail: 'Delivery',
-            type: 'final',
-          },
-        ],
-        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
-        requiredBillingContactFields: ['phoneNumber', 'name'],
-      });
-      const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
-      await confirmApplePayPayment(clientSecret);
-      // ...
-    } catch (e) {
-      // ...
+    const { error } = await presentApplePay({
+      items: [{ label: 'Example item name', amount: '14.00' }],
+      country: 'US',
+      currency: 'USD',
+      shippingMethods: [
+        {
+          amount: '20.00',
+          identifier: 'DPS',
+          label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+      ],
+      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredBillingContactFields: ['phoneNumber', 'name'],
+    });
+    if (error) {
+      // handle error
+      return;
     }
+    const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
+    const { error: confirmError } = await confirmApplePayPayment(clientSecret);
+
+    if (confirmError) {
+      //handle error
+    }
+    // ...
   };
 
   // ...
@@ -94,43 +59,36 @@ function PaymentScreen() {
 
 ## useConfirmPayment
 
-A react hook for confirming simple payments with webhooks. It that accepts `onError` and `onSuccess` callbacks.
+A react hook for confirming simple payments with webhooks.
 
 It returns an object with:
 
-- `confirmPayment: (paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<PaymentIntent>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
+- `confirmPayment: (paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<Result<{ paymentIntent: PaymentIntent }, ConfirmPaymentError>>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
 - `loading: boolean` - state that indicates the status of the payment
-
-Configuration options you can set:
-
-- `onError: (error: StripeError<ConfirmPaymentError>) => void` - callback that will be called on payment error
-- `onSuccess: (intent: PaymentIntent) => void` - callback that will be called on payment success
 
 Usage example:
 
 ```tsx
 function PaymentScreen() {
-  const { confirmPayment, loading } = useConfirmPayment({
-    onSuccess: (intent) => console.log('Success', intent),
-  });
+  const { confirmPayment, loading } = useConfirmPayment();
 
   // ...
 
   const handlePayPress = () => {
     const clientSecret = await fetchPaymentIntentClientSecret(); // fetching client secret from backend
-    try {
-      const billingDetails: BillingDetails = {
-        email,
-      }; // Gather customer billing information (ex. email)
-      const intent = await confirmPayment(clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetils,
-      });
-      // ...
-    } catch (e) {
-      // ...
+    const billingDetails: BillingDetails = {
+      email,
+    }; // Gather customer billing information (ex. email)
+    const { paymentIntent, error } = await confirmPayment(clientSecret, {
+      type: 'Card',
+      cardDetails: card,
+      billingDetils,
+    });
+
+    if (error) {
+      // handle error
     }
+    // ...
   };
 
   // ..
@@ -139,43 +97,36 @@ function PaymentScreen() {
 
 ## useConfirmSetupIntent
 
-A react hook for confirming simple payments with webhooks. It that accepts `onError` and `onSuccess` callbacks.
+A react hook for confirming simple payments with webhooks.
 
 It returns an object with:
 
-- `confirmSetupIntent: ( paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<SetupIntent>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
+- `confirmSetupIntent: ( paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<Result<{ setupIntent: SetupIntent }, ConfirmSetupIntentError>>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
 - `loading: boolean` - state that indicates the status of the payment
-
-Configuration options you can set:
-
-- `onError: (error: StripeError<ConfirmSetupIntentError>) => void` - callback that will be called on payment error
-- `onSuccess: (intent: SetupIntent) => void` - callback that will be called on payment success
 
 Usage example:
 
 ```tsx
 function PaymentScreen() {
-  const { confirmSetupIntent, loading } = useConfirmSetupIntent({
-    onSuccess: (setupIntent) => console.log('Success', setupIntent),
-  });
+  const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
   // ...
 
   const handlePayPress = () => {
-    try {
-      const clientSecret = await createSetupIntentOnBackend(); // creating setup intent on backend
-      const billingDetails: BillingDetails = {
-        email,
-      };
-      const intent = await confirmSetupIntent(clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-      });
-      // ...
-    } catch (e) {
-      // ...
+    const clientSecret = await createSetupIntentOnBackend(); // creating setup intent on backend
+    const billingDetails: BillingDetails = {
+      email,
+    };
+    const { setupIntent, error } = await confirmSetupIntent(clientSecret, {
+      type: 'Card',
+      cardDetails: card,
+      billingDetails,
+    });
+
+    if (error) {
+      // handle error
     }
+    // ...
   };
 
   // ...

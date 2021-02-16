@@ -18,7 +18,7 @@ export {
   IntentStatus,
   StripeError,
   ConfirmPaymentError,
-  NextPaymentActionError,
+  CardActionError,
   CreatePaymentMethodError,
   ConfirmSetupIntentError,
   SetupIntent,
