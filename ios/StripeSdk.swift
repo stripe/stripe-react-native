@@ -7,6 +7,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
+    var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
@@ -81,22 +82,29 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         switch status {
         case .success:
             applePayCompletionRejecter = nil
+            applePayRequestRejecter = nil
             confirmApplePayPaymentResolver?([NSNull()])
             break
         case .error:
             let message = "Apple pay completion failed"
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
+            applePayRequestRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             applePayCompletionRejecter = nil
+            applePayRequestRejecter = nil
             break
         case .userCancellation:
             let message = "Apple pay payment has been cancelled"
             applePayCompletionRejecter?(ApplePayErrorType.Canceled.rawValue, message, nil)
+            applePayRequestRejecter?(ApplePayErrorType.Canceled.rawValue, message, nil)
             applePayCompletionRejecter = nil
+            applePayRequestRejecter = nil
             break
         @unknown default:
             let message = "Cannot complete payment"
             applePayCompletionRejecter?(ApplePayErrorType.Unknown.rawValue, message, nil)
+            applePayRequestRejecter?(ApplePayErrorType.Unknown.rawValue, message, nil)
             applePayCompletionRejecter = nil
+            applePayRequestRejecter = nil
         }
     }
     
@@ -129,6 +137,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
         
         self.applePayRequestResolver = resolve
+        self.applePayRequestRejecter = reject
       
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
