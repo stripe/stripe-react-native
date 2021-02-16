@@ -66,61 +66,83 @@ export default function NoWebhookPaymentScreen() {
     }
 
     setLoading(true);
-    try {
-      // 2. Gather customer billing information (ex. email)
-      const billingDetails: BillingDetails = {
-        email: 'email@stripe.com',
-        phone: '+48888000888',
-        addressCity: 'Houston',
-        addressCountry: 'US',
-        addressLine1: '1459  Circle Drive',
-        addressLine2: 'Texas',
-        addressPostalCode: '77063',
-      }; // mocked data for tests
+    // 2. Gather customer billing information (ex. email)
+    const billingDetails: BillingDetails = {
+      email: 'email@stripe.com',
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
+    }; // mocked data for tests
 
-      // 1. Create payment method
-      const paymentMethod = await createPaymentMethod({
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-      });
+    // 1. Create payment method
+    const { paymentMethod, error } = await createPaymentMethod({
+      type: 'Card',
+      cardDetails: card,
+      billingDetails,
+    });
 
-      // 2. call API to create PaymentIntent
-      const result = await callNoWebhookPayEndpoint({
-        useStripeSdk: true,
-        paymentMethodId: paymentMethod.id,
-        currency: 'usd', // mocked data
-        items: [{ id: 'id' }],
-      });
+    if (error) {
+      console.log('Create payment method error', error);
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    }
+    if (!paymentMethod) {
+      return;
+    }
 
-      const { clientSecret, error, requiresAction } = result;
+    // 2. call API to create PaymentIntent
+    const paymentIntentResult = await callNoWebhookPayEndpoint({
+      useStripeSdk: true,
+      paymentMethodId: paymentMethod.id,
+      currency: 'usd', // mocked data
+      items: [{ id: 'id' }],
+    });
 
-      if (error) {
-        // Error during creating or confirming Intent
-        Alert.alert('Error', error);
+    const {
+      clientSecret,
+      error: paymentIntentError,
+      requiresAction,
+    } = paymentIntentResult;
+
+    if (paymentIntentError) {
+      // Error during creating or confirming Intent
+      Alert.alert('Error', paymentIntentError);
+    }
+
+    if (clientSecret && !requiresAction) {
+      // Payment succedeed
+      Alert.alert('Success', 'The payment was confirmed successfully!');
+    }
+
+    if (clientSecret && requiresAction) {
+      // 3. if payment requires action calling handleCardAction
+      const { error: cardActionError, paymentIntent } = await handleCardAction(
+        clientSecret
+      );
+
+      if (cardActionError) {
+        console.log('Payment confirmation error', cardActionError);
+        Alert.alert(
+          `Error code: ${cardActionError.code}`,
+          cardActionError.message
+        );
       }
 
-      if (clientSecret && !requiresAction) {
+      if (!paymentIntent) {
+        return;
+      }
+
+      if (paymentIntent.status === IntentStatus.RequiresConfirmation) {
+        // 4. Call API to confirm intent
+        await confirmIntent(paymentIntent.id);
+      } else {
         // Payment succedeed
         Alert.alert('Success', 'The payment was confirmed successfully!');
       }
-
-      if (clientSecret && requiresAction) {
-        // 3. if payment requires action calling handleCardAction
-        const { status, id } = await handleCardAction(clientSecret);
-
-        if (status === IntentStatus.RequiresConfirmation) {
-          // 4. Call API to confirm intent
-          await confirmIntent(id);
-        } else {
-          // Payment succedeed
-          Alert.alert('Success', 'The payment was confirmed successfully!');
-        }
-      }
-    } catch (e) {
-      console.log('Payment confirmation error', e);
-      Alert.alert(`Error code: ${e.code}`, e.message);
     }
+
     setLoading(false);
   }, [
     card,

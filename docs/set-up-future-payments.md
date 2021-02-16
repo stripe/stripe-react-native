@@ -73,20 +73,20 @@ function PaymentScreen() {
   // ...
 
   const handlePayPress = async () => {
-    try {
-      const billingDetails: BillingDetails = {
-        email,
-      }; // Gather customer billing information (ex. email)
-      const clientSecret = await createSetupIntentOnBackend(); // Create setup intent on backend
-      const intent = await confirmSetupIntent(clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-      });
-      // ...
-    } catch (e) {
-      // ...
+    const billingDetails: BillingDetails = {
+      email,
+    }; // Gather customer billing information (ex. email)
+    const clientSecret = await createSetupIntentOnBackend(); // Create setup intent on backend
+    const { setupIntent, error } = await confirmSetupIntent(clientSecret, {
+      type: 'Card',
+      cardDetails: card,
+      billingDetails,
+    });
+
+    if (error) {
+      //handle error
     }
+    // ...
   };
 
   return (
@@ -117,15 +117,16 @@ function PaymentScreen() {
   // ...
 
   const handleRecoveryFlow = async () => {
-    try {
-      const paymentIntent = await retrievePaymentIntent(clientSecret);
+    const { paymentIntent, error } = await retrievePaymentIntent(clientSecret);
 
-      const failureReason = 'Payment failed, try again.'; // Default to a generic error message
-      if (paymentIntent.lastPaymentError.type === 'Card') {
-        failureReason = paymentIntent.lastPaymentError.message;
-      }
-    } catch (error) {
+    if (error) {
       Alert.alert(`Error: ${error.code}`, error.message);
+      return;
+    }
+
+    const failureReason = 'Payment failed, try again.'; // Default to a generic error message
+    if (paymentIntent.lastPaymentError.type === 'Card') {
+      failureReason = paymentIntent.lastPaymentError.message;
     }
   };
 
@@ -157,27 +158,28 @@ function PaymentScreen() {
   // ...
 
   const handleRecoveryFlow = async () => {
-    try {
-      const paymentIntent = await retrievePaymentIntent(clientSecret);
+    const { paymentIntent, error } = await retrievePaymentIntent(clientSecret);
 
-      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
-      if (paymentIntent.lastPaymentError.type === 'Card') {
-        failureReason = paymentIntent.lastPaymentError.message;
-      }
+    if (error) {
+      Alert.alert(`Error: ${error.code}`, error.message);
+      return;
+    }
 
-      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
-      if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
-        // Allow to complete the payment with the existing PaymentMethod.
-        confirmPayment(paymentIntent.clientSecret, {
-          type: 'Card',
-          billingDetails,
-          paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
-        });
-      } else {
-        // Collect a new PaymentMethod from the customer...
-      }
-    } catch (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
+    let failureReason = 'Payment failed, try again.'; // Default to a generic error message
+    if (paymentIntent.lastPaymentError.type === 'Card') {
+      failureReason = paymentIntent.lastPaymentError.message;
+    }
+
+    // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
+    if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
+      // Allow to complete the payment with the existing PaymentMethod.
+      confirmPayment(paymentIntent.clientSecret, {
+        type: 'Card',
+        billingDetails,
+        paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
+      });
+    } else {
+      // Collect a new PaymentMethod from the customer...
     }
   };
 

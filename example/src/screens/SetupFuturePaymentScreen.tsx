@@ -27,22 +27,13 @@ export default function SetupFuturePaymentScreen() {
   const [setupIntent, setSetupIntent] = useState<SetupIntent | null>(null);
 
   // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
-  // The only difference is that this approach will not have `loading` status support and `onError`, `onSuccess` callbacks
-  // But the Promise returned by the method will work the same allowing to catch errors and success states
+  // The only difference is that this approach will not have `loading` status support
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
-  const { confirmPayment, loading: confirmPaymentLoading } = useConfirmPayment({
-    onError: (error) => {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    },
-    onSuccess: (intent) => {
-      console.log('Success', intent);
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${intent.currency}`
-      );
-    },
-  });
+  const {
+    confirmPayment,
+    loading: confirmPaymentLoading,
+  } = useConfirmPayment();
 
   const { retrievePaymentIntent } = useStripe();
 
@@ -80,38 +71,44 @@ export default function SetupFuturePaymentScreen() {
       return;
     }
 
-    try {
-      console.log('email', email);
-      // 1. Create setup intent on backend
-      const clientSecret = await createSetupIntentOnBackend(email);
+    console.log('email', email);
+    // 1. Create setup intent on backend
+    const clientSecret = await createSetupIntentOnBackend(email);
 
-      // 2. Gather customer billing information (ex. email)
-      const billingDetails: BillingDetails = {
-        email: email,
-        phone: '+48888000888',
-        addressCity: 'Houston',
-        addressCountry: 'US',
-        addressLine1: '1459  Circle Drive',
-        addressLine2: 'Texas',
-        addressPostalCode: '77063',
-      }; // mocked data for tests
+    // 2. Gather customer billing information (ex. email)
+    const billingDetails: BillingDetails = {
+      email: email,
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
+    }; // mocked data for tests
 
-      // 3. Confirm setup intent
-      const intent = await confirmSetupIntent(clientSecret, {
+    // 3. Confirm setup intent
+    const { error, setupIntent: setupIntentResult } = await confirmSetupIntent(
+      clientSecret,
+      {
         type: 'Card',
         cardDetails: card,
         billingDetails,
-      });
+      }
+    );
 
-      Alert.alert(
-        `Success: Setup intent created. Intent status: ${intent.status}`
-      );
-
-      setSetupIntent(intent);
-    } catch (e) {
-      Alert.alert(`Error code: ${e.code}`, e.message);
-      console.log('Setup intent creation error', e.message);
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('Setup intent confirmation error', error.message);
     }
+    if (!setupIntentResult) {
+      return;
+    }
+
+    Alert.alert(
+      `Success: Setup intent created. Intent status: ${setupIntentResult.status}`
+    );
+
+    setSetupIntent(setupIntentResult);
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
   // It's only for example purposes
@@ -137,30 +134,33 @@ export default function SetupFuturePaymentScreen() {
   // Check the PaymentIntent’s lastPaymentError to inspect why the payment attempt failed.
   // For card errors, you can show the user the last payment error’s message. Otherwise, you can show a generic failure message.
   const handleRetrievePaymentIntent = async (clientSecret: string) => {
-    try {
-      const paymentIntent = await retrievePaymentIntent(clientSecret);
-      const errorCode = paymentIntent.lastPaymentError?.code;
+    const { error, paymentIntent } = await retrievePaymentIntent(clientSecret);
 
-      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
-      if (paymentIntent?.lastPaymentError?.type === 'Card') {
-        failureReason = paymentIntent.lastPaymentError.message;
-      }
-
-      if (errorCode) {
-        Alert.alert(failureReason);
-        setPaymentError(errorCode);
-      }
-
-      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
-      if (errorCode === 'authentication_required') {
-        // Allow to complete the payment with the existing PaymentMethod.
-      } else {
-        // Collect a new PaymentMethod from the customer...
-      }
-      setRetrievedPaymentIntent(paymentIntent);
-    } catch (error) {
+    if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     }
+    if (!paymentIntent) {
+      return;
+    }
+    const errorCode = paymentIntent.lastPaymentError?.code;
+
+    let failureReason = 'Payment failed, try again.'; // Default to a generic error message
+    if (paymentIntent?.lastPaymentError?.type === 'Card') {
+      failureReason = paymentIntent.lastPaymentError.message;
+    }
+
+    if (errorCode) {
+      Alert.alert(failureReason);
+      setPaymentError(errorCode);
+    }
+    // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
+    if (errorCode === 'authentication_required') {
+      // Allow to complete the payment with the existing PaymentMethod.
+    } else {
+      // Collect a new PaymentMethod from the customer...
+    }
+
+    setRetrievedPaymentIntent(paymentIntent);
   };
 
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
