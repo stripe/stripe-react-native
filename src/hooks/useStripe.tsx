@@ -111,17 +111,14 @@ export function useStripe() {
         },
       };
     }
-    console.log('present1');
 
     try {
       await NativeStripeSdk.presentApplePay(params);
-      console.log('present2');
+
       return {
         error: undefined,
       };
     } catch (error) {
-      console.log('error', error);
-
       return {
         error: createError(error),
       };
