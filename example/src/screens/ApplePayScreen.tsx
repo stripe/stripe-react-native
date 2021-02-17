@@ -48,20 +48,19 @@ export default function ApplePayScreen() {
 
     if (error) {
       Alert.alert(error.code, error.message);
-      return;
+    } else {
+      const clientSecret = await fetchPaymentIntentClientSecret();
+
+      const { error: confirmApplePayError } = await confirmApplePayPayment(
+        clientSecret
+      );
+
+      if (confirmApplePayError) {
+        Alert.alert(confirmApplePayError.code, confirmApplePayError.message);
+      } else {
+        Alert.alert('Success', 'The payment was confirmed successfully!');
+      }
     }
-
-    const clientSecret = await fetchPaymentIntentClientSecret();
-
-    const { error: confirmApplePayError } = await confirmApplePayPayment(
-      clientSecret
-    );
-
-    if (confirmApplePayError) {
-      Alert.alert(confirmApplePayError.code, confirmApplePayError.message);
-      return;
-    }
-    Alert.alert('Success', 'The payment was confirmed successfully!');
   };
 
   return (

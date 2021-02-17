@@ -11,7 +11,7 @@ Confirms the PaymentIntent with the provided parameters. Call this method if you
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) =>  Promise<Intent>
+) =>  Promise<Result<{ paymentIntent: PaymentIntent }, ConfirmPaymentError>>
 ```
 
 ### Arguments
@@ -22,31 +22,33 @@ Confirms the PaymentIntent with the provided parameters. Call this method if you
 
 ### Return value
 
-A promise with `Intent` object.
+A promise with `Intent` or `StripeError<ConfirmPaymentError>` object.
 
 ## createPaymentMethod
 
 Converts a card details object into a Stripe Payment Method using the Stripe API.
 
 ```ts
-(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<PaymentMethod>;
+(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<
+    Result<{ paymentMethod: PaymentMethod }, CreatePaymentMethodError>
+  >;
 ```
 
 ### Arguments
 
 - `data: PaymentMethodData` - data needs for particular payment like `type`, `cardDetails` or `billingDetails`
-- `options: PaymentMethodOptions` - payment options
+- `options?: PaymentMethodOptions` - payment options
 
 ### Return value
 
-A promise with `PaymentMethod` object.
+A promise with `PaymentMethod` or `StripeError<CreatePaymentMethodError>` object.
 
 ## handleCardAction
 
 Handles any `nextAction` required to authenticate the Intent.
 
 ```ts
-(paymentIntentClientSecret: string) => Promise<Intent>
+(paymentIntentClientSecret: string) => Promise<Result<{ paymentIntent: PaymentIntent }, CardActionError>>
 ```
 
 ### Arguments
@@ -55,7 +57,7 @@ Handles any `nextAction` required to authenticate the Intent.
 
 ### Return value
 
-A promise with `Intent` object.
+A promise with `PaymentIntent` or `StripeError<CardActionError>` object.
 
 ## isApplePaySupported
 
@@ -74,7 +76,7 @@ A promise with information about ApplePay support on the device.
 Initiates the Apple Pay payment.
 
 ```ts
-(params: PresentApplePayParams): Promise<void>
+(params: PresentApplePayParams): Promise<Result<{}, PresentApplePayError>>
 ```
 
 ### Arguments
@@ -90,7 +92,7 @@ Promise without any data.
 Apple Pay payment completion method. Should be called with clientSecret after payment intent creation on server side.
 
 ```ts
-confirmApplePayPayment(clientSecret: string): Promise<void>
+confirmApplePayPayment(clientSecret: string): Promise<Result<{}, string>>
 ```
 
 ### Arguments
@@ -106,7 +108,7 @@ Promise without any data.
 Retrieve payment intent which may be useful for the recovery flow.
 
 ```ts
-(clientSecret: string) => Promise<PaymentIntent>
+(clientSecret: string) => Promise<Result<{ paymentIntent: PaymentIntent }, RetrievePaymentIntentError>>
 ```
 
 ### Arguments
@@ -115,7 +117,7 @@ Retrieve payment intent which may be useful for the recovery flow.
 
 ### Return value
 
-Promise with `PaymentIntent` object.
+Promise with `PaymentIntent` or `StripeError<RetrievePaymentIntentError>` object.
 
 ## confirmSetupIntent
 
@@ -126,7 +128,7 @@ Confirms setup intent creation for future payments. Requires client secret and c
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) => Promise<SetupIntent>;
+) => Promise<Result<{ setupIntent: SetupIntent }, ConfirmSetupIntentError>>
 ```
 
 ### Arguments
@@ -137,7 +139,7 @@ Confirms setup intent creation for future payments. Requires client secret and c
 
 ### Return value
 
-Promise with `SetupIntent` object.
+Promise with `SetupIntent` or `<StripeError<ConfirmSetupIntentError>>` object.
 
 ## threeDSecureParams
 

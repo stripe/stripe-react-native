@@ -61,15 +61,13 @@ export default function WebhookPaymentScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
+    } else if (paymentIntent) {
+      Alert.alert(
+        'Success',
+        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
+      );
+      console.log('Success from promise', paymentIntent);
     }
-    if (!paymentIntent) {
-      return;
-    }
-    Alert.alert(
-      'Success',
-      `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-    );
-    console.log('Success from promise', paymentIntent);
   }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
 
   return (

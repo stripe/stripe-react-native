@@ -47,7 +47,7 @@ To indicate payment loading status you can use `loading` value from this hook as
 
 #### 3.C. Handle the response from Stripe
 
-The `confirmPayment` function returns the promise with the data or an error so you use it to communicate the customer about the error or success.
+`confirmPayment` will return a Promise which resolves with a result object. This object has either the successful PaymentIntent or an error.
 
 ### 4. Test the integration
 
@@ -111,12 +111,12 @@ export default function WebhookPaymentScreen() {
       // 3.C. ------
       if (error) {
         Alert.alert('Error', error.message);
+      } else if (paymentIntent) {
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully! curerency: ${paymentIntent.status}`
+        );
       }
-      console.log('Success', paymentIntent);
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! curerency: ${paymentIntent.status}`
-      );
       // --------
     } catch (e) {
       console.log('Paymentconfirmation error', e.message);

@@ -42,14 +42,17 @@ function PaymentScreen() {
     });
     if (error) {
       // handle error
-      return;
-    }
-    const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
-    const { error: confirmError } = await confirmApplePayPayment(clientSecret);
+    } else {
+      const clientSecret = await fetchPaymentIntentClientSecret(); // fetch client secret from backend
+      const { error: confirmError } = await confirmApplePayPayment(
+        clientSecret
+      );
 
-    if (confirmError) {
-      //handle error
+      if (confirmError) {
+        //handle error
+      }
     }
+
     // ...
   };
 
