@@ -150,10 +150,9 @@ function PaymentScreen() {
 
     if (error) {
       console.log('Payment confirmation error', e.code);
-      return;
+    } else if (paymentIntent) {
+      console.log('Success from promise', paymentIntent);
     }
-
-    console.log('Success from promise', intent);
   };
 
   return <View />;
@@ -214,9 +213,9 @@ function PaymentScreen() {
     });
     if (error) {
       console.log('Payment confirmation error', e.code);
-      return;
+    } else if (paymentIntent) {
+      console.log('Success from promise', paymentIntent);
     }
-    console.log('Success from promise', paymentIntent);
   }, [card, fetchPaymentIntentClientSecret]);
 
   return <View />;

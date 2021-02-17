@@ -134,14 +134,16 @@ function PaymentScreen() {
 
     if (error) {
       // handle error
-    }
+    } else {
+      const clientSecret = await fetchPaymentIntentClientSecret();
 
-    const clientSecret = await fetchPaymentIntentClientSecret();
+      const { error: confirmError } = await confirmApplePayPayment(
+        clientSecret
+      );
 
-    const { error: confirmError } = await confirmApplePayPayment(clientSecret);
-
-    if (confirmError) {
-      // handle error
+      if (confirmError) {
+        // handle error
+      }
     }
   };
   // ...

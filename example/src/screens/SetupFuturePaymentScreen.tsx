@@ -99,16 +99,13 @@ export default function SetupFuturePaymentScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Setup intent confirmation error', error.message);
-    }
-    if (!setupIntentResult) {
-      return;
-    }
+    } else if (setupIntentResult) {
+      Alert.alert(
+        `Success: Setup intent created. Intent status: ${setupIntentResult.status}`
+      );
 
-    Alert.alert(
-      `Success: Setup intent created. Intent status: ${setupIntentResult.status}`
-    );
-
-    setSetupIntent(setupIntentResult);
+      setSetupIntent(setupIntentResult);
+    }
   }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
 
   // It's only for example purposes
@@ -138,29 +135,26 @@ export default function SetupFuturePaymentScreen() {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-    }
-    if (!paymentIntent) {
-      return;
-    }
-    const errorCode = paymentIntent.lastPaymentError?.code;
+    } else if (paymentIntent) {
+      const errorCode = paymentIntent.lastPaymentError?.code;
 
-    let failureReason = 'Payment failed, try again.'; // Default to a generic error message
-    if (paymentIntent?.lastPaymentError?.type === 'Card') {
-      failureReason = paymentIntent.lastPaymentError.message;
-    }
+      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent?.lastPaymentError?.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
 
-    if (errorCode) {
-      Alert.alert(failureReason);
-      setPaymentError(errorCode);
+      if (errorCode) {
+        Alert.alert(failureReason);
+        setPaymentError(errorCode);
+      }
+      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
+      if (errorCode === 'authentication_required') {
+        // Allow to complete the payment with the existing PaymentMethod.
+      } else {
+        // Collect a new PaymentMethod from the customer...
+      }
+      setRetrievedPaymentIntent(paymentIntent);
     }
-    // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
-    if (errorCode === 'authentication_required') {
-      // Allow to complete the payment with the existing PaymentMethod.
-    } else {
-      // Collect a new PaymentMethod from the customer...
-    }
-
-    setRetrievedPaymentIntent(paymentIntent);
   };
 
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
@@ -177,12 +171,20 @@ export default function SetupFuturePaymentScreen() {
     }; // mocked data for tests
 
     if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id && card) {
-      confirmPayment(retrievedPaymentIntent.clientSecret, {
-        type: 'Card',
-        billingDetails,
-        paymentMethodId:
-          retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
-      });
+      const { error } = await confirmPayment(
+        retrievedPaymentIntent.clientSecret,
+        {
+          type: 'Card',
+          billingDetails,
+          paymentMethodId:
+            retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+        }
+      );
+      if (error) {
+        Alert.alert(`Error code: ${error.code}`, error.message);
+      } else {
+        Alert.alert('Success', 'The payment was confirmed successfully!');
+      }
     }
   };
 

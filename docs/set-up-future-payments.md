@@ -121,12 +121,11 @@ function PaymentScreen() {
 
     if (error) {
       Alert.alert(`Error: ${error.code}`, error.message);
-      return;
-    }
-
-    const failureReason = 'Payment failed, try again.'; // Default to a generic error message
-    if (paymentIntent.lastPaymentError.type === 'Card') {
-      failureReason = paymentIntent.lastPaymentError.message;
+    } else if (paymentIntent) {
+      const failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent.lastPaymentError.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
     }
   };
 
@@ -162,24 +161,27 @@ function PaymentScreen() {
 
     if (error) {
       Alert.alert(`Error: ${error.code}`, error.message);
-      return;
-    }
+    } else if (paymentIntent) {
+      let failureReason = 'Payment failed, try again.'; // Default to a generic error message
+      if (paymentIntent.lastPaymentError.type === 'Card') {
+        failureReason = paymentIntent.lastPaymentError.message;
+      }
 
-    let failureReason = 'Payment failed, try again.'; // Default to a generic error message
-    if (paymentIntent.lastPaymentError.type === 'Card') {
-      failureReason = paymentIntent.lastPaymentError.message;
-    }
+      // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
+      if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
+        // Allow to complete the payment with the existing PaymentMethod.
+        const { error } = await confirmPayment(paymentIntent.clientSecret, {
+          type: 'Card',
+          billingDetails,
+          paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
+        });
 
-    // If the last payment error is authentication_required allow customer to complete the payment without asking your customers to re-enter their details.
-    if (paymentIntent.lastPaymentError?.code === 'authentication_required') {
-      // Allow to complete the payment with the existing PaymentMethod.
-      confirmPayment(paymentIntent.clientSecret, {
-        type: 'Card',
-        billingDetails,
-        paymentMethodId: paymentIntent.lastPaymentError?.paymentMethod.id,
-      });
-    } else {
-      // Collect a new PaymentMethod from the customer...
+        if (error) {
+          // handle error
+        }
+      } else {
+        // Collect a new PaymentMethod from the customer...
+      }
     }
   };
 

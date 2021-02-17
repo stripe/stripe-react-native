@@ -85,7 +85,6 @@ export default function NoWebhookPaymentScreen() {
     });
 
     if (error) {
-      console.log('Create payment method error', error);
       Alert.alert(`Error code: ${error.code}`, error.message);
     }
     if (!paymentMethod) {
@@ -109,6 +108,7 @@ export default function NoWebhookPaymentScreen() {
     if (paymentIntentError) {
       // Error during creating or confirming Intent
       Alert.alert('Error', paymentIntentError);
+      return;
     }
 
     if (clientSecret && !requiresAction) {
@@ -123,23 +123,18 @@ export default function NoWebhookPaymentScreen() {
       );
 
       if (cardActionError) {
-        console.log('Payment confirmation error', cardActionError);
         Alert.alert(
           `Error code: ${cardActionError.code}`,
           cardActionError.message
         );
-      }
-
-      if (!paymentIntent) {
-        return;
-      }
-
-      if (paymentIntent.status === IntentStatus.RequiresConfirmation) {
-        // 4. Call API to confirm intent
-        await confirmIntent(paymentIntent.id);
-      } else {
-        // Payment succedeed
-        Alert.alert('Success', 'The payment was confirmed successfully!');
+      } else if (paymentIntent) {
+        if (paymentIntent.status === IntentStatus.RequiresConfirmation) {
+          // 4. Call API to confirm intent
+          await confirmIntent(paymentIntent.id);
+        } else {
+          // Payment succedeed
+          Alert.alert('Success', 'The payment was confirmed successfully!');
+        }
       }
     }
 
