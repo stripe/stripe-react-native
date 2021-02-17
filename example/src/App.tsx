@@ -12,6 +12,7 @@ import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
+import PaymentsUIScreen from './screens/PaymentsUIScreen';
 
 const Stack = createStackNavigator();
 
@@ -88,6 +89,7 @@ export default function App() {
             name="SetupFuturePayment"
             component={SetupFuturePaymentScreen}
           />
+          <Stack.Screen name="PaymentsUI" component={PaymentsUIScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>

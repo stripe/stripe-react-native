@@ -77,7 +77,6 @@ class Mappers {
         case STPPaymentMethodType.bancontact: return "Bancontact"
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.sofort: return "Sofort"
-        case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -298,9 +297,6 @@ class Mappers {
             "AuBecsDebit": auBECSDebit,
             "Sofort": [
                 "country": paymentMethod.sofort?.country
-            ],
-            "Upi": [
-                "vpa": paymentMethod.upi?.vpa
             ],
         ]
         return method

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { PaymentMethodData, PaymentMethodOptions } from '../types';
+import type {
+  PaymentMethodData,
+  PaymentMethodOptions,
+  SetupPaymentSheetParams,
+} from '../types';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
@@ -23,6 +27,14 @@ export function useStripe() {
     return NativeStripeSdk.createPaymentMethod(data, options);
   };
 
+  const setupPaymentSheet = (params: SetupPaymentSheetParams) => {
+    return NativeStripeSdk.setupPaymentSheet(params);
+  };
+
+  const presentPaymentSheet = () => {
+    return NativeStripeSdk.presentPaymentSheet();
+  };
+
   return {
     retrievePaymentIntent: NativeStripeSdk.retrievePaymentIntent,
     confirmPayment: NativeStripeSdk.confirmPaymentMethod,
@@ -32,5 +44,7 @@ export function useStripe() {
     presentApplePay: StripeSdk.presentApplePay,
     confirmApplePayPayment: StripeSdk.confirmApplePayPayment,
     confirmSetupIntent: StripeSdk.confirmSetupIntent,
+    setupPaymentSheet: setupPaymentSheet,
+    presentPaymentSheet: presentPaymentSheet,
   };
 }

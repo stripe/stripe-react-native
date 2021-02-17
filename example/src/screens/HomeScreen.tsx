@@ -44,6 +44,14 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Payments UI"
+          onPress={() => {
+            navigation.navigate('PaymentsUI');
+          }}
+        />
+      </View>
     </Screen>
   );
 }

@@ -1,7 +1,5 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - CocoaAsyncSocket (7.6.5)
-  - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.62.2)
   - FBReactNativeSpec (0.62.2):
@@ -11,52 +9,6 @@ PODS:
     - React-Core (= 0.62.2)
     - React-jsi (= 0.62.2)
     - ReactCommon/turbomodule/core (= 0.62.2)
-  - Flipper (0.33.1):
-    - Flipper-Folly (~> 2.1)
-    - Flipper-RSocket (~> 1.0)
-  - Flipper-DoubleConversion (1.1.7)
-  - Flipper-Folly (2.3.0):
-    - boost-for-react-native
-    - CocoaLibEvent (~> 1.0)
-    - Flipper-DoubleConversion
-    - Flipper-Glog
-    - OpenSSL-Universal (= 1.0.2.20)
-  - Flipper-Glog (0.3.6)
-  - Flipper-PeerTalk (0.0.4)
-  - Flipper-RSocket (1.1.0):
-    - Flipper-Folly (~> 2.2)
-  - FlipperKit (0.33.1):
-    - FlipperKit/Core (= 0.33.1)
-  - FlipperKit/Core (0.33.1):
-    - Flipper (~> 0.33.1)
-    - FlipperKit/CppBridge
-    - FlipperKit/FBCxxFollyDynamicConvert
-    - FlipperKit/FBDefines
-    - FlipperKit/FKPortForwarding
-  - FlipperKit/CppBridge (0.33.1):
-    - Flipper (~> 0.33.1)
-  - FlipperKit/FBCxxFollyDynamicConvert (0.33.1):
-    - Flipper-Folly (~> 2.1)
-  - FlipperKit/FBDefines (0.33.1)
-  - FlipperKit/FKPortForwarding (0.33.1):
-    - CocoaAsyncSocket (~> 7.6)
-    - Flipper-PeerTalk (~> 0.0.4)
-  - FlipperKit/FlipperKitHighlightOverlay (0.33.1)
-  - FlipperKit/FlipperKitLayoutPlugin (0.33.1):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitHighlightOverlay
-    - FlipperKit/FlipperKitLayoutTextSearchable
-    - YogaKit (~> 1.18)
-  - FlipperKit/FlipperKitLayoutTextSearchable (0.33.1)
-  - FlipperKit/FlipperKitNetworkPlugin (0.33.1):
-    - FlipperKit/Core
-  - FlipperKit/FlipperKitReactPlugin (0.33.1):
-    - FlipperKit/Core
-  - FlipperKit/FlipperKitUserDefaultsPlugin (0.33.1):
-    - FlipperKit/Core
-  - FlipperKit/SKIOSNetworkPlugin (0.33.1):
-    - FlipperKit/Core
-    - FlipperKit/FlipperKitNetworkPlugin
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
@@ -67,9 +19,6 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - OpenSSL-Universal (1.0.2.20):
-    - OpenSSL-Universal/Static (= 1.0.2.20)
-  - OpenSSL-Universal/Static (1.0.2.20)
   - RCTRequired (0.62.2)
   - RCTTypeSafety (0.62.2):
     - FBLazyVector (= 0.62.2)
@@ -302,23 +251,18 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.1.0)
+  - Stripe (21.0.0-mc-beta-1):
+    - Stripe/Stripe3DS2 (= 21.0.0-mc-beta-1)
   - stripe-react-native (0.1.0):
     - React
-    - Stripe (~> 21.1.0)
+    - Stripe (~> 21.0.0-mc-beta-1)
+  - Stripe/Stripe3DS2 (21.0.0-mc-beta-1)
   - Yoga (1.14.0)
-  - YogaKit (1.18.1):
-    - Yoga (~> 1.14)
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/Libraries/FBReactNativeSpec`)
-  - FlipperKit (~> 0.33.1)
-  - FlipperKit/FlipperKitLayoutPlugin (~> 0.33.1)
-  - FlipperKit/FlipperKitReactPlugin (~> 0.33.1)
-  - FlipperKit/FlipperKitUserDefaultsPlugin (~> 0.33.1)
-  - FlipperKit/SKIOSNetworkPlugin (~> 0.33.1)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -348,24 +292,13 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `mc-beta-2`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - boost-for-react-native
-    - CocoaAsyncSocket
-    - CocoaLibEvent
-    - Flipper
-    - Flipper-DoubleConversion
-    - Flipper-Folly
-    - Flipper-Glog
-    - Flipper-PeerTalk
-    - Flipper-RSocket
-    - FlipperKit
-    - OpenSSL-Universal
-    - Stripe
-    - YogaKit
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -426,28 +359,26 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: mc-beta-2
+    :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 5f1cfb23339ebc21fc30e53b3bbc9404cff08859
+    :git: https://github.com/stripe/stripe-ios.git
+
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
   FBLazyVector: 4aab18c93cd9546e4bfed752b4084585eca8b245
   FBReactNativeSpec: 5465d51ccfeecb7faa12f9ae0024f2044ce4044e
-  Flipper: 6c1f484f9a88d30ab3e272800d53688439e50f69
-  Flipper-DoubleConversion: 38631e41ef4f9b12861c67d17cb5518d06badc41
-  Flipper-Folly: e4493b013c02d9347d5e0cb4d128680239f6c78a
-  Flipper-Glog: 1dfd6abf1e922806c52ceb8701a3599a79a200a6
-  Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
-  Flipper-RSocket: 64e7431a55835eb953b0bf984ef3b90ae9fdddd7
-  FlipperKit: 6dc9b8f4ef60d9e5ded7f0264db299c91f18832e
   Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
   glog: 1f3da668190260b06b429bb211bfbee5cd790c28
-  OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
   RCTRequired: cec6a34b3ac8a9915c37e7e4ad3aa74726ce4035
   RCTTypeSafety: 93006131180074cffa227a1075802c89a49dd4ce
   React: 29a8b1a02bd764fb7644ef04019270849b9a7ac3
@@ -472,11 +403,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 006b519b33936ebd9508bd2ade2311fdbe8bbd4c
-  stripe-react-native: 3f955303302327d867fdca17a8e97324b620c96a
+  Stripe: 4f9369bb8f036ed106d12355e622d934c2ec60a1
+  stripe-react-native: acbafd67d90b6465ec6dd4d04b3a1f5d0c0bffcb
   Yoga: 3ebccbdd559724312790e7742142d062476b698e
-  YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 85b8dd5c2299116a8fb88a84c7b6b2ec4faa2770
+PODFILE CHECKSUM: ec13ada12adf1a892e837607ae80fad1ab90a4c7
 
 COCOAPODS: 1.10.0

@@ -12,6 +12,7 @@ import type {
   AppInfo,
   PaymentMethodData,
   PaymentMethodOptions,
+  SetupPaymentSheetParams,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -65,6 +66,8 @@ type NativeStripeSdkType = {
   unregisterConfirmPaymentCallbacks(): void;
   unregisterApplePayCallbacks(): void;
   unregisterConfirmSetupIntentCallbacks(): void;
+  setupPaymentSheet(params: SetupPaymentSheetParams): Promise<void>;
+  presentPaymentSheet(): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

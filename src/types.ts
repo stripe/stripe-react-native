@@ -402,3 +402,9 @@ export type AppInfo = Partial<{
   url: string;
   version: string;
 }>;
+
+export interface SetupPaymentSheetParams {
+  customerId: string;
+  customerEphemeralKeySecret: string;
+  paymentIntentClientSecret: string;
+}

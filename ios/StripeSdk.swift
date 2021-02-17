@@ -7,6 +7,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var onPaymentErrorCallback: RCTResponseSenderBlock? = nil
     var merchantIdentifier: String? = nil
     
+    private var paymentSheet: PaymentSheet?
+    
+    
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
@@ -35,6 +38,50 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
+        
+        
+        
+    }
+    
+    @objc(setupPaymentSheet:resolver:rejecter:)
+    func setupPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        guard let customerId = params["customerId"] as? String else {
+            reject("Failed", "You must provide the customer ID", nil)
+            return
+        }
+        guard let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String else {
+            reject("Failed", "You must provide the customerEphemeralKeySecret", nil)
+            return
+        }
+        guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
+            reject("Failed", "You must provide the paymentIntentClientSecret", nil)
+            return
+        }
+        
+        var configuration = PaymentSheet.Configuration()
+        configuration.merchantDisplayName = "Example, Inc."
+        configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
+        self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
+        resolve([NSNull()])
+    }
+    
+    @objc(presentPaymentSheet:rejecter:)
+    func presentPaymentSheet(resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        DispatchQueue.main.async {
+            self.paymentSheet?.present(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+                switch paymentResult {
+                case .completed:
+                    resolve([paymentResult])
+                case .canceled:
+                    reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
+                case .failed(let error, _):
+                    reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
+                }
+            }
+        }
+        
     }
     
     @objc(registerConfirmSetupIntentCallbacks:onError:)
@@ -165,14 +212,14 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
         
         applePayRequestResolver = resolve
-
+        
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
         
         let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
         let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
         let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
-
+        
         paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
             Mappers.mapToPKContactField(field: $0 as! String)
         })
@@ -182,7 +229,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         })
         
         paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
-
+        
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
         
         if let items = summaryItems as? [[String : Any]] {
@@ -339,7 +386,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil)
                 return
             }
-      
+            
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
             } else {
