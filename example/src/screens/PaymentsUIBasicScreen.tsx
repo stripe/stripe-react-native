@@ -49,6 +49,7 @@ export default function PaymentsUIBasicScreen() {
       paymentIntentClientSecret: paymentIntent,
       customFlow: false,
       merchantDisplayName: 'Example Inc.',
+      style: 'alwaysDark',
     });
     setPaymentSheetEnabled(true);
   };

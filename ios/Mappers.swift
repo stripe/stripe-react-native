@@ -379,6 +379,15 @@ class Mappers {
         return intent
     }
     
+    @available(iOS 13.0, *)
+    class func mapToUserInterfaceStyle(_ style: String) -> PaymentSheet.UserInterfaceStyle {
+        switch style {
+        case "alwaysDark": return PaymentSheet.UserInterfaceStyle.alwaysDark
+        case "alwaysLight": return PaymentSheet.UserInterfaceStyle.alwaysLight
+        default: return PaymentSheet.UserInterfaceStyle.automatic
+        }
+    }
+    
     class func mapUICustomization(_ params: NSDictionary) -> STPThreeDSUICustomization {
         let uiCustomization = STPThreeDSUICustomization()
         if let labelSettings = params["label"] as? Dictionary<String, Any?> {

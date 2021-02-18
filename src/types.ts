@@ -408,7 +408,8 @@ export type SetupPaymentSheetParams = PaymentSeetApplePayParams & {
   customerEphemeralKeySecret: string;
   paymentIntentClientSecret: string;
   customFlow?: boolean;
-  merchantDisplayName: string;
+  merchantDisplayName?: string;
+  style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
 };
 
 type PaymentSeetApplePayParams =

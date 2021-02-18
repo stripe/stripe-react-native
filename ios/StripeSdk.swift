@@ -55,10 +55,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret", nil)
             return
         }
-        guard let merchantDisplayName = params["merchantDisplayName"] as? String else {
-            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the merchantDisplayName", nil)
-            return
-        }
+     
         
         var configuration = PaymentSheet.Configuration()
         
@@ -70,10 +67,19 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided", nil)
             }
         }
+        
+        if let merchantDisplayName = params["merchantDisplayName"] as? String {
+            configuration.merchantDisplayName = merchantDisplayName
+        }
  
-        configuration.merchantDisplayName = merchantDisplayName
         configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
         
+        if #available(iOS 13.0, *) {
+            if let style = params["style"] as? String {
+                configuration.style = Mappers.mapToUserInterfaceStyle(style)
+            }
+        }
+       
         if params["customFlow"] as? Bool == true {
             PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
                                                configuration: configuration) { [weak self] result in
