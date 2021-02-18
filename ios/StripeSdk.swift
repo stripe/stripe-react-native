@@ -8,7 +8,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
-    private var paymentSheetFlowController: PaymentSheet.FlowController!
+    private var paymentSheetFlowController: PaymentSheet.FlowController?
     
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
@@ -101,8 +101,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func presentPaymentOptions(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
-            self.paymentSheetFlowController.presentPaymentOptions(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) {
-                if let paymentOption = self.paymentSheetFlowController.paymentOption {
+            self.paymentSheetFlowController?.presentPaymentOptions(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) {
+                if let paymentOption = self.paymentSheetFlowController?.paymentOption {
                     let option: NSDictionary = [
                         "label": paymentOption.label,
                         "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
@@ -119,7 +119,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     func paymentSheetConfirmPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
-            self.paymentSheetFlowController.confirmPayment(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+            self.paymentSheetFlowController?.confirmPayment(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                 switch paymentResult {
                 case .completed(let paymentIntent):
                 resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
