@@ -6,8 +6,8 @@ A react hook for making ApplePay payments.
 
 It returns an object with:
 
-- `presentApplePay: (prams: PresentApplePayParams) => Promise<Result<{}, PresentApplePayError>>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
-- `confirmApplePayPayment: (clientSecret: string) => Promise<Result<{}, string>>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
+- `presentApplePay: (prams: PresentApplePayParams) => Promise<{ error?: StripeError<ApplePayError> }>` - function to initiate apple payment. Read more in [presentApplePay](#presentapplepay) section.
+- `confirmApplePayPayment: (clientSecret: string) => Promise<{ error?: StripeError<ApplePayError> }>` - function to complete payment. This function require clientSecret argument from you backend. Read more in [confirmApplePayPayment](#confirmApplePayPayment) section.
 - `isApplePaySupported: boolean` - boolean value indicates if Apple Pay is supported on the device
 - `loading: boolean` - state that indicates the status of the payment
 
@@ -66,7 +66,7 @@ A react hook for confirming simple payments with webhooks.
 
 It returns an object with:
 
-- `confirmPayment: (paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<Result<{ paymentIntent: PaymentIntent }, ConfirmPaymentError>>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
+- `confirmPayment: (paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<{ paymentIntent?: PaymentIntent; error?: StripeError<ConfirmPaymentError> }>` - confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation. Read more in [confirmPayment](#confirmpayment) section.
 - `loading: boolean` - state that indicates the status of the payment
 
 Usage example:
@@ -104,7 +104,7 @@ A react hook for confirming simple payments with webhooks.
 
 It returns an object with:
 
-- `confirmSetupIntent: ( paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<Result<{ setupIntent: SetupIntent }, ConfirmSetupIntentError>>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
+- `confirmSetupIntent: ( paymentIntentClientSecret: string, data: PaymentMethodData, options?: PaymentMethodOptions ) => Promise<{ setupIntent?: SetupIntent; error?: StripeError<ConfirmSetupIntentError> }>` - confirms the Setup intent with the provided parameters. Read more in [confirmSetupIntent](#confirmsetupintent) section.
 - `loading: boolean` - state that indicates the status of the payment
 
 Usage example:

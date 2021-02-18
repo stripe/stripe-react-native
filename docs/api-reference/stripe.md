@@ -11,7 +11,10 @@ Confirms the PaymentIntent with the provided parameters. Call this method if you
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) =>  Promise<Result<{ paymentIntent: PaymentIntent }, ConfirmPaymentError>>
+) => Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<ConfirmPaymentError>
+  }>
 ```
 
 ### Arguments
@@ -29,9 +32,10 @@ A promise with `Intent` or `StripeError<ConfirmPaymentError>` object.
 Converts a card details object into a Stripe Payment Method using the Stripe API.
 
 ```ts
-(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<
-    Result<{ paymentMethod: PaymentMethod }, CreatePaymentMethodError>
-  >;
+(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<{
+    paymentMethod?: PaymentMethod;
+    error?: StripeError<CreatePaymentMethodError>;
+  }>
 ```
 
 ### Arguments
@@ -48,7 +52,10 @@ A promise with `PaymentMethod` or `StripeError<CreatePaymentMethodError>` object
 Handles any `nextAction` required to authenticate the Intent.
 
 ```ts
-(paymentIntentClientSecret: string) => Promise<Result<{ paymentIntent: PaymentIntent }, CardActionError>>
+(paymentIntentClientSecret: string) => Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<CardActionError>
+  }>
 ```
 
 ### Arguments
@@ -76,7 +83,7 @@ A promise with information about ApplePay support on the device.
 Initiates the Apple Pay payment.
 
 ```ts
-(params: PresentApplePayParams): Promise<Result<{}, PresentApplePayError>>
+(params: PresentApplePayParams): Promise<{ error?: StripeError<ApplePayError> }>
 ```
 
 ### Arguments
@@ -92,7 +99,7 @@ Promise without any data.
 Apple Pay payment completion method. Should be called with clientSecret after payment intent creation on server side.
 
 ```ts
-confirmApplePayPayment(clientSecret: string): Promise<Result<{}, string>>
+confirmApplePayPayment(clientSecret: string): Promise<{ error?: StripeError<ApplePayError> }>
 ```
 
 ### Arguments
@@ -108,7 +115,10 @@ Promise without any data.
 Retrieve payment intent which may be useful for the recovery flow.
 
 ```ts
-(clientSecret: string) => Promise<Result<{ paymentIntent: PaymentIntent }, RetrievePaymentIntentError>>
+(clientSecret: string) => Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<RetrievePaymentIntentError>
+  }>
 ```
 
 ### Arguments
@@ -128,7 +138,10 @@ Confirms setup intent creation for future payments. Requires client secret and c
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) => Promise<Result<{ setupIntent: SetupIntent }, ConfirmSetupIntentError>>
+) => Promise<{
+    setupIntent?: SetupIntent;
+    error?: StripeError<ConfirmSetupIntentError>
+  }>
 ```
 
 ### Arguments
