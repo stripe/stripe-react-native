@@ -35,20 +35,31 @@ export default function PaymentsUICustomScreen() {
     };
   };
 
-  const setup = async () => {
-    const {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-    } = await fetchPaymentSheetParams();
+  const initializePaymentSheet = async () => {
+    setLoading(true);
 
-    await setupPaymentSheet({
-      customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
-      custom: true,
-    });
-    setPaymentSheetEnabled(true);
+    try {
+      const {
+        paymentIntent,
+        ephemeralKey,
+        customer,
+      } = await fetchPaymentSheetParams();
+
+      await setupPaymentSheet({
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        customFlow: true,
+        merchantDisplayName: 'Example Inc.',
+        applePay: false,
+      });
+
+      setPaymentSheetEnabled(true);
+    } catch (error) {
+      console.log('error', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const choosePaymentOptions = async () => {
@@ -66,6 +77,7 @@ export default function PaymentsUICustomScreen() {
       setLoading(true);
       const res = await paymentSheetConfirmPayment();
 
+      initializePaymentSheet();
       Alert.alert(
         'Success',
         `The payment was confirmed successfully! amount: ${res.amount}`
@@ -80,7 +92,7 @@ export default function PaymentsUICustomScreen() {
   useEffect(() => {
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    setup();
+    initializePaymentSheet();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,25 +102,26 @@ export default function PaymentsUICustomScreen() {
       <View>
         <Button
           variant="primary"
-          loading={!paymentSheetEnabled}
+          loading={loading}
           title="Choose payment method"
+          disabled={!paymentSheetEnabled}
           onPress={choosePaymentOptions}
         />
       </View>
       <View style={styles.row}>
-        <Image
-          source={{ uri: `data:image/png;base64,${paymentMethod?.image}` }}
-          style={styles.image}
-        />
-
-        <Text style={styles.paymentMethodTitle}>
-          Payment method: {paymentMethod?.label || '-'}
-        </Text>
+        <Text style={styles.paymentMethodTitle}>Payment method:</Text>
+        {paymentMethod && (
+          <Image
+            source={{ uri: `data:image/png;base64,${paymentMethod?.image}` }}
+            style={styles.image}
+          />
+        )}
+        <Text>{paymentMethod?.label || ' -'}</Text>
       </View>
       <View style={styles.section}>
         <Button
           variant="primary"
-          loading={!paymentSheetEnabled || loading}
+          loading={loading}
           disabled={!paymentMethod}
           title="Buy"
           onPress={onPressBuy}
@@ -124,6 +137,8 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 15,
   },
   section: {
     marginBottom: 40,
@@ -136,11 +151,9 @@ const styles = StyleSheet.create({
   paymentMethodTitle: {
     color: colors.slate,
     fontWeight: 'bold',
-    marginBottom: 20,
-    marginTop: 10,
   },
   image: {
-    width: 64,
-    height: 64,
+    width: 32,
+    height: 32,
   },
 });

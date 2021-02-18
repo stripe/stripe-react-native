@@ -38,32 +38,43 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
-        
-        
-        
     }
     
     @objc(setupPaymentSheet:resolver:rejecter:)
     func setupPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                            rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         guard let customerId = params["customerId"] as? String else {
-            reject("Failed", "You must provide the customer ID", nil)
+            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the customer ID", nil)
             return
         }
         guard let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String else {
-            reject("Failed", "You must provide the customerEphemeralKeySecret", nil)
+            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the customerEphemeralKeySecret", nil)
             return
         }
         guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
-            reject("Failed", "You must provide the paymentIntentClientSecret", nil)
+            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret", nil)
+            return
+        }
+        guard let merchantDisplayName = params["merchantDisplayName"] as? String else {
+            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the merchantDisplayName", nil)
             return
         }
         
         var configuration = PaymentSheet.Configuration()
-        configuration.merchantDisplayName = "Example, Inc."
+        
+        if  params["applePay"] as? Bool == true {
+            if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
+                configuration.applePay = .init(merchantId: merchantIdentifier,
+                                               merchantCountryCode: merchantCountryCode)
+            } else {
+                reject(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided", nil)
+            }
+        }
+ 
+        configuration.merchantDisplayName = merchantDisplayName
         configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
         
-        if params["custom"] as? Bool == true {
+        if params["customFlow"] as? Bool == true {
             PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
                                                configuration: configuration) { [weak self] result in
                 switch result {
@@ -71,12 +82,12 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                     reject("Failed", error.localizedDescription, nil)
                 case .success(let paymentSheetFlowController):
                     self?.paymentSheetFlowController = paymentSheetFlowController
-                    resolve([NSNull()])
+                    resolve(NSNull())
                 }
             }
         } else {
             self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-            resolve([NSNull()])
+            resolve(NSNull())
         }
     }
     
@@ -224,7 +235,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             applePayCompletionRejecter = nil
             break
         @unknown default:
-            let message = "Cannot complete payment"
+            let message = "Cannot complete the payment"
             onApplePayErrorCallback?([Errors.createError(code: ApplePayErrorType.Unknown.rawValue, message: message)])
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             applePayCompletionRejecter = nil

@@ -403,9 +403,20 @@ export type AppInfo = Partial<{
   version: string;
 }>;
 
-export interface SetupPaymentSheetParams {
+export type SetupPaymentSheetParams = PaymentSeetApplePayParams & {
   customerId: string;
   customerEphemeralKeySecret: string;
   paymentIntentClientSecret: string;
-  custom: boolean;
-}
+  customFlow?: boolean;
+  merchantDisplayName: string;
+};
+
+type PaymentSeetApplePayParams =
+  | {
+      applePay?: true;
+      merchantCountryCode: string;
+    }
+  | {
+      applePay?: false;
+      merchantCountryCode?: string;
+    };

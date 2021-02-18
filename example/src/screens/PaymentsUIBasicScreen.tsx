@@ -24,19 +24,19 @@ export default function PaymentsUIBasicScreen() {
     };
   };
 
-  const openSheet = async () => {
+  const openPaymentSheet = async () => {
     try {
       const res = await presentPaymentSheet();
       setPaymentSheetEnabled(false);
       console.log('success', res);
 
-      setup();
+      initializePaymentSheet();
     } catch (error) {
       console.log('error', error);
     }
   };
 
-  const setup = async () => {
+  const initializePaymentSheet = async () => {
     const {
       paymentIntent,
       ephemeralKey,
@@ -47,7 +47,8 @@ export default function PaymentsUIBasicScreen() {
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
-      custom: false,
+      customFlow: false,
+      merchantDisplayName: 'Example Inc.',
     });
     setPaymentSheetEnabled(true);
   };
@@ -55,7 +56,7 @@ export default function PaymentsUIBasicScreen() {
   useEffect(() => {
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    setup();
+    initializePaymentSheet();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -66,7 +67,7 @@ export default function PaymentsUIBasicScreen() {
         variant="primary"
         loading={!paymentSheetEnabled}
         title="Checkout"
-        onPress={openSheet}
+        onPress={openPaymentSheet}
       />
     </Screen>
   );
