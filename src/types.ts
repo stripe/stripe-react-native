@@ -323,7 +323,7 @@ export enum RetrievePaymentIntentError {
   Canceled = 'Canceled',
 }
 
-export enum PresentApplePayError {
+export enum ApplePayError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',
@@ -406,10 +406,3 @@ export type AppInfo = Partial<{
   url: string;
   version: string;
 }>;
-
-export type Result<
-  DataType extends any,
-  ErrorType extends string = string
-> = Partial<DataType> & {
-  error?: StripeError<ErrorType>;
-};

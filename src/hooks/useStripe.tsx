@@ -4,8 +4,7 @@ import {
   PaymentIntent,
   PaymentMethodData,
   PaymentMethodOptions,
-  PresentApplePayError,
-  Result,
+  ApplePayError,
   PresentApplePayParams,
   RetrievePaymentIntentError,
   ConfirmSetupIntentError,
@@ -13,6 +12,7 @@ import {
   CardActionError,
   CreatePaymentMethodError,
   PaymentMethod,
+  StripeError,
 } from '../types';
 import { createError, isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -36,9 +36,10 @@ export function useStripe() {
   const createPaymentMethod = async (
     data: PaymentMethodData,
     options: PaymentMethodOptions = {}
-  ): Promise<
-    Result<{ paymentMethod: PaymentMethod }, CreatePaymentMethodError>
-  > => {
+  ): Promise<{
+    paymentMethod?: PaymentMethod;
+    error?: StripeError<CreatePaymentMethodError>;
+  }> => {
     try {
       const paymentMethod = await NativeStripeSdk.createPaymentMethod(
         data,
@@ -58,9 +59,10 @@ export function useStripe() {
 
   const retrievePaymentIntent = async (
     clientSecret: string
-  ): Promise<
-    Result<{ paymentIntent: PaymentIntent }, RetrievePaymentIntentError>
-  > => {
+  ): Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<RetrievePaymentIntentError>;
+  }> => {
     try {
       const paymentIntent = await NativeStripeSdk.retrievePaymentIntent(
         clientSecret
@@ -81,7 +83,10 @@ export function useStripe() {
     paymentIntentClientSecret: string,
     data: PaymentMethodData,
     options: PaymentMethodOptions
-  ): Promise<Result<{ paymentIntent: PaymentIntent }, ConfirmPaymentError>> => {
+  ): Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<ConfirmPaymentError>;
+  }> => {
     try {
       const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(
         paymentIntentClientSecret,
@@ -102,11 +107,11 @@ export function useStripe() {
 
   const presentApplePay = async (
     params: PresentApplePayParams
-  ): Promise<Result<{}, PresentApplePayError>> => {
+  ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {
         error: {
-          code: PresentApplePayError.Canceled,
+          code: ApplePayError.Canceled,
           message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
         },
       };
@@ -127,11 +132,11 @@ export function useStripe() {
 
   const confirmApplePayPayment = async (
     clientSecret: string
-  ): Promise<Result<{}, string>> => {
+  ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {
         error: {
-          code: PresentApplePayError.Canceled,
+          code: ApplePayError.Canceled,
           message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
         },
       };
@@ -150,7 +155,10 @@ export function useStripe() {
 
   const handleCardAction = async (
     paymentIntentClientSecret: string
-  ): Promise<Result<{ paymentIntent: PaymentIntent }, CardActionError>> => {
+  ): Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<CardActionError>;
+  }> => {
     try {
       const paymentIntent = await NativeStripeSdk.handleCardAction(
         paymentIntentClientSecret
@@ -171,7 +179,10 @@ export function useStripe() {
     paymentIntentClientSecret: string,
     data: PaymentMethodData,
     options: PaymentMethodOptions
-  ): Promise<Result<{ setupIntent: SetupIntent }, ConfirmSetupIntentError>> => {
+  ): Promise<{
+    setupIntent?: SetupIntent;
+    error?: StripeError<ConfirmSetupIntentError>;
+  }> => {
     try {
       const setupIntent = await NativeStripeSdk.confirmSetupIntent(
         paymentIntentClientSecret,
