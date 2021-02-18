@@ -124,60 +124,46 @@ Use `useConfirmPayment` hook from SDK. The hook returns `confirmPayment` method 
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
-  const {confirmPayment, loading} = useConfirmPayment();
+  const [card, setCard] = useState<CardDetails | null>();
+  const { confirmPayment, loading } = useConfirmPayment();
 
   // ...
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = () => {
     if (!card) {
       return;
     }
 
-    try {
-      const billingDetails: BillingDetails = {
-        email,
-      }; // Gather customer billing information (ex. email)
+    const billingDetails: BillingDetails = {
+      email,
+    }; // Gather customer billing information (ex. email)
 
-      // Fetch Intent Client Secret from backend
-      const clientSecret = await fetchPaymentIntentClientSecret();
+    // Fetch Intent Client Secret from backend
+    const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // Confirm payment with card details
-      const intent = await confirmPayment(clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-      });
-      console.log('Success from promise', intent);
-    } catch (e) {
+    // Confirm payment with card details
+    const { paymentIntent, error } = await confirmPayment(clientSecret, {
+      type: 'Card',
+      cardDetails: card,
+      billingDetails,
+    });
+
+    if (error) {
       console.log('Payment confirmation error', e.code);
+    } else if (paymentIntent) {
+      console.log('Success from promise', paymentIntent);
     }
-  }, [card, fetchPaymentIntentClientSecret]);
+  };
 
-  return (
-    // ...
-  );
+  return <View />;
 }
 ```
 
 If authentication is required by regulation such as Strong Customer Authentication, the SDK presents additional activities and walks the customer through that process. See Supporting [3D Secure Authentication](./3d-secure.md) to learn more.
 
-The `confirmPayment` function returns a `Promise` that resolves with the `PaymentIntent` when the payment completes. In case of an error, the `Promise` will reject with an `error` object. Inspect the `code` field on the `error` object to determine the cause.
+The `confirmPayment` function returns a `Promise` that resolves with the `PaymentIntent` when the payment completes or `StripeError` when it failed. Inspect the `code` and `message` fields on the `error` object to determine the cause.
 
 You can also check the status of a PaymentIntent in the Dashboard or by inspecting the status property on the object.
-
-If you prefer using `onSuccess`/`onError` callbacks instead of the promise returned by `confirmPayment` there is a possibility to pass them as arguments to `useConfirmPayment` hook.
-
-```tsx
-const { confirmPayment, loading } = useConfirmPayment({
-  onError: (error) => {
-    // onError callback
-  },
-  onSuccess: (intent) => {
-    // onSuccess callback
-  },
-});
-```
 
 ## Test the integration
 
@@ -185,23 +171,25 @@ By this point you should have a basic card integration that collects card detail
 
 There are several test cards you can use in test mode to make sure this integration is ready. Use them with any CVC and future expiration date.
 
+```
 | NUMBER              | DESCRIPTION                                                                                     |
 | ------------------- | ----------------------------------------------------------------------------------------------- |
 | 4242 4242 4242 4242 | Succeeds and immediately processes the payment\.                                                |
 | 4000 0025 0000 3155 | Requires authentication\. Stripe will trigger a modal asking for the customer to authenticate\. |
 | 4000 0000 0000 9995 | Always fails                                                                                    |
+```
 
 For the full list of test cards see our guide on [testing](https://stripe.com/docs/testing).
 
 ## Optional - use `useStripe` hook instead of `useConfirmPayment`
 
-You can also use `useStripe` hook to confirm the payment. This hook returns a whole list of stripe methods you can use. The only difference is that you will have to manage `loading` state by yourself and there won't be a possibility to use classic `onSuccess`/`onError` callbacks in addition to promise.
+You can also use `useStripe` hook to confirm the payment. This hook returns a whole list of stripe methods you can use. The only difference is that you will have to manage `loading` state by yourself.
 
 ```tsx
 function PaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(defaultCard);
 
-  const {confirmPayment} = useStripe();
+  const { confirmPayment } = useStripe();
 
   // ...
 
@@ -210,28 +198,26 @@ function PaymentScreen() {
       return;
     }
 
-    try {
-      const billingDetails: BillingDetails = {
-        email,
-      }; // Gather customer billing information (ex. email)
+    const billingDetails: BillingDetails = {
+      email,
+    }; // Gather customer billing information (ex. email)
 
-      // Fetch Intent Client Secret from backend
-      const clientSecret = await fetchPaymentIntentClientSecret();
+    // Fetch Intent Client Secret from backend
+    const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // Confirm payment with card details
-      const intent = await confirmPayment(clientSecret, {
-        type: 'Card',
-        cardDetails: card,
-        billingDetails,
-      });
-      console.log('Success from promise', intent);
-    } catch (e) {
+    // Confirm payment with card details
+    const { error, paymentIntent } = await confirmPayment(clientSecret, {
+      type: 'Card',
+      cardDetails: card,
+      billingDetails,
+    });
+    if (error) {
       console.log('Payment confirmation error', e.code);
+    } else if (paymentIntent) {
+      console.log('Success from promise', paymentIntent);
     }
   }, [card, fetchPaymentIntentClientSecret]);
 
-  return (
-    // ...
-  );
+  return <View />;
 }
 ```

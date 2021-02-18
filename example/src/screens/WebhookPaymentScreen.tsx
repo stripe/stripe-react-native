@@ -13,18 +13,7 @@ import { API_URL } from '../Config';
 export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
 
-  const { confirmPayment, loading } = useConfirmPayment({
-    onError: (error) => {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    },
-    onSuccess: (intent) => {
-      console.log('Success', intent);
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${intent.currency}`
-      );
-    },
-  });
+  const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = useCallback(async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -48,31 +37,36 @@ export default function WebhookPaymentScreen() {
       return;
     }
 
-    try {
-      // 1. fetch Intent Client Secret from backend
-      const clientSecret = await fetchPaymentIntentClientSecret();
+    // 1. fetch Intent Client Secret from backend
+    const clientSecret = await fetchPaymentIntentClientSecret();
 
-      // 2. Gather customer billing information (ex. email)
-      const billingDetails: BillingDetails = {
-        email: 'email@stripe.com',
-        phone: '+48888000888',
-        addressCity: 'Houston',
-        addressCountry: 'US',
-        addressLine1: '1459  Circle Drive',
-        addressLine2: 'Texas',
-        addressPostalCode: '77063',
-      }; // mocked data for tests
+    // 2. Gather customer billing information (ex. email)
+    const billingDetails: BillingDetails = {
+      email: 'email@stripe.com',
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
+    }; // mocked data for tests
 
-      // 3. Confirm payment with card details
-      // The rest will be done automatically using webhooks
-      const intent = await confirmPayment(clientSecret, {
-        type: 'Card',
-        billingDetails,
-        cardDetails: card,
-      });
-      console.log('Success from promise', intent);
-    } catch (e) {
-      console.log('Payment confirmation error', e.message);
+    // 3. Confirm payment with card details
+    // The rest will be done automatically using webhooks
+    const { error, paymentIntent } = await confirmPayment(clientSecret, {
+      type: 'Card',
+      billingDetails,
+      cardDetails: card,
+    });
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('Payment confirmation error', error.message);
+    } else if (paymentIntent) {
+      Alert.alert(
+        'Success',
+        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
+      );
+      console.log('Success from promise', paymentIntent);
     }
   }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
 

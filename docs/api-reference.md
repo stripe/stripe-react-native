@@ -8,7 +8,6 @@ React Native Stripe SKD consists of different components, hooks and functions to
   - [StripeProvider](./api-reference/components.md#stripeprovider)
   - [CardField](./api-reference/components.md#cardfield)
 - [Hooks](./api-reference/hooks.md)
-  - [use3dSecureConfiguration](./api-reference/hooks.md#use3dsecureconfiguration)
   - [useApplePay](./api-reference/hooks.md#useapplepay)
   - [useConfirmPayment](./api-reference/hooks.md#useconfirmpayment)
   - [useConfirmSetupIntent](./api-reference/hooks.md#useconfirmsetupintent)
