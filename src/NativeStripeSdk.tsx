@@ -67,7 +67,9 @@ type NativeStripeSdkType = {
   unregisterApplePayCallbacks(): void;
   unregisterConfirmSetupIntentCallbacks(): void;
   setupPaymentSheet(params: SetupPaymentSheetParams): Promise<void>;
-  presentPaymentSheet(): Promise<void>;
+  presentPaymentSheet(): Promise<PaymentIntent>;
+  paymentSheetConfirmPayment(): Promise<PaymentIntent>;
+  presentPaymentOptions(): Promise<{ label: string; image: string } | null>;
 };
 
 const { StripeSdk } = NativeModules;

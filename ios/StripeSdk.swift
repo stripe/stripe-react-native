@@ -8,7 +8,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
-    
+    private var paymentSheetFlowController: PaymentSheet.FlowController!
     
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
@@ -62,18 +62,67 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         var configuration = PaymentSheet.Configuration()
         configuration.merchantDisplayName = "Example, Inc."
         configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
-        self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-        resolve([NSNull()])
+        
+        if params["custom"] as? Bool == true {
+            PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
+                                               configuration: configuration) { [weak self] result in
+                switch result {
+                case .failure(let error):
+                    reject("Failed", error.localizedDescription, nil)
+                case .success(let paymentSheetFlowController):
+                    self?.paymentSheetFlowController = paymentSheetFlowController
+                    resolve([NSNull()])
+                }
+            }
+        } else {
+            self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
+            resolve([NSNull()])
+        }
     }
     
+    @objc(presentPaymentOptions:rejecter:)
+    func presentPaymentOptions(resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        DispatchQueue.main.async {
+            self.paymentSheetFlowController.presentPaymentOptions(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) {
+                if let paymentOption = self.paymentSheetFlowController.paymentOption {
+                    let option: NSDictionary = [
+                        "label": paymentOption.label,
+                        "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                    ]
+                    resolve(option)
+                  } else {
+                    resolve(NSNull())
+                  }
+            }
+        }
+    }
+    
+    @objc(paymentSheetConfirmPayment:rejecter:)
+    func paymentSheetConfirmPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        DispatchQueue.main.async {
+            self.paymentSheetFlowController.confirmPayment(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+                switch paymentResult {
+                case .completed(let paymentIntent):
+                resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
+                case .canceled:
+                    reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
+                case .failed(let error, _):
+                    reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
+                }
+              }
+        }
+    }
+
     @objc(presentPaymentSheet:rejecter:)
     func presentPaymentSheet(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
             self.paymentSheet?.present(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                 switch paymentResult {
-                case .completed:
-                    resolve([paymentResult])
+                case .completed(let paymentIntent):
+                    resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
                 case .canceled:
                     reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
                 case .failed(let error, _):
@@ -81,7 +130,6 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 }
             }
         }
-        
     }
     
     @objc(registerConfirmSetupIntentCallbacks:onError:)

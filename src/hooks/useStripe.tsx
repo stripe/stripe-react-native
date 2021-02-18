@@ -35,6 +35,14 @@ export function useStripe() {
     return NativeStripeSdk.presentPaymentSheet();
   };
 
+  const presentPaymentOptions = () => {
+    return NativeStripeSdk.presentPaymentOptions();
+  };
+
+  const paymentSheetConfirmPayment = () => {
+    return NativeStripeSdk.paymentSheetConfirmPayment();
+  };
+
   return {
     retrievePaymentIntent: NativeStripeSdk.retrievePaymentIntent,
     confirmPayment: NativeStripeSdk.confirmPaymentMethod,
@@ -46,5 +54,7 @@ export function useStripe() {
     confirmSetupIntent: StripeSdk.confirmSetupIntent,
     setupPaymentSheet: setupPaymentSheet,
     presentPaymentSheet: presentPaymentSheet,
+    presentPaymentOptions: presentPaymentOptions,
+    paymentSheetConfirmPayment: paymentSheetConfirmPayment,
   };
 }

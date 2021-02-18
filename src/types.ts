@@ -407,4 +407,5 @@ export interface SetupPaymentSheetParams {
   customerId: string;
   customerEphemeralKeySecret: string;
   paymentIntentClientSecret: string;
+  custom: boolean;
 }
