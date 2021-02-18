@@ -35,7 +35,7 @@ export default function PaymentsUICustomScreen() {
     };
   };
 
-  const initializePaymentSheet = async () => {
+  const initialisePaymentSheet = async () => {
     setLoading(true);
 
     try {
@@ -45,7 +45,7 @@ export default function PaymentsUICustomScreen() {
         customer,
       } = await fetchPaymentSheetParams();
 
-      await setupPaymentSheet({
+      const { error } = await setupPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
@@ -55,7 +55,9 @@ export default function PaymentsUICustomScreen() {
         merchantCountryCode: 'US',
       });
 
-      setPaymentSheetEnabled(true);
+      if (!error) {
+        setPaymentSheetEnabled(true);
+      }
     } catch (error) {
       console.log('error', error);
     } finally {
@@ -64,36 +66,39 @@ export default function PaymentsUICustomScreen() {
   };
 
   const choosePaymentOptions = async () => {
-    const res = await presentPaymentOptions();
+    const { error, paymentOption } = await presentPaymentOptions();
 
-    if (res) {
-      setPaymentMethod({ label: res.label, image: res.image });
+    if (error) {
+      console.log('error', error);
+    } else if (paymentOption) {
+      setPaymentMethod({
+        label: paymentOption.label,
+        image: paymentOption.image,
+      });
     } else {
       setPaymentMethod(null);
     }
   };
 
   const onPressBuy = async () => {
-    try {
-      setLoading(true);
-      const res = await paymentSheetConfirmPayment();
+    setLoading(true);
+    const { error, paymentIntent } = await paymentSheetConfirmPayment();
 
-      initializePaymentSheet();
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (paymentIntent) {
+      initialisePaymentSheet();
       Alert.alert(
         'Success',
-        `The payment was confirmed successfully! amount: ${res.amount}`
+        `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
       );
-    } catch (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    initializePaymentSheet();
+    initialisePaymentSheet();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

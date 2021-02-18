@@ -14,6 +14,7 @@ import {
   PaymentMethod,
   SetupPaymentSheetParams,
   StripeError,
+  PaymentSheetError,
 } from '../types';
 import { createError, isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -203,20 +204,79 @@ export function useStripe() {
     }
   };
 
-  const setupPaymentSheet = (params: SetupPaymentSheetParams) => {
-    return NativeStripeSdk.setupPaymentSheet(params);
+  const setupPaymentSheet = async (
+    params: SetupPaymentSheetParams
+  ): Promise<{
+    error?: StripeError<PaymentSheetError>;
+  }> => {
+    try {
+      await NativeStripeSdk.setupPaymentSheet(params);
+
+      return {
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+      };
+    }
   };
 
-  const presentPaymentSheet = () => {
-    return NativeStripeSdk.presentPaymentSheet();
+  const presentPaymentSheet = async (): Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<PaymentSheetError>;
+  }> => {
+    try {
+      const paymentIntent = await NativeStripeSdk.presentPaymentSheet();
+
+      return {
+        error: undefined,
+        paymentIntent,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        paymentIntent: undefined,
+      };
+    }
   };
 
-  const presentPaymentOptions = () => {
-    return NativeStripeSdk.presentPaymentOptions();
+  const presentPaymentOptions = async (): Promise<{
+    paymentOption?: { label: string; image: string } | null;
+    error?: StripeError<PaymentSheetError>;
+  }> => {
+    try {
+      const paymentOption = await NativeStripeSdk.presentPaymentOptions();
+
+      return {
+        error: undefined,
+        paymentOption,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        paymentOption: undefined,
+      };
+    }
   };
 
-  const paymentSheetConfirmPayment = () => {
-    return NativeStripeSdk.paymentSheetConfirmPayment();
+  const paymentSheetConfirmPayment = async (): Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<PaymentSheetError>;
+  }> => {
+    try {
+      const paymentIntent = await NativeStripeSdk.paymentSheetConfirmPayment();
+
+      return {
+        error: undefined,
+        paymentIntent,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        paymentIntent: undefined,
+      };
+    }
   };
 
   return {

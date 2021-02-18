@@ -425,3 +425,8 @@ type PaymentSeetApplePayParams =
       applePay?: false;
       merchantCountryCode?: string;
     };
+
+export enum PaymentSheetError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+}
