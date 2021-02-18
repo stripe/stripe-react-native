@@ -18,10 +18,10 @@ export {
   IntentStatus,
   StripeError,
   ConfirmPaymentError,
-  NextPaymentActionError,
+  CardActionError,
   CreatePaymentMethodError,
   ConfirmSetupIntentError,
   SetupIntent,
   NavigationBarStyle,
-  PresentApplePayError,
+  ApplePayError,
 } from './types';
