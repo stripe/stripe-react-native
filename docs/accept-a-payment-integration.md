@@ -47,9 +47,7 @@ To indicate payment loading status you can use `loading` value from this hook as
 
 #### 3.C. Handle the response from Stripe
 
-There are two ways to handle success or failure response from `confirmPayment` call. This function returns the promise so you use it to communicate the customer about the error or success.
-
-The other way is to use `onError` and `onSuccess` callbacks you can pass to the `useConfirmPayment` hook.
+`confirmPayment` will return a Promise which resolves with a result object. This object has either the successful PaymentIntent or an error.
 
 ### 4. Test the integration
 
@@ -68,20 +66,7 @@ export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
 
   // 2.E. ------
-  const { confirmPayment, loading } = useConfirmPayment({
-    // 3.C. ------
-    onError: (error) => {
-      Alert.alert('Error', error.message);
-    },
-    onSuccess: (intent) => {
-      console.log('Success', intent);
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! curerency: ${intent.status}`
-      );
-    },
-    //--------
-  });
+  const { confirmPayment, loading } = useConfirmPayment();
   // --------
 
   // 2.D. ------
@@ -117,12 +102,21 @@ export default function WebhookPaymentScreen() {
       // ----------
 
       // 3.B. ------
-      const intent = await confirmPayment(clientSecret, {
+      const { error, paymentIntent } = await confirmPayment(clientSecret, {
         type: 'Card',
         cardDetails: card,
         billingDetails,
       });
-      console.log('Success from promise', intent);
+
+      // 3.C. ------
+      if (error) {
+        Alert.alert('Error', error.message);
+      } else if (paymentIntent) {
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully! curerency: ${paymentIntent.status}`
+        );
+      }
       // --------
     } catch (e) {
       console.log('Paymentconfirmation error', e.message);

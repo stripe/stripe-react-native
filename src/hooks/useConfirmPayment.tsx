@@ -1,31 +1,10 @@
 import { useCallback, useState } from 'react';
-import type {
-  ConfirmPaymentError,
-  PaymentIntent,
-  PaymentMethodData,
-  PaymentMethodOptions,
-  StripeError,
-} from '../types';
-import StripeSdk from '../NativeStripeSdk';
-import { createHandler } from '../helpers';
+import type { PaymentMethodData, PaymentMethodOptions } from '../types';
 import { useStripe } from './useStripe';
 
-type Params = {
-  onError?(error: StripeError<ConfirmPaymentError>): void;
-  onSuccess?(intent: PaymentIntent): void;
-};
-
-export function useConfirmPayment({
-  onSuccess = () => {},
-  onError = () => {},
-}: Params = {}) {
+export function useConfirmPayment() {
   const [loading, setLoading] = useState(false);
   const { confirmPayment: confirmPaymentMethod } = useStripe();
-
-  const handleFinishCallback = useCallback(() => {
-    setLoading(false);
-    StripeSdk.unregisterConfirmPaymentCallbacks();
-  }, []);
 
   const confirmPayment = useCallback(
     async (
@@ -33,35 +12,19 @@ export function useConfirmPayment({
       data: PaymentMethodData,
       options: PaymentMethodOptions = {}
     ) => {
-      const handleSuccess = createHandler((value: PaymentIntent) => {
-        onSuccess(value);
-        handleFinishCallback();
-      });
+      setLoading(true);
 
-      const handleError = createHandler(
-        (value: StripeError<ConfirmPaymentError>) => {
-          onError(value);
-          handleFinishCallback();
-        }
+      const result = await confirmPaymentMethod(
+        paymentIntentClientSecret,
+        data,
+        options
       );
 
-      StripeSdk.registerConfirmPaymentCallbacks(handleSuccess, handleError);
-
-      setLoading(true);
-      let result: PaymentIntent;
-      try {
-        result = await confirmPaymentMethod(
-          paymentIntentClientSecret,
-          data,
-          options
-        );
-      } finally {
-        setLoading(false);
-      }
+      setLoading(false);
 
       return result;
     },
-    [handleFinishCallback, onSuccess, onError, confirmPaymentMethod]
+    [confirmPaymentMethod]
   );
 
   return {

@@ -307,7 +307,7 @@ export enum ConfirmPaymentError {
   Unknown = 'Unknown',
 }
 
-export enum NextPaymentActionError {
+export enum CardActionError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',
@@ -319,7 +319,11 @@ export enum ConfirmSetupIntentError {
   Unknown = 'Unknown',
 }
 
-export enum PresentApplePayError {
+export enum RetrievePaymentIntentError {
+  Canceled = 'Canceled',
+}
+
+export enum ApplePayError {
   Canceled = 'Canceled',
   Failed = 'Failed',
   Unknown = 'Unknown',

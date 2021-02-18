@@ -1,11 +1,6 @@
 import React, { useCallback } from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import {
-  ApplePayButton,
-  StripeError,
-  useApplePay,
-  PresentApplePayError,
-} from 'stripe-react-native';
+import { ApplePayButton, useApplePay } from 'stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
@@ -14,14 +9,7 @@ export default function ApplePayScreen() {
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
-  } = useApplePay({
-    onError: (error) => {
-      Alert.alert(error.code, error.message);
-    },
-    onSuccess: () => {
-      Alert.alert('Success', 'The payment was confirmed successfully!');
-    },
-  });
+  } = useApplePay();
 
   const fetchPaymentIntentClientSecret = useCallback(async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -41,7 +29,7 @@ export default function ApplePayScreen() {
   }, []);
 
   const pay = async () => {
-    await presentApplePay({
+    const { error } = await presentApplePay({
       cartItems: [{ label: 'Example item name', amount: '14.00' }],
       country: 'US',
       currency: 'USD',
@@ -57,14 +45,21 @@ export default function ApplePayScreen() {
       requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
       requiredBillingContactFields: ['phoneNumber', 'name'],
     });
-    const clientSecret = await fetchPaymentIntentClientSecret();
 
-    try {
-      await confirmApplePayPayment(clientSecret);
-      // success
-    } catch (e) {
-      const error: StripeError<PresentApplePayError> = e;
+    if (error) {
       Alert.alert(error.code, error.message);
+    } else {
+      const clientSecret = await fetchPaymentIntentClientSecret();
+
+      const { error: confirmApplePayError } = await confirmApplePayPayment(
+        clientSecret
+      );
+
+      if (confirmApplePayError) {
+        Alert.alert(confirmApplePayError.code, confirmApplePayError.message);
+      } else {
+        Alert.alert('Success', 'The payment was confirmed successfully!');
+      }
     }
   };
 

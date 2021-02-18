@@ -68,29 +68,28 @@ function PaymentScreen() {
   // ...
 
   const pay = async () => {
-    try {
-      if (!isApplePaySupported) return;
-      // ...
-      await presentApplePay({
-        items: [{ label: 'Example item name', amount: '14.00' }],
-        country: 'US',
-        currency: 'USD',
-        shippingMethods: [
-          {
-            amount: '20.00',
-            identifier: 'DPS',
-            label: 'Courier',
-            detail: 'Delivery',
-            type: 'final',
-          },
-        ],
-        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
-        requiredBillingContactFields: ['phoneNumber', 'name'],
-      });
-      // ...
-    } catch (e) {
-      // ...
+    if (!isApplePaySupported) return;
+    // ...
+    const { error } = await presentApplePay({
+      items: [{ label: 'Example item name', amount: '14.00' }],
+      country: 'US',
+      currency: 'USD',
+      shippingMethods: [
+        {
+          amount: '20.00',
+          identifier: 'DPS',
+          label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+      ],
+      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredBillingContactFields: ['phoneNumber', 'name'],
+    });
+    if (error) {
+      // handle error
     }
+    // ...
   };
   // ...
 }
@@ -103,54 +102,48 @@ function PaymentScreen() {
 On the client, request a PaymentIntent from your server and store its client secret.
 Call `confirmApplePayPayment` with clientSecrect to complete the payment.
 
-Please note that you can handle error and success statements both by promise returned from particular methods or onSuccess/onError callbacks
-passed to `useApplePay` hook.
-
 ```tsx
 function PaymentScreen() {
   const {
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
-  } = useApplePay({
-    onSuccess: () => {
-      // ...
-    },
-    onError: () => {
-      // ...
-    },
-  });
+  } = useApplePay();
 
   // ...
 
   const pay = async () => {
-    try {
-      if (!isApplePaySupported) return;
+    if (!isApplePaySupported) return;
 
-      await presentApplePay({
-        items: [{ label: 'Example item name', amount: '14.00' }],
-        country: 'US',
-        currency: 'USD',
-        shippingMethods: [
-          {
-            amount: '20.00',
-            identifier: 'DPS',
-            label: 'Courier',
-            detail: 'Delivery',
-            type: 'final',
-          },
-        ],
-        requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
-        requiredBillingContactFields: ['phoneNumber', 'name'],
-      });
+    const { error } = await presentApplePay({
+      items: [{ label: 'Example item name', amount: '14.00' }],
+      country: 'US',
+      currency: 'USD',
+      shippingMethods: [
+        {
+          amount: '20.00',
+          identifier: 'DPS',
+          label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+      ],
+      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredBillingContactFields: ['phoneNumber', 'name'],
+    });
 
+    if (error) {
+      // handle error
+    } else {
       const clientSecret = await fetchPaymentIntentClientSecret();
 
-      await confirmApplePayPayment(clientSecret);
+      const { error: confirmError } = await confirmApplePayPayment(
+        clientSecret
+      );
 
-      // ...
-    } catch (e) {
-      // ...
+      if (confirmError) {
+        // handle error
+      }
     }
   };
   // ...
@@ -159,7 +152,7 @@ function PaymentScreen() {
 
 ## Optional - use `useStripe` hook instead of `useApplePay`
 
-You can also use `useStripe` hook to confirm payment. This hook returns a whole list of stripe methods you can trigger. The only difference is that you will have to manage `loading` state by yourself and there won't be a possibility to use classic onSuccess/onError callbacks in addition to promise.
+You can also use `useStripe` hook to confirm payment. This hook returns a whole list of stripe methods you can trigger. The only difference is that you will have to manage `loading` state by yourself.
 
 ## Testing Apple Pay
 
