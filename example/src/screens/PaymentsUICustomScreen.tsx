@@ -51,7 +51,8 @@ export default function PaymentsUICustomScreen() {
         paymentIntentClientSecret: paymentIntent,
         customFlow: true,
         merchantDisplayName: 'Example Inc.',
-        applePay: false,
+        applePay: true,
+        merchantCountryCode: 'US',
       });
 
       setPaymentSheetEnabled(true);
