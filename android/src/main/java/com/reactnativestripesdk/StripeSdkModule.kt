@@ -21,11 +21,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private lateinit var flowController: PaymentSheet.FlowController
   private lateinit var paymentSheet: PaymentSheet
 
-
-  private lateinit var customerId: String
-  private lateinit var ephemeralKeySecret: String
-  private lateinit var paymentIntentClientSecret: String
   private lateinit var publishableKey: String
+  private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
 
   private var onConfirmPaymentError: Callback? = null
   private var onConfirmPaymentSuccess: Callback? = null
@@ -34,6 +31,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var confirmPromise: Promise? = null
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
+  private var presentPaymentOptionsPromise: Promise? = null
+  private var paymentSheetConfirmPaymentPromise: Promise? = null
+  private var presentPaymentSheetPromise: Promise? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
@@ -149,101 +149,127 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun setupPaymentSheet(data: ReadableMap, promise: Promise) {
-    val customFlow = getValOr(data, "customFlow", null)
+  fun setupPaymentSheet(params: ReadableMap, promise: Promise) {
+    val customFlow = getBooleanOrNull(params, "customFlow")
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey)
     val activity = currentActivity as ComponentActivity
 
-    val paymentOptionCallback = object : PaymentOptionCallback {
-      override fun onPaymentOption(paymentOption: PaymentOption?) {
+    val paymentResultCallback = paymentResultCallback()
+    val paymentOptionCallback = paymentOptionCallback()
 
-      }
-    }
+    val customerId = getValOr(params, "customerId", null) as String
+    val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret", null) as String
+    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null) as String
+    val merchantDisplayName = getValOr(params, "merchantDisplayName", null) as String
 
-    val paymentResultCallback: PaymentSheetResultCallback = object : PaymentSheetResultCallback {
-      override fun onPaymentResult(paymentResult: PaymentResult) {
-
-        when (paymentResult) {
-          is PaymentResult.Canceled -> {
-            promise.reject("Canceled", "")
-          }
-          is PaymentResult.Failed -> {
-            promise.reject("Failed", "")
-          }
-          is PaymentResult.Completed -> {
-            promise.resolve("")
-          }
-        }
-      }
-    }
+    this.paymentSheetConfiguration = PaymentSheet.Configuration(
+      merchantDisplayName = merchantDisplayName,
+      customer = PaymentSheet.CustomerConfiguration(
+        id = customerId,
+        ephemeralKeySecret = customerEphemeralKeySecret
+      )
+    )
 
     if (customFlow != null) {
       flowController = PaymentSheet.FlowController.create(
-        currentActivity as ComponentActivity,
+        activity,
         paymentOptionCallback,
         paymentResultCallback
       )
 
       configureFlowController(
         paymentIntentClientSecret,
-        customerId,
-        ephemeralKeySecret,
         promise
       )
     } else {
       paymentSheet = PaymentSheet(activity, paymentResultCallback)
+      promise.resolve(null)
+    }
+  }
+
+  private fun paymentResultCallback(): PaymentSheetResultCallback {
+    return object : PaymentSheetResultCallback {
+      override fun onPaymentResult(paymentResult: PaymentResult) {
+        when (paymentResult) {
+          is PaymentResult.Canceled -> {
+            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+          }
+          is PaymentResult.Failed -> {
+            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+          }
+          is PaymentResult.Completed -> {
+            paymentSheetConfirmPaymentPromise?.resolve(null)
+            presentPaymentSheetPromise?.resolve(null)
+          }
+        }
+      }
+    }
+  }
+
+  private fun paymentOptionCallback(): PaymentOptionCallback {
+    return object : PaymentOptionCallback {
+      override fun onPaymentOption(paymentOption: PaymentOption?) {
+        if (paymentOption != null) {
+          val option: WritableMap = WritableNativeMap()
+          option.putString("label", paymentOption?.label)
+          option.putInt("image", paymentOption?.drawableResourceId)
+          presentPaymentOptionsPromise?.resolve(option)
+        } else {
+          presentPaymentOptionsPromise?.resolve(null)
+        }
+      }
     }
   }
 
   private fun configureFlowController(
     paymentIntentClientSecret: String,
-    customerId: String,
-    ephemeralKeySecret: String,
     promise: Promise
   ) {
     val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
       override fun onConfigured(success: Boolean, error: Throwable?) {
-        promise.resolve("")
-        onPaymentOption(flowController.getPaymentOption())
+        val paymentOption = flowController.getPaymentOption()
+        val option: WritableMap = WritableNativeMap()
+
+        if (paymentOption != null) {
+          option.putString("label", paymentOption?.label)
+          option.putInt("image", paymentOption?.drawableResourceId)
+
+          promise.resolve(option)
+        } else {
+          promise.resolve(null)
+        }
       }
     }
 
     flowController.configure(
       paymentIntentClientSecret = paymentIntentClientSecret,
-      configuration = PaymentSheet.Configuration(
-        merchantDisplayName = "Example, Inc.",
-        customer = PaymentSheet.CustomerConfiguration(
-          id = customerId,
-          ephemeralKeySecret = ephemeralKeySecret
-        )
-      ),
+      configuration = this.paymentSheetConfiguration,
       callback = onFlowControllerConfigure
     )
   }
 
   @ReactMethod
   fun presentPaymentSheet(promise: Promise) {
+    this.presentPaymentSheetPromise = promise
     paymentSheet.present(
-      paymentIntentClientSecret,
-      PaymentSheet.Configuration(
-        merchantDisplayName = "Example, Inc.",
-        customer = PaymentSheet.CustomerConfiguration(
-          id = customerId,
-          ephemeralKeySecret = ephemeralKeySecret
-        )
-      )
+      "clientSecret",
+      this.paymentSheetConfiguration
     )
   }
 
   @ReactMethod
   fun presentPaymentOptions(promise: Promise) {
-    //
+    this.presentPaymentOptionsPromise = promise
+    flowController.presentPaymentOptions()
   }
 
   @ReactMethod
   fun paymentSheetConfirmPayment(promise: Promise) {
-    //
+    this.paymentSheetConfirmPaymentPromise = promise
+    flowController.confirmPayment()
   }
 
   @ReactMethod

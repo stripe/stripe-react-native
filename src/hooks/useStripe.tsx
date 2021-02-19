@@ -15,6 +15,7 @@ import {
   SetupPaymentSheetParams,
   StripeError,
   PaymentSheetError,
+  PaymentOption,
 } from '../types';
 import { createError, isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -207,19 +208,20 @@ export function useStripe() {
   const setupPaymentSheet = async (
     params: SetupPaymentSheetParams
   ): Promise<{
+    paymentOption?: PaymentOption;
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
-      const res = await NativeStripeSdk.setupPaymentSheet(params);
-
-      console.log('res', res);
+      const paymentOption = await NativeStripeSdk.setupPaymentSheet(params);
 
       return {
         error: undefined,
+        paymentOption,
       };
     } catch (error) {
       return {
         error: createError(error),
+        paymentOption: undefined,
       };
     }
   };

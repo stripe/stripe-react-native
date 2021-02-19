@@ -10,7 +10,6 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
-    var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
@@ -85,7 +84,15 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                     reject("Failed", error.localizedDescription, nil)
                 case .success(let paymentSheetFlowController):
                     self?.paymentSheetFlowController = paymentSheetFlowController
-                    resolve(NSNull())
+                    if let paymentOption = self?.paymentSheetFlowController?.paymentOption {
+                        let option: NSDictionary = [
+                            "label": paymentOption.label,
+                            "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                        ]
+                        resolve(option)
+                    } else {
+                        resolve(NSNull())
+                    }
                 }
             }
         } else {

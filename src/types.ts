@@ -430,3 +430,8 @@ export enum PaymentSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
 }
+
+export interface PaymentOption {
+  label: string;
+  image: string;
+}

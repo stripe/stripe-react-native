@@ -9,6 +9,7 @@ import type {
   PaymentMethodData,
   PaymentMethodOptions,
   SetupPaymentSheetParams,
+  PaymentOption,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -39,10 +40,12 @@ type NativeStripeSdkType = {
     options: PaymentMethodOptions
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
-  setupPaymentSheet(params: SetupPaymentSheetParams): Promise<void>;
+  setupPaymentSheet(
+    params: SetupPaymentSheetParams
+  ): Promise<PaymentOption | undefined>;
   presentPaymentSheet(): Promise<PaymentIntent>;
   paymentSheetConfirmPayment(): Promise<PaymentIntent>;
-  presentPaymentOptions(): Promise<{ label: string; image: string } | null>;
+  presentPaymentOptions(): Promise<PaymentOption | undefined>;
 };
 
 const { StripeSdk } = NativeModules;

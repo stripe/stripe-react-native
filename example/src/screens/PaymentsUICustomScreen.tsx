@@ -45,7 +45,7 @@ export default function PaymentsUICustomScreen() {
         customer,
       } = await fetchPaymentSheetParams();
 
-      const { error } = await setupPaymentSheet({
+      const { error, paymentOption } = await setupPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
@@ -57,6 +57,9 @@ export default function PaymentsUICustomScreen() {
 
       if (!error) {
         setPaymentSheetEnabled(true);
+      }
+      if (paymentOption) {
+        setPaymentMethod(paymentOption);
       }
     } catch (error) {
       console.log('error', error);
