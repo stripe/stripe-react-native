@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { ApplePayButton, useApplePay } from 'stripe-react-native';
 import Screen from '../components/Screen';
@@ -11,7 +11,7 @@ export default function ApplePayScreen() {
     isApplePaySupported,
   } = useApplePay();
 
-  const fetchPaymentIntentClientSecret = useCallback(async () => {
+  const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
@@ -26,7 +26,7 @@ export default function ApplePayScreen() {
     const { clientSecret } = await response.json();
 
     return clientSecret;
-  }, []);
+  };
 
   const pay = async () => {
     const { error } = await presentApplePay({

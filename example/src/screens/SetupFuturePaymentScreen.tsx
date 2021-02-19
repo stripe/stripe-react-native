@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
   BillingDetails,
@@ -37,23 +37,20 @@ export default function SetupFuturePaymentScreen() {
 
   const { retrievePaymentIntent } = useStripe();
 
-  const createSetupIntentOnBackend = useCallback(
-    async (customerEmail: string) => {
-      const response = await fetch(`${API_URL}/create-setup-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: customerEmail }),
-      });
-      const { clientSecret } = await response.json();
+  const createSetupIntentOnBackend = async (customerEmail: string) => {
+    const response = await fetch(`${API_URL}/create-setup-intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: customerEmail }),
+    });
+    const { clientSecret } = await response.json();
 
-      return clientSecret;
-    },
-    []
-  );
+    return clientSecret;
+  };
 
-  const chargeCardOffSession = useCallback(async () => {
+  const chargeCardOffSession = async () => {
     const response = await fetch(`${API_URL}/charge-card-off-session`, {
       method: 'POST',
       headers: {
@@ -64,9 +61,9 @@ export default function SetupFuturePaymentScreen() {
     const { clientSecret, error } = await response.json();
 
     return { clientSecret, error };
-  }, [email]);
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -106,7 +103,7 @@ export default function SetupFuturePaymentScreen() {
 
       setSetupIntent(setupIntentResult);
     }
-  }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
+  };
 
   // It's only for example purposes
   // This action is responsible for charging your previously added card and should be called independently of the payment flow.

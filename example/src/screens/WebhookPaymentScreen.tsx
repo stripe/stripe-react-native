@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import {
   BillingDetails,
@@ -15,7 +15,7 @@ export default function WebhookPaymentScreen() {
 
   const { confirmPayment, loading } = useConfirmPayment();
 
-  const fetchPaymentIntentClientSecret = useCallback(async () => {
+  const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
@@ -30,9 +30,9 @@ export default function WebhookPaymentScreen() {
     const { clientSecret } = await response.json();
 
     return clientSecret;
-  }, []);
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -68,7 +68,7 @@ export default function WebhookPaymentScreen() {
       );
       console.log('Success from promise', paymentIntent);
     }
-  }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
+  };
 
   return (
     <Screen>
