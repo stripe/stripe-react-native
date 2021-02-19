@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import {
   BillingDetails,
@@ -16,51 +16,45 @@ export default function NoWebhookPaymentScreen() {
   const [card, setCard] = useState<CardDetails | null>(null);
   const { createPaymentMethod, handleCardAction } = useStripe();
 
-  const callNoWebhookPayEndpoint = useCallback(
-    async (
-      data:
-        | {
-            useStripeSdk: boolean;
-            paymentMethodId: string;
-            currency: string;
-            items: { id: string }[];
-          }
-        | { paymentIntentId: string }
-    ) => {
-      const response = await fetch(`${API_URL}/pay-without-webhooks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      return await response.json();
-    },
-    []
-  );
+  const callNoWebhookPayEndpoint = async (
+    data:
+      | {
+          useStripeSdk: boolean;
+          paymentMethodId: string;
+          currency: string;
+          items: { id: string }[];
+        }
+      | { paymentIntentId: string }
+  ) => {
+    const response = await fetch(`${API_URL}/pay-without-webhooks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  };
 
-  const confirmIntent = useCallback(
-    async (paymentIntentId: string) => {
-      // Call API to confirm intent
-      const {
-        clientSecret,
-        error,
-        requiresAction,
-      } = await callNoWebhookPayEndpoint({
-        paymentIntentId,
-      });
+  const confirmIntent = async (paymentIntentId: string) => {
+    // Call API to confirm intent
+    const {
+      clientSecret,
+      error,
+      requiresAction,
+    } = await callNoWebhookPayEndpoint({
+      paymentIntentId,
+    });
 
-      if (error) {
-        // Error during confirming Intent
-        Alert.alert('Error', error);
-      } else if (clientSecret && !requiresAction) {
-        Alert.alert('Success', 'The payment was confirmed successfully!');
-      }
-    },
-    [callNoWebhookPayEndpoint]
-  );
+    if (error) {
+      // Error during confirming Intent
+      Alert.alert('Error', error);
+    } else if (clientSecret && !requiresAction) {
+      Alert.alert('Success', 'The payment was confirmed successfully!');
+    }
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -139,13 +133,7 @@ export default function NoWebhookPaymentScreen() {
     }
 
     setLoading(false);
-  }, [
-    card,
-    createPaymentMethod,
-    callNoWebhookPayEndpoint,
-    confirmIntent,
-    handleCardAction,
-  ]);
+  };
 
   return (
     <Screen>

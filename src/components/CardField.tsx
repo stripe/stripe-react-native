@@ -36,9 +36,9 @@ export const CardField: React.FC<Props> = ({
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
 
-      if (__DEV__) {
+      if (__DEV__ && card.complete) {
         console.warn(
-          '[stripe-react-native] Caution! Remember that you should never send card details to your servers!'
+          '[stripe-react-native] Caution! Never send card details to your server!'
         );
       }
 

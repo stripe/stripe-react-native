@@ -70,7 +70,7 @@ On the client, request a PaymentIntent from your server and store its client sec
 function PaymentScreen() {
   // ...
 
-  const fetchPaymentIntentClientSecret = useCallback(async () => {
+  const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
@@ -84,9 +84,9 @@ function PaymentScreen() {
     const { clientSecret } = await response.json();
 
     return clientSecret;
-  }, []);
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -99,7 +99,7 @@ function PaymentScreen() {
     } catch (e) {
       // ...
     }
-  }, [card, fetchPaymentIntentClientSecret]);
+  };
 
   return (
     <View>
@@ -124,12 +124,12 @@ Use `useConfirmPayment` hook from SDK. The hook returns `confirmPayment` method 
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>();
+  const [card, setCard] = useState<CardDetails | null>(null);
   const { confirmPayment, loading } = useConfirmPayment();
 
   // ...
 
-  const handlePayPress = () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -187,13 +187,13 @@ You can also use `useStripe` hook to confirm the payment. This hook returns a wh
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
 
   const { confirmPayment } = useStripe();
 
   // ...
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -216,7 +216,7 @@ function PaymentScreen() {
     } else if (paymentIntent) {
       console.log('Success from promise', paymentIntent);
     }
-  }, [card, fetchPaymentIntentClientSecret]);
+  };
 
   return <View />;
 }
