@@ -210,7 +210,9 @@ export function useStripe() {
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
-      await NativeStripeSdk.setupPaymentSheet(params);
+      const res = await NativeStripeSdk.setupPaymentSheet(params);
+
+      console.log('res', res);
 
       return {
         error: undefined,

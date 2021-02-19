@@ -3,14 +3,29 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
+import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
+import com.stripe.android.paymentsheet.PaymentOptionCallback
+import com.stripe.android.paymentsheet.PaymentResult
+import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import com.stripe.android.paymentsheet.model.PaymentOption
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
     return "StripeSdk"
   }
+
+  private lateinit var flowController: PaymentSheet.FlowController
+  private lateinit var paymentSheet: PaymentSheet
+
+
+  private lateinit var customerId: String
+  private lateinit var ephemeralKeySecret: String
+  private lateinit var paymentIntentClientSecret: String
+  private lateinit var publishableKey: String
 
   private var onConfirmPaymentError: Callback? = null
   private var onConfirmPaymentSuccess: Callback? = null
@@ -42,6 +57,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             }
           }
         }
+
         override fun onError(e: Exception) {
           onConfirmSetupIntentError?.invoke(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty()))
           confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty())
@@ -121,6 +137,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       configure3dSecure(params)
     }
 
+    this.publishableKey = publishableKey
+
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")
     val version = getValOr(appInfo, "version", "")
@@ -128,6 +146,104 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val url = getValOr(appInfo, "url", "")
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
+  }
+
+  @ReactMethod
+  fun setupPaymentSheet(data: ReadableMap, promise: Promise) {
+    val customFlow = getValOr(data, "customFlow", null)
+
+    PaymentConfiguration.init(reactApplicationContext, publishableKey)
+    val activity = currentActivity as ComponentActivity
+
+    val paymentOptionCallback = object : PaymentOptionCallback {
+      override fun onPaymentOption(paymentOption: PaymentOption?) {
+
+      }
+    }
+
+    val paymentResultCallback: PaymentSheetResultCallback = object : PaymentSheetResultCallback {
+      override fun onPaymentResult(paymentResult: PaymentResult) {
+
+        when (paymentResult) {
+          is PaymentResult.Canceled -> {
+            promise.reject("Canceled", "")
+          }
+          is PaymentResult.Failed -> {
+            promise.reject("Failed", "")
+          }
+          is PaymentResult.Completed -> {
+            promise.resolve("")
+          }
+        }
+      }
+    }
+
+    if (customFlow != null) {
+      flowController = PaymentSheet.FlowController.create(
+        currentActivity as ComponentActivity,
+        paymentOptionCallback,
+        paymentResultCallback
+      )
+
+      configureFlowController(
+        paymentIntentClientSecret,
+        customerId,
+        ephemeralKeySecret,
+        promise
+      )
+    } else {
+      paymentSheet = PaymentSheet(activity, paymentResultCallback)
+    }
+  }
+
+  private fun configureFlowController(
+    paymentIntentClientSecret: String,
+    customerId: String,
+    ephemeralKeySecret: String,
+    promise: Promise
+  ) {
+    val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
+      override fun onConfigured(success: Boolean, error: Throwable?) {
+        promise.resolve("")
+        onPaymentOption(flowController.getPaymentOption())
+      }
+    }
+
+    flowController.configure(
+      paymentIntentClientSecret = paymentIntentClientSecret,
+      configuration = PaymentSheet.Configuration(
+        merchantDisplayName = "Example, Inc.",
+        customer = PaymentSheet.CustomerConfiguration(
+          id = customerId,
+          ephemeralKeySecret = ephemeralKeySecret
+        )
+      ),
+      callback = onFlowControllerConfigure
+    )
+  }
+
+  @ReactMethod
+  fun presentPaymentSheet(promise: Promise) {
+    paymentSheet.present(
+      paymentIntentClientSecret,
+      PaymentSheet.Configuration(
+        merchantDisplayName = "Example, Inc.",
+        customer = PaymentSheet.CustomerConfiguration(
+          id = customerId,
+          ephemeralKeySecret = ephemeralKeySecret
+        )
+      )
+    )
+  }
+
+  @ReactMethod
+  fun presentPaymentOptions(promise: Promise) {
+    //
+  }
+
+  @ReactMethod
+  fun paymentSheetConfirmPayment(promise: Promise) {
+    //
   }
 
   @ReactMethod
@@ -173,7 +289,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
     val paymentMethodId = getValOr(data, "paymentMethodId", null)
-    val confirmParams = if(paymentMethodId != null) {
+    val confirmParams = if (paymentMethodId != null) {
       ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
     } else {
       val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
@@ -219,7 +335,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
+  fun confirmSetupIntent(setupIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
     var billing: PaymentMethod.BillingDetails? = null
 
@@ -240,4 +356,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       stripe.confirmSetupIntent(activity, confirmParams)
     }
   }
+}
+
+private fun PaymentSheet.FlowController.configure(paymentIntentClientSecret: String, configuration: PaymentSheet.Configuration, onFlowControllerConfigure: PaymentSheet.FlowController.ConfigCallback) {
+
 }
