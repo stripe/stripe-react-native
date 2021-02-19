@@ -70,7 +70,7 @@ On the client, request a PaymentIntent from your server and store its client sec
 function PaymentScreen() {
   // ...
 
-  const fetchPaymentIntentClientSecret = useCallback(async () => {
+  const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
@@ -84,9 +84,9 @@ function PaymentScreen() {
     const { clientSecret } = await response.json();
 
     return clientSecret;
-  }, []);
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -99,7 +99,7 @@ function PaymentScreen() {
     } catch (e) {
       // ...
     }
-  }, [card, fetchPaymentIntentClientSecret]);
+  };
 
   return (
     <View>
@@ -129,7 +129,7 @@ function PaymentScreen() {
 
   // ...
 
-  const handlePayPress = () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -193,7 +193,7 @@ function PaymentScreen() {
 
   // ...
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -216,7 +216,7 @@ function PaymentScreen() {
     } else if (paymentIntent) {
       console.log('Success from promise', paymentIntent);
     }
-  }, [card, fetchPaymentIntentClientSecret]);
+  };
 
   return <View />;
 }
