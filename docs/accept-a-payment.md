@@ -124,7 +124,7 @@ Use `useConfirmPayment` hook from SDK. The hook returns `confirmPayment` method 
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>();
+  const [card, setCard] = useState<CardDetails | null>(null);
   const { confirmPayment, loading } = useConfirmPayment();
 
   // ...
@@ -187,7 +187,7 @@ You can also use `useStripe` hook to confirm the payment. This hook returns a wh
 
 ```tsx
 function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(defaultCard);
+  const [card, setCard] = useState<CardDetails | null>(null);
 
   const { confirmPayment } = useStripe();
 
