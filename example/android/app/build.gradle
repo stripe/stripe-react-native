@@ -209,6 +209,7 @@ dependencies {
         implementation jscFlavor
     }
 
+    implementation 'com.github.stripe:stripe-android:mc-beta-1-SNAPSHOT'
     implementation project(':reactnativestripesdk')
 }
 

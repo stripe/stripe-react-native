@@ -11,10 +11,12 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.reactnativestripesdk.StripeSdkModule;
 import com.reactnativestripesdk.StripeSdkPackage;
+import com.stripe.android.paymentsheet.PaymentResult;
+import com.stripe.android.paymentsheet.PaymentSheet;
 
 public class MainApplication extends Application implements ReactApplication {
-
   private final ReactNativeHost mReactNativeHost =
       new ReactNativeHost(this) {
         @Override
@@ -47,6 +49,7 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
   }

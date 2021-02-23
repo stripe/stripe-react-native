@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.*
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -14,14 +13,15 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import com.stripe.android.paymentsheet.model.PaymentOption
 
-
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
     return "StripeSdk"
   }
 
-  private lateinit var flowController: PaymentSheet.FlowController
-  private var paymentSheet: PaymentSheet? = null
+  companion object {
+    lateinit var flowController: PaymentSheet.FlowController
+    lateinit var paymentSheet: PaymentSheet
+  }
 
   private lateinit var publishableKey: String
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
@@ -111,6 +111,38 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
+  private val paymentResultCallback = object : PaymentSheetResultCallback {
+    override fun onPaymentResult(paymentResult: PaymentResult) {
+      when (paymentResult) {
+        is PaymentResult.Canceled -> {
+          paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+          presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+        }
+        is PaymentResult.Failed -> {
+          paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+          presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+        }
+        is PaymentResult.Completed -> {
+          paymentSheetConfirmPaymentPromise?.resolve(null)
+          presentPaymentSheetPromise?.resolve(null)
+        }
+      }
+    }
+  }
+
+  private val paymentOptionCallback = object : PaymentOptionCallback {
+    override fun onPaymentOption(paymentOption: PaymentOption?) {
+      if (paymentOption != null) {
+        val option: WritableMap = WritableNativeMap()
+        option.putString("label", paymentOption?.label)
+        option.putInt("image", paymentOption?.drawableResourceId)
+        presentPaymentOptionsPromise?.resolve(option)
+      } else {
+        presentPaymentOptionsPromise?.resolve(null)
+      }
+    }
+  }
+
   private lateinit var stripe: Stripe
 
   init {
@@ -164,9 +196,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey)
 
-    val paymentResultCallback = paymentResultCallback()
-    val paymentOptionCallback = paymentOptionCallback()
-
     val customerId = getValOr(params, "customerId", null) as String
     val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret", null) as String
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null) as String
@@ -183,59 +212,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     this.setupPaymentSheetPromise = promise
 
     if (customFlow == true) {
-      flowController = PaymentSheet.FlowController.create(
-        activity,
-        paymentOptionCallback,
-        paymentResultCallback
-      )
-
       configureFlowController(
-        paymentIntentClientSecret,
+        paymentIntentClientSecret
       )
     } else {
-      this.paymentSheet = PaymentSheet(activity, paymentResultCallback)
       promise.resolve(null)
     }
   }
 
-  private fun paymentResultCallback(): PaymentSheetResultCallback {
-    return object : PaymentSheetResultCallback {
-      override fun onPaymentResult(paymentResult: PaymentResult) {
-        when (paymentResult) {
-          is PaymentResult.Canceled -> {
-            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
-            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
-          }
-          is PaymentResult.Failed -> {
-            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
-            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
-          }
-          is PaymentResult.Completed -> {
-            paymentSheetConfirmPaymentPromise?.resolve(null)
-            presentPaymentSheetPromise?.resolve(null)
-          }
-        }
-      }
-    }
-  }
-
-  private fun paymentOptionCallback(): PaymentOptionCallback {
-    return object : PaymentOptionCallback {
-      override fun onPaymentOption(paymentOption: PaymentOption?) {
-        if (paymentOption != null) {
-          val option: WritableMap = WritableNativeMap()
-          option.putString("label", paymentOption?.label)
-          option.putInt("image", paymentOption?.drawableResourceId)
-          presentPaymentOptionsPromise?.resolve(option)
-        } else {
-          presentPaymentOptionsPromise?.resolve(null)
-        }
-      }
-    }
-  }
-
   private fun configureFlowController(
-    paymentIntentClientSecret: String,
+    paymentIntentClientSecret: String
   ) {
     val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
       override fun onConfigured(success: Boolean, error: Throwable?) {
@@ -243,12 +229,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         val option: WritableMap = WritableNativeMap()
 
         if (paymentOption != null) {
-          option.putString("label", paymentOption?.label)
-          option.putInt("image", paymentOption?.drawableResourceId)
+          option.putString("label", paymentOption.label)
+          option.putInt("image", paymentOption.drawableResourceId)
 
-          this.setupPaymentSheetPromise.resolve(option)
+          setupPaymentSheetPromise?.resolve(option)
         } else {
-          this.setupPaymentSheetPromise.resolve(null)
+          setupPaymentSheetPromise?.resolve(null)
         }
       }
     }

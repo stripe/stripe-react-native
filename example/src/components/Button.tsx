@@ -30,7 +30,6 @@ export default function Button({
       {title}
     </Text>
   );
-
   return (
     <View style={disabled && styles.disabled}>
       <TouchableOpacity
