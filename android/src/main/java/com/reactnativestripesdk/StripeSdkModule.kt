@@ -182,7 +182,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     this.setupPaymentSheetPromise = promise
 
-    if (customFlow != false && customFlow != null) {
+    if (customFlow == true) {
       flowController = PaymentSheet.FlowController.create(
         activity,
         paymentOptionCallback,
