@@ -15,6 +15,12 @@ const ApplePayButtonNative = requireNativeComponent<ApplePayButtonProps>(
   'ApplePayButton'
 );
 
+/**
+ *  Apple Pay button component props
+ * @param types
+ * @param buttonStyle
+ * @param onPress
+ */
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
   type?: ApplePayButtonType;
@@ -22,12 +28,25 @@ type Props = AccessibilityProps & {
   onPress(): void;
 };
 
-export const ApplePayButton: React.FC<Props> = ({
+/**
+ *  Apple Pay button component
+ *
+ * @example
+ * ```ts
+ *  <ApplePayButton
+ *    onPress={pay}
+ *    type="plain"
+ *    buttonStyle="black"
+ *    style={styles.payButton}
+ *  />
+ * ```
+ */
+export function ApplePayButton({
   onPress,
   buttonStyle = 'black',
   type = 'plain',
   ...props
-}) => {
+}: Props) {
   const buttonType = useMemo(() => mapButtonType(type), [type]);
   const style = useMemo(() => mapButtonStyle(buttonStyle), [buttonStyle]);
 
@@ -39,7 +58,7 @@ export const ApplePayButton: React.FC<Props> = ({
       {...props}
     />
   );
-};
+}
 
 function mapButtonType(type: ApplePayButtonType) {
   switch (type) {

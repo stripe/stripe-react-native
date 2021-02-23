@@ -323,6 +323,11 @@ export enum RetrievePaymentIntentError {
   Canceled = 'Canceled',
 }
 
+/**
+ * @enum ApplePayError enum description
+ * Apple Pay error enum
+ */
+
 export enum ApplePayError {
   Canceled = 'Canceled',
   Failed = 'Failed',

@@ -139,5 +139,8 @@
       "module",
       "typescript"
     ]
+  },
+  "dependencies": {
+    "typedoc": "^0.20.28"
   }
 }
