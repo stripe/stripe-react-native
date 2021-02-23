@@ -407,7 +407,7 @@ export type AppInfo = Partial<{
   version: string;
 }>;
 
-export type SetupPaymentSheetParams = PaymentSeetApplePayParams & {
+export type SetupPaymentSheetParams = PaymentSheetApplePayParams & {
   customerId: string;
   customerEphemeralKeySecret: string;
   paymentIntentClientSecret: string;
@@ -416,7 +416,7 @@ export type SetupPaymentSheetParams = PaymentSeetApplePayParams & {
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
 };
 
-type PaymentSeetApplePayParams =
+type PaymentSheetApplePayParams =
   | {
       applePay?: true;
       merchantCountryCode: string;
