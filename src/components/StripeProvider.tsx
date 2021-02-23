@@ -26,7 +26,7 @@ export const StripeProvider: React.FC<Props> = ({
   stripeAccountId,
 }) => {
   useEffect(() => {
-    if (publishableKey === '') {
+    if (!publishableKey) {
       return;
     }
     if (isAndroid) {
