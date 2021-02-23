@@ -46,7 +46,7 @@ Before getting started, your checkout page should:
 
 Next, integrate Stripe’s prebuilt payment UI in your app’s checkout using use the `setupPaymentSheet` method from `useStripe` hook. PaymentSheet guides the customer through the payment process, combining all the steps required — collecting payment details, billing details, and confirming the payment — into a single sheet. If you prefer a more customized checkout experience, consider using the [Custom integration](#custom-integration).
 
-First, configure the `StripeProvider` with your Stripe publishable key so that it can make requests to the Stripe API. Then, set the BACKEND_URL to the server with the recently created `/payment-sheet` endpoint.
+First, configure the `StripeProvider` with your Stripe publishable key so that it can make requests to the Stripe API.
 
 In your app’s checkout, make a network request to the backend endpoint you created in the previous step and initialize `PaymentSheet`. To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
 
@@ -109,7 +109,7 @@ export default function CheckoutScreen() {
 }
 ```
 
-When the checkout button is tapped, call presentPaymentSheet() to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `PaymentIntent` or `StripeError`.
+When the checkout button is tapped, call presentPaymentSheet() to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `PaymentIntent` or `StripeError<PaymentSheetError>`.
 
 ```tsx
 export default function CheckoutScreen() {
@@ -151,7 +151,7 @@ If you prefer a more customized checkout experience, you can use the Custom inte
 
 If you choose this integration, you’ll use `customFlow` flag while setting up the payment sheet which breaks down PaymentSheet into its individual steps, and lets you control when those steps happen. For example, your checkout page can display a “Choose payment method” button to collect payment details, and a separate “Buy” button to finalize the payment
 
-## iOS
+## React Native
 
 This guide assumes you have a payment details button with a label and an image that can display the details of a selected payment method and a buy button.
 
@@ -324,7 +324,6 @@ export default function CheckoutScreen() {
     </Screen>
   );
 }
-}
 ```
 
 Finally, when your buy button is tapped, call `paymentSheetConfirmPayment` to complete the payment.
@@ -351,9 +350,7 @@ const onPressBuy = async () => {
 
 ## Apple Pay
 
-```
 If your checkout page has a dedicated Apple Pay button, follow [our Apple Pay guide](./apple-pay.md) to collect payment from your Apple Pay button. You can use PaymentSheet to handle other payment method types.
-```
 
 First, follow steps 1–3 in our [Accept Apple Pay](https://stripe.com/docs/apple-pay?platform=native-ios#accept) in your iOS app guide. Once you’ve finished adding the Apple Pay capability in Xcode, return to this guide.
 

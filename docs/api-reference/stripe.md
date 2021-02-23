@@ -7,11 +7,11 @@ To get the content of the Stripe object you have to use `useStripe` hook. This h
 Confirms the PaymentIntent with the provided parameters. Call this method if you are using automatic confirmation.
 
 ```ts
-(
+confirmPayment(
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) => Promise<{
+): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<ConfirmPaymentError>
   }>
@@ -32,7 +32,7 @@ A promise with `Intent` or `StripeError<ConfirmPaymentError>` object.
 Converts a card details object into a Stripe Payment Method using the Stripe API.
 
 ```ts
-(data: PaymentMethodData, options?: PaymentMethodOptions) => Promise<{
+createPaymentMethod(data: PaymentMethodData, options?: PaymentMethodOptions): Promise<{
     paymentMethod?: PaymentMethod;
     error?: StripeError<CreatePaymentMethodError>;
   }>
@@ -52,7 +52,7 @@ A promise with `PaymentMethod` or `StripeError<CreatePaymentMethodError>` object
 Handles any `nextAction` required to authenticate the Intent.
 
 ```ts
-(paymentIntentClientSecret: string) => Promise<{
+handleCardAction(paymentIntentClientSecret: string): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<CardActionError>
   }>
@@ -71,7 +71,7 @@ A promise with `PaymentIntent` or `StripeError<CardActionError>` object.
 An asynchronous function returns information about ApplePay support on the device.
 
 ```ts
-() => Promise<boolean>
+isApplePaySupported(): Promise<boolean>
 ```
 
 ### Return value
@@ -83,7 +83,7 @@ A promise with information about ApplePay support on the device.
 Initiates the Apple Pay payment.
 
 ```ts
-(params: PresentApplePayParams): Promise<{ error?: StripeError<ApplePayError> }>
+presentApplePay(params: PresentApplePayParams): Promise<{ error?: StripeError<ApplePayError> }>
 ```
 
 ### Arguments
@@ -115,7 +115,7 @@ Promise without any data.
 Retrieve payment intent which may be useful for the recovery flow.
 
 ```ts
-(clientSecret: string) => Promise<{
+retrievePaymentIntent(clientSecret: string): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<RetrievePaymentIntentError>
   }>
@@ -134,11 +134,11 @@ Promise with `PaymentIntent` or `StripeError<RetrievePaymentIntentError>` object
 Confirms setup intent creation for future payments. Requires client secret and card and billing details.
 
 ```ts
-(
+confirmSetupIntent(
   paymentIntentClientSecret: string,
   data: PaymentMethodData,
   options?: PaymentMethodOptions
-) => Promise<{
+): Promise<{
     setupIntent?: SetupIntent;
     error?: StripeError<ConfirmSetupIntentError>
   }>
@@ -159,9 +159,9 @@ Promise with `SetupIntent` or `<StripeError<ConfirmSetupIntentError>>` object.
 Setup payment sheet configuration.
 
 ```ts
-(
+setupPaymentSheet(
   params: SetupPaymentSheetParams
-) => Promise<{
+): Promise<{
     paymentOption?: PaymentOption;
     error?: StripeError<PaymentSheetError>;
   }>
@@ -180,7 +180,7 @@ Promise with an object which contains `PaymentOption` or `<StripeError<PaymentSh
 ## presentPaymentSheet
 
 ```ts
-() => Promise<{
+presentPaymentSheet(): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<PaymentSheetError>;
   }>
@@ -193,8 +193,8 @@ Promise with an object which contains `PaymentIntent` or `<StripeError<PaymentSh
 ## presentPaymentOptions
 
 ```ts
-() => Promise<{
-    paymentOption?: PaymentOption;
+presentPaymentOptions(): Promise<{
+    paymentOption?:   PaymentOption;
     error?: StripeError<PaymentSheetError>;
   }>
 ```
@@ -206,10 +206,7 @@ Promise with an object which contains `PaymentOption` or `<StripeError<PaymentSh
 ## paymentSheetConfirmPayment
 
 ```ts
-() => Promise<{
-    paymentIntent?: PaymentIntent;
-    error?: StripeError<PaymentSheetError>;
-  }>
+paymentSheetConfirmPayment(): Promise<{paymentIntent?: PaymentIntent; error?: StripeError<PaymentSheetError> }>
 ```
 
 ### Return value
