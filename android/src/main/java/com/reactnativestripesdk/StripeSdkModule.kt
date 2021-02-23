@@ -3,7 +3,8 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.*
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -13,13 +14,14 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import com.stripe.android.paymentsheet.model.PaymentOption
 
+
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
     return "StripeSdk"
   }
 
   private lateinit var flowController: PaymentSheet.FlowController
-  private lateinit var paymentSheet: PaymentSheet
+  private var paymentSheet: PaymentSheet? = null
 
   private lateinit var publishableKey: String
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
@@ -34,6 +36,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var presentPaymentOptionsPromise: Promise? = null
   private var paymentSheetConfirmPaymentPromise: Promise? = null
   private var presentPaymentSheetPromise: Promise? = null
+  private var setupPaymentSheetPromise: Promise? = null
+
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
@@ -150,10 +154,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun setupPaymentSheet(params: ReadableMap, promise: Promise) {
+    val activity = currentActivity as AppCompatActivity
+
+    if (activity == null) {
+      promise.reject("Fail", "Activity doesn't exist")
+      return
+    }
     val customFlow = getBooleanOrNull(params, "customFlow")
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey)
-    val activity = currentActivity as ComponentActivity
 
     val paymentResultCallback = paymentResultCallback()
     val paymentOptionCallback = paymentOptionCallback()
@@ -171,7 +180,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       )
     )
 
-    if (customFlow != null) {
+    this.setupPaymentSheetPromise = promise
+
+    if (customFlow != false && customFlow != null) {
       flowController = PaymentSheet.FlowController.create(
         activity,
         paymentOptionCallback,
@@ -180,10 +191,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
       configureFlowController(
         paymentIntentClientSecret,
-        promise
       )
     } else {
-      paymentSheet = PaymentSheet(activity, paymentResultCallback)
+      this.paymentSheet = PaymentSheet(activity, paymentResultCallback)
       promise.resolve(null)
     }
   }
@@ -226,7 +236,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private fun configureFlowController(
     paymentIntentClientSecret: String,
-    promise: Promise
   ) {
     val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
       override fun onConfigured(success: Boolean, error: Throwable?) {
@@ -237,9 +246,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           option.putString("label", paymentOption?.label)
           option.putInt("image", paymentOption?.drawableResourceId)
 
-          promise.resolve(option)
+          this.setupPaymentSheetPromise.resolve(option)
         } else {
-          promise.resolve(null)
+          this.setupPaymentSheetPromise.resolve(null)
         }
       }
     }
@@ -254,7 +263,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun presentPaymentSheet(promise: Promise) {
     this.presentPaymentSheetPromise = promise
-    paymentSheet.present(
+    paymentSheet?.present(
       "clientSecret",
       this.paymentSheetConfiguration
     )
@@ -382,8 +391,4 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       stripe.confirmSetupIntent(activity, confirmParams)
     }
   }
-}
-
-private fun PaymentSheet.FlowController.configure(paymentIntentClientSecret: String, configuration: PaymentSheet.Configuration, onFlowControllerConfigure: PaymentSheet.FlowController.ConfigCallback) {
-
 }

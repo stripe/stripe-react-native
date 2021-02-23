@@ -53,6 +53,7 @@ export default function PaymentsUICustomScreen() {
         merchantDisplayName: 'Example Inc.',
         applePay: true,
         merchantCountryCode: 'US',
+        style: 'alwaysDark',
       });
 
       if (!error) {
@@ -68,7 +69,7 @@ export default function PaymentsUICustomScreen() {
     }
   };
 
-  const choosePaymentOptions = async () => {
+  const choosePaymentOption = async () => {
     const { error, paymentOption } = await presentPaymentOptions();
 
     if (error) {
@@ -96,6 +97,7 @@ export default function PaymentsUICustomScreen() {
         `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
       );
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -112,21 +114,26 @@ export default function PaymentsUICustomScreen() {
         <Button
           variant="primary"
           loading={loading}
-          title="Choose payment method"
+          title={
+            paymentMethod ? (
+              <View style={styles.row}>
+                <Image
+                  source={{
+                    uri: `data:image/png;base64,${paymentMethod.image}`,
+                  }}
+                  style={styles.image}
+                />
+                <Text style={styles.text}>{paymentMethod.label}</Text>
+              </View>
+            ) : (
+              'Choose payment method'
+            )
+          }
           disabled={!paymentSheetEnabled}
-          onPress={choosePaymentOptions}
+          onPress={choosePaymentOption}
         />
       </View>
-      <View style={styles.row}>
-        <Text style={styles.paymentMethodTitle}>Payment method:</Text>
-        {paymentMethod && (
-          <Image
-            source={{ uri: `data:image/png;base64,${paymentMethod?.image}` }}
-            style={styles.image}
-          />
-        )}
-        <Text>{paymentMethod?.label || ' -'}</Text>
-      </View>
+
       <View style={styles.section}>
         <Button
           variant="primary"
@@ -147,10 +154,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 15,
   },
   section: {
-    marginBottom: 40,
+    marginTop: 40,
   },
   title: {
     fontSize: 18,
@@ -162,7 +168,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   image: {
-    width: 32,
-    height: 32,
+    width: 16,
+    height: 16,
+  },
+  text: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -154,6 +154,68 @@ Confirms setup intent creation for future payments. Requires client secret and c
 
 Promise with `SetupIntent` or `<StripeError<ConfirmSetupIntentError>>` object.
 
+## setupPaymentSheet
+
+Setup payment sheet configuration.
+
+```ts
+(
+  params: SetupPaymentSheetParams
+) => Promise<{
+    paymentOption?: PaymentOption;
+    error?: StripeError<PaymentSheetError>;
+  }>
+```
+
+### Arguments
+
+- `customerId` - customer ID
+- `customerEphemeralKeySecret` - Ephemeral secrect key
+- `paymentIntentClientSecret` - Pamyment intent client secret
+
+### Return value
+
+Promise with an object which contains `PaymentOption` or `<StripeError<PaymentSheetError>>`.
+
+## presentPaymentSheet
+
+```ts
+() => Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<PaymentSheetError>;
+  }>
+```
+
+### Return value
+
+Promise with an object which contains `PaymentIntent` or `<StripeError<PaymentSheetError>>`.
+
+## presentPaymentOptions
+
+```ts
+() => Promise<{
+    paymentOption?: PaymentOption;
+    error?: StripeError<PaymentSheetError>;
+  }>
+```
+
+### Return value
+
+Promise with an object which contains `PaymentOption` or `<StripeError<PaymentSheetError>>`.
+
+## paymentSheetConfirmPayment
+
+```ts
+() => Promise<{
+    paymentIntent?: PaymentIntent;
+    error?: StripeError<PaymentSheetError>;
+  }>
+```
+
+### Return value
+
+Promise with an object which contains `PaymentIntent` or `<StripeError<PaymentSheetError>>`.
+
 ## threeDSecureParams
 
 ```ts

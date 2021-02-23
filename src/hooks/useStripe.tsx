@@ -246,7 +246,7 @@ export function useStripe() {
   };
 
   const presentPaymentOptions = async (): Promise<{
-    paymentOption?: { label: string; image: string } | null;
+    paymentOption?: PaymentOption | null;
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
