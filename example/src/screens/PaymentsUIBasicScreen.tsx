@@ -7,6 +7,7 @@ import { API_URL } from '../Config';
 export default function PaymentsUIBasicScreen() {
   const { setupPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string>();
 
   const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
@@ -16,7 +17,7 @@ export default function PaymentsUIBasicScreen() {
       },
     });
     const { paymentIntent, ephemeralKey, customer } = await response.json();
-
+    setClientSecret(paymentIntent);
     return {
       paymentIntent,
       ephemeralKey,
@@ -25,7 +26,10 @@ export default function PaymentsUIBasicScreen() {
   };
 
   const openPaymentSheet = async () => {
-    const { error, paymentIntent } = await presentPaymentSheet();
+    if (!clientSecret) {
+      return;
+    }
+    const { error, paymentIntent } = await presentPaymentSheet(clientSecret);
 
     if (error) {
       console.log('error', error);

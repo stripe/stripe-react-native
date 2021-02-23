@@ -247,10 +247,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun presentPaymentSheet(promise: Promise) {
+  fun presentPaymentSheet(clientSecret: String, promise: Promise) {
     this.presentPaymentSheetPromise = promise
-    paymentSheet?.present(
-      "clientSecret",
+    paymentSheet.present(
+      clientSecret,
       this.paymentSheetConfiguration
     )
   }

@@ -226,12 +226,16 @@ export function useStripe() {
     }
   };
 
-  const presentPaymentSheet = async (): Promise<{
+  const presentPaymentSheet = async (
+    clientSecret: string
+  ): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
-      const paymentIntent = await NativeStripeSdk.presentPaymentSheet();
+      const paymentIntent = await NativeStripeSdk.presentPaymentSheet(
+        clientSecret
+      );
 
       return {
         error: undefined,

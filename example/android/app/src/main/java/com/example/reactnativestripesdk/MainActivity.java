@@ -2,24 +2,29 @@ package com.example.reactnativestripesdk;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
-
-import androidx.activity.ComponentActivity;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.facebook.react.ReactActivity;
 import com.reactnativestripesdk.StripeSdkModule;
 import com.stripe.android.paymentsheet.PaymentResult;
 import com.stripe.android.paymentsheet.PaymentSheet;
+import com.stripe.android.paymentsheet.model.PaymentOption;
 
 public class MainActivity extends ReactActivity {
   private PaymentSheet paymentSheet;
+  private PaymentSheet.FlowController flowController;
 
   private void onPaymentSheetResult(
     final PaymentResult paymentResult
   ) {
     // see below
   }
+
+  private void onPaymentOptionResult(
+    final PaymentOption paymentOption
+  ) {
+    // see below
+  }
+
 
 
   /**
@@ -32,12 +37,12 @@ public class MainActivity extends ReactActivity {
   }
 
   @Override
-  public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
-    super.onCreate(savedInstanceState, persistentState);
-
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
     paymentSheet = new PaymentSheet(this, this::onPaymentSheetResult);
-
+    flowController = PaymentSheet.FlowController.create(this, this::onPaymentOptionResult, this::onPaymentSheetResult);
     StripeSdkModule.Companion.setPaymentSheet(paymentSheet);
+    StripeSdkModule.Companion.setFlowController(flowController);
   }
 }
