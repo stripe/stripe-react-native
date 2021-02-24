@@ -1,8 +1,6 @@
 package com.example.reactnativestripesdk;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import androidx.annotation.Nullable;
 import com.facebook.react.ReactActivity;
 import com.reactnativestripesdk.StripeSdkModule;
 import com.stripe.android.paymentsheet.PaymentResult;
@@ -24,8 +22,6 @@ public class MainActivity extends ReactActivity {
   ) {
     // see below
   }
-
-
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
