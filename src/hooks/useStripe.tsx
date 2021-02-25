@@ -232,10 +232,13 @@ export function useStripe() {
     paymentIntent?: PaymentIntent;
     error?: StripeError<PaymentSheetError>;
   }> => {
+    let paymentIntent;
     try {
-      const paymentIntent = await NativeStripeSdk.presentPaymentSheet(
-        clientSecret
-      );
+      if (isiOS) {
+        paymentIntent = await NativeStripeSdk.presentPaymentSheet();
+      } else {
+        paymentIntent = await NativeStripeSdk.presentPaymentSheet(clientSecret);
+      }
 
       return {
         error: undefined,

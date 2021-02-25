@@ -43,7 +43,7 @@ type NativeStripeSdkType = {
   setupPaymentSheet(
     params: SetupPaymentSheetParams
   ): Promise<PaymentOption | undefined>;
-  presentPaymentSheet(clientSecret: string): Promise<PaymentIntent>;
+  presentPaymentSheet(clientSecret?: string): Promise<PaymentIntent>;
   paymentSheetConfirmPayment(): Promise<PaymentIntent>;
   presentPaymentOptions(): Promise<PaymentOption | undefined>;
 };
