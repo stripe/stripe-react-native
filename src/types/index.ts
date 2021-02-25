@@ -1,6 +1,6 @@
-/// <reference path="./PaymentMethods.d.ts" />
-/// <reference path="./PaymentIntents.d.ts" />
-/// <reference path="./SetupIntents.d.ts" />
+/// <reference path="./PaymentMethods.ts" />
+/// <reference path="./PaymentIntents.ts" />
+/// <reference path="./SetupIntent.ts" />
 
 declare module '@stripe/stripe-react-native' {
   export type Dictionary<T> = {

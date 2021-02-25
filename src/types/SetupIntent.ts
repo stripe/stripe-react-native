@@ -6,7 +6,7 @@ declare module '@stripe/stripe-react-native' {
     created: Nullable<string>;
     livemode: boolean;
     paymentMethodId: Nullable<string>;
-    status: Status;
+    status: SetupIntents.Status;
     paymentMethodTypes: PaymentMethods.Types[];
     usage: SetupIntents.Usage;
     description: Nullable<string>;

@@ -1,3 +1,5 @@
+import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
+
 declare module '@stripe/stripe-react-native' {
   namespace CardFieldInput {
     export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
@@ -12,11 +14,11 @@ declare module '@stripe/stripe-react-native' {
 
     export interface Props {
       style?: StyleProp<ViewStyle>;
-      value?: Partial<CardDetails>;
+      value?: Partial<Details>;
       postalCodeEnabled?: boolean;
-      onCardChange(event: NativeSyntheticEvent<CardDetails>): void;
+      onCardChange(event: NativeSyntheticEvent<Details>): void;
       onFocusChange(
-        event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
+        event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
       ): void;
     }
   }
