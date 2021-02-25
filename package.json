@@ -28,7 +28,8 @@
     "release": "release-it",
     "example": "yarn --cwd example",
     "pods": "cd example && pod-install --quiet",
-    "bootstrap": "yarn example && yarn && yarn pods"
+    "bootstrap": "yarn example && yarn && yarn pods",
+    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal"
   },
   "keywords": [
     "react-native",
@@ -60,7 +61,9 @@
     "react": "16.11.0",
     "react-native": "0.62.2",
     "release-it": "^13.5.8",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "eledoc": "^0.2.1",
+    "typedoc": "^0.20.28"
   },
   "peerDependencies": {
     "react": "*",
@@ -139,8 +142,5 @@
       "module",
       "typescript"
     ]
-  },
-  "dependencies": {
-    "typedoc": "^0.20.28"
   }
 }
