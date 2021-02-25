@@ -8,7 +8,6 @@ export type Nullable<T> = T | null;
 
 /**
  * IntentStatus
- * @category Stripe
  */
 export type CardDetails = {
   last4: string;
@@ -21,7 +20,6 @@ export type CardDetails = {
 
 /**
  * Billing details
- * @category Stripe
  */
 export type BillingDetails = {
   email?: string;
@@ -36,10 +34,9 @@ export type BillingDetails = {
 };
 
 /**
- * CardFieldProps
- * @category Stripe
+ * @ignore
  */
-export type CardFieldProps = {
+export type CardFieldNativeProps = {
   style?: StyleProp<ViewStyle>;
   value?: Partial<CardDetails>;
   postalCodeEnabled?: boolean;
@@ -51,7 +48,6 @@ export type CardFieldProps = {
 
 /**
  * FocusFieldNames
- * @category Stripe
  */
 export type FocusFieldNames =
   | 'CardNumber'
@@ -61,7 +57,6 @@ export type FocusFieldNames =
 
 /**
  * IntentStatus
- * @category Stripe
  */
 export enum IntentStatus {
   Succeeded = 'Succeeded',
@@ -76,7 +71,6 @@ export enum IntentStatus {
 
 /**
  * Address
- * @category Stripe
  */
 export interface Address {
   city: string;
@@ -89,7 +83,6 @@ export interface Address {
 
 /**
  * ShippingDetails
- * @category Stripe
  */
 export interface ShippingDetails {
   address: Address;
@@ -101,7 +94,6 @@ export interface ShippingDetails {
 
 /**
  * PaymentIntent test test
- * @category Stripe
  */
 export interface PaymentIntent {
   id: string;
@@ -124,16 +116,14 @@ export interface PaymentIntent {
 /**
  * LastPaymentError
  * {@link StripeError}
- * @category Stripe
  */
-export type LastPaymentError = StripeError<string> & {
+export interface LastPaymentError extends StripeError<string> {
   paymentMethod: PaymentMethod;
   type: PaymentIntentLastPaymentErrorType;
-};
+}
 
 /**
  * PaymentIntentLastPaymentErrorType
- * @category Stripe
  */
 type PaymentIntentLastPaymentErrorType =
   | 'ApiConnection'
@@ -147,7 +137,6 @@ type PaymentIntentLastPaymentErrorType =
 
 /**
  * SetupIntentUsage
- * @category Stripe
  */
 type SetupIntentUsage =
   | 'Unknown'
@@ -158,7 +147,6 @@ type SetupIntentUsage =
 
 /**
  * SetupIntent test test
- * @category Stripe
  */
 export interface SetupIntent {
   id: string;
@@ -175,7 +163,6 @@ export interface SetupIntent {
 
 /**
  * NavigationBarStyle
- * @category Stripe
  */
 export enum NavigationBarStyle {
   default = 0,
@@ -185,7 +172,6 @@ export enum NavigationBarStyle {
 
 /**
  * NavigationBarPropsIOS
- * @category Stripe
  */
 export interface NavigationBarPropsIOS {
   barStyle?: NavigationBarStyle;
@@ -195,7 +181,6 @@ export interface NavigationBarPropsIOS {
 
 /**
  * NavigationBarPropsAndroid
- * @category Stripe
  */
 export interface NavigationBarPropsAndroid {
   statusBarColor?: string;
@@ -206,7 +191,6 @@ export interface NavigationBarPropsAndroid {
  * ThreeDsFooterProps
  * {@link NavigationBarPropsAndroid NavigationBarPropsAndroid}
  * {@link NavigationBarPropsIOS NavigationBarPropsIOS}
- * @category Stripe
  */
 export interface NavigationBarProps
   extends NavigationBarPropsAndroid,
@@ -219,7 +203,6 @@ export interface NavigationBarProps
 
 /**
  * ThreeDsFooterProps
- * @category Stripe
  */
 export interface ThreeDsFooterProps {
   backgroundColor?: string;
@@ -230,7 +213,6 @@ export interface ThreeDsFooterProps {
 
 /**
  * ThreeDSecureMainPropsIOS
- * @category Stripe
  */
 export interface ThreeDSecureMainPropsIOS {
   backgroundColor?: string;
@@ -239,7 +221,6 @@ export interface ThreeDSecureMainPropsIOS {
 
 /**
  * ThreeDSecureMainPropsAndroid
- * @category Stripe
  */
 export interface ThreeDSecureMainPropsAndroid {
   accentColor?: string;
@@ -249,7 +230,6 @@ export interface ThreeDSecureMainPropsAndroid {
  * ThreeDSecureMainProps
  * {@link ThreeDSecureMainPropsIOS ThreeDSecureMainPropsIOS}
  * {@link ThreeDSecureMainPropsAndroid ThreeDSecureMainPropsAndroid}
- * @category Stripe
  */
 export interface ThreeDSecureMainProps
   extends ThreeDSecureMainPropsIOS,
@@ -257,9 +237,8 @@ export interface ThreeDSecureMainProps
 
 /**
  * ThreeDsLabelProps
- * @category Stripe
  */
-interface ThreeDsLabelProps {
+export interface ThreeDsLabelProps {
   headingTextColor?: string;
   textColor?: string;
   textFontSize?: number;
@@ -268,9 +247,8 @@ interface ThreeDsLabelProps {
 
 /**
  * ThreeDSecureTextFieldProps
- * @category Stripe
  */
-interface ThreeDSecureTextFieldProps {
+export interface ThreeDSecureTextFieldProps {
   borderColor?: string;
   borderWidth?: number;
   cornerRadius?: number;
@@ -280,9 +258,8 @@ interface ThreeDSecureTextFieldProps {
 
 /**
  * ThreeDSecureSubmitButtonProps
- * @category Stripe
  */
-interface ThreeDSecureSubmitButtonProps {
+export interface ThreeDSecureSubmitButtonProps {
   backgroundColor?: string;
   cornerRadius?: number;
   textColor?: string;
@@ -292,7 +269,6 @@ interface ThreeDSecureSubmitButtonProps {
 /**
  * ThreeDSecureConfigurationParams
  * {@link ThreeDSecureMainProps ThreeDSecureMainProps}
- * @category Stripe
  */
 export interface ThreeDSecureConfigurationParams extends ThreeDSecureMainProps {
   timeout?: number;
@@ -304,20 +280,17 @@ export interface ThreeDSecureConfigurationParams extends ThreeDSecureMainProps {
 
 /**
  * PaymentMethodOptions
- * @category Stripe
  */
 export interface PaymentMethodOptions {}
 
 /**
- * PaymentMethodOptions
- * @category Stripe
+ * PaymentMethodData
  */
 export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 
 /**
- * SetupIntentUsage
+ * PaymentMethodBaseData
  * @typeParam T member of PaymentMethodTypes
- * @category Stripe
  */
 export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
   type: T;
@@ -326,7 +299,6 @@ export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
 
 /**
  * PaymentMethodCardData
- * @category Stripe
  */
 export type PaymentMethodCardData =
   | (PaymentMethodBaseData<'Card'> & {
@@ -339,14 +311,12 @@ export type PaymentMethodCardData =
 /**
  * PaymentMethodAliPayData
  * {@link PaymentMethodBaseData}
- * @category Stripe
  */
 export interface PaymentMethodAliPayData
   extends PaymentMethodBaseData<'Alipay'> {}
 
 /**
  * PaymentMethodTypes
- * @category Stripe
  */
 export type PaymentMethodTypes =
   | 'AfterpayClearpay'
@@ -368,7 +338,10 @@ export type PaymentMethodTypes =
   | 'Upi'
   | 'Unknown';
 
-type CardBrand =
+/**
+ * CardBrand
+ */
+export type CardBrand =
   | 'AmericanExpress'
   | 'DinersClub'
   | 'Discover'
@@ -380,7 +353,6 @@ type CardBrand =
 
 /**
  * PaymentMethod
- * @category Stripe
  */
 export interface PaymentMethod {
   id: string;
@@ -435,7 +407,6 @@ export interface PaymentMethod {
 
 /**
  * ConfirmPaymentError
- * @category Stripe
  */
 export enum ConfirmPaymentError {
   Canceled = 'Canceled',
@@ -445,7 +416,6 @@ export enum ConfirmPaymentError {
 
 /**
  * CardActionError
- * @category Stripe
  */
 export enum CardActionError {
   Canceled = 'Canceled',
@@ -455,7 +425,6 @@ export enum CardActionError {
 
 /**
  * ConfirmSetupIntentError
- * @category Stripe
  */
 export enum ConfirmSetupIntentError {
   Canceled = 'Canceled',
@@ -465,7 +434,6 @@ export enum ConfirmSetupIntentError {
 
 /**
  * RetrievePaymentIntentError
- * @category Stripe
  */
 export enum RetrievePaymentIntentError {
   Canceled = 'Canceled',
@@ -473,7 +441,6 @@ export enum RetrievePaymentIntentError {
 
 /**
  * ApplePayError
- * @category Stripe
  */
 
 export enum ApplePayError {
@@ -484,7 +451,6 @@ export enum ApplePayError {
 
 /**
  * CreatePaymentMethodError
- * @category Stripe
  */
 export enum CreatePaymentMethodError {
   Failed = 'Failed',
@@ -493,7 +459,6 @@ export enum CreatePaymentMethodError {
 /**
  * StripeError
  * @typeParam T type of error code.
- * @category Stripe
  */
 export type StripeError<T> = {
   message: string;
@@ -501,10 +466,9 @@ export type StripeError<T> = {
 };
 
 /**
- * ApplePayButtonProps
- * @category Stripe
+ * @ignore
  */
-export type ApplePayButtonProps = {
+export type ApplePayButtonNativeProps = {
   style?: StyleProp<ViewStyle>;
   type?: number;
   buttonStyle?: number;
@@ -513,15 +477,13 @@ export type ApplePayButtonProps = {
 
 /**
  * ShippingMethodType
- * @category Stripe
  */
-type ShippingMethodType = 'final' | 'pending';
+export type ShippingMethodType = 'final' | 'pending';
 
 /**
  * ContactFieldsType
- * @category Stripe
  */
-type ContactFieldsType =
+export type ContactFieldsType =
   | 'emailAddress'
   | 'name'
   | 'phoneNumber'
@@ -530,7 +492,6 @@ type ContactFieldsType =
 
 /**
  * ShippingMethod
- * @category Stripe
  */
 export interface ShippingMethod {
   label: string;
@@ -542,7 +503,6 @@ export interface ShippingMethod {
 
 /**
  * PresentApplePayParams
- * @category Stripe
  */
 export interface PresentApplePayParams {
   cartItems: CartSummaryItem[];
@@ -555,7 +515,6 @@ export interface PresentApplePayParams {
 
 /**
  * ApplePayButtonType
- * @category Stripe
  */
 export type ApplePayButtonType =
   | 'plain'
@@ -577,7 +536,6 @@ export type ApplePayButtonType =
 
 /**
  * ApplePayButtonStyle
- * @category Stripe
  */
 export type ApplePayButtonStyle =
   | 'white'
@@ -587,7 +545,6 @@ export type ApplePayButtonStyle =
 
 /**
  * CartSummaryItem
- * @category Stripe
  */
 export type CartSummaryItem = {
   label: string;
@@ -596,7 +553,6 @@ export type CartSummaryItem = {
 
 /**
  * AppInfo
- * @category Stripe
  */
 export type AppInfo = Partial<{
   name: string;

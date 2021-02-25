@@ -21,6 +21,17 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
+        
+        
+        cardField.backgroundColor
+        cardField.borderColor
+        cardField.borderWidth
+        cardField.cornerRadius
+        cardField.cursorColor
+        cardField.textColor
+        cardField.font
+        cardField.textErrorColor
+ 
         self.addSubview(cardField)
     }
     

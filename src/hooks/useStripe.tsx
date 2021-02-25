@@ -21,6 +21,9 @@ import StripeSdk from '../NativeStripeSdk';
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
 
+/**
+ * useStripe hook
+ */
 export function useStripe() {
   const [isApplePaySupported, setApplePaySupported] = useState(false);
 

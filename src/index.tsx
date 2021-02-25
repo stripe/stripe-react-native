@@ -5,9 +5,15 @@ export { useStripe } from './hooks/useStripe';
 export { useApplePay } from './hooks/useApplePay';
 
 //components
-export { StripeProvider } from './components/StripeProvider';
-export { CardField } from './components/CardField';
-export { ApplePayButton } from './components/ApplePayButton';
+export {
+  StripeProvider,
+  Props as StripeProviderProps,
+} from './components/StripeProvider';
+export { CardField, Props as CardFieldProps } from './components/CardField';
+export {
+  ApplePayButton,
+  Props as ApplePayButtonProps,
+} from './components/ApplePayButton';
 // types
 export {
   CardDetails,
@@ -27,9 +33,9 @@ export {
   ApplePayButtonType,
   Address,
   AppInfo,
-  ApplePayButtonProps,
+  ApplePayButtonNativeProps,
   ApplePayButtonStyle,
-  CardFieldProps,
+  CardFieldNativeProps,
   CartSummaryItem,
   FocusFieldNames,
   LastPaymentError,
@@ -50,4 +56,10 @@ export {
   ThreeDSecureMainPropsAndroid,
   ThreeDSecureMainPropsIOS,
   ThreeDsFooterProps,
+  CardBrand,
+  ContactFieldsType,
+  ShippingMethodType,
+  ThreeDSecureSubmitButtonProps,
+  ThreeDSecureTextFieldProps,
+  ThreeDsLabelProps,
 } from './types';

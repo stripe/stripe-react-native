@@ -7,31 +7,47 @@ import {
   ViewStyle,
 } from 'react-native';
 import type {
-  CardFieldProps,
+  CardFieldNativeProps,
   Nullable,
   FocusFieldNames,
   CardDetails,
 } from '../types';
 
-const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
+const CardFieldNative = requireNativeComponent<CardFieldNativeProps>(
+  'CardField'
+);
 
-type Props = AccessibilityProps & {
+export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
   onCardChange?(card: CardDetails): void;
   onFocus?(focusedField: Nullable<FocusFieldNames>): void;
-};
+}
 
 type NativeCardDetails = CardDetails & {
   number: string;
   cvc: string;
 };
 
-export const CardField: React.FC<Props> = ({
-  onCardChange,
-  onFocus,
-  ...props
-}) => {
+/**
+ *  Card Field component
+ *
+ * @example
+ * ```ts
+ * <CardField
+ *    postalCodeEnabled={false}
+ *    onCardChange={(cardDetails) => {
+ *    console.log('card details', cardDetails);
+ *      setCard(cardDetails);
+ *    }}
+ *    style={{height: 50}}
+ *  />
+ * ```
+ * @param __namedParameters Props
+ * @returns JSX.Element
+ * @category ReactComponents
+ */
+export function CardField({ onCardChange, onFocus, ...props }: Props) {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
@@ -80,4 +96,4 @@ export const CardField: React.FC<Props> = ({
       {...props}
     />
   );
-};
+}

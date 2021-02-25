@@ -2,6 +2,9 @@ import { useState } from 'react';
 import type { PresentApplePayParams } from '../types';
 import { useStripe } from './useStripe';
 
+/**
+ * useApplePay hook
+ */
 export function useApplePay() {
   const {
     isApplePaySupported,

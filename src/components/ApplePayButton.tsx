@@ -6,27 +6,24 @@ import {
   ViewStyle,
 } from 'react-native';
 import type {
-  ApplePayButtonProps,
+  ApplePayButtonNativeProps,
   ApplePayButtonType,
   ApplePayButtonStyle,
 } from '../types';
 
-const ApplePayButtonNative = requireNativeComponent<ApplePayButtonProps>(
+const ApplePayButtonNative = requireNativeComponent<ApplePayButtonNativeProps>(
   'ApplePayButton'
 );
 
 /**
  *  Apple Pay button component props
- * @param types
- * @param buttonStyle
- * @param onPress
  */
-type Props = AccessibilityProps & {
+export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   type?: ApplePayButtonType;
   buttonStyle?: ApplePayButtonStyle;
   onPress(): void;
-};
+}
 
 /**
  *  Apple Pay button component
@@ -40,6 +37,9 @@ type Props = AccessibilityProps & {
  *    style={styles.payButton}
  *  />
  * ```
+ * @param __namedParameters Props
+ * @returns JSX.Element
+ * @category ReactComponents
  */
 export function ApplePayButton({
   onPress,
