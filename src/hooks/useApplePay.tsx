@@ -1,5 +1,5 @@
+import type { PresentApplePayParams } from '@stripe/stripe-react-native';
 import { useState } from 'react';
-import type { PresentApplePayParams } from '../types';
 import { useStripe } from './useStripe';
 
 /**

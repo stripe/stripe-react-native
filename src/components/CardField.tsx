@@ -1,3 +1,4 @@
+import type { CardFieldInput } from '@stripe/stripe-react-native';
 import React, { useCallback } from 'react';
 import {
   AccessibilityProps,
@@ -6,25 +7,20 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type {
-  CardFieldNativeProps,
-  Nullable,
-  FocusFieldNames,
-  CardDetails,
-} from '../types';
+import type { Nullable } from '@stripe/stripe-react-native';
 
-const CardFieldNative = requireNativeComponent<CardFieldNativeProps>(
+const CardFieldNative = requireNativeComponent<CardFieldInput.Props>(
   'CardField'
 );
 
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
-  onCardChange?(card: CardDetails): void;
-  onFocus?(focusedField: Nullable<FocusFieldNames>): void;
+  onCardChange?(card: CardFieldInput.Details): void;
+  onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }
 
-type NativeCardDetails = CardDetails & {
+type NativeCardDetails = CardFieldInput.Details & {
   number: string;
   cvc: string;
 };
@@ -82,7 +78,9 @@ export function CardField({ onCardChange, onFocus, ...props }: Props) {
 
   const onFocusHandler = useCallback(
     (
-      event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
+      event: NativeSyntheticEvent<{
+        focusedField: Nullable<CardFieldInput.Names>;
+      }>
     ) => {
       onFocus?.(event.nativeEvent.focusedField);
     },

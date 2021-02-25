@@ -1,3 +1,4 @@
+import type { ApplePayButtonComponent } from '@stripe/stripe-react-native';
 import React, { useMemo } from 'react';
 import {
   AccessibilityProps,
@@ -5,23 +6,18 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type {
-  ApplePayButtonNativeProps,
-  ApplePayButtonType,
-  ApplePayButtonStyle,
-} from '../types';
 
-const ApplePayButtonNative = requireNativeComponent<ApplePayButtonNativeProps>(
-  'ApplePayButton'
-);
+const ApplePayButtonNative = requireNativeComponent<
+  ApplePayButtonComponent.NativeProps
+>('ApplePayButton');
 
 /**
  *  Apple Pay button component props
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
-  type?: ApplePayButtonType;
-  buttonStyle?: ApplePayButtonStyle;
+  type?: ApplePayButtonComponent.Types;
+  buttonStyle?: ApplePayButtonComponent.Styles;
   onPress(): void;
 }
 
@@ -60,7 +56,7 @@ export function ApplePayButton({
   );
 }
 
-function mapButtonType(type: ApplePayButtonType) {
+function mapButtonType(type: ApplePayButtonComponent.Types) {
   switch (type) {
     case 'plain':
       return 0;
@@ -99,7 +95,7 @@ function mapButtonType(type: ApplePayButtonType) {
   }
 }
 
-function mapButtonStyle(type: ApplePayButtonStyle) {
+function mapButtonStyle(type: ApplePayButtonComponent.Styles) {
   switch (type) {
     case 'white':
       return 0;
