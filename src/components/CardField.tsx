@@ -1,4 +1,4 @@
-import type { CardFieldInput } from '@stripe/stripe-react-native';
+import type { CardFieldInput, Nullable } from '../types';
 import React, { useCallback } from 'react';
 import {
   AccessibilityProps,
@@ -7,9 +7,8 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type { Nullable } from '@stripe/stripe-react-native';
 
-const CardFieldNative = requireNativeComponent<CardFieldInput.Props>(
+const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
   'CardField'
 );
 

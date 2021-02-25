@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { CreatePaymentMethod } from '@stripe/stripe-react-native';
+import type { CreatePaymentMethod } from '../types';
 import { useStripe } from './useStripe';
 
 /**

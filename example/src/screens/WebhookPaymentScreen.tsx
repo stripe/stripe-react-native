@@ -1,7 +1,4 @@
-import type {
-  CardFieldInput,
-  CreatePaymentMethod,
-} from '@stripe/stripe-react-native';
+import type { CardFieldInput, CreatePaymentMethod } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 import { CardField, useConfirmPayment } from 'stripe-react-native';
