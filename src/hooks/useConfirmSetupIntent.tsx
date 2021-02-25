@@ -2,6 +2,9 @@ import { useCallback, useState } from 'react';
 import type { PaymentMethodData, PaymentMethodOptions } from '../types';
 import { useStripe } from './useStripe';
 
+/**
+ * useConfirmSetupIntent hook
+ */
 export function useConfirmSetupIntent() {
   const [loading, setLoading] = useState(false);
   const { confirmSetupIntent: confirmSetupIntentNative } = useStripe();

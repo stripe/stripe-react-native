@@ -2,6 +2,9 @@ import { useCallback, useState } from 'react';
 import type { PaymentMethodData, PaymentMethodOptions } from '../types';
 import { useStripe } from './useStripe';
 
+/**
+ * useConfirmPayment hook
+ */
 export function useConfirmPayment() {
   const [loading, setLoading] = useState(false);
   const { confirmPayment: confirmPaymentMethod } = useStripe();
