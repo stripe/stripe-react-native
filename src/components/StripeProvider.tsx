@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../NativeStripeSdk';
 import { isAndroid } from '../helpers';
-import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
+import type {
+  AppInfo,
+  ThreeDSecureConfigurationParams,
+} from '@stripe/stripe-react-native';
 import pjson from '../../package.json';
 
 export interface Props {

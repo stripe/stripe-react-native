@@ -6,9 +6,8 @@ import type {
   PresentApplePayParams,
   SetupIntent,
   AppInfo,
-  PaymentMethodData,
-  PaymentMethodOptions,
-} from './types';
+  CreatePaymentMethod,
+} from '@stripe/stripe-react-native';
 
 type NativeStripeSdkType = {
   initialise(
@@ -19,14 +18,14 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentIntent>;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;
@@ -34,8 +33,8 @@ type NativeStripeSdkType = {
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
 };

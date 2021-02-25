@@ -1,20 +1,19 @@
-import { useEffect, useState } from 'react';
 import {
-  ConfirmPaymentError,
-  PaymentIntent,
-  PaymentMethodData,
-  PaymentMethodOptions,
-  ApplePayError,
-  PresentApplePayParams,
-  RetrievePaymentIntentError,
-  ConfirmSetupIntentError,
-  SetupIntent,
-  CardActionError,
-  CreatePaymentMethodError,
+  CreatePaymentMethod,
   PaymentMethod,
   StripeError,
-} from '../types';
-import { createError, isiOS } from '../helpers';
+  CreatePaymentMethodError,
+  PaymentIntent,
+  ConfirmPaymentError,
+  RetrievePaymentIntentError,
+  ApplePayError,
+  CardActionError,
+  SetupIntent,
+  ConfirmSetupIntentError,
+  PresentApplePayParams,
+} from '@stripe/stripe-react-native';
+import { useEffect, useState } from 'react';
+import { isiOS, createError } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
 
@@ -37,8 +36,8 @@ export function useStripe() {
   }, []);
 
   const createPaymentMethod = async (
-    data: PaymentMethodData,
-    options: PaymentMethodOptions = {}
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options = {}
   ): Promise<{
     paymentMethod?: PaymentMethod;
     error?: StripeError<CreatePaymentMethodError>;
@@ -84,8 +83,8 @@ export function useStripe() {
 
   const confirmPaymentMethod = async (
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<ConfirmPaymentError>;
@@ -180,8 +179,8 @@ export function useStripe() {
 
   const confirmSetupIntent = async (
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<{
     setupIntent?: SetupIntent;
     error?: StripeError<ConfirmSetupIntentError>;

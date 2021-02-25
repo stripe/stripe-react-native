@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
-  BillingDetails,
-  CardDetails,
   CardField,
-  PaymentIntent,
-  SetupIntent,
   useConfirmPayment,
   useConfirmSetupIntent,
   useStripe,
@@ -14,9 +10,15 @@ import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
 import Screen from '../components/Screen';
+import type {
+  CardFieldInput,
+  CreatePaymentMethod,
+  PaymentIntent,
+  SetupIntent,
+} from '@stripe/stripe-react-native';
 
 export default function SetupFuturePaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
@@ -73,7 +75,7 @@ export default function SetupFuturePaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(email);
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: BillingDetails = {
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',
@@ -157,7 +159,7 @@ export default function SetupFuturePaymentScreen() {
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
   // Otherwise collect new details and create new PaymentMethod.
   const handleRecoveryFlow = async () => {
-    const billingDetails: BillingDetails = {
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',
