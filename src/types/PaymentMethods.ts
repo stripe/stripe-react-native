@@ -16,10 +16,7 @@ declare module '@stripe/stripe-react-native' {
   }
 
   export namespace CreatePaymentMethod {
-    export type Params = PaymentMethodCreateParams.CardParams &
-      PaymentMethodCreateParams.AlipayParams;
-
-    export type Options = PaymentMethodCreateParams.Options;
+    export type Params = CardParams | AlipayParams;
 
     export type BillingDetails = {
       email?: string;
@@ -35,16 +32,16 @@ declare module '@stripe/stripe-react-native' {
 
     export interface Options {}
 
-    export interface Params<T extends PaymentMethods.Types> {
+    export interface BaseParams<T extends PaymentMethods.Types> {
       type: T;
       billingDetails: BillingDetails;
     }
 
-    export interface CardParams extends Params<'Card'> {
-      cardDetails: CardDetails;
+    export interface CardParams extends BaseParams<'Card'> {
+      cardDetails: CardFieldInput.Details;
     }
 
-    export interface AlipayParams extends Params<'Alipay'> {}
+    export interface AlipayParams extends BaseParams<'Alipay'> {}
   }
 
   namespace PaymentMethods {

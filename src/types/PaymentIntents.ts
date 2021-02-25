@@ -14,10 +14,19 @@ declare module '@stripe/stripe-react-native' {
     captureMethod: 'Automatic' | 'Manual';
     confirmationMethod: 'Automatic' | 'Manual';
     lastPaymentError: Nullable<StripeError<string>>;
-    shipping: Nullable<PaymentIntent.ShippingDetails>;
+    shipping: Nullable<PaymentIntents.ShippingDetails>;
   }
 
   export namespace PaymentIntents {
+    export interface Address {
+      city: string;
+      county: string;
+      line1: string;
+      line2: string;
+      postalCode: string;
+      state: string;
+    }
+
     export interface ShippingDetails {
       address: Address;
       name: string;
