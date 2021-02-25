@@ -15,7 +15,7 @@ import type {
   CreatePaymentMethod,
   PaymentIntent,
   SetupIntent,
-} from '@stripe/stripe-react-native';
+} from 'stripe-react-native';
 
 export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);

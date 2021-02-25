@@ -1,4 +1,4 @@
-import type { ApplePayButtonComponent } from '@stripe/stripe-react-native';
+import type { ApplePayButtonComponent } from '../types';
 import React, { useMemo } from 'react';
 import {
   AccessibilityProps,

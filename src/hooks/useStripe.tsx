@@ -10,8 +10,8 @@ import {
   CardActionError,
   SetupIntent,
   ConfirmSetupIntentError,
-  PresentApplePayParams,
-} from '@stripe/stripe-react-native';
+  ApplePay,
+} from '../types';
 import { useEffect, useState } from 'react';
 import { isiOS, createError } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -108,7 +108,7 @@ export function useStripe() {
   };
 
   const presentApplePay = async (
-    params: PresentApplePayParams
+    params: ApplePay.PresentParams
   ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {

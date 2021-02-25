@@ -1,4 +1,4 @@
-import type { PresentApplePayParams } from '@stripe/stripe-react-native';
+import type { ApplePay } from '../types';
 import { useState } from 'react';
 import { useStripe } from './useStripe';
 
@@ -13,7 +13,7 @@ export function useApplePay() {
   } = useStripe();
   const [loading, setLoading] = useState(false);
 
-  const presentApplePay = async (data: PresentApplePayParams) => {
+  const presentApplePay = async (data: ApplePay.PresentParams) => {
     setLoading(true);
     const result = await presentApplePayNative(data);
     setLoading(false);

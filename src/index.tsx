@@ -14,4 +14,5 @@ export {
   ApplePayButton,
   Props as ApplePayButtonProps,
 } from './components/ApplePayButton';
-// types
+
+export * from './types/index';
