@@ -20,8 +20,9 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mEventDispatcher = context.getNativeModule(UIManagerModule::class.java).eventDispatcher
 
     addView(mCardWidget)
-    requestLayout()
     setListeners()
+
+    viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
   fun setValue(value: ReadableMap) {
