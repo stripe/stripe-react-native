@@ -12,6 +12,9 @@ const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
   'CardField'
 );
 
+/**
+ *  Card Field Component Props
+ */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
@@ -25,7 +28,7 @@ type NativeCardDetails = CardFieldInput.Details & {
 };
 
 /**
- *  Card Field component
+ *  Card Field Component
  *
  * @example
  * ```ts
@@ -46,13 +49,6 @@ export function CardField({ onCardChange, onFocus, ...props }: Props) {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
-
-      if (__DEV__ && card.complete) {
-        console.warn(
-          '[stripe-react-native] Caution! Never send card details to your server!'
-        );
-      }
-
       const cardNumber = card.number || '';
       const last4 =
         cardNumber.length >= 4 ? cardNumber.slice(cardNumber.length - 4) : '';
