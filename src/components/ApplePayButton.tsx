@@ -12,7 +12,7 @@ const ApplePayButtonNative = requireNativeComponent<
 >('ApplePayButton');
 
 /**
- *  Apple Pay button component props
+ *  Apple Pay Button Component Props
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
@@ -22,7 +22,7 @@ export interface Props extends AccessibilityProps {
 }
 
 /**
- *  Apple Pay button component
+ *  Apple Pay Button Component
  *
  * @example
  * ```ts

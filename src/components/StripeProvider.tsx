@@ -5,6 +5,9 @@ import { isAndroid } from '../helpers';
 import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
 import pjson from '../../package.json';
 
+/**
+ *  Stripe Provider Component Props
+ */
 export interface Props {
   publishableKey: string;
   merchantIdentifier?: string;
@@ -20,7 +23,7 @@ const appInfo: AppInfo = {
 };
 
 /**
- *  StripeProvider component
+ *  StripeProvider Component
  *
  * @example
  * ```ts
