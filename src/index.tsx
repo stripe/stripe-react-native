@@ -5,23 +5,14 @@ export { useStripe } from './hooks/useStripe';
 export { useApplePay } from './hooks/useApplePay';
 
 //components
-export { StripeProvider } from './components/StripeProvider';
-export { CardField } from './components/CardField';
-export { ApplePayButton } from './components/ApplePayButton';
-// types
 export {
-  CardDetails,
-  BillingDetails,
-  PaymentIntent,
-  ThreeDSecureConfigurationParams,
-  PaymentMethod,
-  IntentStatus,
-  StripeError,
-  ConfirmPaymentError,
-  CardActionError,
-  CreatePaymentMethodError,
-  ConfirmSetupIntentError,
-  SetupIntent,
-  NavigationBarStyle,
-  ApplePayError,
-} from './types';
+  StripeProvider,
+  Props as StripeProviderProps,
+} from './components/StripeProvider';
+export { CardField, Props as CardFieldProps } from './components/CardField';
+export {
+  ApplePayButton,
+  Props as ApplePayButtonProps,
+} from './components/ApplePayButton';
+
+export * from './types/index';
