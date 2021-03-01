@@ -80,6 +80,7 @@ export default function WebhookPaymentScreen() {
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);
         }}
+        cardStyle={inputStyles}
         style={styles.cardField}
       />
       <Button
@@ -99,3 +100,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
+
+const inputStyles = {
+  borderWidth: 1,
+  backgroundColor: '#b42222',
+  borderColor: '#000000',
+  cornerRadius: 8,
+  textColor: '#000000',
+  fontSize: 14,
+  placeholderColor: '#999999',
+  textErrorColor: '#b42222',
+};

@@ -6,4 +6,5 @@
 RCT_EXPORT_VIEW_PROPERTY(postalCodeEnabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onCardChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onFocusChange, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(cardStyle, NSDictionary)
 @end
