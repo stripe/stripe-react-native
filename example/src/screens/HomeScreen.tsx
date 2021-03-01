@@ -48,7 +48,7 @@ export default function HomeScreen() {
         <Button
           title="Re-collect CVC"
           onPress={() => {
-            navigation.navigate('ReCollectCVCScreen');
+            navigation.navigate('CVCReCollectionScreen');
           }}
         />
       </View>
