@@ -92,20 +92,34 @@ app.post(
       items,
       currency,
       request_three_d_secure,
+      email,
     }: {
       items: Order;
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
+      email: string;
     } = req.body;
     // Create a PaymentIntent with the order amount and currency.
     const customer = await stripe.customers.list({
-      email: req.body.email,
+      email,
     });
+    if (!customer.data[0]) {
+      res.send({
+        error: 'There is no associated customer object to the provided e-mail',
+      });
+    }
     // List the customer's payment methods to find one to charge
     const paymentMethods = await stripe.paymentMethods.list({
       customer: customer.data[0].id,
       type: 'card',
     });
+
+    if (!paymentMethods.data[0]) {
+      res.send({
+        error:
+          'There is no associated payment method to the provided customer ID',
+      });
+    }
 
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
@@ -116,6 +130,7 @@ app.post(
         },
       },
       payment_method: paymentMethods.data[0].id,
+      customer: customer.data[0].id,
     };
 
     const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
@@ -125,6 +140,7 @@ app.post(
     // Send publishable key and PaymentIntent client_secret to client.
     res.send({
       clientSecret: paymentIntent.client_secret,
+      paymentMethodId: paymentMethods.data[0].id,
     });
   }
 );
