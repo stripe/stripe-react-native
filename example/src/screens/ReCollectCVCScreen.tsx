@@ -6,7 +6,7 @@ import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function CVCRecollectionScreen() {
+export default function ReCollectCVCScreen() {
   const [cvc, setCvc] = useState<string>();
   const [email, setEmail] = useState<string>();
   const [loading, setLoading] = useState(false);
