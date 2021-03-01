@@ -12,6 +12,7 @@ import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
+import CVCRecollectionScreen from './screens/CVCRecollectionScreen';
 
 const Stack = createStackNavigator();
 
@@ -87,6 +88,10 @@ export default function App() {
           <Stack.Screen
             name="SetupFuturePayment"
             component={SetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="CVCRecollectionScreen"
+            component={CVCRecollectionScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

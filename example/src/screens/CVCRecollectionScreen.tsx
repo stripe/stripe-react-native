@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   BillingDetails,
   CardDetails,
@@ -9,11 +9,10 @@ import {
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
-import Checkbox from '@react-native-community/checkbox';
+import { colors } from '../colors';
 
-export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
-  const [saveCard, setSaveCard] = useState(false);
+export default function CVCRecollectionScreen() {
+  const [cvc, setCvc] = useState<string>();
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -35,31 +34,18 @@ export default function WebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    if (!card) {
+    if (!cvc) {
       return;
     }
 
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
-    // 2. Gather customer billing information (ex. email)
-    const billingDetails: BillingDetails = {
-      email: 'email@stripe.com',
-      phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
-    }; // mocked data for tests
-
-    // 3. Confirm payment with card details
+    // 2. Confirm payment with CVC
     // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Card',
-      billingDetails,
-      cardDetails: card,
-      setupFutureUsage: saveCard ? 'OffSession' : undefined,
+      cvc: cvc,
     });
 
     if (error) {
@@ -76,23 +62,11 @@ export default function WebhookPaymentScreen() {
 
   return (
     <Screen>
-      <CardField
-        postalCodeEnabled={false}
-        onCardChange={(cardDetails) => {
-          setCard(cardDetails);
-        }}
-        onFocus={(focusedField) => {
-          console.log('focusField', focusedField);
-        }}
-        style={styles.cardField}
+      <TextInput
+        style={styles.input}
+        placeholder="CVC"
+        onChange={(value) => setCvc(value.nativeEvent.text)}
       />
-      <View style={styles.row}>
-        <Checkbox
-          onValueChange={(value) => setSaveCard(value)}
-          value={saveCard}
-        />
-        <Text style={styles.text}>Save card during payment</Text>
-      </View>
       <Button
         variant="primary"
         onPress={handlePayPress}
@@ -104,17 +78,10 @@ export default function WebhookPaymentScreen() {
 }
 
 const styles = StyleSheet.create({
-  cardField: {
-    width: '100%',
-    height: 50,
+  input: {
+    height: 44,
+    borderBottomColor: colors.slate,
+    borderBottomWidth: 1.5,
     marginBottom: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  text: {
-    marginLeft: 12,
   },
 });

@@ -44,6 +44,14 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="CVC Recollection"
+          onPress={() => {
+            navigation.navigate('CVCRecollectionScreen');
+          }}
+        />
+      </View>
     </Screen>
   );
 }
