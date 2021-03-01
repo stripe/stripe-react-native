@@ -11,6 +11,7 @@ import type {
   Nullable,
   FocusFieldNames,
   CardDetails,
+  CardStyles,
 } from '../types';
 
 const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
@@ -18,6 +19,7 @@ const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
 type Props = AccessibilityProps & {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
+  cardStyle?: CardStyles;
   onCardChange?(card: CardDetails): void;
   onFocus?(focusedField: Nullable<FocusFieldNames>): void;
 };

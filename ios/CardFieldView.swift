@@ -18,6 +18,38 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc var cardStyle: NSDictionary = NSDictionary() {
+        didSet {
+            if let borderWidth = cardStyle["borderWidth"]  as? Int {
+                cardField.borderWidth = CGFloat(borderWidth)
+            }
+            if let backgroundColor = cardStyle["backgroundColor"]  as? String {
+                cardField.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let borderColor = cardStyle["borderColor"]  as? String {
+                cardField.borderColor = UIColor(hexString: borderColor)
+            }
+            if let cornerRadius = cardStyle["cornerRadius"]  as? Int {
+                cardField.cornerRadius = CGFloat(cornerRadius)
+            }
+            if let cursorColor = cardStyle["cursorColor"]  as? String {
+                cardField.cursorColor = UIColor(hexString: cursorColor)
+            }
+            if let textColor = cardStyle["textColor"]  as? String {
+                cardField.textColor = UIColor(hexString: textColor)
+            }
+            if let textErrorColor = cardStyle["textErrorColor"]  as? String {
+                cardField.textErrorColor = UIColor(hexString: textErrorColor)
+            }
+            if let fontSize = cardStyle["fontSize"]  as? Int {
+                cardField.font = UIFont.systemFont(ofSize: CGFloat(fontSize))
+            }
+            if let placeholderColor = cardStyle["placeholderColor"]  as? String {
+                cardField.placeholderColor = UIColor(hexString: placeholderColor)
+            }
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self

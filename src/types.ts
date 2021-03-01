@@ -27,6 +27,18 @@ export type BillingDetails = {
   addressState?: string;
 };
 
+export interface CardStyles {
+  borderWidth?: number;
+  backgroundColor?: string;
+  borderColor?: string;
+  cornerRadius?: number;
+  textColor?: string;
+  fontSize?: number;
+  placeholderColor?: string;
+  cursorColor?: string;
+  textErrorColor?: string;
+}
+
 export type CardFieldProps = {
   style?: StyleProp<ViewStyle>;
   value?: Partial<CardDetails>;
@@ -35,6 +47,7 @@ export type CardFieldProps = {
   onFocusChange(
     event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
   ): void;
+  cardStyle?: CardStyles;
 };
 
 export type FocusFieldNames =
