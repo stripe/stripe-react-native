@@ -209,16 +209,16 @@ export interface PaymentMethodBaseData<T extends PaymentMethodTypes = 'Card'> {
   billingDetails?: BillingDetails;
 }
 
+export type PaymentIntentFutureUsage = 'OffSession' | 'OnSession';
+
 export type PaymentMethodCardData =
   | (PaymentMethodBaseData<'Card'> & {
-      setupFutureUsage?: SetupIntentUsage;
+      setupFutureUsage?: PaymentIntentFutureUsage;
       cardDetails: CardDetails;
     })
   | (PaymentMethodBaseData<'Card'> & {
-      cvc: string;
-    })
-  | (PaymentMethodBaseData<'Card'> & {
       paymentMethodId: string;
+      cvc?: string;
     });
 
 export interface PaymentMethodAliPayData
