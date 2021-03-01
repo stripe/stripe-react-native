@@ -99,10 +99,10 @@ app.post(
       request_three_d_secure: 'any' | 'automatic';
       email: string;
     } = req.body;
-    // Create a PaymentIntent with the order amount and currency.
     const customer = await stripe.customers.list({
       email,
     });
+
     if (!customer.data[0]) {
       res.send({
         error: 'There is no associated customer object to the provided e-mail',
@@ -116,8 +116,7 @@ app.post(
 
     if (!paymentMethods.data[0]) {
       res.send({
-        error:
-          'There is no associated payment method to the provided customer ID',
+        error: 'There is no associated payment method to the provided customer',
       });
     }
 
