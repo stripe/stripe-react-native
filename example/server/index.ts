@@ -86,6 +86,50 @@ app.post(
 );
 
 app.post(
+  '/create-payment-intent-with-payment-method',
+  async (req: express.Request, res: express.Response): Promise<void> => {
+    const {
+      items,
+      currency,
+      request_three_d_secure,
+    }: {
+      items: Order;
+      currency: string;
+      request_three_d_secure: 'any' | 'automatic';
+    } = req.body;
+    // Create a PaymentIntent with the order amount and currency.
+    const customer = await stripe.customers.list({
+      email: req.body.email,
+    });
+    // List the customer's payment methods to find one to charge
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customer.data[0].id,
+      type: 'card',
+    });
+
+    const params: Stripe.PaymentIntentCreateParams = {
+      amount: calculateOrderAmount(items),
+      currency,
+      payment_method_options: {
+        card: {
+          request_three_d_secure: request_three_d_secure || 'automatic',
+        },
+      },
+      payment_method: paymentMethods.data[0].id,
+    };
+
+    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+      params
+    );
+
+    // Send publishable key and PaymentIntent client_secret to client.
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  }
+);
+
+app.post(
   '/pay-without-webhooks',
   async (req: express.Request, res: express.Response): Promise<void> => {
     const {

@@ -204,14 +204,18 @@ export interface PaymentMethodOptions {}
 
 export type PaymentMethodData = PaymentMethodCardData | PaymentMethodAliPayData;
 
-export interface PaymentMethodBaseData<T extends PaymentMethodTypes> {
+export interface PaymentMethodBaseData<T extends PaymentMethodTypes = 'Card'> {
   type: T;
   billingDetails?: BillingDetails;
 }
 
 export type PaymentMethodCardData =
   | (PaymentMethodBaseData<'Card'> & {
+      setupFutureUsage?: SetupIntentUsage;
       cardDetails: CardDetails;
+    })
+  | (PaymentMethodBaseData<'Card'> & {
+      cvc: string;
     })
   | (PaymentMethodBaseData<'Card'> & {
       paymentMethodId: string;
