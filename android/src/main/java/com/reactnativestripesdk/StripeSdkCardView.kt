@@ -1,7 +1,13 @@
 package com.reactnativestripesdk
 
+import android.R
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
@@ -9,6 +15,8 @@ import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
+import com.stripe.android.view.StripeEditText
+
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
@@ -33,6 +41,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       val month = value.getInt("expiryMonth")
       val year = value.getInt("expiryYear")
       mCardWidget.setExpiryDate(month, year)
+    }
+  }
+
+  fun setCardStyle(value: ReadableMap) {
+    getValOr(value, "backgroundColor", null)?.let {
+      (mCardWidget.getViewsByType(StripeEditText::class.java)[0] as EditText).setBackgroundColor(Color.parseColor("#b42222"))
     }
   }
 
@@ -119,4 +133,17 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
     layout(left, top, right, bottom)
   }
+}
+
+fun <T : View> ViewGroup.getViewsByType(tClass: Class<T>): List<T> {
+  return mutableListOf<T?>().apply {
+    for (i in 0 until childCount) {
+      val child = getChildAt(i)
+      (child as? ViewGroup)?.let {
+        addAll(child.getViewsByType(tClass))
+      }
+      if (tClass.isInstance(child))
+        add(tClass.cast(child))
+    }
+  }.filterNotNull()
 }

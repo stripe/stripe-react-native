@@ -25,6 +25,11 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
     view.setPostalCodeEnabled(postalCodeEnabled);
   }
 
+  @ReactProp(name = "cardStyle")
+  fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
+    view.setCardStyle(cardStyle);
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
     return StripeSdkCardView(reactContext)
   }
