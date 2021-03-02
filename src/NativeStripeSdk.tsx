@@ -37,6 +37,7 @@ type NativeStripeSdkType = {
     options: CreatePaymentMethod.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
+  createTokenForCVCUpdate(cvc: string): Promise<string>;
 };
 
 const { StripeSdk } = NativeModules;

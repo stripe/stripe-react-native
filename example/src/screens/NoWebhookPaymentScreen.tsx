@@ -59,7 +59,7 @@ export default function NoWebhookPaymentScreen() {
     }
 
     setLoading(true);
-    // 2. Gather customer billing information (ex. email)
+    // 1. Gather customer billing information (ex. email)
     const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
@@ -70,7 +70,7 @@ export default function NoWebhookPaymentScreen() {
       addressPostalCode: '77063',
     }; // mocked data for tests
 
-    // 1. Create payment method
+    // 2. Create payment method
     const { paymentMethod, error } = await createPaymentMethod({
       type: 'Card',
       cardDetails: card,
@@ -84,7 +84,7 @@ export default function NoWebhookPaymentScreen() {
       return;
     }
 
-    // 2. call API to create PaymentIntent
+    // 3. call API to create PaymentIntent
     const paymentIntentResult = await callNoWebhookPayEndpoint({
       useStripeSdk: true,
       paymentMethodId: paymentMethod.id,
@@ -110,7 +110,7 @@ export default function NoWebhookPaymentScreen() {
     }
 
     if (clientSecret && requiresAction) {
-      // 3. if payment requires action calling handleCardAction
+      // 4. if payment requires action calling handleCardAction
       const { error: cardActionError, paymentIntent } = await handleCardAction(
         clientSecret
       );
@@ -124,7 +124,7 @@ export default function NoWebhookPaymentScreen() {
         if (
           paymentIntent.status === PaymentIntents.Status.RequiresConfirmation
         ) {
-          // 4. Call API to confirm intent
+          // 5. Call API to confirm intent
           await confirmIntent(paymentIntent.id);
         } else {
           // Payment succedeed
