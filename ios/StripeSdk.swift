@@ -38,10 +38,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                              options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         var billing: STPPaymentMethodBillingDetails? = nil
-        if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
+        if let billingDetails = data["billingDetails"] as? NSDictionary {
             billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
         }
-        let cardParams = Mappers.mapCardParams(params: data.object(forKey: "cardDetails") as! NSDictionary)
+        let cardParams = Mappers.mapCardParams(params: data["cardDetails"] as! NSDictionary)
         
         let paymentMethodParams = STPPaymentMethodParams(card: cardParams, billingDetails: billing, metadata: nil)
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
@@ -123,15 +123,15 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             return
         }
         
-        guard let summaryItems = params.object(forKey: "cartItems") as? NSArray else {
+        guard let summaryItems = params["cartItems"] as? NSArray else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
             return
         }
-        guard let country = params.object(forKey: "country") as? String else {
+        guard let country = params["country"] as? String else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the country", nil)
             return
         }
-        guard let currency = params.object(forKey: "currency") as? String else {
+        guard let currency = params["currency"] as? String else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the payment currency", nil)
             return
         }
@@ -191,10 +191,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         var billing: STPPaymentMethodBillingDetails? = nil
-        if let billingDetails = data.object(forKey: "billingDetails") as! NSDictionary? {
+        if let billingDetails = data["billingDetails"] as! NSDictionary? {
             billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
         }
-        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data.object(forKey: "cardDetails") as! NSDictionary, billingDetails: billing)
+        let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: data["cardDetails"] as! NSDictionary, billingDetails: billing)
         STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)

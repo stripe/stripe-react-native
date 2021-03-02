@@ -58,7 +58,7 @@ export default function CVCReCollectionScreen() {
     // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Card',
-      cvc: cvc,
+      cvc,
       paymentMethodId,
     });
 
