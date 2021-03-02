@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clipboard } from 'react-native';
+import { Alert } from 'react-native';
 import { useStripe } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -8,7 +8,8 @@ import { API_URL } from '../Config';
 export default function PaymentsUIBasicScreen() {
   const { setupPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
-  // const [clientSecret, setClientSecret] = useState<string>();
+  const [loading, setLoadng] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string>();
 
   const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
@@ -18,8 +19,7 @@ export default function PaymentsUIBasicScreen() {
       },
     });
     const { paymentIntent, ephemeralKey, customer } = await response.json();
-    // setClientSecret(paymentIntent);
-
+    setClientSecret(paymentIntent);
     return {
       paymentIntent,
       ephemeralKey,
@@ -28,21 +28,19 @@ export default function PaymentsUIBasicScreen() {
   };
 
   const openPaymentSheet = async () => {
-    const clientSecret = await initialisePaymentSheet();
-    console.log('clientSecret', clientSecret);
+    if (!clientSecret) {
+      return;
+    }
+    setLoadng(true);
+    const { error, paymentIntent } = await presentPaymentSheet(clientSecret);
 
-    Clipboard.setString(clientSecret);
-
-    // const { error, paymentIntent } = await presentPaymentSheet(clientSecret);
-
-    //   if (error) {
-    //     console.log('error', error);
-    //   } else if (paymentIntent) {
-    //     setPaymentSheetEnabled(false);
-    //     console.log('success', paymentIntent);
-
-    //     initialisePaymentSheet();
-    //   }
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (paymentIntent) {
+      Alert.alert('Success', 'The payment was confirmed successfully!');
+    }
+    setPaymentSheetEnabled(false);
+    setLoadng(false);
   };
 
   const initialisePaymentSheet = async () => {
@@ -63,20 +61,22 @@ export default function PaymentsUIBasicScreen() {
     if (!error) {
       setPaymentSheetEnabled(true);
     }
-
-    return paymentIntent;
   };
 
   useEffect(() => {
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
+    initialisePaymentSheet();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Screen>
       <Button
         variant="primary"
-        // loading={!paymentSheetEnabled}
+        loading={loading}
+        disabled={!paymentSheetEnabled}
         title="Checkout"
         onPress={openPaymentSheet}
       />
