@@ -1,18 +1,14 @@
+import type { CardFieldInput, CreatePaymentMethod } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import {
-  BillingDetails,
-  CardDetails,
-  CardField,
-  useConfirmPayment,
-} from 'stripe-react-native';
+import { CardField, useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import Checkbox from '@react-native-community/checkbox';
 
 export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [saveCard, setSaveCard] = useState(false);
 
   const { confirmPayment, loading } = useConfirmPayment();
@@ -43,7 +39,7 @@ export default function WebhookPaymentScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: BillingDetails = {
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
       addressCity: 'Houston',
