@@ -1,9 +1,13 @@
 package com.reactnativestripesdk
 
+import android.R.attr.mode
 import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
+import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.startActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -12,6 +16,7 @@ import com.stripe.android.paymentsheet.PaymentResult
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import com.stripe.android.paymentsheet.model.PaymentOption
+
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -216,6 +221,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         paymentIntentClientSecret
       )
     } else {
+      val intent = Intent(currentActivity, PaymentSheetActivity::class.java)
+      val activity = currentActivity as Activity
+      startActivity(activity, intent, null)
       promise.resolve(null)
     }
   }
