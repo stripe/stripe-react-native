@@ -1,7 +1,10 @@
+import type { ApplePay } from '../types';
 import { useState } from 'react';
-import type { PresentApplePayParams } from '../types';
 import { useStripe } from './useStripe';
 
+/**
+ * useApplePay hook
+ */
 export function useApplePay() {
   const {
     isApplePaySupported,
@@ -10,7 +13,7 @@ export function useApplePay() {
   } = useStripe();
   const [loading, setLoading] = useState(false);
 
-  const presentApplePay = async (data: PresentApplePayParams) => {
+  const presentApplePay = async (data: ApplePay.PresentParams) => {
     setLoading(true);
     const result = await presentApplePayNative(data);
     setLoading(false);
