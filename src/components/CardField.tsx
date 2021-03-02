@@ -1,3 +1,4 @@
+import type { CardFieldInput, Nullable } from '../types';
 import React, { useCallback } from 'react';
 import {
   AccessibilityProps,
@@ -6,44 +7,49 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import type {
-  CardFieldProps,
-  Nullable,
-  FocusFieldNames,
-  CardDetails,
-  CardStyles,
-} from '../types';
 
-const CardFieldNative = requireNativeComponent<CardFieldProps>('CardField');
+const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
+  'CardField'
+);
 
-type Props = AccessibilityProps & {
+/**
+ *  Card Field Component Props
+ */
+export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
-  cardStyle?: CardStyles;
-  onCardChange?(card: CardDetails): void;
-  onFocus?(focusedField: Nullable<FocusFieldNames>): void;
-};
+  cardStyle?: CardFieldInput.Styles;
+  onCardChange?(card: CardFieldInput.Details): void;
+  onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
+}
 
-type NativeCardDetails = CardDetails & {
+type NativeCardDetails = CardFieldInput.Details & {
   number: string;
   cvc: string;
 };
 
-export const CardField: React.FC<Props> = ({
-  onCardChange,
-  onFocus,
-  ...props
-}) => {
+/**
+ *  Card Field Component
+ *
+ * @example
+ * ```ts
+ * <CardField
+ *    postalCodeEnabled={false}
+ *    onCardChange={(cardDetails) => {
+ *    console.log('card details', cardDetails);
+ *      setCard(cardDetails);
+ *    }}
+ *    style={{height: 50}}
+ *  />
+ * ```
+ * @param __namedParameters Props
+ * @returns JSX.Element
+ * @category ReactComponents
+ */
+export function CardField({ onCardChange, onFocus, ...props }: Props) {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
-
-      if (__DEV__ && card.complete) {
-        console.warn(
-          '[stripe-react-native] Caution! Never send card details to your server!'
-        );
-      }
-
       const cardNumber = card.number || '';
       const last4 =
         cardNumber.length >= 4 ? cardNumber.slice(cardNumber.length - 4) : '';
@@ -68,7 +74,9 @@ export const CardField: React.FC<Props> = ({
 
   const onFocusHandler = useCallback(
     (
-      event: NativeSyntheticEvent<{ focusedField: Nullable<FocusFieldNames> }>
+      event: NativeSyntheticEvent<{
+        focusedField: Nullable<CardFieldInput.Names>;
+      }>
     ) => {
       onFocus?.(event.nativeEvent.focusedField);
     },
@@ -82,4 +90,4 @@ export const CardField: React.FC<Props> = ({
       {...props}
     />
   );
-};
+}
