@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.stripe.android.databinding.CardInputWidgetBinding
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.StripeEditText
@@ -45,8 +46,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun setCardStyle(value: ReadableMap) {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+
     getValOr(value, "backgroundColor", null)?.let {
-      (mCardWidget.getViewsByType(StripeEditText::class.java)[0] as EditText).setBackgroundColor(Color.parseColor("#b42222"))
+      binding.container.setBackgroundColor(Color.parseColor("#b42222"))
     }
   }
 
