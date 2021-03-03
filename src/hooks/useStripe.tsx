@@ -84,7 +84,7 @@ export function useStripe() {
   const confirmPaymentMethod = async (
     paymentIntentClientSecret: string,
     data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    options: CreatePaymentMethod.Options = {}
   ): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<ConfirmPaymentError>;

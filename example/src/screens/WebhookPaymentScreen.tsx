@@ -1,13 +1,15 @@
 import type { CardFieldInput, CreatePaymentMethod } from 'stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { CardField, useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
+import Checkbox from '@react-native-community/checkbox';
 
 export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);
+  const [saveCard, setSaveCard] = useState(false);
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -53,7 +55,9 @@ export default function WebhookPaymentScreen() {
       type: 'Card',
       billingDetails,
       cardDetails: card,
+      setupFutureUsage: saveCard ? 'OffSession' : undefined,
     });
+
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
@@ -78,6 +82,13 @@ export default function WebhookPaymentScreen() {
         }}
         style={styles.cardField}
       />
+      <View style={styles.row}>
+        <Checkbox
+          onValueChange={(value) => setSaveCard(value)}
+          value={saveCard}
+        />
+        <Text style={styles.text}>Save card during payment</Text>
+      </View>
       <Button
         variant="primary"
         onPress={handlePayPress}
@@ -93,5 +104,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     marginBottom: 20,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  text: {
+    marginLeft: 12,
   },
 });

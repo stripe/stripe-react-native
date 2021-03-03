@@ -1,4 +1,5 @@
 import type { CardFieldInput } from './components/CardFieldInput';
+import type { PaymentIntents } from './PaymentIntents';
 
 export interface PaymentMethod {
   id: string;
@@ -33,20 +34,25 @@ export declare namespace CreatePaymentMethod {
 
   export interface Options {}
 
-  export interface BaseParams<T extends PaymentMethods.Types> {
-    type: T;
-    billingDetails: BillingDetails;
+  export interface BaseParams {
+    billingDetails?: BillingDetails;
   }
 
   export type CardParams =
-    | (BaseParams<'Card'> & {
+    | (BaseParams & {
+        type: 'Card';
         cardDetails: CardFieldInput.Details;
+        setupFutureUsage?: PaymentIntents.FutureUsage;
       })
-    | (BaseParams<'Card'> & {
+    | (BaseParams & {
+        type: 'Card';
         paymentMethodId: string;
+        cvc?: string;
       });
 
-  export interface AlipayParams extends BaseParams<'Alipay'> {}
+  export interface AlipayParams extends BaseParams {
+    type: 'Alipay';
+  }
 }
 
 export declare namespace PaymentMethods {
