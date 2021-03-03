@@ -149,6 +149,7 @@ export default function NoWebhookPaymentScreen() {
         }}
         style={styles.cardField}
       />
+
       <Button
         variant="primary"
         onPress={handlePayPress}
