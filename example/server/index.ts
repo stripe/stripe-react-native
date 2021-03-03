@@ -116,7 +116,7 @@ app.post(
 
     if (!paymentMethods.data[0]) {
       res.send({
-        error: 'There is no associated payment method to the provided customer',
+        error: `There is no associated payment method to the provided customer's e-mail`,
       });
     }
 
@@ -153,18 +153,61 @@ app.post(
       items,
       currency,
       useStripeSdk,
+      cvcToken,
+      email,
     }: {
-      paymentMethodId: string;
-      paymentIntentId: string;
+      paymentMethodId?: string;
+      paymentIntentId?: string;
+      cvcToken?: string;
       items: Order;
       currency: string;
       useStripeSdk: boolean;
+      email?: string;
     } = req.body;
 
     const orderAmount: number = calculateOrderAmount(items);
 
     try {
-      if (paymentMethodId) {
+      if (cvcToken && email) {
+        const customer = await stripe.customers.list({
+          email,
+        });
+
+        if (!customer.data[0]) {
+          res.send({
+            error:
+              'There is no associated customer object to the provided e-mail',
+          });
+        }
+
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: customer.data[0].id,
+          type: 'card',
+        });
+
+        if (!paymentMethods.data[0]) {
+          res.send({
+            error: `There is no associated payment method to the provided customer's e-mail`,
+          });
+        }
+
+        const params: Stripe.PaymentIntentCreateParams = {
+          amount: orderAmount,
+          confirm: true,
+          confirmation_method: 'manual',
+          currency,
+          payment_method: paymentMethods.data[0].id,
+          payment_method_options: {
+            card: {
+              cvc_token: cvcToken,
+            },
+          },
+          use_stripe_sdk: useStripeSdk,
+          customer: customer.data[0].id,
+        };
+        const intent = await stripe.paymentIntents.create(params);
+        res.send(generateResponse(intent));
+      } else if (paymentMethodId) {
         // Create new PaymentIntent with a PaymentMethod ID from the client.
         const params: Stripe.PaymentIntentCreateParams = {
           amount: orderAmount,
