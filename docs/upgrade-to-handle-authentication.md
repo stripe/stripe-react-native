@@ -16,7 +16,7 @@ This guide will walk you through upgrading the integration you built in the prev
 
 Next, update your React Native code to tell Stripe to show a modal if the customer needs to authenticate.
 
-Use `handleCardAction` when a PaymentIntent has a status of requires_action. If successful, the PaymentIntent will have a status of `requires_confirmation` and you need to confirm the PaymentIntent again on your server to finish the payment.
+Use `handleCardAction` when a PaymentIntent has a status of `requires_action`. If successful, the PaymentIntent will have a status of `requires_confirmation` and you need to confirm the PaymentIntent again on your server to finish the payment.
 
 ```tsx
 function CheckoutScreen() {
