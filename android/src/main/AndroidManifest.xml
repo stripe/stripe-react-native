@@ -1,11 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.reactnativestripesdk">
-  <application
->
-    <activity android:name="PaymentSheetActivity"  android:theme="@style/TransparentActivityTheme" android:noHistory="true" />
-
+  <application>
+    <receiver android:name=".PaymentSheetBroadcast" android:exported="true"></receiver>
   </application>
-
-
-
 </manifest>

@@ -1,35 +1,24 @@
 package com.reactnativestripesdk
 
-import android.R.attr.mode
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.startActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
-import com.stripe.android.paymentsheet.PaymentOptionCallback
 import com.stripe.android.paymentsheet.PaymentResult
-import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.PaymentSheetResultCallback
-import com.stripe.android.paymentsheet.model.PaymentOption
-
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
     return "StripeSdk"
   }
 
-  companion object {
-    lateinit var flowController: PaymentSheet.FlowController
-    lateinit var paymentSheet: PaymentSheet
-  }
-
   private lateinit var publishableKey: String
-  private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
 
   private var onConfirmPaymentError: Callback? = null
   private var onConfirmPaymentSuccess: Callback? = null
@@ -42,7 +31,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var paymentSheetConfirmPaymentPromise: Promise? = null
   private var presentPaymentSheetPromise: Promise? = null
   private var setupPaymentSheetPromise: Promise? = null
-
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
@@ -116,43 +104,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
-  private val paymentResultCallback = object : PaymentSheetResultCallback {
-    override fun onPaymentResult(paymentResult: PaymentResult) {
-      when (paymentResult) {
-        is PaymentResult.Canceled -> {
-          paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
-          presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
-        }
-        is PaymentResult.Failed -> {
-          paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
-          presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
-        }
-        is PaymentResult.Completed -> {
-          paymentSheetConfirmPaymentPromise?.resolve(null)
-          presentPaymentSheetPromise?.resolve(null)
-        }
-      }
-    }
-  }
-
-  private val paymentOptionCallback = object : PaymentOptionCallback {
-    override fun onPaymentOption(paymentOption: PaymentOption?) {
-      if (paymentOption != null) {
-        val option: WritableMap = WritableNativeMap()
-        option.putString("label", paymentOption?.label)
-        option.putInt("image", paymentOption?.drawableResourceId)
-        presentPaymentOptionsPromise?.resolve(option)
-      } else {
-        presentPaymentOptionsPromise?.resolve(null)
-      }
-    }
-  }
-
   private lateinit var stripe: Stripe
 
   init {
     reactContext.addActivityEventListener(mActivityEventListener);
   }
+
 
   private fun configure3dSecure(params: ReadableMap) {
     val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
@@ -172,6 +129,52 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     )
   }
 
+  private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+      if (intent.action == ON_PAYMENT_RESULT_ACTION) {
+        when (intent.extras?.getParcelable<PaymentResult>("paymentResult")) {
+          is PaymentResult.Canceled -> {
+            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
+          }
+          is PaymentResult.Failed -> {
+            paymentSheetConfirmPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+            presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
+          }
+          is PaymentResult.Completed -> {
+            paymentSheetConfirmPaymentPromise?.resolve(null)
+            presentPaymentSheetPromise?.resolve(null)
+          }
+        }
+      } else if (intent.action == ON_PAYMENT_OPTION_ACTION) {
+        val label = intent.extras?.getString("label")
+        val drawableResourceId = intent.extras?.getInt("drawableResourceId")
+
+        if (label != null && drawableResourceId != null) {
+          val option: WritableMap = WritableNativeMap()
+          option.putString("label", label)
+          option.putInt("image", drawableResourceId)
+          presentPaymentOptionsPromise?.resolve(option)
+        } else {
+          presentPaymentOptionsPromise?.resolve(null)
+        }
+      }
+      else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
+        val label = intent.extras?.getString("label")
+        val drawableResourceId = intent.extras?.getInt("drawableResourceId")
+
+        if (label != null && drawableResourceId != null) {
+          val option: WritableMap = WritableNativeMap()
+          option.putString("label", label)
+          option.putInt("image", drawableResourceId)
+          setupPaymentSheetPromise?.resolve(option)
+        } else {
+          setupPaymentSheetPromise?.resolve(null)
+        }
+      }
+    }
+  }
+
   @ReactMethod
   fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?, params: ReadableMap?) {
     if (params != null) {
@@ -187,6 +190,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val url = getValOr(appInfo, "url", "")
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
+
+    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
+    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
+    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
   }
 
   @ReactMethod
@@ -206,73 +213,46 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null) as String
     val merchantDisplayName = getValOr(params, "merchantDisplayName", null) as String
 
-    this.paymentSheetConfiguration = PaymentSheet.Configuration(
-      merchantDisplayName = merchantDisplayName,
-      customer = PaymentSheet.CustomerConfiguration(
-        id = customerId,
-        ephemeralKeySecret = customerEphemeralKeySecret
-      )
-    )
-
     this.setupPaymentSheetPromise = promise
 
-    if (customFlow == true) {
-      configureFlowController(
-        paymentIntentClientSecret
-      )
-    } else {
-      val intent = Intent(currentActivity, PaymentSheetActivity::class.java)
-      val activity = currentActivity as Activity
-      startActivity(activity, intent, null)
-      promise.resolve(null)
+    val fragment = PaymentSheetFragment().also {
+      val bundle = Bundle()
+      bundle.putString("customerId", customerId)
+      bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
+      bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
+      bundle.putString("merchantDisplayName", merchantDisplayName)
+
+      it.arguments = bundle
     }
-  }
-
-  private fun configureFlowController(
-    paymentIntentClientSecret: String
-  ) {
-    val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
-      override fun onConfigured(success: Boolean, error: Throwable?) {
-        val paymentOption = flowController.getPaymentOption()
-        val option: WritableMap = WritableNativeMap()
-
-        if (paymentOption != null) {
-          option.putString("label", paymentOption.label)
-          option.putInt("image", paymentOption.drawableResourceId)
-
-          setupPaymentSheetPromise?.resolve(option)
-        } else {
-          setupPaymentSheetPromise?.resolve(null)
-        }
-      }
+      activity.supportFragmentManager.beginTransaction()
+        .add(fragment, "payment_sheet_launch_fragment")
+        .commit()
+    if (customFlow == false) {
+      this.setupPaymentSheetPromise?.resolve(null)
     }
-
-    flowController.configure(
-      paymentIntentClientSecret = paymentIntentClientSecret,
-      configuration = this.paymentSheetConfiguration,
-      callback = onFlowControllerConfigure
-    )
   }
 
   @ReactMethod
   fun presentPaymentSheet(clientSecret: String, promise: Promise) {
     this.presentPaymentSheetPromise = promise
-    paymentSheet.present(
-      clientSecret,
-      this.paymentSheetConfiguration
-    )
+    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
+
+    paymentSheetFragment.present(clientSecret)
   }
+
 
   @ReactMethod
   fun presentPaymentOptions(promise: Promise) {
     this.presentPaymentOptionsPromise = promise
-    flowController.presentPaymentOptions()
+    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
+    paymentSheetFragment.presentPaymentOptions()
   }
 
   @ReactMethod
   fun paymentSheetConfirmPayment(promise: Promise) {
     this.paymentSheetConfirmPaymentPromise = promise
-    flowController.confirmPayment()
+    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
+    paymentSheetFragment.confirmPayment()
   }
 
   @ReactMethod
@@ -385,4 +365,5 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       stripe.confirmSetupIntent(activity, confirmParams)
     }
   }
+
 }

@@ -130,5 +130,5 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 //  implementation 'com.stripe:stripe-android:16.1.1'
   implementation 'com.github.stripe:stripe-android:mc-beta-1-SNAPSHOT'
-
+  
 }
