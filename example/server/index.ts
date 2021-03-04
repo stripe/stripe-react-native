@@ -55,18 +55,22 @@ app.post(
   '/create-payment-intent',
   async (req: express.Request, res: express.Response): Promise<void> => {
     const {
+      email,
       items,
       currency,
       request_three_d_secure,
     }: {
+      email: string;
       items: Order;
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
     } = req.body;
+    const customer = await stripe.customers.create({ email });
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
       currency,
+      customer: customer.id,
       payment_method_options: {
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
