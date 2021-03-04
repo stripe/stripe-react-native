@@ -55,18 +55,22 @@ app.post(
   '/create-payment-intent',
   async (req: express.Request, res: express.Response): Promise<void> => {
     const {
+      email,
       items,
       currency,
       request_three_d_secure,
     }: {
+      email: string;
       items: Order;
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
     } = req.body;
+    const customer = await stripe.customers.create({ email });
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
       currency,
+      customer: customer.id,
       payment_method_options: {
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
@@ -81,6 +85,65 @@ app.post(
     // Send publishable key and PaymentIntent client_secret to client.
     res.send({
       clientSecret: paymentIntent.client_secret,
+    });
+  }
+);
+
+app.post(
+  '/create-payment-intent-with-payment-method',
+  async (req: express.Request, res: express.Response): Promise<void> => {
+    const {
+      items,
+      currency,
+      request_three_d_secure,
+      email,
+    }: {
+      items: Order;
+      currency: string;
+      request_three_d_secure: 'any' | 'automatic';
+      email: string;
+    } = req.body;
+    const customer = await stripe.customers.list({
+      email,
+    });
+
+    if (!customer.data[0]) {
+      res.send({
+        error: 'There is no associated customer object to the provided e-mail',
+      });
+    }
+    // List the customer's payment methods to find one to charge
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customer.data[0].id,
+      type: 'card',
+    });
+
+    if (!paymentMethods.data[0]) {
+      res.send({
+        error: 'There is no associated payment method to the provided customer',
+      });
+    }
+
+    const params: Stripe.PaymentIntentCreateParams = {
+      amount: calculateOrderAmount(items),
+      currency,
+      payment_method_options: {
+        card: {
+          request_three_d_secure: request_three_d_secure || 'automatic',
+        },
+      },
+      payment_method: paymentMethods.data[0].id,
+      customer: customer.data[0].id,
+    };
+
+    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+      params
+    );
+
+    // Send publishable key and PaymentIntent client_secret to client.
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      paymentMethodId: paymentMethods.data[0].id,
     });
   }
 );

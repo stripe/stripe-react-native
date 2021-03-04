@@ -332,7 +332,7 @@ class Mappers {
         return "Unknown"
     }
     
-    class func mapSetupIntentUsage(usage: STPSetupIntentUsage?) -> String {
+    class func mapFromSetupIntentUsage(usage: STPSetupIntentUsage?) -> String {
         if let usage = usage {
             switch usage {
             case STPSetupIntentUsage.none: return "None"
@@ -343,7 +343,19 @@ class Mappers {
             }
         }
         return "Unknown"
-        
+    }
+    
+    class func mapToPaymentIntentFutureUsage(usage: String?) -> STPPaymentIntentSetupFutureUsage {
+        if let usage = usage {
+            switch usage {
+            case "None": return STPPaymentIntentSetupFutureUsage.none
+            case "OffSession": return STPPaymentIntentSetupFutureUsage.offSession
+            case "OnSession": return STPPaymentIntentSetupFutureUsage.onSession
+            case "Unknown": return STPPaymentIntentSetupFutureUsage.unknown
+            default: return STPPaymentIntentSetupFutureUsage.unknown
+            }
+        }
+        return STPPaymentIntentSetupFutureUsage.unknown
     }
     
     class func mapFromSetupIntent(setupIntent: STPSetupIntent) -> NSDictionary {
@@ -354,7 +366,7 @@ class Mappers {
             "description": setupIntent.stripeDescription ?? NSNull(),
             "livemode": setupIntent.livemode,
             "paymentMethodTypes": NSArray(),
-            "usage": mapSetupIntentUsage(usage: setupIntent.usage),
+            "usage": mapFromSetupIntentUsage(usage: setupIntent.usage),
             "paymentMethodId": setupIntent.paymentMethodID ?? NSNull(),
             "created": NSNull(),
             "lastSetupError": NSNull()
