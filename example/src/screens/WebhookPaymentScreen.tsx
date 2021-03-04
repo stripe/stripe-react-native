@@ -1,14 +1,16 @@
 import type { CardFieldInput, CreatePaymentMethod } from 'stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CardField, useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import Checkbox from '@react-native-community/checkbox';
+import { colors } from '../colors';
 
 export default function WebhookPaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);
+  const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
 
   const { confirmPayment, loading } = useConfirmPayment();
@@ -20,6 +22,7 @@ export default function WebhookPaymentScreen() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        email,
         currency: 'usd',
         items: [{ id: 'id' }],
         request_three_d_secure: 'any',
@@ -72,6 +75,12 @@ export default function WebhookPaymentScreen() {
 
   return (
     <Screen>
+      <TextInput
+        placeholder="E-mail"
+        keyboardType="email-address"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
+        style={styles.input}
+      />
       <CardField
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
@@ -103,7 +112,7 @@ const styles = StyleSheet.create({
   cardField: {
     width: '100%',
     height: 50,
-    marginBottom: 20,
+    marginVertical: 30,
   },
   row: {
     flexDirection: 'row',
@@ -112,5 +121,10 @@ const styles = StyleSheet.create({
   },
   text: {
     marginLeft: 12,
+  },
+  input: {
+    height: 44,
+    borderBottomColor: colors.slate,
+    borderBottomWidth: 1.5,
   },
 });
