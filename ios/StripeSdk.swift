@@ -244,12 +244,22 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     ) -> Void {
         let paymentMethodId = data["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-        
-        var billing: STPPaymentMethodBillingDetails? = nil
-        if let billingDetails = data["billingDetails"] as? NSDictionary {
-            billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        if let setupFutureUsage = data["setupFutureUsage"] as? String {
+            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
         }
-        if paymentMethodId != nil {
+        
+        var billingDetails: STPPaymentMethodBillingDetails? = nil
+        if let billing = data["billingDetails"] as? NSDictionary {
+            billingDetails = Mappers.mapToBillingDetails(billingDetails: billing)
+        }
+        
+        if let cvc = data["cvc"] as? String {
+            let cardOptions = STPConfirmCardOptions()
+            cardOptions.cvc = cvc;
+            let paymentMethodOptions = STPConfirmPaymentMethodOptions()
+            paymentMethodOptions.cardOptions = cardOptions
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
+        } else if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
             guard let cardDetails = data["cardDetails"] as? NSDictionary else {
@@ -257,7 +267,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(ConfirmPaymentErrorType.Failed.rawValue, message, nil)
                 return
             }
-            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billing)
+            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billingDetails)
             paymentIntentParams.paymentMethodParams = paymentMethodParams
         }
         
