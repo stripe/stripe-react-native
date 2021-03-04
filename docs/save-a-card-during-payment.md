@@ -172,7 +172,7 @@ Supplying an appropriate `setupFutureUsage` value for your application may requi
 | -------------------------------- | ----------- |
 | On-session payments only         | OnSession   |
 | Off-session payments only        | OffSession  |
-| Both on and off-session payments | OnSession   |
+| Both on and off-session payments | OffSession  |
 
 A card set up for on-session payments can still be used to make off-session payments, but there’s a higher likelihood that the bank will reject the off-session payment and require authentication from the cardholder.
 
