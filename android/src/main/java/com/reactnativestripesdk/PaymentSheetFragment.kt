@@ -70,6 +70,8 @@ class PaymentSheetFragment : Fragment() {
       paymentSheet = PaymentSheet(this as AppCompatActivity, paymentResultCallback)
     }
 
+    val intent = Intent(ON_FRAGMENT_CREATED)
+    activity?.sendBroadcast(intent)
   }
 
   fun present(clientSecret: String) {

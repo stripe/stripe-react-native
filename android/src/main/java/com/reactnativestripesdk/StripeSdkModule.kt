@@ -19,6 +19,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   private lateinit var publishableKey: String
+  private var paymentSheetFragment: PaymentSheetFragment? = null
 
   private var onConfirmPaymentError: Callback? = null
   private var onConfirmPaymentSuccess: Callback? = null
@@ -131,6 +132,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
+      if (intent.action == ON_FRAGMENT_CREATED) {
+        paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
+      }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
         when (intent.extras?.getParcelable<PaymentResult>("paymentResult")) {
           is PaymentResult.Canceled -> {
@@ -194,6 +198,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
+    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
   }
 
   @ReactMethod
@@ -235,24 +240,20 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun presentPaymentSheet(clientSecret: String, promise: Promise) {
     this.presentPaymentSheetPromise = promise
-    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
-
-    paymentSheetFragment.present(clientSecret)
+    paymentSheetFragment?.present(clientSecret)
   }
 
 
   @ReactMethod
   fun presentPaymentOptions(promise: Promise) {
     this.presentPaymentOptionsPromise = promise
-    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
-    paymentSheetFragment.presentPaymentOptions()
+    paymentSheetFragment?.presentPaymentOptions()
   }
 
   @ReactMethod
   fun paymentSheetConfirmPayment(promise: Promise) {
     this.paymentSheetConfirmPaymentPromise = promise
-    val paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
-    paymentSheetFragment.confirmPayment()
+    paymentSheetFragment?.confirmPayment()
   }
 
   @ReactMethod
