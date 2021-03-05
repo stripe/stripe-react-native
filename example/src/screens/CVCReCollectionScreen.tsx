@@ -110,8 +110,10 @@ export default function CVCReCollectionScreen() {
       console.log('paymentIntent', paymentIntent);
       if (paymentIntent.error) {
         Alert.alert('Error', paymentIntent.error);
-      } else if (paymentIntent.clientSecret) {
+      } else if (paymentIntent.stats === 'succeeded') {
         Alert.alert('Success', 'The payment was confirmed successfully!');
+      } else {
+        // Handle other statuses accordingly
       }
     }
     setLoading(false);

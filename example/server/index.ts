@@ -99,18 +99,21 @@ app.post(
       request_three_d_secure: 'any' | 'automatic';
       email: string;
     } = req.body;
-    const customer = await stripe.customers.list({
+    const customers = await stripe.customers.list({
       email,
     });
 
-    if (!customer.data[0]) {
+    // The list all Customers endpoint can return multiple customers that share the same email address.
+    // For this example we're taking the first returned customer but in a production integration
+    // you should make sure that you have the right Customer.
+    if (!customers.data[0]) {
       res.send({
         error: 'There is no associated customer object to the provided e-mail',
       });
     }
     // List the customer's payment methods to find one to charge
     const paymentMethods = await stripe.paymentMethods.list({
-      customer: customer.data[0].id,
+      customer: customers.data[0].id,
       type: 'card',
     });
 
@@ -129,7 +132,7 @@ app.post(
         },
       },
       payment_method: paymentMethods.data[0].id,
-      customer: customer.data[0].id,
+      customer: customers.data[0].id,
     };
 
     const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
@@ -169,11 +172,14 @@ app.post(
 
     try {
       if (cvcToken && email) {
-        const customer = await stripe.customers.list({
+        const customers = await stripe.customers.list({
           email,
         });
 
-        if (!customer.data[0]) {
+        // The list all Customers endpoint can return multiple customers that share the same email address.
+        // For this example we're taking the first returned customer but in a production integration
+        // you should make sure that you have the right Customer.
+        if (!customers.data[0]) {
           res.send({
             error:
               'There is no associated customer object to the provided e-mail',
@@ -181,7 +187,7 @@ app.post(
         }
 
         const paymentMethods = await stripe.paymentMethods.list({
-          customer: customer.data[0].id,
+          customer: customers.data[0].id,
           type: 'card',
         });
 
@@ -203,7 +209,7 @@ app.post(
             },
           },
           use_stripe_sdk: useStripeSdk,
-          customer: customer.data[0].id,
+          customer: customers.data[0].id,
         };
         const intent = await stripe.paymentIntents.create(params);
         res.send(generateResponse(intent));
