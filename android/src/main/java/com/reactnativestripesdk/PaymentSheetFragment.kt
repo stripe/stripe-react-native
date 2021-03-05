@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.stripe.android.paymentsheet.PaymentOptionCallback
 import com.stripe.android.paymentsheet.PaymentResult
@@ -24,7 +23,9 @@ class PaymentSheetFragment : Fragment() {
     container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View {
-    return FrameLayout(requireActivity())
+    return FrameLayout(requireActivity()).also {
+      it.visibility = View.GONE
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,7 +35,7 @@ class PaymentSheetFragment : Fragment() {
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
     val paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
 
-    val paymentOptionCallback = object : PaymentOptionCallback {
+    val paymentOptionCallback = object: PaymentOptionCallback {
       override fun onPaymentOption(paymentOption: PaymentOption?) {
         val intent = Intent(ON_PAYMENT_OPTION_ACTION)
 
@@ -64,10 +65,10 @@ class PaymentSheetFragment : Fragment() {
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
-      flowController = PaymentSheet.FlowController.create(this as AppCompatActivity, paymentOptionCallback, paymentResultCallback)
-      configureFlowController(paymentIntentClientSecret)
+//      flowController = PaymentSheet.FlowController.create(this, paymentOptionCallback, paymentResultCallback)
+//      configureFlowController(paymentIntentClientSecret)
     } else {
-      paymentSheet = PaymentSheet(this as AppCompatActivity, paymentResultCallback)
+      paymentSheet = PaymentSheet(fragment = this, callback = paymentResultCallback)
     }
 
     val intent = Intent(ON_FRAGMENT_CREATED)
