@@ -65,7 +65,7 @@ Send the resulting PaymentMethod ID to your server and follow the remaining step
 
 ## 3. Save the card
 
-## 4. Change the saved card
+## 4. Charge the saved card
 
 ## 5. Handle any card errors
 
