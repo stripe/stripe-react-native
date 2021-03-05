@@ -79,11 +79,11 @@ const pay = () => {
 
   if (error) {
     // Handle error
+  } else if (paymentMethod) {
+    const paymentMethodId = paymentMethod.id;
+    // Send paymentMethodId to your server for the next steps
+    // ...
   }
-
-  const paymentMethodId = paymentMethod.id;
-  // Send paymentMethodId to your server for the next steps
-  // ...
 };
 ```
 
