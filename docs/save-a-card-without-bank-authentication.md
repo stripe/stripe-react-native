@@ -53,6 +53,10 @@ function PaymentScreen() {
     billingDetails: null,
   });
 
+  if (error) {
+    // Handle error
+  }
+
   if (!paymentMethod) {
     return;
   }
