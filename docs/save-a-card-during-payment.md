@@ -16,6 +16,8 @@ To install the SDK run the following command in your terminal:
 
 ```sh
 yarn add stripe-react-native
+or
+npm install stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
