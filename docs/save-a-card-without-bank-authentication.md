@@ -87,8 +87,6 @@ Send the resulting PaymentMethod ID to your server and follow the remaining step
 
 ## 7. Re-collect a CVC
 
-## Re-collect a CVC
-
 When creating subsequent payments on a saved card, you may want to re-collect the CVC of the card as an additional fraud measure to verify the user.
 
 Start by creating a PaymentIntent from your server with the amount and currency of the payment, and set [customer](https://stripe.com/docs/api/payment_intents#customer) to the ID of your Customer. Then, [list](https://stripe.com/docs/api/payment_methods/list) the PaymentMethods associated with your Customer to determine which PaymentMethods to show to your user for CVC re-collection.
