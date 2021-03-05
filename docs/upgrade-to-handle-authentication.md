@@ -25,18 +25,20 @@ function CheckoutScreen() {
   const handleResponse = (response: { [key: string]: any }) => {
     if (response.error) {
       // handle error
-    }
-    if (response.requiresAction) {
+    } else if (response.requiresAction) {
       const { error, paymentIntent } = await handleCardAction(
         response.clientSecret
       );
 
       if (error) {
         Alert.alert(`Error code: ${error.code}`, error.message);
-      } else if (paymentIntent) {
-        // Payment succedeed
-        Alert.alert('Success', 'The payment was confirmed successfully!');
+      } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
+        // Display success message
+      } else {
+        // Handle other cases
       }
+    } else {
+      // Display success message
     }
   };
 }
