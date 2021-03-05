@@ -20,6 +20,8 @@ To install the SDK run the following command in your terminal:
 
 ```sh
 yarn add stripe-react-native
+or
+npm install stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -87,7 +89,7 @@ function PaymentScreen() {
       addressLine1: '1459  Circle Drive',
       addressLine2: 'Texas',
       addressPostalCode: '77063',
-    }; // mocked data for tests
+    };
 
     // 2. Create payment method
     const { paymentMethod, error } = await createPaymentMethod({
@@ -120,7 +122,7 @@ const pay = () => {
   } = await callNoWebhookPayEndpoint({
     useStripeSdk: true,
     paymentMethodId: paymentMethod.id,
-    currency: 'usd', // mocked data
+    currency: 'usd',
     items: [
       { id: '1', price: 20 },
       { id: '2', price: 150 },
@@ -167,7 +169,7 @@ const pay = () => {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-    } else if (paymentIntent) {
+    } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
       // Payment succedeed
       Alert.alert('Success', 'The payment was confirmed successfully!');
     }
@@ -202,7 +204,7 @@ After recollecting the customer’s CVC information, tokenize the CVC data using
 ```tsx
 function PaymentScreen() {
   // ...
-  const { createTokenForCVCUpdate } = useStrip();
+  const { createTokenForCVCUpdate } = useStripe();
 
   const tokenizeCVC = async () => {
     const { error, tokenId } = await createTokenForCVCUpdate();

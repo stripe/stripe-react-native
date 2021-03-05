@@ -6,6 +6,8 @@ Stripe SDK for React Native
 
 ```sh
 yarn add stripe-react-native
+or
+npm install stripe-react-native
 ```
 
 ### Android
