@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useStripe } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -11,9 +11,9 @@ export default function CVCReCollectionScreen() {
   const [email, setEmail] = useState<string>();
   const [loading, setLoading] = useState(false);
 
-  const { confirmPayment } = useStripe();
+  const { confirmPayment, createTokenForCVCUpdate } = useStripe();
 
-  const fetchPaymentIntentClientSecret = async () => {
+  const fetchPaymentIntentWithPaymentMethod = async () => {
     const response = await fetch(
       `${API_URL}/create-payment-intent-with-payment-method`,
       {
@@ -35,7 +35,24 @@ export default function CVCReCollectionScreen() {
     return { clientSecret, paymentMethodId, error };
   };
 
-  const handlePayPress = async () => {
+  const callNoWebhookPayEndpoint = async (data: {
+    useStripeSdk: boolean;
+    cvcToken: string;
+    currency: string;
+    items: { id: string }[];
+    email: string;
+  }) => {
+    const response = await fetch(`${API_URL}/pay-without-webhooks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  };
+
+  const payAsynchronously = async () => {
     if (!cvc || !email) {
       return;
     }
@@ -46,7 +63,7 @@ export default function CVCReCollectionScreen() {
       clientSecret,
       paymentMethodId,
       error: paymentIntentError,
-    } = await fetchPaymentIntentClientSecret();
+    } = await fetchPaymentIntentWithPaymentMethod();
 
     if (paymentIntentError) {
       Alert.alert('Error', paymentIntentError);
@@ -64,13 +81,40 @@ export default function CVCReCollectionScreen() {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
       Alert.alert(
         'Success',
         `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
-      console.log('Success from promise', paymentIntent);
+    }
+    setLoading(false);
+  };
+
+  const paySynchronously = async () => {
+    if (!cvc || !email) {
+      return;
+    }
+    setLoading(true);
+
+    const { tokenId, error } = await createTokenForCVCUpdate(cvc);
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (tokenId) {
+      const paymentIntent = await callNoWebhookPayEndpoint({
+        useStripeSdk: true,
+        currency: 'usd',
+        items: [{ id: 'id' }],
+        cvcToken: tokenId,
+        email,
+      });
+      console.log('paymentIntent', paymentIntent);
+      if (paymentIntent.error) {
+        Alert.alert('Error', paymentIntent.error);
+      } else if (paymentIntent.status === 'succeeded') {
+        Alert.alert('Success', 'The payment was confirmed successfully!');
+      } else {
+        // Handle other statuses accordingly
+      }
     }
     setLoading(false);
   };
@@ -85,15 +129,32 @@ export default function CVCReCollectionScreen() {
       <TextInput
         style={styles.input}
         placeholder="CVC"
+        value={cvc}
         onChange={(value) => setCvc(value.nativeEvent.text)}
       />
-      <Button
-        variant="primary"
-        onPress={handlePayPress}
-        title="Pay"
-        loading={loading}
-        disabled={!email || !cvc}
-      />
+      <View style={styles.section}>
+        <Text style={styles.title}>Webhook payment</Text>
+
+        <Button
+          variant="primary"
+          onPress={payAsynchronously}
+          title="Pay"
+          loading={loading}
+          disabled={!email || !cvc}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.title}>Synchronous payment</Text>
+
+        <Button
+          variant="primary"
+          onPress={paySynchronously}
+          title="Pay Synchronously"
+          loading={loading}
+          disabled={!cvc}
+        />
+      </View>
     </Screen>
   );
 }
@@ -104,5 +165,12 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.slate,
     borderBottomWidth: 1.5,
     marginBottom: 20,
+  },
+  title: {
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  section: {
+    marginVertical: 30,
   },
 });

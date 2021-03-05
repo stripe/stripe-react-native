@@ -138,7 +138,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(e: Exception) {
-          confirmPromise?.reject("Failed", e.message)
+          confirmPromise?.reject("Failed", e.localizedMessage)
         }
 
         override fun onSuccess(result: PaymentMethod) {
@@ -146,6 +146,23 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           promise.resolve(paymentMethodMap)
         }
       })
+  }
+
+  @ReactMethod
+  fun createTokenForCVCUpdate(cvc: String, promise: Promise) {
+    stripe.createCvcUpdateToken(
+      cvc,
+      callback = object : ApiResultCallback<Token> {
+        override fun onSuccess(result: Token) {
+          val tokenId = result.id
+          promise.resolve(tokenId)
+        }
+
+        override fun onError(e: Exception) {
+          promise.reject("Failed", e.localizedMessage)
+        }
+      }
+    )
   }
 
   @ReactMethod
