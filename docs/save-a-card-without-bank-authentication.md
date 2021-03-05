@@ -44,9 +44,7 @@ Securely collect card information on the client with `CardField` component provi
 Pass the card details to `createPaymentMethod` to create a [PaymentMethod](https://stripe.com/docs/api/payment_methods).
 
 ```tsx
-function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
-
+const pay = () => {
   const { paymentMethod, error } = await createPaymentMethod({
     type: 'Card',
     cardDetails: card,
@@ -55,24 +53,12 @@ function PaymentScreen() {
 
   if (error) {
     // Handle error
+  } else if (paymentMethod) {
+    const paymentMethodId = paymentMethod.id;
+    // Send paymentMethodId to your server for the next steps
+    // ...
   }
-
-  if (!paymentMethod) {
-    return;
-  }
-
-  const paymentMethodId = paymentMethod.id;
-
-  // Send paymentMethodId to your server for the next steps
-
-  // ...
-
-  return (
-    <View>
-      <CardField onCardChange={(cardDetails) => setCard(cardDetails)} />
-    </View>
-  );
-}
+};
 ```
 
 Send the resulting PaymentMethod ID to your server and follow the remaining steps to save the card to a customer and charge the card in the future.
