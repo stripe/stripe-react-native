@@ -43,6 +43,26 @@ class Mappers {
         return shippingMethodsList
     }
     
+    class func mapFromShippingMethod(shippingMethod: PKShippingMethod) -> NSDictionary {
+        let method: NSDictionary = [
+            "detail": shippingMethod.detail ?? "",
+            "identifier": shippingMethod.identifier ?? ""
+        ]
+        
+        return method
+    }
+    
+    class func mapFromShippingContact(shippingContact: PKContact) -> NSDictionary {
+        let contact: NSDictionary = [
+            "emailAddress": shippingContact.emailAddress ?? "",
+            "name": shippingContact.name ?? "",
+            "phoneNumber": shippingContact.phoneNumber ?? "",
+            "postalAddress": shippingContact.postalAddress ?? "",
+        ]
+        
+        return contact
+    }
+    
     
     class func mapIntentStatus(status: STPPaymentIntentStatus?) -> String {
         if let status = status {

@@ -29,7 +29,11 @@ type NativeStripeSdkType = {
   ): Promise<PaymentIntent>;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;
-  presentApplePay(params: ApplePay.PresentParams): Promise<void>;
+  presentApplePay(
+    params: ApplePay.PresentParams,
+    callback: any,
+    callback2: any
+  ): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
