@@ -1,23 +1,22 @@
 package com.reactnativestripesdk
 
-import android.R
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.stripe.android.databinding.CardInputWidgetBinding
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.MaterialShapeDrawable
+import com.google.android.material.shape.ShapeAppearanceModel
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
-import com.stripe.android.view.StripeEditText
-
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
@@ -47,9 +46,58 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
+    val borderWidth = getIntOrNull(value, "borderWidth")
+    val backgroundColor = getValOr(value, "backgroundColor", null)
+    val borderColor = getValOr(value, "borderColor", null)
+    val cornerRadius = getIntOrNull(value, "cornerRadius") ?: 0
+    val textColor = getValOr(value, "textColor", null)
+    val fontSize = getIntOrNull(value,"fontSize")
+    val placeholderColor = getValOr(value, "placeholderColor", null)
+    val textErrorColor = getValOr(value, "textErrorColor", null)
 
-    getValOr(value, "backgroundColor", null)?.let {
-      binding.container.setBackgroundColor(Color.parseColor("#b42222"))
+    textColor?.let {
+      binding.cardNumberTextInputLayout.editText?.setTextColor(Color.parseColor(it))
+      binding.cvcTextInputLayout.editText?.setTextColor(Color.parseColor(it))
+      binding.expiryDateTextInputLayout.editText?.setTextColor(Color.parseColor(it))
+      binding.postalCodeTextInputLayout.editText?.setTextColor(Color.parseColor(it))
+
+    }
+
+    textErrorColor?.let {
+//      binding.cardNumberTextInputLayout.editText?.setErrorTextColor(Color.parseColor(it))
+//      binding.cvcTextInputLayout.editText?.setErrorTextColor(Color.parseColor(it))
+//      binding.expiryDateTextInputLayout.editText?.setErrorTextColor(Color.parseColor(it))
+//      binding.postalCodeTextInputLayout.editText?.setErrorTextColor(Color.parseColor(it))
+    }
+    placeholderColor?.let {
+      binding.cardNumberTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
+      binding.cvcTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
+      binding.expiryDateTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
+      binding.postalCodeTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
+    }
+    fontSize?.let {
+      binding.cardNumberTextInputLayout.editText?.textSize = it.toFloat()
+      binding.cvcTextInputLayout.editText?.textSize = it.toFloat()
+      binding.expiryDateTextInputLayout.editText?.textSize = it.toFloat()
+      binding.postalCodeTextInputLayout.editText?.setTextSize(it.toFloat())
+    }
+
+    mCardWidget.setPadding(40, 0 ,40 ,0)
+    mCardWidget.background = MaterialShapeDrawable(
+      ShapeAppearanceModel()
+        .toBuilder()
+        .setAllCorners(CornerFamily.ROUNDED, cornerRadius.toFloat())
+        .build()
+    ).also { shape ->
+      borderWidth?.let {
+        shape.strokeWidth = it.toFloat()
+      }
+      borderColor?.let {
+        shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
+      }
+      backgroundColor?.let {
+        shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
+      }
     }
   }
 
