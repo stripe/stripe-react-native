@@ -64,7 +64,7 @@ const pay = () => {
 
 Send the resulting PaymentMethod ID to your server and follow the remaining steps to save the card to a customer and charge the card in the future.
 
-## 3. Save a card (server)
+## 3. Save the card (server)
 
 ## 4. Charge the saved card (server)
 
