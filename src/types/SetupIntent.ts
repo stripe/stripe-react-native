@@ -10,12 +10,12 @@ export interface SetupIntent {
   paymentMethodId: Nullable<string>;
   status: SetupIntents.Status;
   paymentMethodTypes: PaymentMethods.Types[];
-  usage: SetupIntents.Usage;
+  usage: SetupIntents.FutureUsage;
   description: Nullable<string>;
 }
 
 export declare namespace SetupIntents {
-  export type Usage =
+  export type FutureUsage =
     | 'Unknown'
     | 'None'
     | 'OnSession'

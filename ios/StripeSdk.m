@@ -19,6 +19,10 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(
+                  createTokenForCVCUpdate:(NSString *)cvc
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
                   confirmApplePayPayment:(NSString *)clientSecret
