@@ -33,6 +33,23 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         self.merchantIdentifier = merchantIdentifier
     }
     
+    @objc(createTokenForCVCUpdate:resolver:rejecter:)
+    func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let cvc = cvc else {
+            reject("Failed", "You must provide CVC", nil)
+            return;
+        }
+        
+        STPAPIClient.shared.createToken(forCVCUpdate: cvc) { (token, error) in
+            if error != nil || token == nil {
+                reject("Failed", error?.localizedDescription, nil)
+            } else {
+                let tokenId = token?.tokenId
+                resolve(tokenId)
+            }
+        }
+    }
+    
     @objc(confirmSetupIntent:data:options:resolver:rejecter:)
     func confirmSetupIntent (setupIntentClientSecret: String, data: NSDictionary,
                              options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -138,14 +155,14 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         
         self.applePayRequestResolver = resolve
         self.applePayRequestRejecter = reject
-      
+        
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
         
         let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
         let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
         let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
-
+        
         paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
             Mappers.mapToPKContactField(field: $0 as! String)
         })
@@ -155,7 +172,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         })
         
         paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
-
+        
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
         
         if let items = summaryItems as? [[String : Any]] {
@@ -244,12 +261,22 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     ) -> Void {
         let paymentMethodId = data["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-        
-        var billing: STPPaymentMethodBillingDetails? = nil
-        if let billingDetails = data["billingDetails"] as? NSDictionary {
-            billing = Mappers.mapToBillingDetails(billingDetails: billingDetails)
+        if let setupFutureUsage = data["setupFutureUsage"] as? String {
+            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
         }
-        if paymentMethodId != nil {
+        
+        var billingDetails: STPPaymentMethodBillingDetails? = nil
+        if let billing = data["billingDetails"] as? NSDictionary {
+            billingDetails = Mappers.mapToBillingDetails(billingDetails: billing)
+        }
+        
+        if let cvc = data["cvc"] as? String {
+            let cardOptions = STPConfirmCardOptions()
+            cardOptions.cvc = cvc;
+            let paymentMethodOptions = STPConfirmPaymentMethodOptions()
+            paymentMethodOptions.cardOptions = cardOptions
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
+        } else if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
             guard let cardDetails = data["cardDetails"] as? NSDictionary else {
@@ -257,7 +284,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(ConfirmPaymentErrorType.Failed.rawValue, message, nil)
                 return
             }
-            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billing)
+            let paymentMethodParams = Mappers.mapCardParamsToPaymentMethodParams(params: cardDetails, billingDetails: billingDetails)
             paymentIntentParams.paymentMethodParams = paymentMethodParams
         }
         
@@ -295,7 +322,7 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
                 reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil)
                 return
             }
-      
+            
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
             } else {

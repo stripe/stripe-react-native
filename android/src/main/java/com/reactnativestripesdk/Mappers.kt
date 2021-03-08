@@ -431,3 +431,11 @@ internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String {
     else -> "Unknown"
   }
 }
+
+fun mapToPaymentIntentFutureUsage(type: String): ConfirmPaymentIntentParams.SetupFutureUsage {
+  return when (type) {
+    "OffSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OffSession
+    "OnSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
+    else ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
+  }
+}

@@ -84,7 +84,7 @@ export function useStripe() {
   const confirmPaymentMethod = async (
     paymentIntentClientSecret: string,
     data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    options: CreatePaymentMethod.Options = {}
   ): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<ConfirmPaymentError>;
@@ -204,6 +204,27 @@ export function useStripe() {
     }
   };
 
+  const createTokenForCVCUpdate = async (
+    cvc: string
+  ): Promise<{
+    tokenId?: string;
+    error?: StripeError<ConfirmSetupIntentError>;
+  }> => {
+    try {
+      const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
+
+      return {
+        tokenId,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        tokenId: undefined,
+      };
+    }
+  };
+
   return {
     retrievePaymentIntent: retrievePaymentIntent,
     confirmPayment: confirmPaymentMethod,
@@ -213,5 +234,6 @@ export function useStripe() {
     presentApplePay: presentApplePay,
     confirmApplePayPayment: confirmApplePayPayment,
     confirmSetupIntent: confirmSetupIntent,
+    createTokenForCVCUpdate: createTokenForCVCUpdate,
   };
 }

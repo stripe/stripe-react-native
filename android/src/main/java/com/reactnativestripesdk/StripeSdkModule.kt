@@ -138,7 +138,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(e: Exception) {
-          confirmPromise?.reject("Failed", e.message)
+          confirmPromise?.reject("Failed", e.localizedMessage)
         }
 
         override fun onSuccess(result: PaymentMethod) {
@@ -146,6 +146,23 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           promise.resolve(paymentMethodMap)
         }
       })
+  }
+
+  @ReactMethod
+  fun createTokenForCVCUpdate(cvc: String, promise: Promise) {
+    stripe.createCvcUpdateToken(
+      cvc,
+      callback = object : ApiResultCallback<Token> {
+        override fun onSuccess(result: Token) {
+          val tokenId = result.id
+          promise.resolve(tokenId)
+        }
+
+        override fun onError(e: Exception) {
+          promise.reject("Failed", e.localizedMessage)
+        }
+      }
+    )
   }
 
   @ReactMethod
@@ -174,7 +191,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     confirmPromise = promise
     val paymentMethodId = getValOr(data, "paymentMethodId", null)
     val confirmParams = if(paymentMethodId != null) {
-      ConfirmPaymentIntentParams.createWithPaymentMethodId(paymentMethodId, paymentIntentClientSecret)
+      val cvc = getValOr(data, "cvc", null)
+      val paymentMethodOptionParams = if (cvc != null) PaymentMethodOptionsParams.Card(cvc) else null
+
+      ConfirmPaymentIntentParams.createWithPaymentMethodId(
+        paymentMethodId = paymentMethodId,
+        paymentMethodOptions = paymentMethodOptionParams,
+        clientSecret = paymentIntentClientSecret
+      )
     } else {
       val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
         val message = "To confirm the payment you must provide card details or paymentMethodId"
@@ -183,9 +207,19 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         return
       }
 
+      var setupFutureUsage: ConfirmPaymentIntentParams.SetupFutureUsage? = null
+
+      getValOr(data, "setupFutureUsage", null)?.let {
+        setupFutureUsage = mapToPaymentIntentFutureUsage(it)
+      }
+
       val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
       ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(paymentMethodCreateParams, paymentIntentClientSecret)
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = paymentMethodCreateParams,
+          clientSecret = paymentIntentClientSecret,
+          setupFutureUsage = setupFutureUsage
+        )
     }
 
     val activity = currentActivity
