@@ -9,8 +9,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
-    var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    
+    var applePayDidSelectShippingMethodCallback: RCTResponseSenderBlock? = nil
+    var applePayDidSelectShippingContactCallback: RCTResponseSenderBlock? = nil
     
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
@@ -83,6 +85,14 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
     }
     
+    func applePayContext(_ context: STPApplePayContext, didSelect shippingMethod: PKShippingMethod, handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void) {
+        self.applePayDidSelectShippingMethodCallback?([NSNull(), Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
+    }
+    
+    func applePayContext(_ context: STPApplePayContext, didSelectShippingContact contact: PKContact, handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void) {
+        self.applePayDidSelectShippingContactCallback?([NSNull(), Mappers.mapFromShippingContact(shippingContact: contact)])
+    }
+    
     func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
         self.applePayCompletionCallback = completion
         self.applePayRequestResolver?([NSNull()])
@@ -135,6 +145,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     @objc(presentApplePay:resolver:rejecter:)
     func presentApplePay(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+//        self.applePayDidSelectShippingMethodCallback = onSelectShippingMethodCallback
+//        self.applePayDidSelectShippingContactCallback = onSelectShippingContactCallback
+        
         if (merchantIdentifier == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
             return

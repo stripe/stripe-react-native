@@ -108,7 +108,9 @@ export function useStripe() {
   };
 
   const presentApplePay = async (
-    params: ApplePay.PresentParams
+    params: ApplePay.PresentParams,
+    onSelectShippingMethod: () => void = () => {},
+    onSelectShippingContact: () => void = () => {}
   ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {
@@ -120,7 +122,15 @@ export function useStripe() {
     }
 
     try {
-      await NativeStripeSdk.presentApplePay(params);
+      await NativeStripeSdk.presentApplePay(
+        params
+        // () => {
+        //   console.log('adas');
+        // },
+        // () => {
+        //   console.log('adas');
+        // }
+      );
 
       return {
         error: undefined,

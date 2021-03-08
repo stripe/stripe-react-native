@@ -16,6 +16,8 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   presentApplePay:(NSDictionary *)params
+//                  onSelectShippingMethodCallback: (RCTResponseSenderBlock *)onSelectShippingMethodCallback
+//                  onSelectShippingContactCallback: (RCTResponseSenderBlock *)onSelectShippingContactCallback
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
