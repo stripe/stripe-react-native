@@ -10,11 +10,7 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import com.reactnativestripesdk.StripeSdkModule;
 import com.reactnativestripesdk.StripeSdkPackage;
-import com.stripe.android.paymentsheet.PaymentResult;
-import com.stripe.android.paymentsheet.PaymentSheet;
 
 public class MainApplication extends Application implements ReactApplication {
   private final ReactNativeHost mReactNativeHost =
