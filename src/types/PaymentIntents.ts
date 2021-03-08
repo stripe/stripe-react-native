@@ -44,6 +44,8 @@ export declare namespace PaymentIntents {
     state: string;
   }
 
+  export type FutureUsage = 'OffSession' | 'OnSession';
+
   export interface ShippingDetails {
     address: Address;
     name: string;

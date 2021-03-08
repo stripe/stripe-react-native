@@ -16,6 +16,8 @@ To install the SDK run the following command in your terminal:
 
 ```sh
 yarn add stripe-react-native
+or
+npm install stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -43,23 +45,21 @@ Securely collect card information on the client with `CardField` component provi
 Pass the card details to `createPaymentMethod` to create a [PaymentMethod](https://stripe.com/docs/api/payment_methods).
 
 ```tsx
-function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
-  const { createPaymentMethod } = useStripe();
+const pay = () => {
+  const { paymentMethod, error } = await createPaymentMethod({
+    type: 'Card',
+    cardDetails: card,
+    billingDetails: null,
+  });
 
-  const pay = () => {
-    if (!card) {
-      return;
-    }
-
-    const { paymentMethod, error } = await createPaymentMethod({
-      type: 'Card',
-      cardDetails: card,
-      billingDetails: null,
-    });
-  };
-  // ...
-}
+  if (error) {
+    // Handle error
+  } else if (paymentMethod) {
+    const paymentMethodId = paymentMethod.id;
+    // Send paymentMethodId to your server for the next steps
+    // ...
+  }
+};
 ```
 
 Send the resulting PaymentMethod ID to your server and follow the remaining steps to save the card to a customer and charge the card in the future.
@@ -82,12 +82,8 @@ After recollecting the customer’s CVC information, call `confirmPayment` metho
 
 ```tsx
 const pay = async (cvc: string) => {
-  const {
-    clientSecret,
-    paymentMethodId,
-  } = await fetchPaymentIntentClientSecret();
-  // Confirm payment with CVC
-  // The rest will be done automatically using webhooks
+  const { clientSecret, paymentMethodId } = await fetchPaymentIntent();
+
   const { error, paymentIntent } = await confirmPayment(clientSecret, {
     type: 'Card',
     cvc,
@@ -95,8 +91,10 @@ const pay = async (cvc: string) => {
   });
   if (error) {
     Alert.alert(`Error code: ${error.code}`, error.message);
-  } else if (paymentIntent) {
+  } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
     Alert.alert('Success', 'The payment was confirmed successfully!');
+  } else {
+    // Handle other statuses accordingly
   }
 };
 ```
@@ -105,4 +103,4 @@ A payment may succeed even with a failed CVC check. If this isn’t what you wan
 
 ## Upgrade your integration to handle card authentication
 
-Note that this integration declines cards that require authentication during payment. If you start seeing many payments in the Dashboard listed as Failed, then it’s time to [upgrade your integration](./upgrade-to-handle-authentication.md). Stripe’s global integration handles these payments instead of automatically declining.
+# Note that this integration declines cards that require authentication during payment. If you start seeing many payments in the Dashboard listed as Failed, then it’s time to [upgrade your integration](./upgrade-to-handle-authentication.md). Stripe’s global integration handles these payments instead of automatically declining.

@@ -55,18 +55,22 @@ app.post(
   '/create-payment-intent',
   async (req: express.Request, res: express.Response): Promise<void> => {
     const {
+      email,
       items,
       currency,
       request_three_d_secure,
     }: {
+      email: string;
       items: Order;
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
     } = req.body;
+    const customer = await stripe.customers.create({ email });
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
       amount: calculateOrderAmount(items),
       currency,
+      customer: customer.id,
       payment_method_options: {
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
@@ -86,6 +90,68 @@ app.post(
 );
 
 app.post(
+  '/create-payment-intent-with-payment-method',
+  async (req: express.Request, res: express.Response): Promise<void> => {
+    const {
+      items,
+      currency,
+      request_three_d_secure,
+      email,
+    }: {
+      items: Order;
+      currency: string;
+      request_three_d_secure: 'any' | 'automatic';
+      email: string;
+    } = req.body;
+    const customers = await stripe.customers.list({
+      email,
+    });
+
+    // The list all Customers endpoint can return multiple customers that share the same email address.
+    // For this example we're taking the first returned customer but in a production integration
+    // you should make sure that you have the right Customer.
+    if (!customers.data[0]) {
+      res.send({
+        error: 'There is no associated customer object to the provided e-mail',
+      });
+    }
+    // List the customer's payment methods to find one to charge
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customers.data[0].id,
+      type: 'card',
+    });
+
+    if (!paymentMethods.data[0]) {
+      res.send({
+        error: `There is no associated payment method to the provided customer's e-mail`,
+      });
+    }
+
+    const params: Stripe.PaymentIntentCreateParams = {
+      amount: calculateOrderAmount(items),
+      currency,
+      payment_method_options: {
+        card: {
+          request_three_d_secure: request_three_d_secure || 'automatic',
+        },
+      },
+      payment_method: paymentMethods.data[0].id,
+      customer: customers.data[0].id,
+    };
+
+    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+      params
+    );
+
+    // Send publishable key and PaymentIntent client_secret to client.
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      paymentMethodId: paymentMethods.data[0].id,
+    });
+  }
+);
+
+app.post(
   '/pay-without-webhooks',
   async (req: express.Request, res: express.Response): Promise<void> => {
     const {
@@ -94,18 +160,64 @@ app.post(
       items,
       currency,
       useStripeSdk,
+      cvcToken,
+      email,
     }: {
-      paymentMethodId: string;
-      paymentIntentId: string;
+      paymentMethodId?: string;
+      paymentIntentId?: string;
+      cvcToken?: string;
       items: Order;
       currency: string;
       useStripeSdk: boolean;
+      email?: string;
     } = req.body;
 
     const orderAmount: number = calculateOrderAmount(items);
 
     try {
-      if (paymentMethodId) {
+      if (cvcToken && email) {
+        const customers = await stripe.customers.list({
+          email,
+        });
+
+        // The list all Customers endpoint can return multiple customers that share the same email address.
+        // For this example we're taking the first returned customer but in a production integration
+        // you should make sure that you have the right Customer.
+        if (!customers.data[0]) {
+          res.send({
+            error:
+              'There is no associated customer object to the provided e-mail',
+          });
+        }
+
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: customers.data[0].id,
+          type: 'card',
+        });
+
+        if (!paymentMethods.data[0]) {
+          res.send({
+            error: `There is no associated payment method to the provided customer's e-mail`,
+          });
+        }
+
+        const params: Stripe.PaymentIntentCreateParams = {
+          amount: orderAmount,
+          confirm: true,
+          confirmation_method: 'manual',
+          currency,
+          payment_method: paymentMethods.data[0].id,
+          payment_method_options: {
+            card: {
+              cvc_token: cvcToken,
+            },
+          },
+          use_stripe_sdk: useStripeSdk,
+          customer: customers.data[0].id,
+        };
+        const intent = await stripe.paymentIntents.create(params);
+        res.send(generateResponse(intent));
+      } else if (paymentMethodId) {
         // Create new PaymentIntent with a PaymentMethod ID from the client.
         const params: Stripe.PaymentIntentCreateParams = {
           amount: orderAmount,
