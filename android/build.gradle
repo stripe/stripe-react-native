@@ -8,7 +8,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:4.1.0'
+    classpath 'com.android.tools.build:gradle:4.1.2'
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
@@ -129,6 +129,6 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 //  implementation 'com.stripe:stripe-android:16.1.1'
-  implementation 'com.github.stripe:stripe-android:mc-SNAPSHOT'
+  implementation "com.github.stripe:stripe-android:53942d11bc"
 
 }

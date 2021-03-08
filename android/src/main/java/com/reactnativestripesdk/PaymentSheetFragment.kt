@@ -52,7 +52,7 @@ class PaymentSheetFragment : Fragment() {
         val intent = Intent(ON_PAYMENT_RESULT_ACTION)
 
         intent.putExtra("paymentResult", paymentResult)
-        activity?.sendBroadcast(intent)
+          activity?.sendBroadcast(intent)
       }
     }
 
@@ -65,10 +65,10 @@ class PaymentSheetFragment : Fragment() {
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
-//      flowController = PaymentSheet.FlowController.create(this, paymentOptionCallback, paymentResultCallback)
-//      configureFlowController(paymentIntentClientSecret)
+      flowController = PaymentSheet.FlowController.create(this, paymentOptionCallback, paymentResultCallback)
+      configureFlowController(paymentIntentClientSecret)
     } else {
-      paymentSheet = PaymentSheet(fragment = this, callback = paymentResultCallback)
+      paymentSheet = PaymentSheet(this, paymentResultCallback)
     }
 
     val intent = Intent(ON_FRAGMENT_CREATED)
