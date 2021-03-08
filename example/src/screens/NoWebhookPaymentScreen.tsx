@@ -1,73 +1,66 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import {
-  BillingDetails,
-  CardDetails,
-  CardField,
-  IntentStatus,
-  useStripe,
-} from 'stripe-react-native';
+import { CardField, useStripe } from 'stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
+import {
+  CardFieldInput,
+  CreatePaymentMethod,
+  PaymentIntents,
+} from 'stripe-react-native';
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const { createPaymentMethod, handleCardAction } = useStripe();
 
-  const callNoWebhookPayEndpoint = useCallback(
-    async (
-      data:
-        | {
-            useStripeSdk: boolean;
-            paymentMethodId: string;
-            currency: string;
-            items: { id: string }[];
-          }
-        | { paymentIntentId: string }
-    ) => {
-      const response = await fetch(`${API_URL}/pay-without-webhooks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      return await response.json();
-    },
-    []
-  );
+  const callNoWebhookPayEndpoint = async (
+    data:
+      | {
+          useStripeSdk: boolean;
+          paymentMethodId: string;
+          currency: string;
+          items: { id: string }[];
+        }
+      | { paymentIntentId: string }
+  ) => {
+    const response = await fetch(`${API_URL}/pay-without-webhooks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  };
 
-  const confirmIntent = useCallback(
-    async (paymentIntentId: string) => {
-      // Call API to confirm intent
-      const {
-        clientSecret,
-        error,
-        requiresAction,
-      } = await callNoWebhookPayEndpoint({
-        paymentIntentId,
-      });
+  const confirmIntent = async (paymentIntentId: string) => {
+    // Call API to confirm intent
+    const {
+      clientSecret,
+      error,
+      requiresAction,
+    } = await callNoWebhookPayEndpoint({
+      paymentIntentId,
+    });
 
-      if (error) {
-        // Error during confirming Intent
-        Alert.alert('Error', error);
-      } else if (clientSecret && !requiresAction) {
-        Alert.alert('Success', 'The payment was confirmed successfully!');
-      }
-    },
-    [callNoWebhookPayEndpoint]
-  );
+    if (error) {
+      // Error during confirming Intent
+      Alert.alert('Error', error);
+    } else if (clientSecret && !requiresAction) {
+      Alert.alert('Success', 'The payment was confirmed successfully!');
+    }
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
 
     setLoading(true);
-    // 2. Gather customer billing information (ex. email)
-    const billingDetails: BillingDetails = {
+    // 1. Gather customer billing information (ex. email)
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
       addressCity: 'Houston',
@@ -77,7 +70,7 @@ export default function NoWebhookPaymentScreen() {
       addressPostalCode: '77063',
     }; // mocked data for tests
 
-    // 1. Create payment method
+    // 2. Create payment method
     const { paymentMethod, error } = await createPaymentMethod({
       type: 'Card',
       cardDetails: card,
@@ -91,7 +84,7 @@ export default function NoWebhookPaymentScreen() {
       return;
     }
 
-    // 2. call API to create PaymentIntent
+    // 3. call API to create PaymentIntent
     const paymentIntentResult = await callNoWebhookPayEndpoint({
       useStripeSdk: true,
       paymentMethodId: paymentMethod.id,
@@ -117,7 +110,7 @@ export default function NoWebhookPaymentScreen() {
     }
 
     if (clientSecret && requiresAction) {
-      // 3. if payment requires action calling handleCardAction
+      // 4. if payment requires action calling handleCardAction
       const { error: cardActionError, paymentIntent } = await handleCardAction(
         clientSecret
       );
@@ -128,8 +121,10 @@ export default function NoWebhookPaymentScreen() {
           cardActionError.message
         );
       } else if (paymentIntent) {
-        if (paymentIntent.status === IntentStatus.RequiresConfirmation) {
-          // 4. Call API to confirm intent
+        if (
+          paymentIntent.status === PaymentIntents.Status.RequiresConfirmation
+        ) {
+          // 5. Call API to confirm intent
           await confirmIntent(paymentIntent.id);
         } else {
           // Payment succedeed
@@ -139,13 +134,7 @@ export default function NoWebhookPaymentScreen() {
     }
 
     setLoading(false);
-  }, [
-    card,
-    createPaymentMethod,
-    callNoWebhookPayEndpoint,
-    confirmIntent,
-    handleCardAction,
-  ]);
+  };
 
   return (
     <Screen>
@@ -160,6 +149,7 @@ export default function NoWebhookPaymentScreen() {
         }}
         style={styles.cardField}
       />
+
       <Button
         variant="primary"
         onPress={handlePayPress}

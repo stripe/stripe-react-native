@@ -1,15 +1,13 @@
 import { NativeModules } from 'react-native';
 import type {
+  AppInfo,
+  CreatePaymentMethod,
+  ThreeDSecureConfigurationParams,
   PaymentIntent,
   PaymentMethod,
-  ThreeDSecureConfigurationParams,
-  PresentApplePayParams,
+  ApplePay,
   SetupIntent,
-  AppInfo,
-  PaymentMethodData,
-  PaymentMethodOptions,
-  SetupPaymentSheetParams,
-  PaymentOption,
+  PaymentSheet,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -21,31 +19,32 @@ type NativeStripeSdkType = {
     merchantIdentifier?: string
   ): void;
   createPaymentMethod(
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<PaymentIntent>;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;
-  presentApplePay(params: PresentApplePayParams): Promise<void>;
+  presentApplePay(params: ApplePay.PresentParams): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   setupPaymentSheet(
-    params: SetupPaymentSheetParams
-  ): Promise<PaymentOption | undefined>;
+    params: PaymentSheet.SetupParams
+  ): Promise<PaymentSheet.PaymentOption | undefined>;
   presentPaymentSheet(clientSecret?: string): Promise<PaymentIntent>;
   paymentSheetConfirmPayment(): Promise<PaymentIntent>;
-  presentPaymentOptions(): Promise<PaymentOption | undefined>;
+  presentPaymentOptions(): Promise<PaymentSheet.PaymentOption | undefined>;
+  createTokenForCVCUpdate(cvc: string): Promise<string>;
 };
 
 const { StripeSdk } = NativeModules;

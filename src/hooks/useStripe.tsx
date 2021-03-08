@@ -1,29 +1,30 @@
-import { useEffect, useState } from 'react';
 import {
-  ConfirmPaymentError,
-  PaymentIntent,
-  PaymentMethodData,
-  PaymentMethodOptions,
-  ApplePayError,
-  PresentApplePayParams,
-  RetrievePaymentIntentError,
-  ConfirmSetupIntentError,
-  SetupIntent,
-  CardActionError,
-  CreatePaymentMethodError,
+  CreatePaymentMethod,
   PaymentMethod,
-  SetupPaymentSheetParams,
   StripeError,
+  CreatePaymentMethodError,
+  PaymentIntent,
+  ConfirmPaymentError,
+  RetrievePaymentIntentError,
+  ApplePayError,
+  CardActionError,
+  SetupIntent,
+  ConfirmSetupIntentError,
+  ApplePay,
+  PaymentSheet,
   PaymentSheetError,
-  PaymentOption,
 } from '../types';
-import { createError, isiOS } from '../helpers';
+import { useEffect, useState } from 'react';
+import { isiOS, createError } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import StripeSdk from '../NativeStripeSdk';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
 
+/**
+ * useStripe hook
+ */
 export function useStripe() {
   const [isApplePaySupported, setApplePaySupported] = useState(false);
 
@@ -37,8 +38,8 @@ export function useStripe() {
   }, []);
 
   const createPaymentMethod = async (
-    data: PaymentMethodData,
-    options: PaymentMethodOptions = {}
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options = {}
   ): Promise<{
     paymentMethod?: PaymentMethod;
     error?: StripeError<CreatePaymentMethodError>;
@@ -84,8 +85,8 @@ export function useStripe() {
 
   const confirmPaymentMethod = async (
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options = {}
   ): Promise<{
     paymentIntent?: PaymentIntent;
     error?: StripeError<ConfirmPaymentError>;
@@ -109,7 +110,7 @@ export function useStripe() {
   };
 
   const presentApplePay = async (
-    params: PresentApplePayParams
+    params: ApplePay.PresentParams
   ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {
@@ -180,8 +181,8 @@ export function useStripe() {
 
   const confirmSetupIntent = async (
     paymentIntentClientSecret: string,
-    data: PaymentMethodData,
-    options: PaymentMethodOptions
+    data: CreatePaymentMethod.Params,
+    options: CreatePaymentMethod.Options
   ): Promise<{
     setupIntent?: SetupIntent;
     error?: StripeError<ConfirmSetupIntentError>;
@@ -206,9 +207,9 @@ export function useStripe() {
   };
 
   const setupPaymentSheet = async (
-    params: SetupPaymentSheetParams
+    params: PaymentSheet.SetupParams
   ): Promise<{
-    paymentOption?: PaymentOption;
+    paymentOption?: PaymentSheet.PaymentOption;
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
@@ -222,6 +223,26 @@ export function useStripe() {
       return {
         error: createError(error),
         paymentOption: undefined,
+      };
+    }
+  };
+  const createTokenForCVCUpdate = async (
+    cvc: string
+  ): Promise<{
+    tokenId?: string;
+    error?: StripeError<ConfirmSetupIntentError>;
+  }> => {
+    try {
+      const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
+
+      return {
+        tokenId,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        tokenId: undefined,
       };
     }
   };
@@ -253,7 +274,7 @@ export function useStripe() {
   };
 
   const presentPaymentOptions = async (): Promise<{
-    paymentOption?: PaymentOption | null;
+    paymentOption?: PaymentSheet.PaymentOption | null;
     error?: StripeError<PaymentSheetError>;
   }> => {
     try {
@@ -303,5 +324,6 @@ export function useStripe() {
     presentApplePay: presentApplePay,
     confirmApplePayPayment: confirmApplePayPayment,
     confirmSetupIntent: confirmSetupIntent,
+    createTokenForCVCUpdate: createTokenForCVCUpdate,
   };
 }

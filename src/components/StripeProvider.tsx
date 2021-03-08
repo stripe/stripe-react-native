@@ -5,12 +5,16 @@ import { isAndroid } from '../helpers';
 import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
 import pjson from '../../package.json';
 
-type Props = {
+/**
+ *  Stripe Provider Component Props
+ */
+export interface Props {
   publishableKey: string;
   merchantIdentifier?: string;
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   stripeAccountId?: string;
-};
+  children: React.ReactElement | React.ReactElement[];
+}
 
 const appInfo: AppInfo = {
   name: pjson.name,
@@ -18,13 +22,33 @@ const appInfo: AppInfo = {
   version: pjson.version,
 };
 
-export const StripeProvider: React.FC<Props> = ({
+/**
+ *  StripeProvider Component
+ *
+ * @example
+ * ```ts
+ *  <StripeProvider
+ *    publishableKey="_publishableKey"
+ *    merchantIdentifier="merchant.com.stripe.react.native"
+ *    threeDSecureParams={{
+ *      backgroundColor: "#FFF",
+ *      timeout: 5,
+ *    }}
+ *  >
+ *    <App />
+ *  </StripeProvider>
+ * ```
+ * @param __namedParameters Props
+ * @returns JSX.Element
+ * @category ReactComponents
+ */
+export function StripeProvider({
   children,
   publishableKey,
   merchantIdentifier,
   threeDSecureParams,
   stripeAccountId,
-}) => {
+}: Props) {
   useEffect(() => {
     if (!publishableKey) {
       return;
@@ -48,4 +72,4 @@ export const StripeProvider: React.FC<Props> = ({
   }, [publishableKey, merchantIdentifier, stripeAccountId, threeDSecureParams]);
 
   return <>{children}</>;
-};
+}

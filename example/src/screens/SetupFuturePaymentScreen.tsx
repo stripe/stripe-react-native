@@ -1,11 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
-  BillingDetails,
-  CardDetails,
   CardField,
-  PaymentIntent,
-  SetupIntent,
   useConfirmPayment,
   useConfirmSetupIntent,
   useStripe,
@@ -14,9 +10,15 @@ import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
 import Screen from '../components/Screen';
+import type {
+  CardFieldInput,
+  CreatePaymentMethod,
+  PaymentIntent,
+  SetupIntent,
+} from 'stripe-react-native';
 
 export default function SetupFuturePaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
@@ -37,23 +39,20 @@ export default function SetupFuturePaymentScreen() {
 
   const { retrievePaymentIntent } = useStripe();
 
-  const createSetupIntentOnBackend = useCallback(
-    async (customerEmail: string) => {
-      const response = await fetch(`${API_URL}/create-setup-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: customerEmail }),
-      });
-      const { clientSecret } = await response.json();
+  const createSetupIntentOnBackend = async (customerEmail: string) => {
+    const response = await fetch(`${API_URL}/create-setup-intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: customerEmail }),
+    });
+    const { clientSecret } = await response.json();
 
-      return clientSecret;
-    },
-    []
-  );
+    return clientSecret;
+  };
 
-  const chargeCardOffSession = useCallback(async () => {
+  const chargeCardOffSession = async () => {
     const response = await fetch(`${API_URL}/charge-card-off-session`, {
       method: 'POST',
       headers: {
@@ -64,9 +63,9 @@ export default function SetupFuturePaymentScreen() {
     const { clientSecret, error } = await response.json();
 
     return { clientSecret, error };
-  }, [email]);
+  };
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -76,7 +75,7 @@ export default function SetupFuturePaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(email);
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: BillingDetails = {
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',
@@ -106,7 +105,7 @@ export default function SetupFuturePaymentScreen() {
 
       setSetupIntent(setupIntentResult);
     }
-  }, [card, confirmSetupIntent, createSetupIntentOnBackend, email]);
+  };
 
   // It's only for example purposes
   // This action is responsible for charging your previously added card and should be called independently of the payment flow.
@@ -160,7 +159,7 @@ export default function SetupFuturePaymentScreen() {
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
   // Otherwise collect new details and create new PaymentMethod.
   const handleRecoveryFlow = async () => {
-    const billingDetails: BillingDetails = {
+    const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',

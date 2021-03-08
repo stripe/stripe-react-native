@@ -12,6 +12,8 @@ To install the SDK run the following command in your terminal:
 
 ```sh
 yarn add stripe-react-native
+or
+npm install stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -70,7 +72,7 @@ export default function WebhookPaymentScreen() {
   // --------
 
   // 2.D. ------
-  const fetchPaymentIntentClientSecret = useCallback(async () => {
+  const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
@@ -84,10 +86,10 @@ export default function WebhookPaymentScreen() {
     const { clientSecret } = await response.json();
 
     return clientSecret;
-  }, []);
+  };
   // ----------
 
-  const handlePayPress = useCallback(async () => {
+  const handlePayPress = async () => {
     if (!card) {
       return;
     }
@@ -121,7 +123,7 @@ export default function WebhookPaymentScreen() {
     } catch (e) {
       console.log('Paymentconfirmation error', e.message);
     }
-  }, [card, confirmPayment, fetchPaymentIntentClientSecret]);
+  };
 
   return (
     <View>

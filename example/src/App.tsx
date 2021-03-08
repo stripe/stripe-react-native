@@ -14,6 +14,7 @@ import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import PaymentsUIBasicScreen from './screens/PaymentsUIBasicScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
+import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 
 const Stack = createStackNavigator();
 
@@ -97,6 +98,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentsUICustom"
             component={PaymentsUICustomScreen}
+          />
+          <Stack.Screen
+            name="CVCReCollectionScreen"
+            component={CVCReCollectionScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
