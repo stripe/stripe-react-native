@@ -213,10 +213,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey)
 
-    val customerId = getValOr(params, "customerId", null) as String
-    val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret", null) as String
-    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null) as String
-    val merchantDisplayName = getValOr(params, "merchantDisplayName", null) as String
+    val customerId = getValOr(params, "customerId")
+    val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
+    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
+    val merchantDisplayName = getValOr(params, "merchantDisplayName")
 
     this.setupPaymentSheetPromise = promise
 
