@@ -185,16 +185,3 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     layout(left, top, right, bottom)
   }
 }
-
-fun <T : View> ViewGroup.getViewsByType(tClass: Class<T>): List<T> {
-  return mutableListOf<T?>().apply {
-    for (i in 0 until childCount) {
-      val child = getChildAt(i)
-      (child as? ViewGroup)?.let {
-        addAll(child.getViewsByType(tClass))
-      }
-      if (tClass.isInstance(child))
-        add(tClass.cast(child))
-    }
-  }.filterNotNull()
-}
