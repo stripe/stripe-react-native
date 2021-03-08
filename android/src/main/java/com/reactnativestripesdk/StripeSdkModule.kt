@@ -209,7 +209,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       promise.reject("Fail", "Activity doesn't exist")
       return
     }
-    val customFlow = getBooleanOrNull(params, "customFlow")
+    val customFlow = getBooleanOrNull(params, "customFlow") ?: false
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey)
 
@@ -226,13 +226,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
       bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
       bundle.putString("merchantDisplayName", merchantDisplayName)
+      bundle.putBoolean("customFlow", customFlow)
 
       it.arguments = bundle
     }
       activity.supportFragmentManager.beginTransaction()
         .add(fragment, "payment_sheet_launch_fragment")
         .commit()
-    if (customFlow == false) {
+    if (!customFlow) {
       this.setupPaymentSheetPromise?.resolve(null)
     }
   }
