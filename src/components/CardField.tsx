@@ -46,7 +46,12 @@ type NativeCardDetails = CardFieldInput.Details & {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function CardField({ onCardChange, onFocus, ...props }: Props) {
+export function CardField({
+  onCardChange,
+  onFocus,
+  cardStyle,
+  ...props
+}: Props) {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
@@ -87,6 +92,17 @@ export function CardField({ onCardChange, onFocus, ...props }: Props) {
     <CardFieldNative
       onCardChange={onCardChangeHandler}
       onFocusChange={onFocusHandler}
+      cardStyle={{
+        backgroundColor: cardStyle?.backgroundColor || '#FFFFFF',
+        borderColor: cardStyle?.borderColor || '#000000',
+        borderWidth: cardStyle?.borderWidth || 2,
+        cornerRadius: cardStyle?.cornerRadius || 16,
+        cursorColor: cardStyle?.cursorColor || '#FFFFFF',
+        fontSize: cardStyle?.fontSize || 16,
+        placeholderColor: cardStyle?.placeholderColor || '#000000',
+        textColor: cardStyle?.textColor || '#000000',
+        textErrorColor: cardStyle?.textErrorColor || '#8a000b',
+      }}
       {...props}
     />
   );

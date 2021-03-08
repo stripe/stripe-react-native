@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 
 const inputStyles = {
   borderWidth: 1,
-  backgroundColor: '#b42222',
+  backgroundColor: '#FFFFFF',
   borderColor: '#000000',
   cornerRadius: 8,
   textColor: '#000000',
