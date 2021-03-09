@@ -1,15 +1,31 @@
 import React from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import { ApplePayButton, useApplePay } from 'stripe-react-native';
+import { ApplePayButton, useApplePay, useStripe } from 'stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
+  const { updateApplePaySummaryItems } = useStripe();
   const {
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
-  } = useApplePay();
+  } = useApplePay({
+    onDidSetShippingMethodCallback: (shippingMethod) => {
+      console.log('shippingMethod', shippingMethod);
+      updateApplePaySummaryItems([
+        { label: 'Example item name 1', amount: '11.00' },
+        { label: 'Example item name 2', amount: '25.00' },
+      ]);
+    },
+    onDidSetShippingContactCallback: (shippingContact) => {
+      console.log('shippingContact', shippingContact);
+      updateApplePaySummaryItems([
+        { label: 'Example item name 1', amount: '92.00' },
+        { label: 'Example item name 2', amount: '142.00' },
+      ]);
+    },
+  });
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -38,6 +54,13 @@ export default function ApplePayScreen() {
           amount: '20.00',
           identifier: 'DPS',
           label: 'Courier',
+          detail: 'Delivery',
+          type: 'final',
+        },
+        {
+          amount: '20.00',
+          identifier: 'DPS2',
+          label: 'Courier2',
           detail: 'Delivery',
           type: 'final',
         },

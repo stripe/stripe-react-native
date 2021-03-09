@@ -108,9 +108,7 @@ export function useStripe() {
   };
 
   const presentApplePay = async (
-    params: ApplePay.PresentParams,
-    onSelectShippingMethod: () => void = () => {},
-    onSelectShippingContact: () => void = () => {}
+    params: ApplePay.PresentParams
   ): Promise<{ error?: StripeError<ApplePayError> }> => {
     if (!isApplePaySupported) {
       return {
@@ -122,15 +120,32 @@ export function useStripe() {
     }
 
     try {
-      await NativeStripeSdk.presentApplePay(
-        params
-        // () => {
-        //   console.log('adas');
-        // },
-        // () => {
-        //   console.log('adas');
-        // }
-      );
+      await NativeStripeSdk.presentApplePay(params);
+
+      return {
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+      };
+    }
+  };
+
+  const updateApplePaySummaryItems = async (
+    summaryItems: ApplePay.CartSummaryItem[]
+  ): Promise<{ error?: StripeError<ApplePayError> }> => {
+    if (!isApplePaySupported) {
+      return {
+        error: {
+          code: ApplePayError.Canceled,
+          message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
+        },
+      };
+    }
+
+    try {
+      await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
 
       return {
         error: undefined,
@@ -245,5 +260,6 @@ export function useStripe() {
     confirmApplePayPayment: confirmApplePayPayment,
     confirmSetupIntent: confirmSetupIntent,
     createTokenForCVCUpdate: createTokenForCVCUpdate,
+    updateApplePaySummaryItems: updateApplePaySummaryItems,
   };
 }
