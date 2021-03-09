@@ -10,7 +10,7 @@ export interface Props {
    *
    * @example
    * ```ts
-   * const {} = useApplePay({
+   * const { presentApplePay } = useApplePay({
    *  onDidSetShippingMethodCallback: (shippingMethod, handler) => {
    *    handler([
    *      { label: 'Example item name 1', amount: '11.00' },
@@ -32,7 +32,7 @@ export interface Props {
    *
    * @example
    * ```ts
-   * const {} = useApplePay({
+   * const { presentApplePay } = useApplePay({
    *  onDidSetShippingMethodCallback: (shippingContact, handler) => {
    *    handler([
    *      { label: 'Example item name 1', amount: '11.00' },

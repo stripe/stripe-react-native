@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>CartSummaryItem | stripe-react-native</title>
+	<title>ShippingContact | stripe-react-native</title>
 	<meta name="description" content="Documentation for stripe-react-native">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -45,22 +45,28 @@
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class="current tsd-kind-interface tsd-parent-kind-namespace">
+		<li class=" tsd-kind-interface tsd-parent-kind-namespace">
 			<a href="applepay.cartsummaryitem.html" class="tsd-kind-icon">Cart<wbr>Summary<wbr>Item</a>
-			<ul>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="applepay.cartsummaryitem.html#amount" class="tsd-kind-icon">amount</a>
-				</li>
-				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="applepay.cartsummaryitem.html#label" class="tsd-kind-icon">label</a>
-				</li>
-			</ul>
 		</li>
 		<li class=" tsd-kind-interface tsd-parent-kind-namespace">
 			<a href="applepay.presentparams.html" class="tsd-kind-icon">Present<wbr>Params</a>
 		</li>
-		<li class=" tsd-kind-interface tsd-parent-kind-namespace">
+		<li class="current tsd-kind-interface tsd-parent-kind-namespace">
 			<a href="applepay.shippingcontact.html" class="tsd-kind-icon">Shipping<wbr>Contact</a>
+			<ul>
+				<li class=" tsd-kind-property tsd-parent-kind-interface">
+					<a href="applepay.shippingcontact.html#emailaddress" class="tsd-kind-icon">email<wbr>Address</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface">
+					<a href="applepay.shippingcontact.html#name" class="tsd-kind-icon">name</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface">
+					<a href="applepay.shippingcontact.html#phonenumber" class="tsd-kind-icon">phone<wbr>Number</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-interface">
+					<a href="applepay.shippingcontact.html#postaladdress" class="tsd-kind-icon">postal<wbr>Address</a>
+				</li>
+			</ul>
 		</li>
 		<li class=" tsd-kind-interface tsd-parent-kind-namespace">
 			<a href="applepay.shippingmethod.html" class="tsd-kind-icon">Shipping<wbr>Method</a>
@@ -82,8 +88,10 @@
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.cartsummaryitem.html#amount" class="tsd-kind-icon">amount</a></li>
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.cartsummaryitem.html#label" class="tsd-kind-icon">label</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.shippingcontact.html#emailaddress" class="tsd-kind-icon">email<wbr>Address</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.shippingcontact.html#name" class="tsd-kind-icon">name</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.shippingcontact.html#phonenumber" class="tsd-kind-icon">phone<wbr>Number</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="applepay.shippingcontact.html#postaladdress" class="tsd-kind-icon">postal<wbr>Address</a></li>
 						</ul>
 					</section>
 				</div>
@@ -92,22 +100,42 @@
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="amount" class="tsd-anchor"></a>
-				<h3>amount</h3>
-				<div class="tsd-signature tsd-kind-icon">amount<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<a name="emailaddress" class="tsd-anchor"></a>
+				<h3>email<wbr>Address</h3>
+				<div class="tsd-signature tsd-kind-icon">email<wbr>Address<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L28">src/types/ApplePay.ts:28</a></li>
+						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L20">src/types/ApplePay.ts:20</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="label" class="tsd-anchor"></a>
-				<h3>label</h3>
-				<div class="tsd-signature tsd-kind-icon">label<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<a name="name" class="tsd-anchor"></a>
+				<h3>name</h3>
+				<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L27">src/types/ApplePay.ts:27</a></li>
+						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L21">src/types/ApplePay.ts:21</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="phonenumber" class="tsd-anchor"></a>
+				<h3>phone<wbr>Number</h3>
+				<div class="tsd-signature tsd-kind-icon">phone<wbr>Number<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L22">src/types/ApplePay.ts:22</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<a name="postaladdress" class="tsd-anchor"></a>
+				<h3>postal<wbr>Address</h3>
+				<div class="tsd-signature tsd-kind-icon">postal<wbr>Address<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/types/ApplePay.ts#L23">src/types/ApplePay.ts:23</a></li>
 					</ul>
 				</aside>
 			</section>

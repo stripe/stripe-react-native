@@ -90,6 +90,9 @@
 		<li class=" tsd-kind-interface">
 			<a href="interfaces/threedsecureconfigurationparams.html" class="tsd-kind-icon">ThreeDSecure<wbr>Configuration<wbr>Params</a>
 		</li>
+		<li class=" tsd-kind-interface">
+			<a href="interfaces/useapplepayprops.html" class="tsd-kind-icon">Use<wbr>Apple<wbr>Pay<wbr>Props</a>
+		</li>
 		<li class=" tsd-kind-function">
 			<a href="modules.html#applepaybutton" class="tsd-kind-icon">Apple<wbr>Pay<wbr>Button</a>
 		</li>
@@ -156,6 +159,7 @@
 							<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/stripeerror.html" class="tsd-kind-icon">Stripe<wbr>Error</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/stripeproviderprops.html" class="tsd-kind-icon">Stripe<wbr>Provider<wbr>Props</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/threedsecureconfigurationparams.html" class="tsd-kind-icon">ThreeDSecure<wbr>Configuration<wbr>Params</a></li>
+							<li class="tsd-kind-interface"><a href="interfaces/useapplepayprops.html" class="tsd-kind-icon">Use<wbr>Apple<wbr>Pay<wbr>Props</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -185,7 +189,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/hooks/useApplePay.tsx#L8">src/hooks/useApplePay.tsx:8</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/hooks/useApplePay.tsx#L61">src/hooks/useApplePay.tsx:61</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -193,6 +197,12 @@
 								<p>useApplePay hook</p>
 							</div>
 						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>__namedParameters: <a href="interfaces/useapplepayprops.html" class="tsd-signature-type" data-tsd-kind="Interface">UseApplePayProps</a><span class="tsd-signature-symbol"> = ...</span></h5>
+							</li>
+						</ul>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter">
 								<h5>confirm<wbr>Apple<wbr>Pay<wbr>Payment<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>clientSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
@@ -221,18 +231,18 @@
 								<h5>loading<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5>
 							</li>
 							<li class="tsd-parameter">
-								<h5>present<wbr>Apple<wbr>Pay<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								<h5>present<wbr>Apple<wbr>Pay<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>params<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-signature">
 										<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>params<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
 											<li class="tsd-description">
 												<h4 class="tsd-parameters-title">Parameters</h4>
 												<ul class="tsd-parameters">
 													<li>
-														<h5>data: <a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a></h5>
+														<h5>params: <a href="interfaces/applepay.presentparams.html" class="tsd-signature-type" data-tsd-kind="Interface">PresentParams</a></h5>
 													</li>
 												</ul>
 											</li>
@@ -251,7 +261,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/hooks/useConfirmPayment.tsx#L8">src/hooks/useConfirmPayment.tsx:8</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/hooks/useConfirmPayment.tsx#L8">src/hooks/useConfirmPayment.tsx:8</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -300,7 +310,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/hooks/useConfirmSetupIntent.tsx#L8">src/hooks/useConfirmSetupIntent.tsx:8</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/hooks/useConfirmSetupIntent.tsx#L8">src/hooks/useConfirmSetupIntent.tsx:8</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -349,7 +359,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/hooks/useStripe.tsx#L26">src/hooks/useStripe.tsx:26</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/hooks/useStripe.tsx#L26">src/hooks/useStripe.tsx:26</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -379,11 +389,11 @@
 								</ul>
 							</li>
 							<li class="tsd-parameter">
-								<h5>confirm<wbr>Payment<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>paymentIntentClientSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, data<span class="tsd-signature-symbol">: </span><a href="modules/createpaymentmethod.html#params" class="tsd-signature-type" data-tsd-kind="Type alias">Params</a>, options<span class="tsd-signature-symbol">: </span><a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmpaymenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmPaymentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>paymentIntent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/paymentintent.html" class="tsd-signature-type" data-tsd-kind="Interface">PaymentIntent</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								<h5>confirm<wbr>Payment<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>paymentIntentClientSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, data<span class="tsd-signature-symbol">: </span><a href="modules/createpaymentmethod.html#params" class="tsd-signature-type" data-tsd-kind="Type alias">Params</a>, options<span class="tsd-signature-symbol">?: </span><a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmpaymenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmPaymentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>paymentIntent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/paymentintent.html" class="tsd-signature-type" data-tsd-kind="Interface">PaymentIntent</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								<ul class="tsd-parameters">
 									<li class="tsd-parameter-signature">
 										<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
-											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>paymentIntentClientSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, data<span class="tsd-signature-symbol">: </span><a href="modules/createpaymentmethod.html#params" class="tsd-signature-type" data-tsd-kind="Type alias">Params</a>, options<span class="tsd-signature-symbol">: </span><a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmpaymenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmPaymentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>paymentIntent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/paymentintent.html" class="tsd-signature-type" data-tsd-kind="Interface">PaymentIntent</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>paymentIntentClientSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, data<span class="tsd-signature-symbol">: </span><a href="modules/createpaymentmethod.html#params" class="tsd-signature-type" data-tsd-kind="Type alias">Params</a>, options<span class="tsd-signature-symbol">?: </span><a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmpaymenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmPaymentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>paymentIntent<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/paymentintent.html" class="tsd-signature-type" data-tsd-kind="Interface">PaymentIntent</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
 										</ul>
 										<ul class="tsd-descriptions">
 											<li class="tsd-description">
@@ -396,7 +406,7 @@
 														<h5>data: <a href="modules/createpaymentmethod.html#params" class="tsd-signature-type" data-tsd-kind="Type alias">Params</a></h5>
 													</li>
 													<li>
-														<h5>options: <a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a></h5>
+														<h5>options: <a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol"> = ...</span></h5>
 													</li>
 												</ul>
 											</li>
@@ -446,6 +456,26 @@
 													</li>
 													<li>
 														<h5>options: <a href="interfaces/createpaymentmethod.options.html" class="tsd-signature-type" data-tsd-kind="Interface">Options</a><span class="tsd-signature-symbol"> = ...</span></h5>
+													</li>
+												</ul>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
+							<li class="tsd-parameter">
+								<h5>create<wbr>Token<wbr>ForCVCUpdate<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>cvc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmsetupintenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmSetupIntentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>tokenId<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-signature">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>cvc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/confirmsetupintenterror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ConfirmSetupIntentError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>tokenId<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+										</ul>
+										<ul class="tsd-descriptions">
+											<li class="tsd-description">
+												<h4 class="tsd-parameters-title">Parameters</h4>
+												<ul class="tsd-parameters">
+													<li>
+														<h5>cvc: <span class="tsd-signature-type">string</span></h5>
 													</li>
 												</ul>
 											</li>
@@ -516,6 +546,26 @@
 									</li>
 								</ul>
 							</li>
+							<li class="tsd-parameter">
+								<h5>update<wbr>Apple<wbr>Pay<wbr>Summary<wbr>Items<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span>summaryItems<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.cartsummaryitem.html" class="tsd-signature-type" data-tsd-kind="Interface">CartSummaryItem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter-signature">
+										<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-literal">
+											<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>summaryItems<span class="tsd-signature-symbol">: </span><a href="interfaces/applepay.cartsummaryitem.html" class="tsd-signature-type" data-tsd-kind="Interface">CartSummaryItem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>error<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="interfaces/stripeerror.html" class="tsd-signature-type" data-tsd-kind="Interface">StripeError</a><span class="tsd-signature-symbol">&lt;</span><a href="enums/applepayerror.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ApplePayError</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+										</ul>
+										<ul class="tsd-descriptions">
+											<li class="tsd-description">
+												<h4 class="tsd-parameters-title">Parameters</h4>
+												<ul class="tsd-parameters">
+													<li>
+														<h5>summaryItems: <a href="interfaces/applepay.cartsummaryitem.html" class="tsd-signature-type" data-tsd-kind="Interface">CartSummaryItem</a><span class="tsd-signature-symbol">[]</span></h5>
+													</li>
+												</ul>
+											</li>
+										</ul>
+									</li>
+								</ul>
+							</li>
 						</ul>
 					</li>
 				</ul>
@@ -530,7 +580,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/components/ApplePayButton.tsx#L40">src/components/ApplePayButton.tsx:40</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/components/ApplePayButton.tsx#L40">src/components/ApplePayButton.tsx:40</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -571,7 +621,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/components/CardField.tsx#L48">src/components/CardField.tsx:48</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/components/CardField.tsx#L48">src/components/CardField.tsx:48</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -614,7 +664,7 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/e036d46/src/components/StripeProvider.tsx#L45">src/components/StripeProvider.tsx:45</a></li>
+								<li>Defined in <a href="https://github.com/stripe/stripe-react-native/blob/5fe642c/src/components/StripeProvider.tsx#L45">src/components/StripeProvider.tsx:45</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
