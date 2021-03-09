@@ -8,9 +8,9 @@ import { API_URL } from '../Config';
 
 export default function PaymentsUICustomScreen() {
   const {
-    setupPaymentSheet,
-    presentPaymentOptions,
-    paymentSheetConfirmPayment,
+    initPaymentSheet,
+    presentPaymentSheet,
+    confirmPaymentSheetPayment,
   } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function PaymentsUICustomScreen() {
         customer,
       } = await fetchPaymentSheetParams();
 
-      const { error, paymentOption } = await setupPaymentSheet({
+      const { error, paymentOption } = await initPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
@@ -70,7 +70,9 @@ export default function PaymentsUICustomScreen() {
   };
 
   const choosePaymentOption = async () => {
-    const { error, paymentOption } = await presentPaymentOptions();
+    const { error, paymentOption } = await presentPaymentSheet({
+      confirmPayment: false,
+    });
 
     if (error) {
       console.log('error', error);
@@ -86,7 +88,7 @@ export default function PaymentsUICustomScreen() {
 
   const onPressBuy = async () => {
     setLoading(true);
-    const { error, paymentIntent } = await paymentSheetConfirmPayment();
+    const { error, paymentIntent } = await confirmPaymentSheetPayment();
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -168,12 +170,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   image: {
-    width: 16,
-    height: 16,
+    width: 26,
+    height: 20,
   },
   text: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 12,
   },
 });

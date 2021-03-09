@@ -38,11 +38,16 @@ type NativeStripeSdkType = {
     options: CreatePaymentMethod.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
-  setupPaymentSheet(
+  initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<PaymentSheet.PaymentOption | undefined>;
-  presentPaymentSheet(clientSecret?: string): Promise<PaymentIntent>;
-  paymentSheetConfirmPayment(): Promise<PaymentIntent>;
+  presentPaymentSheet(
+    params?: PaymentSheet.PresentParams
+  ): Promise<{
+    paymentIntent?: PaymentIntent;
+    paymentOption?: PaymentSheet.PaymentOption;
+  }>;
+  confirmPaymentSheetPayment(): Promise<PaymentIntent>;
   presentPaymentOptions(): Promise<PaymentSheet.PaymentOption | undefined>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
 };

@@ -44,7 +44,7 @@ Before getting started, your checkout page should:
 
 ![Present a prebuilt payment sheet to handle the entire payment flow. In the payment sheet, your customer can reuse a saved payment method or add a new one. Your customer taps a “Buy” button in the payment sheet to complete the payment.](./assets/overview-complete.png 'PaymentSheet')
 
-Next, integrate Stripe’s prebuilt payment UI in your app’s checkout using use the `setupPaymentSheet` method from `useStripe` hook. PaymentSheet guides the customer through the payment process, combining all the steps required — collecting payment details, billing details, and confirming the payment — into a single sheet. If you prefer a more customized checkout experience, consider using the [Custom integration](#custom-integration).
+Next, integrate Stripe’s prebuilt payment UI in your app’s checkout using use the `initPaymentSheet` method from `useStripe` hook. PaymentSheet guides the customer through the payment process, combining all the steps required — collecting payment details, billing details, and confirming the payment — into a single sheet. If you prefer a more customized checkout experience, consider using the [Custom integration](#custom-integration).
 
 First, configure the `StripeProvider` with your Stripe publishable key so that it can make requests to the Stripe API.
 
@@ -52,7 +52,7 @@ In your app’s checkout, make a network request to the backend endpoint you cre
 
 ```tsx
 export default function CheckoutScreen() {
-  const { setupPaymentSheet, presentPaymentSheet } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [initialised, setInitialised] = useState(false);
 
   const fetchPaymentSheetParams = async () => {
@@ -78,7 +78,7 @@ export default function CheckoutScreen() {
       customer,
     } = await fetchPaymentSheetParams();
 
-    const { error } = await setupPaymentSheet({
+    const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
@@ -160,9 +160,9 @@ In your app’s checkout, make a network request to your backend endpoint and in
 ```tsx
 export default function CheckoutScreen() {
   const {
-    setupPaymentSheet,
+    initPaymentSheet,
     presentPaymentOptions,
-    paymentSheetConfirmPayment,
+    confirmPaymentSheetPayment,
   } = useStripe();
   const [initialised, setInitialised] = useState(false);
 
@@ -189,7 +189,7 @@ export default function CheckoutScreen() {
       customer,
     } = await fetchPaymentSheetParams();
 
-    const { error } = await setupPaymentSheet({
+    const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
@@ -326,14 +326,14 @@ export default function CheckoutScreen() {
 }
 ```
 
-Finally, when your buy button is tapped, call `paymentSheetConfirmPayment` to complete the payment.
+Finally, when your buy button is tapped, call `confirmPaymentSheetPayment` to complete the payment.
 
 ```tsx
 // ...
-const { paymentSheetConfirmPayment } = useStripe();
+const { confirmPaymentSheetPayment } = useStripe();
 
 const onPressBuy = async () => {
-  const { error, paymentIntent } = await paymentSheetConfirmPayment();
+  const { error, paymentIntent } = await confirmPaymentSheetPayment();
 
   if (error) {
     Alert.alert(`Error code: ${error.code}`, error.message);
@@ -357,7 +357,7 @@ First, follow steps 1–3 in our [Accept Apple Pay](https://stripe.com/docs/appl
 Next, [set your merchant ID in `StripeProvider`](./api-reference/components.md#stripeprovider) and `applePay` property during initializing PaymentSheet with your the country code of your business (check your account details [here](https://dashboard.stripe.com/settings/account%5D)):
 
 ```tsx
-await setupPaymentSheet({
+await initPaymentSheet({
   // ...
   applePay: true,
   merchantCountryCode: 'US',
@@ -370,14 +370,14 @@ To enable card scanning support, set the `NSCameraUsageDescription` (“Privacy 
 
 ## Customization
 
-All customization is configured via the `setupPaymentSheet` method.
+All customization is configured via the `initPaymentSheet` method.
 
 ### Merchant display name
 
 You can specify your own customer-facing business name instead of your app’s name. This is used to display a “Pay (merchantDisplayName)” line item in the Apple Pay sheet.
 
 ```tsx
-await setupPaymentSheet({
+await initPaymentSheet({
   // ...
   merchantDisplayName: 'Example Inc.',
 });
@@ -388,7 +388,7 @@ await setupPaymentSheet({
 `PaymentSheet` automatically adapts to the user’s system-wide appearance settings (light & dark mode). If your app doesn’t support dark mode, you can set `style` property to alwaysLight or alwaysDark mode.
 
 ```tsx
-await setupPaymentSheet({
+await initPaymentSheet({
   // ...
   style: 'alwaysDark',
 });

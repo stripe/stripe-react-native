@@ -50,23 +50,19 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  setupPaymentSheet:(NSDictionary *)params
+                  initPaymentSheet:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 
 RCT_EXTERN_METHOD(
-                  presentPaymentSheet:(RCTPromiseResolveBlock)resolve
+                  presentPaymentSheet:(NSDictionary)params
+                  resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 
 RCT_EXTERN_METHOD(
-                  presentPaymentOptions:(RCTPromiseResolveBlock)resolve
-                  rejecter: (RCTPromiseRejectBlock)reject
-                  )
-
-RCT_EXTERN_METHOD(
-                  paymentSheetConfirmPayment:(RCTPromiseResolveBlock)resolve
+                  confirmPaymentSheetPayment:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 

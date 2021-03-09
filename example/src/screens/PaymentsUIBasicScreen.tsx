@@ -6,7 +6,7 @@ import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 export default function PaymentsUIBasicScreen() {
-  const { setupPaymentSheet, presentPaymentSheet } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoadng] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
@@ -32,7 +32,9 @@ export default function PaymentsUIBasicScreen() {
       return;
     }
     setLoadng(true);
-    const { error, paymentIntent } = await presentPaymentSheet(clientSecret);
+    const { error, paymentIntent } = await presentPaymentSheet({
+      clientSecret,
+    });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -50,7 +52,7 @@ export default function PaymentsUIBasicScreen() {
       customer,
     } = await fetchPaymentSheetParams();
 
-    const { error } = await setupPaymentSheet({
+    const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
       paymentIntentClientSecret: paymentIntent,
