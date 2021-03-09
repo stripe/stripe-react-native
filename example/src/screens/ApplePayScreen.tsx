@@ -1,26 +1,25 @@
 import React from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import { ApplePayButton, useApplePay, useStripe } from 'stripe-react-native';
+import { ApplePayButton, useApplePay } from 'stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
-  const { updateApplePaySummaryItems } = useStripe();
   const {
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
   } = useApplePay({
-    onDidSetShippingMethodCallback: (shippingMethod) => {
+    onDidSetShippingMethodCallback: (shippingMethod, handler) => {
       console.log('shippingMethod', shippingMethod);
-      updateApplePaySummaryItems([
+      handler([
         { label: 'Example item name 1', amount: '11.00' },
         { label: 'Example item name 2', amount: '25.00' },
       ]);
     },
-    onDidSetShippingContactCallback: (shippingContact) => {
+    onDidSetShippingContactCallback: (shippingContact, handler) => {
       console.log('shippingContact', shippingContact);
-      updateApplePaySummaryItems([
+      handler([
         { label: 'Example item name 1', amount: '92.00' },
         { label: 'Example item name 2', amount: '142.00' },
       ]);
