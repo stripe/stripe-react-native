@@ -64,7 +64,12 @@ export default function ApplePayScreen() {
           type: 'final',
         },
       ],
-      requiredShippingAddressFields: ['emailAddress', 'phoneNumber'],
+      requiredShippingAddressFields: [
+        'emailAddress',
+        'phoneNumber',
+        'postalAddress',
+        'name',
+      ],
       requiredBillingContactFields: ['phoneNumber', 'name'],
     });
 
