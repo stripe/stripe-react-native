@@ -16,6 +16,13 @@ export declare namespace ApplePay {
     detail?: string;
   }
 
+  export interface ShippingContact {
+    emailAddress: string;
+    name: string;
+    phoneNumber: number;
+    postalAddress: string;
+  }
+
   export interface CartSummaryItem {
     label: string;
     amount: string;

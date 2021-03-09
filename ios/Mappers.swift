@@ -46,7 +46,10 @@ class Mappers {
     class func mapFromShippingMethod(shippingMethod: PKShippingMethod) -> NSDictionary {
         let method: NSDictionary = [
             "detail": shippingMethod.detail ?? "",
-            "identifier": shippingMethod.identifier ?? ""
+            "identifier": shippingMethod.identifier ?? "",
+            "amount": shippingMethod.amount,
+            "type": shippingMethod.type,
+            "label": shippingMethod.label
         ]
         
         return method
