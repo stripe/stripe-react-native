@@ -225,6 +225,14 @@ export function useStripe() {
     }
   };
 
+  const presentPaymentPass = async (params) => {
+    return await NativeStripeSdk.presentPaymentPass(params);
+  };
+
+  const createIssuingCardKeyCompletionHandler = async (params) => {
+    return await NativeStripeSdk.createIssuingCardKeyCompletionHandler(params);
+  };
+
   return {
     retrievePaymentIntent: retrievePaymentIntent,
     confirmPayment: confirmPaymentMethod,
@@ -235,5 +243,7 @@ export function useStripe() {
     confirmApplePayPayment: confirmApplePayPayment,
     confirmSetupIntent: confirmSetupIntent,
     createTokenForCVCUpdate: createTokenForCVCUpdate,
+    presentPaymentPass: presentPaymentPass,
+    createIssuingCardKeyCompletionHandler,
   };
 }

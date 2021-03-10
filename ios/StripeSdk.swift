@@ -2,7 +2,7 @@ import PassKit
 import Stripe
 
 @objc(StripeSdk)
-class StripeSdk: NSObject, STPApplePayContextDelegate  {
+class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKeyProvider  {
     var merchantIdentifier: String? = nil
     
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
@@ -11,6 +11,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    var presentPaymentPassResolver: RCTPromiseResolveBlock? = nil
+    var createIssuingCardKeyCompletion: STPJSONResponseCompletionBlock? = nil
     
     var pushProvisioningContext: STPPushProvisioningContext? = nil
     
@@ -26,23 +28,37 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
     
     @objc(presentPaymentPass:resolver:rejecter:)
     func presentPaymentPass(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        self.presentPaymentPassResolver = resolve
         let config = STPPushProvisioningContext.requestConfiguration(
-          withName: "Jenny Rosen", // the cardholder's name
-          description: "RocketRides Card", // optional; a description of your card
-          last4: "4242", // optional; the last 4 digits of the card
-          brand: .visa // optional; the brand of the card
+            withName: "Jenny Rosen", // the cardholder's name
+            description: "RocketRides Card", // optional; a description of your card
+            last4: "4242", // optional; the last 4 digits of the card
+            brand: .visa // optional; the brand of the card
         )
-        if let paymentPassViewController = PKAddPaymentPassViewController(requestConfiguration: config, delegate: self) {
-            DispatchQueue.main.async {
-                if let controller = UIApplication.shared.delegate?.window??.rootViewController {
-                    controller.present(paymentPassViewController, animated: true, completion: nil)
-                }
+
+        DispatchQueue.main.async {
+            if let paymentPassViewController = STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) {
+                let share = UIApplication.shared.delegate
+                share?.window??.rootViewController?.present(paymentPassViewController, animated: true, completion: nil)
             }
         }
     }
     
-    func dismiss(animated: Bool) -> Void {
+    func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
+        self.presentPaymentPassResolver?(apiVersion)
+        self.createIssuingCardKeyCompletion = completion
+    }
+    
+    @objc(createIssuingCardKeyCompletionHandler:resolver:rejecter:)
+    func createIssuingCardKeyCompletionHandler(response: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let data: Data = NSKeyedArchiver.archivedData(withRootObject: response)
         
+        do {
+            let obj = try JSONSerialization.jsonObject(with: data, options: []) as! [AnyHashable: Any]
+            createIssuingCardKeyCompletion?(obj, nil)
+        } catch {
+            createIssuingCardKeyCompletion?(nil, error)
+        }
     }
     
     @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
@@ -372,21 +388,17 @@ extension StripeSdk: STPAuthenticationContext {
 }
 
 extension StripeSdk: PKAddPaymentPassViewControllerDelegate {
-  func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, generateRequestWithCertificateChain certificates: [Data], nonce: Data, nonceSignature: Data, completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
-    self.pushProvisioningContext = STPPushProvisioningContext(keyProvider: self)
-    // STPPushProvisioningContext implements this delegate method for you, by retrieving encrypted card details from the Stripe API.
-    self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
-  }
-
-  func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
-    if let topViewController = UIApplication.shared.delegate?.window??.rootViewController {
-        topViewController.dismiss(animated: true, completion: nil)
+    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, generateRequestWithCertificateChain certificates: [Data], nonce: Data, nonceSignature: Data, completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
+        
+        self.pushProvisioningContext = STPPushProvisioningContext(keyProvider: self)
+        
+        self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
     }
-  }
-}
-
-extension StripeSdk: STPIssuingCardEphemeralKeyProvider {
-  func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
     
-  }
+    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
+        if let topViewController = UIApplication.shared.delegate?.window??.rootViewController {
+            topViewController.dismiss(animated: true, completion: nil)
+        }
+        UIViewController().dismiss(animated: true, completion: nil)
+    }
 }

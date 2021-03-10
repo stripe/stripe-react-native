@@ -47,6 +47,18 @@ const calculateOrderAmount = (_order?: Order): number => {
   return 1400;
 };
 
+app.post(
+  '/create-ephemeral-key',
+  async (req: express.Request, res: express.Response) => {
+    const list = await stripe.issuing.cards.list();
+    let key = await stripe.ephemeralKeys.create(
+      { issuing_card: list.data[0].id },
+      { apiVersion: req.body.apiVersion }
+    );
+    res.send({ key: key });
+  }
+);
+
 app.get('/stripe-key', (_: express.Request, res: express.Response): void => {
   res.send({ publishableKey: stripePublishableKey });
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import 'react-native-gesture-handler';
-import { StripeProvider } from 'stripe-react-native';
+import { StripeProvider, useStripe } from 'stripe-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -18,6 +18,10 @@ const Stack = createStackNavigator();
 
 export default function App() {
   const [publishableKey, setPublishableKey] = useState('');
+  const {
+    presentPaymentPass,
+    createIssuingCardKeyCompletionHandler,
+  } = useStripe();
 
   const fetchPublishableKey = async () => {
     const response = await fetch(`${API_URL}/stripe-key`);
@@ -26,6 +30,23 @@ export default function App() {
   };
 
   useEffect(() => {
+    async function test() {
+      const a = await presentPaymentPass({});
+      debugger;
+      const response = await fetch(`${API_URL}/create-ephemeral-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiVersion: a,
+          issuing_card: 'ic_1ITOZeJICD58aXTFRGSWyrdS',
+        }),
+      });
+      const { key } = await response.json();
+      createIssuingCardKeyCompletionHandler(key);
+    }
+    test();
     fetchPublishableKey();
   }, []);
 
