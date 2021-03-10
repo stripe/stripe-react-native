@@ -11,7 +11,7 @@ export interface Props {
    * @example
    * ```ts
    * const { presentApplePay } = useApplePay({
-   *  onDidSetShippingMethodCallback: (shippingMethod, handler) => {
+   *  onShippingMethodSelected: (shippingMethod, handler) => {
    *    handler([
    *      { label: 'Example item name 1', amount: '11.00' },
    *      { label: 'Example item name 2', amount: '25.00' },
@@ -21,7 +21,7 @@ export interface Props {
    * ```
    */
   onShippingMethodSelected?: (
-    shippingMethod: ApplePay.ShippingContact,
+    shippingMethod: ApplePay.ShippingMethod,
     handler: (
       summaryItems: ApplePay.CartSummaryItem[]
     ) => Promise<{
@@ -33,7 +33,7 @@ export interface Props {
    * @example
    * ```ts
    * const { presentApplePay } = useApplePay({
-   *  onDidSetShippingMethodCallback: (shippingContact, handler) => {
+   *  onShippingContactSelected: (shippingContact, handler) => {
    *    handler([
    *      { label: 'Example item name 1', amount: '11.00' },
    *      { label: 'Example item name 2', amount: '25.00' },
@@ -43,7 +43,7 @@ export interface Props {
    * ```
    */
   onShippingContactSelected?: (
-    shippingContact: ApplePay.ShippingMethod,
+    shippingContact: ApplePay.ShippingContact,
     handler: (
       summaryItems: ApplePay.CartSummaryItem[]
     ) => Promise<{
