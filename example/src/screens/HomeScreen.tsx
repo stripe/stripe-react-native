@@ -52,6 +52,14 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Payment Pass"
+          onPress={() => {
+            navigation.navigate('PaymentPassScreen');
+          }}
+        />
+      </View>
     </Screen>
   );
 }

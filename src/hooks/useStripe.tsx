@@ -11,6 +11,8 @@ import {
   SetupIntent,
   ConfirmSetupIntentError,
   ApplePay,
+  Dictionary,
+  PaymentPass,
 } from '../types';
 import { useEffect, useState } from 'react';
 import { isiOS, createError } from '../helpers';
@@ -225,12 +227,34 @@ export function useStripe() {
     }
   };
 
-  const presentPaymentPass = async (params) => {
-    return await NativeStripeSdk.presentPaymentPass(params);
+  const presentPaymentPass = async (params: PaymentPass.PresentParams) => {
+    try {
+      const apiVersion = await NativeStripeSdk.presentPaymentPass(params);
+
+      return {
+        apiVersion,
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+        apiVersion: undefined,
+      };
+    }
   };
 
-  const createIssuingCardKeyCompletionHandler = async (params) => {
-    return await NativeStripeSdk.createIssuingCardKeyCompletionHandler(params);
+  const completeCreatingIssueingCardKey = async (params: Dictionary<any>) => {
+    try {
+      await NativeStripeSdk.completeCreatingIssueingCardKey(params);
+
+      return {
+        error: undefined,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+      };
+    }
   };
 
   return {
@@ -244,6 +268,6 @@ export function useStripe() {
     confirmSetupIntent: confirmSetupIntent,
     createTokenForCVCUpdate: createTokenForCVCUpdate,
     presentPaymentPass: presentPaymentPass,
-    createIssuingCardKeyCompletionHandler,
+    completeCreatingIssueingCardKey,
   };
 }

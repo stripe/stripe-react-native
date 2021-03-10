@@ -253,6 +253,23 @@ class Mappers {
         return "Unknown"
     }
     
+    class func mapToCardBrand(_ brand: String?) -> STPCardBrand {
+        if let brand = brand {
+            switch brand {
+            case "Visa": return STPCardBrand.visa
+            case "AmericanExpress": return STPCardBrand.amex
+            case "MasterCard": return STPCardBrand.mastercard
+            case "Discover": return STPCardBrand.discover
+            case "JCB": return STPCardBrand.JCB
+            case "DinersClub": return STPCardBrand.dinersClub
+            case "UnionPay": return STPCardBrand.unionPay
+            case "Unknown": return STPCardBrand.unknown
+            default: return STPCardBrand.unknown
+            }
+        }
+        return STPCardBrand.unknown
+    }
+    
     class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod) -> NSDictionary {
         let card: NSDictionary = [
             "brand": Mappers.mapCardBrand(paymentMethod.card?.brand),

@@ -7,7 +7,9 @@ import type {
   PaymentMethod,
   ApplePay,
   SetupIntent,
+  Dictionary,
 } from './types';
+import type { PaymentPass } from './types/PaymentPass';
 
 type NativeStripeSdkType = {
   initialise(
@@ -38,6 +40,8 @@ type NativeStripeSdkType = {
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
+  presentPaymentPass(params: PaymentPass.PresentParams): Promise<string>;
+  completeCreatingIssueingCardKey(response: Dictionary<any>): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

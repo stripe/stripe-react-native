@@ -13,6 +13,9 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     var presentPaymentPassResolver: RCTPromiseResolveBlock? = nil
     var createIssuingCardKeyCompletion: STPJSONResponseCompletionBlock? = nil
+    var presentPaymentPassRejecter: RCTPromiseRejectBlock? = nil
+    var completeCreatingIssueingCardKeyResolver: RCTPromiseResolveBlock? = nil
+    var completeCreatingIssueingCardKeyRejecter: RCTPromiseRejectBlock? = nil
     
     var pushProvisioningContext: STPPushProvisioningContext? = nil
     
@@ -29,11 +32,18 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
     @objc(presentPaymentPass:resolver:rejecter:)
     func presentPaymentPass(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         self.presentPaymentPassResolver = resolve
+        self.presentPaymentPassRejecter = reject
+        
+        guard let name = params["name"] as? String else {
+            reject(PaymentPassErrorType.Failed.rawValue, "You must provide cardholder name", nil)
+            return
+        }
+
         let config = STPPushProvisioningContext.requestConfiguration(
-            withName: "Jenny Rosen", // the cardholder's name
-            description: "RocketRides Card", // optional; a description of your card
-            last4: "4242", // optional; the last 4 digits of the card
-            brand: .visa // optional; the brand of the card
+            withName: name,
+            description: params["description"] as? String,
+            last4: params["last4"] as? String,
+            brand: Mappers.mapToCardBrand(params["brand"] as? String)
         )
 
         DispatchQueue.main.async {
@@ -49,16 +59,20 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
         self.createIssuingCardKeyCompletion = completion
     }
     
-    @objc(createIssuingCardKeyCompletionHandler:resolver:rejecter:)
-    func createIssuingCardKeyCompletionHandler(response: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let data: Data = NSKeyedArchiver.archivedData(withRootObject: response)
-        
-        do {
-            let obj = try JSONSerialization.jsonObject(with: data, options: []) as! [AnyHashable: Any]
-            createIssuingCardKeyCompletion?(obj, nil)
-        } catch {
-            createIssuingCardKeyCompletion?(nil, error)
+    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
+        if let topViewController = UIApplication.shared.delegate?.window??.rootViewController {
+            topViewController.dismiss(animated: true, completion: nil)
+        } else {
+            UIViewController().dismiss(animated: true, completion: nil)
         }
+        self.completeCreatingIssueingCardKeyRejecter?(PaymentPassErrorType.Canceled.rawValue, "Payment Pass procecess has been canceled", nil)
+    }
+    
+    @objc(completeCreatingIssueingCardKey:resolver:rejecter:)
+    func completeCreatingIssueingCardKey(response: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        createIssuingCardKeyCompletion?(response as? [AnyHashable: Any], nil)
+        self.completeCreatingIssueingCardKeyResolver = resolve
+        self.completeCreatingIssueingCardKeyRejecter = reject
     }
     
     @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
@@ -394,11 +408,5 @@ extension StripeSdk: PKAddPaymentPassViewControllerDelegate {
         
         self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
     }
-    
-    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
-        if let topViewController = UIApplication.shared.delegate?.window??.rootViewController {
-            topViewController.dismiss(animated: true, completion: nil)
-        }
-        UIViewController().dismiss(animated: true, completion: nil)
-    }
+
 }
