@@ -10,14 +10,14 @@ export default function ApplePayScreen() {
     confirmApplePayPayment,
     isApplePaySupported,
   } = useApplePay({
-    onDidSetShippingMethodCallback: (shippingMethod, handler) => {
+    onShippingMethodSelected: (shippingMethod, handler) => {
       console.log('shippingMethod', shippingMethod);
       handler([
         { label: 'Example item name 1', amount: '11.00' },
         { label: 'Example item name 2', amount: '25.00' },
       ]);
     },
-    onDidSetShippingContactCallback: (shippingContact, handler) => {
+    onShippingContactSelected: (shippingContact, handler) => {
       console.log('shippingContact', shippingContact);
       handler([
         { label: 'Example item name 1', amount: '92.00' },

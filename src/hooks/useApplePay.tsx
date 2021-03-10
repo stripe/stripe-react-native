@@ -1,5 +1,5 @@
 import type { ApplePay, ApplePayError, StripeError } from '../types';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useStripe } from './useStripe';
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
@@ -20,8 +20,8 @@ export interface Props {
    * })
    * ```
    */
-  onDidSetShippingContactCallback?: (
-    shippingMethod: ApplePay.ShippingMethod,
+  onShippingMethodSelected?: (
+    shippingMethod: ApplePay.ShippingContact,
     handler: (
       summaryItems: ApplePay.CartSummaryItem[]
     ) => Promise<{
@@ -42,8 +42,8 @@ export interface Props {
    * })
    * ```
    */
-  onDidSetShippingMethodCallback?: (
-    shippingContact: ApplePay.ShippingContact,
+  onShippingContactSelected?: (
+    shippingContact: ApplePay.ShippingMethod,
     handler: (
       summaryItems: ApplePay.CartSummaryItem[]
     ) => Promise<{
@@ -59,8 +59,8 @@ const SET_SHIPPING_CONTACT_CALLBACK_NAME = 'onDidSetShippingContact';
  * useApplePay hook
  */
 export function useApplePay({
-  onDidSetShippingContactCallback,
-  onDidSetShippingMethodCallback,
+  onShippingMethodSelected,
+  onShippingContactSelected,
 }: Props = {}) {
   const {
     isApplePaySupported,
@@ -70,6 +70,34 @@ export function useApplePay({
   } = useStripe();
   const [items, setItems] = useState<ApplePay.CartSummaryItem[] | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const onDidSetShippingMethod = useCallback(
+    (result: { shippingMethod: ApplePay.ShippingMethod }) => {
+      if (onShippingMethodSelected) {
+        onShippingMethodSelected(
+          result.shippingMethod,
+          updateApplePaySummaryItems
+        );
+      } else {
+        updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
+      }
+    },
+    [items, onShippingMethodSelected, updateApplePaySummaryItems]
+  );
+
+  const onDidSetShippingContact = useCallback(
+    (result: { shippingContact: ApplePay.ShippingContact }) => {
+      if (onShippingContactSelected) {
+        onShippingContactSelected(
+          result.shippingContact,
+          updateApplePaySummaryItems
+        );
+      } else {
+        updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
+      }
+    },
+    [items, onShippingContactSelected, updateApplePaySummaryItems]
+  );
 
   useEffect(() => {
     eventEmitter.addListener(
@@ -91,30 +119,7 @@ export function useApplePay({
         onDidSetShippingMethod
       );
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const onDidSetShippingMethod = (shippingMethod: any) => {
-    if (onDidSetShippingMethodCallback) {
-      onDidSetShippingMethodCallback(
-        shippingMethod,
-        updateApplePaySummaryItems
-      );
-    } else {
-      updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
-    }
-  };
-
-  const onDidSetShippingContact = (shippingContact: any) => {
-    if (onDidSetShippingContactCallback) {
-      onDidSetShippingContactCallback(
-        shippingContact,
-        updateApplePaySummaryItems
-      );
-    } else {
-      updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
-    }
-  };
+  }, [onDidSetShippingContact, onDidSetShippingMethod]);
 
   const presentApplePay = async (params: ApplePay.PresentParams) => {
     setLoading(true);
