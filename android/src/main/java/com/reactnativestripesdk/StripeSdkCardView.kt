@@ -56,29 +56,29 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
     textColor?.let {
-      binding.cardNumberTextInputLayout.editText?.setTextColor(Color.parseColor(it))
-      binding.cvcTextInputLayout.editText?.setTextColor(Color.parseColor(it))
-      binding.expiryDateTextInputLayout.editText?.setTextColor(Color.parseColor(it))
-      binding.postalCodeTextInputLayout.editText?.setTextColor(Color.parseColor(it))
+      binding.cardNumberEditText.setTextColor(ColorStateList.valueOf(Color.parseColor(it)))
+      binding.cvcEditText.setTextColor(Color.parseColor(it))
+      binding.expiryDateEditText.setTextColor(Color.parseColor(it))
+      binding.postalCodeEditText.setTextColor(Color.parseColor(it))
 
     }
     textErrorColor?.let {
-      binding.cardNumberTextInputLayout.setErrorTextColor(ColorStateList.valueOf(Color.parseColor(it)))
-      binding.cvcTextInputLayout.setErrorTextColor(ColorStateList.valueOf(Color.parseColor(it)))
-      binding.expiryDateTextInputLayout.setErrorTextColor(ColorStateList.valueOf(Color.parseColor(it)))
-      binding.postalCodeTextInputLayout.setErrorTextColor(ColorStateList.valueOf(Color.parseColor(it)))
+      binding.cardNumberEditText.setErrorColor(Color.parseColor(it))
+      binding.cvcEditText.setErrorColor(Color.parseColor(it))
+      binding.expiryDateEditText.setErrorColor(Color.parseColor(it))
+      binding.postalCodeEditText.setErrorColor(Color.parseColor(it))
     }
     placeholderColor?.let {
-      binding.cardNumberTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
-      binding.cvcTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
-      binding.expiryDateTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
-      binding.postalCodeTextInputLayout.editText?.setHintTextColor(Color.parseColor(it))
+      binding.cardNumberEditText.setHintTextColor(Color.parseColor(it))
+      binding.cvcEditText.setHintTextColor(Color.parseColor(it))
+      binding.expiryDateEditText.setHintTextColor(Color.parseColor(it))
+      binding.postalCodeEditText.setHintTextColor(Color.parseColor(it))
     }
     fontSize?.let {
-      binding.cardNumberTextInputLayout.editText?.textSize = it.toFloat()
-      binding.cvcTextInputLayout.editText?.textSize = it.toFloat()
-      binding.expiryDateTextInputLayout.editText?.textSize = it.toFloat()
-      binding.postalCodeTextInputLayout.editText?.setTextSize(it.toFloat())
+      binding.cardNumberEditText.textSize = it.toFloat()
+      binding.cvcEditText.textSize = it.toFloat()
+      binding.expiryDateEditText.textSize = it.toFloat()
+      binding.postalCodeEditText.textSize = it.toFloat()
     }
 
     mCardWidget.setPadding(40, 0 ,40 ,0)
