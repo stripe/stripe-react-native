@@ -38,10 +38,10 @@ import { StripeProvider } from 'stripe-react-native';
 </StripeProvider>;
 
 // PaymentScreen.ts
-import { CardField, useStripe } from 'stripe-react-native';
+import { CardField, CardFieldInput, useStripe } from 'stripe-react-native';
 
 export default function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const { confirmPayment, handleCardAction } = useStripe();
 
   return <CardField onCardChange={setCard} />;
