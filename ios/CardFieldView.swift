@@ -22,7 +22,9 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         didSet {
             if let borderWidth = cardStyle["borderWidth"]  as? Int {
                 cardField.borderWidth = CGFloat(borderWidth)
-            }
+						} else {
+							cardField.borderWidth = CGFloat(0)
+						}
             if let backgroundColor = cardStyle["backgroundColor"]  as? String {
                 cardField.backgroundColor = UIColor(hexString: backgroundColor)
             }
