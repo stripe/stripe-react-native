@@ -86,8 +86,8 @@ export default function WebhookPaymentScreen() {
           number: '4242424242424242',
           expiration: 'MM|YY',
           cvc: 'CVV',
+          postalCode: 'Postal Code',
         }}
-        postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
         }}
