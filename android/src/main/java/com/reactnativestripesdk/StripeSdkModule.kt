@@ -163,7 +163,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           val option: WritableMap = WritableNativeMap()
           val result: WritableMap = WritableNativeMap()
           option.putString("label", label)
-          option.putInt("image", drawableResourceId)
+          option.putInt("image", null)
           result.putMap("paymentOption", option)
           presentPaymentSheetPromise?.resolve(result)
         } else {
