@@ -48,7 +48,6 @@ type NativeStripeSdkType = {
     paymentOption?: PaymentSheet.PaymentOption;
   }>;
   confirmPaymentSheetPayment(): Promise<PaymentIntent>;
-  presentPaymentOptions(): Promise<PaymentSheet.PaymentOption | undefined>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
 };
 

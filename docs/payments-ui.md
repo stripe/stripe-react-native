@@ -49,11 +49,13 @@ Next, integrate Stripe’s prebuilt payment UI in your app’s checkout using us
 First, configure the `StripeProvider` with your Stripe publishable key so that it can make requests to the Stripe API.
 
 In your app’s checkout, make a network request to the backend endpoint you created in the previous step and initialize `PaymentSheet`. To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
+Save your `clientSecret` for the future usage
 
 ```tsx
 export default function CheckoutScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [initialised, setInitialised] = useState(false);
+  const [clientSecret, setClientSecret] = useState();
 
   const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
@@ -62,26 +64,32 @@ export default function CheckoutScreen() {
         'Content-Type': 'application/json',
       },
     });
-    const { paymentIntent, ephemeralKey, customer } = await response.json();
+    const {
+      paymentIntentClientSecret,
+      customerEphemeralKeySecret,
+      customer,
+    } = await response.json();
 
     return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
+      paymentIntentClientSecret,
+      customerEphemeralKeySecret,
+      customerId,
     };
   };
 
   const initialisePaymentSheet = async () => {
     const {
-      paymentIntent,
+      paymentIntentClientSecret,
       ephemeralKey,
       customer,
     } = await fetchPaymentSheetParams();
 
+    setClientSecret(clientSecret);
+
     const { error } = await initPaymentSheet({
-      customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
+      customerId,
+      customerEphemeralKeySecret,
+      paymentIntentClientSecret,
     });
     if (!error) {
       setInitialised(true);
@@ -109,14 +117,16 @@ export default function CheckoutScreen() {
 }
 ```
 
-When the checkout button is tapped, call presentPaymentSheet() to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `PaymentIntent` or `StripeError<PaymentSheetError>`.
+When the checkout button is tapped, call `presentPaymentSheet` with `clientSecret` fetched from the backend before to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `PaymentIntent` or `StripeError<PaymentSheetError>`.
 
 ```tsx
 export default function CheckoutScreen() {
   // continued from above
 
   const openPaymentSheet = async () => {
-    const { error, paymentIntent } = await presentPaymentSheet();
+    const { error, paymentIntent } = await presentPaymentSheet({
+      clientSecret,
+    });
 
     if (error) {
       console.log('error', error.message);
@@ -156,15 +166,17 @@ If you choose this integration, you’ll use `customFlow` flag while setting up 
 This guide assumes you have a payment details button with a label and an image that can display the details of a selected payment method and a buy button.
 
 In your app’s checkout, make a network request to your backend endpoint and initialize the PaymentSheet in custom mode. To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
+Save your `clientSecret` for the future usage.
 
 ```tsx
 export default function CheckoutScreen() {
   const {
     initPaymentSheet,
-    presentPaymentOptions,
+    presentPaymentSheet,
     confirmPaymentSheetPayment,
   } = useStripe();
   const [initialised, setInitialised] = useState(false);
+  const [clientSecret, setClientSecret] = useState();
 
   const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
@@ -173,26 +185,32 @@ export default function CheckoutScreen() {
         'Content-Type': 'application/json',
       },
     });
-    const { paymentIntent, ephemeralKey, customer } = await response.json();
+    const {
+      paymentIntentClientSecret,
+      customerEphemeralKeySecret,
+      customerId,
+    } = await response.json();
 
     return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
+      paymentIntentClientSecret,
+      customerEphemeralKeySecret,
+      customerId,
     };
   };
 
   const initialisePaymentSheet = async () => {
     const {
-      paymentIntent,
-      ephemeralKey,
-      customer,
+      paymentIntentClientSecret,
+      customerEphemeralKeySecret,
+      customerId,
     } = await fetchPaymentSheetParams();
 
+    setClientSecret(paymentIntentClientSecret);
+
     const { error } = await initPaymentSheet({
-      customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
+      customerId,
+      customerEphemeralKeySecret,
+      paymentIntentClientSecret,
       customFlow: true, // it forces to use custom FlowController
       merchantDisplayName: 'Example Inc.',
       style: 'alwaysDark',
@@ -254,9 +272,9 @@ export default function CheckoutScreen() {
 }
 ```
 
-`presentPaymentOptions` resolves with a paymentOption property containing an image and label representing the customer’s payment method. After PaymentSheet.FlowController is initialized, enable your payment method button and update its UI with the paymentOption.
+`presentPaymentSheet` resolves with a paymentOption property containing an image and label representing the customer’s payment method. After PaymentSheet.FlowController is initialized, enable your payment method button and update its UI with the paymentOption.
 
-When the customer taps your payment method button, collect their payment details by calling presentPaymentOptions. When the customer finishes, the sheet dismisses itself and resolve the Promise. Update your payment method button with the selected payment method details.
+When the customer taps your payment method button, collect their payment details by calling `presentPaymentSheet` with `confirmPayment` set to `false` and `clientSecret` fetched from your backend before. When the customer finishes, the sheet dismisses itself and resolve the Promise. Update your payment method button with the selected payment method details.
 
 ```tsx
 export default function CheckoutScreen() {
@@ -268,7 +286,10 @@ export default function CheckoutScreen() {
   } | null>(null);
 
   const choosePaymentOption = async () => {
-    const { error, paymentOption } = await presentPaymentOptions();
+    const { error, paymentOption } = await presentPaymentSheet({
+      clientSecret,
+      confirmPayment: false,
+    });
 
     if (error) {
       console.log('error', error);

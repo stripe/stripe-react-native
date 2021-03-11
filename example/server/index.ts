@@ -401,7 +401,7 @@ app.post('/payment-sheet', async (_, res) => {
   const customer = await stripe.customers.create();
   const ephemeralKey = await stripe.ephemeralKeys.create(
     { customer: customer.id },
-    { stripe_version: '2020-08-27' }
+    { apiVersion: '2020-08-27' }
   );
   const paymentIntent = await stripe.paymentIntents.create({
     amount: 1099,
