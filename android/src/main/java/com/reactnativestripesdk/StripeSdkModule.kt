@@ -5,13 +5,18 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.AsyncTask
 import android.os.Bundle
+import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentResult
+import java.io.ByteArrayOutputStream
+
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -101,6 +106,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
         }
       })
+
+      paymentSheetFragment!!.requireActivity().activityResultRegistry.dispatchResult(requestCode, resultCode, data)
     }
   }
 
@@ -134,8 +141,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       if (intent.action == ON_FRAGMENT_CREATED) {
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
-      val paymentResult = intent.extras?.getParcelable<PaymentResult>("paymentResult")
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
+        val paymentResult = intent.extras?.getParcelable<PaymentResult>("paymentResult")
+
         when (paymentResult) {
           is PaymentResult.Canceled -> {
             confirmPaymentSheetPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
@@ -146,10 +154,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
           }
           is PaymentResult.Completed -> {
-            val result: WritableMap = WritableNativeMap()
-            val paymentIntent = mapFromPaymentIntentResult(paymentResult.paymentIntent)
-            result.putMap("paymentIntent", paymentIntent)
-            confirmPaymentSheetPaymentPromise?.resolve(paymentIntent)
+            val result = Arguments.createMap()
+            result.putMap("paymentIntent", mapFromPaymentIntentResult(paymentResult.paymentIntent))
+            confirmPaymentSheetPaymentPromise?.resolve(result)
             presentPaymentSheetPromise?.resolve(result)
           }
         }
