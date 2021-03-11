@@ -116,29 +116,35 @@ export function useApplePay({
       );
       eventEmitter.removeListener(
         SET_SHIPPING_CONTACT_CALLBACK_NAME,
-        onDidSetShippingMethod
+        onDidSetShippingContact
       );
     };
   }, [onDidSetShippingContact, onDidSetShippingMethod]);
 
-  const presentApplePay = async (params: ApplePay.PresentParams) => {
-    setLoading(true);
-    setItems(params.cartItems);
-    const result = await presentApplePayNative(params);
-    if (result.error) {
-      setItems(null);
-    }
-    setLoading(false);
-    return result;
-  };
+  const presentApplePay = useCallback(
+    async (params: ApplePay.PresentParams) => {
+      setLoading(true);
+      setItems(params.cartItems);
+      const result = await presentApplePayNative(params);
+      if (result.error) {
+        setItems(null);
+      }
+      setLoading(false);
+      return result;
+    },
+    [presentApplePayNative]
+  );
 
-  const confirmApplePayPayment = async (clientSecret: string) => {
-    setLoading(true);
-    const result = await confirmApplePayPaymentNative(clientSecret);
-    setItems(null);
-    setLoading(false);
-    return result;
-  };
+  const confirmApplePayPayment = useCallback(
+    async (clientSecret: string) => {
+      setLoading(true);
+      const result = await confirmApplePayPaymentNative(clientSecret);
+      setItems(null);
+      setLoading(false);
+      return result;
+    },
+    [confirmApplePayPaymentNative]
+  );
 
   return {
     loading,
