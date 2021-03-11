@@ -88,6 +88,9 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         .setAllCorners(CornerFamily.ROUNDED, cornerRadius.toFloat())
         .build()
     ).also { shape ->
+      shape.strokeWidth = 0.0f
+      shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
+      shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
       borderWidth?.let {
         shape.strokeWidth = it.toFloat()
       }

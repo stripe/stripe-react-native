@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const inputStyles = {
+const inputStyles: CardFieldInput.Styles = {
   borderWidth: 1,
   backgroundColor: '#FFFFFF',
   borderColor: '#000000',
