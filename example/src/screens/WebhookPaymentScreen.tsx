@@ -82,6 +82,11 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
+        placeholder={{
+          number: '4242424242424242',
+          expiration: 'MM|YY',
+          cvc: 'CVV',
+        }}
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
