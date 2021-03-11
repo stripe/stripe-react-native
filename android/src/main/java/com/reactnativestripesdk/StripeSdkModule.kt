@@ -102,7 +102,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
       })
 
-      paymentSheetFragment!!.requireActivity().activityResultRegistry.dispatchResult(requestCode, resultCode, data)
+      paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
     }
   }
 
@@ -163,7 +163,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           val option: WritableMap = WritableNativeMap()
           val result: WritableMap = WritableNativeMap()
           option.putString("label", label)
-          option.putInt("image", null)
+          option.putNull("image")
           result.putMap("paymentOption", option)
           presentPaymentSheetPromise?.resolve(result)
         } else {
