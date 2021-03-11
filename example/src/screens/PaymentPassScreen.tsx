@@ -7,7 +7,11 @@ import { Alert } from 'react-native';
 
 export default function PaymentPassScreen() {
   const [loading, setLoading] = useState(false);
-  const { presentPaymentPass, completeCreatingIssueingCardKey } = useStripe();
+  const {
+    presentPaymentPass,
+    completeCreatingIssueingCardKey,
+    isPaymentPassSupported,
+  } = useStripe();
 
   const fetchEphemeralKeyFromBackend = async ({
     apiVersion,
@@ -31,16 +35,22 @@ export default function PaymentPassScreen() {
   };
 
   const present = async () => {
+    if (!isPaymentPassSupported) {
+      return;
+    }
     setLoading(true);
-    const { apiVersion, error } = await presentPaymentPass({
+    const { apiVersion, error, cardTokenId } = await presentPaymentPass({
       name: 'test',
       description: 'test',
       last4: '4242',
       brand: 'Visa',
+      testMode: true,
     });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (cardTokenId) {
+      Alert.alert('Success');
     } else if (apiVersion) {
       const key = await fetchEphemeralKeyFromBackend({
         apiVersion,

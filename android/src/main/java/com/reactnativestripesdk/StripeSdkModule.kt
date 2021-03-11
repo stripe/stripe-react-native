@@ -6,6 +6,8 @@ import android.os.AsyncTask
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
+import com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
+
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -19,9 +21,20 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var confirmPromise: Promise? = null
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
+  private var presentPaymentPassPromise: Promise? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
+      if (requestCode == PushProvisioningActivityStarter.REQUEST_CODE) {
+        if (resultCode == 500) {
+          val error = PushProvisioningActivityStarter.Error.fromIntent(data)
+          presentPaymentPassPromise?.reject(error.code.toString(), error.message)
+        } else {
+          val success = PushProvisioningActivityStarter.Result.fromIntent(data)
+          presentPaymentPassPromise?.resolve(success.cardTokenId)
+        }
+      }
+
       stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
         override fun onSuccess(result: SetupIntentResult) {
           val setupIntent = result.intent
@@ -42,6 +55,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             }
           }
         }
+
         override fun onError(e: Exception) {
           onConfirmSetupIntentError?.invoke(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty()))
           confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty())
@@ -129,6 +143,23 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
   }
+
+
+  @ReactMethod
+  fun presentPaymentPass(params: ReadableMap, promise: Promise) {
+    this.presentPaymentPassPromise = promise
+    val name = getValOr(params, "name")
+
+    val ephemeralKeyProvider = EphemeralKeyProvider()
+    PushProvisioningActivityStarter(
+      currentActivity!!,
+      PushProvisioningActivityStarter.Args(
+        name,
+        ephemeralKeyProvider,
+        false,
+      )).startForResult()
+  }
+
 
   @ReactMethod
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
@@ -253,7 +284,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
+  fun confirmSetupIntent(setupIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
     var billing: PaymentMethod.BillingDetails? = null
 

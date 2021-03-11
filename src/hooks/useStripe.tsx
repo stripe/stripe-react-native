@@ -13,6 +13,7 @@ import {
   ApplePay,
   Dictionary,
   PaymentPass,
+  PaymentPassError,
 } from '../types';
 import { useEffect, useState } from 'react';
 import { isiOS, createError } from '../helpers';
@@ -21,20 +22,27 @@ import StripeSdk from '../NativeStripeSdk';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
-
+const PAYMENT_PASS_NOT_SUPPORTED_MESSAGE =
+  'Payment Pass is not supported on this device';
 /**
  * useStripe hook
  */
 export function useStripe() {
   const [isApplePaySupported, setApplePaySupported] = useState(false);
+  const [isPaymentPassSupported, setPaymentPassSupported] = useState(false);
 
   useEffect(() => {
     async function checkApplePaySupport() {
       const isSupported = isiOS ?? (await StripeSdk.isApplePaySupported());
       setApplePaySupported(isSupported);
     }
+    async function checkPaymentPassSupport() {
+      const isSupported = isiOS ?? (await StripeSdk.canAddPaymentPass());
+      setPaymentPassSupported(isSupported);
+    }
 
     checkApplePaySupport();
+    checkPaymentPassSupport();
   }, []);
 
   const createPaymentMethod = async (
@@ -228,22 +236,43 @@ export function useStripe() {
   };
 
   const presentPaymentPass = async (params: PaymentPass.PresentParams) => {
+    if (!isPaymentPassSupported) {
+      return {
+        error: {
+          code: PaymentPassError.Failed,
+          message: PAYMENT_PASS_NOT_SUPPORTED_MESSAGE,
+        },
+      };
+    }
     try {
-      const apiVersion = await NativeStripeSdk.presentPaymentPass(params);
+      const {
+        apiVersion,
+        cardTokenId,
+      } = await NativeStripeSdk.presentPaymentPass(params);
 
       return {
         apiVersion,
+        cardTokenId,
         error: undefined,
       };
     } catch (error) {
       return {
         error: createError(error),
         apiVersion: undefined,
+        cardTokenId: undefined,
       };
     }
   };
 
   const completeCreatingIssueingCardKey = async (params: Dictionary<any>) => {
+    if (!isPaymentPassSupported) {
+      return {
+        error: {
+          code: PaymentPassError.Failed,
+          message: PAYMENT_PASS_NOT_SUPPORTED_MESSAGE,
+        },
+      };
+    }
     try {
       await NativeStripeSdk.completeCreatingIssueingCardKey(params);
 
@@ -269,5 +298,6 @@ export function useStripe() {
     createTokenForCVCUpdate: createTokenForCVCUpdate,
     presentPaymentPass: presentPaymentPass,
     completeCreatingIssueingCardKey,
+    isPaymentPassSupported,
   };
 }

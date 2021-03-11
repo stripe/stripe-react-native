@@ -40,8 +40,11 @@ type NativeStripeSdkType = {
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
-  presentPaymentPass(params: PaymentPass.PresentParams): Promise<string>;
+  presentPaymentPass(
+    params: PaymentPass.PresentParams
+  ): Promise<PaymentPass.PresentResult>;
   completeCreatingIssueingCardKey(response: Dictionary<any>): Promise<void>;
+  canAddPaymentPass(): Promise<boolean>;
 };
 
 const { StripeSdk } = NativeModules;

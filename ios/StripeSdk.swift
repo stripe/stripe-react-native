@@ -38,16 +38,22 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
             reject(PaymentPassErrorType.Failed.rawValue, "You must provide cardholder name", nil)
             return
         }
-
+        
         let config = STPPushProvisioningContext.requestConfiguration(
             withName: name,
             description: params["description"] as? String,
             last4: params["last4"] as? String,
             brand: Mappers.mapToCardBrand(params["brand"] as? String)
         )
-
+        
         DispatchQueue.main.async {
-            if let paymentPassViewController = STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) {
+            if (params["testMode"] as? Bool == true) {
+                if let paymentPassViewController = STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) {
+                    let share = UIApplication.shared.delegate
+                    share?.window??.rootViewController?.present(paymentPassViewController, animated: true, completion: nil)
+                }
+            }
+            if let paymentPassViewController = PKAddPaymentPassViewController(requestConfiguration: config, delegate: self) {
                 let share = UIApplication.shared.delegate
                 share?.window??.rootViewController?.present(paymentPassViewController, animated: true, completion: nil)
             }
@@ -424,5 +430,5 @@ extension StripeSdk: PKAddPaymentPassViewControllerDelegate {
         
         self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
     }
-
+    
 }

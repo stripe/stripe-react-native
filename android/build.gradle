@@ -129,4 +129,5 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.stripe:stripe-android:16.1.1'
+  implementation 'com.stripe:stripe-android-issuing-push-provisioning:1.0.3'
 }
