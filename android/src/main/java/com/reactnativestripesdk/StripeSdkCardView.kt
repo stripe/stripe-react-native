@@ -103,6 +103,27 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     }
   }
 
+  fun setPlaceHolders(value: ReadableMap) {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    val numberPlaceholder = getValOr(value, "number", null)
+    val expirationPlaceholder = getValOr(value, "expiration", null)
+    val cvcPlaceholder = getValOr(value, "cvc", null)
+    val postalCodePlaceholder = getValOr(value, "postalCode", null)
+
+    numberPlaceholder?.let {
+      binding.cardNumberEditText.setHint(it)
+    }
+    expirationPlaceholder?.let {
+      binding.expiryDateEditText.setHint(it)
+    }
+    cvcPlaceholder?.let {
+      binding.cvcEditText.setHint(it)
+    }
+    postalCodePlaceholder?.let {
+      binding.postalCodeEditText.setHint(it)
+    }
+  }
+
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
     mCardWidget.usZipCodeRequired = isEnabled

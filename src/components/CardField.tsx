@@ -52,6 +52,7 @@ export function CardField({
   onFocus,
   cardStyle,
   placeholder,
+  postalCodeEnabled,
   ...props
 }: Props) {
   const onCardChangeHandler = useCallback(
@@ -94,6 +95,7 @@ export function CardField({
     <CardFieldNative
       onCardChange={onCardChangeHandler}
       onFocusChange={onFocusHandler}
+      postalCodeEnabled={postalCodeEnabled ?? true}
       cardStyle={{
         backgroundColor: cardStyle?.backgroundColor,
         borderColor: cardStyle?.borderColor,
