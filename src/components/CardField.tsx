@@ -19,6 +19,7 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
   cardStyle?: CardFieldInput.Styles;
+  placeholder?: CardFieldInput.Placeholders;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }
@@ -50,6 +51,7 @@ export function CardField({
   onCardChange,
   onFocus,
   cardStyle,
+  placeholder,
   ...props
 }: Props) {
   const onCardChangeHandler = useCallback(
@@ -102,6 +104,12 @@ export function CardField({
         placeholderColor: cardStyle?.placeholderColor,
         textColor: cardStyle?.textColor,
         textErrorColor: cardStyle?.textErrorColor,
+      }}
+      placeholder={{
+        number: placeholder?.number,
+        expiration: placeholder?.expiration,
+        cvc: placeholder?.cvc,
+        postalCode: placeholder?.postalCode,
       }}
       {...props}
     />

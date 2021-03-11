@@ -25,6 +25,13 @@ export declare namespace CardFieldInput {
     textErrorColor?: string;
   }
 
+  export interface Placeholders {
+    number?: string;
+    expiration?: string;
+    cvc?: string;
+    postalCode?: string;
+  }
+
   export type Brand =
     | 'AmericanExpress'
     | 'DinersClub'
@@ -44,5 +51,6 @@ export declare namespace CardFieldInput {
       event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
     ): void;
     cardStyle?: Styles;
+    placeholder?: Placeholders;
   }
 }
