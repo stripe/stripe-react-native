@@ -44,7 +44,7 @@ export default function PaymentPassScreen() {
     } else if (apiVersion) {
       const key = await fetchEphemeralKeyFromBackend({
         apiVersion,
-        issuingCard: 'test',
+        issuingCard: 'ic_1ITUqkBDuqlYGNW21ooXSbDh',
       });
       const { error: completeError } = await completeCreatingIssueingCardKey(
         key

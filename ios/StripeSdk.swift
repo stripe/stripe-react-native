@@ -56,6 +56,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
     
     func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
         self.presentPaymentPassResolver?(apiVersion)
+        self.presentPaymentPassResolver = nil
+        self.presentPaymentPassRejecter = nil
         self.createIssuingCardKeyCompletion = completion
     }
     
@@ -65,7 +67,21 @@ class StripeSdk: NSObject, STPApplePayContextDelegate, STPIssuingCardEphemeralKe
         } else {
             UIViewController().dismiss(animated: true, completion: nil)
         }
-        self.completeCreatingIssueingCardKeyRejecter?(PaymentPassErrorType.Canceled.rawValue, "Payment Pass procecess has been canceled", nil)
+        
+        if (error != nil) {
+            if let rejecter = self.completeCreatingIssueingCardKeyRejecter {
+                rejecter(PaymentPassErrorType.Failed.rawValue, error?.localizedDescription ?? "", nil)
+            }
+            if let rejecter = presentPaymentPassRejecter {
+                rejecter(PaymentPassErrorType.Canceled.rawValue, "Payment Pass procecess has been canceled", nil)
+            }
+        } else {
+            self.completeCreatingIssueingCardKeyResolver?(NSNull())
+            self.completeCreatingIssueingCardKeyResolver = nil
+        }
+        
+        self.completeCreatingIssueingCardKeyRejecter = nil
+        self.presentPaymentPassRejecter = nil
     }
     
     @objc(completeCreatingIssueingCardKey:resolver:rejecter:)
