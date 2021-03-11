@@ -56,11 +56,28 @@ class Mappers {
     }
     
     class func mapFromShippingContact(shippingContact: PKContact) -> NSDictionary {
+        let name: NSDictionary = [
+           "familyName": shippingContact.name?.familyName ?? "",
+           "namePrefix": shippingContact.name?.namePrefix ?? "",
+           "nameSuffix": shippingContact.name?.nameSuffix ?? "",
+           "givenName": shippingContact.name?.givenName ?? "",
+           "middleName": shippingContact.name?.middleName ?? "",
+           "nickname": shippingContact.name?.nickname ?? "",
+        ]
         let contact: NSDictionary = [
             "emailAddress": shippingContact.emailAddress ?? "",
-            "name": shippingContact.name ?? "",
-            "phoneNumber": shippingContact.phoneNumber ?? "",
-            "postalAddress": shippingContact.postalAddress ?? "",
+            "phoneNumber": shippingContact.phoneNumber?.stringValue ?? "",
+            "name": name,
+            "postalAddress": [
+                "city": shippingContact.postalAddress?.city,
+                "country": shippingContact.postalAddress?.country,
+                "postalCode": shippingContact.postalAddress?.postalCode,
+                "state": shippingContact.postalAddress?.state,
+                "street": shippingContact.postalAddress?.street,
+                "isoCountryCode": shippingContact.postalAddress?.isoCountryCode,
+                "subAdministrativeArea": shippingContact.postalAddress?.subAdministrativeArea,
+                "subLocality": shippingContact.postalAddress?.subLocality,
+            ],
         ]
         
         return contact
