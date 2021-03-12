@@ -126,7 +126,6 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
-    mCardWidget.usZipCodeRequired = isEnabled
   }
 
   fun getValue(): MutableMap<String, Any> {
