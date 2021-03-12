@@ -85,11 +85,14 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
-        .setAllCorners(CornerFamily.ROUNDED, cornerRadius.toFloat())
+        .setAllCorners(CornerFamily.ROUNDED, (cornerRadius * 2).toFloat())
         .build()
     ).also { shape ->
+      shape.strokeWidth = 0.0f
+      shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
+      shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
       borderWidth?.let {
-        shape.strokeWidth = it.toFloat()
+        shape.strokeWidth = (it * 2).toFloat()
       }
       borderColor?.let {
         shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
@@ -97,6 +100,27 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       backgroundColor?.let {
         shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
       }
+    }
+  }
+
+  fun setPlaceHolders(value: ReadableMap) {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    val numberPlaceholder = getValOr(value, "number", null)
+    val expirationPlaceholder = getValOr(value, "expiration", null)
+    val cvcPlaceholder = getValOr(value, "cvc", null)
+    val postalCodePlaceholder = getValOr(value, "postalCode", null)
+
+    numberPlaceholder?.let {
+      binding.cardNumberEditText.setHint(it)
+    }
+    expirationPlaceholder?.let {
+      binding.expiryDateEditText.setHint(it)
+    }
+    cvcPlaceholder?.let {
+      binding.cvcEditText.setHint(it)
+    }
+    postalCodePlaceholder?.let {
+      binding.postalCodeEditText.setHint(it)
     }
   }
 

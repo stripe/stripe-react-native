@@ -82,7 +82,12 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
-        postalCodeEnabled={false}
+        placeholder={{
+          number: '4242424242424242',
+          expiration: 'MM|YY',
+          cvc: 'CVV',
+          postalCode: 'Postal Code',
+        }}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
         }}
@@ -130,7 +135,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const inputStyles = {
+const inputStyles: CardFieldInput.Styles = {
   borderWidth: 1,
   backgroundColor: '#FFFFFF',
   borderColor: '#000000',
