@@ -1,6 +1,5 @@
 export declare namespace ApplePay {
   export type CartSummaryItemType = 'final' | 'pending';
-  export type ShippingMethodType = 'final' | 'pending';
 
   export type ContactFieldsType =
     | 'emailAddress'
@@ -12,7 +11,7 @@ export declare namespace ApplePay {
   export interface ShippingMethod {
     label: string;
     amount: string;
-    type?: ShippingMethodType;
+    type?: CartSummaryItemType;
     identifier: string;
     detail?: string;
   }
