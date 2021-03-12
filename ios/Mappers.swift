@@ -47,7 +47,7 @@ class Mappers {
         let method: NSDictionary = [
             "detail": shippingMethod.detail ?? "",
             "identifier": shippingMethod.identifier ?? "",
-            "amount": shippingMethod.amount,
+						"amount": shippingMethod.amount.stringValue,
             "type": shippingMethod.type,
             "label": shippingMethod.label
         ]
