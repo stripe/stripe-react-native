@@ -1,4 +1,5 @@
 export declare namespace ApplePay {
+  export type CartSummaryItemType = 'final' | 'pending';
   export type ShippingMethodType = 'final' | 'pending';
 
   export type ContactFieldsType =
@@ -45,6 +46,7 @@ export declare namespace ApplePay {
   export interface CartSummaryItem {
     label: string;
     amount: string;
+    type?: CartSummaryItemType;
   }
 
   export interface PresentParams {
