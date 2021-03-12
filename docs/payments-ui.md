@@ -80,8 +80,8 @@ export default function CheckoutScreen() {
   const initialisePaymentSheet = async () => {
     const {
       paymentIntentClientSecret,
-      ephemeralKey,
-      customer,
+      customerEphemeralKeySecret,
+      customerId,
     } = await fetchPaymentSheetParams();
 
     setClientSecret(clientSecret);
