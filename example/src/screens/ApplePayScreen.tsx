@@ -1,5 +1,5 @@
-import React from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { ApplePayButton, useApplePay, ApplePay } from 'stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
@@ -25,11 +25,11 @@ export default function ApplePayScreen() {
       amount: '24.63',
     },
   ];
-  const cart: ApplePay.CartSummaryItem[] = [
+  const [cart, setCart] = useState<ApplePay.CartSummaryItem[]>([
     { label: 'Subtotal', amount: '12.75', type: 'final' },
     { label: 'Shipping', amount: '0.00', type: 'pending' },
     { label: 'Total', amount: '12.75', type: 'pending' }, // Last item in array needs to reflect the total.
-  ];
+  ]);
 
   const {
     presentApplePay,
@@ -39,7 +39,7 @@ export default function ApplePayScreen() {
     onShippingMethodSelected: (shippingMethod, handler) => {
       console.log('shippingMethod', shippingMethod);
       // Update cart summary based on selected shipping method.
-      handler([
+      const updatedCart = [
         cart[0],
         { label: shippingMethod.label, amount: shippingMethod.amount },
         {
@@ -48,7 +48,9 @@ export default function ApplePayScreen() {
             parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
           ).toFixed(2),
         },
-      ]);
+      ];
+      setCart(updatedCart);
+      handler(updatedCart);
     },
     onShippingContactSelected: (shippingContact, handler) => {
       console.log('shippingContact', shippingContact);
@@ -108,6 +110,9 @@ export default function ApplePayScreen() {
 
   return (
     <Screen>
+      <View>
+        <Text>{JSON.stringify(cart, null, 2)}</Text>
+      </View>
       {isApplePaySupported && (
         <ApplePayButton
           onPress={pay}
