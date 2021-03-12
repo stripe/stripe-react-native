@@ -21,13 +21,18 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   }
 
   @ReactProp(name = "postalCodeEnabled")
-  fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean) {
+  fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean = true) {
     view.setPostalCodeEnabled(postalCodeEnabled);
   }
 
   @ReactProp(name = "cardStyle")
   fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
     view.setCardStyle(cardStyle);
+  }
+
+  @ReactProp(name = "placeholder")
+  fun setPlaceHolders(view: StripeSdkCardView, placeholder: ReadableMap) {
+    view.setPlaceHolders(placeholder);
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {

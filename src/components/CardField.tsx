@@ -19,6 +19,7 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
   cardStyle?: CardFieldInput.Styles;
+  placeholder?: CardFieldInput.Placeholders;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }
@@ -50,6 +51,8 @@ export function CardField({
   onCardChange,
   onFocus,
   cardStyle,
+  placeholder,
+  postalCodeEnabled,
   ...props
 }: Props) {
   const onCardChangeHandler = useCallback(
@@ -92,16 +95,23 @@ export function CardField({
     <CardFieldNative
       onCardChange={onCardChangeHandler}
       onFocusChange={onFocusHandler}
+      postalCodeEnabled={postalCodeEnabled ?? true}
       cardStyle={{
-        backgroundColor: cardStyle?.backgroundColor || '#FFFFFF',
-        borderColor: cardStyle?.borderColor || '#000000',
-        borderWidth: cardStyle?.borderWidth || 2,
-        cornerRadius: cardStyle?.cornerRadius || 16,
-        cursorColor: cardStyle?.cursorColor || '#FFFFFF',
-        fontSize: cardStyle?.fontSize || 16,
-        placeholderColor: cardStyle?.placeholderColor || '#000000',
-        textColor: cardStyle?.textColor || '#000000',
-        textErrorColor: cardStyle?.textErrorColor || '#8a000b',
+        backgroundColor: cardStyle?.backgroundColor,
+        borderColor: cardStyle?.borderColor,
+        borderWidth: cardStyle?.borderWidth,
+        cornerRadius: cardStyle?.cornerRadius,
+        cursorColor: cardStyle?.cursorColor,
+        fontSize: cardStyle?.fontSize,
+        placeholderColor: cardStyle?.placeholderColor,
+        textColor: cardStyle?.textColor,
+        textErrorColor: cardStyle?.textErrorColor,
+      }}
+      placeholder={{
+        number: placeholder?.number,
+        expiration: placeholder?.expiration,
+        cvc: placeholder?.cvc,
+        postalCode: placeholder?.postalCode,
       }}
       {...props}
     />
