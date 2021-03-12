@@ -157,13 +157,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
       } else if (intent.action == ON_PAYMENT_OPTION_ACTION) {
         val label = intent.extras?.getString("label")
-        val drawableResourceId = intent.extras?.getInt("drawableResourceId")
+        val image = intent.extras?.getString("image")
 
-        if (label != null && drawableResourceId != null) {
+        if (label != null && image != null) {
           val option: WritableMap = WritableNativeMap()
           val result: WritableMap = WritableNativeMap()
           option.putString("label", label)
-          option.putNull("image")
+          option.putString("image", image)
           result.putMap("paymentOption", option)
           presentPaymentSheetPromise?.resolve(result)
         } else {
@@ -172,12 +172,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       }
       else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
         val label = intent.extras?.getString("label")
-        val drawableResourceId = intent.extras?.getInt("drawableResourceId")
+        val image = intent.extras?.getString("image")
 
-        if (label != null && drawableResourceId != null) {
+        if (label != null && image != null) {
           val option: WritableMap = WritableNativeMap()
           option.putString("label", label)
-          option.putInt("image", drawableResourceId)
+          option.putString("image", image)
           initPaymentSheetPromise?.resolve(option)
         } else {
           initPaymentSheetPromise?.resolve(null)

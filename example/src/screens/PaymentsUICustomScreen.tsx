@@ -93,11 +93,11 @@ export default function PaymentsUICustomScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentIntent) {
-      initialisePaymentSheet();
       Alert.alert(
         'Success',
         `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
       );
+      setPaymentSheetEnabled(false);
     }
     setLoading(false);
   };
@@ -140,7 +140,7 @@ export default function PaymentsUICustomScreen() {
         <Button
           variant="primary"
           loading={loading}
-          disabled={!paymentMethod}
+          disabled={!paymentMethod || !paymentSheetEnabled}
           title="Buy"
           onPress={onPressBuy}
         />

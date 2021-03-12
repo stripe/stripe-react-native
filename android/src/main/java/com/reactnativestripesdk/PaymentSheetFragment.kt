@@ -1,17 +1,27 @@
 package com.reactnativestripesdk
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import com.stripe.android.paymentsheet.PaymentOptionCallback
 import com.stripe.android.paymentsheet.PaymentResult
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import com.stripe.android.paymentsheet.model.PaymentOption
+import java.io.ByteArrayOutputStream
+
 
 class PaymentSheetFragment : Fragment() {
   private var paymentSheet: PaymentSheet? = null
@@ -40,8 +50,11 @@ class PaymentSheetFragment : Fragment() {
         val intent = Intent(ON_PAYMENT_OPTION_ACTION)
 
         if (paymentOption != null) {
+          val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
+          val imageString = getBase64FromBitmap(bitmap)
+
           intent.putExtra("label", paymentOption.label)
-          intent.putExtra("drawableResourceId", paymentOption.drawableResourceId)
+          intent.putExtra("image", imageString)
         }
         activity?.sendBroadcast(intent)
       }
@@ -94,8 +107,11 @@ class PaymentSheetFragment : Fragment() {
         val intent = Intent(ON_CONFIGURE_FLOW_CONTROLLER)
 
         if (paymentOption != null) {
+          val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
+          val imageString = getBase64FromBitmap(bitmap)
+
           intent.putExtra("label", paymentOption.label)
-          intent.putExtra("drawableResourceId", paymentOption.drawableResourceId)
+          intent.putExtra("image", imageString)
         }
         activity?.sendBroadcast(intent)
       }
@@ -108,3 +124,28 @@ class PaymentSheetFragment : Fragment() {
     )
   }
 }
+
+fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
+  var drawable: Drawable? = AppCompatResources.getDrawable(context!!, drawableId)
+
+  if (drawable == null) {
+    return null
+  }
+
+  drawable = DrawableCompat.wrap(drawable).mutate()
+  val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+  bitmap.eraseColor(Color.WHITE);  // set its background to white, or whatever color you want
+  val canvas = Canvas(bitmap)
+  drawable.setBounds(0, 0, canvas.width, canvas.height)
+  drawable.draw(canvas)
+  return bitmap
+}
+ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
+   if (bitmap == null) {
+     return null
+   }
+   val baos = ByteArrayOutputStream()
+   bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
+   val imageBytes: ByteArray = baos.toByteArray()
+   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+ }
