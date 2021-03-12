@@ -38,10 +38,10 @@ import { StripeProvider } from 'stripe-react-native';
 </StripeProvider>;
 
 // PaymentScreen.ts
-import { CardField, useStripe } from 'stripe-react-native';
+import { CardField, CardFieldInput, useStripe } from 'stripe-react-native';
 
 export default function PaymentScreen() {
-  const [card, setCard] = useState<CardDetails | null>(null);
+  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const { confirmPayment, handleCardAction } = useStripe();
 
   return <CardField onCardChange={setCard} />;
@@ -82,19 +82,21 @@ function App() {
 
 You can find more details about StripeProvider in [API reference](./docs/api-reference.md#stripeprovider).
 
-## Run example app
+## Run the example app
 
-- `cd ./example`
-- `yarn` or `npm install`
-- for ios you have to run `pod install` in `ios` directory
-- create `.env` file with mandatory variables (look at `.env.example`)
-- `yarn start:server`
-- `yarn ios` / `yarn android`
+- Install the dependencies
+  - `yarn bootstrap`
+- Set up env vars
+  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
+- Start the example
+  - Terminal 1: `yarn example start:server`
+  - Terminal 2: `yarn example start`
+  - Terminal 3: `yarn example android`
 
-##### additionall steps for webhook example
+##### Additional steps for webhook forwarding
 
-- [install `stripe-cli`](https://stripe.com/docs/stripe-cli)
-- run command `stripe listen --forward-to localhost:4242/webhook`
+- [Install the `stripe-cli`](https://stripe.com/docs/stripe-cli)
+- Run `stripe listen --forward-to localhost:4242/webhook`
 
 ## Troubleshooting
 

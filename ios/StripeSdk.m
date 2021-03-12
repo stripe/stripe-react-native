@@ -1,6 +1,8 @@
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_MODULE(StripeSdk, NSObject)
+@interface RCT_EXTERN_MODULE(StripeSdk, RCTEventEmitter)
+
 
 RCT_EXTERN_METHOD(
                   initialise:(NSString *)publishableKey
@@ -16,6 +18,11 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   presentApplePay:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+                  updateApplePaySummaryItems:(NSArray *)summaryItems
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 

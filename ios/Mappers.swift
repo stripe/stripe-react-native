@@ -12,7 +12,7 @@ class Mappers {
         }
     }
     
-    class func mapToShippingMethodType(type: String?) -> PKPaymentSummaryItemType {
+    class func mapToPaymentSummaryItemType(type: String?) -> PKPaymentSummaryItemType {
         if let type = type {
             switch type {
             case "pending": return PKPaymentSummaryItemType.pending
@@ -32,7 +32,7 @@ class Mappers {
                 let amount = NSDecimalNumber(string: method["amount"] as? String ?? "")
                 let identifier = method["identifier"] as! String
                 let detail = method["detail"] as? String ?? ""
-                let type = Mappers.mapToShippingMethodType(type: method["type"] as? String)
+                let type = Mappers.mapToPaymentSummaryItemType(type: method["type"] as? String)
                 let pm = PKShippingMethod.init(label: label, amount: amount, type: type)
                 pm.identifier = identifier
                 pm.detail = detail
@@ -41,6 +41,46 @@ class Mappers {
         }
         
         return shippingMethodsList
+    }
+    
+    class func mapFromShippingMethod(shippingMethod: PKShippingMethod) -> NSDictionary {
+        let method: NSDictionary = [
+            "detail": shippingMethod.detail ?? "",
+            "identifier": shippingMethod.identifier ?? "",
+						"amount": shippingMethod.amount.stringValue,
+            "type": shippingMethod.type,
+            "label": shippingMethod.label
+        ]
+        
+        return method
+    }
+    
+    class func mapFromShippingContact(shippingContact: PKContact) -> NSDictionary {
+        let name: NSDictionary = [
+           "familyName": shippingContact.name?.familyName ?? "",
+           "namePrefix": shippingContact.name?.namePrefix ?? "",
+           "nameSuffix": shippingContact.name?.nameSuffix ?? "",
+           "givenName": shippingContact.name?.givenName ?? "",
+           "middleName": shippingContact.name?.middleName ?? "",
+           "nickname": shippingContact.name?.nickname ?? "",
+        ]
+        let contact: NSDictionary = [
+            "emailAddress": shippingContact.emailAddress ?? "",
+            "phoneNumber": shippingContact.phoneNumber?.stringValue ?? "",
+            "name": name,
+            "postalAddress": [
+                "city": shippingContact.postalAddress?.city,
+                "country": shippingContact.postalAddress?.country,
+                "postalCode": shippingContact.postalAddress?.postalCode,
+                "state": shippingContact.postalAddress?.state,
+                "street": shippingContact.postalAddress?.street,
+                "isoCountryCode": shippingContact.postalAddress?.isoCountryCode,
+                "subAdministrativeArea": shippingContact.postalAddress?.subAdministrativeArea,
+                "subLocality": shippingContact.postalAddress?.subLocality,
+            ],
+        ]
+        
+        return contact
     }
     
     

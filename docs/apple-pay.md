@@ -58,12 +58,26 @@ function PaymentScreen() {
 
 Use `useApplePay` hook to handle this kind of payment,
 it returns `presentApplePay`, `confirmApplePayPayment` methods, `loading` value and `isApplePaySupported`.
+It accepts `onDidSetShippingContactCallback` and `onDidSetShippingMethodCallback` callbacks as parameter which can be usefull for adjusting price for choosen shipping details.
 When the user taps the Apple Pay button, call `presentApplePay` to open sheet.
 In argument you should pass cart items which will be displayed in Apple Pay sheet.
 
 ```tsx
 function PaymentScreen() {
-  const { presentApplePay, isApplePaySupported } = useApplePay();
+  const { presentApplePay, isApplePaySupported } = useApplePay({
+    onDidSetShippingMethodCallback: (shippingMethod, handler) => {
+      handler([
+        { label: 'Example item name 1', amount: '11.00' },
+        { label: 'Example item name 2', amount: '25.00' },
+      ]);
+    },
+    onDidSetShippingContactCallback: (shippingContact, handler) => {
+      handler([
+        { label: 'Example item name 1', amount: '92.00' },
+        { label: 'Example item name 2', amount: '142.00' },
+      ]);
+    },
+  });
 
   // ...
 
@@ -94,6 +108,9 @@ function PaymentScreen() {
   // ...
 }
 ```
+
+When you are going to use `onDidSetShippingContactCallback` and `onDidSetShippingMethodCallback` callbacks you must remember
+to call provided handler with updated summary items based on choosen shipping method/contact.
 
 ## Step 7: Submit the payment to Stripe
 
