@@ -2,20 +2,22 @@ import PassKit
 import Stripe
 
 @objc(StripeSdk)
-class StripeSdk: NSObject, STPApplePayContextDelegate  {
+class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
     var merchantIdentifier: String? = nil
     
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
     var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
-    var confirmSetupIntentPromise: RCTResponseSenderBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     
-    @objc static func requiresMainQueueSetup() -> Bool {
-        return false
+    var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
+    var shippingContactUpdateHandler: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
+
+    override func supportedEvents() -> [String]! {
+      return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
-    
+        
     @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
     func initialise(publishableKey: String,  appInfo: NSDictionary, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
         if let params = params {
@@ -83,6 +85,39 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         }
     }
     
+    @objc(updateApplePaySummaryItems:resolver:rejecter:)
+    func updateApplePaySummaryItems(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
+            reject(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted", nil)
+            return
+        }
+        var paymentSummaryItems: [PKPaymentSummaryItem] = []
+        if let items = summaryItems as? [[String : Any]] {
+            for item in items {
+                let label = item["label"] as? String ?? ""
+                let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
+                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
+                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
+            }
+        }
+        shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        self.shippingMethodUpdateHandler = nil
+        self.shippingContactUpdateHandler = nil
+        resolve(NSNull())
+    }
+
+
+    func applePayContext(_ context: STPApplePayContext, didSelect shippingMethod: PKShippingMethod, handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void) {
+        self.shippingMethodUpdateHandler = handler
+        sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
+    }
+    
+    func applePayContext(_ context: STPApplePayContext, didSelectShippingContact contact: PKContact, handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void) {
+        self.shippingContactUpdateHandler = handler
+        sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
+    }
+    
     func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
         self.applePayCompletionCallback = completion
         self.applePayRequestResolver?([NSNull()])
@@ -131,9 +166,10 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
         let isSupported = StripeAPI.deviceSupportsApplePay()
         resolve([isSupported])
     }
-    
+
     @objc(presentApplePay:resolver:rejecter:)
-    func presentApplePay(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    func presentApplePay(params: NSDictionary,
+                         resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (merchantIdentifier == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
@@ -179,7 +215,8 @@ class StripeSdk: NSObject, STPApplePayContextDelegate  {
             for item in items {
                 let label = item["label"] as? String ?? ""
                 let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
-                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount))
+                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
+                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
         
