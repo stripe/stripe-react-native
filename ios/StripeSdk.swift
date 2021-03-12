@@ -96,7 +96,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             for item in items {
                 let label = item["label"] as? String ?? ""
                 let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
-                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount))
+                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
+                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
         shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
@@ -214,7 +215,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             for item in items {
                 let label = item["label"] as? String ?? ""
                 let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
-                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount))
+                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
+                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
         

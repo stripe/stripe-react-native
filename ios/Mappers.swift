@@ -12,7 +12,7 @@ class Mappers {
         }
     }
     
-    class func mapToShippingMethodType(type: String?) -> PKPaymentSummaryItemType {
+    class func mapToPaymentSummaryItemType(type: String?) -> PKPaymentSummaryItemType {
         if let type = type {
             switch type {
             case "pending": return PKPaymentSummaryItemType.pending
@@ -32,7 +32,7 @@ class Mappers {
                 let amount = NSDecimalNumber(string: method["amount"] as? String ?? "")
                 let identifier = method["identifier"] as! String
                 let detail = method["detail"] as? String ?? ""
-                let type = Mappers.mapToShippingMethodType(type: method["type"] as? String)
+                let type = Mappers.mapToPaymentSummaryItemType(type: method["type"] as? String)
                 let pm = PKShippingMethod.init(label: label, amount: amount, type: type)
                 pm.identifier = identifier
                 pm.detail = detail
