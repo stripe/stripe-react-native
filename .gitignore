@@ -61,3 +61,6 @@ lib/
 
 dist/
 .env
+
+# Docs
+docs/api-reference/

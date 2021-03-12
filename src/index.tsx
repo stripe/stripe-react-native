@@ -2,7 +2,7 @@
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
-export { useApplePay } from './hooks/useApplePay';
+export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 
 //components
 export {
