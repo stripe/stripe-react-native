@@ -46,9 +46,9 @@ export default function HomeScreen() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Payments UI Basic integration"
+          title="Payments UI Complete"
           onPress={() => {
-            navigation.navigate('PaymentsUIBasic');
+            navigation.navigate('PaymentsUICompleteScreen');
           }}
         />
       </View>

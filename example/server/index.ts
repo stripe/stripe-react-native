@@ -397,8 +397,17 @@ app.post('/charge-card-off-session', async (req, res) => {
 // Watch this video to get started: https://youtu.be/rPR2aJ6XnAc.
 
 app.post('/payment-sheet', async (_, res) => {
-  // Here, we're creating a new Customer. Use an existing Customer if this is a returning user.
-  const customer = await stripe.customers.create();
+  const customers = await stripe.customers.list();
+
+  // Here, we're getting latest customer only for example purposes.
+  const customer = customers.data[0];
+
+  if (!customer) {
+    res.send({
+      error: 'You have no customer created',
+    });
+  }
+
   const ephemeralKey = await stripe.ephemeralKeys.create(
     { customer: customer.id },
     { apiVersion: '2020-08-27' }

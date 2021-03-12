@@ -12,7 +12,7 @@ import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
-import PaymentsUIBasicScreen from './screens/PaymentsUIBasicScreen';
+import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 
@@ -92,8 +92,8 @@ export default function App() {
             component={SetupFuturePaymentScreen}
           />
           <Stack.Screen
-            name="PaymentsUIBasic"
-            component={PaymentsUIBasicScreen}
+            name="PaymentsUICompleteScreen"
+            component={PaymentsUICompleteScreen}
           />
           <Stack.Screen
             name="PaymentsUICustom"

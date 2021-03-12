@@ -5,7 +5,7 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 
-export default function PaymentsUIBasicScreen() {
+export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoadng] = useState(false);
