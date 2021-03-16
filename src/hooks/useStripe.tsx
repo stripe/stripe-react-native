@@ -1,16 +1,14 @@
 import {
   CreatePaymentMethod,
-  PaymentMethod,
-  StripeError,
-  CreatePaymentMethodError,
-  PaymentIntent,
-  ConfirmPaymentError,
-  RetrievePaymentIntentError,
   ApplePayError,
-  CardActionError,
-  SetupIntent,
-  ConfirmSetupIntentError,
   ApplePay,
+  CreatePaymentMethodResult,
+  RetrievePaymentIntentResult,
+  ConfirmPaymentMethodResult,
+  HandleCardActionResult,
+  ConfirmSetupIntentResult,
+  CreateTokenForCVCUpdateResult,
+  ApplePayResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS, createError } from '../helpers';
@@ -39,10 +37,7 @@ export function useStripe() {
     async (
       data: CreatePaymentMethod.Params,
       options: CreatePaymentMethod.Options = {}
-    ): Promise<{
-      paymentMethod?: PaymentMethod;
-      error?: StripeError<CreatePaymentMethodError>;
-    }> => {
+    ): Promise<CreatePaymentMethodResult> => {
       try {
         const paymentMethod = await NativeStripeSdk.createPaymentMethod(
           data,
@@ -50,11 +45,9 @@ export function useStripe() {
         );
         return {
           paymentMethod,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentMethod: undefined,
           error: createError(error),
         };
       }
@@ -63,23 +56,16 @@ export function useStripe() {
   );
 
   const retrievePaymentIntent = useCallback(
-    async (
-      clientSecret: string
-    ): Promise<{
-      paymentIntent?: PaymentIntent;
-      error?: StripeError<RetrievePaymentIntentError>;
-    }> => {
+    async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
       try {
         const paymentIntent = await NativeStripeSdk.retrievePaymentIntent(
           clientSecret
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentIntent: undefined,
           error: createError(error),
         };
       }
@@ -92,10 +78,7 @@ export function useStripe() {
       paymentIntentClientSecret: string,
       data: CreatePaymentMethod.Params,
       options: CreatePaymentMethod.Options = {}
-    ): Promise<{
-      paymentIntent?: PaymentIntent;
-      error?: StripeError<ConfirmPaymentError>;
-    }> => {
+    ): Promise<ConfirmPaymentMethodResult> => {
       try {
         const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(
           paymentIntentClientSecret,
@@ -104,11 +87,9 @@ export function useStripe() {
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentIntent: undefined,
           error: createError(error),
         };
       }
@@ -117,9 +98,7 @@ export function useStripe() {
   );
 
   const presentApplePay = useCallback(
-    async (
-      params: ApplePay.PresentParams
-    ): Promise<{ error?: StripeError<ApplePayError> }> => {
+    async (params: ApplePay.PresentParams): Promise<ApplePayResult> => {
       if (!isApplePaySupported) {
         return {
           error: {
@@ -132,9 +111,7 @@ export function useStripe() {
       try {
         await NativeStripeSdk.presentApplePay(params);
 
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -147,7 +124,7 @@ export function useStripe() {
   const updateApplePaySummaryItems = useCallback(
     async (
       summaryItems: ApplePay.CartSummaryItem[]
-    ): Promise<{ error?: StripeError<ApplePayError> }> => {
+    ): Promise<ApplePayResult> => {
       if (!isApplePaySupported) {
         return {
           error: {
@@ -160,9 +137,7 @@ export function useStripe() {
       try {
         await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
 
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -173,9 +148,7 @@ export function useStripe() {
   );
 
   const confirmApplePayPayment = useCallback(
-    async (
-      clientSecret: string
-    ): Promise<{ error?: StripeError<ApplePayError> }> => {
+    async (clientSecret: string): Promise<ApplePayResult> => {
       if (!isApplePaySupported) {
         return {
           error: {
@@ -186,9 +159,7 @@ export function useStripe() {
       }
       try {
         await NativeStripeSdk.confirmApplePayPayment(clientSecret);
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -201,22 +172,17 @@ export function useStripe() {
   const handleCardAction = useCallback(
     async (
       paymentIntentClientSecret: string
-    ): Promise<{
-      paymentIntent?: PaymentIntent;
-      error?: StripeError<CardActionError>;
-    }> => {
+    ): Promise<HandleCardActionResult> => {
       try {
         const paymentIntent = await NativeStripeSdk.handleCardAction(
           paymentIntentClientSecret
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
           error: createError(error),
-          paymentIntent: undefined,
         };
       }
     },
@@ -228,10 +194,7 @@ export function useStripe() {
       paymentIntentClientSecret: string,
       data: CreatePaymentMethod.Params,
       options: CreatePaymentMethod.Options
-    ): Promise<{
-      setupIntent?: SetupIntent;
-      error?: StripeError<ConfirmSetupIntentError>;
-    }> => {
+    ): Promise<ConfirmSetupIntentResult> => {
       try {
         const setupIntent = await NativeStripeSdk.confirmSetupIntent(
           paymentIntentClientSecret,
@@ -241,33 +204,28 @@ export function useStripe() {
 
         return {
           setupIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
           error: createError(error),
-          setupIntent: undefined,
         };
       }
     },
     []
   );
 
-  const createTokenForCVCUpdate = useCallback(async (cvc: string): Promise<{
-    tokenId?: string;
-    error?: StripeError<ConfirmSetupIntentError>;
-  }> => {
+  const createTokenForCVCUpdate = useCallback(async (cvc: string): Promise<
+    CreateTokenForCVCUpdateResult
+  > => {
     try {
       const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
 
       return {
         tokenId,
-        error: undefined,
       };
     } catch (error) {
       return {
         error: createError(error),
-        tokenId: undefined,
       };
     }
   }, []);
