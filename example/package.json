@@ -31,12 +31,8 @@
     "@types/express": "^4.17.2",
     "@types/node": "^14.14.7",
     "babel-plugin-module-resolver": "^4.0.0",
-    "detox": "^18.7.1",
     "dotenv": "^8.2.0",
-    "eslint-plugin-detox": "^1.0.0",
     "express": "^4.17.1",
-    "jest": "^26.6.3",
-    "jest-circus": "^26.6.3",
     "metro-react-native-babel-preset": "^0.59.0",
     "path": "^0.12.7",
     "stripe": "^8.0.1"

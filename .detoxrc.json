@@ -4,12 +4,13 @@
   "apps": {
     "ios": {
       "type": "ios.app",
-      "binaryPath": "ios/DerivedData/StripeSdkExample/Build/Products/Debug-iphonesimulator/StripeSdkExample.app"
+      "binaryPath": "example/ios/build/Build/Products/Debug-iphonesimulator/StripeSdkExample.app",
+      "build": "xcodebuild -workspace example/ios/StripeSdkExample.xcworkspace -UseNewBuildSystem=NO -scheme StripeSdkExample -configuration Debug -sdk iphonesimulator -derivedDataPath example/ios/build"
     },
     "android.debug": {
       "type": "android.apk",
-      "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-      "build": "cd android ; ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug ; cd -"
+      "binaryPath": "example/android/app/build/outputs/apk/debug/app-debug.apk",
+      "build": "cd example/android ; ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug ; cd -"
     }
   },
   "devices": {

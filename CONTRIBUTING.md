@@ -74,13 +74,23 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-### Linting and tests
+### Linting
 
 [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
+
+### Tests
+
+We use [detox](https://github.com/wix/Detox) for e2e testing.
+Since we don't have configured CI yet we must rembeber to run tests locally for both platforms before merge pr's.
+To to that you have to install and configure detox following its [documentation](https://github.com/wix/Detox/blob/master/docs/Introduction.GettingStarted.md).
+When you configure detox let's build and run tests:
+
+1. run `yarn build:ios` / `yarn build:android`
+2. run `yarn test:ios` / `yarn test:android`
 
 ### Scripts
 
@@ -93,6 +103,10 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
+- `yarn build:ios`: build ios for e2e tests.
+- `yarn test:ios`: run ios e2e tests.
+- `yarn build:android`: build android for e2e tests.
+- `yarn test:android`: run android e2e tests.
 
 ### Sending a pull request
 
