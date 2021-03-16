@@ -41,60 +41,60 @@ export interface AppInfo {
 export type CreatePaymentMethodResult =
   | {
       paymentMethod: PaymentMethod;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      paymentMethod: undefined;
+      paymentMethod?: undefined;
       error: StripeError<CreatePaymentMethodError>;
     };
 
 export type RetrievePaymentIntentResult =
   | {
       paymentIntent: PaymentIntent;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      paymentIntent: undefined;
+      paymentIntent?: undefined;
       error: StripeError<RetrievePaymentIntentError>;
     };
 
 export type ConfirmPaymentMethodResult =
   | {
       paymentIntent: PaymentIntent;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      paymentIntent: undefined;
+      paymentIntent?: undefined;
       error: StripeError<ConfirmPaymentError>;
     };
 
 export type HandleCardActionResult =
   | {
       paymentIntent: PaymentIntent;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      paymentIntent: undefined;
+      paymentIntent?: undefined;
       error: StripeError<CardActionError>;
     };
 
 export type ConfirmSetupIntentResult =
   | {
       setupIntent: SetupIntent;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      setupIntent: undefined;
+      setupIntent?: undefined;
       error: StripeError<ConfirmSetupIntentError>;
     };
 
 export type CreateTokenForCVCUpdateResult =
   | {
       tokenId: string;
-      error: undefined;
+      error?: undefined;
     }
   | {
-      tokenId: undefined;
+      tokenId?: undefined;
       error: StripeError<ConfirmSetupIntentError>;
     };
 
