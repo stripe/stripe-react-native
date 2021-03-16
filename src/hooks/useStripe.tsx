@@ -45,11 +45,9 @@ export function useStripe() {
         );
         return {
           paymentMethod,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentMethod: undefined,
           error: createError(error),
         };
       }
@@ -65,11 +63,9 @@ export function useStripe() {
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentIntent: undefined,
           error: createError(error),
         };
       }
@@ -91,11 +87,9 @@ export function useStripe() {
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
-          paymentIntent: undefined,
           error: createError(error),
         };
       }
@@ -117,9 +111,7 @@ export function useStripe() {
       try {
         await NativeStripeSdk.presentApplePay(params);
 
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -145,9 +137,7 @@ export function useStripe() {
       try {
         await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
 
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -169,9 +159,7 @@ export function useStripe() {
       }
       try {
         await NativeStripeSdk.confirmApplePayPayment(clientSecret);
-        return {
-          error: undefined,
-        };
+        return {};
       } catch (error) {
         return {
           error: createError(error),
@@ -191,12 +179,10 @@ export function useStripe() {
         );
         return {
           paymentIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
           error: createError(error),
-          paymentIntent: undefined,
         };
       }
     },
@@ -218,12 +204,10 @@ export function useStripe() {
 
         return {
           setupIntent,
-          error: undefined,
         };
       } catch (error) {
         return {
           error: createError(error),
-          setupIntent: undefined,
         };
       }
     },
@@ -238,12 +222,10 @@ export function useStripe() {
 
       return {
         tokenId,
-        error: undefined,
       };
     } catch (error) {
       return {
         error: createError(error),
-        tokenId: undefined,
       };
     }
   }, []);
