@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */; };
 		2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */; };
 		2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */; };
 		2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */; };
@@ -30,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libStripeSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStripeSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodFactory.swift; sourceTree = "<group>"; };
 		2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayButtonManager.swift; sourceTree = "<group>"; };
 		2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ApplePayButtonManager.m; sourceTree = "<group>"; };
 		2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayButtonView.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */,
 				2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */,
 				2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */,
 				2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */,
@@ -135,6 +138,7 @@
 				24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */,
 				24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */,
 				2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */,
+				247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */,
 				2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */,
 				249BA096256CF67B00B32764 /* UIColorExtension.swift in Sources */,
 				2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */,
