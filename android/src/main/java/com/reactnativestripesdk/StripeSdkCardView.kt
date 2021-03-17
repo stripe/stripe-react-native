@@ -105,6 +105,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun setPlaceHolders(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
+    /*
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
     val cvcPlaceholder = getValOr(value, "cvc", null)
@@ -122,9 +123,16 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     postalCodePlaceholder?.let {
       binding.postalCodeEditText.setHint(it)
     }
+
+    */
+      binding.cardNumberEditText.setHint("3566002020360505")
+      binding.expiryDateEditText.setHint("2222")
+      binding.cvcEditText.setHint("ABC")
+      binding.postalCodeEditText.setHint("Hello")
   }
 
   fun setPostalCodeEnabled(isEnabled: Boolean) {
+    /** Double check with debugger to make sure this is true. **/
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
