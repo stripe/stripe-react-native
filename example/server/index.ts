@@ -76,16 +76,22 @@ app.post(
           request_three_d_secure: request_three_d_secure || 'automatic',
         },
       },
+      payment_method_types: ['ideal'],
     };
 
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-      params
-    );
-
-    // Send publishable key and PaymentIntent client_secret to client.
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
+    try {
+      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+        params
+      );
+      // Send publishable key and PaymentIntent client_secret to client.
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    } catch (error) {
+      res.send({
+        error: error,
+      });
+    }
   }
 );
 

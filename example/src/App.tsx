@@ -13,6 +13,7 @@ import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
+import IdealPaymentScreen from './screens/IdealPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -93,6 +94,7 @@ export default function App() {
             name="CVCReCollectionScreen"
             component={CVCReCollectionScreen}
           />
+          <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>

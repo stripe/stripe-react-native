@@ -26,6 +26,14 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Ideal payment without webhooks"
+          onPress={() => {
+            navigation.navigate('IdealPayment');
+          }}
+        />
+      </View>
       {Platform.OS === 'ios' && (
         <View style={styles.buttonContainer}>
           <Button
