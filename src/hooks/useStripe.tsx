@@ -9,6 +9,7 @@ import {
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
+  ConfirmSetupIntent,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS, createError } from '../helpers';
@@ -192,8 +193,8 @@ export function useStripe() {
   const confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: CreatePaymentMethod.Params,
-      options: CreatePaymentMethod.Options
+      data: ConfirmSetupIntent.Params,
+      options: ConfirmSetupIntent.Options
     ): Promise<ConfirmSetupIntentResult> => {
       try {
         const setupIntent = await NativeStripeSdk.confirmSetupIntent(

@@ -28,7 +28,7 @@ export default function HomeScreen() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Ideal payment without webhooks"
+          title="Ideal payment using webhooks"
           onPress={() => {
             navigation.navigate('IdealPayment');
           }}
@@ -46,9 +46,17 @@ export default function HomeScreen() {
       )}
       <View style={styles.buttonContainer}>
         <Button
-          title="Setup Future Payment"
+          title="Setup Future Card Payment"
           onPress={() => {
             navigation.navigate('SetupFuturePayment');
+          }}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future iDEAL Payment"
+          onPress={() => {
+            navigation.navigate('IdealSetupFuturePaymentScreen');
           }}
         />
       </View>
