@@ -84,7 +84,10 @@ export default function WebhookPaymentScreen() {
       <CardField
         postalCodeEnabled={true}
         placeholder={{
-          number: '4242424242424242',
+          number: '4242 4242 4242 4242',
+          postalCode: '12345',
+          cvc: '123',
+          expiration: 'MM|YY',
         }}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
@@ -138,7 +141,7 @@ const inputStyles: CardFieldInput.Styles = {
   backgroundColor: '#FFFFFF',
   borderColor: '#000000',
   cornerRadius: 8,
-  textColor: '#000000',
+  textColor: '#7CFC00',
   fontSize: 14,
   placeholderColor: '#999999',
   textErrorColor: '#b42222',
