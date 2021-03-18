@@ -12,10 +12,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     return "StripeSdk"
   }
 
-  private var onConfirmPaymentError: Callback? = null
-  private var onConfirmPaymentSuccess: Callback? = null
-  private var onConfirmSetupIntentError: Callback? = null
-  private var onConfirmSetupIntentSuccess: Callback? = null
   private var confirmPromise: Promise? = null
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
@@ -27,23 +23,20 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           val setupIntent = result.intent
           when (setupIntent.status) {
             StripeIntent.Status.Succeeded -> {
-              onConfirmSetupIntentSuccess?.invoke(mapFromSetupIntentResult(setupIntent))
               confirmSetupIntentPromise?.resolve(mapFromSetupIntentResult(setupIntent))
             }
             StripeIntent.Status.Canceled -> {
               val errorMessage = setupIntent.lastSetupError?.message.orEmpty()
-              onConfirmSetupIntentError?.invoke(createError(ConfirmSetupIntentErrorType.Canceled.toString(), errorMessage))
               confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Canceled.toString(), errorMessage)
             }
             else -> {
               val errorMessage = "unhandled error: ${setupIntent.status}"
-              onConfirmSetupIntentError?.invoke(createError(ConfirmSetupIntentErrorType.Unknown.toString(), errorMessage))
               confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Unknown.toString(), errorMessage)
             }
           }
         }
+
         override fun onError(e: Exception) {
-          onConfirmSetupIntentError?.invoke(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty()))
           confirmSetupIntentPromise?.reject(ConfirmSetupIntentErrorType.Failed.toString(), e.message.orEmpty())
         }
       })
@@ -56,11 +49,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             StripeIntent.Status.Succeeded -> {
               confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
               handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-              onConfirmPaymentSuccess?.invoke(mapFromPaymentIntentResult(paymentIntent))
             }
             StripeIntent.Status.RequiresPaymentMethod -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
-              onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Failed.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), errorMessage)
               handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), errorMessage)
             }
@@ -69,13 +60,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             }
             StripeIntent.Status.Canceled -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
-              onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Canceled.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
               handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
             }
             else -> {
               val errorMessage = "unhandled error: ${paymentIntent.status}"
-              onConfirmPaymentError?.invoke(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
               confirmPromise?.reject(ConfirmPaymentErrorType.Unknown.toString(), errorMessage)
               handleCardActionPromise?.reject(NextPaymentActionErrorType.Unknown.toString(), errorMessage)
             }
@@ -83,7 +72,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         override fun onError(e: Exception) {
-          onConfirmPaymentError?.invoke(e.toString())
           confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), e.toString())
           handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
         }
@@ -175,56 +163,21 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun registerConfirmPaymentCallbacks(successCallback: Callback, errorCallback: Callback) {
-    onConfirmPaymentError = errorCallback
-    onConfirmPaymentSuccess = successCallback
-  }
-
-  @ReactMethod
-  fun unregisterConfirmPaymentCallbacks() {
-    onConfirmPaymentError = null
-    onConfirmPaymentSuccess = null
-  }
-
-  @ReactMethod
-  fun confirmPaymentMethod(paymentIntentClientSecret: String, data: ReadableMap, options: ReadableMap, promise: Promise) {
+  fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
-    val paymentMethodId = getValOr(data, "paymentMethodId", null)
-    val confirmParams = if(paymentMethodId != null) {
-      val cvc = getValOr(data, "cvc", null)
-      val paymentMethodOptionParams = if (cvc != null) PaymentMethodOptionsParams.Card(cvc) else null
 
-      ConfirmPaymentIntentParams.createWithPaymentMethodId(
-        paymentMethodId = paymentMethodId,
-        paymentMethodOptions = paymentMethodOptionParams,
-        clientSecret = paymentIntentClientSecret
-      )
-    } else {
-      val cardDetails = getMapOrNull(data, "cardDetails")?.let { it } ?: run {
-        val message = "To confirm the payment you must provide card details or paymentMethodId"
-        onConfirmSetupIntentError?.invoke(createError(ConfirmPaymentErrorType.Failed.toString(), message))
-        promise.reject(ConfirmPaymentErrorType.Failed.toString(), message)
-        return
-      }
-
-      var setupFutureUsage: ConfirmPaymentIntentParams.SetupFutureUsage? = null
-
-      getValOr(data, "setupFutureUsage", null)?.let {
-        setupFutureUsage = mapToPaymentIntentFutureUsage(it)
-      }
-
-      val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
-      ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = paymentMethodCreateParams,
-          clientSecret = paymentIntentClientSecret,
-          setupFutureUsage = setupFutureUsage
-        )
+    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
+      promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
+      return
     }
 
-    val activity = currentActivity
-    if (activity != null) {
-      stripe.confirmPayment(activity, confirmParams)
+    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params)
+
+    try {
+      val confirmParams = factory.create(paymentMethodType)
+      stripe.confirmPayment(currentActivity!!, confirmParams)
+    } catch (error: ConfirmPaymentMethodException) {
+      promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
     }
   }
 
@@ -241,37 +194,21 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun registerConfirmSetupIntentCallbacks(successCallback: Callback, errorCallback: Callback) {
-    onConfirmSetupIntentError = errorCallback
-    onConfirmSetupIntentSuccess = successCallback
-  }
-
-  @ReactMethod
-  fun unregisterConfirmSetupIntentCallbacks() {
-    onConfirmSetupIntentError = null
-    onConfirmSetupIntentSuccess = null
-  }
-
-  @ReactMethod
-  fun confirmSetupIntent (setupIntentClientSecret: String,  data: ReadableMap, options: ReadableMap, promise: Promise) {
+  fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
-    var billing: PaymentMethod.BillingDetails? = null
 
-    (getMapOrNull(data, "billingDetails"))?.let {
-      billing = mapToBillingDetails(it)
+    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
+      promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
+      return
     }
 
-    val card = mapToCard(data.getMap("cardDetails") as ReadableMap)
+    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params)
 
-    val paymentMethodParams = PaymentMethodCreateParams
-      .create(card, billing, null)
-
-    val confirmParams = ConfirmSetupIntentParams
-      .create(paymentMethodParams, setupIntentClientSecret)
-
-    val activity = currentActivity
-    if (activity != null) {
-      stripe.confirmSetupIntent(activity, confirmParams)
+    try {
+      val confirmParams = factory.create(paymentMethodType)
+      stripe.confirmSetupIntent(currentActivity!!, confirmParams)
+    } catch (error: SetupPaymentMethodException) {
+      promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
     }
   }
 }

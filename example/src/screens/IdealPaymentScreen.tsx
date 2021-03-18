@@ -10,6 +10,7 @@ import { colors } from '../colors';
 export default function IdealPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
+  const [bankName, setBankName] = useState('');
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -22,6 +23,7 @@ export default function IdealPaymentScreen() {
         currency: 'eur',
         items: [{ id: 'id' }],
         request_three_d_secure: 'any',
+        payment_method_types: ['ideal'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -56,7 +58,7 @@ export default function IdealPaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Ideal',
       billingDetails,
-      bankName: 'abn_amro',
+      bankName,
       returnURL: 'https://stripe.com',
     });
 
@@ -78,6 +80,11 @@ export default function IdealPaymentScreen() {
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Bank name"
+        onChange={(value) => setBankName(value.nativeEvent.text)}
         style={styles.input}
       />
       <Button

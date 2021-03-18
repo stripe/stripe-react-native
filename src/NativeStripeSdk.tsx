@@ -7,6 +7,7 @@ import type {
   PaymentMethod,
   ApplePay,
   SetupIntent,
+  ConfirmSetupIntent,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -36,8 +37,8 @@ type NativeStripeSdkType = {
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: ConfirmSetupIntent.Params,
+    options: ConfirmSetupIntent.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
