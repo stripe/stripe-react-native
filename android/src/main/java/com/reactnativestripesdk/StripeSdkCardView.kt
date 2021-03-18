@@ -127,7 +127,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     */
       binding.cardNumberEditText.setHint("3566002020360505")
       binding.expiryDateEditText.setHint("2222")
-      binding.cvcEditText.setHint("ABC")
+      mCardWidget.setCvcLabel("123")
       binding.postalCodeEditText.setHint("Hello")
   }
 
