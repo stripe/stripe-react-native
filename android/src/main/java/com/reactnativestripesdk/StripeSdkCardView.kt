@@ -56,11 +56,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
     textColor?.let {
-      binding.cardNumberEditText.setTextColor(ColorStateList.valueOf(Color.parseColor(it)))
+      binding.cardNumberEditText.setTextColor(Color.parseColor(it))
       binding.cvcEditText.setTextColor(Color.parseColor(it))
       binding.expiryDateEditText.setTextColor(Color.parseColor(it))
       binding.postalCodeEditText.setTextColor(Color.parseColor(it))
-
     }
     textErrorColor?.let {
       binding.cardNumberEditText.setErrorColor(Color.parseColor(it))
@@ -105,34 +104,26 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun setPlaceHolders(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
-    /*
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
     val cvcPlaceholder = getValOr(value, "cvc", null)
     val postalCodePlaceholder = getValOr(value, "postalCode", null)
 
     numberPlaceholder?.let {
-      binding.cardNumberEditText.setHint(it)
+      binding.cardNumberEditText.hint = it
     }
     expirationPlaceholder?.let {
-      binding.expiryDateEditText.setHint(it)
+      binding.expiryDateEditText.hint = it
     }
     cvcPlaceholder?.let {
-      binding.cvcEditText.setHint(it)
+      binding.cvcEditText.hint = it
     }
     postalCodePlaceholder?.let {
-      binding.postalCodeEditText.setHint(it)
+      binding.postalCodeEditText.hint = it
     }
-
-    */
-      binding.cardNumberEditText.setHint("3566002020360505")
-      binding.expiryDateEditText.setHint("2222")
-      binding.cvcEditText.setHint("ABC")
-      binding.postalCodeEditText.setHint("Hello")
   }
 
   fun setPostalCodeEnabled(isEnabled: Boolean) {
-    /** Double check with debugger to make sure this is true. **/
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
