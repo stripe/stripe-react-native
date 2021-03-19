@@ -30,10 +30,10 @@
     "pods": "cd example && pod-install --quiet",
     "bootstrap": "yarn example && yarn && yarn pods",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal --theme ./docs/stripe-theme",
+    "test:build-android": "detox build --configuration android",
     "test:android": "detox test --configuration android",
-    "test:ios": "detox test --configuration ios",
-    "build:android": "detox build --configuration android",
-    "build:ios": "detox build --configuration ios"
+    "test:build-ios": "detox build --configuration ios",
+    "test:ios": "detox test --configuration ios"
   },
   "keywords": [
     "react-native",

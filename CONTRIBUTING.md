@@ -89,7 +89,7 @@ Since we don't have configured CI yet we must rembeber to run tests locally for 
 To to that you have to install and configure detox following its [documentation](https://github.com/wix/Detox/blob/master/docs/Introduction.GettingStarted.md).
 When you configure detox let's build and run tests:
 
-1. run `yarn build:ios` / `yarn build:android`
+1. run `yarn test:build-ios` / `yarn test:build-android`
 2. run `yarn test:ios` / `yarn test:android`
 
 ### Scripts
@@ -103,9 +103,9 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
-- `yarn build:ios`: build ios for e2e tests.
+- `yarn test:build-ios`: build ios for e2e tests.
 - `yarn test:ios`: run ios e2e tests.
-- `yarn build:android`: build android for e2e tests.
+- `yarn test:build-android`: build android for e2e tests.
 - `yarn test:android`: run android e2e tests.
 
 ### Sending a pull request
