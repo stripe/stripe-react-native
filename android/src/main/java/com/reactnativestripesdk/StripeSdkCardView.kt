@@ -56,11 +56,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
     textColor?.let {
-      binding.cardNumberEditText.setTextColor(ColorStateList.valueOf(Color.parseColor(it)))
+      binding.cardNumberEditText.setTextColor(Color.parseColor(it))
       binding.cvcEditText.setTextColor(Color.parseColor(it))
       binding.expiryDateEditText.setTextColor(Color.parseColor(it))
       binding.postalCodeEditText.setTextColor(Color.parseColor(it))
-
     }
     textErrorColor?.let {
       binding.cardNumberEditText.setErrorColor(Color.parseColor(it))
@@ -111,16 +110,16 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val postalCodePlaceholder = getValOr(value, "postalCode", null)
 
     numberPlaceholder?.let {
-      binding.cardNumberEditText.setHint(it)
+      binding.cardNumberEditText.hint = it
     }
     expirationPlaceholder?.let {
-      binding.expiryDateEditText.setHint(it)
+      binding.expiryDateEditText.hint = it
     }
     cvcPlaceholder?.let {
-      binding.cvcEditText.setHint(it)
+      mCardWidget.setCvcLabel(it)
     }
     postalCodePlaceholder?.let {
-      binding.postalCodeEditText.setHint(it)
+      binding.postalCodeEditText.hint = it
     }
   }
 
