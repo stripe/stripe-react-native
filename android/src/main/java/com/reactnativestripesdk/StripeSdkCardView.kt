@@ -116,7 +116,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.expiryDateEditText.hint = it
     }
     cvcPlaceholder?.let {
-      binding.cvcEditText.hint = it
+      mCardWidget.setCvcLabel(it)
     }
     postalCodePlaceholder?.let {
       binding.postalCodeEditText.hint = it
