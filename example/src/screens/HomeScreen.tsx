@@ -28,9 +28,25 @@ export default function HomeScreen() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
+          title="Setup Future Card Payment"
+          onPress={() => {
+            navigation.navigate('SetupFuturePayment');
+          }}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
           title="Ideal payment using webhooks"
           onPress={() => {
             navigation.navigate('IdealPayment');
+          }}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future iDEAL Payment"
+          onPress={() => {
+            navigation.navigate('IdealSetupFuturePaymentScreen');
           }}
         />
       </View>
@@ -44,22 +60,7 @@ export default function HomeScreen() {
           />
         </View>
       )}
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Setup Future Card Payment"
-          onPress={() => {
-            navigation.navigate('SetupFuturePayment');
-          }}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Setup Future iDEAL Payment"
-          onPress={() => {
-            navigation.navigate('IdealSetupFuturePaymentScreen');
-          }}
-        />
-      </View>
+
       <View style={styles.buttonContainer}>
         <Button
           title="Re-collect CVC"

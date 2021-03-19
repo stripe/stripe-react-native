@@ -32,7 +32,6 @@ export default function IdealPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    // 1. fetch Intent Client Secret from backend
     const {
       clientSecret,
       error: clientSecretError,
@@ -42,24 +41,14 @@ export default function IdealPaymentScreen() {
       Alert.alert(`Error`, clientSecretError);
     }
 
-    // 2. Gather customer billing information (ex. email)
     const billingDetails: CreatePaymentMethod.BillingDetails = {
-      email: 'email@stripe.com',
-      phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
-    }; // mocked data for tests
+      name: 'John Doe',
+    };
 
-    // 3. Confirm payment with bank name
-    // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Ideal',
       billingDetails,
       bankName,
-      returnURL: 'https://stripe.com',
     });
 
     if (error) {
@@ -84,7 +73,7 @@ export default function IdealPaymentScreen() {
       />
       <TextInput
         placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        onChange={(value) => setBankName(value.nativeEvent.text.toLowerCase())}
         style={styles.input}
       />
       <Button

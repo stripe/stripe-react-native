@@ -4,6 +4,7 @@ import Stripe
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
     var merchantIdentifier: String? = nil
+    var urlScheme: String? = nil
     
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
@@ -18,10 +19,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
     
-    @objc(initialise:appInfo:stripeAccountId:params:merchantIdentifier:)
-    func initialise(publishableKey: String,  appInfo: NSDictionary, stripeAccountId: String?, params: NSDictionary?, merchantIdentifier: String?) -> Void {
-        if let params = params {
-            configure3dSecure(params)
+    @objc(initialise:)
+    func initialise(params: NSDictionary) -> Void {
+        let publishableKey = params["publishableKey"] as! String
+        let appInfo = params["appInfo"] as! NSDictionary
+        let stripeAccountId = params["stripeAccountId"] as? String
+        let params3ds = params["threeDSecureParams"] as? NSDictionary
+        let merchantIdentifier = params["merchantIdentifier"] as? String
+        
+        if let params3ds = params3ds {
+            configure3dSecure(params3ds)
         }
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
@@ -30,6 +37,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
         let version = RCTConvert.nsString(appInfo["version"]) ?? ""
         let url = RCTConvert.nsString(appInfo["url"]) ?? ""
+        
+        self.urlScheme = params["urlScheme"] as? String
         
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
@@ -77,6 +86,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
+        setupIntentParams.returnURL = self.urlScheme
+        
+        // TODO: remove once added to SDK
+        let onlineParams = STPMandateOnlineParams(ipAddress: "178.43.159.11", userAgent: "userAgent")
+        let customerAcceptanceParams = STPMandateCustomerAcceptanceParams()
+        customerAcceptanceParams.onlineParams = onlineParams
+        customerAcceptanceParams.type = .online
+        let mandateParams = STPMandateDataParams(customerAcceptance: customerAcceptanceParams)
+        setupIntentParams.mandateData = mandateParams
         
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
@@ -359,7 +377,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
-            paymentIntentParams.returnURL = params["returnURL"] as? String
+            paymentIntentParams.returnURL = self.urlScheme
         }
         
         let paymentHandler = STPPaymentHandler.shared()

@@ -1,6 +1,5 @@
 import { NativeModules } from 'react-native';
 import type {
-  AppInfo,
   CreatePaymentMethod,
   ThreeDSecureConfigurationParams,
   PaymentIntent,
@@ -8,16 +7,11 @@ import type {
   ApplePay,
   SetupIntent,
   ConfirmSetupIntent,
+  InitialiseParams,
 } from './types';
 
 type NativeStripeSdkType = {
-  initialise(
-    publishableKey: string,
-    appInfo: AppInfo,
-    stripeAccountId?: string,
-    threeDSecureParams?: ThreeDSecureConfigurationParams,
-    merchantIdentifier?: string
-  ): void;
+  initialise(params: InitialiseParams): void;
   createPaymentMethod(
     data: CreatePaymentMethod.Params,
     options: CreatePaymentMethod.Options
