@@ -104,9 +104,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initialise(publishableKey: String, appInfo: ReadableMap, stripeAccountId: String?, params: ReadableMap?) {
-    if (params != null) {
-      configure3dSecure(params)
+  fun initialise(params: ReadableMap) {
+    val publishableKey = getValOr(params,"publishableKey") as String
+    val appInfo = getMapOrNull(params,"appInfo") as ReadableMap
+    val stripeAccountId = getValOr(params,"stripeAccountId")
+
+    getMapOrNull(params,"threeDSecureParams")?.let {
+      configure3dSecure(it)
     }
 
     val name = getValOr(appInfo, "name", "") as String
@@ -206,6 +210,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     try {
       val confirmParams = factory.create(paymentMethodType)
+      val onlineParams = MandateDataParams.Type.Online("178.43.159.11", "userAgent")
+      confirmParams.mandateData = MandateDataParams(onlineParams)
       stripe.confirmSetupIntent(currentActivity!!, confirmParams)
     } catch (error: SetupPaymentMethodException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)

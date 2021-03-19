@@ -11,8 +11,6 @@ export default function IdealSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
   const [bankName, setBankName] = useState('');
 
-  // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
-  // The only difference is that this approach will not have `loading` status support
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
   const createSetupIntentOnBackend = async (customerEmail: string) => {
@@ -31,36 +29,15 @@ export default function IdealSetupFuturePaymentScreen() {
     return clientSecret;
   };
 
-  // const chargeCardOffSession = async () => {
-  //   const response = await fetch(`${API_URL}/charge-card-off-session`, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({ email: email }),
-  //   });
-  //   const { clientSecret, error } = await response.json();
-
-  //   return { clientSecret, error };
-  // };
-
   const handlePayPress = async () => {
     console.log('email', email);
-    // 1. Create setup intent on backend
     const clientSecret = await createSetupIntentOnBackend(email);
 
-    // 2. Gather customer billing information (ex. email)
     const billingDetails: CreatePaymentMethod.BillingDetails = {
       email: email,
-      phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
-    }; // mocked data for tests
+      name: 'John Doe',
+    };
 
-    // 3. Confirm setup intent
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
       type: 'Ideal',
       billingDetails,
@@ -88,7 +65,7 @@ export default function IdealSetupFuturePaymentScreen() {
 
       <TextInput
         placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        onChange={(value) => setBankName(value.nativeEvent.text.toLowerCase())}
         style={styles.input}
       />
 
