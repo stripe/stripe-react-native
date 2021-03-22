@@ -52,8 +52,8 @@ export declare namespace CreatePaymentMethod {
 
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
-    returnUrl: string;
     bankName: string;
+    returnUrlHost: string;
   }
 
   export interface AlipayParams extends BaseParams {

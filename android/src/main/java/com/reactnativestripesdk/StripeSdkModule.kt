@@ -247,7 +247,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params)
+    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params, urlScheme)
 
     try {
       val confirmParams = factory.create(paymentMethodType)

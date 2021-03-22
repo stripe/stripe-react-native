@@ -41,6 +41,7 @@ export default function IdealSetupFuturePaymentScreen() {
       type: 'Ideal',
       billingDetails,
       bankName,
+      returnUrlHost: 'ideal',
     });
 
     if (error) {
