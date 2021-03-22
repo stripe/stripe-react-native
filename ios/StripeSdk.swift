@@ -71,6 +71,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             return
         }
         
+        let returnUrlHost = params["returnUrlHost"] as? String
+        
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params)
         
@@ -86,7 +88,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
-        setupIntentParams.returnURL = self.urlScheme
+        if let urlScheme = urlScheme, let returnUrlHost = returnUrlHost {
+            setupIntentParams.returnURL = urlScheme + "://" + returnUrlHost
+        }
         
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
@@ -345,6 +349,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             return
         }
         
+        let returnUrlHost = params["returnUrlHost"] as? String
+        
         let cvc = params["cvc"] as? String
         
         if paymentMethodId != nil {
@@ -369,7 +375,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
-            paymentIntentParams.returnURL = self.urlScheme
+            
+            if let urlScheme = urlScheme, let returnUrlHost = returnUrlHost {
+                paymentIntentParams.returnURL = urlScheme + "://" + returnUrlHost
+            }
         }
         
         let paymentHandler = STPPaymentHandler.shared()

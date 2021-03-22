@@ -49,6 +49,7 @@ export default function IdealPaymentScreen() {
       type: 'Ideal',
       billingDetails,
       bankName,
+      returnUrlHost: 'ideal',
     });
 
     if (error) {

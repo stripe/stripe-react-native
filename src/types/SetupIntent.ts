@@ -32,6 +32,7 @@ export declare namespace ConfirmSetupIntent {
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
     bankName: string;
+    returnUrlHost: string;
   }
 }
 
