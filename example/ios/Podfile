@@ -8,6 +8,7 @@ target 'StripeSdkExample' do
   use_react_native!(:path => config["reactNativePath"])
 
   pod 'stripe-react-native', :path => '../..'
+  pod 'Stripe', :git => 'https://github.com/thorsten-stripe/stripe-ios', :branch => 'fix/ideal-mandate-data'
 
   # Enables Flipper.
   #

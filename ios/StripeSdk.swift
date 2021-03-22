@@ -18,7 +18,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
-    
+
     @objc(initialise:)
     func initialise(params: NSDictionary) -> Void {
         let publishableKey = params["publishableKey"] as! String
@@ -87,14 +87,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
         setupIntentParams.returnURL = self.urlScheme
-        
-        // TODO: remove once added to SDK
-        let onlineParams = STPMandateOnlineParams(ipAddress: "178.43.159.11", userAgent: "userAgent")
-        let customerAcceptanceParams = STPMandateCustomerAcceptanceParams()
-        customerAcceptanceParams.onlineParams = onlineParams
-        customerAcceptanceParams.type = .online
-        let mandateParams = STPMandateDataParams(customerAcceptance: customerAcceptanceParams)
-        setupIntentParams.mandateData = mandateParams
         
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
