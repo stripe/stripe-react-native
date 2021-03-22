@@ -3,7 +3,6 @@ import 'react-native-gesture-handler';
 import { StripeProvider } from 'stripe-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
 import { API_URL } from './Config';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -15,6 +14,7 @@ import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
+import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,7 +35,7 @@ export default function App() {
     <StripeProvider
       publishableKey={publishableKey}
       merchantIdentifier="merchant.com.stripe.react.native"
-      urlScheme="stripe-example://stripe-redirect"
+      urlScheme="stripe-example"
       threeDSecureParams={{
         backgroundColor: colors.white,
         timeout: 5,
@@ -100,6 +100,10 @@ export default function App() {
           <Stack.Screen
             name="IdealSetupFuturePaymentScreen"
             component={IdealSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="AlipayPaymentScreen"
+            component={AlipayPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

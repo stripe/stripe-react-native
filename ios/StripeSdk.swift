@@ -75,7 +75,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -86,7 +86,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
-        setupIntentParams.returnURL = self.urlScheme
         
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
@@ -276,7 +275,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -345,6 +344,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             return
         }
         
+        let returnUrl = params["returnUrl"] as? String
+        
         let cvc = params["cvc"] as? String
         
         if paymentMethodId != nil {
@@ -357,10 +358,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
+            var paymentMethodOptions: STPConfirmPaymentMethodOptions?
             let factory = PaymentMethodFactory.init(params: params)
             
             do {
-                paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+                paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
                 reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
             }
@@ -369,7 +372,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
-            paymentIntentParams.returnURL = self.urlScheme
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
+            
+            if let urlScheme = urlScheme, let returnUrl = returnUrl {
+                paymentIntentParams.returnURL = urlScheme + "://" + returnUrl
+            }
         }
         
         let paymentHandler = STPPaymentHandler.shared()
