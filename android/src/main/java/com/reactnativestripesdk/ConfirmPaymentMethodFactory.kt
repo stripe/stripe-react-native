@@ -26,7 +26,7 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
   @Throws(ConfirmPaymentMethodException::class)
   private fun createIDEALPaymentMethodParams(): ConfirmPaymentIntentParams {
     val bankName = getValOr(params, "bankName", null) ?: throw ConfirmPaymentMethodException("You must provide bankName")
-    val returnUrl = getValOr(params, "returnUrl", null) ?: throw ConfirmPaymentMethodException("You must provide returnUrl")
+    val returnUrlHost = getValOr(params, "returnUrlHost", null) ?: throw ConfirmPaymentMethodException("You must provide returnUrlHost")
     if (urlScheme == null) {
       throw ConfirmPaymentMethodException("You must provide urlScheme into StripeProvider")
     }
@@ -37,7 +37,7 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        returnUrl = "$urlScheme://$returnUrl"
+        returnUrl = "$urlScheme://$returnUrlHost"
       )
   }
 
