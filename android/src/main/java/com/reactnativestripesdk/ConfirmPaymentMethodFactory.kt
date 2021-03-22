@@ -13,6 +13,7 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
         PaymentMethod.Type.Ideal -> createIDEALPaymentMethodParams()
+        PaymentMethod.Type.Alipay -> createAlipayPaymentMethodParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -25,8 +26,9 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
   @Throws(ConfirmPaymentMethodException::class)
   private fun createIDEALPaymentMethodParams(): ConfirmPaymentIntentParams {
     val bankName = getValOr(params, "bankName", null) ?: throw ConfirmPaymentMethodException("You must provide bankName")
+    val returnUrl = getValOr(params, "returnUrl", null) ?: throw ConfirmPaymentMethodException("You must provide returnUrl")
     if (urlScheme == null) {
-      throw ConfirmPaymentMethodException("You must provide returnURL")
+      throw ConfirmPaymentMethodException("You must provide urlScheme into StripeProvider")
     }
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
@@ -35,8 +37,13 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        returnUrl = urlScheme
+        returnUrl = "$urlScheme://$returnUrl"
       )
+  }
+
+  @Throws(ConfirmPaymentMethodException::class)
+  private fun createAlipayPaymentMethodParams(): ConfirmPaymentIntentParams {
+   return ConfirmPaymentIntentParams.createAlipay(clientSecret)
   }
 
   @Throws(ConfirmPaymentMethodException::class)

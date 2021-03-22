@@ -1,3 +1,4 @@
+include ':alipaySdk-15.7.4-20200228192259'
 rootProject.name = 'StripeSdkExample'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
