@@ -1,12 +1,42 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+
+  const handleDeppLink = useCallback(
+    (url: string | null) => {
+      if (url && url.includes(`stripe-example://safepal`)) {
+        navigation.navigate('AlipayPaymentScreen');
+      }
+
+      if (url && url.includes(`stripe-example://ideal`)) {
+        navigation.navigate('IdealPayment');
+      }
+    },
+    [navigation]
+  );
+
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeppLink(initialUrl);
+    };
+
+    const urlCallback = (event: { url: string }) => {
+      handleDeppLink(event.url);
+    };
+
+    getUrlAsync();
+
+    Linking.addEventListener('url', urlCallback);
+
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, [handleDeppLink]);
 
   return (
     <Screen>

@@ -109,7 +109,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun initialise(params: ReadableMap) {
     val publishableKey = getValOr(params,"publishableKey") as String
     val appInfo = getMapOrNull(params,"appInfo") as ReadableMap
-    val stripeAccountId = getValOr(params,"stripeAccountId")
+    val stripeAccountId = getValOr(params,"stripeAccountId", null)
     val urlScheme = getValOr(params,"urlScheme")
 
     this.urlScheme = urlScheme
@@ -211,7 +211,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params)
+    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params, urlScheme)
 
     try {
       val confirmParams = factory.create(paymentMethodType)
