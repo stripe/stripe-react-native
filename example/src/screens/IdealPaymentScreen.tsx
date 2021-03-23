@@ -49,7 +49,6 @@ export default function IdealPaymentScreen() {
       type: 'Ideal',
       billingDetails,
       bankName,
-      returnUrl: 'stripe-example://ideal-payment',
     });
 
     if (error) {

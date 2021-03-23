@@ -12,6 +12,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     return "StripeSdk"
   }
 
+  private var urlScheme: String? = null
+
   private var confirmPromise: Promise? = null
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
@@ -105,9 +107,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun initialise(params: ReadableMap) {
-    val publishableKey = getValOr(params,"publishableKey") as String
+    val publishableKey = getValOr(params,"publishableKey", null) as String
     val appInfo = getMapOrNull(params,"appInfo") as ReadableMap
     val stripeAccountId = getValOr(params,"stripeAccountId", null)
+    this.urlScheme = getValOr(params, "urlScheme", null)
 
     getMapOrNull(params,"threeDSecureParams")?.let {
       configure3dSecure(it)
@@ -175,7 +178,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params)
+    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params, urlScheme)
 
     try {
       val confirmParams = factory.create(paymentMethodType)
@@ -206,7 +209,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params)
+    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params, urlScheme)
 
     try {
       val confirmParams = factory.create(paymentMethodType)

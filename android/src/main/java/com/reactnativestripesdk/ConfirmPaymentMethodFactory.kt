@@ -4,7 +4,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 import java.lang.Exception
 
-class ConfirmPaymentMethodFactory(private val clientSecret: String, private val params: ReadableMap) {
+class ConfirmPaymentMethodFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
 
   @Throws(ConfirmPaymentMethodException::class)
@@ -12,7 +12,7 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
-        PaymentMethod.Type.Ideal -> createIDEALPaymentMethodParams()
+        PaymentMethod.Type.Ideal -> createIDEALPaymentMethodParams(paymentMethodType)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -23,9 +23,12 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
   }
 
   @Throws(ConfirmPaymentMethodException::class)
-  private fun createIDEALPaymentMethodParams(): ConfirmPaymentIntentParams {
+  private fun createIDEALPaymentMethodParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
     val bankName = getValOr(params, "bankName", null) ?: throw ConfirmPaymentMethodException("You must provide bankName")
-    val returnUrl = getValOr(params, "returnUrl", null) ?: throw ConfirmPaymentMethodException("You must provide returnUrl")
+
+    if (urlScheme == null) {
+      throw ConfirmPaymentMethodException("You must provide urlScheme")
+    }
 
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
@@ -34,7 +37,7 @@ class ConfirmPaymentMethodFactory(private val clientSecret: String, private val 
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        returnUrl = returnUrl
+        returnUrl = mapToReturnURL(urlScheme, paymentMethodType)
       )
   }
 
