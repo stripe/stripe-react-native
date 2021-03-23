@@ -140,9 +140,9 @@ Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentatio
 ```tsx
 const handleDeppLink = (url) => {
   if (url && url.includes(`stripe-example://ideal`)) {
-    // redirect to proper
+    // redirect to proper screen
   } else if (url && url.includes(`stripe-example://alipay`)) {
-    // redirect to proper
+    // redirect to proper screen
   }
 };
 

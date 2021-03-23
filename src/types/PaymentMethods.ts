@@ -56,7 +56,7 @@ export declare namespace CreatePaymentMethod {
     returnUrl: string;
   }
 
-  export interface AlipayParams extends BaseParams {
+  export interface AlipayParams {
     type: 'Alipay';
     returnUrl: string;
     webview?: boolean;

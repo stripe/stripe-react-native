@@ -1,4 +1,3 @@
-import type { CreatePaymentMethod } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
@@ -40,13 +39,8 @@ export default function AlipayPaymentScreen() {
       return;
     }
 
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
-      name: 'John Doe',
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Alipay',
-      billingDetails,
       returnUrl: 'stripe-example://alipay',
       webview: true,
     });
