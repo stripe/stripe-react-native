@@ -91,7 +91,7 @@ export default function IdealPaymentScreen() {
 ## 4. Submit the payment to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-Ideal opens the return URL with `stripe-redirect/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://safepay/`.
+Ideal opens the return URL with `stripe-redirect/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://stripe-redirect/`.
 
 ```tsx
 export default function IdealPaymentScreen() {
