@@ -67,7 +67,7 @@ Alipay opens the return URL with safepay/ as the host. For example, if your cust
 ## 4. Confirm the payment
 
 When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This method will either open up the Alipay app, or display a webview if the Alipay app is not installed.
-You can also force displaying webview by passing `webview = true`.
+You can also force displaying webview by passing `webview` param set to `true`.
 
 ```tsx
 export default function PaymentScreen() {
