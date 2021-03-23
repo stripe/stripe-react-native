@@ -141,7 +141,7 @@ At first you need to register url schemes for [iOS](https://developer.apple.com/
 Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
 
 ```tsx
-const handleDeppLink = (url) => {
+const handleDeepLink = (url) => {
   if (url && url.includes(`stripe-example://stripe-redirect`)) {
     // redirect to proper screen
   }
@@ -150,11 +150,11 @@ const handleDeppLink = (url) => {
 useEffect(() => {
   const getUrlAsync = async () => {
     const initialUrl = await Linking.getInitialURL();
-    handleDeppLink(initialUrl);
+    handleDeepLink(initialUrl);
   };
 
   const urlCallback = (event) => {
-    handleDeppLink(event.url);
+    handleDeepLink(event.url);
   };
 
   getUrlAsync();
