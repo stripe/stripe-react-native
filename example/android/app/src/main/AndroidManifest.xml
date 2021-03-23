@@ -27,7 +27,9 @@
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="stripe-example"
-            android:host="stripe-redirect" />
+            android:host="ideal-payment" />
+          <data android:scheme="stripe-example"
+            android:host="ideal-setup-payment" />
         </intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
