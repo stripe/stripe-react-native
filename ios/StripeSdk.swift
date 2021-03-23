@@ -18,6 +18,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
 
+    @objc override static func requiresMainQueueSetup() -> Bool {
+        return false
+    }
+
     @objc(initialise:)
     func initialise(params: NSDictionary) -> Void {
         let publishableKey = params["publishableKey"] as! String
