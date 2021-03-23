@@ -82,13 +82,20 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
-        postalCodeEnabled={false}
+        postalCodeEnabled={true}
+        placeholder={{
+          number: '4242 4242 4242 4242',
+          postalCode: '12345',
+          cvc: '123',
+          expiration: 'MM|YY',
+        }}
         onCardChange={(cardDetails) => {
           setCard(cardDetails);
         }}
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);
         }}
+        cardStyle={inputStyles}
         style={styles.cardField}
       />
       <View style={styles.row}>
@@ -128,3 +135,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
   },
 });
+
+const inputStyles: CardFieldInput.Styles = {
+  borderWidth: 1,
+  backgroundColor: '#FFFFFF',
+  borderColor: '#000000',
+  cornerRadius: 8,
+  fontSize: 14,
+  placeholderColor: '#999999',
+};

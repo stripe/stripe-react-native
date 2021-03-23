@@ -4,7 +4,7 @@
 
 Stripe allows you to collect your customer’s card details and charge at a later time. In some regions, like Europe and India, banks often require a second form of authentication to make a purchase, such as entering a code sent to their phone. This decreases conversion if your customer is not actively using your website or application because they are not available to authenticate the purchase.
 
-If you primarily do business in the U.S. and Canada, banks do not require authentication and you can follow this simpler integration. Building this integration means that expanding to other countries or adding other payment methods will require significant changes. Learn how to [save cards that require authentication.](https://stripe.com/docs/payments/save-and-reuse)
+If you primarily do business in the U.S. and Canada, banks do not require authentication and you can follow this simpler integration. Building this integration means that expanding to other countries or adding other payment methods will require significant changes. Learn how to [save cards that require authentication](https://stripe.com/docs/payments/save-and-reuse).
 
 ## 1. Setup Stripe
 
@@ -26,6 +26,7 @@ Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.co
 
 ```tsx
 import { StripeProvider } from 'stripe-react-native';
+
 function App() {
   return (
     <StripeProvider publishableKey="pk_test_51Ho4m5A51v44wNexXNFEg0MSAjZUzllhhJwiFmAmJ4tzbvsvuEgcMCaPEkgK7RpXO1YI5okHP08IUfJ6YS7ulqzk00O2I0D1rT">
@@ -63,15 +64,15 @@ const pay = () => {
 
 Send the resulting PaymentMethod ID to your server and follow the remaining steps to save the card to a customer and charge the card in the future.
 
-## 3. Save the card
+## 3. Save the card (server)
 
-## 4. Charge the saved card
+## 4. Charge the saved card (server)
 
-## 5. Handle any card errors
+## 5. Handle any errors (server)
 
 ## 6. Test the integration
 
-## 7. Re-collect a CVC
+## 7. (Optional) Re-Collect CVC
 
 When creating subsequent payments on a saved card, you may want to re-collect the CVC of the card as an additional fraud measure to verify the user.
 
@@ -99,3 +100,7 @@ const pay = async (cvc: string) => {
 ```
 
 A payment may succeed even with a failed CVC check. If this isn’t what you want, you may want to configure your [Radar rules](https://stripe.com/docs/radar/rules#traditional-bank-checks) to block payments when CVC verification fails.
+
+## Upgrade your integration to handle card authentication
+
+# Note that this integration declines cards that require authentication during payment. If you start seeing many payments in the Dashboard listed as Failed, then it’s time to [upgrade your integration](./upgrade-to-handle-authentication.md). Stripe’s global integration handles these payments instead of automatically declining.
