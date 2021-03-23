@@ -8,7 +8,7 @@ import Screen from '../components/Screen';
 export default function HomeScreen() {
   const navigation = useNavigation();
 
-  const handleDeppLink = useCallback(
+  const handleDeepLink = useCallback(
     (url: string | null) => {
       if (url && url.includes(`stripe-example://safepay`)) {
         navigation.navigate('AlipayPaymentScreen');
@@ -22,11 +22,11 @@ export default function HomeScreen() {
   useEffect(() => {
     const getUrlAsync = async () => {
       const initialUrl = await Linking.getInitialURL();
-      handleDeppLink(initialUrl);
+      handleDeepLink(initialUrl);
     };
 
     const urlCallback = (event: { url: string }) => {
-      handleDeppLink(event.url);
+      handleDeepLink(event.url);
     };
 
     getUrlAsync();
@@ -34,7 +34,7 @@ export default function HomeScreen() {
     Linking.addEventListener('url', urlCallback);
 
     return () => Linking.removeEventListener('url', urlCallback);
-  }, [handleDeppLink]);
+  }, [handleDeepLink]);
 
   return (
     <Screen>
