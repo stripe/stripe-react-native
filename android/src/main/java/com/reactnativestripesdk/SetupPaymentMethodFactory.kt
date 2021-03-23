@@ -4,7 +4,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 import java.lang.Exception
 
-class SetupPaymentMethodFactory(private val clientSecret: String, private val params: ReadableMap) {
+class SetupPaymentMethodFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
 
   @Throws(SetupPaymentMethodException::class)
@@ -12,7 +12,7 @@ class SetupPaymentMethodFactory(private val clientSecret: String, private val pa
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
-        PaymentMethod.Type.Ideal -> createIDEALPaymentMethodParams()
+        PaymentMethod.Type.Ideal -> createIDEALPaymentMethodParams(paymentMethodType)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -23,16 +23,19 @@ class SetupPaymentMethodFactory(private val clientSecret: String, private val pa
   }
 
   @Throws(SetupPaymentMethodException::class)
-  private fun createIDEALPaymentMethodParams(): ConfirmSetupIntentParams {
+  private fun createIDEALPaymentMethodParams(paymentMethodType: PaymentMethod.Type): ConfirmSetupIntentParams {
     val bankName = getValOr(params, "bankName", null) ?: throw SetupPaymentMethodException("You must provide bankName")
-    val returnUrl = getValOr(params, "returnUrl", null) ?: throw ConfirmPaymentMethodException("You must provide returnUrl")
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
+
+    if (urlScheme == null) {
+      throw ConfirmPaymentMethodException("You must provide urlScheme")
+    }
 
     return ConfirmSetupIntentParams.create(
       paymentMethodCreateParams = createParams,
       clientSecret = clientSecret,
-      returnUrl = returnUrl
+      returnUrl = mapToReturnURL(urlScheme, paymentMethodType)
     )
   }
 

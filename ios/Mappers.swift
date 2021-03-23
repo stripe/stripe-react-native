@@ -461,6 +461,17 @@ class Mappers {
         return intent
     }
     
+    class func getReturnUrl(paymentType: STPPaymentMethodType) -> String {
+        switch paymentType {
+        case STPPaymentMethodType.alipay: return "safepay"
+        default: return "stripe-redirect"
+        }
+    }
+    
+    class func mapToReturnURL(urlScheme: String, paymentType: STPPaymentMethodType) -> String {
+        return urlScheme + "://" + getReturnUrl(paymentType: paymentType)
+    }
+    
     class func mapUICustomization(_ params: NSDictionary) -> STPThreeDSUICustomization {
         let uiCustomization = STPThreeDSUICustomization()
         if let labelSettings = params["label"] as? Dictionary<String, Any?> {
