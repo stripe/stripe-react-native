@@ -139,7 +139,6 @@ export default function NoWebhookPaymentScreen() {
   return (
     <Screen>
       <CardField
-        postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
           setCard(cardDetails);
