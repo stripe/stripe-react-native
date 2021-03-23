@@ -10,7 +10,7 @@ export default function HomeScreen() {
 
   const handleDeppLink = useCallback(
     (url: string | null) => {
-      if (url && url.includes(`stripe-example://safepal`)) {
+      if (url && url.includes(`stripe-example://alipay`)) {
         navigation.navigate('AlipayPaymentScreen');
       } else if (url && url.includes(`stripe-example://ideal-payment`)) {
         navigation.navigate('IdealPayment');
