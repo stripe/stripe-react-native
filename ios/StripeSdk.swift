@@ -4,6 +4,7 @@ import Stripe
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
     var merchantIdentifier: String? = nil
+    var urlScheme: String? = nil
     
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
@@ -28,11 +29,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let appInfo = params["appInfo"] as! NSDictionary
         let stripeAccountId = params["stripeAccountId"] as? String
         let params3ds = params["threeDSecureParams"] as? NSDictionary
+        let urlScheme = params["urlScheme"] as? String
         let merchantIdentifier = params["merchantIdentifier"] as? String
         
         if let params3ds = params3ds {
             configure3dSecure(params3ds)
         }
+
+        self.urlScheme = urlScheme
+
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
         
@@ -71,9 +76,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             reject(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType", nil)
             return
         }
-        
-        let returnUrl = params["returnUrl"] as? String
-        
+                
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params)
         
@@ -90,8 +93,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
 
-        if let returnUrl = returnUrl {
-            setupIntentParams.returnURL = returnUrl
+        if let urlScheme = urlScheme {
+            setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme, paymentType: paymentMethodType)
         }
         
         let paymentHandler = STPPaymentHandler.shared()
@@ -350,9 +353,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             reject(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType", nil)
             return
         }
-        
-        let returnUrl = params["returnUrl"] as? String
-        
+                
         let cvc = params["cvc"] as? String
         
         if paymentMethodId != nil {
@@ -381,8 +382,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             paymentIntentParams.paymentMethodParams = paymentMethodParams
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             
-            if let returnUrl = returnUrl {
-                paymentIntentParams.returnURL = returnUrl
+            if let urlScheme = urlScheme {
+                paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme, paymentType: paymentMethodType)
             }
         }
         

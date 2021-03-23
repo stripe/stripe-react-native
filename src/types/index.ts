@@ -107,4 +107,5 @@ export interface InitialiseParams {
   stripeAccountId?: string;
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   merchantIdentifier?: string;
+  urlScheme?: string;
 }

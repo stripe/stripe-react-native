@@ -10,12 +10,10 @@ export default function HomeScreen() {
 
   const handleDeppLink = useCallback(
     (url: string | null) => {
-      if (url && url.includes(`stripe-example://alipay`)) {
+      if (url && url.includes(`stripe-example://safepay`)) {
         navigation.navigate('AlipayPaymentScreen');
-      } else if (url && url.includes(`stripe-example://ideal-payment`)) {
+      } else if (url && url.includes(`stripe-example://stripe-redirect`)) {
         navigation.navigate('IdealPayment');
-      } else if (url && url.includes(`stripe-example://ideal-setup-payment`)) {
-        navigation.navigate('IdealSetupFuturePaymentScreen');
       }
     },
     [navigation]

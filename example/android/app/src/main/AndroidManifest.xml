@@ -27,11 +27,9 @@
           <category android:name="android.intent.category.DEFAULT" />
           <category android:name="android.intent.category.BROWSABLE" />
           <data android:scheme="stripe-example"
-            android:host="alipay" />
+            android:host="safepay" />
           <data android:scheme="stripe-example"
             android:host="ideal-payment" />
-          <data android:scheme="stripe-example"
-            android:host="ideal-setup-payment" />
         </intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />

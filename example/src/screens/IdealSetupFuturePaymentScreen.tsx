@@ -41,7 +41,6 @@ export default function IdealSetupFuturePaymentScreen() {
       type: 'Ideal',
       billingDetails,
       bankName,
-      returnUrl: 'stripe-example://ideal-setup-payment',
     });
 
     if (error) {
