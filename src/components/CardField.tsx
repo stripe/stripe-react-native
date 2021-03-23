@@ -18,6 +18,8 @@ const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
+  cardStyle?: CardFieldInput.Styles;
+  placeholder?: CardFieldInput.Placeholders;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }
@@ -45,7 +47,14 @@ type NativeCardDetails = CardFieldInput.Details & {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function CardField({ onCardChange, onFocus, ...props }: Props) {
+export function CardField({
+  onCardChange,
+  onFocus,
+  cardStyle,
+  placeholder,
+  postalCodeEnabled,
+  ...props
+}: Props) {
   const onCardChangeHandler = useCallback(
     (event: NativeSyntheticEvent<NativeCardDetails>) => {
       const card = event.nativeEvent;
@@ -86,6 +95,24 @@ export function CardField({ onCardChange, onFocus, ...props }: Props) {
     <CardFieldNative
       onCardChange={onCardChangeHandler}
       onFocusChange={onFocusHandler}
+      postalCodeEnabled={postalCodeEnabled ?? true}
+      cardStyle={{
+        backgroundColor: cardStyle?.backgroundColor,
+        borderColor: cardStyle?.borderColor,
+        borderWidth: cardStyle?.borderWidth,
+        cornerRadius: cardStyle?.cornerRadius,
+        cursorColor: cardStyle?.cursorColor,
+        fontSize: cardStyle?.fontSize,
+        placeholderColor: cardStyle?.placeholderColor,
+        textColor: cardStyle?.textColor,
+        textErrorColor: cardStyle?.textErrorColor,
+      }}
+      placeholder={{
+        number: placeholder?.number,
+        expiration: placeholder?.expiration,
+        cvc: placeholder?.cvc,
+        postalCode: placeholder?.postalCode,
+      }}
       {...props}
     />
   );

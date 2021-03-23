@@ -249,9 +249,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     try {
       val confirmParams = factory.create(paymentMethodType)
-      // TODO: remove once added to SDK
-      val onlineParams = MandateDataParams.Type.Online("178.43.159.11", "userAgent")
-      confirmParams.mandateData = MandateDataParams(onlineParams)
       stripe.confirmSetupIntent(currentActivity!!, confirmParams)
     } catch (error: SetupPaymentMethodException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
