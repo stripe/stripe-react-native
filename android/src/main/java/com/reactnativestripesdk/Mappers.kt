@@ -282,7 +282,7 @@ private fun getStringOrNull(map: ReadableMap?, key: String): String? {
   return if (map?.hasKey(key) == true) map.getString(key) else null
 }
 
-private fun getIntOrNull(map: ReadableMap?, key: String): Int? {
+fun getIntOrNull(map: ReadableMap?, key: String): Int? {
   return if (map?.hasKey(key) == true) map.getInt(key) else null
 }
 
