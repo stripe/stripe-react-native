@@ -379,6 +379,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             
             if let returnUrl = returnUrl {
                 paymentIntentParams.returnURL = returnUrl

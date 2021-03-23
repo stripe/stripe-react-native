@@ -47,7 +47,7 @@ export default function AlipayPaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Alipay',
       billingDetails,
-      returnUrl: 'safepal',
+      returnUrl: 'stripe-example://alipay',
       webview: true,
     });
 
