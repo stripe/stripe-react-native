@@ -13,11 +13,11 @@ import com.stripe.android.view.CardInputWidget
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
   private val cardDetails: MutableMap<String, Any> = mutableMapOf("number" to "", "cvc" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
-  private var mEventDispatcher: EventDispatcher
+  private var mEventDispatcher: EventDispatcher?
 
   init {
     mCardWidget = CardInputWidget(context);
-    mEventDispatcher = context.getNativeModule(UIManagerModule::class.java).eventDispatcher
+    mEventDispatcher = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
 
     addView(mCardWidget)
     setListeners()
@@ -47,7 +47,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
   fun onCardChanged() {
     val complete = mCardWidget.cardParams != null
-    mEventDispatcher.dispatchEvent(
+    mEventDispatcher?.dispatchEvent(
       CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, complete))
   }
 
@@ -58,7 +58,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun onCvcComplete() {}
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
-          mEventDispatcher.dispatchEvent(
+          mEventDispatcher?.dispatchEvent(
             CardFocusEvent(id, focusField.name))
         }
       }
