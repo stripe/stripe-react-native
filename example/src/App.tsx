@@ -35,7 +35,6 @@ export default function App() {
     <StripeProvider
       publishableKey={publishableKey}
       merchantIdentifier="merchant.com.stripe.react.native"
-      urlScheme="stripe-example"
       threeDSecureParams={{
         backgroundColor: colors.white,
         timeout: 5,

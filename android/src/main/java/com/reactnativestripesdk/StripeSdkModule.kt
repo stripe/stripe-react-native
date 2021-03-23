@@ -16,8 +16,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
 
-  private var urlScheme: String? = null
-
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
       stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
@@ -110,9 +108,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val publishableKey = getValOr(params,"publishableKey") as String
     val appInfo = getMapOrNull(params,"appInfo") as ReadableMap
     val stripeAccountId = getValOr(params,"stripeAccountId", null)
-    val urlScheme = getValOr(params,"urlScheme")
-
-    this.urlScheme = urlScheme
 
     getMapOrNull(params,"threeDSecureParams")?.let {
       configure3dSecure(it)
@@ -180,7 +175,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params, urlScheme)
+    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params)
 
     try {
       val confirmParams = factory.create(paymentMethodType)
@@ -211,7 +206,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params, urlScheme)
+    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params)
 
     try {
       val confirmParams = factory.create(paymentMethodType)

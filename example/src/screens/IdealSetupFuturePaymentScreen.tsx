@@ -42,7 +42,7 @@ export default function IdealSetupFuturePaymentScreen() {
       type: 'Ideal',
       billingDetails,
       bankName,
-      returnUrlHost: 'ideal',
+      returnUrl: 'stripe-example://ideal-setup-payment',
     });
 
     if (error) {
