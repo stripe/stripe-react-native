@@ -91,6 +91,7 @@ export default function IdealPaymentScreen() {
 ## 4. Submit the payment to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
+Provide `returnUrl` which will be used to go back to your app when the customer finishes paying.
 
 ```tsx
 export default function IdealPaymentScreen() {
@@ -107,6 +108,7 @@ export default function IdealPaymentScreen() {
     type: 'Ideal',
     billingDetails,
     bankName,
+    returnUrl: 'stripe-example://ideal',
   });
 
   if (error) {
@@ -133,4 +135,36 @@ export default function IdealPaymentScreen() {
 }
 ```
 
-## 5. Test your integration
+## 5. Handle deep linking
+
+At first you need to register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking).
+
+Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
+
+```tsx
+const handleDeppLink = (url) => {
+  if (url && url.includes(`stripe-example://ideal`)) {
+    // redirect to proper
+  } else if (url && url.includes(`stripe-example://alipay`)) {
+    // redirect to proper
+  }
+};
+
+useEffect(() => {
+  const getUrlAsync = async () => {
+    const initialUrl = await Linking.getInitialURL();
+    handleDeppLink(initialUrl);
+  };
+
+  const urlCallback = (event) => {
+    handleDeppLink(event.url);
+  };
+
+  getUrlAsync();
+
+  Linking.addEventListener('url', urlCallback);
+  return () => Linking.removeEventListener('url', urlCallback);
+}, []);
+```
+
+## 6. Test your integration

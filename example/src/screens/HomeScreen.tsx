@@ -12,10 +12,10 @@ export default function HomeScreen() {
     (url: string | null) => {
       if (url && url.includes(`stripe-example://safepal`)) {
         navigation.navigate('AlipayPaymentScreen');
-      }
-
-      if (url && url.includes(`stripe-example://ideal`)) {
+      } else if (url && url.includes(`stripe-example://ideal-payment`)) {
         navigation.navigate('IdealPayment');
+      } else if (url && url.includes(`stripe-example://ideal-setup-payment`)) {
+        navigation.navigate('IdealSetupFuturePaymentScreen');
       }
     },
     [navigation]
