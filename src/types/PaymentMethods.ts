@@ -17,7 +17,7 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace CreatePaymentMethod {
+export declare namespace PaymentMethodCreateParams {
   export type Params = CardParams | IdealParams;
 
   export type BillingDetails = {

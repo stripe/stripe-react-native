@@ -1,5 +1,5 @@
 import {
-  CreatePaymentMethod,
+  PaymentMethodCreateParams,
   ApplePayError,
   ApplePay,
   CreatePaymentMethodResult,
@@ -36,8 +36,8 @@ export function useStripe() {
 
   const createPaymentMethod = useCallback(
     async (
-      data: CreatePaymentMethod.Params,
-      options: CreatePaymentMethod.Options = {}
+      data: PaymentMethodCreateParams.Params,
+      options: PaymentMethodCreateParams.Options = {}
     ): Promise<CreatePaymentMethodResult> => {
       try {
         const paymentMethod = await NativeStripeSdk.createPaymentMethod(
@@ -77,8 +77,8 @@ export function useStripe() {
   const confirmPaymentMethod = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: CreatePaymentMethod.Params,
-      options: CreatePaymentMethod.Options = {}
+      data: PaymentMethodCreateParams.Params,
+      options: PaymentMethodCreateParams.Options = {}
     ): Promise<ConfirmPaymentMethodResult> => {
       try {
         const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(

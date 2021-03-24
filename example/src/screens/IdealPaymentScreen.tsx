@@ -1,4 +1,4 @@
-import type { CreatePaymentMethod } from 'stripe-react-native';
+import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
@@ -41,7 +41,7 @@ export default function IdealPaymentScreen() {
       Alert.alert(`Error`, clientSecretError);
     }
 
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       name: 'John Doe',
     };
 
@@ -55,10 +55,6 @@ export default function IdealPaymentScreen() {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-      );
       console.log('Success from promise', paymentIntent);
     }
   };

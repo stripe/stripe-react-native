@@ -82,7 +82,7 @@ The details of the accepted mandate are generated when setting up a payment meth
 ## 5. Submit the payment method details to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-Ideal opens the return URL with `stripe-redirect/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://stripe-redirect/`.
+Ideal opens the return URL with `safepay/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://safepay/`.
 
 ```tsx
 export default function IdealPaymentScreen() {
@@ -91,7 +91,7 @@ export default function IdealPaymentScreen() {
   const [email, setEmai] = useState();
 
   const handlePayPress = async () => {
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       name,
       email,
     };
@@ -137,12 +137,12 @@ At first you need to register url schemes for [iOS](https://developer.apple.com/
 
 Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
 
+When you configured deep linking you can follow this example code to handle particular URL's. It should be placed in your App root component.
+
 ```tsx
-const handleDeepLink = (url) => {
-  if (url && url.includes(`stripe-example://ideal`)) {
-    // redirect to proper
-  } else if (url && url.includes(`stripe-example://alipay`)) {
-    // redirect to proper
+const handleDeppLink = () => {
+  if (url && url.includes(`safepay`)) {
+    navigation.navigate('PaymentResultScreen');
   }
 };
 

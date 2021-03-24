@@ -5,15 +5,17 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 
+export type RootStackParamList = {
+  PaymentResultScreen: { url: string };
+};
+
 export default function HomeScreen() {
   const navigation = useNavigation();
 
   const handleDeepLink = useCallback(
     (url: string | null) => {
-      if (url && url.includes(`stripe-example://safepay`)) {
-        navigation.navigate('AlipayPaymentScreen');
-      } else if (url && url.includes(`stripe-example://stripe-redirect`)) {
-        navigation.navigate('IdealPayment');
+      if (url && url.includes('safepay')) {
+        navigation.navigate('PaymentResultScreen', { url });
       }
     },
     [navigation]
