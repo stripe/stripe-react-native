@@ -15,6 +15,7 @@ import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
+import PaymentResultScreen from './screens/PaymentResultScreen';
 
 const Stack = createStackNavigator();
 
@@ -100,6 +101,10 @@ export default function App() {
           <Stack.Screen
             name="IdealSetupFuturePaymentScreen"
             component={IdealSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="PaymentResultScreen"
+            component={PaymentResultScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -81,5 +81,5 @@ export function StripeProvider({
     urlScheme,
   ]);
 
-  return <>{children}</>;
+  return <>{publishableKey ? children : null}</>;
 }

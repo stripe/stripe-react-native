@@ -91,7 +91,7 @@ export default function IdealPaymentScreen() {
 ## 4. Submit the payment to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-Ideal opens the return URL with `stripe-redirect/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://stripe-redirect/`.
+Ideal opens the return URL with `safepay/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://safepay/`.
 
 ```tsx
 export default function IdealPaymentScreen() {
@@ -99,7 +99,7 @@ export default function IdealPaymentScreen() {
   const [bankName, setBankName] = useState();
 
   const handlePayPress = async () => {
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       name,
     };
   };
@@ -138,12 +138,12 @@ export default function IdealPaymentScreen() {
 
 At first you need to register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking).
 
-Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
+When you configured deep linking you can follow this example code to handle particular URL's. It should be placed in your App root component.
 
 ```tsx
-const handleDeepLink = (url) => {
-  if (url && url.includes(`stripe-example://stripe-redirect`)) {
-    // redirect to proper screen
+const handleDeppLink = () => {
+  if (url && url.includes(`safepay`)) {
+    navigation.navigate('PaymentResultScreen');
   }
 };
 
