@@ -308,10 +308,12 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.3.1)
+  - Stripe (21.3.1):
+    - Stripe/Stripe3DS2 (= 21.3.1)
   - stripe-react-native (0.1.0):
     - React
     - Stripe (~> 21.3.1)
+  - Stripe/Stripe3DS2 (21.3.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -499,8 +501,8 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 006b519b33936ebd9508bd2ade2311fdbe8bbd4c
-  stripe-react-native: 3f955303302327d867fdca17a8e97324b620c96a
+  Stripe: 326a2160ac541eeffafb8b1aa0c9712e3ce8cec7
+  stripe-react-native: 829434055e580c405af5b08a6daa0a8c46f3dddb
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
