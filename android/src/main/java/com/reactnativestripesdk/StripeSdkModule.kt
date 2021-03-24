@@ -123,6 +123,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val url = getValOr(appInfo, "url", "")
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
+    PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
   }
 
   @ReactMethod
