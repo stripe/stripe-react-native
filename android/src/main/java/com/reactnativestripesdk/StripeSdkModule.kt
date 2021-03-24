@@ -171,6 +171,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   private fun payWithAlipay(paymentIntentClientSecret: String) {
+    val confirmParams = ConfirmPaymentIntentParams.createAlipay(paymentIntentClientSecret)
+
     stripe.confirmAlipayPayment(
       ConfirmPaymentIntentParams.createAlipay(paymentIntentClientSecret),
       authenticator = object : AlipayAuthenticator {
@@ -192,7 +194,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
 
         override fun onError(e: Exception) {
-          confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), e.localizedMessage)
+          // Error using the Alipay SDK, let's use a webview instead
+          stripe.confirmPayment(currentActivity!!, confirmParams)
         }
       }
     )
