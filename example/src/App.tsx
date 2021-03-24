@@ -15,6 +15,7 @@ import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
+import PaymentResultScreen from './screens/PaymentResultScreen';
 
 const Stack = createStackNavigator();
 
@@ -104,6 +105,10 @@ export default function App() {
           <Stack.Screen
             name="AlipayPaymentScreen"
             component={AlipayPaymentScreen}
+          />
+          <Stack.Screen
+            name="PaymentResultScreen"
+            component={PaymentResultScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

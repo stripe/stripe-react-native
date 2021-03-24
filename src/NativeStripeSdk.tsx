@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import type {
-  CreatePaymentMethod,
+  PaymentMethodCreateParams,
   ThreeDSecureConfigurationParams,
   PaymentIntent,
   PaymentMethod,
@@ -13,14 +13,14 @@ import type {
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): void;
   createPaymentMethod(
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: PaymentMethodCreateParams.Params,
+    options: PaymentMethodCreateParams.Options
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: PaymentMethodCreateParams.Params,
+    options: PaymentMethodCreateParams.Options
   ): Promise<PaymentIntent>;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;

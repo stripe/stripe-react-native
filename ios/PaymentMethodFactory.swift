@@ -87,7 +87,7 @@ extension PaymentMethodError: LocalizedError {
         case .cardPaymentMissingParams:
             return NSLocalizedString("You must provide card details", comment: "Create payment error")
         case .idealPaymentMissingParams:
-            return NSLocalizedString("You must provide bank contact", comment: "Create payment error")
+            return NSLocalizedString("You must provide bank name", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
         }
