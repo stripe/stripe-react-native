@@ -30,6 +30,16 @@ function App() {
 }
 ```
 
+## 2. Integrate the Alipay SDK
+
+To do in-app payments using Alipay’s app-to-app redirect flow, you must first integrate the [Alipay SDK](https://global.alipay.com/docs/ac/app/download). If you do not wish to integrate the Alipay SDK, the Stripe SDK will use a WebView to redirect customers to Alipay. Integrating the Alipay SDK will provide a more seamless experience for your users, but will increase the overall download size of your app. See [Using a WebView](#optional-using-a-webview) for details.
+
+add following line to your app settings.gradle file:
+
+```tsx
+include ':alipaySdk-${version}'
+```
+
 ## 2. Create a PaymentIntent
 
 ## 3. Redirect to the Alipay Wallet
@@ -38,10 +48,12 @@ At first you need to register url schemes for [iOS](https://developer.apple.com/
 
 Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
 
+When you configured deep linking you can follow this example code to handle particular URL's. It should be placed in your App root component.
+
 ```tsx
-const handleDeppLink = (url) => {
-  if (url && url.includes(`stripe-example://safepay`)) {
-    // redirect to proper screen
+const handleDeppLink = () => {
+  if (url && url.includes(`safepay`)) {
+    navigation.navigate('PaymentResultScreen');
   }
 };
 
@@ -67,7 +79,6 @@ Alipay opens the return URL with safepay/ as the host. For example, if your cust
 ## 4. Confirm the payment
 
 When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This method will either open up the Alipay app, or display a webview if the Alipay app is not installed.
-You can also force displaying webview by passing `webview` param set to `true`.
 
 ```tsx
 export default function PaymentScreen() {
@@ -78,7 +89,6 @@ export default function PaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Alipay',
       bankName,
-      webview: true, // force displaying webview
     });
 
     if (error) {
@@ -145,6 +155,19 @@ export default function PaymentScreen() {
     </Screen>
   );
 }
+```
+
+## (Optional) Using a WebView
+
+If you do not wish to integrate the Alipay SDK, the Stripe SDK can redirect the customer to an Alipay WebView when you call the confirmPayment method. The Alipay website will open the Alipay app if it’s installed, or otherwise allow the customer to complete the payment through the web.
+
+```tsx
+const { error, paymentIntent } = await confirmPayment(clientSecret, {
+  type: 'Ideal',
+  billingDetails,
+  bankName,
+  webview: true, // force to display a webview
+});
 ```
 
 ## 5. Handle post-payment events
