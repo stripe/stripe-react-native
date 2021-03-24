@@ -35,15 +35,8 @@ internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMeth
   }
 }
 
-internal fun getReturnUrl(paymentMethodType: PaymentMethod.Type): String {
-  return when (paymentMethodType) {
-    PaymentMethod.Type.Alipay -> "safepay"
-    else -> "stripe-redirect"
-  }
-}
-
 internal fun mapToReturnURL(urlScheme: String, paymentMethodType: PaymentMethod.Type): String {
-  return urlScheme + "://" + getReturnUrl(paymentMethodType)
+  return urlScheme + "://safepay"
 }
 
 internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {

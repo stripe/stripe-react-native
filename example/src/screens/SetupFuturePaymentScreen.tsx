@@ -12,7 +12,7 @@ import { colors } from '../colors';
 import Screen from '../components/Screen';
 import type {
   CardFieldInput,
-  CreatePaymentMethod,
+  PaymentMethodCreateParams,
   PaymentIntent,
   SetupIntent,
 } from 'stripe-react-native';
@@ -75,7 +75,7 @@ export default function SetupFuturePaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(email);
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',
@@ -159,7 +159,7 @@ export default function SetupFuturePaymentScreen() {
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
   // Otherwise collect new details and create new PaymentMethod.
   const handleRecoveryFlow = async () => {
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: email,
       phone: '+48888000888',
       addressCity: 'Houston',
