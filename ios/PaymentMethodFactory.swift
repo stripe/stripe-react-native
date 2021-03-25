@@ -18,6 +18,8 @@ class PaymentMethodFactory {
                 return try createIDEALPaymentMethodParams()
             case STPPaymentMethodType.card:
                 return try createCardPaymentMethodParams()
+            case STPPaymentMethodType.FPX:
+                return try createFPXPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -44,12 +46,23 @@ class PaymentMethodFactory {
         let card = Mappers.mapToPaymentMethodCardParams(params: cardParams)
         return STPPaymentMethodParams(card: card, billingDetails: billingDetailsParams, metadata: nil)
     }
+    
+    private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
+        guard let bankName = self.params?["bankName"] as? String else {
+            throw PaymentMethodError.idealPaymentMissingParams
+        }
+        let params = STPPaymentMethodFPXParams()
+        params.rawBankString = bankName
+
+        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
+    }
 }
 
 enum PaymentMethodError: Error {
     case cardPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
+    case fpxPaymentMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -58,6 +71,8 @@ extension PaymentMethodError: LocalizedError {
         case .cardPaymentMissingParams:
             return NSLocalizedString("You must provide card details", comment: "Create payment error")
         case .idealPaymentMissingParams:
+            return NSLocalizedString("You must provide bank name", comment: "Create payment error")
+        case .fpxPaymentMissingParams:
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")

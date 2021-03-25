@@ -80,6 +80,15 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="FPX Payment"
+          onPress={() => {
+            navigation.navigate('FPXPaymentScreen');
+          }}
+        />
+      </View>
+
       {Platform.OS === 'ios' && (
         <View style={styles.buttonContainer}>
           <Button

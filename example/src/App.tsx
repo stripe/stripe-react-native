@@ -16,6 +16,7 @@ import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
+import FPXPaymentScreen from './screens/FPXPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -106,6 +107,7 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
+          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>
