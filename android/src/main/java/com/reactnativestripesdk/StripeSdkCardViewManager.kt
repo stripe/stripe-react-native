@@ -12,7 +12,7 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
-      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocus"),
+      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
       CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
   }
 
