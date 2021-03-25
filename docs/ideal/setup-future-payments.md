@@ -82,7 +82,8 @@ The details of the accepted mandate are generated when setting up a payment meth
 ## 5. Submit the payment method details to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-Ideal opens the return URL with `safepay/` as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://safepay/`.
+
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
 export default function IdealPaymentScreen() {
@@ -142,7 +143,7 @@ When you configured deep linking you can follow this example code to handle part
 ```tsx
 const handleDeppLink = () => {
   if (url && url.includes(`safepay`)) {
-    navigation.navigate('PaymentResultScreen');
+    navigation.navigate('PaymentResultScreen', { url });
   }
 };
 
@@ -161,6 +162,17 @@ useEffect(() => {
   Linking.addEventListener('url', urlCallback);
   return () => Linking.removeEventListener('url', urlCallback);
 }, []);
+```
+
+### Setup return URL
+
+The iOS SDK can present a webview in your app to complete the payment. When authentication is finished, the webview can automatically dismiss itself instead of having your customer close it. To enable this behavior, configure a custom URL scheme or universal link and set up your app delegate to forward the URL to the SDK.
+
+```swift
+func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+    StripeAPI.handleURLCallback(with: url) // <-- add this line
+    return RCTLinkingManager.application(application, open: url, options: options)
+}
 ```
 
 ## 7. Charge the SEPA Direct Debit PaymentMethod later
