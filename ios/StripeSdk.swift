@@ -81,7 +81,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -285,7 +285,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -366,10 +366,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
+            var paymentMethodOptions: STPConfirmPaymentMethodOptions?
             let factory = PaymentMethodFactory.init(params: params)
             
             do {
-                paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+                paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
                 reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
             }
@@ -378,6 +380,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate  {
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             
             if let urlScheme = urlScheme {
                 paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme, paymentType: paymentMethodType)
