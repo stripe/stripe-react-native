@@ -85,7 +85,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -289,7 +289,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let factory = PaymentMethodFactory.init(params: params)
         
         do {
-            paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil)
         }
@@ -352,9 +352,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-        if let setupFutureUsage = params["setupFutureUsage"] as? String {
-            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
-        }
         
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
@@ -366,26 +363,17 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             let bankName = params["bankName"] as? String
             if (bankName != "test_offline_bank") {
                 payWithFPX(paymentIntentClientSecret)
-                return
             }
-        }
-
-        let cvc = params["cvc"] as? String
-        
-        if paymentMethodId != nil {
+        } else if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
-        } else if type == STPPaymentMethodType.card && cvc != nil {
-            let cardOptions = STPConfirmCardOptions()
-            cardOptions.cvc = cvc;
-            let paymentMethodOptions = STPConfirmPaymentMethodOptions()
-            paymentMethodOptions.cardOptions = cardOptions
-            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
+            var paymentMethodOptions: STPConfirmPaymentMethodOptions?
             let factory = PaymentMethodFactory.init(params: params)
             
             do {
-                paymentMethodParams = try factory.create(paymentMethodType: paymentMethodType)
+                paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
                 reject(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil)
             }
@@ -394,6 +382,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
+            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             
             if let urlScheme = urlScheme {
                 paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
@@ -403,7 +392,54 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
     }
+
+    @objc(retrievePaymentIntent:resolver:rejecter:)
+    func retrievePaymentIntent(
+        clientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
+            guard error == nil else {
+                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil)
+                return
+            }
+            
+            if let paymentIntent = paymentIntent {
+                resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
+            } else {
+                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent", nil)
+            }
+        }
+    }
+            
+    func payWithFPX(_ paymentIntentClientSecret: String) {
+        let vc = STPBankSelectionViewController.init(bankMethod: .FPX)
+
+        vc.delegate = self
+        
+        DispatchQueue.main.async {
+            let share = UIApplication.shared.delegate
+            share?.window??.rootViewController?.present(vc, animated: true)
+        }
+    }
     
+    func bankSelectionViewController(_ bankViewController: STPBankSelectionViewController, didCreatePaymentMethodParams paymentMethodParams: STPPaymentMethodParams) {
+        guard let clientSecret = confirmPaymentClientSecret else {
+            confirmPaymentRejecter?(ConfirmPaymentErrorType.Failed.rawValue, "Missing paymentIntentClientSecret", nil)
+            return
+        }
+        let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
+        paymentIntentParams.paymentMethodParams = paymentMethodParams
+        
+        if let urlScheme = urlScheme {
+            paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
+        }
+        let paymentHandler = STPPaymentHandler.shared()
+        bankViewController.dismiss(animated: true)
+        paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
+    }
+        
     func onCompleteConfirmPayment(status: STPPaymentHandlerActionStatus, paymentIntent: STPPaymentIntent?, error: NSError?) {
         self.confirmPaymentClientSecret = nil
         switch (status) {
@@ -424,54 +460,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             break
         }
     }
-        
-    func payWithFPX(_ paymentIntentClientSecret: String) {
-        let vc = STPBankSelectionViewController.init(bankMethod: .FPX)
-
-        vc.delegate = self
-        
-        DispatchQueue.main.async {
-            let share = UIApplication.shared.delegate
-            share?.window??.rootViewController?.present(vc, animated: true)
-        }
-    }
-    
-    func bankSelectionViewController(_ bankViewController: STPBankSelectionViewController, didCreatePaymentMethodParams paymentMethodParams: STPPaymentMethodParams) {
-        guard let clientSecret = confirmPaymentClientSecret else {
-            confirmPaymentRejecter?(ConfirmPaymentErrorType.Unknown.rawValue, "Missing paymentIntentClientSecret", nil)
-            return
-        }
-        let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
-        paymentIntentParams.paymentMethodParams = paymentMethodParams
-        
-        if let urlScheme = urlScheme {
-            paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
-        }
-        let paymentHandler = STPPaymentHandler.shared()
-        bankViewController.dismiss(animated: true)
-        paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
-    }
-    
-    @objc(retrievePaymentIntent:resolver:rejecter:)
-    func retrievePaymentIntent(
-        clientSecret: String,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
-        STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
-            guard error == nil else {
-                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil)
-                return
-            }
-            
-            if let paymentIntent = paymentIntent {
-                resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
-            } else {
-                reject(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent", nil)
-            }
-        }
-    }
-    
 }
 
 extension StripeSdk: STPAuthenticationContext {
