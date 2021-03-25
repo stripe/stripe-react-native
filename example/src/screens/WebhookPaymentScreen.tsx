@@ -1,4 +1,7 @@
-import type { CardFieldInput, CreatePaymentMethod } from 'stripe-react-native';
+import type {
+  CardFieldInput,
+  PaymentMethodCreateParams,
+} from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CardField, useConfirmPayment } from 'stripe-react-native';
@@ -42,7 +45,7 @@ export default function WebhookPaymentScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
       addressCity: 'Houston',
