@@ -179,12 +179,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = ConfirmPaymentMethodFactory(paymentIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme)
 
     try {
-      val confirmParams = factory.create(paymentMethodType)
+      val confirmParams = factory.createConfirmParams(paymentMethodType)
       stripe.confirmPayment(currentActivity!!, confirmParams)
-    } catch (error: ConfirmPaymentMethodException) {
+    } catch (error: PaymentMethodCreateParamsException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
     }
   }
@@ -210,12 +210,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = SetupPaymentMethodFactory(setupIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme)
 
     try {
-      val confirmParams = factory.create(paymentMethodType)
+      val confirmParams = factory.createSetupParams(paymentMethodType)
       stripe.confirmSetupIntent(currentActivity!!, confirmParams)
-    } catch (error: SetupPaymentMethodException) {
+    } catch (error: PaymentMethodCreateParamsException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
     }
   }
