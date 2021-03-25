@@ -11,7 +11,7 @@ class PaymentMethodFactory {
         self.params = params
     }
     
-    func create(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
+    func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
         do {
             switch paymentMethodType {
             case STPPaymentMethodType.iDEAL:
@@ -20,6 +20,23 @@ class PaymentMethodFactory {
                 return try createCardPaymentMethodParams()
             case STPPaymentMethodType.FPX:
                 return try createFPXPaymentMethodParams()
+            default:
+                throw PaymentMethodError.paymentNotSupported
+            }
+        } catch {
+            throw error
+        }
+    }
+    
+    func createOptions(paymentMethodType: STPPaymentMethodType) throws -> STPConfirmPaymentMethodOptions? {
+        do {
+            switch paymentMethodType {
+            case STPPaymentMethodType.iDEAL:
+                return nil
+            case STPPaymentMethodType.card:
+                return try createCardPaymentMethodOptions()
+            case STPPaymentMethodType.FPX:
+                return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -47,6 +64,21 @@ class PaymentMethodFactory {
         return STPPaymentMethodParams(card: card, billingDetails: billingDetailsParams, metadata: nil)
     }
     
+    
+    private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
+        let cvc = params?["cvc"] as? String
+        guard cvc != nil else {
+            return nil
+        }
+
+        let cardOptions = STPConfirmCardOptions()
+        cardOptions.cvc = cvc;
+        let paymentMethodOptions = STPConfirmPaymentMethodOptions()
+        paymentMethodOptions.cardOptions = cardOptions
+        
+        return paymentMethodOptions
+    }
+    
     private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
         guard let bankName = self.params?["bankName"] as? String else {
             throw PaymentMethodError.idealPaymentMissingParams
@@ -63,6 +95,7 @@ enum PaymentMethodError: Error {
     case idealPaymentMissingParams
     case paymentNotSupported
     case fpxPaymentMissingParams
+    case cardPaymentOptionsMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -76,6 +109,9 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
+        case .cardPaymentOptionsMissingParams:
+            return NSLocalizedString("You must provide CVC number", comment: "Create payment error")
         }
+       
     }
 }

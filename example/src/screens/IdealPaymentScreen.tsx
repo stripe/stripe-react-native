@@ -39,6 +39,7 @@ export default function IdealPaymentScreen() {
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
+      return;
     }
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
