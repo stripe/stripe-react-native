@@ -35,8 +35,8 @@ internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMeth
   }
 }
 
-internal fun mapToReturnURL(urlScheme: String, paymentMethodType: PaymentMethod.Type): String {
-  return urlScheme + "://safepay"
+internal fun mapToReturnURL(urlScheme: String): String {
+  return "$urlScheme://safepay"
 }
 
 internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {

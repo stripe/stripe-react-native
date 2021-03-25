@@ -165,4 +165,15 @@ useEffect(() => {
 }, []);
 ```
 
+### Setup return URL
+
+The iOS SDK can present a webview in your app to complete the payment. When authentication is finished, the webview can automatically dismiss itself instead of having your customer close it. To enable this behavior, configure a custom URL scheme or universal link and set up your app delegate to forward the URL to the SDK.
+
+```swift
+func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+    StripeAPI.handleURLCallback(with: url) // <-- add this line
+    return RCTLinkingManager.application(application, open: url, options: options)
+}
+```
+
 ## 6. Test your integration
