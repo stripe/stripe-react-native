@@ -81,7 +81,7 @@ function PaymentScreen() {
     }
 
     // 1. Gather customer billing information (ex. email)
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
       addressCity: 'Houston',

@@ -59,10 +59,12 @@ app.post(
       items,
       currency,
       request_three_d_secure,
+      payment_method_types = [],
     }: {
       email: string;
       items: Order;
       currency: string;
+      payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
     } = req.body;
     const customer = await stripe.customers.create({ email });
@@ -76,16 +78,22 @@ app.post(
           request_three_d_secure: request_three_d_secure || 'automatic',
         },
       },
+      payment_method_types: payment_method_types,
     };
 
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-      params
-    );
-
-    // Send publishable key and PaymentIntent client_secret to client.
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
+    try {
+      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+        params
+      );
+      // Send publishable key and PaymentIntent client_secret to client.
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    } catch (error) {
+      res.send({
+        error: error,
+      });
+    }
   }
 );
 
@@ -248,10 +256,14 @@ app.post(
 );
 
 app.post('/create-setup-intent', async (req, res) => {
-  const { email }: { email: string } = req.body;
+  const {
+    email,
+    payment_method_types = [],
+  }: { email: string; payment_method_types: string[] } = req.body;
   const customer = await stripe.customers.create({ email });
   const setupIntent = await stripe.setupIntents.create({
     customer: customer.id,
+    payment_method_types,
   });
 
   // Send publishable key and SetupIntent details to client

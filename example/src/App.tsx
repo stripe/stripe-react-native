@@ -13,6 +13,9 @@ import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar, StyleSheet } from 'react-native';
 import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
+import IdealPaymentScreen from './screens/IdealPaymentScreen';
+import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
+import PaymentResultScreen from './screens/PaymentResultScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +36,7 @@ export default function App() {
     <StripeProvider
       publishableKey={publishableKey}
       merchantIdentifier="merchant.com.stripe.react.native"
+      urlScheme="stripe-example"
       threeDSecureParams={{
         backgroundColor: colors.white,
         timeout: 5,
@@ -92,6 +96,15 @@ export default function App() {
           <Stack.Screen
             name="CVCReCollectionScreen"
             component={CVCReCollectionScreen}
+          />
+          <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
+          <Stack.Screen
+            name="IdealSetupFuturePaymentScreen"
+            component={IdealSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="PaymentResultScreen"
+            component={PaymentResultScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

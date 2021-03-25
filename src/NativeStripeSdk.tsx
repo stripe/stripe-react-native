@@ -1,31 +1,26 @@
 import { NativeModules } from 'react-native';
 import type {
-  AppInfo,
-  CreatePaymentMethod,
+  PaymentMethodCreateParams,
   ThreeDSecureConfigurationParams,
   PaymentIntent,
   PaymentMethod,
   ApplePay,
   SetupIntent,
+  ConfirmSetupIntent,
+  InitialiseParams,
 } from './types';
 
 type NativeStripeSdkType = {
-  initialise(
-    publishableKey: string,
-    appInfo: AppInfo,
-    stripeAccountId?: string,
-    threeDSecureParams?: ThreeDSecureConfigurationParams,
-    merchantIdentifier?: string
-  ): void;
+  initialise(params: InitialiseParams): void;
   createPaymentMethod(
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: PaymentMethodCreateParams.Params,
+    options: PaymentMethodCreateParams.Options
   ): Promise<PaymentMethod>;
   handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: PaymentMethodCreateParams.Params,
+    options: PaymentMethodCreateParams.Options
   ): Promise<PaymentIntent>;
   configure3dSecure(params: ThreeDSecureConfigurationParams): void;
   isApplePaySupported(): Promise<boolean>;
@@ -36,8 +31,8 @@ type NativeStripeSdkType = {
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: CreatePaymentMethod.Params,
-    options: CreatePaymentMethod.Options
+    data: ConfirmSetupIntent.Params,
+    options: ConfirmSetupIntent.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
