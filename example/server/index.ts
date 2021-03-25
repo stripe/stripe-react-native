@@ -91,7 +91,7 @@ app.post(
       });
     } catch (error) {
       res.send({
-        error: error,
+        error: error.raw.message,
       });
     }
   }

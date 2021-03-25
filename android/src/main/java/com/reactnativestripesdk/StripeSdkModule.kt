@@ -6,6 +6,8 @@ import android.os.AsyncTask
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
+import androidx.appcompat.app.AppCompatActivity
+import com.stripe.android.view.AddPaymentMethodActivityStarter
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -17,6 +19,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var confirmPromise: Promise? = null
   private var handleCardActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
+
+  private var confirmPaymentClientSecret: String? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
@@ -78,6 +82,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
         }
       })
+
+      val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+      if (result != null) {
+        onFpxPaymentMethodResult(result)
+      }
     }
   }
 
@@ -124,6 +133,33 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+  }
+
+  private fun payWithFpx() {
+    AddPaymentMethodActivityStarter(currentActivity as AppCompatActivity)
+      .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
+        .setPaymentMethodType(PaymentMethod.Type.Fpx)
+        .build()
+      )
+  }
+
+  private fun onFpxPaymentMethodResult(result: AddPaymentMethodActivityStarter.Result) {
+    when (result) {
+      is AddPaymentMethodActivityStarter.Result.Success -> {
+        stripe.confirmPayment(currentActivity!!,
+          ConfirmPaymentIntentParams.createWithPaymentMethodId(
+            result.paymentMethod.id!!,
+            confirmPaymentClientSecret!!
+          ));
+        confirmPaymentClientSecret = null
+      }
+      is AddPaymentMethodActivityStarter.Result.Failure -> {
+        confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), result.exception.localizedMessage)
+      }
+      is AddPaymentMethodActivityStarter.Result.Canceled -> {
+        confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled")
+      }
+    }
   }
 
   @ReactMethod
@@ -173,9 +209,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
+    confirmPaymentClientSecret = paymentIntentClientSecret
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
+      return
+    }
+
+    if (paymentMethodType == PaymentMethod.Type.Fpx) {
+      payWithFpx()
       return
     }
 
