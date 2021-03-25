@@ -30,16 +30,6 @@ function App() {
 }
 ```
 
-## 2. Integrate the Alipay SDK
-
-To do in-app payments using Alipay’s app-to-app redirect flow, you must first integrate the [Alipay SDK](https://global.alipay.com/docs/ac/app/download). If you do not wish to integrate the Alipay SDK, the Stripe SDK will use a WebView to redirect customers to Alipay. Integrating the Alipay SDK will provide a more seamless experience for your users, but will increase the overall download size of your app. See [Using a WebView](#optional-using-a-webview) for details.
-
-add following line to your app settings.gradle file:
-
-```tsx
-include ':alipaySdk-${version}'
-```
-
 ## 2. Create a PaymentIntent
 
 ## 3. Redirect to the Alipay Wallet
@@ -74,11 +64,11 @@ useEffect(() => {
 }, []);
 ```
 
-Alipay opens the return URL with safepay/ as the host. For example, if your custom URL scheme is `myapp`, your return URL must be `myapp://safepay/`.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Alipay, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ## 4. Confirm the payment
 
-When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This method will either open up the Alipay app, or display a webview if the Alipay app is not installed.
+When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This presents a webview where the customer can complete the payment.
 
 ```tsx
 export default function PaymentScreen() {
@@ -114,60 +104,6 @@ export default function PaymentScreen() {
     </Screen>
   );
 }
-```
-
-## 4. Submit the payment to Stripe
-
-Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-
-```tsx
-export default function PaymentScreen() {
-  const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
-
-  const handlePayPress = async () => {
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Ideal',
-      billingDetails,
-      bankName,
-    });
-
-    if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-      );
-    }
-  };
-
-  return (
-    <Screen>
-      <TextInput
-        placeholder="Name"
-        onChange={(value) => setName(value.nativeEvent.text)}
-      />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
-      />
-    </Screen>
-  );
-}
-```
-
-## (Optional) Using a WebView
-
-If you do not wish to integrate the Alipay SDK, the Stripe SDK can redirect the customer to an Alipay WebView when you call the confirmPayment method. The Alipay website will open the Alipay app if it’s installed, or otherwise allow the customer to complete the payment through the web.
-
-```tsx
-const { error, paymentIntent } = await confirmPayment(clientSecret, {
-  type: 'Ideal',
-  billingDetails,
-  bankName,
-  webview: true, // force to display a webview
-});
 ```
 
 ## 5. Handle post-payment events

@@ -6,7 +6,6 @@ import android.os.AsyncTask
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
-import com.alipay.sdk.app.PayTask
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   override fun getName(): String {
@@ -171,50 +170,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
-  private fun payWithAlipay(paymentIntentClientSecret: String) {
-    val confirmParams = ConfirmPaymentIntentParams.createAlipay(paymentIntentClientSecret)
-
-    stripe.confirmAlipayPayment(
-      ConfirmPaymentIntentParams.createAlipay(paymentIntentClientSecret),
-      authenticator = object : AlipayAuthenticator {
-        override fun onAuthenticationRequest(data: String): Map<String, String> {
-          return PayTask(currentActivity).payV2(data, true)
-        }
-      },
-      callback = object : ApiResultCallback<PaymentIntentResult> {
-        override fun onSuccess(result: PaymentIntentResult) {
-          val paymentIntent = result.intent
-          when (paymentIntent.status) {
-            StripeIntent.Status.Succeeded -> {
-              confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-            }
-            else -> {
-              confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), "Unhandled error")
-            }
-          }
-        }
-
-        override fun onError(e: Exception) {
-          // Error using the Alipay SDK, let's use a webview instead
-          stripe.confirmPayment(currentActivity!!, confirmParams)
-        }
-      }
-    )
-  }
-
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
-      return
-    }
-
-    val alipayWebViewMode = getBooleanOrFalse(params, "webview")
-
-    if (paymentMethodType == PaymentMethod.Type.Alipay && !alipayWebViewMode) {
-      payWithAlipay(paymentIntentClientSecret)
       return
     }
 
