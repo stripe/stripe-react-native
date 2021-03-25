@@ -1,4 +1,3 @@
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
@@ -7,10 +6,9 @@ import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function IdealPaymentScreen() {
+export default function AlipayPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
-  const [bankName, setBankName] = useState('');
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -20,10 +18,9 @@ export default function IdealPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'eur',
+        currency: 'usd',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
-        payment_method_types: ['ideal'],
+        payment_method_types: ['alipay'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -42,25 +39,17 @@ export default function IdealPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      name: 'John Doe',
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Ideal',
-      billingDetails,
-      bankName,
+      type: 'Alipay',
     });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
       Alert.alert(
         'Success',
         `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
-      console.log('Success from promise', paymentIntent);
     }
   };
 
@@ -70,11 +59,6 @@ export default function IdealPaymentScreen() {
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text.toLowerCase())}
         style={styles.input}
       />
       <Button
