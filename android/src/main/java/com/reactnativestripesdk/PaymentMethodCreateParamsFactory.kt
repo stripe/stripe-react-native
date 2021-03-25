@@ -13,7 +13,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardPaymentConfirmParams()
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
-        PaymentMethod.Type.Alipay -> createAlipayPaymentMethodParams()
+        PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -124,8 +124,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .create(paymentMethodParams, clientSecret)
   }
 
-  @Throws(ConfirmPaymentMethodException::class)
-  private fun createAlipayPaymentMethodParams(): ConfirmPaymentIntentParams {
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAlipayPaymentConfirmParams(): ConfirmPaymentIntentParams {
     return ConfirmPaymentIntentParams.createAlipay(clientSecret)
   }
 }
