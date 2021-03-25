@@ -2,7 +2,7 @@ import PassKit
 import Stripe
 
 @objc(StripeSdk)
-class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate {
+class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     var merchantIdentifier: String? = nil
     var urlScheme: String? = nil
 
@@ -364,6 +364,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if (bankName != "test_offline_bank") {
                 payWithFPX(paymentIntentClientSecret)
             }
+            return
         } else if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
@@ -412,6 +413,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
+    
+    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        confirmPaymentRejecter?(ConfirmPaymentErrorType.Canceled.rawValue, "FPX Payment has been canceled", nil)
+    }
             
     func payWithFPX(_ paymentIntentClientSecret: String) {
         let vc = STPBankSelectionViewController.init(bankMethod: .FPX)
@@ -419,6 +424,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         vc.delegate = self
         
         DispatchQueue.main.async {
+            vc.presentationController?.delegate = self
+
             let share = UIApplication.shared.delegate
             share?.window??.rootViewController?.present(vc, animated: true)
         }
