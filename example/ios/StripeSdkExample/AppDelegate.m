@@ -11,6 +11,7 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 #import <React/RCTLinkingManager.h>
+@import Stripe;
 
 #if DEBUG
 #import <FlipperKit/FlipperClient.h>
@@ -65,6 +66,7 @@ static void InitializeFlipper(UIApplication *application) {
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
+  [StripeAPI handleStripeURLCallbackWithURL:url];
   return [RCTLinkingManager application:application openURL:url options:options];
 }
 
