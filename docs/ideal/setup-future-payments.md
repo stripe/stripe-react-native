@@ -134,44 +134,46 @@ export default function IdealPaymentScreen() {
 
 ## 6. Handle deep linking
 
-At first you need to register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking).
+To handle deep linking for bank redirects and wallets, register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking). For Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
 
-Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
-
-When you configured deep linking you can follow this example code to handle particular URL's. It should be placed in your App root component.
+If you're not using Expo, follow the React Native Linking module [docs](https://reactnative.dev/docs/linking) to configure and handle deep linking. Once configured, you can specify a callback to handle the URLs.
 
 ```tsx
-const handleDeppLink = () => {
-  if (url && url.includes(`safepay`)) {
-    navigation.navigate('PaymentResultScreen', { url });
-  }
-};
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
 
-useEffect(() => {
-  const getUrlAsync = async () => {
-    const initialUrl = await Linking.getInitialURL();
-    handleDeepLink(initialUrl);
+import { Linking } from 'react-native';
+// For Expo use this import instead:
+// import * as Linking from 'expo-linking';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
+
+  const handleDeepLink = async () => {
+    if (url && url.includes(`safepay`)) {
+      await handleURLCallback(url);
+      navigation.navigate('PaymentResultScreen', { url });
+    }
   };
 
-  const urlCallback = (event) => {
-    handleDeepLink(event.url);
-  };
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeepLink(initialUrl);
+    };
+    getUrlAsync();
 
-  getUrlAsync();
+    const urlCallback = (event) => {
+      handleDeepLink(event.url);
+    };
 
-  Linking.addEventListener('url', urlCallback);
-  return () => Linking.removeEventListener('url', urlCallback);
-}, []);
-```
+    Linking.addEventListener('url', urlCallback);
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, []);
 
-### Setup return URL
-
-The iOS SDK can present a webview in your app to complete the payment. When authentication is finished, the webview can automatically dismiss itself instead of having your customer close it. To enable this behavior, configure a custom URL scheme or universal link and set up your app delegate to forward the URL to the SDK.
-
-```swift
-func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-    StripeAPI.handleURLCallback(with: url) // <-- add this line
-    return RCTLinkingManager.application(application, open: url, options: options)
+  return <Screen>{/* ... */}</Screen>;
 }
 ```
 

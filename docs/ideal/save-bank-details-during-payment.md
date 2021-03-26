@@ -120,4 +120,49 @@ export default function IdealPaymentScreen() {
 }
 ```
 
-## 5. Charge the SEPA Direct Debit PaymentMethod later
+## 5. Handle deep linking
+
+To handle deep linking for bank redirects and wallets, register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking). For Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
+
+If you're not using Expo, follow the React Native Linking module [docs](https://reactnative.dev/docs/linking) to configure and handle deep linking. Once configured, you can specify a callback to handle the URLs.
+
+```tsx
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
+
+import { Linking } from 'react-native';
+// For Expo use this import instead:
+// import * as Linking from 'expo-linking';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
+
+  const handleDeepLink = async () => {
+    if (url && url.includes(`safepay`)) {
+      await handleURLCallback(url);
+      navigation.navigate('PaymentResultScreen', { url });
+    }
+  };
+
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeepLink(initialUrl);
+    };
+    getUrlAsync();
+
+    const urlCallback = (event) => {
+      handleDeepLink(event.url);
+    };
+
+    Linking.addEventListener('url', urlCallback);
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, []);
+
+  return <Screen>{/* ... */}</Screen>;
+}
+```
+
+## 6. Charge the SEPA Direct Debit PaymentMethod later
