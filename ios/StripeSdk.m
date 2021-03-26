@@ -28,6 +28,11 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
+                  handleURLCallback:(NSString *)url
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
                   confirmApplePayPayment:(NSString *)clientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
