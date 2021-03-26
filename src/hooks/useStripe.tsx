@@ -231,6 +231,13 @@ export function useStripe() {
     }
   }, []);
 
+  const handleURLCallback = useCallback(async (url: string): Promise<
+    boolean
+  > => {
+    const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
+    return stripeHandled;
+  }, []);
+
   return {
     retrievePaymentIntent: retrievePaymentIntent,
     confirmPayment: confirmPaymentMethod,
@@ -242,5 +249,6 @@ export function useStripe() {
     confirmSetupIntent: confirmSetupIntent,
     createTokenForCVCUpdate: createTokenForCVCUpdate,
     updateApplePaySummaryItems: updateApplePaySummaryItems,
+    handleURLCallback: handleURLCallback,
   };
 }
