@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../NativeStripeSdk';
-import { isAndroid } from '../helpers';
+import { isAndroid, getExpoAttribution } from '../helpers';
 import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
 import pjson from '../../package.json';
+
+const EXPO_PARTNER_ID = 'pp_partner_JBN7LkABco2yUu';
+const EXPO_ATTRIBUTION = getExpoAttribution(pjson);
 
 /**
  *  Stripe Provider Component Props
@@ -18,9 +21,10 @@ export interface Props {
 }
 
 const appInfo: AppInfo = {
-  name: pjson.name,
+  name: pjson.name + EXPO_ATTRIBUTION,
   url: pjson.repository,
   version: pjson.version,
+  partnerId: EXPO_ATTRIBUTION ? EXPO_PARTNER_ID : undefined,
 };
 
 /**
