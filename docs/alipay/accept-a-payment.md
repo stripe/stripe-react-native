@@ -86,14 +86,15 @@ export default function HomeScreen() {
 When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This presents a webview where the customer can complete the payment.
 
 ```tsx
-export default function PaymentScreen() {
-  const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
+export default function AlipayPaymentScreen() {
+  const [email, setEmail] = useState('');
+  const { confirmPayment, loading } = useConfirmPayment();
 
   const handlePayPress = async () => {
+    const { clientSecret } = await fetchPaymentIntentClientSecret();
+
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Alipay',
-      bankName,
     });
 
     if (error) {
@@ -109,12 +110,15 @@ export default function PaymentScreen() {
   return (
     <Screen>
       <TextInput
-        placeholder="Name"
-        onChange={(value) => setName(value.nativeEvent.text)}
+        placeholder="E-mail"
+        keyboardType="email-address"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
       />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Pay"
+        loading={loading}
       />
     </Screen>
   );
