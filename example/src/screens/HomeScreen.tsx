@@ -1,5 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -11,14 +12,16 @@ export type RootStackParamList = {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
 
   const handleDeepLink = useCallback(
-    (url: string | null) => {
+    async (url: string | null) => {
       if (url && url.includes('safepay')) {
+        await handleURLCallback(url);
         navigation.navigate('PaymentResultScreen', { url });
       }
     },
-    [navigation]
+    [navigation, handleURLCallback]
   );
 
   useEffect(() => {
