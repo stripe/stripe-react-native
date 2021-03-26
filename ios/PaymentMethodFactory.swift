@@ -20,6 +20,8 @@ class PaymentMethodFactory {
                 return try createCardPaymentMethodParams()
             case STPPaymentMethodType.FPX:
                 return try createFPXPaymentMethodParams()
+            case STPPaymentMethodType.alipay:
+                return try createAlipayPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -37,6 +39,8 @@ class PaymentMethodFactory {
                 return try createCardPaymentMethodOptions()
             case STPPaymentMethodType.FPX:
                 return nil
+            case STPPaymentMethodType.alipay:
+                return try createAlipayPaymentMethodOptions()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -87,6 +91,16 @@ class PaymentMethodFactory {
         params.rawBankString = bankName
 
         return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
+        return STPPaymentMethodParams(alipay: STPPaymentMethodAlipayParams(), billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    private func createAlipayPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
+        let options = STPConfirmPaymentMethodOptions()
+        options.alipayOptions = STPConfirmAlipayOptions()
+        return options
     }
 }
 

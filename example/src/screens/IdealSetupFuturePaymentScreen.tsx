@@ -30,7 +30,6 @@ export default function IdealSetupFuturePaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    console.log('email', email);
     const clientSecret = await createSetupIntentOnBackend(email);
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
