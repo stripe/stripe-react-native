@@ -154,11 +154,16 @@ Temprary workaround for this issue is following these steps:
 
 ## Guides
 
-- [Accept a payment - classic](./docs/accept-a-payment.md)
+- [Accept a payment](https://stripe.com/docs/payments/accept-a-payment?platform=react-native)
+- [Card payments without bank authentication](https://stripe.com/docs/payments/without-card-authentication?platform=react-native)
+- [Save a card without bank authentication](https://stripe.com/docs/payments/save-card-without-authentication?platform=react-native)
+- [Upgrade to handle authentication](https://stripe.com/docs/payments/payment-intents/upgrade-to-handle-actions?platform=react-native)
+- [Set up future payments](https://stripe.com/docs/payments/save-and-reuse?platform=react-native)
+- [Save a card during payment](https://stripe.com/docs/payments/save-during-payment?platform=react-native)
+- [Finalize payments on the server](https://stripe.com/docs/payments/accept-a-payment-synchronously?platform=react-native)
+- [Apple Pay](https://stripe.com/docs/apple-pay?platform=react-native)
+- [3D secure](https://stripe.com/docs/payments/3d-secure#when-to-use-3d-secure)
 - [Accept a payment - integration builder](./docs/accept-a-payment-integration.md)
-- [3D secure](./docs/3d-secure.md)
-- [Apple Pay](./docs/apple-pay.md)
-- [Set up future payments](./docs/set-up-future-payments.md)
 
 ## API reference
 
