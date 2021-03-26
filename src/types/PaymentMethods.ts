@@ -18,7 +18,7 @@ export interface PaymentMethod {
 }
 
 export declare namespace PaymentMethodCreateParams {
-  export type Params = CardParams | IdealParams | FPXParams;
+  export type Params = CardParams | IdealParams | FPXParams | AlipayParams;
 
   export type BillingDetails = {
     email?: string;
@@ -58,6 +58,10 @@ export declare namespace PaymentMethodCreateParams {
   export interface FPXParams extends BaseParams {
     type: 'Fpx';
     bankName?: string;
+  }
+
+  export interface AlipayParams {
+    type: 'Alipay';
   }
 }
 

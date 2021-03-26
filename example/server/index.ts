@@ -85,6 +85,7 @@ app.post(
       const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
         params
       );
+      console.log('paymentIntent', paymentIntent);
       // Send publishable key and PaymentIntent client_secret to client.
       res.send({
         clientSecret: paymentIntent.client_secret,
