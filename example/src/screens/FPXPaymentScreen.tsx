@@ -1,4 +1,3 @@
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
@@ -40,13 +39,8 @@ export default function FPXPaymentScreen() {
       Alert.alert(`Error`, clientSecretError);
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      name: 'John Doe',
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Fpx',
-      billingDetails,
     });
 
     if (error) {

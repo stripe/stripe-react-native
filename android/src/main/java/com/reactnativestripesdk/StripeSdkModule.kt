@@ -149,9 +149,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         stripe.confirmPayment(currentActivity!!,
           ConfirmPaymentIntentParams.createWithPaymentMethodId(
             result.paymentMethod.id!!,
-            confirmPaymentClientSecret!!
+            confirmPaymentClientSecret!!,
+            returnUrl = mapToReturnURL(urlScheme)
           ));
-        confirmPaymentClientSecret = null
+        this.confirmPaymentClientSecret = null
       }
       is AddPaymentMethodActivityStarter.Result.Failure -> {
         confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), result.exception.localizedMessage)
