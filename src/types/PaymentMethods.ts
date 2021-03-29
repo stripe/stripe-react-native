@@ -57,6 +57,7 @@ export declare namespace PaymentMethodCreateParams {
 
   export interface FPXParams {
     type: 'Fpx';
+    useTestBank?: boolean;
   }
 
   export interface AlipayParams {
