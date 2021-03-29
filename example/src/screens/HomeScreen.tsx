@@ -69,7 +69,7 @@ export default function HomeScreen() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Ideal payment using webhooks"
+          title="iDEAL payment"
           onPress={() => {
             navigation.navigate('IdealPayment');
           }}
@@ -88,6 +88,24 @@ export default function HomeScreen() {
           title="Alipay Payment"
           onPress={() => {
             navigation.navigate('AlipayPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Bancontact Payment"
+          onPress={() => {
+            navigation.navigate('BancontactPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future Bancontact Payment"
+          onPress={() => {
+            navigation.navigate('BancontactSetupFuturePaymentScreen');
           }}
         />
       </View>
