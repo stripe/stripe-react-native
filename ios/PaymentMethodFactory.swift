@@ -20,6 +20,8 @@ class PaymentMethodFactory {
                 return try createCardPaymentMethodParams()
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodParams()
+            case STPPaymentMethodType.bancontact:
+                return try createBancontactPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -36,6 +38,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.iDEAL:
                 return nil
             case STPPaymentMethodType.card:
+                return nil
+            case STPPaymentMethodType.bancontact:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
@@ -73,12 +77,23 @@ class PaymentMethodFactory {
         options.alipayOptions = STPConfirmAlipayOptions()
         return options
     }
+    
+    private func createBancontactPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodBancontactParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.bancontactPaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
+    }
 }
 
 enum PaymentMethodError: Error {
     case cardPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
+    case bancontactPaymentMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -88,6 +103,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide card details", comment: "Create payment error")
         case .idealPaymentMissingParams:
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
+        case .bancontactPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
         }

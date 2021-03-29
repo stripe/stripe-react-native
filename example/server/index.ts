@@ -85,7 +85,6 @@ app.post(
       const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
         params
       );
-      console.log('paymentIntent', paymentIntent);
       // Send publishable key and PaymentIntent client_secret to client.
       res.send({
         clientSecret: paymentIntent.client_secret,
@@ -348,9 +347,6 @@ app.post('/charge-card-off-session', async (req, res) => {
     customer = await stripe.customers.list({
       email: req.body.email,
     });
-
-    console.log('req.body.email', req.body.email);
-    console.log('customer', customer);
 
     // List the customer's payment methods to find one to charge
     const paymentMethods = await stripe.paymentMethods.list({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PaymentIntent, useStripe } from 'stripe-react-native';
+import { useStripe } from 'stripe-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Text } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export default function PaymentResultScreen({ route }: Props) {
-  const [paymentIntentResult, setPaymentIntent] = useState<PaymentIntent>();
+  const [result, setResult] = useState<string>();
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
@@ -24,7 +24,7 @@ export default function PaymentResultScreen({ route }: Props) {
       if (error) {
         Alert.alert(`Error code: ${error.code}`, error.message);
       } else if (paymentIntent) {
-        setPaymentIntent(paymentIntent);
+        setResult(JSON.stringify(paymentIntent, null, 2));
         Alert.alert('Payment intent status:', paymentIntent.status);
       }
     },
@@ -39,12 +39,14 @@ export default function PaymentResultScreen({ route }: Props) {
 
     if (paymentIntentClientSecret?.[1]) {
       retrievePaymentIntentObject(paymentIntentClientSecret[1]);
+    } else {
+      setResult(url);
     }
   }, [retrievePaymentIntentObject, route]);
 
   return (
     <Screen>
-      <Text>{JSON.stringify(paymentIntentResult, null, 2)}</Text>
+      <Text>{result}</Text>
     </Screen>
   );
 }

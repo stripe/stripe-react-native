@@ -16,7 +16,7 @@ export interface SetupIntent {
 }
 
 export declare namespace ConfirmSetupIntent {
-  export type Params = CardParams | IdealParams;
+  export type Params = CardParams | IdealParams | BancontactParams;
 
   export interface Options {}
 
@@ -32,6 +32,10 @@ export declare namespace ConfirmSetupIntent {
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
     bankName: string;
+  }
+
+  export interface BancontactParams extends Required<BaseParams> {
+    type: 'Bancontact';
   }
 }
 
