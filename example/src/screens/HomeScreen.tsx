@@ -91,6 +91,22 @@ export default function HomeScreen() {
           }}
         />
       </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Sofort Payment"
+          onPress={() => {
+            navigation.navigate('SofortPaymentScreen');
+          }}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future Sofort Payment"
+          onPress={() => {
+            navigation.navigate('SofortSetupFuturePaymentScreen');
+          }}
+        />
+      </View>
 
       {Platform.OS === 'ios' && (
         <View style={styles.buttonContainer}>

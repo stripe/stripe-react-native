@@ -60,6 +60,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             StripeIntent.Status.RequiresConfirmation -> {
               handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
             }
+            StripeIntent.Status.Processing -> {
+              confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+            }
             StripeIntent.Status.Canceled -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
               confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)

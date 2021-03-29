@@ -15,8 +15,8 @@ export interface SetupIntent {
   description: Nullable<string>;
 }
 
-export declare namespace ConfirmSetupIntent {
-  export type Params = CardParams | IdealParams;
+export namespace ConfirmSetupIntent {
+  export type Params = CardParams | IdealParams | SofortParams;
 
   export interface Options {}
 
@@ -33,9 +33,14 @@ export declare namespace ConfirmSetupIntent {
     type: 'Ideal';
     bankName: string;
   }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
 }
 
-export declare namespace SetupIntents {
+export namespace SetupIntents {
   export type FutureUsage =
     | 'Unknown'
     | 'None'

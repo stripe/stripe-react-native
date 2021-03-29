@@ -17,8 +17,8 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace PaymentMethodCreateParams {
-  export type Params = CardParams | IdealParams | AlipayParams;
+export namespace PaymentMethodCreateParams {
+  export type Params = CardParams | IdealParams | AlipayParams | SofortParams;
 
   export type BillingDetails = {
     email?: string;
@@ -57,6 +57,11 @@ export declare namespace PaymentMethodCreateParams {
 
   export interface AlipayParams {
     type: 'Alipay';
+  }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
   }
 }
 
