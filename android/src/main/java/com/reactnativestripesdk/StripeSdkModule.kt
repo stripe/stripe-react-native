@@ -3,10 +3,13 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
+import android.os.Parcelable
+import android.util.Log
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
 import androidx.appcompat.app.AppCompatActivity
+import com.stripe.android.view.ActivityStarter
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -83,9 +86,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
       })
 
-      val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-      if (result != null) {
-        onFpxPaymentMethodResult(result)
+      try {
+        val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+        if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+          onFpxPaymentMethodResult(result)
+        }
+      } catch (e: java.lang.Exception) {
+        Log.d("Error", e.localizedMessage)
       }
     }
   }
