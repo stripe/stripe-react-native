@@ -16,7 +16,11 @@ export interface SetupIntent {
 }
 
 export namespace ConfirmSetupIntent {
-  export type Params = CardParams | IdealParams | SofortParams;
+  export type Params =
+    | CardParams
+    | IdealParams
+    | BancontactParams
+    | SofortParams;
 
   export interface Options {}
 
@@ -37,6 +41,9 @@ export namespace ConfirmSetupIntent {
   export interface SofortParams extends BaseParams {
     type: 'Sofort';
     country: string;
+  }
+  export interface BancontactParams extends Required<BaseParams> {
+    type: 'Bancontact';
   }
 }
 

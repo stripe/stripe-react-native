@@ -194,7 +194,7 @@ export function useStripe() {
     async (
       paymentIntentClientSecret: string,
       data: ConfirmSetupIntent.Params,
-      options: ConfirmSetupIntent.Options
+      options: ConfirmSetupIntent.Options = {}
     ): Promise<ConfirmSetupIntentResult> => {
       try {
         const setupIntent = await NativeStripeSdk.confirmSetupIntent(
