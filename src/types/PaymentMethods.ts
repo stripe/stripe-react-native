@@ -18,7 +18,12 @@ export interface PaymentMethod {
 }
 
 export namespace PaymentMethodCreateParams {
-  export type Params = CardParams | IdealParams | AlipayParams | SofortParams;
+  export type Params =
+    | CardParams
+    | IdealParams
+    | AlipayParams
+    | BancontactParams
+    | SofortParams;
 
   export type BillingDetails = {
     email?: string;
@@ -62,6 +67,9 @@ export namespace PaymentMethodCreateParams {
   export interface SofortParams extends BaseParams {
     type: 'Sofort';
     country: string;
+  }
+  export interface BancontactParams extends Required<BaseParams> {
+    type: 'Bancontact';
   }
 }
 

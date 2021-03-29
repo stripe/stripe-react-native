@@ -14,6 +14,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Sofort -> createSofortPaymentConfirmParams()
+        PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -30,6 +31,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Card -> createCardPaymentSetupParams()
         PaymentMethod.Type.Ideal -> createIDEALPaymentSetupParams(paymentMethodType)
         PaymentMethod.Type.Sofort -> createSofortPaymentSetupParams()
+        PaymentMethod.Type.Bancontact -> createBancontactPaymentSetupParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -134,8 +136,12 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSofortPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val country = getValOr(params, "country", null)?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide bank account country")
+    }
+
     val params = PaymentMethodCreateParams.create(
-      PaymentMethodCreateParams.Sofort(country = "de"),
+      PaymentMethodCreateParams.Sofort(country = country),
       billingDetailsParams
     )
 
@@ -170,6 +176,40 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       clientSecret = clientSecret,
       returnUrl = mapToReturnURL(urlScheme)
     )
+  }
+
+  private fun createBancontactPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val params = PaymentMethodCreateParams.createBancontact(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
+
+  private fun createBancontactPaymentSetupParams(): ConfirmSetupIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val params = PaymentMethodCreateParams.createBancontact(billingDetails)
+
+    return ConfirmSetupIntentParams
+      .create(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
   }
 }
 
