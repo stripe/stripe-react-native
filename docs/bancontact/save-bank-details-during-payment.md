@@ -83,7 +83,6 @@ export default function IdealPaymentScreen() {
   const { error, paymentIntent } = await confirmPayment(clientSecret, {
     type: 'Bancontact',
     billingDetails,
-    bankName,
   });
 
   if (error) {
@@ -110,6 +109,53 @@ export default function IdealPaymentScreen() {
 }
 ```
 
-## 6. Charge the SEPA Direct Debit PaymentMethod later
+## 6. Handle deep linking
 
-## 7. Test your integration
+To handle deep linking for bank redirect and wallet payment methods, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
+
+Otherwise, follow the React Native Linking module [docs](https://reactnative.dev/docs/linking) to configure deep linking. For more information on native URL schemes, refer to the native [Android](https://developer.android.com/training/app-links/deep-linking) and [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) docs.
+
+Once your scheme is configured, you can specify a callback to handle the URLs:
+
+```tsx
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
+
+import { Linking } from 'react-native';
+// For Expo use this import instead:
+// import * as Linking from 'expo-linking';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
+
+  const handleDeepLink = async () => {
+    if (url && url.includes(`safepay`)) {
+      await handleURLCallback(url);
+      navigation.navigate('PaymentResultScreen', { url });
+    }
+  };
+
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeepLink(initialUrl);
+    };
+    getUrlAsync();
+
+    const urlCallback = (event) => {
+      handleDeepLink(event.url);
+    };
+
+    Linking.addEventListener('url', urlCallback);
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, []);
+
+  return <Screen>{/* ... */}</Screen>;
+}
+```
+
+## 7. Charge the SEPA Direct Debit PaymentMethod later
+
+## 8. Test your integration
