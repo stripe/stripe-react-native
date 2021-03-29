@@ -360,12 +360,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         if (paymentMethodType == STPPaymentMethodType.FPX) {
-            let bankName = params["bankName"] as? String
-            if (bankName != "test_offline_bank") {
+            let useTestBank = params["useTestBank"] as? Bool
+            if (useTestBank == false || useTestBank == nil) {
                 payWithFPX(paymentIntentClientSecret)
+                return
             }
-            return
-        } else if paymentMethodId != nil {
+        }
+        if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
