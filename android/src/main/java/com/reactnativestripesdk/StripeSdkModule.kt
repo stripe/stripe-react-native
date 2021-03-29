@@ -159,7 +159,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             confirmPaymentClientSecret!!,
             returnUrl = mapToReturnURL(urlScheme)
           ));
-        this.confirmPaymentClientSecret = null
       }
       is AddPaymentMethodActivityStarter.Result.Failure -> {
         confirmPromise?.reject(ConfirmPaymentErrorType.Failed.toString(), result.exception.localizedMessage)
@@ -168,6 +167,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled")
       }
     }
+    this.confirmPaymentClientSecret = null
   }
 
   @ReactMethod
