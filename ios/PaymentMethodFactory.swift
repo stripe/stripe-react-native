@@ -42,6 +42,7 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.card:
                 return nil
             case STPPaymentMethodType.sofort:
+                return nil
             case STPPaymentMethodType.bancontact:
                 return nil
             default:
