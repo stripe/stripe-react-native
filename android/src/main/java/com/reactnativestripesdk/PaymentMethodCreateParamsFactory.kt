@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
-import java.lang.Exception
 
 class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
@@ -15,6 +14,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
+        PaymentMethod.Type.SepaDebit -> createSepaPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -42,7 +42,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALPaymentConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
-    val bankName = getValOr(params, "bankName", null) ?: throw PaymentMethodCreateParamsException("You must provide bankName")
+    val bankName = getValOr(params, "bankName", null)
+      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
 
     if (urlScheme == null) {
       throw PaymentMethodCreateParamsException("You must provide urlScheme")
@@ -96,7 +97,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALPaymentSetupParams(paymentMethodType: PaymentMethod.Type): ConfirmSetupIntentParams {
-    val bankName = getValOr(params, "bankName", null) ?: throw PaymentMethodCreateParamsException("You must provide bankName")
+    val bankName = getValOr(params, "bankName", null)
+      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
 
@@ -166,6 +168,30 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         returnUrl = mapToReturnURL(urlScheme)
       )
   }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createSepaPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    val iban = getValOr(params, "iban", null)?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide IBAN")
+    }
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val params = PaymentMethodCreateParams.create(
+      sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
+      billingDetails = billingDetails
+    )
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
 }
 
-class PaymentMethodCreateParamsException(message:String): Exception(message)
+class PaymentMethodCreateParamsException(message: String) : Exception(message)
