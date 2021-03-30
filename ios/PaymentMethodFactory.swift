@@ -22,6 +22,8 @@ class PaymentMethodFactory {
                 return try createAlipayPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.SEPADebit:
+                return try createSepaPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -40,6 +42,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.card:
                 return nil
             case STPPaymentMethodType.bancontact:
+                return nil
+            case STPPaymentMethodType.SEPADebit:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
@@ -87,6 +91,21 @@ class PaymentMethodFactory {
         
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
     }
+    
+    private func createSepaPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodSEPADebitParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        guard let iban = self.params?["iban"] as? String else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        
+        params.iban = iban
+        
+        return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: nil)
+    }
 }
 
 enum PaymentMethodError: Error {
@@ -94,6 +113,7 @@ enum PaymentMethodError: Error {
     case idealPaymentMissingParams
     case paymentNotSupported
     case bancontactPaymentMissingParams
+    case sepaPaymentMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -105,6 +125,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
         case .bancontactPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .sepaPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
         }
