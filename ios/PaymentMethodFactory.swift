@@ -22,6 +22,8 @@ class PaymentMethodFactory {
                 return try createAlipayPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.grabPay:
+                return createGrabpayPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -41,6 +43,8 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.bancontact:
                 return nil
+            case STPPaymentMethodType.grabPay:
+                return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -57,6 +61,12 @@ class PaymentMethodFactory {
         params.bankName = bankName
         
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    private func createGrabpayPaymentMethodParams() -> STPPaymentMethodParams {
+        let params = STPPaymentMethodGrabPayParams()
+
+        return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: nil)
     }
     
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
