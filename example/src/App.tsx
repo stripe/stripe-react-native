@@ -18,6 +18,7 @@ import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import EPSPaymentScreen from './screens/EPSPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -116,6 +117,8 @@ export default function App() {
             name="BancontactPaymentScreen"
             component={BancontactPaymentScreen}
           />
+          <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
+
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
