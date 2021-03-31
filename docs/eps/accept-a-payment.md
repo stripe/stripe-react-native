@@ -86,6 +86,8 @@ export default function GrabPayPaymentScreen() {
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Eps, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+
 ```tsx
 export default function EPSPaymentScreen() {
   const [name, setName] = useState();
@@ -118,6 +120,53 @@ export default function EPSPaymentScreen() {
       />
     </Screen>
   );
+}
+```
+
+## 5. Handle deep linking
+
+To handle deep linking for bank redirect and wallet payment methods, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
+
+Otherwise, follow the React Native Linking module [docs](https://reactnative.dev/docs/linking) to configure deep linking. For more information on native URL schemes, refer to the native [Android](https://developer.android.com/training/app-links/deep-linking) and [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) docs.
+
+Once your scheme is configured, you can specify a callback to handle the URLs:
+
+```tsx
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
+
+import { Linking } from 'react-native';
+// For Expo use this import instead:
+// import * as Linking from 'expo-linking';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
+
+  const handleDeepLink = async () => {
+    if (url && url.includes(`safepay`)) {
+      await handleURLCallback(url);
+      navigation.navigate('PaymentResultScreen', { url });
+    }
+  };
+
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeepLink(initialUrl);
+    };
+    getUrlAsync();
+
+    const urlCallback = (event) => {
+      handleDeepLink(event.url);
+    };
+
+    Linking.addEventListener('url', urlCallback);
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, []);
+
+  return <Screen>{/* ... */}</Screen>;
 }
 ```
 
