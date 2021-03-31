@@ -110,6 +110,15 @@ export default function HomeScreen() {
         />
       </View>
 
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Giropay Payment"
+          onPress={() => {
+            navigation.navigate('GiropayPaymentScreen');
+          }}
+        />
+      </View>
+
       {Platform.OS === 'ios' && (
         <View style={styles.buttonContainer}>
           <Button
