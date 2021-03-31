@@ -103,6 +103,15 @@ export default function HomeScreen() {
 
       <View style={styles.buttonContainer}>
         <Button
+          title="Oxxo Payment"
+          onPress={() => {
+            navigation.navigate('OxxoPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
           title="Setup Future Bancontact Payment"
           onPress={() => {
             navigation.navigate('BancontactSetupFuturePaymentScreen');

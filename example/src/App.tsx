@@ -18,6 +18,7 @@ import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -119,6 +120,10 @@ export default function App() {
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="OxxoPaymentScreen"
+            component={OxxoPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

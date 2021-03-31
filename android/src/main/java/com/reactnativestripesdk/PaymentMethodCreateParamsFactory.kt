@@ -15,6 +15,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
+        PaymentMethod.Type.Oxxo -> createOXXOPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -164,6 +165,24 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
         returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createOXXOPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val params = PaymentMethodCreateParams.createOxxo(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret
+//        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 }
