@@ -1,6 +1,6 @@
-# Use iDEAL to set up future SEPA Direct Debit payments
+# Use Bancontact to set up future SEPA Direct Debit payments
 
-Learn how to save bank details from an iDEAL payment and charge your customers later with SEPA Direct Debit.
+Learn how to save bank details from a Bancontact payment and charge your customers later with SEPA Direct Debit.
 
 ## 1. Setup Stripe
 
@@ -36,12 +36,11 @@ function App() {
 
 ## 4. Collect payment method details and mandate acknowledgement
 
-In your app, collect your customer’s full name, email address, and the [name of their bank](https://stripe.com/docs/api/payment_methods/object#payment_method_object-ideal-bank) (e.g., abn_amro).
+In your app, collect your customer’s full name and email address.
 
 ```tsx
 export default function IdealPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
 
   const handlePayPress = async () => {
@@ -57,10 +56,6 @@ export default function IdealPaymentScreen() {
       <TextInput
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
-      />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
       />
     </Screen>
   );
@@ -83,12 +78,11 @@ The details of the accepted mandate are generated when setting up a payment meth
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Bancontact, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
 export default function IdealPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
 
   const handlePayPress = async () => {
@@ -99,9 +93,8 @@ export default function IdealPaymentScreen() {
   };
 
   const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-    type: 'Ideal',
+    type: 'Bancontact',
     billingDetails,
-    bankName,
   });
 
   if (error) {
@@ -123,16 +116,12 @@ export default function IdealPaymentScreen() {
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
       />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
-      />
     </Screen>
   );
 }
 ```
 
-## 6. Handle deep linking
+## 5. Handle deep linking
 
 To handle deep linking for bank redirect and wallet payment methods, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
 

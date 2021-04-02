@@ -13,7 +13,10 @@ type Props = {
 };
 
 export default function PaymentResultScreen({ route }: Props) {
-  const [paymentIntentResult, setPaymentIntent] = useState<PaymentIntent>();
+  const [result, setResult] = useState<string>();
+  const [paymentIntentResult, setPaymentIntentResult] = useState<
+    PaymentIntent
+  >();
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
@@ -24,7 +27,8 @@ export default function PaymentResultScreen({ route }: Props) {
       if (error) {
         Alert.alert(`Error code: ${error.code}`, error.message);
       } else if (paymentIntent) {
-        setPaymentIntent(paymentIntent);
+        setPaymentIntentResult(paymentIntent);
+        setResult(JSON.stringify(paymentIntent, null, 2));
       }
     },
     [retrievePaymentIntent]
@@ -38,15 +42,20 @@ export default function PaymentResultScreen({ route }: Props) {
 
     if (paymentIntentClientSecret?.[1]) {
       retrievePaymentIntentObject(paymentIntentClientSecret[1]);
+    } else {
+      setResult(url);
     }
   }, [retrievePaymentIntentObject, route]);
 
   return (
     <Screen>
-      <Text style={styles.text}>
-        Payment intent status: {paymentIntentResult?.status}
-      </Text>
-      <Text>{JSON.stringify(paymentIntentResult, null, 2)}</Text>
+      {paymentIntentResult && (
+        <Text style={styles.text}>
+          Payment intent status: {paymentIntentResult?.status}
+        </Text>
+      )}
+
+      <Text>{result}</Text>
     </Screen>
   );
 }
