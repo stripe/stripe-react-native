@@ -24,6 +24,10 @@ class PaymentMethodFactory {
                 return try createBancontactPaymentMethodParams()
             case STPPaymentMethodType.EPS:
                 return try createEPSPaymentMethodParams()
+            case STPPaymentMethodType.grabPay:
+                return createGrabpayPaymentMethodParams()
+            case STPPaymentMethodType.przelewy24:
+                return try createP24PaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -45,6 +49,10 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.bancontact:
                 return nil
+            case STPPaymentMethodType.grabPay:
+                return nil
+            case STPPaymentMethodType.przelewy24:
+                return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -63,6 +71,12 @@ class PaymentMethodFactory {
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
     }
     
+    private func createGrabpayPaymentMethodParams() -> STPPaymentMethodParams {
+        let params = STPPaymentMethodGrabPayParams()
+
+        return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
         guard let cardParams = self.params?["cardDetails"] as? NSDictionary else {
             throw PaymentMethodError.cardPaymentMissingParams
@@ -74,6 +88,16 @@ class PaymentMethodFactory {
     
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
         return STPPaymentMethodParams(alipay: STPPaymentMethodAlipayParams(), billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    private func createP24PaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodPrzelewy24Params()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.p24PaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(przelewy24: params, billingDetails: billingDetails, metadata: nil)
     }
     
     private func createAlipayPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
@@ -109,6 +133,7 @@ enum PaymentMethodError: Error {
     case idealPaymentMissingParams
     case paymentNotSupported
     case bancontactPaymentMissingParams
+    case p24PaymentMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -118,6 +143,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide card details", comment: "Create payment error")
         case .idealPaymentMissingParams:
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
+        case .p24PaymentMissingParams:
+            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .bancontactPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .epsPaymentMissingParams:
