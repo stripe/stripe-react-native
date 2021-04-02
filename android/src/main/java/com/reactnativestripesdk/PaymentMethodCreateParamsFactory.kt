@@ -220,7 +220,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret
+        clientSecret = clientSecret,
         returnUrl = mapToReturnURL(urlScheme)
       )
   }
