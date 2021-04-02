@@ -15,6 +15,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
+        PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams()
         PaymentMethod.Type.P24 -> createP24PaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
@@ -149,6 +150,22 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAlipayPaymentConfirmParams(): ConfirmPaymentIntentParams {
     return ConfirmPaymentIntentParams.createAlipay(clientSecret)
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createGrabPayPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val billingDetails = billingDetailsParams ?: PaymentMethod.BillingDetails()
+    val params = PaymentMethodCreateParams.createGrabPay(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
