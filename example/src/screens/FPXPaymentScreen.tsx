@@ -37,6 +37,7 @@ export default function FPXPaymentScreen() {
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
+      return;
     }
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
