@@ -226,7 +226,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    if (paymentMethodType == PaymentMethod.Type.Fpx) {
+    val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
+
+    if (paymentMethodType == PaymentMethod.Type.Fpx && !testOfflineBank) {
       payWithFpx()
       return
     }
