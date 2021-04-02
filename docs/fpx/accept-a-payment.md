@@ -95,11 +95,11 @@ export default function PaymentScreen() {
 
 ## 5. Asynchronously fulfill the customer’s order
 
-**Testing an offline bank** You can test the offline_bank error by passing `useTestBank` flag to the `confirmPayment` method.
+**Testing an offline bank** You can test the offline_bank error by passing `testOfflineBank` flag to the `confirmPayment` method.
 
 ```tsx
 const { error, paymentIntent } = await confirmPayment(clientSecret, {
   type: 'Fpx',
-  useTestBank: true,
+  testOfflineBank: true,
 });
 ```
