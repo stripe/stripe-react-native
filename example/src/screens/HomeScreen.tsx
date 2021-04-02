@@ -112,6 +112,15 @@ export default function HomeScreen() {
 
       <View style={styles.buttonContainer}>
         <Button
+          title="GrabPay Payment"
+          onPress={() => {
+            navigation.navigate('GrabPayPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
           title="Przelewy24 Payment"
           onPress={() => {
             navigation.navigate('P24PaymentScreen');
