@@ -103,6 +103,15 @@ export default function HomeScreen() {
 
       <View style={styles.buttonContainer}>
         <Button
+          title="EPS Payment"
+          onPress={() => {
+            navigation.navigate('EPSPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
           title="Setup Future Bancontact Payment"
           onPress={() => {
             navigation.navigate('BancontactSetupFuturePaymentScreen');

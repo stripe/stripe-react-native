@@ -22,6 +22,8 @@ class PaymentMethodFactory {
                 return try createAlipayPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.EPS:
+                return try createEPSPaymentMethodParams()
             case STPPaymentMethodType.grabPay:
                 return createGrabpayPaymentMethodParams()
             case STPPaymentMethodType.przelewy24:
@@ -40,6 +42,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.iDEAL:
+                return nil
+            case STPPaymentMethodType.EPS:
                 return nil
             case STPPaymentMethodType.card:
                 return nil
@@ -111,10 +115,21 @@ class PaymentMethodFactory {
         
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
     }
+    
+    private func createEPSPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodEPSParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.epsPaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: nil)
+    }
 }
 
 enum PaymentMethodError: Error {
     case cardPaymentMissingParams
+    case epsPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
     case bancontactPaymentMissingParams
@@ -131,6 +146,8 @@ extension PaymentMethodError: LocalizedError {
         case .p24PaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .bancontactPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .epsPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
