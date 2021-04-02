@@ -21,8 +21,11 @@ export declare namespace PaymentMethodCreateParams {
   export type Params =
     | CardParams
     | IdealParams
+    | P24Params
     | AlipayParams
     | GiropayParams
+    | EpsParams
+    | GrabPayParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -64,12 +67,24 @@ export declare namespace PaymentMethodCreateParams {
     type: 'Alipay';
   }
 
+  export interface GrabPayParams extends BaseParams {
+    type: 'GrabPay';
+  }
+
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
   }
 
   export interface GiropayParams extends Required<BaseParams> {
     type: 'Giropay';
+  }
+
+  export interface EpsParams extends Required<BaseParams> {
+    type: 'Eps';
+  }
+
+  export interface P24Params extends Required<BaseParams> {
+    type: 'P24';
   }
 }
 
@@ -140,7 +155,7 @@ export declare namespace PaymentMethods {
     | 'AfterpayClearpay'
     | 'Card'
     | 'Alipay'
-    | 'Grabpay'
+    | 'GrabPay'
     | 'Ideal'
     | 'Fpx'
     | 'CardPresent'
