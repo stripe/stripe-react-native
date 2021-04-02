@@ -23,6 +23,7 @@ export declare namespace PaymentMethodCreateParams {
     | IdealParams
     | P24Params
     | AlipayParams
+    | EpsParams
     | GrabPayParams
     | BancontactParams;
 
@@ -71,6 +72,10 @@ export declare namespace PaymentMethodCreateParams {
 
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
+  }
+
+  export interface EpsParams extends Required<BaseParams> {
+    type: 'Eps';
   }
 
   export interface P24Params extends Required<BaseParams> {
