@@ -62,7 +62,8 @@
     "react-native": "0.62.2",
     "release-it": "^13.5.8",
     "typedoc": "^0.20.28",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "@babel/plugin-transform-typescript": "^7.13.0"
   },
   "peerDependencies": {
     "react": "*",
@@ -137,9 +138,24 @@
     "source": "src",
     "output": "lib",
     "targets": [
-      "commonjs",
-      "module",
-      "typescript"
+      [
+        "commonjs",
+        {
+          "configFile": true
+        }
+      ],
+      [
+        "module",
+        {
+          "configFile": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "configFile": true
+        }
+      ]
     ]
   }
 }
