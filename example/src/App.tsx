@@ -9,7 +9,7 @@ import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
@@ -85,6 +85,7 @@ export default function App() {
             },
           }}
         >
+          <View accessibilityLabel="test" />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen
             name="WebhookPayment"
