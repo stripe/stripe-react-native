@@ -1,4 +1,4 @@
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
+import { PaymentIntents, PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
@@ -55,7 +55,7 @@ export default function OxxoPaymentScreen() {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      if (paymentIntent.status === 'RequiresAction') {
+      if (paymentIntent.status === PaymentIntents.Status.RequiresAction) {
         Alert.alert('Success', `The OXXO voucher is created successfully.`);
       } else {
         Alert.alert('Payment intent status:', paymentIntent.status);
