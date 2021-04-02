@@ -48,7 +48,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           val paymentIntent = result.intent
 
           when (paymentIntent.status) {
-            StripeIntent.Status.Succeeded -> {
+            StripeIntent.Status.Succeeded,
+            StripeIntent.Status.Processing,
+            StripeIntent.Status.RequiresCapture -> {
               confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
               handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
             }
