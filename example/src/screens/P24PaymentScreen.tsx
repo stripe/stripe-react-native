@@ -7,7 +7,7 @@ import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function GrabPayPaymentScreen() {
+export default function P24PaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -19,10 +19,9 @@ export default function GrabPayPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'sgd',
+        currency: 'pln',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
-        payment_method_types: ['grabpay'],
+        payment_method_types: ['p24'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -42,11 +41,11 @@ export default function GrabPayPaymentScreen() {
     }
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      name: 'John Doe',
+      email,
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'GrabPay',
+      type: 'P24',
       billingDetails,
     });
 
@@ -69,6 +68,7 @@ export default function GrabPayPaymentScreen() {
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
+
       <Button
         variant="primary"
         onPress={handlePayPress}
