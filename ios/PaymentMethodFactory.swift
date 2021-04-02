@@ -85,7 +85,10 @@ class PaymentMethodFactory {
     
     private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodFPXParams()
-        params.rawBankString = "test_offline_bank"
+        
+        if self.params?["testOfflineBank"] as? Bool == true {
+            params.rawBankString = "test_offline_bank"
+        }
 
         return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
     }
