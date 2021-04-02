@@ -54,11 +54,10 @@ class PaymentMethodFactory {
     }
     
     private func createIDEALPaymentMethodParams() throws -> STPPaymentMethodParams {
-        guard let bankName = self.params?["bankName"] as? String else {
-            throw PaymentMethodError.idealPaymentMissingParams
-        }
         let params = STPPaymentMethodiDEALParams()
-        params.bankName = bankName
+        if let bankName = self.params?["bankName"] as? String {
+            params.bankName = bankName
+        }
         
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
     }
