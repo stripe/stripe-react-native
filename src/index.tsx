@@ -1,3 +1,5 @@
+import StripeSdk from './NativeStripeSdk';
+
 // hooks
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
@@ -14,5 +16,7 @@ export {
   ApplePayButton,
   Props as ApplePayButtonProps,
 } from './components/ApplePayButton';
+
+export const { initialise } = StripeSdk;
 
 export * from './types/index';
