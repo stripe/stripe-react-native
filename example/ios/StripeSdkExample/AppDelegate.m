@@ -66,7 +66,6 @@ static void InitializeFlipper(UIApplication *application) {
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
-  [StripeAPI handleStripeURLCallbackWithURL:url];
   return [RCTLinkingManager application:application openURL:url options:options];
 }
 

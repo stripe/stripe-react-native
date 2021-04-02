@@ -34,51 +34,67 @@ function App() {
 
 ## 3. Redirect to the Alipay Wallet
 
-At first you need to register url schemes for [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) and [Android](https://developer.android.com/training/app-links/deep-linking).
+The Stripe React Native SDK specifies `safepay/` as the return URL host for bank redirect and wallet payment methods. After the customer completes their payment with Alipay, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
-Next, Follow [Linking](https://reactnative.dev/docs/linking) module documentation to configure and enable handling deep links in your app.
+To handle deep linking, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
 
-When you configured deep linking you can follow this example code to handle particular URL's. It should be placed in your App root component.
+Otherwise, follow the React Native Linking module [docs](https://reactnative.dev/docs/linking) to configure deep linking. For more information on native URL schemes, refer to the native [Android](https://developer.android.com/training/app-links/deep-linking) and [iOS](https://developer.apple.com/documentation/xcode/allowing_apps_and_websites_to_link_to_your_content/defining_a_custom_url_scheme_for_your_app) docs.
+
+Once your scheme is configured, you can specify a callback to handle the URLs:
 
 ```tsx
-const handleDeppLink = () => {
-  if (url && url.includes(`safepay`)) {
-    navigation.navigate('PaymentResultScreen');
-  }
-};
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
 
-useEffect(() => {
-  const getUrlAsync = async () => {
-    const initialUrl = await Linking.getInitialURL();
-    handleDeppLink(initialUrl);
+import { Linking } from 'react-native';
+// For Expo use this import instead:
+// import * as Linking from 'expo-linking';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
+
+  const handleDeepLink = async () => {
+    if (url && url.includes(`safepay`)) {
+      await handleURLCallback(url);
+      navigation.navigate('PaymentResultScreen', { url });
+    }
   };
 
-  const urlCallback = (event) => {
-    handleDeppLink(event.url);
-  };
+  useEffect(() => {
+    const getUrlAsync = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      handleDeepLink(initialUrl);
+    };
+    getUrlAsync();
 
-  getUrlAsync();
+    const urlCallback = (event) => {
+      handleDeepLink(event.url);
+    };
 
-  Linking.addEventListener('url', urlCallback);
-  return () => Linking.removeEventListener('url', urlCallback);
-}, []);
+    Linking.addEventListener('url', urlCallback);
+    return () => Linking.removeEventListener('url', urlCallback);
+  }, []);
+
+  return <Screen>{/* ... */}</Screen>;
+}
 ```
-
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Alipay, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ## 4. Confirm the payment
 
 When the customer taps to pay with Alipay, confirm the PaymentIntent using `confirmPayment` method. This presents a webview where the customer can complete the payment.
 
 ```tsx
-export default function PaymentScreen() {
-  const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
+export default function AlipayPaymentScreen() {
+  const [email, setEmail] = useState('');
+  const { confirmPayment, loading } = useConfirmPayment();
 
   const handlePayPress = async () => {
+    const { clientSecret } = await fetchPaymentIntentClientSecret();
+
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Alipay',
-      bankName,
     });
 
     if (error) {
@@ -94,12 +110,15 @@ export default function PaymentScreen() {
   return (
     <Screen>
       <TextInput
-        placeholder="Name"
-        onChange={(value) => setName(value.nativeEvent.text)}
+        placeholder="E-mail"
+        keyboardType="email-address"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
       />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Pay"
+        loading={loading}
       />
     </Screen>
   );

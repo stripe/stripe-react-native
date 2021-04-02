@@ -1,6 +1,6 @@
-# Use iDEAL to set up future SEPA Direct Debit payments
+# Bancontact payments
 
-Learn how to save bank details from an iDEAL payment and charge your customers later with SEPA Direct Debit.
+Learn how to accept Bancontact, a common payment method in Belgium.
 
 ## 1. Setup Stripe
 
@@ -30,19 +30,44 @@ function App() {
 }
 ```
 
-## 2. Create or retrieve a Customer
+## 2. Create a PaymentIntent
 
-## 3. Create a SetupIntent
+### Server side
 
-## 4. Collect payment method details and mandate acknowledgement
+Stripe uses a PaymentIntent object to represent your intent to collect payment from a customer, tracking your charge attempts and payment state changes throughout the process.
 
-In your app, collect your customer’s full name, email address, and the [name of their bank](https://stripe.com/docs/api/payment_methods/object#payment_method_object-ideal-bank) (e.g., abn_amro).
+### Client side
+
+On the client, request a PaymentIntent from your server and store its client secret.
+
+```tsx
+const fetchPaymentIntentClientSecret = async () => {
+  const response = await fetch(`${API_URL}/create-payment-intent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      currency: 'eur',
+      items: [{ id: 'id' }],
+      payment_method_types: ['ideal'],
+    }),
+  });
+  const { clientSecret, error } = await response.json();
+
+  return { clientSecret, error };
+};
+```
+
+## 3. Collect payment method details
+
+In your app, collect your customer’s full name and email address.
 
 ```tsx
 export default function IdealPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
-  const [email, setEmai] = useState();
+  const [email, setEmail] = useState();
 
   const handlePayPress = async () => {
     // ...
@@ -51,45 +76,28 @@ export default function IdealPaymentScreen() {
   return (
     <Screen>
       <TextInput
-        placeholder="Email"
-        onChange={(value) => setEmail(value.nativeEvent.text)}
-      />
-      <TextInput
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
       />
       <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        placeholder="E-mail"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
       />
     </Screen>
   );
 }
 ```
 
-To process SEPA Direct Debit payments in the future, you must collect mandate agreement from your customer now.
-
-Display the following standard authorization text for your customer to implicitly sign this mandate.
-
-Replace _Rocket Rides_ with your company name.
-
-```
-By providing your payment information and confirming this payment, you authorise (A) Rocket Rides and Stripe, our payment service provider, to send instructions to your bank to debit your account and (B) your bank to debit your account in accordance with those instructions. As part of your rights, you are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited. Your rights are explained in a statement that you can obtain from your bank. You agree to receive notifications for future debits up to 2 days before they occur.
-```
-
-The details of the accepted mandate are generated when setting up a payment method. Because the customer has implicitly signed the mandate when accepting the terms suggested above, you must communicate the terms on the form or in an email.
-
-## 5. Submit the payment method details to Stripe
+## 4. Submit the payment to Stripe
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Bancontact, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
 export default function IdealPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
-  const [email, setEmai] = useState();
+  const [email, setEmail] = useState();
 
   const handlePayPress = async () => {
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
@@ -98,10 +106,9 @@ export default function IdealPaymentScreen() {
     };
   };
 
-  const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-    type: 'Ideal',
+  const { error, paymentIntent } = await confirmPayment(clientSecret, {
+    type: 'Bancontact',
     billingDetails,
-    bankName,
   });
 
   if (error) {
@@ -109,30 +116,26 @@ export default function IdealPaymentScreen() {
   } else if (paymentIntent) {
     Alert.alert(
       'Success',
-      `Setup intent created. Intent status: ${setupIntent.status}`
+      `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
     );
   }
 
   return (
     <Screen>
       <TextInput
-        placeholder="Email"
-        onChange={(value) => setEmail(value.nativeEvent.text)}
-      />
-      <TextInput
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
       />
       <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        placeholder="E-mail"
+        onChange={(value) => setEmail(value.nativeEvent.text)}
       />
     </Screen>
   );
 }
 ```
 
-## 6. Handle deep linking
+## 5. Handle deep linking
 
 To handle deep linking for bank redirect and wallet payment methods, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
 
@@ -179,6 +182,4 @@ export default function HomeScreen() {
 }
 ```
 
-## 7. Charge the SEPA Direct Debit PaymentMethod later
-
-## 8. Test your integration
+## 6. Handle post-payment events

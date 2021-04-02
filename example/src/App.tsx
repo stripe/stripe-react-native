@@ -17,6 +17,12 @@ import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScre
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import FPXPaymentScreen from './screens/FPXPaymentScreen';
+import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
+import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
+import EPSPaymentScreen from './screens/EPSPaymentScreen';
+import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
+import P24PaymentScreen from './screens/P24PaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -107,11 +113,30 @@ export default function App() {
             name="AlipayPaymentScreen"
             component={AlipayPaymentScreen}
           />
+          <Stack.Screen name="P24PaymentScreen" component={P24PaymentScreen} />
           <Stack.Screen
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
           <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
+          <Stack.Screen
+            name="GrabPayPaymentScreen"
+            component={GrabPayPaymentScreen}
+          />
+          <Stack.Screen
+            name="BancontactPaymentScreen"
+            component={BancontactPaymentScreen}
+          />
+          <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
+
+          <Stack.Screen
+            name="BancontactSetupFuturePaymentScreen"
+            component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="GiropayPaymentScreen"
+            component={GiropayPaymentScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>

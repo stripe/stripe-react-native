@@ -1,5 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useStripe } from 'stripe-react-native';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -11,14 +12,16 @@ export type RootStackParamList = {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { handleURLCallback } = useStripe();
 
   const handleDeepLink = useCallback(
-    (url: string | null) => {
+    async (url: string | null) => {
       if (url && url.includes('safepay')) {
+        await handleURLCallback(url);
         navigation.navigate('PaymentResultScreen', { url });
       }
     },
-    [navigation]
+    [navigation, handleURLCallback]
   );
 
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function HomeScreen() {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Ideal payment using webhooks"
+          title="iDEAL payment"
           onPress={() => {
             navigation.navigate('IdealPayment');
           }}
@@ -93,6 +96,60 @@ export default function HomeScreen() {
           title="Alipay Payment"
           onPress={() => {
             navigation.navigate('AlipayPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Bancontact Payment"
+          onPress={() => {
+            navigation.navigate('BancontactPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="EPS Payment"
+          onPress={() => {
+            navigation.navigate('EPSPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Setup Future Bancontact Payment"
+          onPress={() => {
+            navigation.navigate('BancontactSetupFuturePaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="GrabPay Payment"
+          onPress={() => {
+            navigation.navigate('GrabPayPaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Przelewy24 Payment"
+          onPress={() => {
+            navigation.navigate('P24PaymentScreen');
+          }}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Giropay Payment"
+          onPress={() => {
+            navigation.navigate('GiropayPaymentScreen');
           }}
         />
       </View>
