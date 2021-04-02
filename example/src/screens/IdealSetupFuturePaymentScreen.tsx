@@ -9,7 +9,7 @@ import type { PaymentMethodCreateParams } from 'stripe-react-native';
 
 export default function IdealSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
-  const [bankName, setBankName] = useState('');
+  const [bankName, setBankName] = useState<string>();
 
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
@@ -64,7 +64,13 @@ export default function IdealSetupFuturePaymentScreen() {
 
       <TextInput
         placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text.toLowerCase())}
+        onChange={(value) => {
+          const text =
+            value.nativeEvent.text.length > 0
+              ? value.nativeEvent.text.toLowerCase()
+              : undefined;
+          setBankName(text);
+        }}
         style={styles.input}
       />
 
@@ -74,7 +80,7 @@ export default function IdealSetupFuturePaymentScreen() {
           onPress={handlePayPress}
           title="Save"
           loading={loading}
-          disabled={!bankName || !email}
+          disabled={!email}
         />
       </View>
     </Screen>

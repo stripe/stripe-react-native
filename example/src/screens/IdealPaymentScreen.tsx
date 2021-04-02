@@ -10,7 +10,7 @@ import { colors } from '../colors';
 export default function IdealPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
-  const [bankName, setBankName] = useState('');
+  const [bankName, setBankName] = useState<string>();
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -74,7 +74,13 @@ export default function IdealPaymentScreen() {
       />
       <TextInput
         placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text.toLowerCase())}
+        onChange={(value) => {
+          const text =
+            value.nativeEvent.text.length > 0
+              ? value.nativeEvent.text.toLowerCase()
+              : undefined;
+          setBankName(text);
+        }}
         style={styles.input}
       />
       <Button

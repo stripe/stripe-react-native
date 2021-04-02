@@ -43,7 +43,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALPaymentConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
     val bankName = getValOr(params, "bankName", null)
-      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
 
     if (urlScheme == null) {
       throw PaymentMethodCreateParamsException("You must provide urlScheme")
@@ -98,7 +97,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALPaymentSetupParams(paymentMethodType: PaymentMethod.Type): ConfirmSetupIntentParams {
     val bankName = getValOr(params, "bankName", null)
-      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
 

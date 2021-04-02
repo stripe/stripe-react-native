@@ -55,7 +55,12 @@ export default function SepaPaymentScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentIntent) {
-      if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
+      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+        Alert.alert(
+          'Processing',
+          `The debit has been successfully submitted and is now processing.`
+        );
+      } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
         Alert.alert(
           'Success',
           `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
