@@ -39,105 +39,114 @@ export default function App() {
   }, []);
 
   return (
-    <StripeProvider
-      publishableKey={publishableKey}
-      merchantIdentifier="merchant.com.stripe.react.native"
-      urlScheme="stripe-example"
-      threeDSecureParams={{
-        backgroundColor: colors.white,
-        timeout: 5,
-        label: {
-          headingTextColor: colors.slate,
-          headingFontSize: 13,
-        },
-        navigationBar: {
-          headerText: '3d secure',
-        },
-        footer: {
-          backgroundColor: colors.white,
-        },
-        submitButton: {
-          textColor: colors.white,
-          textFontSize: 12,
-        },
-      }}
-    >
-      <StatusBar
-        backgroundColor={colors.blurple_dark}
-        barStyle="light-content"
-        translucent
-      />
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerTintColor: colors.white,
-            headerStyle: {
-              shadowOpacity: 0,
-              backgroundColor: colors.blurple,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: colors.slate,
-            },
-            headerTitleStyle: {
-              color: colors.white,
-            },
-            headerBackTitleStyle: {
-              color: colors.white,
-            },
-          }}
-        >
-          <View accessibilityLabel="test" />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen
-            name="WebhookPayment"
-            component={WebhookPaymentScreen}
-          />
-          <Stack.Screen
-            name="NoWebhookPayment"
-            component={NoWebhookPaymentScreen}
-          />
-          <Stack.Screen name="ApplePay" component={ApplePayScreen} />
-          <Stack.Screen
-            name="SetupFuturePayment"
-            component={SetupFuturePaymentScreen}
-          />
-          <Stack.Screen
-            name="CVCReCollectionScreen"
-            component={CVCReCollectionScreen}
-          />
-          <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
-          <Stack.Screen
-            name="IdealSetupFuturePaymentScreen"
-            component={IdealSetupFuturePaymentScreen}
-          />
-          <Stack.Screen
-            name="AlipayPaymentScreen"
-            component={AlipayPaymentScreen}
-          />
-          <Stack.Screen name="P24PaymentScreen" component={P24PaymentScreen} />
-          <Stack.Screen
-            name="PaymentResultScreen"
-            component={PaymentResultScreen}
-          />
-          <Stack.Screen
-            name="GrabPayPaymentScreen"
-            component={GrabPayPaymentScreen}
-          />
-          <Stack.Screen
-            name="BancontactPaymentScreen"
-            component={BancontactPaymentScreen}
-          />
-          <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
+    <>
+      <View accessibilityLabel="test2" />
 
-          <Stack.Screen
-            name="BancontactSetupFuturePaymentScreen"
-            component={BancontactSetupFuturePaymentScreen}
-          />
-          <Stack.Screen
-            name="GiropayPaymentScreen"
-            component={GiropayPaymentScreen}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </StripeProvider>
+      <StripeProvider
+        publishableKey={publishableKey}
+        merchantIdentifier="merchant.com.stripe.react.native"
+        urlScheme="stripe-example"
+        threeDSecureParams={{
+          backgroundColor: colors.white,
+          timeout: 5,
+          label: {
+            headingTextColor: colors.slate,
+            headingFontSize: 13,
+          },
+          navigationBar: {
+            headerText: '3d secure',
+          },
+          footer: {
+            backgroundColor: colors.white,
+          },
+          submitButton: {
+            textColor: colors.white,
+            textFontSize: 12,
+          },
+        }}
+      >
+        <StatusBar
+          backgroundColor={colors.blurple_dark}
+          barStyle="light-content"
+          translucent
+        />
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerTintColor: colors.white,
+              headerStyle: {
+                shadowOpacity: 0,
+                backgroundColor: colors.blurple,
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                borderBottomColor: colors.slate,
+              },
+              headerTitleStyle: {
+                color: colors.white,
+              },
+              headerBackTitleStyle: {
+                color: colors.white,
+              },
+            }}
+          >
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="WebhookPayment"
+              component={WebhookPaymentScreen}
+            />
+            <Stack.Screen
+              name="NoWebhookPayment"
+              component={NoWebhookPaymentScreen}
+            />
+            <Stack.Screen name="ApplePay" component={ApplePayScreen} />
+            <Stack.Screen
+              name="SetupFuturePayment"
+              component={SetupFuturePaymentScreen}
+            />
+            <Stack.Screen
+              name="CVCReCollectionScreen"
+              component={CVCReCollectionScreen}
+            />
+            <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
+            <Stack.Screen
+              name="IdealSetupFuturePaymentScreen"
+              component={IdealSetupFuturePaymentScreen}
+            />
+            <Stack.Screen
+              name="AlipayPaymentScreen"
+              component={AlipayPaymentScreen}
+            />
+            <Stack.Screen
+              name="P24PaymentScreen"
+              component={P24PaymentScreen}
+            />
+            <Stack.Screen
+              name="PaymentResultScreen"
+              component={PaymentResultScreen}
+            />
+            <Stack.Screen
+              name="GrabPayPaymentScreen"
+              component={GrabPayPaymentScreen}
+            />
+            <Stack.Screen
+              name="BancontactPaymentScreen"
+              component={BancontactPaymentScreen}
+            />
+            <Stack.Screen
+              name="EPSPaymentScreen"
+              component={EPSPaymentScreen}
+            />
+
+            <Stack.Screen
+              name="BancontactSetupFuturePaymentScreen"
+              component={BancontactSetupFuturePaymentScreen}
+            />
+            <Stack.Screen
+              name="GiropayPaymentScreen"
+              component={GiropayPaymentScreen}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </StripeProvider>
+    </>
   );
 }

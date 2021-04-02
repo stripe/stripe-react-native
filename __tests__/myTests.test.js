@@ -1,18 +1,14 @@
-import wd from 'wd';
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
-const PORT = 4723;
-const config = {
-  platformName: 'Android',
-  deviceName: 'Android Emulator',
-  app:
-    '/Users/arkadiuszkubaczkowski/apps/stripe-tmp/stripe-react-native/example/android/app/build/outputs/apk/debug/app-debug.apk',
-};
-const driver = wd.promiseChainRemote('localhost', PORT);
+describe('Simple App testing', () => {
+  // Adding time out to make sure the app is load prior to test is run
+  beforeEach(() => {
+    // $('~app-root').waitForDisplayed(11000, false);
+  });
 
-beforeAll(async () => {
-  await driver.init(config);
-  await driver.sleep(3000);
-}); // Sometime for the app to load
-test('my first appium test', async () => {
-  expect(await driver.hasElementByAccessibilityId('test')).toBe(true);
+  it('Valid Login Test', (async) => {
+    // eslint-disable-next-line no-undef
+    $('~test2').waitForDisplayed({
+      timeout: 5000,
+      timeoutMsg: 'screen is not shown',
+    });
+  });
 });
