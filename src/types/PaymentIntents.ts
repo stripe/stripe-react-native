@@ -19,7 +19,7 @@ export interface PaymentIntent {
   shipping: Nullable<PaymentIntents.ShippingDetails>;
 }
 
-export declare namespace PaymentIntents {
+export namespace PaymentIntents {
   export type LastPaymentError = StripeError<string> & {
     paymentMethod: PaymentMethod;
     type: LastPaymentErrorType;
