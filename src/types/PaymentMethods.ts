@@ -51,7 +51,7 @@ export namespace PaymentMethodCreateParams {
   export type CardParams =
     | (BaseParams & {
         type: 'Card';
-        cardDetails: CardFieldInput.Details;
+        cardDetails: CardFieldInput.Details | { token: string };
         setupFutureUsage?: PaymentIntents.FutureUsage;
       })
     | (BaseParams & {
