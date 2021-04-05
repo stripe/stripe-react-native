@@ -27,6 +27,7 @@ export namespace PaymentMethodCreateParams {
     | EpsParams
     | SofortParams
     | GrabPayParams
+    | FPXParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -62,6 +63,11 @@ export namespace PaymentMethodCreateParams {
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
     bankName: string;
+  }
+
+  export interface FPXParams {
+    type: 'Fpx';
+    testOfflineBank?: boolean;
   }
 
   export interface AlipayParams {

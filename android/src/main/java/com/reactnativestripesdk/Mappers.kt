@@ -323,6 +323,10 @@ fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
   return if (map?.hasKey(key) == true) map.getMap(key) else null
 }
 
+fun getBooleanOrFalse(map: ReadableMap?, key: String): Boolean {
+  return if (map?.hasKey(key) == true) map.getBoolean(key) else false
+}
+
 private fun convertToUnixTimestamp(timestamp: Long): Int {
   return (timestamp * 1000).toInt()
 }
