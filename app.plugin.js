@@ -1,1 +1,1 @@
-module.exports = require('./lib/commonjs/withStripe');
+module.exports = require('./lib/commonjs/plugin/withStripe');
