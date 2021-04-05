@@ -461,7 +461,7 @@ class Mappers {
         return intent
     }
     
-    class func mapToReturnURL(urlScheme: String, paymentType: STPPaymentMethodType) -> String {
+    class func mapToReturnURL(urlScheme: String) -> String {
         return urlScheme + "://safepay"
     }
     

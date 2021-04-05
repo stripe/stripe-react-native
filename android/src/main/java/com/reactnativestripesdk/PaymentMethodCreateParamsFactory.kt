@@ -19,6 +19,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Eps -> createEPSPaymentConfirmParams()
         PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams()
         PaymentMethod.Type.P24 -> createP24PaymentConfirmParams()
+        PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -288,7 +289,20 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       )
   }
 
-  
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createFpxPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val bank = getBooleanOrFalse(params, "testOfflineBank")?.let { "test_offline_bank" }
+    val params = PaymentMethodCreateParams.create(
+      PaymentMethodCreateParams.Fpx(bank)
+    )
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
 }
 
 class PaymentMethodCreateParamsException(message: String) : Exception(message)
