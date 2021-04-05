@@ -279,7 +279,7 @@ internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMetho
 
 internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
   if (card.hasKey("token")) {
-    return PaymentMethodCreateParams.Card.create(card.getString("token"))
+    return PaymentMethodCreateParams.Card.create(card.getString("token")!!)
   } else {
     return PaymentMethodCreateParams.Card.Builder()
       .setCvc(card.getString("cvc"))
