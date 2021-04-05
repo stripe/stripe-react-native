@@ -20,10 +20,10 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 };
 
 export const withStripeIos: ConfigPlugin<StripePluginProps> = (
-  config,
+  expoConfig,
   { merchantId }
 ) => {
-  return withEntitlementsPlist(config, (config) => {
+  return withEntitlementsPlist(expoConfig, (config) => {
     config.modResults = setApplePayEntitlement(merchantId, config.modResults);
     return config;
   });
