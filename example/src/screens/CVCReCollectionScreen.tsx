@@ -99,6 +99,7 @@ export default function CVCReCollectionScreen() {
     const { tokenId, error } = await createTokenForCVCUpdate(cvc);
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
+      return;
     } else if (tokenId) {
       const paymentIntent = await callNoWebhookPayEndpoint({
         useStripeSdk: true,

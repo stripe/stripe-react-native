@@ -18,6 +18,8 @@ class PaymentMethodFactory {
                 return try createIDEALPaymentMethodParams()
             case STPPaymentMethodType.card:
                 return try createCardPaymentMethodParams()
+            case STPPaymentMethodType.FPX:
+                return try createFPXPaymentMethodParams()
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
@@ -41,14 +43,16 @@ class PaymentMethodFactory {
     func createOptions(paymentMethodType: STPPaymentMethodType) throws -> STPConfirmPaymentMethodOptions? {
         do {
             switch paymentMethodType {
-            case STPPaymentMethodType.alipay:
-                return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.iDEAL:
                 return nil
             case STPPaymentMethodType.EPS:
                 return nil
             case STPPaymentMethodType.card:
+                return createCardPaymentMethodOptions()
+            case STPPaymentMethodType.FPX:
                 return nil
+            case STPPaymentMethodType.alipay:
+                return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.bancontact:
                 return nil
             case STPPaymentMethodType.giropay:
@@ -88,6 +92,31 @@ class PaymentMethodFactory {
         
         let card = Mappers.mapToPaymentMethodCardParams(params: cardParams)
         return STPPaymentMethodParams(card: card, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    
+    private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
+        let cvc = params?["cvc"] as? String
+        guard cvc != nil else {
+            return nil
+        }
+
+        let cardOptions = STPConfirmCardOptions()
+        cardOptions.cvc = cvc;
+        let paymentMethodOptions = STPConfirmPaymentMethodOptions()
+        paymentMethodOptions.cardOptions = cardOptions
+        
+        return paymentMethodOptions
+    }
+    
+    private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodFPXParams()
+        
+        if self.params?["testOfflineBank"] as? Bool == true {
+            params.rawBankString = "test_offline_bank"
+        }
+
+        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
     }
     
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -146,6 +175,7 @@ enum PaymentMethodError: Error {
     case epsPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
+    case cardPaymentOptionsMissingParams
     case bancontactPaymentMissingParams
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
@@ -168,6 +198,9 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
+        case .cardPaymentOptionsMissingParams:
+            return NSLocalizedString("You must provide CVC number", comment: "Create payment error")
         }
+       
     }
 }
