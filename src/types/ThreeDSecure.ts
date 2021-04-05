@@ -6,7 +6,7 @@ export interface ThreeDSecureConfigurationParams extends ThreeDSecure.Props {
   submitButton?: ThreeDSecure.SubmitButtonProps;
 }
 
-export declare namespace ThreeDSecure {
+export namespace ThreeDSecure {
   export interface Props extends IOS.Props, Android.Props {}
 
   export enum NavigationBarStyle {
