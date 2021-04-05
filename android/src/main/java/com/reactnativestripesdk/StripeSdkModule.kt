@@ -55,8 +55,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
               handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
             }
             StripeIntent.Status.RequiresAction -> {
-              confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
-              handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+              if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
+                confirmPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+                handleCardActionPromise?.resolve(mapFromPaymentIntentResult(paymentIntent))
+              } else {
+                val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
+                confirmPromise?.reject(ConfirmPaymentErrorType.Canceled.toString(), errorMessage)
+                handleCardActionPromise?.reject(NextPaymentActionErrorType.Canceled.toString(), errorMessage)
+              }
             }
             StripeIntent.Status.RequiresPaymentMethod -> {
               val errorMessage = paymentIntent.lastPaymentError?.message.orEmpty()
@@ -109,6 +115,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         )
         .build()
     )
+  }
+
+  /// Check paymentIntent.nextAction is voucher-based payment method.
+  /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.
+  /// Currently only OXXO payment is voucher-based.
+  private fun isPaymentIntentNextActionVoucherBased(nextAction: StripeIntent.NextActionType?): Boolean {
+    nextAction?.let {
+      return it == StripeIntent.NextActionType.DisplayOxxoDetails
+    }
+    return false
   }
 
   @ReactMethod
