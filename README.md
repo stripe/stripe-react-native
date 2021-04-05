@@ -12,6 +12,26 @@ or
 npm install stripe-react-native
 ```
 
+### Expo
+
+If you're using Expo, add:
+
+```json
+expo: {
+  ...
+  "plugins": [
+    [
+      "stripe-react-native",
+      {
+        "merchantId": "my.merchant.id"
+      }
+    ]
+  ],
+}
+```
+
+to your `app.json` file, where `my.merchant.id` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected.
+
 ### Android
 
 ##### Requirements
