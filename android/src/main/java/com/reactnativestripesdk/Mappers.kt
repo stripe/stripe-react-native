@@ -278,12 +278,16 @@ internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMetho
 }
 
 internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
-  return PaymentMethodCreateParams.Card.Builder()
-    .setCvc(card.getString("cvc"))
-    .setExpiryMonth(card.getInt("expiryMonth"))
-    .setExpiryYear(card.getInt("expiryYear"))
-    .setNumber(card.getString("number").orEmpty())
-    .build()
+  if (card.hasKey("token")) {
+    return PaymentMethodCreateParams.Card.create(card.getString("token")!!)
+  } else {
+    return PaymentMethodCreateParams.Card.Builder()
+      .setCvc(card.getString("cvc"))
+      .setExpiryMonth(card.getInt("expiryMonth"))
+      .setExpiryYear(card.getInt("expiryYear"))
+      .setNumber(card.getString("number").orEmpty())
+      .build()
+  }
 }
 
 fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
