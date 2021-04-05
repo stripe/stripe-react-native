@@ -17,7 +17,7 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace PaymentMethodCreateParams {
+export namespace PaymentMethodCreateParams {
   export type Params =
     | CardParams
     | IdealParams
@@ -25,7 +25,9 @@ export declare namespace PaymentMethodCreateParams {
     | AlipayParams
     | GiropayParams
     | EpsParams
+    | SofortParams
     | GrabPayParams
+    | FPXParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -63,10 +65,19 @@ export declare namespace PaymentMethodCreateParams {
     bankName: string;
   }
 
+  export interface FPXParams {
+    type: 'Fpx';
+    testOfflineBank?: boolean;
+  }
+
   export interface AlipayParams {
     type: 'Alipay';
   }
 
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
   export interface GrabPayParams extends BaseParams {
     type: 'GrabPay';
   }
