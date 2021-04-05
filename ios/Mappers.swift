@@ -149,6 +149,11 @@ class Mappers {
     }
 
     class func mapToPaymentMethodCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
+        if let token = params["token"] {
+            let methodParams = STPPaymentMethodCardParams()
+            methodParams.token = RCTConvert.nsString(token)
+            return methodParams
+        }
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = RCTConvert.nsString(params["number"])
         cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
