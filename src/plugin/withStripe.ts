@@ -11,7 +11,7 @@ type StripePluginProps = {
    * The iOS merchant ID used for enabling Apple Pay.
    * Without this, the error "Missing merchant identifier" will be thrown on iOS.
    */
-  merchantId: string;
+  merchantIdentifier: string;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
@@ -21,10 +21,13 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 
 export const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { merchantId }
+  { merchantIdentifier }
 ) => {
   return withEntitlementsPlist(expoConfig, (config) => {
-    config.modResults = setApplePayEntitlement(merchantId, config.modResults);
+    config.modResults = setApplePayEntitlement(
+      merchantIdentifier,
+      config.modResults
+    );
     return config;
   });
 };
@@ -34,19 +37,19 @@ export const withStripeIos: ConfigPlugin<StripePluginProps> = (
  *
  * <key>com.apple.developer.in-app-payments</key>
  * <array>
- *	 <string>[MERCHANT_ID]</string>
+ *	 <string>[MERCHANT_IDENTIFIER]</string>
  * </array>
  */
 export function setApplePayEntitlement(
-  merchantId: string,
+  merchantIdentifier: string,
   entitlements: Record<string, any>
 ): Record<string, any> {
   const key = 'com.apple.developer.in-app-payments';
 
   const merchants: string[] = entitlements[key] ?? [];
 
-  if (!merchants.includes(merchantId)) {
-    merchants.push(merchantId);
+  if (!merchants.includes(merchantIdentifier)) {
+    merchants.push(merchantIdentifier);
   }
 
   entitlements[key] = merchants;
