@@ -16,6 +16,8 @@ class PaymentMethodFactory {
             switch paymentMethodType {
             case STPPaymentMethodType.iDEAL:
                 return try createIDEALPaymentMethodParams()
+            case STPPaymentMethodType.OXXO:
+                return try createOXXOPaymentMethodParams()
             case STPPaymentMethodType.card:
                 return try createCardPaymentMethodParams()
             case STPPaymentMethodType.FPX:
@@ -58,6 +60,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.bancontact:
+                return nil
+            case STPPaymentMethodType.OXXO:
                 return nil
             case STPPaymentMethodType.giropay:
                 return nil
@@ -161,6 +165,16 @@ class PaymentMethodFactory {
         }
         
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
+    }
+    
+    private func createOXXOPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodOXXOParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.bancontactPaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(oxxo: params, billingDetails: billingDetails, metadata: nil)
     }
     
     private func createGiropayPaymentMethodParams() throws -> STPPaymentMethodParams {

@@ -15,6 +15,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Sofort -> createSofortPaymentConfirmParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
+        PaymentMethod.Type.Oxxo -> createOXXOPaymentConfirmParams()
         PaymentMethod.Type.Giropay -> createGiropayPaymentConfirmParams()
         PaymentMethod.Type.Eps -> createEPSPaymentConfirmParams()
         PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams()
@@ -247,6 +248,24 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
     return ConfirmSetupIntentParams
       .create(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createOXXOPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    if (urlScheme == null) {
+      throw PaymentMethodCreateParamsException("You must provide urlScheme")
+    }
+    val params = PaymentMethodCreateParams.createOxxo(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
         returnUrl = mapToReturnURL(urlScheme)

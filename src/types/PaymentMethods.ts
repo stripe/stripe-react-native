@@ -21,6 +21,7 @@ export namespace PaymentMethodCreateParams {
   export type Params =
     | CardParams
     | IdealParams
+    | OxxoParams
     | P24Params
     | AlipayParams
     | GiropayParams
@@ -72,6 +73,10 @@ export namespace PaymentMethodCreateParams {
 
   export interface AlipayParams {
     type: 'Alipay';
+  }
+
+  export interface OxxoParams extends Required<BaseParams> {
+    type: 'Oxxo';
   }
 
   export interface SofortParams extends BaseParams {
