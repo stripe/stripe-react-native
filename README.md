@@ -23,7 +23,7 @@ expo: {
     [
       "stripe-react-native",
       {
-        "merchantId": "my.merchant.id"
+        "merchantIdentifier": "my.merchant.id"
       }
     ]
   ],
