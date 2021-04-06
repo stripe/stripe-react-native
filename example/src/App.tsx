@@ -16,9 +16,13 @@ import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
+import SofortPaymentScreen from './screens/SofortPaymentScreen';
+import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
+import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
+import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
 import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
@@ -118,6 +122,15 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
+          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
+          <Stack.Screen
+            name="SofortPaymentScreen"
+            component={SofortPaymentScreen}
+          />
+          <Stack.Screen
+            name="SofortSetupFuturePaymentScreen"
+            component={SofortSetupFuturePaymentScreen}
+          />
           <Stack.Screen
             name="GrabPayPaymentScreen"
             component={GrabPayPaymentScreen}
@@ -127,7 +140,6 @@ export default function App() {
             component={BancontactPaymentScreen}
           />
           <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
-
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
@@ -135,6 +147,10 @@ export default function App() {
           <Stack.Screen
             name="SepaPaymentScreen"
             component={SepaPaymentScreen}
+          />
+          <Stack.Screen
+            name="OxxoPaymentScreen"
+            component={OxxoPaymentScreen}
           />
           <Stack.Screen
             name="GiropayPaymentScreen"
