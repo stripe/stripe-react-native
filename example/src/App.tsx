@@ -16,6 +16,9 @@ import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
+import SofortPaymentScreen from './screens/SofortPaymentScreen';
+import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
+import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
@@ -118,10 +121,20 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
+          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
+          <Stack.Screen
+            name="SofortPaymentScreen"
+            component={SofortPaymentScreen}
+          />
+          <Stack.Screen
+            name="SofortSetupFuturePaymentScreen"
+            component={SofortSetupFuturePaymentScreen}
+          />
           <Stack.Screen
             name="GrabPayPaymentScreen"
             component={GrabPayPaymentScreen}
           />
+
           <Stack.Screen
             name="BancontactPaymentScreen"
             component={BancontactPaymentScreen}
