@@ -21,6 +21,7 @@ import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentSc
 import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
 import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
@@ -143,6 +144,10 @@ export default function App() {
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="OxxoPaymentScreen"
+            component={OxxoPaymentScreen}
           />
           <Stack.Screen
             name="GiropayPaymentScreen"
