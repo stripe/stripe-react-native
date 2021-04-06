@@ -1,6 +1,6 @@
 import type { StyleProp, ViewStyle } from 'react-native';
 
-export declare namespace ApplePayButtonComponent {
+export namespace ApplePayButtonComponent {
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     type?: number;
