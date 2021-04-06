@@ -59,12 +59,14 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
+    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        returnUrl = mapToReturnURL(urlScheme),
+        setupFutureUsage = setupFutureUsage
       )
   }
 
@@ -166,6 +168,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val country = getValOr(params, "country", null)?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide bank account country")
     }
+    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
 
     val params = PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Sofort(country = country),
@@ -180,7 +183,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        returnUrl = mapToReturnURL(urlScheme),
+        setupFutureUsage = setupFutureUsage
       )
   }
 
@@ -229,13 +233,15 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     if (urlScheme == null) {
       throw PaymentMethodCreateParamsException("You must provide urlScheme")
     }
+    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
     val params = PaymentMethodCreateParams.createBancontact(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        returnUrl = mapToReturnURL(urlScheme),
+        setupFutureUsage = setupFutureUsage
       )
   }
 
@@ -321,6 +327,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     if (urlScheme == null) {
       throw PaymentMethodCreateParamsException("You must provide urlScheme")
     }
+    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
     val params = PaymentMethodCreateParams.create(
       sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
       billingDetails = billingDetails
@@ -330,7 +337,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        returnUrl = mapToReturnURL(urlScheme),
+        setupFutureUsage = setupFutureUsage
       )
   }
 

@@ -1,6 +1,7 @@
 import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
+import Checkbox from '@react-native-community/checkbox';
 import { useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -11,6 +12,7 @@ export default function IdealPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
   const [bankName, setBankName] = useState<string>();
+  const [saveIban, setSaveIban] = useState(false);
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -44,12 +46,14 @@ export default function IdealPaymentScreen() {
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       name: 'John Doe',
+      email: 'john@example.com',
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Ideal',
       billingDetails,
       bankName,
+      setupFutureUsage: saveIban ? 'OffSession' : undefined,
     });
 
     if (error) {
@@ -89,6 +93,13 @@ export default function IdealPaymentScreen() {
         title="Pay"
         loading={loading}
       />
+      <View style={styles.row}>
+        <Checkbox
+          onValueChange={(value) => setSaveIban(value)}
+          value={saveIban}
+        />
+        <Text style={styles.text}>Save IBAN during payment</Text>
+      </View>
     </Screen>
   );
 }
@@ -102,7 +113,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   text: {
     marginLeft: 12,
