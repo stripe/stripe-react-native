@@ -17,16 +17,19 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace PaymentMethodCreateParams {
+export namespace PaymentMethodCreateParams {
   export type Params =
     | CardParams
     | IdealParams
+    | OxxoParams
     | P24Params
     | AlipayParams
     | GiropayParams
     | SepaParams
     | EpsParams
+    | SofortParams
     | GrabPayParams
+    | FPXParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -50,7 +53,7 @@ export declare namespace PaymentMethodCreateParams {
   export type CardParams =
     | (BaseParams & {
         type: 'Card';
-        cardDetails: CardFieldInput.Details;
+        cardDetails: CardFieldInput.Details | { token: string };
         setupFutureUsage?: PaymentIntents.FutureUsage;
       })
     | (BaseParams & {
@@ -64,10 +67,23 @@ export declare namespace PaymentMethodCreateParams {
     bankName?: string;
   }
 
+  export interface FPXParams {
+    type: 'Fpx';
+    testOfflineBank?: boolean;
+  }
+
   export interface AlipayParams {
     type: 'Alipay';
   }
 
+  export interface OxxoParams extends Required<BaseParams> {
+    type: 'Oxxo';
+  }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
   export interface GrabPayParams extends BaseParams {
     type: 'GrabPay';
   }
