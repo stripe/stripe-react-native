@@ -113,12 +113,18 @@ export default function OxxoPaymentScreen() {
 
   if (error) {
     Alert.alert(`Error code: ${error.code}`, error.message);
+    console.log('Payment confirmation error', error.message);
   } else if (paymentIntent) {
-    Alert.alert(
-      'Success',
-      `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-    );
+    if (paymentIntent.status === PaymentIntents.Status.RequiresAction) {
+      Alert.alert(
+        'Success',
+        `The OXXO voucher was created successfully. Awaiting payment from customer.`
+      );
+    } else {
+      Alert.alert('Payment intent status:', paymentIntent.status);
+    }
   }
+};
 
   return (
     <Screen>
