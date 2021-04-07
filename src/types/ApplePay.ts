@@ -1,4 +1,4 @@
-export declare namespace ApplePay {
+export namespace ApplePay {
   export type CartSummaryItemType = 'final' | 'pending';
 
   export type ContactFieldsType =

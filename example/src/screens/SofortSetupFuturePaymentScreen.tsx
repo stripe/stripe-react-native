@@ -7,9 +7,8 @@ import { colors } from '../colors';
 import Screen from '../components/Screen';
 import type { PaymentMethodCreateParams } from 'stripe-react-native';
 
-export default function IdealSetupFuturePaymentScreen() {
+export default function SofortSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
-  const [bankName, setBankName] = useState<string>();
 
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
@@ -21,7 +20,7 @@ export default function IdealSetupFuturePaymentScreen() {
       },
       body: JSON.stringify({
         email: customerEmail,
-        payment_method_types: ['ideal'],
+        payment_method_types: ['sofort'],
       }),
     });
     const { clientSecret } = await response.json();
@@ -38,9 +37,9 @@ export default function IdealSetupFuturePaymentScreen() {
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'Ideal',
+      type: 'Sofort',
       billingDetails,
-      bankName,
+      country: 'DE',
     });
 
     if (error) {
@@ -59,18 +58,6 @@ export default function IdealSetupFuturePaymentScreen() {
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => {
-          const text =
-            value.nativeEvent.text.length > 0
-              ? value.nativeEvent.text.toLowerCase()
-              : undefined;
-          setBankName(text);
-        }}
         style={styles.input}
       />
 

@@ -1,7 +1,7 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 import type { Nullable } from '../';
 
-export declare namespace CardFieldInput {
+export namespace CardFieldInput {
   export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
   export interface Details {

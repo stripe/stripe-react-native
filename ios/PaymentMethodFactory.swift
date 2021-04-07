@@ -16,12 +16,20 @@ class PaymentMethodFactory {
             switch paymentMethodType {
             case STPPaymentMethodType.iDEAL:
                 return try createIDEALPaymentMethodParams()
+            case STPPaymentMethodType.OXXO:
+                return try createOXXOPaymentMethodParams()
             case STPPaymentMethodType.card:
                 return try createCardPaymentMethodParams()
+            case STPPaymentMethodType.FPX:
+                return try createFPXPaymentMethodParams()
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodParams()
+            case STPPaymentMethodType.sofort:
+                return try createSofortPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.SEPADebit:
+                return try createSepaPaymentMethodParams()
             case STPPaymentMethodType.giropay:
                 return try createGiropayPaymentMethodParams()
             case STPPaymentMethodType.EPS:
@@ -41,15 +49,23 @@ class PaymentMethodFactory {
     func createOptions(paymentMethodType: STPPaymentMethodType) throws -> STPConfirmPaymentMethodOptions? {
         do {
             switch paymentMethodType {
-            case STPPaymentMethodType.alipay:
-                return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.iDEAL:
                 return nil
             case STPPaymentMethodType.EPS:
                 return nil
             case STPPaymentMethodType.card:
+                return createCardPaymentMethodOptions()
+            case STPPaymentMethodType.FPX:
                 return nil
+            case STPPaymentMethodType.sofort:
+                return nil
+            case STPPaymentMethodType.alipay:
+                return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.bancontact:
+                return nil
+            case STPPaymentMethodType.SEPADebit:
+                return nil
+            case STPPaymentMethodType.OXXO:
                 return nil
             case STPPaymentMethodType.giropay:
                 return nil
@@ -66,11 +82,10 @@ class PaymentMethodFactory {
     }
     
     private func createIDEALPaymentMethodParams() throws -> STPPaymentMethodParams {
-        guard let bankName = self.params?["bankName"] as? String else {
-            throw PaymentMethodError.idealPaymentMissingParams
-        }
         let params = STPPaymentMethodiDEALParams()
-        params.bankName = bankName
+        if let bankName = self.params?["bankName"] as? String {
+            params.bankName = bankName
+        }
         
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
     }
@@ -88,6 +103,31 @@ class PaymentMethodFactory {
         
         let card = Mappers.mapToPaymentMethodCardParams(params: cardParams)
         return STPPaymentMethodParams(card: card, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
+    
+    private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
+        let cvc = params?["cvc"] as? String
+        guard cvc != nil else {
+            return nil
+        }
+
+        let cardOptions = STPConfirmCardOptions()
+        cardOptions.cvc = cvc;
+        let paymentMethodOptions = STPConfirmPaymentMethodOptions()
+        paymentMethodOptions.cardOptions = cardOptions
+        
+        return paymentMethodOptions
+    }
+    
+    private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodFPXParams()
+        
+        if self.params?["testOfflineBank"] as? Bool == true {
+            params.rawBankString = "test_offline_bank"
+        }
+
+        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
     }
     
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -110,6 +150,16 @@ class PaymentMethodFactory {
         return options
     }
     
+    private func createSofortPaymentMethodParams() throws -> STPPaymentMethodParams {
+        guard let country = self.params?["country"] as? String else {
+            throw PaymentMethodError.sofortPaymentMissingParams
+        }
+        let params = STPPaymentMethodSofortParams()
+        params.country = country
+        
+        return STPPaymentMethodParams(sofort: params, billingDetails: billingDetailsParams, metadata: nil)
+    }
+    
     private func createBancontactPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodBancontactParams()
         
@@ -118,6 +168,31 @@ class PaymentMethodFactory {
         }
         
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
+    }
+    
+    private func createSepaPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodSEPADebitParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        guard let iban = self.params?["iban"] as? String else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        
+        params.iban = iban
+        
+        return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: nil)
+    }
+  
+    private func createOXXOPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodOXXOParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.bancontactPaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(oxxo: params, billingDetails: billingDetails, metadata: nil)
     }
     
     private func createGiropayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -146,7 +221,10 @@ enum PaymentMethodError: Error {
     case epsPaymentMissingParams
     case idealPaymentMissingParams
     case paymentNotSupported
+    case sofortPaymentMissingParams
+    case cardPaymentOptionsMissingParams
     case bancontactPaymentMissingParams
+    case sepaPaymentMissingParams
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
 }
@@ -160,14 +238,21 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .idealPaymentMissingParams:
             return NSLocalizedString("You must provide bank name", comment: "Create payment error")
+        case .sofortPaymentMissingParams:
+            return NSLocalizedString("You must provide bank account country", comment: "Create payment error")
         case .p24PaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .bancontactPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .sepaPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
         case .epsPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")
+        case .cardPaymentOptionsMissingParams:
+            return NSLocalizedString("You must provide CVC number", comment: "Create payment error")
         }
+       
     }
 }

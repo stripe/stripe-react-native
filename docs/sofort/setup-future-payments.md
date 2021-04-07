@@ -1,6 +1,6 @@
-# Use iDEAL to set up future SEPA Direct Debit payments
+# Use Sofort to set up future SEPA Direct Debit payments
 
-Learn how to save bank details from an iDEAL payment and charge your customers later with SEPA Direct Debit.
+Learn how to save bank details from a Sofort payment and charge your customers later with SEPA Direct Debit.
 
 ## 1. Setup Stripe
 
@@ -16,7 +16,7 @@ npm install stripe-react-native
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
 
-Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application or `initStripe` method alternatively.
+Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
 
 ```tsx
 import { StripeProvider } from 'stripe-react-native';
@@ -36,13 +36,13 @@ function App() {
 
 ## 4. Collect payment method details and mandate acknowledgement
 
-In your app, collect your customer’s full name, email address, and the [name of their bank](https://stripe.com/docs/api/payment_methods/object#payment_method_object-ideal-bank) (e.g., abn_amro).
+In your app, collect your customer’s full name, email address and [bank account country](https://stripe.com/docs/api/payment_methods/create#create_payment_method-sofort-country).
 
 ```tsx
-export default function IdealPaymentScreen() {
+export default function SofortPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
+  const [country, setCountry] = useState();
 
   const handlePayPress = async () => {
     // ...
@@ -59,8 +59,8 @@ export default function IdealPaymentScreen() {
         onChange={(value) => setName(value.nativeEvent.text)}
       />
       <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        placeholder="Bank account contry"
+        onChange={(value) => setCountry(value.nativeEvent.text)}
       />
     </Screen>
   );
@@ -81,15 +81,15 @@ The details of the accepted mandate are generated when setting up a payment meth
 
 ## 5. Submit the payment method details to Stripe
 
-Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmSetupIntent` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
+Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Sofort, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
-export default function IdealPaymentScreen() {
+export default function SofortPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
+  const [country, setCountry] = useState();
 
   const handlePayPress = async () => {
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
@@ -99,9 +99,9 @@ export default function IdealPaymentScreen() {
   };
 
   const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-    type: 'Ideal',
+    type: 'Sofort',
     billingDetails,
-    bankName,
+    country,
   });
 
   if (error) {
@@ -124,8 +124,8 @@ export default function IdealPaymentScreen() {
         onChange={(value) => setName(value.nativeEvent.text)}
       />
       <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
+        placeholder="Bank account contry"
+        onChange={(value) => setCountry(value.nativeEvent.text)}
       />
     </Screen>
   );

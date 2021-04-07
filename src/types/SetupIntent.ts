@@ -15,8 +15,13 @@ export interface SetupIntent {
   description: Nullable<string>;
 }
 
-export declare namespace ConfirmSetupIntent {
-  export type Params = CardParams | IdealParams | BancontactParams;
+export namespace ConfirmSetupIntent {
+  export type Params =
+    | CardParams
+    | IdealParams
+    | BancontactParams
+    | SofortParams
+    | SepaParams;
 
   export interface Options {}
 
@@ -31,15 +36,24 @@ export declare namespace ConfirmSetupIntent {
 
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
-    bankName: string;
+    bankName?: string;
   }
 
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
   }
+
+  export interface SepaParams extends Required<BaseParams> {
+    type: 'SepaDebit';
+    iban: string;
+  }
 }
 
-export declare namespace SetupIntents {
+export namespace SetupIntents {
   export type FutureUsage =
     | 'Unknown'
     | 'None'
