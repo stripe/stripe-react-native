@@ -17,6 +17,6 @@ export {
   Props as ApplePayButtonProps,
 } from './components/ApplePayButton';
 
-export const { initialise } = StripeSdk;
+export const { initialise: initStripe } = StripeSdk;
 
 export * from './types/index';

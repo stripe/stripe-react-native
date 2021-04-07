@@ -22,7 +22,7 @@ Stripe’s [React Native SDK](https://github.com/stripe/stripe-react-native/) ma
 
 ## Step 4: Set up marchantId
 
-Next, you need to set up previously registered marchantId in `StripeProvider` component or use `initialise` method alternatively.
+Next, you need to set up previously registered marchantId in `StripeProvider` component or use `initStripe` method alternatively.
 
 ```tsx
 <StripeProvider
@@ -37,7 +37,7 @@ Next, you need to set up previously registered marchantId in `StripeProvider` co
 or
 
 ```tsx
-initialise({
+initStripe({
   publishableKey = 'pk_test_...',
   merchantIdentifier = 'merchant.com.stripe.react.native',
 });
