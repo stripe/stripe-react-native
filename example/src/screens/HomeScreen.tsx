@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStripe } from 'stripe-react-native';
-import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
 
 export type RootStackParamList = {
   PaymentResultScreen: { url: string };
@@ -42,7 +41,7 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   return (
-    <Screen>
+    <ScrollView>
       <View style={styles.buttonContainer}>
         <Button
           title="Card payment using webhooks"
@@ -214,7 +213,7 @@ export default function HomeScreen() {
           }}
         />
       </View>
-    </Screen>
+    </ScrollView>
   );
 }
 
