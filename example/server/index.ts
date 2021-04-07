@@ -77,6 +77,9 @@ app.post(
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
         },
+        sofort: {
+          preferred_language: 'en',
+        },
       },
       payment_method_types: payment_method_types,
     };

@@ -1,16 +1,13 @@
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
-import Checkbox from '@react-native-community/checkbox';
+import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function BancontactPaymentScreen() {
+export default function FPXPaymentScreen() {
   const [email, setEmail] = useState('');
-  const [saveIban, setSaveIban] = useState(false);
   const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {
@@ -21,10 +18,10 @@ export default function BancontactPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'eur',
+        currency: 'myr',
         items: [{ id: 'id' }],
         request_three_d_secure: 'any',
-        payment_method_types: ['bancontact'],
+        payment_method_types: ['fpx'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -43,15 +40,8 @@ export default function BancontactPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Bancontact',
-      billingDetails,
-      setupFutureUsage: saveIban ? 'OffSession' : undefined,
+      type: 'Fpx',
     });
 
     if (error) {
@@ -81,13 +71,6 @@ export default function BancontactPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-      <View style={styles.row}>
-        <Checkbox
-          onValueChange={(value) => setSaveIban(value)}
-          value={saveIban}
-        />
-        <Text style={styles.text}>Save IBAN during payment</Text>
-      </View>
     </Screen>
   );
 }
@@ -101,7 +84,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginBottom: 20,
   },
   text: {
     marginLeft: 12,

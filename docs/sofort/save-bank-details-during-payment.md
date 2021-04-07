@@ -1,6 +1,6 @@
-# Use iDEAL to set up future SEPA Direct Debit payments
+# Save bank details during a Sofort payment
 
-Learn how to save bank details from an iDEAL payment and charge your customers later with SEPA Direct Debit.
+Learn how to save your customer’s IBAN bank details from a Sofort payment.
 
 ## 1. Setup Stripe
 
@@ -16,7 +16,7 @@ npm install stripe-react-native
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
 
-Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application or `initStripe` method alternatively.
+Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
 
 ```tsx
 import { StripeProvider } from 'stripe-react-native';
@@ -32,16 +32,15 @@ function App() {
 
 ## 2. Create or retrieve a Customer
 
-## 3. Create a SetupIntent
+## 2. Create a PaymentIntent
 
-## 4. Collect payment method details and mandate acknowledgement
+## 3. Collect payment method details and mandate acknowledgement
 
-In your app, collect your customer’s full name, email address, and the [name of their bank](https://stripe.com/docs/api/payment_methods/object#payment_method_object-ideal-bank) (e.g., abn_amro).
+In your app, collect your customer’s full name and email address.
 
 ```tsx
-export default function IdealPaymentScreen() {
+export default function SofortPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
 
   const handlePayPress = async () => {
@@ -58,37 +57,20 @@ export default function IdealPaymentScreen() {
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
       />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
-      />
     </Screen>
   );
 }
 ```
 
-To process SEPA Direct Debit payments in the future, you must collect mandate agreement from your customer now.
+## 4. Submit the payment to Stripe
 
-Display the following standard authorization text for your customer to implicitly sign this mandate.
+Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
-Replace _Rocket Rides_ with your company name.
-
-```
-By providing your payment information and confirming this payment, you authorise (A) Rocket Rides and Stripe, our payment service provider, to send instructions to your bank to debit your account and (B) your bank to debit your account in accordance with those instructions. As part of your rights, you are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited. Your rights are explained in a statement that you can obtain from your bank. You agree to receive notifications for future debits up to 2 days before they occur.
-```
-
-The details of the accepted mandate are generated when setting up a payment method. Because the customer has implicitly signed the mandate when accepting the terms suggested above, you must communicate the terms on the form or in an email.
-
-## 5. Submit the payment method details to Stripe
-
-Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmSetupIntent` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
-
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Sofort, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
-export default function IdealPaymentScreen() {
+export default function SofortPaymentScreen() {
   const [name, setName] = useState();
-  const [bankName, setBankName] = useState();
   const [email, setEmai] = useState();
 
   const handlePayPress = async () => {
@@ -98,10 +80,9 @@ export default function IdealPaymentScreen() {
     };
   };
 
-  const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-    type: 'Ideal',
+  const { error, paymentIntent } = await confirmPayment(clientSecret, {
+    type: 'Sofort',
     billingDetails,
-    bankName,
   });
 
   if (error) {
@@ -109,7 +90,7 @@ export default function IdealPaymentScreen() {
   } else if (paymentIntent) {
     Alert.alert(
       'Success',
-      `Setup intent created. Intent status: ${setupIntent.status}`
+      `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
     );
   }
 
@@ -123,16 +104,12 @@ export default function IdealPaymentScreen() {
         placeholder="Name"
         onChange={(value) => setName(value.nativeEvent.text)}
       />
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => setBankName(value.nativeEvent.text)}
-      />
     </Screen>
   );
 }
 ```
 
-## 6. Handle deep linking
+## 5. Handle deep linking
 
 To handle deep linking for bank redirect and wallet payment methods, your app will need to register a custom url scheme. If you're using Expo, [set your scheme](https://docs.expo.io/guides/linking/#in-a-standalone-app) in the `app.json` file.
 
@@ -179,6 +156,6 @@ export default function HomeScreen() {
 }
 ```
 
-## 7. Charge the SEPA Direct Debit PaymentMethod later
+## Optional Charge the SEPA Direct Debit PaymentMethod later
 
-## 8. Test your integration
+## Optional OptionalHandle post-payment events

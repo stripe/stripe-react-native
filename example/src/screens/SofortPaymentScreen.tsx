@@ -1,14 +1,17 @@
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
 import Checkbox from '@react-native-community/checkbox';
-import { useConfirmPayment } from 'stripe-react-native';
+import {
+  useConfirmPayment,
+  PaymentIntents,
+  PaymentMethodCreateParams,
+} from 'stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function BancontactPaymentScreen() {
+export default function SofortPaymentScreen() {
   const [email, setEmail] = useState('');
   const [saveIban, setSaveIban] = useState(false);
   const { confirmPayment, loading } = useConfirmPayment();
@@ -23,8 +26,7 @@ export default function BancontactPaymentScreen() {
         email,
         currency: 'eur',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
-        payment_method_types: ['bancontact'],
+        payment_method_types: ['sofort'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -49,8 +51,9 @@ export default function BancontactPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Bancontact',
+      type: 'Sofort',
       billingDetails,
+      country: 'DE',
       setupFutureUsage: saveIban ? 'OffSession' : undefined,
     });
 
@@ -58,11 +61,14 @@ export default function BancontactPaymentScreen() {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-      );
-      console.log('Success from promise', paymentIntent);
+      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+        Alert.alert('Processing', `The paymentIntent is processing`);
+      } else {
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
+        );
+      }
     }
   };
 
