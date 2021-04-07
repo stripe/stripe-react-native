@@ -1,8 +1,15 @@
 import {
+  AndroidConfig,
   ConfigPlugin,
   createRunOncePlugin,
+  withAndroidManifest,
   withEntitlementsPlist,
 } from '@expo/config-plugins';
+
+const {
+  addMetaDataItemToMainApplication,
+  getMainApplicationOrThrow,
+} = AndroidConfig.Manifest;
 
 const pkg = require('stripe-react-native/package.json');
 
@@ -12,14 +19,16 @@ type StripePluginProps = {
    * Without this, the error "Missing merchant identifier" will be thrown on iOS.
    */
   merchantIdentifier: string;
+  enableGooglePay: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
   config = withStripeIos(config, props);
+  config = withStripeAndroid(config, props);
   return config;
 };
 
-export const withStripeIos: ConfigPlugin<StripePluginProps> = (
+const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
   { merchantIdentifier }
 ) => {
@@ -33,7 +42,7 @@ export const withStripeIos: ConfigPlugin<StripePluginProps> = (
 };
 
 /**
- * Add the following to the entitlements:
+ * Adds the following to the entitlements:
  *
  * <key>com.apple.developer.in-app-payments</key>
  * <array>
@@ -54,6 +63,44 @@ export function setApplePayEntitlement(
 
   entitlements[key] = merchants;
   return entitlements;
+}
+
+const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
+  expoConfig,
+  { enableGooglePay = false }
+) => {
+  return withAndroidManifest(expoConfig, (config) => {
+    config.modResults = setGooglePayMetaData(
+      enableGooglePay,
+      config.modResults
+    );
+
+    return config;
+  });
+};
+
+/**
+ * Adds the following to AndroidManifest.xml:
+ *
+ * <application>
+ *   ...
+ *	 <meta-data
+ *     android:name="com.google.android.gms.wallet.api.enabled"
+ *     android:value="true|false" />
+ * </application>
+ */
+export function setGooglePayMetaData(
+  enabled: boolean,
+  modResults: AndroidConfig.Manifest.AndroidManifest
+): AndroidConfig.Manifest.AndroidManifest {
+  const GOOGLE_PAY_META_NAME = 'com.google.android.gms.wallet.api.enabled';
+  const mainApplication = getMainApplicationOrThrow(modResults);
+  addMetaDataItemToMainApplication(
+    mainApplication,
+    GOOGLE_PAY_META_NAME,
+    enabled.toString()
+  );
+  return modResults;
 }
 
 export default createRunOncePlugin(withStripe, pkg.name, pkg.version);
