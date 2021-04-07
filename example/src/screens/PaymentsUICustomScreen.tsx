@@ -54,6 +54,8 @@ export default function PaymentsUICustomScreen() {
         applePay: true,
         merchantCountryCode: 'US',
         style: 'alwaysDark',
+        googlePay: true,
+        testEnv: true,
       });
 
       if (!error) {

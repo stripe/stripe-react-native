@@ -224,6 +224,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
     val merchantDisplayName = getValOr(params, "merchantDisplayName")
+    val countryCode = getValOr(params, "merchantCountryCode")
+    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
 
     this.initPaymentSheetPromise = promise
 
@@ -233,7 +235,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
       bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
       bundle.putString("merchantDisplayName", merchantDisplayName)
+      bundle.putString("countryCode", countryCode)
       bundle.putBoolean("customFlow", customFlow)
+      bundle.putBoolean("testEnv", testEnv)
 
       it.arguments = bundle
     }

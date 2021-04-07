@@ -375,13 +375,28 @@ If your checkout page has a dedicated Apple Pay button, follow [our Apple Pay gu
 
 First, follow steps 1–3 in our [Accept Apple Pay](https://stripe.com/docs/apple-pay?platform=native-ios#accept) in your iOS app guide. Once you’ve finished adding the Apple Pay capability in Xcode, return to this guide.
 
-Next, [set your merchant ID in `StripeProvider`](./api-reference/components.md#stripeprovider) and `applePay` property during initializing PaymentSheet with your the country code of your business (check your account details [here](https://dashboard.stripe.com/settings/account%5D)):
+Next, [set your merchant ID in `StripeProvider`](./api-reference/components.md#stripeprovider) and `applePay` property during initializing PaymentSheet with the country code of your business (check your account details [here](https://dashboard.stripe.com/settings/account%5D)):
 
 ```tsx
 await initPaymentSheet({
   // ...
   applePay: true,
   merchantCountryCode: 'US',
+});
+```
+
+## Google Pay
+
+First, follow step 1 in our [Accepting Google Pay in your Android app](https://stripe.com/docs/google-pay#setup) guide. Once you’ve finished updating your AndroidManifest.xml, return to this guide.
+
+Next, enable `googlePay` and provide `merchantCountryCode` during initializing PaymentSheet. Additionally you can pass `testEnv` property to force using test environement.
+
+```tsx
+const { error, paymentOption } = await initPaymentSheet({
+  // ...
+  googlePay: true,
+  merchantCountryCode: 'US',
+  testEnv: true, // use test environement
 });
 ```
 
