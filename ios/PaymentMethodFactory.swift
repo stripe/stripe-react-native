@@ -28,6 +28,8 @@ class PaymentMethodFactory {
                 return try createSofortPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.SEPADebit:
+                return try createSepaPaymentMethodParams()
             case STPPaymentMethodType.giropay:
                 return try createGiropayPaymentMethodParams()
             case STPPaymentMethodType.EPS:
@@ -61,6 +63,8 @@ class PaymentMethodFactory {
                 return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.bancontact:
                 return nil
+            case STPPaymentMethodType.SEPADebit:
+                return nil
             case STPPaymentMethodType.OXXO:
                 return nil
             case STPPaymentMethodType.giropay:
@@ -78,11 +82,10 @@ class PaymentMethodFactory {
     }
     
     private func createIDEALPaymentMethodParams() throws -> STPPaymentMethodParams {
-        guard let bankName = self.params?["bankName"] as? String else {
-            throw PaymentMethodError.idealPaymentMissingParams
-        }
         let params = STPPaymentMethodiDEALParams()
-        params.bankName = bankName
+        if let bankName = self.params?["bankName"] as? String {
+            params.bankName = bankName
+        }
         
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
     }
@@ -167,6 +170,21 @@ class PaymentMethodFactory {
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
     }
     
+    private func createSepaPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodSEPADebitParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        guard let iban = self.params?["iban"] as? String else {
+            throw PaymentMethodError.sepaPaymentMissingParams
+        }
+        
+        params.iban = iban
+        
+        return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: nil)
+    }
+  
     private func createOXXOPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodOXXOParams()
         
@@ -206,6 +224,7 @@ enum PaymentMethodError: Error {
     case sofortPaymentMissingParams
     case cardPaymentOptionsMissingParams
     case bancontactPaymentMissingParams
+    case sepaPaymentMissingParams
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
 }
@@ -225,6 +244,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .bancontactPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .sepaPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
         case .epsPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
