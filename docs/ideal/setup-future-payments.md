@@ -81,7 +81,7 @@ The details of the accepted mandate are generated when setting up a payment meth
 
 ## 5. Submit the payment method details to Stripe
 
-Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
+Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmSetupIntent` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
 The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with iDEAL, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
