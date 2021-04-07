@@ -12,6 +12,7 @@ import type { PaymentIntent } from './PaymentIntents';
 import type { PaymentMethod } from './PaymentMethods';
 import type { PaymentSheet } from './PaymentSheet';
 import type { SetupIntent } from './SetupIntent';
+import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
 
 export * from './ApplePay';
 export * from './PaymentIntents';
@@ -139,3 +140,12 @@ export type ConfirmPaymentSheetPaymentResult =
     };
 
 export type ApplePayResult = { error?: StripeError<ApplePayError> };
+
+export interface InitialiseParams {
+  publishableKey: string;
+  appInfo: AppInfo;
+  stripeAccountId?: string;
+  threeDSecureParams?: ThreeDSecureConfigurationParams;
+  merchantIdentifier?: string;
+  urlScheme?: string;
+}

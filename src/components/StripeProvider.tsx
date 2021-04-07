@@ -14,6 +14,7 @@ export interface Props {
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   stripeAccountId?: string;
   children: React.ReactElement | React.ReactElement[];
+  urlScheme?: string;
 }
 
 const appInfo: AppInfo = {
@@ -48,28 +49,37 @@ export function StripeProvider({
   merchantIdentifier,
   threeDSecureParams,
   stripeAccountId,
+  urlScheme,
 }: Props) {
   useEffect(() => {
     if (!publishableKey) {
       return;
     }
     if (isAndroid) {
-      NativeStripeSdk.initialise(
-        publishableKey,
-        appInfo,
-        stripeAccountId,
-        threeDSecureParams
-      );
-    } else {
-      NativeStripeSdk.initialise(
+      NativeStripeSdk.initialise({
         publishableKey,
         appInfo,
         stripeAccountId,
         threeDSecureParams,
-        merchantIdentifier
-      );
+        urlScheme,
+      });
+    } else {
+      NativeStripeSdk.initialise({
+        publishableKey,
+        appInfo,
+        stripeAccountId,
+        threeDSecureParams,
+        merchantIdentifier,
+        urlScheme,
+      });
     }
-  }, [publishableKey, merchantIdentifier, stripeAccountId, threeDSecureParams]);
+  }, [
+    publishableKey,
+    merchantIdentifier,
+    stripeAccountId,
+    threeDSecureParams,
+    urlScheme,
+  ]);
 
-  return <>{children}</>;
+  return <>{publishableKey ? children : null}</>;
 }

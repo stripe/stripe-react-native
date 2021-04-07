@@ -3,7 +3,6 @@ import 'react-native-gesture-handler';
 import { StripeProvider } from 'stripe-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
 import { API_URL } from './Config';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -15,6 +14,20 @@ import { colors } from './colors';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
+import IdealPaymentScreen from './screens/IdealPaymentScreen';
+import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
+import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
+import PaymentResultScreen from './screens/PaymentResultScreen';
+import SofortPaymentScreen from './screens/SofortPaymentScreen';
+import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
+import FPXPaymentScreen from './screens/FPXPaymentScreen';
+import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
+import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
+import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
+import EPSPaymentScreen from './screens/EPSPaymentScreen';
+import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
+import P24PaymentScreen from './screens/P24PaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +48,7 @@ export default function App() {
     <StripeProvider
       publishableKey={publishableKey}
       merchantIdentifier="merchant.com.stripe.react.native"
+      urlScheme="stripe-example"
       threeDSecureParams={{
         backgroundColor: colors.white,
         timeout: 5,
@@ -102,6 +116,52 @@ export default function App() {
           <Stack.Screen
             name="CVCReCollectionScreen"
             component={CVCReCollectionScreen}
+          />
+          <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
+          <Stack.Screen
+            name="IdealSetupFuturePaymentScreen"
+            component={IdealSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="AlipayPaymentScreen"
+            component={AlipayPaymentScreen}
+          />
+          <Stack.Screen name="P24PaymentScreen" component={P24PaymentScreen} />
+          <Stack.Screen
+            name="PaymentResultScreen"
+            component={PaymentResultScreen}
+          />
+          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
+          <Stack.Screen
+            name="SofortPaymentScreen"
+            component={SofortPaymentScreen}
+          />
+          <Stack.Screen
+            name="SofortSetupFuturePaymentScreen"
+            component={SofortSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="GrabPayPaymentScreen"
+            component={GrabPayPaymentScreen}
+          />
+
+          <Stack.Screen
+            name="BancontactPaymentScreen"
+            component={BancontactPaymentScreen}
+          />
+          <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
+
+          <Stack.Screen
+            name="BancontactSetupFuturePaymentScreen"
+            component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="OxxoPaymentScreen"
+            component={OxxoPaymentScreen}
+          />
+          <Stack.Screen
+            name="GiropayPaymentScreen"
+            component={GiropayPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

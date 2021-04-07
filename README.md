@@ -4,6 +4,8 @@ Stripe SDK for React Native
 
 ## Installation
 
+> ⚠️ PLEASE NOTE: This library is currently in private beta and not yet published to the registry. Please see [these intructions](https://github.com/stripe/stripe-react-native/blob/master/CONTRIBUTING.md#install-library-as-local-repository) for installation.
+
 ```sh
 yarn add stripe-react-native
 or
@@ -15,6 +17,16 @@ npm install stripe-react-native
 ##### Requirements
 
 - Minimum SDK version is `21`
+- To install the SDK, add jitpack.io as a repository in your top level `build.gradle` file. (see [example](https://github.com/stripe/stripe-react-native/blob/master/example/android/build.gradle)).
+
+```
+allprojects {
+  repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+  }
+}
+```
 
 ### iOS
 
@@ -22,7 +34,7 @@ npm install stripe-react-native
 
 - Minimum deployment target is `11.0`
 
-For iOS you will have to run `pod install` in `ios` directory to install native dependencies.
+For iOS you will have to run `pod install` in the `ios` directory to install the native dependencies.
 
 ## Usage example
 
@@ -44,7 +56,29 @@ export default function PaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const { confirmPayment, handleCardAction } = useStripe();
 
-  return <CardField onCardChange={setCard} />;
+  return (
+    <CardField
+      postalCodeEnabled={true}
+      placeholder={{
+        number: '4242 4242 4242 4242',
+      }}
+      cardStyle={{
+        backgroundColor: '#FFFFFF',
+        textColor: '#000000',
+      }}
+      style={{
+        width: '100%',
+        height: 50,
+        marginVertical: 30,
+      }}
+      onCardChange={(cardDetails) => {
+        setCard(cardDetails);
+      }}
+      onFocus={(focusedField) => {
+        console.log('focusField', focusedField);
+      }}
+    />
+  );
 }
 ```
 
@@ -91,7 +125,7 @@ You can find more details about StripeProvider in [API reference](./docs/api-ref
 - Start the example
   - Terminal 1: `yarn example start:server`
   - Terminal 2: `yarn example start`
-  - Terminal 3: `yarn example android`
+  - Terminal 3: `yarn example ios` / `yarn example android`
 
 ##### Additional steps for webhook forwarding
 
@@ -120,11 +154,16 @@ Temprary workaround for this issue is following these steps:
 
 ## Guides
 
-- [Accept a payment - classic](./docs/accept-a-payment.md)
+- [Accept a payment](https://stripe.com/docs/payments/accept-a-payment?platform=react-native)
+- [Card payments without bank authentication](https://stripe.com/docs/payments/without-card-authentication?platform=react-native)
+- [Save a card without bank authentication](https://stripe.com/docs/payments/save-card-without-authentication?platform=react-native)
+- [Upgrade to handle authentication](https://stripe.com/docs/payments/payment-intents/upgrade-to-handle-actions?platform=react-native)
+- [Set up future payments](https://stripe.com/docs/payments/save-and-reuse?platform=react-native)
+- [Save a card during payment](https://stripe.com/docs/payments/save-during-payment?platform=react-native)
+- [Finalize payments on the server](https://stripe.com/docs/payments/accept-a-payment-synchronously?platform=react-native)
+- [Apple Pay](https://stripe.com/docs/apple-pay?platform=react-native)
+- [3D secure](https://stripe.com/docs/payments/3d-secure#when-to-use-3d-secure)
 - [Accept a payment - integration builder](./docs/accept-a-payment-integration.md)
-- [3D secure](./docs/3d-secure.md)
-- [Apple Pay](./docs/apple-pay.md)
-- [Set up future payments](./docs/set-up-future-payments.md)
 
 ## API reference
 

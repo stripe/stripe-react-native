@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import Screen from '../components/Screen';
 import {
   CardFieldInput,
-  CreatePaymentMethod,
+  PaymentMethodCreateParams,
   PaymentIntents,
 } from 'stripe-react-native';
 
@@ -60,7 +60,7 @@ export default function NoWebhookPaymentScreen() {
 
     setLoading(true);
     // 1. Gather customer billing information (ex. email)
-    const billingDetails: CreatePaymentMethod.BillingDetails = {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
       addressCity: 'Houston',
@@ -139,7 +139,6 @@ export default function NoWebhookPaymentScreen() {
   return (
     <Screen>
       <CardField
-        postalCodeEnabled={true}
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
           setCard(cardDetails);

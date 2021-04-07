@@ -1,4 +1,5 @@
 import type { Nullable, StripeError } from '.';
+import type { CardFieldInput } from './components/CardFieldInput';
 import type { PaymentMethods } from './PaymentMethods';
 
 export interface SetupIntent {
@@ -14,7 +15,39 @@ export interface SetupIntent {
   description: Nullable<string>;
 }
 
-export declare namespace SetupIntents {
+export namespace ConfirmSetupIntent {
+  export type Params =
+    | CardParams
+    | IdealParams
+    | BancontactParams
+    | SofortParams;
+
+  export interface Options {}
+
+  export interface BaseParams {
+    billingDetails?: PaymentMethods.BillingDetails;
+  }
+
+  export interface CardParams extends BaseParams {
+    type: 'Card';
+    cardDetails: CardFieldInput.Details;
+  }
+
+  export interface IdealParams extends BaseParams {
+    type: 'Ideal';
+    bankName: string;
+  }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
+  export interface BancontactParams extends Required<BaseParams> {
+    type: 'Bancontact';
+  }
+}
+
+export namespace SetupIntents {
   export type FutureUsage =
     | 'Unknown'
     | 'None'

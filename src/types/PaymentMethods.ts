@@ -17,8 +17,19 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace CreatePaymentMethod {
-  export type Params = CardParams | AlipayParams;
+export namespace PaymentMethodCreateParams {
+  export type Params =
+    | CardParams
+    | IdealParams
+    | OxxoParams
+    | P24Params
+    | AlipayParams
+    | GiropayParams
+    | EpsParams
+    | SofortParams
+    | GrabPayParams
+    | FPXParams
+    | BancontactParams;
 
   export type BillingDetails = {
     email?: string;
@@ -41,7 +52,7 @@ export declare namespace CreatePaymentMethod {
   export type CardParams =
     | (BaseParams & {
         type: 'Card';
-        cardDetails: CardFieldInput.Details;
+        cardDetails: CardFieldInput.Details | { token: string };
         setupFutureUsage?: PaymentIntents.FutureUsage;
       })
     | (BaseParams & {
@@ -50,8 +61,46 @@ export declare namespace CreatePaymentMethod {
         cvc?: string;
       });
 
-  export interface AlipayParams extends BaseParams {
+  export interface IdealParams extends BaseParams {
+    type: 'Ideal';
+    bankName: string;
+  }
+
+  export interface FPXParams {
+    type: 'Fpx';
+    testOfflineBank?: boolean;
+  }
+
+  export interface AlipayParams {
     type: 'Alipay';
+  }
+
+  export interface OxxoParams extends Required<BaseParams> {
+    type: 'Oxxo';
+  }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+  }
+  export interface GrabPayParams extends BaseParams {
+    type: 'GrabPay';
+  }
+
+  export interface BancontactParams extends Required<BaseParams> {
+    type: 'Bancontact';
+  }
+
+  export interface GiropayParams extends Required<BaseParams> {
+    type: 'Giropay';
+  }
+
+  export interface EpsParams extends Required<BaseParams> {
+    type: 'Eps';
+  }
+
+  export interface P24Params extends Required<BaseParams> {
+    type: 'P24';
   }
 }
 
@@ -122,7 +171,7 @@ export declare namespace PaymentMethods {
     | 'AfterpayClearpay'
     | 'Card'
     | 'Alipay'
-    | 'Grabpay'
+    | 'GrabPay'
     | 'Ideal'
     | 'Fpx'
     | 'CardPresent'
