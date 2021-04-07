@@ -2,7 +2,12 @@ import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../NativeStripeSdk';
 import { isAndroid } from '../helpers';
-import type { AppInfo, ThreeDSecureConfigurationParams } from '../types';
+import type {
+  AppInfo,
+  ThreeDSecureConfigurationParams,
+  InitStripeParams,
+  InitialiseParams,
+} from '../types';
 import pjson from '../../package.json';
 
 /**
@@ -21,6 +26,11 @@ const appInfo: AppInfo = {
   name: pjson.name,
   url: pjson.repository,
   version: pjson.version,
+};
+
+export const initStripe = (params: InitStripeParams): void => {
+  const extendedParams: InitialiseParams = { ...params, appInfo };
+  NativeStripeSdk.initialise(extendedParams);
 };
 
 /**
