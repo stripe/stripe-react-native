@@ -160,7 +160,14 @@ export default function HomeScreen() {
             }}
           />
         </View>
-
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Setup Future SEPA Direct Debit payment"
+            onPress={() => {
+              navigation.navigate('SepaSetupFuturePaymentScreen');
+            }}
+          />
+        </View>
         <View style={styles.buttonContainer}>
           <Button
             title="GrabPay Payment"
