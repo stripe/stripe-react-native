@@ -20,7 +20,7 @@ For iOS you will have to run `pod install` inside `ios` directory in order to in
 
 #### 2.B. Configure the SDK
 
-Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
+Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application or `initialise` method alternatively.
 
 #### 2.C. Create a payment form
 

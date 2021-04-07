@@ -20,9 +20,9 @@ Stripe’s [React Native SDK](https://github.com/stripe/stripe-react-native/) ma
 6. [Present the payment sheet](#step-6-present-the-payment-sheet)
 7. [Submit the payment to Stripe](#step-7-submit-the-payment-to-stripe)
 
-## Step 4: Set up marchantId in Stripe Provider
+## Step 4: Set up marchantId
 
-Next, you need to set up previously registered marchantId in `StripeProvider` component.
+Next, you need to set up previously registered marchantId in `StripeProvider` component or use `initialise` method alternatively.
 
 ```tsx
 <StripeProvider
@@ -32,6 +32,15 @@ Next, you need to set up previously registered marchantId in `StripeProvider` co
 >
   <App>
 </StripeProvider>
+```
+
+or
+
+```tsx
+initialise({
+  publishableKey = 'pk_test_...',
+  merchantIdentifier = 'merchant.com.stripe.react.native',
+});
 ```
 
 ## Step 5: Check if Apple Pay is supported
