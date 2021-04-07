@@ -6,6 +6,7 @@ export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 
 //components
 export {
+  initStripe,
   StripeProvider,
   Props as StripeProviderProps,
 } from './components/StripeProvider';
