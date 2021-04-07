@@ -369,6 +369,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
+        if let setupFutureUsage = params["setupFutureUsage"] as? String {
+            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
+        }
         
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
