@@ -23,7 +23,8 @@ expo: {
     [
       "stripe-react-native",
       {
-        "merchantIdentifier": "my.merchant.id"
+        "merchantIdentifier": "my.merchant.id",
+        "enableGooglePay": boolean
       }
     ]
   ],
