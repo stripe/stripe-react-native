@@ -1,4 +1,15 @@
-import { setApplePayEntitlement } from '../withStripe';
+import { AndroidConfig } from '@expo/config-plugins';
+import { resolve } from 'path';
+
+import { setApplePayEntitlement, setGooglePayMetaData } from '../withStripe';
+
+const {
+  getMainApplicationOrThrow,
+  readAndroidManifestAsync,
+} = AndroidConfig.Manifest;
+
+const fixturesPath = resolve(__dirname, 'fixtures');
+const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
 
 describe(setApplePayEntitlement, () => {
   it(`sets the apple pay entitlement when none exist`, () => {
@@ -30,5 +41,35 @@ describe(setApplePayEntitlement, () => {
     ).toMatchObject({
       'com.apple.developer.in-app-payments': ['merchant.com.example'],
     });
+  });
+});
+
+describe(setGooglePayMetaData, () => {
+  it(`Properly sets GooglePay metadata in AndroidManifest to true, then to false`, async () => {
+    let androidManifestJson = await readAndroidManifestAsync(
+      sampleManifestPath
+    );
+    androidManifestJson = setGooglePayMetaData(true, androidManifestJson);
+    let mainApplication = getMainApplicationOrThrow(androidManifestJson);
+    if (!mainApplication['meta-data']) {
+      throw new Error('Failed to add metadata to AndroidManifest.xml');
+    }
+    let apiKeyItem = mainApplication['meta-data'].filter(
+      (e) => e.$['android:name'] === 'com.google.android.gms.wallet.api.enabled'
+    );
+    expect(apiKeyItem).toHaveLength(1);
+    expect(apiKeyItem[0].$['android:value']).toMatch('true');
+
+    // Now let's make sure we can set it back to false, and NOT add a new metadata item
+    androidManifestJson = setGooglePayMetaData(false, androidManifestJson);
+    mainApplication = getMainApplicationOrThrow(androidManifestJson);
+    if (!mainApplication['meta-data']) {
+      throw new Error('Failed to add metadata to AndroidManifest.xml');
+    }
+    apiKeyItem = mainApplication['meta-data'].filter(
+      (e) => e.$['android:name'] === 'com.google.android.gms.wallet.api.enabled'
+    );
+    expect(apiKeyItem).toHaveLength(1);
+    expect(apiKeyItem[0].$['android:value']).toMatch('false');
   });
 });
