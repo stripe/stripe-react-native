@@ -20,7 +20,7 @@ export interface Props {
 }
 
 const appInfo: AppInfo = {
-  name: pjson.name + shouldAttributeExpo ? ' expo' : '',
+  name: shouldAttributeExpo ? `${pjson.name}/expo` : pjson.name,
   url: pjson.repository,
   version: pjson.version,
   partnerId: shouldAttributeExpo ? EXPO_PARTNER_ID : undefined,
