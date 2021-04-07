@@ -20,7 +20,8 @@ export namespace ConfirmSetupIntent {
     | CardParams
     | IdealParams
     | BancontactParams
-    | SofortParams;
+    | SofortParams
+    | SepaParams;
 
   export interface Options {}
 
@@ -44,6 +45,11 @@ export namespace ConfirmSetupIntent {
   }
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
+  }
+
+  export interface SepaParams extends Required<BaseParams> {
+    type: 'SepaDebit';
+    iban: string;
   }
 }
 
