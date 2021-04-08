@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
-import { useConfirmSetupIntent } from 'stripe-react-native';
+import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
 import Screen from '../components/Screen';
-import type { PaymentMethodCreateParams } from 'stripe-react-native';
+import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 
 export default function IdealSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
