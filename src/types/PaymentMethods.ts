@@ -25,6 +25,7 @@ export namespace PaymentMethodCreateParams {
     | P24Params
     | AlipayParams
     | GiropayParams
+    | SepaParams
     | EpsParams
     | SofortParams
     | GrabPayParams
@@ -63,7 +64,8 @@ export namespace PaymentMethodCreateParams {
 
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
-    bankName: string;
+    bankName?: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
   }
 
   export interface FPXParams {
@@ -82,6 +84,7 @@ export namespace PaymentMethodCreateParams {
   export interface SofortParams extends BaseParams {
     type: 'Sofort';
     country: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
   }
   export interface GrabPayParams extends BaseParams {
     type: 'GrabPay';
@@ -89,6 +92,13 @@ export namespace PaymentMethodCreateParams {
 
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
+    setupFutureUsage?: PaymentIntents.FutureUsage;
+  }
+
+  export interface SepaParams extends Required<BaseParams> {
+    type: 'SepaDebit';
+    iban: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
   }
 
   export interface GiropayParams extends Required<BaseParams> {

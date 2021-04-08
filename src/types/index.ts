@@ -141,11 +141,14 @@ export type ConfirmPaymentSheetPaymentResult =
 
 export type ApplePayResult = { error?: StripeError<ApplePayError> };
 
-export interface InitialiseParams {
+export interface InitStripeParams {
   publishableKey: string;
-  appInfo: AppInfo;
   stripeAccountId?: string;
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   merchantIdentifier?: string;
   urlScheme?: string;
+}
+
+export interface InitialiseParams extends InitStripeParams {
+  appInfo: AppInfo;
 }

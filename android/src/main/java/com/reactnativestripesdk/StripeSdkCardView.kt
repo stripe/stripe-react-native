@@ -27,6 +27,11 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget = CardInputWidget(context);
     mEventDispatcher = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
 
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    binding.container.isFocusable = true
+    binding.container.isFocusableInTouchMode = true
+    binding.container.requestFocus()
+
     addView(mCardWidget)
     setListeners()
 

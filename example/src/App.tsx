@@ -23,6 +23,8 @@ import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentSc
 import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import SepaPaymentScreen from './screens/SepaPaymentScreen';
+import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
 import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
@@ -144,16 +146,22 @@ export default function App() {
             name="GrabPayPaymentScreen"
             component={GrabPayPaymentScreen}
           />
-
           <Stack.Screen
             name="BancontactPaymentScreen"
             component={BancontactPaymentScreen}
           />
           <Stack.Screen name="EPSPaymentScreen" component={EPSPaymentScreen} />
-
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="SepaPaymentScreen"
+            component={SepaPaymentScreen}
+          />
+          <Stack.Screen
+            name="SepaSetupFuturePaymentScreen"
+            component={SepaSetupFuturePaymentScreen}
           />
           <Stack.Screen
             name="OxxoPaymentScreen"

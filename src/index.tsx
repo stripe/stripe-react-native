@@ -7,6 +7,7 @@ export { usePaymentSheet } from './hooks/usePaymentSheet';
 
 //components
 export {
+  initStripe,
   StripeProvider,
   Props as StripeProviderProps,
 } from './components/StripeProvider';
