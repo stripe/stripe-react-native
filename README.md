@@ -21,6 +21,8 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
+**Prebuilt payments UI beta**: [Learn how to integrate](https://stripe.com/docs/mobile/payments-ui-beta) our prebuilt payments UI for mobile apps.
+
 ## Installation
 
 ```sh
@@ -34,22 +36,12 @@ npm install @stripe/stripe-react-native
 #### Android
 
 - Minimum SDK version is `21`
-- To install the SDK, add jitpack.io as a repository in your top level `build.gradle` file. (see [example](https://github.com/stripe/stripe-react-native/blob/master/example/android/build.gradle)).
-
-```
-allprojects {
-  repositories {
-    ...
-    maven { url 'https://jitpack.io' }
-  }
-}
-```
 
 #### iOS
 
 - Minimum deployment target is `11.0`
 
-For iOS you will have to run `pod install` in the `ios` directory to install the native dependencies.
+For iOS you need to run `pod install` in your `ios` directory to install the native dependencies.
 
 ## Usage example
 
@@ -103,9 +95,9 @@ export default function PaymentScreen() {
 
 ## Stripe initialisation
 
-To initialise Stripe in React Native App use `StripeProvider` component in the root component of your application or `initStripe` method alternatively.
+To initialise Stripe in your React Native App use the `StripeProvider` component in the root component of your application or use the `initStripe` method alternatively.
 
-`StripeProvider` can accept `urlScheme`, `publishableKey`, `stripeAccountId`, `threeDSecureParams` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch `publishableKey` from your server and then use it in `StripeProvider`.
+`StripeProvider` can accept `urlScheme`, `publishableKey`, `stripeAccountId`, `threeDSecureParams` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch your `publishableKey` from your server.
 
 ```tsx
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -150,7 +142,7 @@ function App() {
 }
 ```
 
-You can find more details about StripeProvider in [API reference](./docs/api-reference.md#stripeprovider).
+You can find more details about the `StripeProvider` component in the [API reference](https://stripe.dev/stripe-react-native/api-reference/modules.html#stripeprovider).
 
 ## Run the example app
 
@@ -170,9 +162,7 @@ You can find more details about StripeProvider in [API reference](./docs/api-ref
 
 ## Troubleshooting
 
-While building your iOS project there might appear an issue with says about undefined symbols for architecture x86_64. It follows from some specific `react-native init` template configuration which is not fully compatibile with `swift 5.1` which is used in our SDK.
-
-error example:
+While building your iOS project you might run into the issue of undefined symbols for architecture x86_64. It fstems from some specific `react-native init` template configuration which is not fully compatibile with `swift 5.1` which is used in the SDK.
 
 ```
 Undefined symbols for architecture x86_64:
@@ -182,33 +172,12 @@ Undefined symbols for architecture x86_64:
       __swift_FORCE_LOAD_$_swiftUniformTypeIdentifiers_$_Stripe in libStripe.a(PKPaymentAuthorizationViewController+Stripe_Blocks.o)
 ```
 
-Temprary workaround for this issue is following these steps:
+Follow these steps to resolve this:
 
 - Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
   `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
-- Open Xcode and create a new Swift file to the project (File > New > File > Swift), call it whatever you want and create bridging header when it ask about it.
-
-## Guides
-
-- [Accept a payment](https://stripe.com/docs/payments/accept-a-payment?platform=react-native)
-- [Card payments without bank authentication](https://stripe.com/docs/payments/without-card-authentication?platform=react-native)
-- [Save a card without bank authentication](https://stripe.com/docs/payments/save-card-without-authentication?platform=react-native)
-- [Upgrade to handle authentication](https://stripe.com/docs/payments/payment-intents/upgrade-to-handle-actions?platform=react-native)
-- [Set up future payments](https://stripe.com/docs/payments/save-and-reuse?platform=react-native)
-- [Save a card during payment](https://stripe.com/docs/payments/save-during-payment?platform=react-native)
-- [Finalize payments on the server](https://stripe.com/docs/payments/accept-a-payment-synchronously?platform=react-native)
-- [Apple Pay](https://stripe.com/docs/apple-pay?platform=react-native)
-- [3D secure](https://stripe.com/docs/payments/3d-secure#when-to-use-3d-secure)
-- [Accept a payment - integration builder](./docs/accept-a-payment-integration.md)
-
-## API reference
-
-You can find API reference [here](./docs/api-reference.md)
+- Open Xcode and create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
 
 ## Contributing
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
-
-## License
-
-MIT
+See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
