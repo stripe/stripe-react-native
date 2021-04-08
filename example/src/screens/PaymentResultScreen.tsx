@@ -1,5 +1,5 @@
 import React from 'react';
-import { PaymentIntent, useStripe } from 'stripe-react-native';
+import { PaymentIntent, useStripe } from '@stripe/stripe-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
