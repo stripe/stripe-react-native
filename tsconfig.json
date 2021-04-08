@@ -27,7 +27,8 @@
       "node",
       "webdriverio/sync",
       "@wdio/mocha-framework",
-      "expect-webdriverio"
+      "expect-webdriverio",
+      "@wdio/appium-service"
     ]
   }
 }

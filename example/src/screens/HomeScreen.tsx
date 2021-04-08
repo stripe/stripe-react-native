@@ -45,6 +45,7 @@ export default function HomeScreen() {
     <Screen>
       <View style={styles.buttonContainer}>
         <Button
+          accessibilityLabel="go"
           title="Card payment using webhooks"
           onPress={() => {
             navigation.navigate('WebhookPayment');
@@ -94,6 +95,7 @@ export default function HomeScreen() {
 
       <View style={styles.buttonContainer}>
         <Button
+          accessibilityLabel="bancontact"
           title="Bancontact Payment"
           onPress={() => {
             navigation.navigate('BancontactPaymentScreen');

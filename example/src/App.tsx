@@ -39,9 +39,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
-      <View accessibilityLabel="test2" />
-
+    <View style={{ flex: 1 }} accessibilityLabel="app-root">
       <StripeProvider
         publishableKey={publishableKey}
         merchantIdentifier="merchant.com.stripe.react.native"
@@ -147,6 +145,6 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </StripeProvider>
-    </>
+    </View>
   );
 }

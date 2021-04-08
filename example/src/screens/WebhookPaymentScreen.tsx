@@ -79,6 +79,7 @@ export default function WebhookPaymentScreen() {
   return (
     <Screen>
       <TextInput
+        accessibilityLabel="input"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}

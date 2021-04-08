@@ -65,6 +65,7 @@ export default function BancontactPaymentScreen() {
   return (
     <Screen>
       <TextInput
+        accessibilityLabel="email"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
@@ -73,6 +74,7 @@ export default function BancontactPaymentScreen() {
 
       <Button
         variant="primary"
+        accessibilityLabel="pay"
         onPress={handlePayPress}
         title="Pay"
         loading={loading}
