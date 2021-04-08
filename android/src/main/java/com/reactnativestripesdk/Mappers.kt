@@ -387,7 +387,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getIntOrNull(textBoxCustomization, "borderWidth")?.let {
     textBoxCustomizationBuilder.setBorderWidth(it)
   }
-  getIntOrNull(textBoxCustomization, "cornerRadius")?.let {
+  getIntOrNull(textBoxCustomization, "borderRadius")?.let {
     textBoxCustomizationBuilder.setCornerRadius(it)
   }
   getIntOrNull(textBoxCustomization, "textFontSize")?.let {
@@ -397,7 +397,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(buttonCustomization, "backgroundColor")?.let {
     buttonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(buttonCustomization, "cornerRadius")?.let {
+  getIntOrNull(buttonCustomization, "borderRadius")?.let {
     buttonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(buttonCustomization, "textColor")?.let {

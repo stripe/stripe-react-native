@@ -54,7 +54,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderWidth = getIntOrNull(value, "borderWidth")
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val borderColor = getValOr(value, "borderColor", null)
-    val cornerRadius = getIntOrNull(value, "cornerRadius") ?: 0
+    val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
     val fontSize = getIntOrNull(value,"fontSize")
     val placeholderColor = getValOr(value, "placeholderColor", null)
@@ -89,7 +89,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
-        .setAllCorners(CornerFamily.ROUNDED, (cornerRadius * 2).toFloat())
+        .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
         .build()
     ).also { shape ->
       shape.strokeWidth = 0.0f

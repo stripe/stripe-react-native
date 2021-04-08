@@ -40,7 +40,7 @@ function PaymentScreen() {
         },
         submitButton: {
           backgroundColor: '#000000',
-          cornerRadius: 12,
+          borderRadius: 12,
           textColor: '#FFFFFF',
           textFontSize: 14,
         },
