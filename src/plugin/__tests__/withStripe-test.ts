@@ -42,6 +42,30 @@ describe(setApplePayEntitlement, () => {
       'com.apple.developer.in-app-payments': ['merchant.com.example'],
     });
   });
+
+  it(`properly handles multiple merchantIdentifiers`, () => {
+    expect(
+      setApplePayEntitlement(['merchant.com.example', 'merchant.com.example'], {
+        'com.apple.developer.in-app-payments': ['merchant.com.example'],
+      })
+    ).toMatchObject({
+      'com.apple.developer.in-app-payments': ['merchant.com.example'],
+    });
+
+    expect(
+      setApplePayEntitlement(
+        ['merchant.com.example', 'merchant.com.example.different'],
+        {
+          'com.apple.developer.in-app-payments': ['merchant.com.example'],
+        }
+      )
+    ).toMatchObject({
+      'com.apple.developer.in-app-payments': [
+        'merchant.com.example',
+        'merchant.com.example.different',
+      ],
+    });
+  });
 });
 
 describe(setGooglePayMetaData, () => {

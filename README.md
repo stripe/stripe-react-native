@@ -23,7 +23,7 @@ expo: {
     [
       "stripe-react-native",
       {
-        "merchantIdentifier": "my.merchant.id",
+        "merchantIdentifier": string | string [],
         "enableGooglePay": boolean
       }
     ]
@@ -31,7 +31,7 @@ expo: {
 }
 ```
 
-to your `app.json` file, where `my.merchant.id` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected.
+to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can provide them all in an array.
 
 ### Android
 
