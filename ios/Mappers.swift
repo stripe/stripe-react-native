@@ -518,8 +518,8 @@ class Mappers {
             if let borderWidth = textFieldSettings["borderWidth"] as? Int {
                 uiCustomization.textFieldCustomization.borderWidth = CGFloat(borderWidth)
             }
-            if let cornerRadius = textFieldSettings["cornerRadius"] as? Int {
-                uiCustomization.textFieldCustomization.cornerRadius = CGFloat(cornerRadius)
+            if let borderRadius = textFieldSettings["borderRadius"] as? Int {
+                uiCustomization.textFieldCustomization.cornerRadius = CGFloat(borderRadius)
             }
             if let textColor = textFieldSettings["textColor"] as? String {
                 uiCustomization.textFieldCustomization.textColor = UIColor(hexString: textColor)
@@ -550,8 +550,8 @@ class Mappers {
             if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
                 buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
             }
-            if let cornerRadius = submitButtonSettings["cornerRadius"] as? Int {
-                buttonCustomization.cornerRadius = CGFloat(cornerRadius)
+            if let borderRadius = submitButtonSettings["borderRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(borderRadius)
             }
             if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
                 buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
