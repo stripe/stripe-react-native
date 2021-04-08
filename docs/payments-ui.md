@@ -6,15 +6,9 @@ The Payments UI is a prebuilt bottom sheet for handling payments both on iOS and
 
 ### Client side
 
-The React Native SDK is open source and fully documented. Under the hood it uses native Android and iOS SDKs.
+The latest beta release can be found on the [`payment-sheet` branch](https://github.com/stripe/stripe-react-native/tree/payment-sheet). Git clone the repository to your local machine, checkout the `payment-sheet` branch, run `yarn bootstrap`, and finally [follow the instructions](https://github.com/stripe/stripe-react-native/blob/master/CONTRIBUTING.md#install-library-as-local-repository) to install the library.
 
-To install the SDK run the following command in your terminal:
-
-```sh
-yarn add stripe-react-native
-```
-
-For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
+For iOS you will have to run `pod install` in your `ios` directory in order to install needed native dependencies. Android doesn't require any additional steps.
 
 Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
 
@@ -389,16 +383,18 @@ await initPaymentSheet({
 
 First, follow step 1 in our [Accepting Google Pay in your Android app](https://stripe.com/docs/google-pay#setup) guide. Once you’ve finished updating your AndroidManifest.xml, return to this guide.
 
-Next, enable `googlePay` and provide `merchantCountryCode` during initializing PaymentSheet. Additionally you can pass `testEnv` property to force using test environement.
+Next, enable `googlePay` and provide your `merchantCountryCode` when initializing PaymentSheet. Additionally you can pass the `testEnv` property to force using the test environment. Note that Google Pay requires approval for [production access](https://developers.google.com/pay/api/android/guides/test-and-deploy/request-prod-access).
 
 ```tsx
 const { error, paymentOption } = await initPaymentSheet({
   // ...
   googlePay: true,
   merchantCountryCode: 'US',
-  testEnv: true, // use test environement
+  testEnv: true, // use test environment
 });
 ```
+
+Note that Google Pay can only be tested on a physical device. Follow the [React Native docs](https://reactnative.dev/docs/running-on-device) to run your application on a physical Android device.
 
 ## Card scanning
 

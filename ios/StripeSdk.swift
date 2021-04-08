@@ -12,7 +12,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
-    var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
