@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
-import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
-import { API_URL } from '../Config';
-import Button from '../components/Button';
-import { colors } from '../colors';
-import Screen from '../components/Screen';
 import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, TextInput } from 'react-native';
+import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
+import Button from '../components/Button';
+import Screen from '../components/Screen';
+import { API_URL } from '../Config';
+import { colors } from '../colors';
 
-export default function IdealSetupFuturePaymentScreen() {
+export default function SepaSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
-  const [bankName, setBankName] = useState<string>();
-
+  const [iban, setIban] = useState('');
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
   const createSetupIntentOnBackend = async (customerEmail: string) => {
@@ -21,7 +20,7 @@ export default function IdealSetupFuturePaymentScreen() {
       },
       body: JSON.stringify({
         email: customerEmail,
-        payment_method_types: ['ideal'],
+        payment_method_types: ['sepa_debit'],
       }),
     });
     const { clientSecret } = await response.json();
@@ -33,14 +32,14 @@ export default function IdealSetupFuturePaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(email);
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      email: email,
       name: 'John Doe',
+      email: email,
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'Ideal',
+      type: 'SepaDebit',
       billingDetails,
-      bankName,
+      iban,
     });
 
     if (error) {
@@ -61,28 +60,17 @@ export default function IdealSetupFuturePaymentScreen() {
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
-
       <TextInput
-        placeholder="Bank name"
-        onChange={(value) => {
-          const text =
-            value.nativeEvent.text.length > 0
-              ? value.nativeEvent.text.toLowerCase()
-              : undefined;
-          setBankName(text);
-        }}
+        placeholder="Iban"
+        onChange={(value) => setIban(value.nativeEvent.text.toLowerCase())}
         style={styles.input}
       />
-
-      <View style={styles.buttonContainer}>
-        <Button
-          variant="primary"
-          onPress={handlePayPress}
-          title="Save"
-          loading={loading}
-          disabled={!email}
-        />
-      </View>
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Save IBAN"
+        loading={loading}
+      />
     </Screen>
   );
 }
@@ -93,19 +81,18 @@ const styles = StyleSheet.create({
     height: 50,
     marginVertical: 30,
   },
-  emailField: {
-    borderWidth: 1,
-    borderColor: 'lightgrey',
-    borderRadius: 6,
-    marginVertical: 8,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
   },
-  buttonContainer: {
-    marginTop: 20,
+  text: {
+    marginLeft: 12,
   },
   input: {
     height: 44,
-    marginBottom: 20,
     borderBottomColor: colors.slate,
     borderBottomWidth: 1.5,
+    marginBottom: 20,
   },
 });
