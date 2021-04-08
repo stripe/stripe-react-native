@@ -1,20 +1,37 @@
-# stripe-react-native
+# Stripe React Native SDK
 
-Stripe SDK for React Native
+[![npm version](https://img.shields.io/npm/v/@stripe/stripe-react-native.svg?style=flat-square)](https://www.npmjs.com/package/@stripe/stripe-react-native)
+[![License](https://img.shields.io/github/license/stripe/stripe-react-native)](https://github.com/stripe/stripe-react-native/blob/master/LICENSE)
+
+The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
+
+Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
+
+> Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md).
+
+## Features
+
+**Simplified Security**: We make it simple for you to collect sensitive data such as credit card numbers and remain [PCI compliant](https://stripe.com/docs/security#pci-dss-guidelines). This means the sensitive data is sent directly to Stripe instead of passing through your server. For more information, see our [Integration Security Guide](https://stripe.com/docs/security).
+
+**Apple Pay**: We provide a [seamless integration with Apple Pay](https://stripe.com/docs/apple-pay).
+
+**Payment methods**: Accepting more [payment methods](https://stripe.com/docs/payments/payment-methods/overview) helps your business expand its global reach and improve checkout conversion.
+
+**SCA-Ready**: The SDK automatically performs native [3D Secure authentication](https://stripe.com/docs/payments/3d-secure) if needed to comply with [Strong Customer Authentication](https://stripe.com/docs/strong-customer-authentication) regulation in Europe.
+
+**Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
 ## Installation
 
-> ⚠️ PLEASE NOTE: This library is currently in private beta and not yet published to the registry. Please see [these intructions](https://github.com/stripe/stripe-react-native/blob/master/CONTRIBUTING.md#install-library-as-local-repository) for installation.
-
 ```sh
-yarn add stripe-react-native
+yarn add @stripe/stripe-react-native
 or
-npm install stripe-react-native
+npm install @stripe/stripe-react-native
 ```
 
-### Android
+### Requirements
 
-##### Requirements
+#### Android
 
 - Minimum SDK version is `21`
 - To install the SDK, add jitpack.io as a repository in your top level `build.gradle` file. (see [example](https://github.com/stripe/stripe-react-native/blob/master/example/android/build.gradle)).
@@ -28,9 +45,7 @@ allprojects {
 }
 ```
 
-### iOS
-
-##### Requirements
+#### iOS
 
 - Minimum deployment target is `11.0`
 
@@ -40,7 +55,7 @@ For iOS you will have to run `pod install` in the `ios` directory to install the
 
 ```tsx
 // App.ts
-import { StripeProvider } from 'stripe-react-native';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 <StripeProvider
   publishableKey={publishableKey}
@@ -50,7 +65,11 @@ import { StripeProvider } from 'stripe-react-native';
 </StripeProvider>;
 
 // PaymentScreen.ts
-import { CardField, CardFieldInput, useStripe } from 'stripe-react-native';
+import {
+  CardField,
+  CardFieldInput,
+  useStripe,
+} from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);
@@ -89,7 +108,7 @@ To initialise Stripe in React Native App use `StripeProvider` component in the r
 `StripeProvider` can accept `urlScheme`, `publishableKey`, `stripeAccountId`, `threeDSecureParams` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch `publishableKey` from your server and then use it in `StripeProvider`.
 
 ```tsx
-import { StripeProvider } from 'stripe-react-native';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 function App() {
   const [publishableKey, setPublishableKey] = useState('');
@@ -117,7 +136,7 @@ function App() {
 or
 
 ```tsx
-import { initStripe } from 'stripe-react-native';
+import { initStripe } from '@stripe/stripe-react-native';
 
 function App() {
   // ...
