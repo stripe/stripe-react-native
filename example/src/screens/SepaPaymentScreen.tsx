@@ -1,4 +1,7 @@
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import {
+  PaymentIntents,
+  PaymentMethodCreateParams,
+} from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
 import Checkbox from '@react-native-community/checkbox';
@@ -8,10 +11,11 @@ import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function BancontactPaymentScreen() {
+export default function SepaPaymentScreen() {
   const [email, setEmail] = useState('');
-  const [saveIban, setSaveIban] = useState(false);
   const { confirmPayment, loading } = useConfirmPayment();
+  const [iban, setIban] = useState('');
+  const [saveIban, setSaveIban] = useState(false);
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -23,8 +27,7 @@ export default function BancontactPaymentScreen() {
         email,
         currency: 'eur',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
-        payment_method_types: ['bancontact'],
+        payment_method_types: ['sepa_debit'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -45,24 +48,32 @@ export default function BancontactPaymentScreen() {
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       name: 'John Doe',
-      email: 'john@example.com',
+      email: email,
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Bancontact',
+      type: 'SepaDebit',
       billingDetails,
+      iban,
       setupFutureUsage: saveIban ? 'OffSession' : undefined,
     });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-      );
-      console.log('Success from promise', paymentIntent);
+      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+        Alert.alert(
+          'Processing',
+          `The debit has been successfully submitted and is now processing.`
+        );
+      } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
+        );
+      } else {
+        Alert.alert('Payment status:', paymentIntent.status);
+      }
     }
   };
 
@@ -74,7 +85,11 @@ export default function BancontactPaymentScreen() {
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
-
+      <TextInput
+        placeholder="Iban"
+        onChange={(value) => setIban(value.nativeEvent.text.toLowerCase())}
+        style={styles.input}
+      />
       <Button
         variant="primary"
         onPress={handlePayPress}
