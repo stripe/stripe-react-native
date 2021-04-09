@@ -5,7 +5,7 @@ import {
   useConfirmPayment,
   useConfirmSetupIntent,
   useStripe,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
@@ -15,7 +15,7 @@ import type {
   PaymentMethodCreateParams,
   PaymentIntent,
   SetupIntent,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 
 export default function SetupFuturePaymentScreen() {
   const [card, setCard] = useState<CardFieldInput.Details | null>(null);

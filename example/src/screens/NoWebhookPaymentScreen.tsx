@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet } from 'react-native';
-import { CardField, useStripe } from 'stripe-react-native';
+import { CardField, useStripe } from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -8,7 +8,7 @@ import {
   CardFieldInput,
   PaymentMethodCreateParams,
   PaymentIntents,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);

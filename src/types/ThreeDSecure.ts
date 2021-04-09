@@ -63,14 +63,14 @@ export namespace ThreeDSecure {
   export interface TextFieldProps {
     borderColor?: string;
     borderWidth?: number;
-    cornerRadius?: number;
+    borderRadius?: number;
     textColor?: string;
     textFontSize?: number;
   }
 
   export interface SubmitButtonProps {
     backgroundColor?: string;
-    cornerRadius?: number;
+    borderRadius?: number;
     textColor?: string;
     textFontSize?: number;
   }

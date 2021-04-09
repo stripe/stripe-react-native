@@ -5,7 +5,7 @@ import {
   useConfirmPayment,
   PaymentIntents,
   PaymentMethodCreateParams,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
