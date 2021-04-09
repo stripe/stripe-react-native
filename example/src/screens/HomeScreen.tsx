@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useStripe } from 'stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 import { Linking, StyleSheet, View, ScrollView } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
-import { ApplePayButton, useApplePay, ApplePay } from 'stripe-react-native';
+import {
+  ApplePayButton,
+  useApplePay,
+  ApplePay,
+} from '@stripe/stripe-react-native';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 

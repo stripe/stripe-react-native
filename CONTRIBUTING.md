@@ -57,8 +57,8 @@ To edit the Kotlin files, open `example/android` in Android studio and find the 
 
 To install local/private packages across local environment we recommend use [yalc](https://github.com/wclr/yalc) tool.
 
-- Run `yalc publish` in `stripe-react-native` package to publish all the files that should be published in remote NPM registry.
-- Run `yalc add stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/stripe-react-native into package.json.
+- Run `yalc publish` in `@stripe/stripe-react-native` package to publish all the files that should be published in remote NPM registry.
+- Run `yalc add @stripe/stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/@stripe/stripe-react-native into package.json.
 - In your dependent project run `yarn install` and `cd ios && pod install`
 
 ### Commit message convention

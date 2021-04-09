@@ -1,8 +1,11 @@
-import { PaymentIntents, PaymentMethodCreateParams } from 'stripe-react-native';
+import {
+  PaymentIntents,
+  PaymentMethodCreateParams,
+} from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
 import Checkbox from '@react-native-community/checkbox';
-import { useConfirmPayment } from 'stripe-react-native';
+import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';

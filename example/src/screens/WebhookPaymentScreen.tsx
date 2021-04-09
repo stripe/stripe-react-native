@@ -1,10 +1,10 @@
 import type {
   CardFieldInput,
   PaymentMethodCreateParams,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
-import { CardField, useConfirmPayment } from 'stripe-react-native';
+import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
@@ -143,7 +143,7 @@ const inputStyles: CardFieldInput.Styles = {
   borderWidth: 1,
   backgroundColor: '#FFFFFF',
   borderColor: '#000000',
-  cornerRadius: 8,
+  borderRadius: 8,
   fontSize: 14,
   placeholderColor: '#999999',
 };

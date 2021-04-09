@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, View } from 'react-native';
-import { useStripe } from 'stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import Screen from '../components/Screen';

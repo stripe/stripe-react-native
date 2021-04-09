@@ -17,7 +17,7 @@ export namespace CardFieldInput {
     borderWidth?: number;
     backgroundColor?: string;
     borderColor?: string;
-    cornerRadius?: number;
+    borderRadius?: number;
     textColor?: string;
     fontSize?: number;
     placeholderColor?: string;
