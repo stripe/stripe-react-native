@@ -12,7 +12,6 @@ describe('Simple App testing', () => {
 
     driver.pause(5000);
 
-    console.log('driver', driver.getContexts());
-    driver.switchContext('WEBVIEW_com.example.reactnativestripesdk');
+    driver.switchContext(driver.getContexts()[1]);
   });
 });

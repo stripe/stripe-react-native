@@ -3,13 +3,13 @@ exports.config = {
   port: 4723,
   specs: ['./__tests__/*.test.js'],
   exclude: [],
-
   maxInstances: 10,
   capabilities: [
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.13.0',
+      appiumVersion: '1.20.2',
+      platformVersion: '11.0',
       platformName: 'Android',
       deviceName: 'Pixel_3a_API_30_x86',
       app: 'example/android/app/build/outputs/apk/debug/app-debug.apk',
