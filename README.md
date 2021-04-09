@@ -21,7 +21,7 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
-**Prebuilt payments UI beta**: [Learn how to integrate](https://stripe.com/docs/mobile/payments-ui-beta) our prebuilt payments UI for mobile apps.
+**Pre-built payments UI (beta)**: [Learn how to integrate](https://stripe.com/docs/mobile/payments-ui-beta) Payment Sheet, our new pre-built payments UI for mobile apps. Our pre-built UI lets you accept cards, Apple Pay, and Google Pay out of the box, and includes support for saving & reusing cards. We'll be adding support for many more payment method during the beta.
 
 ## Installation
 
@@ -35,13 +35,13 @@ npm install @stripe/stripe-react-native
 
 #### Android
 
-- Minimum SDK version is `21`
+Android 5.0 (API level 21) and above
 
 #### iOS
 
-- Minimum deployment target is `11.0`
+Compatible with apps targeting iOS 11 or above.
 
-For iOS you need to run `pod install` in your `ios` directory to install the native dependencies.
+You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
 ## Usage example
 
@@ -95,9 +95,9 @@ export default function PaymentScreen() {
 
 ## Stripe initialisation
 
-To initialise Stripe in your React Native App use the `StripeProvider` component in the root component of your application or use the `initStripe` method alternatively.
+To initialize Stripe in your React Native app, use the `StripeProvider` component in the root component of your application, or use the `initStripe` method.
 
-`StripeProvider` can accept `urlScheme`, `publishableKey`, `stripeAccountId`, `threeDSecureParams` and `merchantIdentifier` as props. Only `publishableKey` is required. You can init it with a static values or if preferred fetch your `publishableKey` from your server.
+`StripeProvider` can accept `urlScheme`, `publishableKey`, `stripeAccountId`, `threeDSecureParams` and `merchantIdentifier` as props. Only `publishableKey` is required.
 
 ```tsx
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -162,7 +162,7 @@ You can find more details about the `StripeProvider` component in the [API refer
 
 ## Troubleshooting
 
-While building your iOS project you might run into the issue of undefined symbols for architecture x86_64. It fstems from some specific `react-native init` template configuration which is not fully compatibile with `swift 5.1` which is used in the SDK.
+While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by a `react-native init` template configuration that is not fully compatible with Swift 5.1.
 
 ```
 Undefined symbols for architecture x86_64:
