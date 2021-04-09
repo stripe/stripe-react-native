@@ -39,7 +39,10 @@ export default function PaymentsUICompleteScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentIntent) {
-      Alert.alert('Success', 'The payment was confirmed successfully!');
+      Alert.alert(
+        'Success',
+        `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
+      );
     }
     setPaymentSheetEnabled(false);
     setLoadng(false);

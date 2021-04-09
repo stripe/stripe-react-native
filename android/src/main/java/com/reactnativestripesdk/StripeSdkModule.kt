@@ -25,8 +25,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private lateinit var publishableKey: String
   private var paymentSheetFragment: PaymentSheetFragment? = null
 
-  private var onConfirmPaymentError: Callback? = null
-  private var onConfirmPaymentSuccess: Callback? = null
   private var onConfirmSetupIntentError: Callback? = null
   private var onConfirmSetupIntentSuccess: Callback? = null
   private var urlScheme: String? = null
@@ -168,7 +166,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
           }
           is PaymentResult.Completed -> {
-            val result = mapFromPaymentIntentResult(paymentResult.paymentIntent)
+            val result = Arguments.createMap()
+            result.putMap("paymentIntent", mapFromPaymentIntentResult(paymentResult.paymentIntent))
             confirmPaymentSheetPaymentPromise?.resolve(result)
             presentPaymentSheetPromise?.resolve(result)
           }

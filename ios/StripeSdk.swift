@@ -130,7 +130,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             self.paymentSheetFlowController?.confirmPayment(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                 switch paymentResult {
                 case .completed(let paymentIntent):
-                    resolve(Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent))
+                    resolve(["paymentIntent": Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)])
                 case .canceled:
                     reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
                 case .failed(let error, _):

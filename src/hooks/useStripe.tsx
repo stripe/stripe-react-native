@@ -283,16 +283,16 @@ export function useStripe() {
     ConfirmPaymentSheetPaymentResult
   > => {
     try {
-      const paymentIntent = await NativeStripeSdk.confirmPaymentSheetPayment();
+      const {
+        paymentIntent,
+      } = await NativeStripeSdk.confirmPaymentSheetPayment();
 
       return {
-        error: undefined,
         paymentIntent,
       };
     } catch (error) {
       return {
         error: createError(error),
-        paymentIntent: undefined,
       };
     }
   }, []);
