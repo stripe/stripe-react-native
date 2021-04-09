@@ -6,6 +6,7 @@ import type {
   PaymentMethod,
   ApplePay,
   SetupIntent,
+  PaymentSheet,
   ConfirmSetupIntent,
   InitialiseParams,
 } from './types';
@@ -35,6 +36,18 @@ type NativeStripeSdkType = {
     options: ConfirmSetupIntent.Options
   ): Promise<SetupIntent>;
   retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
+  initPaymentSheet(
+    params: PaymentSheet.SetupParams
+  ): Promise<PaymentSheet.PaymentOption | undefined>;
+  presentPaymentSheet(
+    params?: PaymentSheet.PresentParams
+  ): Promise<{
+    paymentIntent?: PaymentIntent;
+    paymentOption?: PaymentSheet.PaymentOption;
+  }>;
+  confirmPaymentSheetPayment(): Promise<{
+    paymentIntent: PaymentIntent;
+  }>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
   handleURLCallback(url: string): Promise<boolean>;
 };

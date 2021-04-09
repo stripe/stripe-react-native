@@ -9,7 +9,7 @@ import com.facebook.react.uimanager.ViewManager
 
 class StripeSdkPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return Arrays.asList<NativeModule>(StripeSdkModule(reactContext))
+      return Arrays.asList<NativeModule>(StripeSdkModule(reactContext))
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

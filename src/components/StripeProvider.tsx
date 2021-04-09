@@ -65,7 +65,7 @@ export function StripeProvider({
   urlScheme,
 }: Props) {
   useEffect(() => {
-    if (publishableKey === '') {
+    if (!publishableKey) {
       return;
     }
     if (isAndroid) {

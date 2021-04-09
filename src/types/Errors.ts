@@ -30,6 +30,11 @@ export enum ApplePayError {
   Unknown = 'Unknown',
 }
 
+export enum PaymentSheetError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+}
+
 export interface StripeError<T> {
   message: string;
   code: T;

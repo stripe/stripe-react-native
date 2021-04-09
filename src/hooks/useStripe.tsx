@@ -2,6 +2,7 @@ import {
   PaymentMethodCreateParams,
   ApplePayError,
   ApplePay,
+  PaymentSheet,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   ConfirmPaymentMethodResult,
@@ -9,6 +10,9 @@ import {
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
+  InitPaymentSheetResult,
+  PresentPaymentSheetResult,
+  ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
@@ -231,6 +235,68 @@ export function useStripe() {
     }
   }, []);
 
+  const initPaymentSheet = useCallback(
+    async (
+      params: PaymentSheet.SetupParams
+    ): Promise<InitPaymentSheetResult> => {
+      try {
+        const paymentOption = await NativeStripeSdk.initPaymentSheet(params);
+
+        return {
+          paymentOption,
+        };
+      } catch (error) {
+        return {
+          error: createError(error),
+        };
+      }
+    },
+    []
+  );
+
+  const presentPaymentSheet = useCallback(
+    async (
+      params: PaymentSheet.PresentParams
+    ): Promise<PresentPaymentSheetResult> => {
+      try {
+        const response = await NativeStripeSdk.presentPaymentSheet(params);
+
+        if (response.paymentIntent) {
+          return {
+            paymentIntent: response.paymentIntent,
+          };
+        } else {
+          return {
+            paymentOption: response.paymentOption,
+          };
+        }
+      } catch (error) {
+        return {
+          error: createError(error),
+        };
+      }
+    },
+    []
+  );
+
+  const confirmPaymentSheetPayment = useCallback(async (): Promise<
+    ConfirmPaymentSheetPaymentResult
+  > => {
+    try {
+      const {
+        paymentIntent,
+      } = await NativeStripeSdk.confirmPaymentSheetPayment();
+
+      return {
+        paymentIntent,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
+      };
+    }
+  }, []);
+
   const handleURLCallback = useCallback(async (url: string): Promise<
     boolean
   > => {
@@ -244,6 +310,9 @@ export function useStripe() {
     createPaymentMethod: createPaymentMethod,
     handleCardAction: handleCardAction,
     isApplePaySupported: isApplePaySupported,
+    initPaymentSheet: initPaymentSheet,
+    presentPaymentSheet: presentPaymentSheet,
+    confirmPaymentSheetPayment: confirmPaymentSheetPayment,
     presentApplePay: presentApplePay,
     confirmApplePayPayment: confirmApplePayPayment,
     confirmSetupIntent: confirmSetupIntent,

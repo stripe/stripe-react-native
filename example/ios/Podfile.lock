@@ -308,12 +308,12 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.3.1):
-    - Stripe/Stripe3DS2 (= 21.3.1)
+  - Stripe (21.0.0-mc-beta-1):
+    - Stripe/Stripe3DS2 (= 21.0.0-mc-beta-1)
   - stripe-react-native (0.1.0):
     - React
-    - Stripe (~> 21.3.1)
-  - Stripe/Stripe3DS2 (21.3.1)
+    - Stripe (~> 21.0.0-mc-beta-1)
+  - Stripe/Stripe3DS2 (21.0.0-mc-beta-1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -371,7 +371,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe (from `https://github.com/thorsten-stripe/stripe-ios`, branch `fix/voucher-intent-status`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `mc-beta-2`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -454,8 +454,8 @@ EXTERNAL SOURCES:
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Stripe:
-    :branch: fix/voucher-intent-status
-    :git: https://github.com/thorsten-stripe/stripe-ios
+    :branch: mc-beta-2
+    :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../.."
   Yoga:
@@ -463,8 +463,8 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   Stripe:
-    :commit: 3f3be7230fb95002851a124dd3e978494450da30
-    :git: https://github.com/thorsten-stripe/stripe-ios
+    :commit: afeb50345446f889ca4cc076299ff6e4143e222d
+    :git: https://github.com/stripe/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
@@ -509,11 +509,11 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 326a2160ac541eeffafb8b1aa0c9712e3ce8cec7
-  stripe-react-native: 829434055e580c405af5b08a6daa0a8c46f3dddb
+  Stripe: 4f9369bb8f036ed106d12355e622d934c2ec60a1
+  stripe-react-native: acbafd67d90b6465ec6dd4d04b3a1f5d0c0bffcb
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0d9b057f12ef1795e2beda2c4c7812e048942979
+PODFILE CHECKSUM: 70f5257608f27114166973aa237cd531e9e87ef3
 
 COCOAPODS: 1.10.1
