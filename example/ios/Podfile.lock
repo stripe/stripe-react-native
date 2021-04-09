@@ -502,7 +502,7 @@ SPEC CHECKSUMS:
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   Stripe: 7c594b943abb65cf7bc28e37fd5124e65db3ce9e
-  stripe-react-native: b1404e60b441a34c29a062741db2304d6f703df3
+  stripe-react-native: 5f658fea52d1efde504fc9510a3dae802da7ef2e
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
