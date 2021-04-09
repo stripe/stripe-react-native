@@ -9,6 +9,7 @@ import {
 const {
   addMetaDataItemToMainApplication,
   getMainApplicationOrThrow,
+  removeMetaDataItemFromMainApplication,
 } = AndroidConfig.Manifest;
 
 const pkg = require('stripe-react-native/package.json');
@@ -101,11 +102,19 @@ export function setGooglePayMetaData(
 ): AndroidConfig.Manifest.AndroidManifest {
   const GOOGLE_PAY_META_NAME = 'com.google.android.gms.wallet.api.enabled';
   const mainApplication = getMainApplicationOrThrow(modResults);
-  addMetaDataItemToMainApplication(
-    mainApplication,
-    GOOGLE_PAY_META_NAME,
-    enabled.toString()
-  );
+  if (enabled) {
+    addMetaDataItemToMainApplication(
+      mainApplication,
+      GOOGLE_PAY_META_NAME,
+      'true'
+    );
+  } else {
+    removeMetaDataItemFromMainApplication(
+      mainApplication,
+      GOOGLE_PAY_META_NAME
+    );
+  }
+
   return modResults;
 }
 
