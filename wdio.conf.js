@@ -14,7 +14,6 @@ exports.config = {
       deviceName: 'Pixel_3a_API_30_x86',
       app: 'example/android/app/build/outputs/apk/debug/app-debug.apk',
       automationName: 'UiAutomator2',
-      chromedriverUseSystemExecutable: true,
     },
   ],
   logLevel: 'info',
@@ -23,7 +22,7 @@ exports.config = {
   waitforTimeout: 10000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
-  services: ['chromedriver', 'appium'],
+  services: ['appium'],
   framework: 'mocha',
   reporters: ['spec'],
   mochaOpts: {
