@@ -1,8 +1,8 @@
 export declare namespace PaymentSheet {
   export type SetupParams = GooglePayParams &
     ApplePayParams & {
-      customerId: string;
-      customerEphemeralKeySecret: string;
+      customerId?: string;
+      customerEphemeralKeySecret?: string;
       paymentIntentClientSecret: string;
       customFlow?: boolean;
       merchantDisplayName?: string;

@@ -72,10 +72,10 @@ class PaymentSheetFragment : Fragment() {
 
     this.paymentSheetConfiguration = PaymentSheet.Configuration(
       merchantDisplayName = merchantDisplayName,
-      customer = PaymentSheet.CustomerConfiguration(
+      customer = if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) PaymentSheet.CustomerConfiguration(
         id = customerId,
         ephemeralKeySecret = customerEphemeralKeySecret
-      ),
+      ) else null,
       googlePay = PaymentSheet.GooglePayConfiguration(
         environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode
@@ -94,7 +94,7 @@ class PaymentSheetFragment : Fragment() {
   }
 
   fun present(clientSecret: String) {
-    paymentSheet?.present(clientSecret)
+    paymentSheet?.present(clientSecret, paymentSheetConfiguration)
   }
 
   fun presentPaymentOptions() {

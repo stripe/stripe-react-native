@@ -61,14 +61,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     @objc(initPaymentSheet:resolver:rejecter:)
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        guard let customerId = params["customerId"] as? String else {
-            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the customer ID", nil)
-            return
-        }
-        guard let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String else {
-            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the customerEphemeralKeySecret", nil)
-            return
-        }
         guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
             reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret", nil)
             return
@@ -90,7 +82,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             configuration.merchantDisplayName = merchantDisplayName
         }
         
-        configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
+        if let customerId = params["customerId"] as? String {
+            if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
+                configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
+            }
+        }
         
         if #available(iOS 13.0, *) {
             if let style = params["style"] as? String {
@@ -113,7 +109,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         ]
                         resolve(option)
                     } else {
-                        resolve(NSNull())
+                        reject("Failed", "in else", nil)
                     }
                 }
             }
