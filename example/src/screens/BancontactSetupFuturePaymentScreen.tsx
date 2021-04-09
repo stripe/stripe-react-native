@@ -1,7 +1,7 @@
 import {
   PaymentMethodCreateParams,
   useConfirmSetupIntent,
-} from 'stripe-react-native';
+} from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import Button from '../components/Button';

@@ -310,7 +310,7 @@ PODS:
     - React-Core
   - Stripe (21.3.1):
     - Stripe/Stripe3DS2 (= 21.3.1)
-  - stripe-react-native (0.1.0):
+  - stripe-react-native (0.0.1):
     - React
     - Stripe (~> 21.3.1)
   - Stripe/Stripe3DS2 (21.3.1)
@@ -371,7 +371,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe (from `https://github.com/thorsten-stripe/stripe-ios`, branch `fix/ideal-mandate-data`)
+  - Stripe (from `https://github.com/thorsten-stripe/stripe-ios`, branch `fix/voucher-intent-status`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -454,7 +454,7 @@ EXTERNAL SOURCES:
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Stripe:
-    :branch: fix/ideal-mandate-data
+    :branch: fix/voucher-intent-status
     :git: https://github.com/thorsten-stripe/stripe-ios
   stripe-react-native:
     :path: "../.."
@@ -463,7 +463,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   Stripe:
-    :commit: a1b2e5b483b4f4ddbff21746afc0eec8a44891dd
+    :commit: 3f3be7230fb95002851a124dd3e978494450da30
     :git: https://github.com/thorsten-stripe/stripe-ios
 
 SPEC CHECKSUMS:
@@ -510,10 +510,10 @@ SPEC CHECKSUMS:
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   Stripe: 326a2160ac541eeffafb8b1aa0c9712e3ce8cec7
-  stripe-react-native: 829434055e580c405af5b08a6daa0a8c46f3dddb
+  stripe-react-native: bf58b445766defc337be217f9861e9a9e4fd0cb8
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 4b2c8c8456cd09b6f08da3604c6082e9a4e4ee81
+PODFILE CHECKSUM: 0d9b057f12ef1795e2beda2c4c7812e048942979
 
 COCOAPODS: 1.10.1

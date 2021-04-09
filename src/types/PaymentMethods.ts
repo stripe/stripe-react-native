@@ -17,15 +17,19 @@ export interface PaymentMethod {
   Upi: PaymentMethods.Upi;
 }
 
-export declare namespace PaymentMethodCreateParams {
+export namespace PaymentMethodCreateParams {
   export type Params =
     | CardParams
     | IdealParams
+    | OxxoParams
     | P24Params
     | AlipayParams
     | GiropayParams
+    | SepaParams
     | EpsParams
+    | SofortParams
     | GrabPayParams
+    | FPXParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -49,7 +53,7 @@ export declare namespace PaymentMethodCreateParams {
   export type CardParams =
     | (BaseParams & {
         type: 'Card';
-        cardDetails: CardFieldInput.Details;
+        cardDetails: CardFieldInput.Details | { token: string };
         setupFutureUsage?: PaymentIntents.FutureUsage;
       })
     | (BaseParams & {
@@ -60,19 +64,41 @@ export declare namespace PaymentMethodCreateParams {
 
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
-    bankName: string;
+    bankName?: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
+  }
+
+  export interface FPXParams {
+    type: 'Fpx';
+    testOfflineBank?: boolean;
   }
 
   export interface AlipayParams {
     type: 'Alipay';
   }
 
+  export interface OxxoParams extends Required<BaseParams> {
+    type: 'Oxxo';
+  }
+
+  export interface SofortParams extends BaseParams {
+    type: 'Sofort';
+    country: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
+  }
   export interface GrabPayParams extends BaseParams {
     type: 'GrabPay';
   }
 
   export interface BancontactParams extends Required<BaseParams> {
     type: 'Bancontact';
+    setupFutureUsage?: PaymentIntents.FutureUsage;
+  }
+
+  export interface SepaParams extends Required<BaseParams> {
+    type: 'SepaDebit';
+    iban: string;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
   }
 
   export interface GiropayParams extends Required<BaseParams> {

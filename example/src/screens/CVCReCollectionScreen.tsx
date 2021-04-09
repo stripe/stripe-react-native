@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useStripe } from 'stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
@@ -99,6 +99,7 @@ export default function CVCReCollectionScreen() {
     const { tokenId, error } = await createTokenForCVCUpdate(cvc);
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
+      return;
     } else if (tokenId) {
       const paymentIntent = await callNoWebhookPayEndpoint({
         useStripeSdk: true,

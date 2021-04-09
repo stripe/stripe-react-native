@@ -1,7 +1,7 @@
 import React from 'react';
-import { useStripe } from 'stripe-react-native';
+import { PaymentIntent, useStripe } from '@stripe/stripe-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Text } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from './HomeScreen';
 import Screen from '../components/Screen';
@@ -14,6 +14,9 @@ type Props = {
 
 export default function PaymentResultScreen({ route }: Props) {
   const [result, setResult] = useState<string>();
+  const [paymentIntentResult, setPaymentIntentResult] = useState<
+    PaymentIntent
+  >();
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
@@ -24,8 +27,8 @@ export default function PaymentResultScreen({ route }: Props) {
       if (error) {
         Alert.alert(`Error code: ${error.code}`, error.message);
       } else if (paymentIntent) {
+        setPaymentIntentResult(paymentIntent);
         setResult(JSON.stringify(paymentIntent, null, 2));
-        Alert.alert('Payment intent status:', paymentIntent.status);
       }
     },
     [retrievePaymentIntent]
@@ -46,7 +49,21 @@ export default function PaymentResultScreen({ route }: Props) {
 
   return (
     <Screen>
+      {paymentIntentResult && (
+        <Text style={styles.text}>
+          Payment intent status: {paymentIntentResult?.status}
+        </Text>
+      )}
+
       <Text>{result}</Text>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  text: {
+    fontSize: 18,
+    fontWeight: '700',
+    paddingBottom: 20,
+  },
+});

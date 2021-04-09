@@ -35,8 +35,11 @@ internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMeth
   }
 }
 
-internal fun mapToReturnURL(urlScheme: String): String {
-  return "$urlScheme://safepay"
+internal fun mapToReturnURL(urlScheme: String?): String? {
+  if (urlScheme != null) {
+    return "$urlScheme://safepay"
+  }
+  return null
 }
 
 internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {
@@ -275,12 +278,16 @@ internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMetho
 }
 
 internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
-  return PaymentMethodCreateParams.Card.Builder()
-    .setCvc(card.getString("cvc"))
-    .setExpiryMonth(card.getInt("expiryMonth"))
-    .setExpiryYear(card.getInt("expiryYear"))
-    .setNumber(card.getString("number").orEmpty())
-    .build()
+  if (card.hasKey("token")) {
+    return PaymentMethodCreateParams.Card.create(card.getString("token")!!)
+  } else {
+    return PaymentMethodCreateParams.Card.Builder()
+      .setCvc(card.getString("cvc"))
+      .setExpiryMonth(card.getInt("expiryMonth"))
+      .setExpiryYear(card.getInt("expiryYear"))
+      .setNumber(card.getString("number").orEmpty())
+      .build()
+  }
 }
 
 fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
@@ -318,6 +325,10 @@ fun getIntOrNull(map: ReadableMap?, key: String): Int? {
 
 fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
   return if (map?.hasKey(key) == true) map.getMap(key) else null
+}
+
+fun getBooleanOrFalse(map: ReadableMap?, key: String): Boolean {
+  return if (map?.hasKey(key) == true) map.getBoolean(key) else false
 }
 
 private fun convertToUnixTimestamp(timestamp: Long): Int {
@@ -376,7 +387,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getIntOrNull(textBoxCustomization, "borderWidth")?.let {
     textBoxCustomizationBuilder.setBorderWidth(it)
   }
-  getIntOrNull(textBoxCustomization, "cornerRadius")?.let {
+  getIntOrNull(textBoxCustomization, "borderRadius")?.let {
     textBoxCustomizationBuilder.setCornerRadius(it)
   }
   getIntOrNull(textBoxCustomization, "textFontSize")?.let {
@@ -386,7 +397,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(buttonCustomization, "backgroundColor")?.let {
     buttonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(buttonCustomization, "cornerRadius")?.let {
+  getIntOrNull(buttonCustomization, "borderRadius")?.let {
     buttonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(buttonCustomization, "textColor")?.let {
@@ -462,10 +473,10 @@ internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String {
   }
 }
 
-fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.SetupFutureUsage {
+fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.SetupFutureUsage? {
   return when (type) {
     "OffSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OffSession
     "OnSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
-    else ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
+    else ->  null
   }
 }
