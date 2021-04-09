@@ -168,8 +168,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
             presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
           }
           is PaymentResult.Completed -> {
-            val result = Arguments.createMap()
-            result.putMap("paymentIntent", mapFromPaymentIntentResult(paymentResult.paymentIntent))
+            val result = mapFromPaymentIntentResult(paymentResult.paymentIntent)
             confirmPaymentSheetPaymentPromise?.resolve(result)
             presentPaymentSheetPromise?.resolve(result)
           }
