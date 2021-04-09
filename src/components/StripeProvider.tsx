@@ -26,7 +26,6 @@ const appInfo: AppInfo = {
   name: pjson.name,
   url: pjson.repository,
   version: pjson.version,
-  partnerId: undefined,
 };
 
 export const initStripe = (params: InitStripeParams): void => {
