@@ -100,7 +100,7 @@ export function CardField({
         backgroundColor: cardStyle?.backgroundColor,
         borderColor: cardStyle?.borderColor,
         borderWidth: cardStyle?.borderWidth,
-        cornerRadius: cardStyle?.cornerRadius,
+        borderRadius: cardStyle?.borderRadius,
         cursorColor: cardStyle?.cursorColor,
         fontSize: cardStyle?.fontSize,
         placeholderColor: cardStyle?.placeholderColor,

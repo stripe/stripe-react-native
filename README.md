@@ -93,7 +93,7 @@ export default function PaymentScreen() {
 }
 ```
 
-## Stripe initialisation
+## Stripe initialization
 
 To initialize Stripe in your React Native app, use the `StripeProvider` component in the root component of your application, or use the `initStripe` method.
 
