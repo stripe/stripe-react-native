@@ -443,16 +443,13 @@ class Mappers {
             "lastSetupError": NSNull()
         ]
         
-        if let paymentMethodTypes = setupIntent.paymentMethodTypes {
-            let types = paymentMethodTypes.map {
-                mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
-            }
-            intent.setValue(types, forKey: "paymentMethodTypes")
+    
+        let types = setupIntent.paymentMethodTypes.map {
+            mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
         }
         
-        if let created = setupIntent.created {
-            intent.setValue(convertDateToUnixTimestamp(date: created), forKey: "created")
-        }
+        intent.setValue(types, forKey: "paymentMethodTypes")
+        intent.setValue(convertDateToUnixTimestamp(date: setupIntent.created), forKey: "created")
         
         if let lastSetupError = setupIntent.lastSetupError {
             let setupError = [
