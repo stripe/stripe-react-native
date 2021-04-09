@@ -69,7 +69,7 @@ describe(setApplePayEntitlement, () => {
 });
 
 describe(setGooglePayMetaData, () => {
-  it(`Properly sets GooglePay metadata in AndroidManifest to true, then to false`, async () => {
+  it(`Properly sets GooglePay metadata in AndroidManifest to true, then removes it when set to false`, async () => {
     let androidManifestJson = await readAndroidManifestAsync(
       sampleManifestPath
     );
@@ -88,12 +88,11 @@ describe(setGooglePayMetaData, () => {
     androidManifestJson = setGooglePayMetaData(false, androidManifestJson);
     mainApplication = getMainApplicationOrThrow(androidManifestJson);
     if (!mainApplication['meta-data']) {
-      throw new Error('Failed to add metadata to AndroidManifest.xml');
+      throw new Error('Failed to read metadata from AndroidManifest.xml');
     }
     apiKeyItem = mainApplication['meta-data'].filter(
       (e) => e.$['android:name'] === 'com.google.android.gms.wallet.api.enabled'
     );
-    expect(apiKeyItem).toHaveLength(1);
-    expect(apiKeyItem[0].$['android:value']).toMatch('false');
+    expect(apiKeyItem).toHaveLength(0);
   });
 });
