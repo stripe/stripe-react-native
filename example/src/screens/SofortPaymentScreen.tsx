@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
-import Checkbox from '@react-native-community/checkbox';
+import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import {
   useConfirmPayment,
   PaymentIntents,
@@ -88,7 +87,7 @@ export default function SofortPaymentScreen() {
         loading={loading}
       />
       <View style={styles.row}>
-        <Checkbox
+        <Switch
           onValueChange={(value) => setSaveIban(value)}
           value={saveIban}
         />
