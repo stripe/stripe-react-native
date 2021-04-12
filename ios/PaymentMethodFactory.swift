@@ -38,6 +38,8 @@ class PaymentMethodFactory {
                 return createGrabpayPaymentMethodParams()
             case STPPaymentMethodType.przelewy24:
                 return try createP24PaymentMethodParams()
+            case STPPaymentMethodType.afterpayClearpay:
+                return try createAfterpayClearpayPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -72,6 +74,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.grabPay:
                 return nil
             case STPPaymentMethodType.przelewy24:
+                return nil
+            case STPPaymentMethodType.afterpayClearpay:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
@@ -214,6 +218,16 @@ class PaymentMethodFactory {
         
         return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: nil)
     }
+    
+    private func createAfterpayClearpayPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodAfterpayClearpayParams()
+        
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.afterpayClearpayPaymentMissingParams
+        }
+        
+        return STPPaymentMethodParams(afterpayClearpay: params, billingDetails: billingDetails, metadata: nil)
+    }
 }
 
 enum PaymentMethodError: Error {
@@ -227,6 +241,7 @@ enum PaymentMethodError: Error {
     case sepaPaymentMissingParams
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
+    case afterpayClearpayPaymentMissingParams
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -247,6 +262,8 @@ extension PaymentMethodError: LocalizedError {
         case .sepaPaymentMissingParams:
             return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
         case .epsPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+        case .afterpayClearpayPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .paymentNotSupported:
             return NSLocalizedString("This payment type is not supported yet", comment: "Create payment error")

@@ -118,6 +118,7 @@ class Mappers {
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
+        case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -142,6 +143,7 @@ class Mappers {
             case "Oxxo": return STPPaymentMethodType.OXXO
             case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
+            case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             default: return STPPaymentMethodType.unknown
             }
         }
@@ -289,6 +291,24 @@ class Mappers {
         return billing
     }
     
+    class func mapToShippingDetails(shippingDetails: NSDictionary?) -> STPPaymentIntentShippingDetailsParams? {
+        guard let shippingDetails = shippingDetails else {
+            return nil
+        }
+        let shippingAddress = STPPaymentIntentShippingDetailsAddressParams(line1: shippingDetails["addressLine1"] as? String ?? "")
+
+        shippingAddress.city = RCTConvert.nsString(shippingDetails["addressCity"])
+        shippingAddress.postalCode = RCTConvert.nsString(shippingDetails["addressPostalCode"])
+        shippingAddress.country = RCTConvert.nsString(shippingDetails["addressCountry"])
+        shippingAddress.line1 = RCTConvert.nsString(shippingDetails["addressLine1"])
+        shippingAddress.line2 = RCTConvert.nsString(shippingDetails["addressLine2"])
+        shippingAddress.state = RCTConvert.nsString(shippingDetails["addressState"])
+
+        let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
+
+        return shipping
+    }
+
     class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
         let billing: NSDictionary = [
             "email": billingDetails?.email ?? NSNull(),
