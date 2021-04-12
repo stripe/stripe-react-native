@@ -22,6 +22,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams()
         PaymentMethod.Type.P24 -> createP24PaymentConfirmParams()
         PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
+        PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -363,6 +364,22 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val params = PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Fpx(bank)
     )
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        returnUrl = mapToReturnURL(urlScheme)
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAfterpayClearpayPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+
+    val params = PaymentMethodCreateParams.createAfterpayClearpay(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(

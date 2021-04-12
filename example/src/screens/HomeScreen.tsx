@@ -195,6 +195,15 @@ export default function HomeScreen() {
           />
         </View>
 
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Afterpay/Clearpay Payment"
+            onPress={() => {
+              navigation.navigate('AfterpayClearpayPaymentScreen');
+            }}
+          />
+        </View>
+
         {Platform.OS === 'ios' && (
           <View style={styles.buttonContainer}>
             <Button
