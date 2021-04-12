@@ -405,7 +405,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
-            
+                        
             if let urlScheme = urlScheme {
                 paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
             }

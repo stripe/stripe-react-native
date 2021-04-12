@@ -28,6 +28,7 @@ import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
+import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -100,6 +101,11 @@ export default function App() {
             name="NoWebhookPayment"
             component={NoWebhookPaymentScreen}
           />
+          <Stack.Screen
+            name="AuBECSDebitPaymentScreen"
+            component={AuBECSDebitPaymentScreen}
+          />
+
           <Stack.Screen name="ApplePay" component={ApplePayScreen} />
           <Stack.Screen
             name="SetupFuturePayment"

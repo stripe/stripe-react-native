@@ -38,6 +38,8 @@ class PaymentMethodFactory {
                 return createGrabpayPaymentMethodParams()
             case STPPaymentMethodType.przelewy24:
                 return try createP24PaymentMethodParams()
+            case STPPaymentMethodType.AUBECSDebit:
+                return try createBECSDebitPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -72,6 +74,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.grabPay:
                 return nil
             case STPPaymentMethodType.przelewy24:
+                return nil
+            case STPPaymentMethodType.AUBECSDebit:
                 return nil
             default:
                 throw PaymentMethodError.paymentNotSupported
@@ -213,6 +217,20 @@ class PaymentMethodFactory {
         }
         
         return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: nil)
+    }
+    
+    private func createBECSDebitPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodAUBECSDebitParams()
+        
+        let billingDetails = STPPaymentMethodBillingDetails()
+        let formDetails = self.params?["formDetails"] as? NSDictionary
+        
+        billingDetails.name = formDetails?["name"] as? String
+        billingDetails.email = formDetails?["email"] as? String
+        params.accountNumber = formDetails?["accountNumber"] as? String
+        params.bsbNumber = formDetails?["bsbNumber"] as? String
+
+        return STPPaymentMethodParams(aubecsDebit: params, billingDetails: billingDetails, metadata: nil)
     }
 }
 
