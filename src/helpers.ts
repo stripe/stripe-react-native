@@ -7,7 +7,11 @@ import { Platform, NativeModules } from 'react-native';
  * infrastructure (react-native-unimodules) is available.
  */
 export const shouldAttributeExpo = () => {
-  return !!NativeModules.NativeUnimoduleProxy;
+  try {
+    return !!NativeModules.NativeUnimoduleProxy;
+  } catch {
+    return false;
+  }
 };
 
 export const isiOS = Platform.OS === 'ios';
