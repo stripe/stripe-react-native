@@ -1,13 +1,19 @@
 import type { StripeError } from './types';
-import { Platform } from 'react-native';
-let isExpoInstalled = true;
-try {
-  require('expo');
-} catch {
-  isExpoInstalled = false;
-}
+import { Platform, NativeModules } from 'react-native';
 
-export const shouldAttributeExpo = isExpoInstalled;
+/**
+ * Determines whether or not this library is being used inside of
+ * an "Expo" project by identifying if Expo's native module
+ * infrastructure (react-native-unimodules) is available.
+ */
+export const shouldAttributeExpo = () => {
+  try {
+    return !!NativeModules.NativeUnimoduleProxy;
+  } catch {
+    return false;
+  }
+};
+
 export const isiOS = Platform.OS === 'ios';
 export const isAndroid = Platform.OS === 'android';
 

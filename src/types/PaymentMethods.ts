@@ -30,6 +30,7 @@ export namespace PaymentMethodCreateParams {
     | SofortParams
     | GrabPayParams
     | FPXParams
+    | AfterpayClearpayParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -42,6 +43,16 @@ export namespace PaymentMethodCreateParams {
     addressLine1?: string;
     addressLine2?: string;
     addressState?: string;
+  };
+
+  export type ShippingDetails = {
+    addressPostalCode?: string;
+    addressCity?: string;
+    addressCountry?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    addressState?: string;
+    name?: string;
   };
 
   export interface Options {}
@@ -103,6 +114,11 @@ export namespace PaymentMethodCreateParams {
 
   export interface GiropayParams extends Required<BaseParams> {
     type: 'Giropay';
+  }
+
+  export interface AfterpayClearpayParams extends Required<BaseParams> {
+    type: 'AfterpayClearpay';
+    shippingDetails: ShippingDetails;
   }
 
   export interface EpsParams extends Required<BaseParams> {

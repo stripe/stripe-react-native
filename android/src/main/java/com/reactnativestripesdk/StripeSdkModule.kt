@@ -257,6 +257,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     try {
       val confirmParams = factory.createConfirmParams(paymentMethodType)
+      confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
       stripe.confirmPayment(currentActivity!!, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
