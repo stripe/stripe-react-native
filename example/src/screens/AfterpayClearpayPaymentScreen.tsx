@@ -48,14 +48,14 @@ export default function AfterpayClearpayPaymentScreen() {
       addressLine1: '1459  Circle Drive',
       addressLine2: 'Texas',
       addressPostalCode: '77063',
-      name: 'stripe',
+      name: 'John Doe',
     };
 
     const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
       addressLine1: '1459  Circle Drive',
       addressCountry: 'US',
       addressPostalCode: '77063',
-      name: 'Stripe',
+      name: 'John Doe',
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
