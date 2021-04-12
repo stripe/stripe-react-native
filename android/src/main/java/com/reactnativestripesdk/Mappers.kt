@@ -315,6 +315,24 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.Bi
     .build()
 }
 
+internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
+  if (shippingDetails == null) {
+    return null
+  }
+
+  return ConfirmPaymentIntentParams.Shipping(
+    name = getValOr(shippingDetails, "name") ?: "",
+    address = Address.Builder()
+      .setLine1(getValOr(shippingDetails, "addressLine1"))
+      .setLine2(getValOr(shippingDetails, "addressLine2"))
+      .setCity(getValOr(shippingDetails, "addressCity"))
+      .setState(getValOr(shippingDetails, "addressState"))
+      .setCountry(getValOr(shippingDetails, "addressCountry"))
+      .setPostalCode(getValOr(shippingDetails, "addressPostalCode"))
+      .build()
+  )
+}
+
 private fun getStringOrNull(map: ReadableMap?, key: String): String? {
   return if (map?.hasKey(key) == true) map.getString(key) else null
 }
