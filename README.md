@@ -12,6 +12,27 @@ or
 npm install @stripe/stripe-react-native
 ```
 
+### Expo
+
+If you're using Expo, add:
+
+```json
+expo: {
+  ...
+  "plugins": [
+    [
+      "stripe-react-native",
+      {
+        "merchantIdentifier": string | string [],
+        "enableGooglePay": boolean
+      }
+    ]
+  ],
+}
+```
+
+to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can provide them all in an array.
+
 ### Android
 
 ##### Requirements
