@@ -1,6 +1,6 @@
 describe('Simple App testing', () => {
   beforeEach(() => {
-    $('~app-root').waitForDisplayed(21000, false);
+    $('~app-root').waitForDisplayed(30000, false);
   });
 
   it('Valid Login Test', () => {
@@ -14,6 +14,8 @@ describe('Simple App testing', () => {
 
     driver.switchContext(driver.getContexts()[1]);
 
-    $('~close').waitForDisplayed(11000, false);
+    $('button*=Authorize').click();
+
+    driver.pause(25000);
   });
 });
