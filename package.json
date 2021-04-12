@@ -138,5 +138,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@expo/config-plugins": "^1.0.24"
   }
 }
