@@ -3,8 +3,7 @@ import {
   PaymentMethodCreateParams,
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
-import Checkbox from '@react-native-community/checkbox';
+import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -97,7 +96,7 @@ export default function SepaPaymentScreen() {
         loading={loading}
       />
       <View style={styles.row}>
-        <Checkbox
+        <Switch
           onValueChange={(value) => setSaveIban(value)}
           value={saveIban}
         />

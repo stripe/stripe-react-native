@@ -3,12 +3,11 @@ import type {
   PaymentMethodCreateParams,
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
 import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
-import Checkbox from '@react-native-community/checkbox';
 import { colors } from '../colors';
 
 export default function WebhookPaymentScreen() {
@@ -102,7 +101,7 @@ export default function WebhookPaymentScreen() {
         style={styles.cardField}
       />
       <View style={styles.row}>
-        <Checkbox
+        <Switch
           onValueChange={(value) => setSaveCard(value)}
           value={saveCard}
         />
