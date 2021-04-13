@@ -4,7 +4,7 @@ import { useStripe } from '@stripe/stripe-react-native';
 import { Linking, Platform, StyleSheet, View, ScrollView } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import { Collapse } from '../components/Collapse';
 
 export type RootStackParamList = {
   PaymentResultScreen: { url: string };
@@ -42,196 +42,222 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   return (
-    <Screen>
-      <ScrollView>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Card payment using webhooks"
-            onPress={() => {
-              navigation.navigate('WebhookPayment');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Card payment without webhooks"
-            onPress={() => {
-              navigation.navigate('NoWebhookPayment');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Setup Future Card Payment"
-            onPress={() => {
-              navigation.navigate('SetupFuturePayment');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="iDEAL payment"
-            onPress={() => {
-              navigation.navigate('IdealPayment');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Setup Future iDEAL Payment"
-            onPress={() => {
-              navigation.navigate('IdealSetupFuturePaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="FPX Payment"
-            onPress={() => {
-              navigation.navigate('FPXPaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Alipay Payment"
-            onPress={() => {
-              navigation.navigate('AlipayPaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Sofort Payment"
-            onPress={() => {
-              navigation.navigate('SofortPaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Setup Future Sofort Payment"
-            onPress={() => {
-              navigation.navigate('SofortSetupFuturePaymentScreen');
-            }}
-          />
-        </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Accept a payment"
+          onPress={() => {
+            navigation.navigate('WebhookPayment');
+          }}
+        />
+      </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Bancontact Payment"
-            onPress={() => {
-              navigation.navigate('BancontactPaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Oxxo Payment"
-            onPress={() => {
-              navigation.navigate('OxxoPaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="EPS Payment"
-            onPress={() => {
-              navigation.navigate('EPSPaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Setup Future Bancontact Payment"
-            onPress={() => {
-              navigation.navigate('BancontactSetupFuturePaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="SEPA Direct Debit payment"
-            onPress={() => {
-              navigation.navigate('SepaPaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Setup Future SEPA Direct Debit payment"
-            onPress={() => {
-              navigation.navigate('SepaSetupFuturePaymentScreen');
-            }}
-          />
-        </View>
-        <View style={styles.buttonContainer}>
-          <Button
-            title="GrabPay Payment"
-            onPress={() => {
-              navigation.navigate('GrabPayPaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Przelewy24 Payment"
-            onPress={() => {
-              navigation.navigate('P24PaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Giropay Payment"
-            onPress={() => {
-              navigation.navigate('GiropayPaymentScreen');
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Afterpay/Clearpay Payment"
-            onPress={() => {
-              navigation.navigate('AfterpayClearpayPaymentScreen');
-            }}
-          />
-        </View>
-
-        {Platform.OS === 'ios' && (
+      <Collapse title="More payment scenarios">
+        <>
           <View style={styles.buttonContainer}>
             <Button
-              title="Apple Pay payment"
+              title="Set up future payments"
               onPress={() => {
-                navigation.navigate('ApplePay');
+                navigation.navigate('SetupFuturePayment');
               }}
             />
           </View>
-        )}
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Finalize payments on the server"
+              onPress={() => {
+                navigation.navigate('NoWebhookPayment');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Recollect a CVC"
+              onPress={() => {
+                navigation.navigate('CVCReCollectionScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Re-collect CVC"
-            onPress={() => {
-              navigation.navigate('CVCReCollectionScreen');
-            }}
-          />
-        </View>
-      </ScrollView>
-    </Screen>
+      <Collapse title="Bank Debits">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="SEPA Direct Debit payment"
+              onPress={() => {
+                navigation.navigate('SepaPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="SEPA Direct Debit set up"
+              onPress={() => {
+                navigation.navigate('SepaSetupFuturePaymentScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+
+      <Collapse title="Bank redirects">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Bancontact Payment"
+              onPress={() => {
+                navigation.navigate('BancontactPaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Bancontact SEPA Direct Debit set up"
+              onPress={() => {
+                navigation.navigate('BancontactSetupFuturePaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="EPS"
+              onPress={() => {
+                navigation.navigate('EPSPaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="FPX"
+              onPress={() => {
+                navigation.navigate('FPXPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="giropay"
+              onPress={() => {
+                navigation.navigate('GiropayPaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="iDEAL payment"
+              onPress={() => {
+                navigation.navigate('IdealPayment');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="iDEAL SEPA Direct Debit set up"
+              onPress={() => {
+                navigation.navigate('IdealSetupFuturePaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Przelewy24"
+              onPress={() => {
+                navigation.navigate('P24PaymentScreen');
+              }}
+            />
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Sofort"
+              onPress={() => {
+                navigation.navigate('SofortPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Sofort SEPA Direct Debit set up"
+              onPress={() => {
+                navigation.navigate('SofortSetupFuturePaymentScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+
+      <Collapse title="Buy now pay later">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Afterpay and Clearpay"
+              onPress={() => {
+                navigation.navigate('AfterpayClearpayPaymentScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+
+      <Collapse title="Vouchers">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="OXXO"
+              onPress={() => {
+                navigation.navigate('OxxoPaymentScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+
+      <Collapse title="Wallets">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Alipay"
+              onPress={() => {
+                navigation.navigate('AlipayPaymentScreen');
+              }}
+            />
+          </View>
+
+          {Platform.OS === 'ios' && (
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Apple Pay"
+                onPress={() => {
+                  navigation.navigate('ApplePay');
+                }}
+              />
+            </View>
+          )}
+          <View style={styles.buttonContainer}>
+            <Button
+              title="GrabPay"
+              onPress={() => {
+                navigation.navigate('GrabPayPaymentScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
+    backgroundColor: colors.white,
   },
   buttonContainer: {
     paddingHorizontal: 16,
