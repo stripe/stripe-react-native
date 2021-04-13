@@ -1,6 +1,6 @@
-# OXXO payments
+# Accept an Afterpay or Clearpay payment
 
-Use the Payment Intents and Payment Methods APIs to accept OXXO, a common payment method in Mexico.
+Learn how to accept Afterpay (also known as Clearpay in the UK), a payment method in the US, UK, AU, and NZ.
 
 ## 1. Setup Stripe
 
@@ -16,7 +16,7 @@ npm install stripe-react-native
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
 
-Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application.
+Configure the SDK with your Stripe [publishable key](https://dashboard.stripe.com/account/apikeys) so that it can make requests to the Stripe API. In order to do that use `StripeProvider` component in the root component of your application or `initStripe` method alternatively.
 
 ```tsx
 import { StripeProvider } from 'stripe-react-native';
@@ -48,10 +48,9 @@ const fetchPaymentIntentClientSecret = async () => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email,
-      currency: 'mxn',
+      currency: 'usd',
       items: [{ id: 'id' }],
-      payment_method_types: ['oxxo'],
+      payment_method_types: ['afterpay_clearpay'],
     }),
   });
   const { clientSecret, error } = await response.json();
@@ -62,23 +61,45 @@ const fetchPaymentIntentClientSecret = async () => {
 
 ## 3. Collect payment method details
 
-In your app, collect your customer’s full name and email address.
+Afterpay requires both billing and shipping details to be present for the payment to succeed. In your app, collect the required billing details from the customer:
+
+- Their full name (first and last)
+- Their email address
+- Their full address
+
+Additionally, collect the required shipping details from the customer:
+
+- Their full name
+- Their full address
 
 ```tsx
-export default function OxxoPaymentScreen() {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
+export default function AfterpayClearpayPaymentScreen() {
+  const [email, setEmail] = useState('');
 
   const handlePayPress = async () => {
+    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+      email,
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
+      name: 'John Doe',
+    };
+
+    const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
+      addressLine1: '1459  Circle Drive',
+      addressCountry: 'US',
+      addressPostalCode: '77063',
+      name: 'John Doe',
+    };
+
     // ...
   };
 
   return (
     <Screen>
-      <TextInput
-        placeholder="Name"
-        onChange={(value) => setName(value.nativeEvent.text)}
-      />
       <TextInput
         placeholder="E-mail"
         onChange={(value) => setEmail(value.nativeEvent.text)}
@@ -92,46 +113,33 @@ export default function OxxoPaymentScreen() {
 
 Retrieve the client secret from the PaymentIntent you created in step 2 and call `confirmPayment` method. This presents a webview where the customer can complete the payment on their bank’s website or app. Afterwards, the promise will be resolved with the result of the payment.
 
-The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with Bancontact, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
+The Stripe React Native SDK specifies `safepay/` as the host for the return URL for bank redirect methods. After the customer completes their payment with AfterpayClearpay, your app will be opened with `myapp://safepay/` where `myapp` is your custom URL scheme.
 
 ```tsx
-export default function OxxoPaymentScreen() {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
+export default function AfterpayClearpayPaymentScreen() {
+  const [email, setEmail] = useState('');
 
   const handlePayPress = async () => {
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      name,
-      email,
-    };
-  };
+    // ...
 
-  const { error, paymentIntent } = await confirmPayment(clientSecret, {
-    type: 'Oxxo',
-    billingDetails,
-  });
+    const { error, paymentIntent } = await confirmPayment(clientSecret, {
+      type: 'AfterpayClearpay',
+      billingDetails,
+      shippingDetails,
+    });
 
-  if (error) {
-    Alert.alert(`Error code: ${error.code}`, error.message);
-    console.log('Payment confirmation error', error.message);
-  } else if (paymentIntent) {
-    if (paymentIntent.status === PaymentIntents.Status.RequiresAction) {
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (paymentIntent) {
       Alert.alert(
         'Success',
-        `The OXXO voucher was created successfully. Awaiting payment from customer.`
+        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
-    } else {
-      Alert.alert('Payment intent status:', paymentIntent.status);
     }
-  }
-};
+  };
 
   return (
     <Screen>
-      <TextInput
-        placeholder="Name"
-        onChange={(value) => setName(value.nativeEvent.text)}
-      />
       <TextInput
         placeholder="E-mail"
         onChange={(value) => setEmail(value.nativeEvent.text)}
@@ -188,4 +196,14 @@ export default function HomeScreen() {
 }
 ```
 
-## 6. Handle post-payment events
+## **Optional** Add line items to the PaymentIntent
+
+## **Optional** Separate authorization and capture
+
+## **Optional** Handle post-payment events
+
+## **Optional** Test Afterpay integration
+
+## Failed payments
+
+## Error codes

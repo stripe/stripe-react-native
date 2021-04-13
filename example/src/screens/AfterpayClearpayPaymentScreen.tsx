@@ -1,20 +1,14 @@
-import type {
-  CardFieldInput,
-  PaymentMethodCreateParams,
-} from '@stripe/stripe-react-native';
+import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
-import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
+import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
+export default function AfterpayClearpayPaymentScreen() {
   const [email, setEmail] = useState('');
-  const [saveCard, setSaveCard] = useState(false);
-
   const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {
@@ -27,23 +21,25 @@ export default function WebhookPaymentScreen() {
         email,
         currency: 'usd',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
+        payment_method_types: ['afterpay_clearpay'],
       }),
     });
-    const { clientSecret } = await response.json();
+    const { clientSecret, error } = await response.json();
 
-    return clientSecret;
+    return { clientSecret, error };
   };
 
   const handlePayPress = async () => {
-    if (!card) {
+    const {
+      clientSecret,
+      error: clientSecretError,
+    } = await fetchPaymentIntentClientSecret();
+
+    if (clientSecretError) {
+      Alert.alert(`Error`, clientSecretError);
       return;
     }
 
-    // 1. fetch Intent Client Secret from backend
-    const clientSecret = await fetchPaymentIntentClientSecret();
-
-    // 2. Gather customer billing information (ex. email)
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
@@ -52,15 +48,20 @@ export default function WebhookPaymentScreen() {
       addressLine1: '1459  Circle Drive',
       addressLine2: 'Texas',
       addressPostalCode: '77063',
-    }; // mocked data for tests
+      name: 'John Doe',
+    };
 
-    // 3. Confirm payment with card details
-    // The rest will be done automatically using webhooks
+    const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
+      addressLine1: '1459  Circle Drive',
+      addressCountry: 'US',
+      addressPostalCode: '77063',
+      name: 'John Doe',
+    };
+
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Card',
+      type: 'AfterpayClearpay',
       billingDetails,
-      cardDetails: card,
-      setupFutureUsage: saveCard ? 'OffSession' : undefined,
+      shippingDetails,
     });
 
     if (error) {
@@ -71,7 +72,6 @@ export default function WebhookPaymentScreen() {
         'Success',
         `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
-      console.log('Success from promise', paymentIntent);
     }
   };
 
@@ -83,30 +83,7 @@ export default function WebhookPaymentScreen() {
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
-      <CardField
-        postalCodeEnabled={true}
-        placeholder={{
-          number: '4242 4242 4242 4242',
-          postalCode: '12345',
-          cvc: '123',
-          expiration: 'MM|YY',
-        }}
-        onCardChange={(cardDetails) => {
-          setCard(cardDetails);
-        }}
-        onFocus={(focusedField) => {
-          console.log('focusField', focusedField);
-        }}
-        cardStyle={inputStyles}
-        style={styles.cardField}
-      />
-      <View style={styles.row}>
-        <Switch
-          onValueChange={(value) => setSaveCard(value)}
-          value={saveCard}
-        />
-        <Text style={styles.text}>Save card during payment</Text>
-      </View>
+
       <Button
         variant="primary"
         onPress={handlePayPress}
@@ -135,14 +112,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderBottomColor: colors.slate,
     borderBottomWidth: 1.5,
+    marginBottom: 20,
   },
 });
-
-const inputStyles: CardFieldInput.Styles = {
-  borderWidth: 1,
-  backgroundColor: '#FFFFFF',
-  borderColor: '#000000',
-  borderRadius: 8,
-  fontSize: 14,
-  placeholderColor: '#999999',
-};

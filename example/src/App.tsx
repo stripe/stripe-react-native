@@ -29,6 +29,7 @@ import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
 import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
+import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -166,6 +167,10 @@ export default function App() {
           <Stack.Screen
             name="GiropayPaymentScreen"
             component={GiropayPaymentScreen}
+          />
+          <Stack.Screen
+            name="AfterpayClearpayPaymentScreen"
+            component={AfterpayClearpayPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
