@@ -124,7 +124,7 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="EPS Payment"
+              title="EPS"
               onPress={() => {
                 navigation.navigate('EPSPaymentScreen');
               }}
@@ -133,7 +133,7 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="FPX Payment"
+              title="FPX"
               onPress={() => {
                 navigation.navigate('FPXPaymentScreen');
               }}
@@ -141,7 +141,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              title="Giropay Payment"
+              title="giropay"
               onPress={() => {
                 navigation.navigate('GiropayPaymentScreen');
               }}
@@ -168,7 +168,7 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="Przelewy24 Payment"
+              title="Przelewy24"
               onPress={() => {
                 navigation.navigate('P24PaymentScreen');
               }}
@@ -177,7 +177,7 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="Sofort Payment"
+              title="Sofort"
               onPress={() => {
                 navigation.navigate('SofortPaymentScreen');
               }}
@@ -198,7 +198,7 @@ export default function HomeScreen() {
         <>
           <View style={styles.buttonContainer}>
             <Button
-              title="Afterpay/Clearpay Payment"
+              title="Afterpay and Clearpay"
               onPress={() => {
                 navigation.navigate('AfterpayClearpayPaymentScreen');
               }}
@@ -211,7 +211,7 @@ export default function HomeScreen() {
         <>
           <View style={styles.buttonContainer}>
             <Button
-              title="Oxxo Payment"
+              title="OXXO"
               onPress={() => {
                 navigation.navigate('OxxoPaymentScreen');
               }}
@@ -234,7 +234,7 @@ export default function HomeScreen() {
           {Platform.OS === 'ios' && (
             <View style={styles.buttonContainer}>
               <Button
-                title="ApplePay"
+                title="Apple Pay"
                 onPress={() => {
                   navigation.navigate('ApplePay');
                 }}
