@@ -32,7 +32,7 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
   fun setCompanyName(name: String?) {
     becsDebitWidget = BecsDebitWidget(context = context, companyName = name as String);
 
-    setFormStyle(this.formStyle)
+//    setFormStyle(this.formStyle)
     addView(becsDebitWidget)
     setListeners()
   }

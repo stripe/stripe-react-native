@@ -4,6 +4,7 @@ export namespace AuBECSDebitFormComponent {
   export interface NativeProps {
     companyName: string;
     style?: StyleProp<ViewStyle>;
+    formStyle: Styles;
     onCompleteAction(value: NativeSyntheticEvent<FormDetails>): void;
   }
 

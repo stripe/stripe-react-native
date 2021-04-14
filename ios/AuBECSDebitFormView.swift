@@ -22,6 +22,20 @@ class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
         }
     }
     
+    @objc var formStyle: NSDictionary = NSDictionary() {
+        didSet {
+            if let textColor = formStyle["textColor"]  as? String {
+                auBecsFormView?.formTextColor = UIColor(hexString: textColor)
+            }
+            if let fontSize = formStyle["fontSize"]  as? Int {
+                auBecsFormView?.formFont = UIFont.systemFont(ofSize: CGFloat(fontSize))
+            }
+            if let backgroundColor = formStyle["backgroundColor"]  as? String {
+                auBecsFormView?.formBackgroundColor = UIColor(hexString: backgroundColor)
+            }
+        }
+    }
+    
     func auBECSDebitForm(_ form: STPAUBECSDebitFormView, didChangeToStateComplete complete: Bool) {
         onCompleteAction!([
             "accountNumber": form.paymentMethodParams?.auBECSDebit?.accountNumber ?? "",

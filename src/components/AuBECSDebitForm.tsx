@@ -36,10 +36,19 @@ export interface Props extends AccessibilityProps {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function AuBECSDebitForm({ onComplete, ...props }: Props) {
+export function AuBECSDebitForm({
+  onComplete,
+  companyName,
+  formStyle,
+  ...props
+}: Props) {
   return (
     <AuBECSDebitFormNative
       onCompleteAction={(value) => onComplete(value.nativeEvent)}
+      companyName={companyName}
+      formStyle={{
+        ...formStyle,
+      }}
       {...props}
     />
   );
