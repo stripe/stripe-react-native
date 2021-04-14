@@ -5,6 +5,10 @@ import Stripe
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     var merchantIdentifier: String? = nil
     var urlScheme: String? = nil
+    
+    static let notificationName = Notification.Name("cardDetailsNotification")
+    
+    private var cardParams = STPCardParams()
 
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
     var applePayRequestResolver: RCTPromiseResolveBlock? = nil
@@ -25,6 +29,19 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     @objc override static func requiresMainQueueSetup() -> Bool {
         return false
+    }
+    
+    @objc func onDidReceiveData(_ notification: Notification) {
+        cardParams.number = notification.userInfo?["number"] as? String
+        cardParams.cvc = notification.userInfo?["cvc"] as? String
+        cardParams.expMonth = notification.userInfo?["expiryMonth"] as! UInt
+        cardParams.expYear = notification.userInfo?["expiryYear"] as! UInt
+    }
+    
+    override init() {
+        super.init()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(onDidReceiveData(_:)), name: StripeSdk.notificationName, object: nil)
     }
     
     @objc(initialise:)
@@ -82,7 +99,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         var paymentMethodParams: STPPaymentMethodParams?
-        let factory = PaymentMethodFactory.init(params: params)
+        let factory = PaymentMethodFactory.init(params: params, cardParams: cardParams)
         
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
@@ -303,7 +320,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         var paymentMethodParams: STPPaymentMethodParams?
-        let factory = PaymentMethodFactory.init(params: params)
+        let factory = PaymentMethodFactory.init(params: params, cardParams: cardParams)
         
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
@@ -391,7 +408,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
             var paymentMethodOptions: STPConfirmPaymentMethodOptions?
-            let factory = PaymentMethodFactory.init(params: params)
+            let factory = PaymentMethodFactory.init(params: params, cardParams: cardParams)
             
             do {
                 paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)

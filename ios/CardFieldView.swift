@@ -94,22 +94,23 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     }
     
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
-        if onCardChange != nil {
-            let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
-            var cardData: [String: Any] = [
-                "number": textField.cardParams.number ?? "",
-                "cvc": textField.cardParams.cvc ?? "",
-                "expiryMonth": textField.cardParams.expMonth ?? 0,
-                "expiryYear": textField.cardParams.expYear ?? 0,
-                "complete": textField.isValid,
-                "brand": Mappers.mapCardBrand(brand),
-                "last4": textField.cardParams.last4 ?? ""
-            ]
-            if (cardField.postalCodeEntryEnabled) {
-                cardData["postalCode"] = textField.postalCode ?? ""
-            }
-            onCardChange!(cardData)
+        let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
+
+        var cardData: [String: Any] = [
+            "number": textField.cardParams.number ?? "",
+            "cvc": textField.cardParams.cvc ?? "",
+            "expiryMonth": textField.cardParams.expMonth ?? 0,
+            "expiryYear": textField.cardParams.expYear ?? 0,
+            "complete": textField.isValid,
+            "brand": Mappers.mapCardBrand(brand),
+            "last4": textField.cardParams.last4 ?? ""
+        ]
+        
+        if (cardField.postalCodeEntryEnabled) {
+            cardData["postalCode"] = textField.postalCode ?? ""
         }
+
+        NotificationCenter.default.post(name: StripeSdk.notificationName, object: nil, userInfo: cardData)
     }
     
     override func layoutSubviews() {

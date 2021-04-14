@@ -1,7 +1,10 @@
 package com.reactnativestripesdk
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Parcelable
 import android.util.Log
@@ -24,6 +27,26 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var confirmSetupIntentPromise: Promise? = null
 
   private var confirmPaymentClientSecret: String? = null
+
+  private var cardDetails: PaymentMethodCreateParams.Card? = null
+
+  private val cardChangedReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+       if (intent.action == ON_CARD_CHANGED_ACTION) {
+         val number = intent.extras?.getString("number")
+         val cvc = intent.extras?.getString("cvc")
+         val expiryMonth = intent.extras?.getString("expiryMonth")
+         val expiryYear = intent.extras?.getString("expiryYear")
+
+         cardDetails = PaymentMethodCreateParams.Card.Builder()
+           .setCvc(cvc)
+           .setExpiryMonth(expiryMonth?.toIntOrNull() ?: 0)
+           .setExpiryYear(expiryYear?.toIntOrNull() ?: 0)
+           .setNumber(number)
+           .build()
+      }
+    }
+  }
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
@@ -162,6 +185,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+
+    this.currentActivity?.registerReceiver(cardChangedReceiver, IntentFilter(ON_CARD_CHANGED_ACTION));
   }
 
   private fun payWithFpx() {
@@ -253,7 +278,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme, cardDetails)
 
     try {
       val confirmParams = factory.createConfirmParams(paymentMethodType)
@@ -285,7 +310,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme, cardDetails)
 
     try {
       val confirmParams = factory.createSetupParams(paymentMethodType)

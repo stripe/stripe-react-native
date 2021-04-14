@@ -3,8 +3,9 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 
-class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
+class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardDetails: PaymentMethodCreateParams.Card?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
+  private val cardParams = cardDetails
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
@@ -93,7 +94,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
     val paymentMethodId = getValOr(params, "paymentMethodId", null)
 
     if (cardParams == null && paymentMethodId == null) {
@@ -112,10 +112,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         clientSecret = clientSecret
       )
     } else {
-      val card = mapToCard(cardParams!!)
-
       val createParams = PaymentMethodCreateParams
-        .create(card, billingDetailsParams, null)
+        .create(cardParams!!, billingDetailsParams, null)
 
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
@@ -165,9 +163,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
-
-    val card = cardParams?.let { mapToCard(it) } ?: run {
+    val card = cardParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
     }
 

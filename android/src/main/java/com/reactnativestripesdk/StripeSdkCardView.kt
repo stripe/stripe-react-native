@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.Editable
@@ -132,14 +133,14 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
-  fun getValue(): MutableMap<String, Any> {
-    return cardDetails
-  }
-
   fun onCardChanged() {
-    val complete = mCardWidget.cardParams != null
-    mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, complete))
+    val intent = Intent(ON_CARD_CHANGED_ACTION)
+    intent.putExtra("number", cardDetails["number"] as String)
+    intent.putExtra("cvc", cardDetails["cvc"] as String)
+    intent.putExtra("expiryMonth", cardDetails["expiryMonth"] as String)
+    intent.putExtra("expiryYear", cardDetails["expiryYear"] as String)
+
+    context.currentActivity?.sendBroadcast(intent)
   }
 
   private fun setListeners() {

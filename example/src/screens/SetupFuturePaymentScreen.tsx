@@ -11,14 +11,12 @@ import Button from '../components/Button';
 import { colors } from '../colors';
 import Screen from '../components/Screen';
 import type {
-  CardFieldInput,
   PaymentMethodCreateParams,
   PaymentIntent,
   SetupIntent,
 } from '@stripe/stripe-react-native';
 
 export default function SetupFuturePaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
@@ -66,11 +64,6 @@ export default function SetupFuturePaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    if (!card) {
-      return;
-    }
-
-    console.log('email', email);
     // 1. Create setup intent on backend
     const clientSecret = await createSetupIntentOnBackend(email);
 
@@ -90,7 +83,6 @@ export default function SetupFuturePaymentScreen() {
       clientSecret,
       {
         type: 'Card',
-        cardDetails: card,
         billingDetails,
       }
     );
@@ -169,7 +161,7 @@ export default function SetupFuturePaymentScreen() {
       addressPostalCode: '77063',
     }; // mocked data for tests
 
-    if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id && card) {
+    if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id) {
       const { error } = await confirmPayment(
         retrievedPaymentIntent.clientSecret,
         {
@@ -195,14 +187,7 @@ export default function SetupFuturePaymentScreen() {
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
-      <CardField
-        postalCodeEnabled={false}
-        onCardChange={(cardDetails) => {
-          console.log('card details', cardDetails);
-          setCard(cardDetails);
-        }}
-        style={styles.cardField}
-      />
+      <CardField postalCodeEnabled={false} style={styles.cardField} />
       <View style={styles.buttonContainer}>
         <Button
           variant="primary"
