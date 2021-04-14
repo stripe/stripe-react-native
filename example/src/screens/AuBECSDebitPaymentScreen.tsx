@@ -5,6 +5,7 @@ import {
   AuBECSDebitForm,
   useConfirmPayment,
   AuBECSDebitFormComponent,
+  PaymentIntents,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import { API_URL } from '../Config';
@@ -13,7 +14,7 @@ export default function AuBECSDebitPaymentScreen() {
   const [formDetails, setFormDetails] = useState<
     AuBECSDebitFormComponent.FormDetails
   >();
-  const { confirmPayment } = useConfirmPayment();
+  const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -48,11 +49,19 @@ export default function AuBECSDebitPaymentScreen() {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
-      );
-      console.log('Success from promise', paymentIntent);
+      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+        Alert.alert(
+          'Processing',
+          `The debit has been successfully submitted and is now processing.`
+        );
+      } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
+        );
+      } else {
+        Alert.alert('Payment status:', paymentIntent.status);
+      }
     }
   };
 
@@ -61,7 +70,7 @@ export default function AuBECSDebitPaymentScreen() {
       <AuBECSDebitForm
         style={styles.form}
         onComplete={(value) => setFormDetails(value)}
-        companyName="test"
+        companyName="company"
       />
 
       <View style={styles.buttonContainer}>
@@ -70,6 +79,7 @@ export default function AuBECSDebitPaymentScreen() {
           title="Pay"
           variant="primary"
           onPress={onPressPay}
+          loading={loading}
         />
       </View>
     </Screen>

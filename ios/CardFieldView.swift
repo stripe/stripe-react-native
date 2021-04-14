@@ -11,7 +11,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     private var cardField = STPPaymentCardTextField()
     
     private let cardParams = STPPaymentMethodCardParams()
-    
+        
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled

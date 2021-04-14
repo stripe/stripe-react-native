@@ -38,7 +38,10 @@ export interface Props extends AccessibilityProps {
 export function AuBECSDebitForm({ companyName, onComplete, ...props }: Props) {
   return (
     <AuBECSDebitFormNative
-      onCompleteAction={(value) => onComplete(value.nativeEvent)}
+      onCompleteAction={(value) => {
+        console.log('value', value.nativeEvent);
+        onComplete(value.nativeEvent);
+      }}
       companyName={companyName}
       {...props}
     />
