@@ -17,6 +17,7 @@ const AuBECSDebitFormNative = requireNativeComponent<
 export interface Props extends AccessibilityProps {
   companyName: string;
   onComplete(value: AuBECSDebitFormComponent.FormDetails): void;
+  formStyle?: AuBECSDebitFormComponent.Styles;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -35,14 +36,10 @@ export interface Props extends AccessibilityProps {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function AuBECSDebitForm({ companyName, onComplete, ...props }: Props) {
+export function AuBECSDebitForm({ onComplete, ...props }: Props) {
   return (
     <AuBECSDebitFormNative
-      onCompleteAction={(value) => {
-        console.log('value', value.nativeEvent);
-        onComplete(value.nativeEvent);
-      }}
-      companyName={companyName}
+      onCompleteAction={(value) => onComplete(value.nativeEvent)}
       {...props}
     />
   );

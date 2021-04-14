@@ -71,6 +71,7 @@ export default function AuBECSDebitPaymentScreen() {
         style={styles.form}
         onComplete={(value) => setFormDetails(value)}
         companyName="company"
+        formStyle={formStyle}
       />
 
       <View style={styles.buttonContainer}>
@@ -95,3 +96,9 @@ const styles = StyleSheet.create({
     height: 400,
   },
 });
+
+const formStyle = {
+  textColor: '#000000',
+  fontSize: 14,
+  placeholderColor: '#999999',
+};

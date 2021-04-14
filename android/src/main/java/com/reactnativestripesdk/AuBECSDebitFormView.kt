@@ -22,28 +22,59 @@ import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.BecsDebitWidget
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
+import com.stripe.android.view.StripeEditText
 
 class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout(context) {
   private lateinit var becsDebitWidget: BecsDebitWidget
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+  private var formStyle: ReadableMap? = null
 
   fun setCompanyName(name: String?) {
     becsDebitWidget = BecsDebitWidget(context = context, companyName = name as String);
 
+    setFormStyle(this.formStyle)
     addView(becsDebitWidget)
-
-    setFormStyle()
     setListeners()
   }
 
-
-  fun setFormStyle() {
+  fun setFormStyle(value: ReadableMap?) {
+    this.formStyle = value
+    if (!this::becsDebitWidget.isInitialized || value == null) {
+      return
+    }
     val binding = BecsDebitWidgetBinding.bind(becsDebitWidget)
-//    val textColor = getValOr(value, "textColor")
+    val textColor = getValOr(value, "textColor")
+    val textErrorColor = getValOr(value, "textErrorColor")
+    val placeholderColor = getValOr(value, "placeholderColor")
+    val fontSize = getIntOrNull(value, "fontSize")
 
+    textColor?.let {
+      (binding.accountNumberEditText as StripeEditText).setTextColor(Color.parseColor(it))
+      (binding.bsbEditText as StripeEditText).setTextColor(Color.parseColor(it))
+      (binding.emailEditText as StripeEditText).setTextColor(Color.parseColor(it))
+      (binding.nameEditText).setTextColor(Color.parseColor(it))
+    }
 
-      binding.accountNumberEditText.setTextColor(Color.parseColor("#c0c0c0"))
+    textErrorColor?.let {
+      (binding.accountNumberEditText as StripeEditText).setErrorColor(Color.parseColor(it))
+      (binding.bsbEditText as StripeEditText).setErrorColor(Color.parseColor(it))
+      (binding.emailEditText as StripeEditText).setErrorColor(Color.parseColor(it))
+      (binding.nameEditText).setErrorColor(Color.parseColor(it))
+    }
 
+    placeholderColor?.let {
+      (binding.accountNumberEditText as StripeEditText).setHintTextColor(Color.parseColor(it))
+      (binding.bsbEditText as StripeEditText).setHintTextColor(Color.parseColor(it))
+      (binding.emailEditText as StripeEditText).setHintTextColor(Color.parseColor(it))
+      (binding.nameEditText).setHintTextColor(Color.parseColor(it))
+    }
+
+    fontSize?.let {
+      (binding.accountNumberEditText as StripeEditText).textSize = it.toFloat()
+      (binding.bsbEditText as StripeEditText).textSize = it.toFloat()
+      (binding.emailEditText as StripeEditText).textSize = it.toFloat()
+      (binding.nameEditText).textSize = it.toFloat()
+    }
   }
 
 

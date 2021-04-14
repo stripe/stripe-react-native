@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -16,6 +17,11 @@ class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
   @ReactProp(name = "companyName")
   fun setCompanyName(view: AuBECSDebitFormView, name: String?) {
     view.setCompanyName(name);
+  }
+
+  @ReactProp(name = "formStyle")
+  fun setFormStyle(view: AuBECSDebitFormView, style: ReadableMap) {
+    view.setFormStyle(style);
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView {
