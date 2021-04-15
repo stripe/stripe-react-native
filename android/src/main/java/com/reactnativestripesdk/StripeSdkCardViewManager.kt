@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
@@ -10,14 +11,12 @@ import com.facebook.react.uimanager.annotations.ReactProp
 class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   override fun getName() = "CardField"
 
+  lateinit var cardViewInstance: StripeSdkCardView
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
       CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
       CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
-  }
-
-  private fun isNotEmptyField(field: Any?): Boolean {
-    return (field as CharSequence).isNotEmpty()
   }
 
   @ReactProp(name = "postalCodeEnabled")
@@ -36,6 +35,15 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
-    return StripeSdkCardView(reactContext)
+    cardViewInstance = StripeSdkCardView(reactContext)
+    return cardViewInstance
+  }
+
+  @JvmName("getCardViewInstance1")
+  fun getCardViewInstance(): StripeSdkCardView? {
+    if (this::cardViewInstance.isInitialized) {
+      return cardViewInstance
+    }
+    return null
   }
 }
