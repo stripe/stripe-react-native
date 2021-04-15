@@ -32,7 +32,7 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
   fun setCompanyName(name: String?) {
     becsDebitWidget = BecsDebitWidget(context = context, companyName = name as String);
 
-//    setFormStyle(this.formStyle)
+    setFormStyle(this.formStyle)
     addView(becsDebitWidget)
     setListeners()
   }
@@ -43,10 +43,14 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
       return
     }
     val binding = BecsDebitWidgetBinding.bind(becsDebitWidget)
-    val textColor = getValOr(value, "textColor")
-    val textErrorColor = getValOr(value, "textErrorColor")
-    val placeholderColor = getValOr(value, "placeholderColor")
+    val textColor = getValOr(value, "textColor", null)
+    val textErrorColor = getValOr(value, "textErrorColor", null)
+    val placeholderColor = getValOr(value, "placeholderColor", null)
     val fontSize = getIntOrNull(value, "fontSize")
+    val borderWidth = getIntOrNull(value, "borderWidth")
+    val backgroundColor = getValOr(value, "backgroundColor", null)
+    val borderColor = getValOr(value, "borderColor", null)
+    val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
 
     textColor?.let {
       (binding.accountNumberEditText as StripeEditText).setTextColor(Color.parseColor(it))
@@ -74,6 +78,26 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
       (binding.bsbEditText as StripeEditText).textSize = it.toFloat()
       (binding.emailEditText as StripeEditText).textSize = it.toFloat()
       (binding.nameEditText).textSize = it.toFloat()
+    }
+
+    becsDebitWidget.background = MaterialShapeDrawable(
+      ShapeAppearanceModel()
+        .toBuilder()
+        .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
+        .build()
+    ).also { shape ->
+      shape.strokeWidth = 0.0f
+      shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
+      shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+      borderWidth?.let {
+        shape.strokeWidth = (it * 2).toFloat()
+      }
+      borderColor?.let {
+        shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
+      }
+      backgroundColor?.let {
+        shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
+      }
     }
   }
 

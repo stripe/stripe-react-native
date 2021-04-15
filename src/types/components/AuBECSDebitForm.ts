@@ -16,13 +16,13 @@ export namespace AuBECSDebitFormComponent {
   }
 
   export interface Styles {
+    borderWidth?: number;
     backgroundColor?: string;
     borderColor?: string;
     borderRadius?: number;
     textColor?: string;
     fontSize?: number;
     placeholderColor?: string;
-    cursorColor?: string;
     textErrorColor?: string;
   }
 }

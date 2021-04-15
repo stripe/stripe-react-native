@@ -98,7 +98,10 @@ const styles = StyleSheet.create({
 });
 
 const formStyle = {
-  textColor: '#D23212',
+  textColor: '#000000',
   fontSize: 22,
   placeholderColor: '#999999',
+  borderWidth: 1,
+  borderColor: '#000000',
+  borderRadius: 8,
 };

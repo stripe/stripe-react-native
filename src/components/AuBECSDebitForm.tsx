@@ -46,9 +46,7 @@ export function AuBECSDebitForm({
     <AuBECSDebitFormNative
       onCompleteAction={(value) => onComplete(value.nativeEvent)}
       companyName={companyName}
-      formStyle={{
-        ...formStyle,
-      }}
+      formStyle={{ ...formStyle }}
       {...props}
     />
   );
