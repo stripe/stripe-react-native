@@ -10,7 +10,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     private var cardField = STPPaymentCardTextField()
     
-    private let cardParams = STPPaymentMethodCardParams()
+    public let cardParams = ["number": 1]
     
     @objc var postalCodeEnabled: Bool = true {
         didSet {
@@ -75,6 +75,9 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         super.init(frame: frame)
         cardField.delegate = self
         self.addSubview(cardField)
+        
+        let uuid = UUID().uuidString
+        CardFieldManager.shared.cardFieldMap[uuid] = self
     }
     
     func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
