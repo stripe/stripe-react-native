@@ -73,7 +73,6 @@ export default function NoWebhookPaymentScreen() {
     // 2. Create payment method
     const { paymentMethod, error } = await createPaymentMethod({
       type: 'Card',
-      cardDetails: card,
       billingDetails,
     });
 
