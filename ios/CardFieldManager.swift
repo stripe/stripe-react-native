@@ -1,17 +1,23 @@
 import Foundation
 
 @objc(CardFieldManager)
-class CardFieldManager: RCTViewManager {
-    static let shared = CardFieldManager()
+class CardFieldManager: RCTViewManager, CardFieldDelegate {
+    func onDidCreateViewInstance(uuid: String, reference: Any?) {
+        cardFieldMap[uuid] = reference
+    }
     
-    let cardFieldMap: NSMutableDictionary = [:]
+    func onDidDestroyViewInstance(uuid: String) {
+        cardFieldMap[uuid] = nil
+    }
+    
+    public let cardFieldMap: NSMutableDictionary = [:]
     
     public func getCardFieldReference(uuid: String) -> Any? {
-        return CardFieldManager.shared.cardFieldMap["uuid"]
+        return self.cardFieldMap[uuid]
     }
     
     override func view() -> UIView! {
-        return CardFieldView()
+        return CardFieldView(delegate: self)
     }
     
     override class func requiresMainQueueSetup() -> Bool {

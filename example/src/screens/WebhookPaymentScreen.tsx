@@ -36,10 +36,6 @@ export default function WebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    if (!card) {
-      return;
-    }
-
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
