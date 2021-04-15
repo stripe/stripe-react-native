@@ -75,6 +75,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        cardField.delegate = self
 
         self.addSubview(cardField)
     }
@@ -124,11 +125,11 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
             onCardChange!(cardData)
         }
-        self.cardParams.number = textField.cardParams.number ?? ""
-        self.cardParams.cvc = textField.cardParams.cvc ?? ""
-        self.cardParams.expMonth = textField.cardParams.expMonth ?? 0
-        self.cardParams.expYear = textField.cardParams.expYear ?? 0
-        self.cardParams.token = textField.cardParams.token ?? ""
+        self.cardParams.number = textField.cardParams.number
+        self.cardParams.cvc = textField.cardParams.cvc
+        self.cardParams.expMonth = textField.cardParams.expMonth
+        self.cardParams.expYear = textField.cardParams.expYear
+        self.cardParams.token = textField.cardParams.token
     }
     
     override func layoutSubviews() {

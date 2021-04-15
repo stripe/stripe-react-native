@@ -11,7 +11,6 @@ import { API_URL } from '../Config';
 import { colors } from '../colors';
 
 export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
 
@@ -55,7 +54,6 @@ export default function WebhookPaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Card',
       billingDetails,
-      cardDetails: card,
       setupFutureUsage: saveCard ? 'OffSession' : undefined,
     });
 
@@ -86,9 +84,6 @@ export default function WebhookPaymentScreen() {
           postalCode: '12345',
           cvc: '123',
           expiration: 'MM|YY',
-        }}
-        onCardChange={(cardDetails) => {
-          setCard(cardDetails);
         }}
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);
