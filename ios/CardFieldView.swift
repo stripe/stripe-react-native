@@ -10,7 +10,9 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     private var cardField = STPPaymentCardTextField()
     
-    public let cardParams = ["number": 1]
+    public let cardParams = STPPaymentMethodCardParams()
+    
+    public var delegate: CardFieldDelegate?
     
     @objc var postalCodeEnabled: Bool = true {
         didSet {
@@ -73,11 +75,20 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        cardField.delegate = self
+
         self.addSubview(cardField)
+    }
+    
+    convenience init(delegate: CardFieldDelegate) {
+        self.init(frame: CGRect.zero)
         
+        self.delegate = delegate
         let uuid = UUID().uuidString
-        CardFieldManager.shared.cardFieldMap[uuid] = self
+        self.delegate?.onDidCreateViewInstance(uuid: "field", reference: self) // TODO: handle by uuid
+   }
+    
+    deinit {
+        self.delegate?.onDidDestroyViewInstance(uuid: "field")
     }
     
     func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
@@ -113,6 +124,11 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
             onCardChange!(cardData)
         }
+        self.cardParams.number = textField.cardParams.number ?? ""
+        self.cardParams.cvc = textField.cardParams.cvc ?? ""
+        self.cardParams.expMonth = textField.cardParams.expMonth ?? 0
+        self.cardParams.expYear = textField.cardParams.expYear ?? 0
+        self.cardParams.token = textField.cardParams.token ?? ""
     }
     
     override func layoutSubviews() {

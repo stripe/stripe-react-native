@@ -5,10 +5,12 @@ import Stripe
 class PaymentMethodFactory {
     var billingDetailsParams: STPPaymentMethodBillingDetails? = nil
     var params: NSDictionary? = nil
+    var cardFieldView: CardFieldView? = nil
     
-    init(params: NSDictionary) {
+    init(params: NSDictionary, cardFieldView: CardFieldView?) {
         self.billingDetailsParams = Mappers.mapToBillingDetails(billingDetails: params["billingDetails"] as? NSDictionary)
         self.params = params
+        self.cardFieldView = cardFieldView
     }
     
     func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
@@ -101,12 +103,11 @@ class PaymentMethodFactory {
     }
     
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
-        guard let cardParams = self.params?["cardDetails"] as? NSDictionary else {
+        guard let cardParams = cardFieldView?.cardParams else {
             throw PaymentMethodError.cardPaymentMissingParams
         }
         
-        let card = Mappers.mapToPaymentMethodCardParams(params: cardParams)
-        return STPPaymentMethodParams(card: card, billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(card: cardParams, billingDetails: billingDetailsParams, metadata: nil)
     }
     
     
