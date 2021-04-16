@@ -95,9 +95,10 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentConfirmParams(): ConfirmPaymentIntentParams {
     val paymentMethodId = getValOr(params, "paymentMethodId", null)
+    val token = getValOr(params, "token", null)
 
-    if (cardParams == null && paymentMethodId == null) {
-      throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
+    if (cardParams == null && paymentMethodId == null && token == null) {
+      throw PaymentMethodCreateParamsException("You must provide cardDetails, token or paymentMethodId")
     }
 
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
@@ -113,8 +114,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       )
     } else {
       var card = cardParams
-      if (params.hasKey("token")) {
-        card = PaymentMethodCreateParams.Card.create(params.getString("token") as String)
+      if (token != null) {
+        card = PaymentMethodCreateParams.Card.create(token as String)
       }
       val paymentMethodCreateParams = PaymentMethodCreateParams.create(card!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
