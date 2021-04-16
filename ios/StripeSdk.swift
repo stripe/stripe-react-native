@@ -82,8 +82,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(uuid: "field") as? CardFieldView
-        
+        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
+
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
         
@@ -306,7 +306,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(uuid: "field") as? CardFieldView
+        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
@@ -374,7 +374,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.confirmPaymentClientSecret = paymentIntentClientSecret
         
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(uuid: "field") as? CardFieldView
+        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
                 
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
