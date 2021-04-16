@@ -5,14 +5,12 @@ import { API_URL } from '../Config';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import {
-  CardFieldInput,
   PaymentMethodCreateParams,
   PaymentIntents,
 } from '@stripe/stripe-react-native';
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const { createPaymentMethod, handleCardAction } = useStripe();
 
   const callNoWebhookPayEndpoint = async (
@@ -54,10 +52,6 @@ export default function NoWebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    if (!card) {
-      return;
-    }
-
     setLoading(true);
     // 1. Gather customer billing information (ex. email)
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
@@ -73,7 +67,6 @@ export default function NoWebhookPaymentScreen() {
     // 2. Create payment method
     const { paymentMethod, error } = await createPaymentMethod({
       type: 'Card',
-      cardDetails: card,
       billingDetails,
     });
 
@@ -141,7 +134,6 @@ export default function NoWebhookPaymentScreen() {
       <CardField
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
-          setCard(cardDetails);
         }}
         onFocus={(focusedField) => {
           console.log('focusedField', focusedField);
