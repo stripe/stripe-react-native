@@ -149,21 +149,6 @@ class Mappers {
         }
         return nil
     }
-
-    class func mapToPaymentMethodCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
-        if let token = params["token"] {
-            let methodParams = STPPaymentMethodCardParams()
-            methodParams.token = RCTConvert.nsString(token)
-            return methodParams
-        }
-        let cardSourceParams = STPCardParams()
-        cardSourceParams.number = RCTConvert.nsString(params["number"])
-        cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
-        cardSourceParams.expMonth = RCTConvert.nsuInteger(params["expiryMonth"])
-        cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
-        
-        return STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
-    }
     
     class func mapCaptureMethod(_ captureMethod: STPPaymentIntentCaptureMethod?) -> String {
         if let captureMethod = captureMethod {
@@ -395,16 +380,6 @@ class Mappers {
             ],
         ]
         return method
-    }
-    
-    class func mapCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
-        let cardSourceParams = STPCardParams()
-        cardSourceParams.number = RCTConvert.nsString(params["number"])
-        cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
-        cardSourceParams.expMonth = RCTConvert.nsuInteger(params["expiryMonth"])
-        cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
-        
-        return STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
     }
     
     class func mapIntentStatus(status: STPSetupIntentStatus?) -> String {
