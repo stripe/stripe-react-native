@@ -10,7 +10,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     private var cardField = STPPaymentCardTextField()
     
-    public let cardParams = STPPaymentMethodCardParams()
+    public var cardParams: STPPaymentMethodCardParams? = nil
     
     public var delegate: CardFieldDelegate?
     
@@ -112,10 +112,8 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         if onCardChange != nil {
             let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
             var cardData: [String: Any] = [
-                "number": textField.cardParams.number ?? "",
-                "cvc": textField.cardParams.cvc ?? "",
-                "expiryMonth": textField.cardParams.expMonth ?? 0,
-                "expiryYear": textField.cardParams.expYear ?? 0,
+                "expiryMonth": textField.cardParams.expMonth?.stringValue ?? "",
+                "expiryYear": textField.cardParams.expYear?.stringValue ?? "",
                 "complete": textField.isValid,
                 "brand": Mappers.mapCardBrand(brand),
                 "last4": textField.cardParams.last4 ?? ""
@@ -125,11 +123,9 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
             onCardChange!(cardData)
         }
-        self.cardParams.number = textField.cardParams.number
-        self.cardParams.cvc = textField.cardParams.cvc
-        self.cardParams.expMonth = textField.cardParams.expMonth
-        self.cardParams.expYear = textField.cardParams.expYear
-        self.cardParams.token = textField.cardParams.token
+        if (textField.isValid) {
+            self.cardParams = textField.cardParams
+        }
     }
     
     override func layoutSubviews() {

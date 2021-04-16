@@ -85,6 +85,9 @@ export default function WebhookPaymentScreen() {
           cvc: '123',
           expiration: 'MM|YY',
         }}
+        onCardChange={(cardDetails) => {
+          console.log('cardDetails', cardDetails);
+        }}
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);
         }}

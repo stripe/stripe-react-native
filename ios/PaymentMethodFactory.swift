@@ -103,6 +103,12 @@ class PaymentMethodFactory {
     }
     
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let cardDetails = self.params?["cardDetails"] as? NSDictionary
+        if let token = cardDetails?["token"] as? String {
+            let methodParams = STPPaymentMethodCardParams()
+            methodParams.token = RCTConvert.nsString(token)
+            return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: nil)
+        }
         guard let cardParams = cardFieldView?.cardParams else {
             throw PaymentMethodError.cardPaymentMissingParams
         }

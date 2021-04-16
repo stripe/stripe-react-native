@@ -24,11 +24,6 @@ export interface Props extends AccessibilityProps {
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }
 
-type NativeCardDetails = CardFieldInput.Details & {
-  number: string;
-  cvc: string;
-};
-
 /**
  *  Card Field Component
  *
@@ -56,18 +51,13 @@ export function CardField({
   ...props
 }: Props) {
   const onCardChangeHandler = useCallback(
-    (event: NativeSyntheticEvent<NativeCardDetails>) => {
+    (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
       const card = event.nativeEvent;
-      const cardNumber = card.number || '';
-      const last4 =
-        cardNumber.length >= 4 ? cardNumber.slice(cardNumber.length - 4) : '';
 
-      const data: NativeCardDetails = {
-        last4: card.last4 || last4,
-        number: cardNumber,
-        cvc: card.cvc || '',
-        expiryMonth: card.expiryMonth || 0,
-        expiryYear: card.expiryYear || 0,
+      const data: CardFieldInput.Details = {
+        last4: card.last4,
+        expiryMonth: card.expiryMonth,
+        expiryYear: card.expiryYear,
         complete: card.complete,
         brand: card.brand,
       };
