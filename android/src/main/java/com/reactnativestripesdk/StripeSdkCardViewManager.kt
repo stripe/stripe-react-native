@@ -1,7 +1,12 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableNativeMap
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.devsupport.DevSupportManagerBase
+import com.facebook.react.modules.core.ExceptionsManagerModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
@@ -37,8 +42,12 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
     // as it's reasonable we handle only one CardField component on the same screen
     if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
-      // TODO: throw an exception
+      val exceptionManager = reactContext.getNativeModule(ExceptionsManagerModule::class.java)
+      val error: WritableMap = WritableNativeMap()
+      error.putString("message", "Only one CardField component on the same screen allowed")
+      exceptionManager.reportException(error)
     }
+
     cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
     return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
   }
