@@ -1,11 +1,9 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.model.*
 
-class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardParams: MutableMap<String, Any>?) {
+class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardParams: PaymentMethodCreateParams.Card?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
   private val cardParams = cardParams
 
@@ -114,22 +112,10 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         clientSecret = clientSecret
       )
     } else {
-      val cardMap = WritableNativeMap()
-      val expMonth = cardParams?.get("expiryMonth").toString().toIntOrNull() ?: 0
-      val expYear = cardParams?.get("expiryYear").toString().toIntOrNull() ?: 0
-      cardMap.putString("number", cardParams?.get("number") as String?)
-      cardMap.putString("cvc", cardParams?.get("cvc") as String?)
-      cardMap.putInt("expiryMonth", expMonth)
-      cardMap.putInt("expiryYear", expYear)
-      cardMap.putString("postalCode", cardParams?.get("postalCode") as String?)
-      val card = mapToCard(cardMap)
-
-      val createParams = PaymentMethodCreateParams
-        .create(card, billingDetailsParams, null)
-
+      val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = createParams,
+          paymentMethodCreateParams = paymentMethodCreateParams,
           clientSecret = clientSecret,
           setupFutureUsage = setupFutureUsage
         )
@@ -175,21 +161,9 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
-    val cardMap = WritableNativeMap()
-    val expMonth = cardParams?.get("expiryMonth").toString().toIntOrNull() ?: 0
-    val expYear = cardParams?.get("expiryYear").toString().toIntOrNull() ?: 0
-    cardMap.putString("number", cardParams?.get("number") as String?)
-    cardMap.putString("cvc", cardParams?.get("cvc") as String?)
-    cardMap.putInt("expiryMonth", expMonth)
-    cardMap.putInt("expiryYear", expYear)
-    cardMap.putString("postalCode", cardParams?.get("postalCode") as String?)
-    val card = mapToCard(cardMap)
-
-    val paymentMethodParams = PaymentMethodCreateParams
-      .create(card, billingDetailsParams, null)
-
+    val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
     return ConfirmSetupIntentParams
-      .create(paymentMethodParams, clientSecret)
+      .create(paymentMethodCreateParams, clientSecret)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
