@@ -1,17 +1,17 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
+const val CARD_FIELD_INSTANCE_NAME = "CardFieldInstance"
 
 class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   override fun getName() = "CardField"
 
-  lateinit var cardViewInstance: StripeSdkCardView
+  private var cardViewInstanceMap: MutableMap<String, Any?> = mutableMapOf()
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
@@ -35,14 +35,23 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
-    cardViewInstance = StripeSdkCardView(reactContext)
-    return cardViewInstance
+    // as it's reasonable we handle only one CardField component on the same screen
+    if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
+      // TODO: throw an exception
+    }
+    cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
+    return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
   }
 
-  @JvmName("getCardViewInstance1")
+  override fun onDropViewInstance(view: StripeSdkCardView) {
+    super.onDropViewInstance(view)
+
+    this.cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = null
+  }
+
   fun getCardViewInstance(): StripeSdkCardView? {
-    if (this::cardViewInstance.isInitialized) {
-      return cardViewInstance
+    if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
+      return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
     }
     return null
   }

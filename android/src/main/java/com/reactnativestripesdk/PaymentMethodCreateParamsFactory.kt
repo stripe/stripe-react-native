@@ -112,7 +112,11 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         clientSecret = clientSecret
       )
     } else {
-      val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
+      var card = cardParams
+      if (params.hasKey("token")) {
+        card = PaymentMethodCreateParams.Card.create(params.getString("token") as String)
+      }
+      val paymentMethodCreateParams = PaymentMethodCreateParams.create(card!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = paymentMethodCreateParams,

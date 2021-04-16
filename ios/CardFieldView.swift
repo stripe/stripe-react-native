@@ -2,11 +2,11 @@ import Foundation
 import UIKit
 import Stripe
 
+let CARD_FIELD_INSTANCE_ID = "CardFieldInstance"
+
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
     @objc var onFocusChange: RCTDirectEventBlock?
-    
-    private var theme = STPTheme.defaultTheme
     
     private var cardField = STPPaymentCardTextField()
     
@@ -76,20 +76,19 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-
+        
         self.addSubview(cardField)
     }
     
     convenience init(delegate: CardFieldDelegate) {
         self.init(frame: CGRect.zero)
-        
         self.delegate = delegate
-        let uuid = UUID().uuidString
-        self.delegate?.onDidCreateViewInstance(uuid: "field", reference: self) // TODO: handle by uuid
-   }
+        
+        self.delegate?.onDidCreateViewInstance(id: CARD_FIELD_INSTANCE_ID, reference: self)
+    }
     
-    deinit {
-        self.delegate?.onDidDestroyViewInstance(uuid: "field")
+    override func removeFromSuperview() {
+        self.delegate?.onDidDestroyViewInstance(id: CARD_FIELD_INSTANCE_ID)
     }
     
     func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {

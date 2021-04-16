@@ -2,21 +2,25 @@ import Foundation
 
 @objc(CardFieldManager)
 class CardFieldManager: RCTViewManager, CardFieldDelegate {
-    func onDidCreateViewInstance(uuid: String, reference: Any?) {
-        cardFieldMap[uuid] = reference
-    }
-    
-    func onDidDestroyViewInstance(uuid: String) {
-        cardFieldMap[uuid] = nil
-    }
-    
     public let cardFieldMap: NSMutableDictionary = [:]
+
+    func onDidCreateViewInstance(id: String, reference: Any?) -> Void {
+        cardFieldMap[id] = reference
+    }
     
-    public func getCardFieldReference(uuid: String) -> Any? {
-        return self.cardFieldMap[uuid]
+    func onDidDestroyViewInstance(id: String) {
+        cardFieldMap[id] = nil
+    }
+        
+    public func getCardFieldReference(id: String) -> Any? {
+        return self.cardFieldMap[id]
     }
     
     override func view() -> UIView! {
+        // as it's reasonable we handle only one CardField component on the same screen
+        if (cardFieldMap[CARD_FIELD_INSTANCE_ID] != nil) {
+         // TODO: throw an exception
+        }
         return CardFieldView(delegate: self)
     }
     
