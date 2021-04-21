@@ -32,4 +32,18 @@ describe('Simple App testing', () => {
     $('~OK').click();
     $('~Payment intent status: Succeeded').waitForDisplayed({ timeout: 5000 });
   });
+
+  it('Setup future payment scenario', () => {
+    $('~More payment scenarios').click();
+    $('~Set up future payments').click();
+    $('~e-mail').waitForDisplayed({ timeout: 10000 });
+    $('~e-mail').setValue('test@stripe.com');
+    $('~card number').setValue('4242424242424242');
+    $('~expiration date').setValue('12/22');
+    $('~123').setValue('123');
+    $('~Save').click();
+    $('~OK').waitForDisplayed({ timeout: 15000 });
+    $('~OK').click();
+    $('~Payment intent status: Succeeded').waitForDisplayed({ timeout: 5000 });
+  });
 });

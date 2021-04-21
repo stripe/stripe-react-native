@@ -35,7 +35,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let params3ds = params["threeDSecureParams"] as? NSDictionary
         let urlScheme = params["urlScheme"] as? String
         let merchantIdentifier = params["merchantIdentifier"] as? String
-        
+
         if let params3ds = params3ds {
             configure3dSecure(params3ds)
         }

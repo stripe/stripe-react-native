@@ -44,7 +44,7 @@ exports.config = {
   logLevel: 'info',
   bail: 0,
   baseUrl: 'http://localhost',
-  waitforTimeout: 20000,
+  waitforTimeout: 200000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
   services: ['appium'],

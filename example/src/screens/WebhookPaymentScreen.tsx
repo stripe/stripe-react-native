@@ -79,7 +79,7 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
-        postalCodeEnabled={true}
+        postalCodeEnabled={false}
         placeholder={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',

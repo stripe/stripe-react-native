@@ -1,6 +1,5 @@
 import { AndroidConfig } from '@expo/config-plugins';
 import { resolve } from 'path';
-import { expect } from 'jest';
 
 import { setApplePayEntitlement, setGooglePayMetaData } from '../withStripe';
 
@@ -12,7 +11,7 @@ const {
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
 
-describe('setApplePayEntitlement', () => {
+describe(setApplePayEntitlement, () => {
   it(`sets the apple pay entitlement when none exist`, () => {
     expect(setApplePayEntitlement('merchant.com.example', {})).toMatchObject({
       'com.apple.developer.in-app-payments': ['merchant.com.example'],
