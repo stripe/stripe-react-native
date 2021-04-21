@@ -46,6 +46,7 @@ export default function HomeScreen() {
       <ScrollView>
         <View style={styles.buttonContainer}>
           <Button
+            accessibilityLabel="card-payment-webhooks"
             title="Card payment using webhooks"
             onPress={() => {
               navigation.navigate('WebhookPayment');
@@ -119,7 +120,7 @@ export default function HomeScreen() {
 
         <View style={styles.buttonContainer}>
           <Button
-            accessibilityLabel="bancontact"
+            accessibilityLabel="bancontact-payment"
             title="Bancontact Payment"
             onPress={() => {
               navigation.navigate('BancontactPaymentScreen');
