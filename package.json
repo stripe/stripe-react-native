@@ -42,9 +42,9 @@
   "repository": "https://github.com/stripe/stripe-react-native",
   "license": "MIT",
   "bugs": {
-    "url": "http://callstack.com/issues"
+    "url": "https://github.com/stripe/stripe-react-native/issues"
   },
-  "homepage": "http://callstack.com#readme",
+  "homepage": "https://github.com/stripe/stripe-react-native/#readme",
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.13.0",
     "@commitlint/config-conventional": "^8.3.4",
@@ -158,5 +158,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@expo/config-plugins": "^1.0.24"
   }
 }

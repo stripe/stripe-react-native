@@ -298,8 +298,6 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
-  - RNCCheckbox (0.5.7):
-    - React-Core
   - RNCMaskedView (0.1.10):
     - React
   - RNGestureHandler (1.8.0):
@@ -308,12 +306,12 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.3.1):
-    - Stripe/Stripe3DS2 (= 21.3.1)
+  - Stripe (21.4.0):
+    - Stripe/Stripe3DS2 (= 21.4.0)
   - stripe-react-native (0.0.1):
     - React
-    - Stripe (~> 21.3.1)
-  - Stripe/Stripe3DS2 (21.3.1)
+    - Stripe (~> 21.4.0)
+  - Stripe/Stripe3DS2 (21.4.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -366,12 +364,10 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe (from `https://github.com/thorsten-stripe/stripe-ios`, branch `fix/voucher-intent-status`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -388,6 +384,7 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - OpenSSL-Universal
+    - Stripe
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -443,8 +440,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNCCheckbox:
-    :path: "../node_modules/@react-native-community/checkbox"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNGestureHandler:
@@ -453,18 +448,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  Stripe:
-    :branch: fix/voucher-intent-status
-    :git: https://github.com/thorsten-stripe/stripe-ios
   stripe-react-native:
     :path: "../.."
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
-
-CHECKOUT OPTIONS:
-  Stripe:
-    :commit: 3f3be7230fb95002851a124dd3e978494450da30
-    :git: https://github.com/thorsten-stripe/stripe-ios
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
@@ -504,16 +491,15 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
-  RNCCheckbox: d1749e6a92178ce5dbc31e63becd1f34f0c76bbd
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 326a2160ac541eeffafb8b1aa0c9712e3ce8cec7
-  stripe-react-native: bf58b445766defc337be217f9861e9a9e4fd0cb8
+  Stripe: 7c594b943abb65cf7bc28e37fd5124e65db3ce9e
+  stripe-react-native: 5f658fea52d1efde504fc9510a3dae802da7ef2e
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0d9b057f12ef1795e2beda2c4c7812e048942979
+PODFILE CHECKSUM: 58756840d847cf2e3c3c83115cafc260071f0219
 
 COCOAPODS: 1.10.1

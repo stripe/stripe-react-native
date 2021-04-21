@@ -21,7 +21,7 @@ describe('Simple App testing', () => {
   });
 
   it('Card payment using webhooks scenario', () => {
-    $('~card-payment-webhooks').click();
+    $('~Accept a payment').click();
     $('~e-mail').waitForDisplayed({ timeout: 10000 });
     $('~e-mail').setValue('test@stripe.com');
     $('~card number').setValue('4242424242424242');

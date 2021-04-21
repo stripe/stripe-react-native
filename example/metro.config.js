@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 
 const modules = Object.keys({
   ...pak.peerDependencies,
-}).concat('expo');
+});
 
 module.exports = {
   projectRoot: __dirname,

@@ -1,15 +1,14 @@
 import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
+import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function BancontactPaymentScreen() {
+export default function AfterpayClearpayPaymentScreen() {
   const [email, setEmail] = useState('');
-  const [saveIban, setSaveIban] = useState(false);
   const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {
@@ -20,10 +19,9 @@ export default function BancontactPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'eur',
+        currency: 'usd',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
-        payment_method_types: ['bancontact'],
+        payment_method_types: ['afterpay_clearpay'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -43,14 +41,27 @@ export default function BancontactPaymentScreen() {
     }
 
     const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+      email: 'email@stripe.com',
+      phone: '+48888000888',
+      addressCity: 'Houston',
+      addressCountry: 'US',
+      addressLine1: '1459  Circle Drive',
+      addressLine2: 'Texas',
+      addressPostalCode: '77063',
       name: 'John Doe',
-      email: 'john@example.com',
+    };
+
+    const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
+      addressLine1: '1459  Circle Drive',
+      addressCountry: 'US',
+      addressPostalCode: '77063',
+      name: 'John Doe',
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Bancontact',
+      type: 'AfterpayClearpay',
       billingDetails,
-      setupFutureUsage: saveIban ? 'OffSession' : undefined,
+      shippingDetails,
     });
 
     if (error) {
@@ -61,14 +72,12 @@ export default function BancontactPaymentScreen() {
         'Success',
         `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
-      console.log('Success from promise', paymentIntent);
     }
   };
 
   return (
     <Screen>
       <TextInput
-        accessibilityLabel="email"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
@@ -77,18 +86,10 @@ export default function BancontactPaymentScreen() {
 
       <Button
         variant="primary"
-        accessibilityLabel="pay"
         onPress={handlePayPress}
         title="Pay"
         loading={loading}
       />
-      <View style={styles.row}>
-        <Switch
-          onValueChange={(value) => setSaveIban(value)}
-          value={saveIban}
-        />
-        <Text style={styles.text}>Save IBAN during payment</Text>
-      </View>
     </Screen>
   );
 }
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginBottom: 20,
   },
   text: {
     marginLeft: 12,
