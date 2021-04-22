@@ -31,8 +31,9 @@
     "bootstrap": "yarn example && yarn && yarn pods",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal --theme ./docs/stripe-theme",
     "run-example-ios": "cd example;react-native run-ios --simulator \"iPhone 12\"",
+    "run-example-android": "cd example;react-native run-android",
     "test:ios": "npx wdio ./wdio.conf.js",
-    "test:android": ""
+    "test:android": "npx wdio ./wdio.conf.js"
   },
   "keywords": [
     "react-native",
@@ -159,6 +160,7 @@
     ]
   },
   "dependencies": {
-    "@expo/config-plugins": "^1.0.24"
+    "@expo/config-plugins": "^1.0.24",
+    "@types/mocha": "^8.2.2"
   }
 }

@@ -46,17 +46,22 @@ export default function HomeScreen() {
       <View style={styles.buttonContainer}>
         <Button
           title="Accept a payment"
+          accessibilityLabel="accept-a-payment"
           onPress={() => {
             navigation.navigate('WebhookPayment');
           }}
         />
       </View>
 
-      <Collapse title="More payment scenarios">
+      <Collapse
+        accessibilityLabel="more-payment-scenarios"
+        title="More payment scenarios"
+      >
         <>
           <View style={styles.buttonContainer}>
             <Button
               title="Set up future payments"
+              accessibilityLabel="setup-future-payments"
               onPress={() => {
                 navigation.navigate('SetupFuturePayment');
               }}
@@ -102,11 +107,12 @@ export default function HomeScreen() {
         </>
       </Collapse>
 
-      <Collapse title="Bank redirects">
+      <Collapse title="Bank redirects" accessibilityLabel="bank-redirects">
         <>
           <View style={styles.buttonContainer}>
             <Button
               title="Bancontact Payment"
+              accessibilityLabel="bancontact-payment"
               onPress={() => {
                 navigation.navigate('BancontactPaymentScreen');
               }}

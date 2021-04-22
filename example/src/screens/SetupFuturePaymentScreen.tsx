@@ -93,7 +93,8 @@ export default function SetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntentResult) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntentResult.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntentResult.status}`
       );
 
       setSetupIntent(setupIntentResult);
@@ -185,6 +186,7 @@ export default function SetupFuturePaymentScreen() {
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
+        accessibilityLabel="e-mail"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
@@ -200,6 +202,7 @@ export default function SetupFuturePaymentScreen() {
           variant="primary"
           onPress={handlePayPress}
           title="Save"
+          accessibilityLabel="save"
           loading={loading}
         />
       </View>

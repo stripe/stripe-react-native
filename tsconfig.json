@@ -10,8 +10,8 @@
     "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
-    "lib": ["esnext"],
-    "module": "esnext",
+    "lib": ["ES6"],
+    "module": "commonjs",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -27,7 +27,8 @@
       "node",
       "webdriverio/sync",
       "@wdio/mocha-framework",
-      "@wdio/appium-service"
+      "@wdio/appium-service",
+      "expect-webdriverio"
     ]
   }
 }

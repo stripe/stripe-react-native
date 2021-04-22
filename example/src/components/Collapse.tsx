@@ -1,28 +1,31 @@
 import * as React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AccessibilityProps, StyleSheet, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { colors } from '../colors';
 
-interface Props {
+interface Props extends AccessibilityProps {
   title: string;
 }
 
-export const Collapse: React.FC<Props> = React.memo(({ children, title }) => {
-  const [expanded, setExpanded] = React.useState(false);
+export const Collapse: React.FC<Props> = React.memo(
+  ({ children, title, ...props }) => {
+    const [expanded, setExpanded] = React.useState(false);
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => setExpanded(!expanded)}
-      >
-        <Text style={styles.title}>{title}</Text>
-      </TouchableOpacity>
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={() => setExpanded(!expanded)}
+          {...props}
+        >
+          <Text style={styles.title}>{title}</Text>
+        </TouchableOpacity>
 
-      {expanded && <View style={styles.content}>{children}</View>}
-    </View>
-  );
-});
+        {expanded && <View style={styles.content}>{children}</View>}
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {
