@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-export const SELECTORS = {
+const SELECTORS = {
   cardNumberEditText: driver.isAndroid
     ? 'card_number_edit_text'
     : 'card number',
@@ -12,7 +12,7 @@ export const SELECTORS = {
     : 'postal code',
 };
 
-function getTextInputXPath(id: string) {
+function getTextInputSelectorById(id: string) {
   return driver.isAndroid
     ? `//android.widget.EditText[@resource-id="com.example.reactnativestripesdk:id/${id}"]`
     : `~${id}`;
@@ -21,7 +21,7 @@ function getTextInputXPath(id: string) {
 class EditText {
   getEditTextElement(selector: string) {
     if (driver.isAndroid) {
-      return $(getTextInputXPath(selector));
+      return $(getTextInputSelectorById(selector));
     } else {
       return $(`~${selector}`);
     }

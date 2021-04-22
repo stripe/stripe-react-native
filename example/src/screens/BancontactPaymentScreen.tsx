@@ -78,6 +78,7 @@ export default function BancontactPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="pay"
         loading={loading}
       />
       <View style={styles.row}>

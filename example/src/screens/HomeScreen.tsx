@@ -42,7 +42,7 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView accessibilityLabel="app-root" style={styles.container}>
       <View style={styles.buttonContainer}>
         <Button
           title="Accept a payment"
