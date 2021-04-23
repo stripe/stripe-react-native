@@ -9,7 +9,7 @@ import {
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import type {
   PaymentMethodCreateParams,
   PaymentIntent,
@@ -182,7 +182,7 @@ export default function SetupFuturePaymentScreen() {
   };
 
   return (
-    <Screen init>
+    <PaymentScreen>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
@@ -222,7 +222,7 @@ export default function SetupFuturePaymentScreen() {
           disabled={paymentError !== 'authentication_required'}
         />
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

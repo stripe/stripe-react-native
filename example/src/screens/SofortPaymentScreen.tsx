@@ -6,7 +6,7 @@ import {
   PaymentMethodCreateParams,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -72,7 +72,7 @@ export default function SofortPaymentScreen() {
   };
 
   return (
-    <Screen init>
+    <PaymentScreen>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
@@ -93,7 +93,7 @@ export default function SofortPaymentScreen() {
         />
         <Text style={styles.text}>Save IBAN during payment</Text>
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

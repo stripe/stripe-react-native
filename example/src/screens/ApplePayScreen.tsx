@@ -5,7 +5,7 @@ import {
   useApplePay,
   ApplePay,
 } from '@stripe/stripe-react-native';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function ApplePayScreen() {
@@ -113,7 +113,7 @@ export default function ApplePayScreen() {
   };
 
   return (
-    <Screen init>
+    <PaymentScreen>
       <View>
         <Text>{JSON.stringify(cart, null, 2)}</Text>
       </View>
@@ -125,7 +125,7 @@ export default function ApplePayScreen() {
           style={styles.payButton}
         />
       )}
-    </Screen>
+    </PaymentScreen>
   );
 }
 

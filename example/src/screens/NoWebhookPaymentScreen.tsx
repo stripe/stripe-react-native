@@ -3,7 +3,7 @@ import { Alert, StyleSheet } from 'react-native';
 import { CardField, useStripe } from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import {
   PaymentMethodCreateParams,
   PaymentIntents,
@@ -130,7 +130,7 @@ export default function NoWebhookPaymentScreen() {
   };
 
   return (
-    <Screen init>
+    <PaymentScreen>
       <CardField
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
@@ -147,7 +147,7 @@ export default function NoWebhookPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -62,7 +62,7 @@ export default function GrabPayPaymentScreen() {
   };
 
   return (
-    <Screen init paymentMethod="grabpay">
+    <PaymentScreen paymentMethod="grabpay">
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
@@ -75,7 +75,7 @@ export default function GrabPayPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 
