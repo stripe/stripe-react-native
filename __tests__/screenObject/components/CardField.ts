@@ -6,7 +6,7 @@ const SELECTORS = {
   expDateEditText: driver.isAndroid
     ? 'expiry_date_edit_text'
     : 'expiration date',
-  cvcEditText: driver.isAndroid ? 'cvc_edit_text' : '123',
+  cvcEditText: driver.isAndroid ? 'cvc_edit_text' : 'CVC',
   postalCodeEditText: driver.isAndroid
     ? 'postal_code_edit_text'
     : 'postal code',
@@ -18,7 +18,7 @@ function getTextInputSelectorById(id: string) {
     : `~${id}`;
 }
 
-class EditText {
+class CardField {
   getEditTextElement(selector: string) {
     if (driver.isAndroid) {
       return $(getTextInputSelectorById(selector));
@@ -40,4 +40,4 @@ class EditText {
   }
 }
 
-export default new EditText();
+export default new CardField();

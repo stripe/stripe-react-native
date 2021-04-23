@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import 'react-native-gesture-handler';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { API_URL } from './Config';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
@@ -33,42 +31,8 @@ import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScre
 const Stack = createStackNavigator();
 
 export default function App() {
-  const [publishableKey, setPublishableKey] = useState('');
-
-  const fetchPublishableKey = async () => {
-    const response = await fetch(`${API_URL}/stripe-key`);
-    const { publishableKey: key } = await response.json();
-    setPublishableKey(key);
-  };
-
-  useEffect(() => {
-    fetchPublishableKey();
-  }, []);
-
   return (
-    <StripeProvider
-      publishableKey={publishableKey}
-      merchantIdentifier="merchant.com.stripe.react.native"
-      urlScheme="stripe-example"
-      threeDSecureParams={{
-        backgroundColor: colors.white,
-        timeout: 5,
-        label: {
-          headingTextColor: colors.slate,
-          headingFontSize: 13,
-        },
-        navigationBar: {
-          headerText: '3d secure',
-        },
-        footer: {
-          backgroundColor: colors.white,
-        },
-        submitButton: {
-          textColor: colors.white,
-          textFontSize: 12,
-        },
-      }}
-    >
+    <>
       <StatusBar
         backgroundColor={colors.blurple_dark}
         barStyle="light-content"
@@ -168,6 +132,6 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </StripeProvider>
+    </>
   );
 }

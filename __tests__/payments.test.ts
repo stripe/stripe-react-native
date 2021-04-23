@@ -1,7 +1,8 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
+import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import nativeAlert from './screenObject/components//NativeAlert';
-import editText from './screenObject/components/EditText';
+import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 
 describe('Example app payments scenarios', () => {
@@ -19,38 +20,64 @@ describe('Example app payments scenarios', () => {
       homeScreen.goTo('Bank redirects');
       homeScreen.goTo('Bancontact Payment');
 
-      getTextInputByPlaceholder('E-mail').waitForDisplayed({
-        timeout: 11000,
-      });
-      getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+      BasicPaymentScreen.pay();
+      BasicPaymentScreen.authorize();
+    }
+  });
 
-      $('~pay').click();
+  it('Bancontact future payment scenario', () => {
+    // webview handling
+    if (driver.isAndroid) {
+      homeScreen.goTo('Bank redirects');
+      homeScreen.goTo('Bancontact SEPA Direct Debit set up');
 
-      driver.pause(5000);
+      BasicPaymentScreen.pay();
+      BasicPaymentScreen.authorize();
+    }
+  });
 
-      driver.switchContext(driver.getContexts()[1]);
+  it('EPS payment scenario', () => {
+    // webview handling
+    if (driver.isAndroid) {
+      homeScreen.goTo('Bank redirects');
+      homeScreen.goTo('EPS');
 
-      $('button*=Authorize').waitForDisplayed();
-      $('button*=Authorize').click();
+      BasicPaymentScreen.pay();
+      BasicPaymentScreen.authorize();
+    }
+  });
 
-      driver.switchContext(driver.getContexts()[0]);
+  it('Fpx payment scenario', () => {
+    // webview handling
+    homeScreen.goTo('Bank redirects');
+    homeScreen.goTo('FPX');
 
-      const alert = nativeAlert.getAlertElement('Success');
-      alert.waitForDisplayed({
-        timeout: 5000,
-      });
-      expect(alert.getText()).toEqual('Success');
+    BasicPaymentScreen.pay();
+
+    getElementByText('Public Bank').click();
+    driver.pause(5000);
+    BasicPaymentScreen.authorize();
+  });
+
+  it('P24 payment scenario', () => {
+    // webview handling
+    if (driver.isAndroid) {
+      homeScreen.goTo('Bank redirects');
+      homeScreen.goTo('Przelewy24');
+
+      BasicPaymentScreen.pay();
+      BasicPaymentScreen.authorize();
     }
   });
 
   it('Card payment using webhooks scenario', () => {
     homeScreen.goTo('Accept a payment');
-    $('//android.widget.EditText').waitForDisplayed({ timeout: 10000 });
-    $('//android.widget.EditText').setValue('test@stripe.com');
+    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
-    editText.setCardNumber('4242424242424242');
-    editText.setExpiryDate('12/22');
-    editText.setCvcNumber('123');
+    cardField.setCardNumber('4242424242424242');
+    cardField.setExpiryDate('12/22');
+    cardField.setCvcNumber('123');
 
     getElementByText('Pay').click();
 
@@ -68,11 +95,12 @@ describe('Example app payments scenarios', () => {
   it('Setup future payment scenario', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Set up future payments');
-    $('//android.widget.EditText').waitForDisplayed({ timeout: 10000 });
-    $('//android.widget.EditText').setValue('test@stripe.com');
-    editText.setCardNumber('4242424242424242');
-    editText.setExpiryDate('12/22');
-    editText.setCvcNumber('123');
+    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+
+    cardField.setCardNumber('4242424242424242');
+    cardField.setExpiryDate('12/22');
+    cardField.setCvcNumber('123');
     getElementByText('Save').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({

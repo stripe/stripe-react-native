@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 export function getElementByText(text: string) {
   return driver.isAndroid
-    ? $(`android=new UiSelector().textContains("${text}")`)
+    ? $(`android=new UiSelector().text("${text}")`)
     : $(`~${text}`);
 }
 

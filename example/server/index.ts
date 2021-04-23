@@ -14,7 +14,7 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-const stripe = new Stripe(stripeSecretKey, {
+let stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2020-08-27',
   typescript: true,
 });
@@ -47,8 +47,32 @@ const calculateOrderAmount = (_order?: Order): number => {
   return 1400;
 };
 
-app.get('/stripe-key', (_: express.Request, res: express.Response): void => {
-  res.send({ publishableKey: stripePublishableKey });
+app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
+  let secret_key: string | undefined = stripeSecretKey;
+  let publishable_key: string | undefined = stripePublishableKey;
+
+  const payment_method = req.query.paymentMethod;
+
+  switch (payment_method) {
+    case 'grabpay':
+    case 'fpx':
+      secret_key = process.env.STRIPE_SECRET_KEY_MYR;
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MYR;
+      break;
+    case 'oxxo':
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_OXXO;
+      secret_key = process.env.STRIPE_SECRET_KEY_OXXO;
+      break;
+    default:
+    // unknown, maybe send error
+  }
+
+  stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  res.send({ publishableKey: publishable_key });
 });
 
 app.post(

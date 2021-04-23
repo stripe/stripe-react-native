@@ -70,7 +70,7 @@ export default function WebhookPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
@@ -82,7 +82,7 @@ export default function WebhookPaymentScreen() {
         placeholder={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',
-          cvc: '123',
+          cvc: 'CVC',
           expiration: 'MM|YY',
         }}
         onCardChange={(cardDetails) => {

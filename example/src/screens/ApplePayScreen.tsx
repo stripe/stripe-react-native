@@ -113,7 +113,7 @@ export default function ApplePayScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <View>
         <Text>{JSON.stringify(cart, null, 2)}</Text>
       </View>

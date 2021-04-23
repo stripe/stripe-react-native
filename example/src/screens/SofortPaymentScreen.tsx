@@ -72,7 +72,7 @@ export default function SofortPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

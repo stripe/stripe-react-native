@@ -121,7 +121,7 @@ export default function CVCReCollectionScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         style={styles.input}
         placeholder="E-mail"

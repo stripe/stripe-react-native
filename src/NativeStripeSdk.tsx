@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 type NativeStripeSdkType = {
-  initialise(params: InitialiseParams): void;
+  initialise(params: InitialiseParams): Promise<void>;
   createPaymentMethod(
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options

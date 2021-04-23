@@ -48,7 +48,7 @@ export default function PaymentResultScreen({ route }: Props) {
   }, [retrievePaymentIntentObject, route]);
 
   return (
-    <Screen>
+    <Screen init>
       {paymentIntentResult && (
         <Text style={styles.text}>
           Payment intent status: {paymentIntentResult?.status}

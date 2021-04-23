@@ -61,7 +61,7 @@ export default function P24PaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

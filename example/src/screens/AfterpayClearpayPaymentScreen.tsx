@@ -76,7 +76,7 @@ export default function AfterpayClearpayPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

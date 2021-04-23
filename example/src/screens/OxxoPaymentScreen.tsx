@@ -70,7 +70,7 @@ export default function OxxoPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init paymentMethod="oxxo">
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

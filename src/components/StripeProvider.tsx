@@ -31,7 +31,7 @@ const appInfo: AppInfo = {
   partnerId: shouldAttributeExpo() ? EXPO_PARTNER_ID : undefined,
 };
 
-export const initStripe = (params: InitStripeParams): void => {
+export const initStripe = async (params: InitStripeParams): Promise<void> => {
   const extendedParams: InitialiseParams = { ...params, appInfo };
   NativeStripeSdk.initialise(extendedParams);
 };

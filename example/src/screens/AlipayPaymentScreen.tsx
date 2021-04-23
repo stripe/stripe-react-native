@@ -54,7 +54,7 @@ export default function AlipayPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

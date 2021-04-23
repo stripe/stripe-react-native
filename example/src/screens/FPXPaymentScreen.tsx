@@ -34,7 +34,6 @@ export default function FPXPaymentScreen() {
       clientSecret,
       error: clientSecretError,
     } = await fetchPaymentIntentClientSecret();
-
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
       return;
@@ -57,7 +56,7 @@ export default function FPXPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init paymentMethod="fpx">
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

@@ -19,7 +19,7 @@ export default function GrabPayPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'sgd',
+        currency: 'myr',
         items: [{ id: 'id' }],
         request_three_d_secure: 'any',
         payment_method_types: ['grabpay'],
@@ -62,7 +62,7 @@ export default function GrabPayPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init paymentMethod="grabpay">
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

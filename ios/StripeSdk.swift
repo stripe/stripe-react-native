@@ -27,8 +27,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         return false
     }
     
-    @objc(initialise:)
-    func initialise(params: NSDictionary) -> Void {
+    @objc(initialise:resolver:rejecter:)
+    func initialise(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let publishableKey = params["publishableKey"] as! String
         let appInfo = params["appInfo"] as! NSDictionary
         let stripeAccountId = params["stripeAccountId"] as? String
@@ -52,6 +52,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
+        resolve(NSNull())
     }
     
     @objc(createTokenForCVCUpdate:resolver:rejecter:)

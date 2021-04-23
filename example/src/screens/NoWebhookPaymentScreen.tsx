@@ -130,7 +130,7 @@ export default function NoWebhookPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <CardField
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);

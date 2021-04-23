@@ -93,7 +93,8 @@ export default function SetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntentResult) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntentResult.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntentResult.status}`
       );
 
       setSetupIntent(setupIntentResult);
@@ -181,7 +182,7 @@ export default function SetupFuturePaymentScreen() {
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"

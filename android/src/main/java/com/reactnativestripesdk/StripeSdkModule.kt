@@ -146,7 +146,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun initialise(params: ReadableMap) {
+  fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     val stripeAccountId = getValOr(params, "stripeAccountId", null)
@@ -164,6 +164,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+    promise.resolve(null)
   }
 
   private fun payWithFpx() {

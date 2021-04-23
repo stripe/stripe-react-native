@@ -47,13 +47,14 @@ export default function BancontactSetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntent) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntent.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntent.status}`
       );
     }
   };
 
   return (
-    <Screen>
+    <Screen init>
       <TextInput
         placeholder="E-mail"
         keyboardType="email-address"
