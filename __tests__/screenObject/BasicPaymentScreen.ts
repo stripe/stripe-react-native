@@ -3,10 +3,27 @@ import { getElementByText, getTextInputByPlaceholder } from '../helpers';
 import nativeAlert from './components/NativeAlert';
 
 class BasicPaymentScreen {
-  pay() {
+  pay({
+    email,
+    bankName,
+    iban,
+    payButton = 'Pay',
+  }: {
+    email: string;
+    bankName?: string;
+    iban?: string;
+    payButton?: string;
+  }) {
     getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
-    getElementByText('Pay').click();
+    getTextInputByPlaceholder('E-mail').setValue(email);
+
+    if (bankName) {
+      getTextInputByPlaceholder('Bank name').setValue(bankName);
+    }
+    if (iban) {
+      getTextInputByPlaceholder('Iban').setValue(iban);
+    }
+    getElementByText(payButton).click();
     driver.pause(5000);
   }
 
@@ -19,12 +36,14 @@ class BasicPaymentScreen {
     $('button*=Authorize').click();
 
     driver.switchContext(driver.getContexts()[0]);
+  }
 
-    const alert = nativeAlert.getAlertElement('Success');
+  checkStatus(status: string = 'Success') {
+    const alert = nativeAlert.getAlertElement(status);
     alert.waitForDisplayed({
       timeout: 5000,
     });
-    expect(alert.getText()).toEqual('Success');
+    expect(alert.getText()).toEqual(status);
   }
 }
 

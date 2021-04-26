@@ -18,7 +18,7 @@ export default function AlipayPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'usd',
+        currency: 'aud',
         items: [{ id: 'id' }],
         payment_method_types: ['alipay'],
       }),

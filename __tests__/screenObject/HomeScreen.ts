@@ -27,6 +27,7 @@ const SCREENS = <const>[
   'Alipay',
   'Apple Pay',
   'GrabPay',
+  'OXXO',
 ];
 
 class HomeScreen {
