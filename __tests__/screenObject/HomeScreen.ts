@@ -1,4 +1,4 @@
-import { getElementByText } from '../helpers';
+/* eslint-disable no-undef */
 
 const SCREENS = <const>[
   'Accept a payment',
@@ -33,7 +33,8 @@ const SCREENS = <const>[
 
 class HomeScreen {
   goTo(screen: typeof SCREENS[number]) {
-    getElementByText(screen).click();
+    const selector = `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${screen}"))`;
+    $(selector).click();
   }
 }
 

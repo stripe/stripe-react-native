@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
-import nativeAlert from './screenObject/components//NativeAlert';
+import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 
@@ -59,6 +59,8 @@ describe('Example app payments scenarios', () => {
       BasicPaymentScreen.pay({ email: 'test@stripe.com' });
 
       getElementByText('Public Bank').click();
+      $('//android.widget.TextView[@content-desc="OK"]').click();
+
       driver.pause(5000);
       BasicPaymentScreen.authorize();
       BasicPaymentScreen.checkStatus();
