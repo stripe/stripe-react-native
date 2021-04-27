@@ -139,6 +139,7 @@ export default function NoWebhookPaymentScreen() {
           console.log('focusedField', focusedField);
         }}
         style={styles.cardField}
+        postalCodeEnabled={false}
       />
 
       <Button

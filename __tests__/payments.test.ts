@@ -32,7 +32,7 @@ describe('Example app payments scenarios', () => {
       homeScreen.goTo('Bank redirects');
       homeScreen.goTo('Bancontact SEPA Direct Debit set up');
 
-      BasicPaymentScreen.pay({ email: 'test@stripe.com', payButton: 'Save' });
+      BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
       BasicPaymentScreen.authorize();
       BasicPaymentScreen.checkStatus();
     }
@@ -110,7 +110,7 @@ describe('Example app payments scenarios', () => {
       BasicPaymentScreen.pay({
         email: 'test@stripe.com',
         bankName: 'revolut',
-        payButton: 'Save',
+        buttonText: 'Save',
       });
       BasicPaymentScreen.authorize();
       BasicPaymentScreen.checkStatus();
@@ -135,7 +135,7 @@ describe('Example app payments scenarios', () => {
       homeScreen.goTo('Bank redirects');
       homeScreen.goTo('Sofort SEPA Direct Debit set up');
 
-      BasicPaymentScreen.pay({ email: 'test@stripe.com', payButton: 'Save' });
+      BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
       BasicPaymentScreen.authorize();
       BasicPaymentScreen.checkStatus();
     }
@@ -158,7 +158,7 @@ describe('Example app payments scenarios', () => {
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
-      payButton: 'Save IBAN',
+      buttonText: 'Save IBAN',
       iban: 'AT611904300234573201',
     });
     BasicPaymentScreen.checkStatus();
@@ -177,7 +177,6 @@ describe('Example app payments scenarios', () => {
   });
 
   it('OXXO payment scenario', () => {
-    // webview handling
     if (driver.isAndroid) {
       homeScreen.goTo('Vouchers');
       homeScreen.goTo('OXXO');
@@ -190,7 +189,7 @@ describe('Example app payments scenarios', () => {
     }
   });
 
-  it.only('Alipay payment scenario', () => {
+  it('Alipay payment scenario', () => {
     // webview handling
     if (driver.isAndroid) {
       homeScreen.goTo('Wallets');
@@ -202,7 +201,7 @@ describe('Example app payments scenarios', () => {
     }
   });
 
-  it.only('Grabpay payment scenario', () => {
+  it('Grabpay payment scenario', () => {
     // webview handling
     if (driver.isAndroid) {
       homeScreen.goTo('Wallets');
@@ -246,6 +245,54 @@ describe('Example app payments scenarios', () => {
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
     getElementByText('Save').click();
+    const alert = nativeAlert.getAlertElement('Success');
+    alert.waitForDisplayed({
+      timeout: 15000,
+    });
+    expect(alert.getText()).toEqual('Success');
+  });
+
+  it('Finalize payment on the server scenario', () => {
+    homeScreen.goTo('More payment scenarios');
+    homeScreen.goTo('Finalize payments on the server');
+
+    cardField.setCardNumber('4242424242424242');
+    cardField.setExpiryDate('12/22');
+    cardField.setCvcNumber('123');
+    getElementByText('Pay').click();
+    const alert = nativeAlert.getAlertElement('Success');
+    alert.waitForDisplayed({
+      timeout: 15000,
+    });
+    expect(alert.getText()).toEqual('Success');
+  });
+
+  it('Re-collect CVC async scenario', () => {
+    if (driver.isAndroid) {
+      homeScreen.goTo('More payment scenarios');
+      homeScreen.goTo('Recollect a CVC');
+
+      getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+      getTextInputByPlaceholder('CVC').setValue('123');
+
+      getElementByText('Pay').click();
+      driver.pause(4000);
+      const alert = nativeAlert.getAlertElement('Success');
+      alert.waitForDisplayed({
+        timeout: 15000,
+      });
+      expect(alert.getText()).toEqual('Success');
+    }
+  });
+
+  it('Re-collect CVC sync scenario', () => {
+    homeScreen.goTo('More payment scenarios');
+    homeScreen.goTo('Recollect a CVC');
+
+    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+    getTextInputByPlaceholder('CVC').setValue('123');
+
+    getElementByText('Pay Synchronously').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
       timeout: 15000,

@@ -7,12 +7,12 @@ class BasicPaymentScreen {
     email,
     bankName,
     iban,
-    payButton = 'Pay',
+    buttonText = 'Pay',
   }: {
     email: string;
     bankName?: string;
     iban?: string;
-    payButton?: string;
+    buttonText?: string;
   }) {
     getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
     getTextInputByPlaceholder('E-mail').setValue(email);
@@ -23,7 +23,8 @@ class BasicPaymentScreen {
     if (iban) {
       getTextInputByPlaceholder('Iban').setValue(iban);
     }
-    getElementByText(payButton).click();
+    getElementByText(buttonText).click();
+
     driver.pause(5000);
   }
 

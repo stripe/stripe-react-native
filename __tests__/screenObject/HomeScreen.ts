@@ -5,7 +5,6 @@ const SCREENS = <const>[
   'More payment scenarios',
   'Set up future payments',
   'inalize payments on the server',
-  'Recollect a CVC"',
   'Bank Debits',
   'SEPA Direct Debit payment',
   'SEPA Direct Debit set up',
@@ -28,6 +27,8 @@ const SCREENS = <const>[
   'Apple Pay',
   'GrabPay',
   'OXXO',
+  'Finalize payments on the server',
+  'Recollect a CVC',
 ];
 
 class HomeScreen {

@@ -1,6 +1,6 @@
 import { initStripe } from '@stripe/stripe-react-native';
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../colors';
 import { fetchPublishableKey } from '../helpers';
 
@@ -17,7 +17,13 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <View style={styles.container}>{children}</View>;
+  return (
+    <View style={styles.container}>
+      {children}
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <Text style={{ opacity: 0 }}>appium fix</Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
