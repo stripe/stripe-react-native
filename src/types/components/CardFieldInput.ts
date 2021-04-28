@@ -6,8 +6,8 @@ export namespace CardFieldInput {
 
   export interface Details {
     last4: string;
-    expiryMonth: number;
-    expiryYear: number;
+    expiryMonth: string;
+    expiryYear: string;
     postalCode?: string;
     brand: Brand;
     complete: boolean;

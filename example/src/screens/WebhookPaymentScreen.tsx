@@ -11,7 +11,6 @@ import { API_URL } from '../Config';
 import { colors } from '../colors';
 
 export default function WebhookPaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
   const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
 
@@ -36,10 +35,6 @@ export default function WebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    if (!card) {
-      return;
-    }
-
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
@@ -59,7 +54,6 @@ export default function WebhookPaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Card',
       billingDetails,
-      cardDetails: card,
       setupFutureUsage: saveCard ? 'OffSession' : undefined,
     });
 
@@ -92,7 +86,7 @@ export default function WebhookPaymentScreen() {
           expiration: 'MM|YY',
         }}
         onCardChange={(cardDetails) => {
-          setCard(cardDetails);
+          console.log('cardDetails', cardDetails);
         }}
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);

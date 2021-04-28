@@ -3,8 +3,9 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 
-class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
+class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardParams: PaymentMethodCreateParams.Card?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
+  private val cardParams = cardParams
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
@@ -94,11 +95,11 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
     val paymentMethodId = getValOr(params, "paymentMethodId", null)
+    val token = getValOr(params, "token", null)
 
-    if (cardParams == null && paymentMethodId == null) {
-      throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
+    if (cardParams == null && paymentMethodId == null && token == null) {
+      throw PaymentMethodCreateParamsException("You must provide cardDetails, token or paymentMethodId")
     }
 
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
@@ -113,14 +114,14 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         clientSecret = clientSecret
       )
     } else {
-      val card = mapToCard(cardParams!!)
-
-      val createParams = PaymentMethodCreateParams
-        .create(card, billingDetailsParams, null)
-
+      var card = cardParams
+      if (token != null) {
+        card = PaymentMethodCreateParams.Card.create(token as String)
+      }
+      val paymentMethodCreateParams = PaymentMethodCreateParams.create(card!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = createParams,
+          paymentMethodCreateParams = paymentMethodCreateParams,
           clientSecret = clientSecret,
           setupFutureUsage = setupFutureUsage
         )
@@ -166,17 +167,9 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
-
-    val card = cardParams?.let { mapToCard(it) } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
-    }
-
-    val paymentMethodParams = PaymentMethodCreateParams
-      .create(card, billingDetailsParams, null)
-
+    val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
     return ConfirmSetupIntentParams
-      .create(paymentMethodParams, clientSecret)
+      .create(paymentMethodCreateParams, clientSecret)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
