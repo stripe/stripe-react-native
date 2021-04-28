@@ -14,25 +14,34 @@ class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
             auBecsFormView.removeFromSuperview()
         }
         
+
         self.auBecsFormView = STPAUBECSDebitFormView(companyName: (companyName ?? "") as String)
         self.auBecsFormView?.becsDebitFormDelegate = self
        
+        
         if let auBecsFormView = self.auBecsFormView {
             self.addSubview(auBecsFormView)
+            setStyles()
         }
     }
     
     @objc var formStyle: NSDictionary = NSDictionary() {
         didSet {
-            if let textColor = formStyle["textColor"] as? String {
-                auBecsFormView?.formTextColor = UIColor(hexString: textColor)
-            }
-            if let fontSize = formStyle["fontSize"] as? Int {
-                auBecsFormView?.formFont = UIFont.systemFont(ofSize: CGFloat(fontSize))
-            }
-            if let backgroundColor = formStyle["backgroundColor"] as? String {
-                auBecsFormView?.formBackgroundColor = UIColor(hexString: backgroundColor)
-            }
+           setStyles()
+        }
+    }
+    
+    private func setStyles() {
+        auBecsFormView?.formFont = UIFont.systemFont(ofSize: CGFloat(30))
+
+        if let textColor = formStyle["textColor"] as? String {
+            auBecsFormView?.formTextColor = UIColor(hexString: textColor)
+        }
+        if let fontSize = formStyle["fontSize"] as? Int {
+            auBecsFormView?.formFont = UIFont.systemFont(ofSize: CGFloat(fontSize))
+        }
+        if let backgroundColor = formStyle["backgroundColor"] as? String {
+            auBecsFormView?.formBackgroundColor = UIColor(hexString: backgroundColor)
         }
     }
     
