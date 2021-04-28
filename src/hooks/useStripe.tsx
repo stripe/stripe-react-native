@@ -1,6 +1,5 @@
-import {
+import type {
   PaymentMethodCreateParams,
-  ApplePayError,
   ApplePay,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
@@ -12,12 +11,20 @@ import {
   ConfirmSetupIntent,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
-import { isiOS, createError } from '../helpers';
+import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
-import StripeSdk from '../NativeStripeSdk';
-
-const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
-  'Apple pay is not supported on this device';
+import {
+  confirmPaymentMethod,
+  createPaymentMethod,
+  retrievePaymentIntent,
+  confirmApplePayPayment,
+  confirmSetupIntent,
+  createTokenForCVCUpdate,
+  handleCardAction,
+  handleURLCallback,
+  presentApplePay,
+  updateApplePaySummaryItems,
+} from '../functions';
 
 /**
  * useStripe hook
@@ -27,228 +34,108 @@ export function useStripe() {
 
   useEffect(() => {
     async function checkApplePaySupport() {
-      const isSupported = isiOS ?? (await StripeSdk.isApplePaySupported());
+      const isSupported =
+        isiOS ?? (await NativeStripeSdk.isApplePaySupported());
       setApplePaySupported(isSupported);
     }
 
     checkApplePaySupport();
   }, []);
 
-  const createPaymentMethod = useCallback(
+  const _createPaymentMethod = useCallback(
     async (
       data: PaymentMethodCreateParams.Params,
       options: PaymentMethodCreateParams.Options = {}
     ): Promise<CreatePaymentMethodResult> => {
-      try {
-        const paymentMethod = await NativeStripeSdk.createPaymentMethod(
-          data,
-          options
-        );
-        return {
-          paymentMethod,
-        };
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return createPaymentMethod(data, options);
     },
     []
   );
 
-  const retrievePaymentIntent = useCallback(
+  const _retrievePaymentIntent = useCallback(
     async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
-      try {
-        const paymentIntent = await NativeStripeSdk.retrievePaymentIntent(
-          clientSecret
-        );
-        return {
-          paymentIntent,
-        };
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return retrievePaymentIntent(clientSecret);
     },
     []
   );
 
-  const confirmPaymentMethod = useCallback(
+  const _confirmPaymentMethod = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: PaymentMethodCreateParams.Params,
       options: PaymentMethodCreateParams.Options = {}
     ): Promise<ConfirmPaymentMethodResult> => {
-      try {
-        const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(
-          paymentIntentClientSecret,
-          data,
-          options
-        );
-        return {
-          paymentIntent,
-        };
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return confirmPaymentMethod(paymentIntentClientSecret, data, options);
     },
     []
   );
 
-  const presentApplePay = useCallback(
+  const _presentApplePay = useCallback(
     async (params: ApplePay.PresentParams): Promise<ApplePayResult> => {
-      if (!isApplePaySupported) {
-        return {
-          error: {
-            code: ApplePayError.Canceled,
-            message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-          },
-        };
-      }
-
-      try {
-        await NativeStripeSdk.presentApplePay(params);
-
-        return {};
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return presentApplePay(params);
     },
-    [isApplePaySupported]
+    []
   );
 
-  const updateApplePaySummaryItems = useCallback(
+  const _updateApplePaySummaryItems = useCallback(
     async (
       summaryItems: ApplePay.CartSummaryItem[]
     ): Promise<ApplePayResult> => {
-      if (!isApplePaySupported) {
-        return {
-          error: {
-            code: ApplePayError.Canceled,
-            message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-          },
-        };
-      }
-
-      try {
-        await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
-
-        return {};
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
-    },
-    [isApplePaySupported]
-  );
-
-  const confirmApplePayPayment = useCallback(
-    async (clientSecret: string): Promise<ApplePayResult> => {
-      if (!isApplePaySupported) {
-        return {
-          error: {
-            code: ApplePayError.Canceled,
-            message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-          },
-        };
-      }
-      try {
-        await NativeStripeSdk.confirmApplePayPayment(clientSecret);
-        return {};
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
-    },
-    [isApplePaySupported]
-  );
-
-  const handleCardAction = useCallback(
-    async (
-      paymentIntentClientSecret: string
-    ): Promise<HandleCardActionResult> => {
-      try {
-        const paymentIntent = await NativeStripeSdk.handleCardAction(
-          paymentIntentClientSecret
-        );
-        return {
-          paymentIntent,
-        };
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return updateApplePaySummaryItems(summaryItems);
     },
     []
   );
 
-  const confirmSetupIntent = useCallback(
+  const _confirmApplePayPayment = useCallback(
+    async (clientSecret: string): Promise<ApplePayResult> => {
+      return confirmApplePayPayment(clientSecret);
+    },
+    []
+  );
+
+  const _handleCardAction = useCallback(
+    async (
+      paymentIntentClientSecret: string
+    ): Promise<HandleCardActionResult> => {
+      return handleCardAction(paymentIntentClientSecret);
+    },
+    []
+  );
+
+  const _confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: ConfirmSetupIntent.Params,
       options: ConfirmSetupIntent.Options = {}
     ): Promise<ConfirmSetupIntentResult> => {
-      try {
-        const setupIntent = await NativeStripeSdk.confirmSetupIntent(
-          paymentIntentClientSecret,
-          data,
-          options
-        );
-
-        return {
-          setupIntent,
-        };
-      } catch (error) {
-        return {
-          error: createError(error),
-        };
-      }
+      return confirmSetupIntent(paymentIntentClientSecret, data, options);
     },
     []
   );
 
-  const createTokenForCVCUpdate = useCallback(async (cvc: string): Promise<
+  const _createTokenForCVCUpdate = useCallback(async (cvc: string): Promise<
     CreateTokenForCVCUpdateResult
   > => {
-    try {
-      const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
-
-      return {
-        tokenId,
-      };
-    } catch (error) {
-      return {
-        error: createError(error),
-      };
-    }
+    return createTokenForCVCUpdate(cvc);
   }, []);
 
-  const handleURLCallback = useCallback(async (url: string): Promise<
+  const _handleURLCallback = useCallback(async (url: string): Promise<
     boolean
   > => {
-    const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
-    return stripeHandled;
+    return handleURLCallback(url);
   }, []);
 
   return {
-    retrievePaymentIntent: retrievePaymentIntent,
-    confirmPayment: confirmPaymentMethod,
-    createPaymentMethod: createPaymentMethod,
-    handleCardAction: handleCardAction,
+    retrievePaymentIntent: _retrievePaymentIntent,
+    confirmPayment: _confirmPaymentMethod,
+    createPaymentMethod: _createPaymentMethod,
+    handleCardAction: _handleCardAction,
     isApplePaySupported: isApplePaySupported,
-    presentApplePay: presentApplePay,
-    confirmApplePayPayment: confirmApplePayPayment,
-    confirmSetupIntent: confirmSetupIntent,
-    createTokenForCVCUpdate: createTokenForCVCUpdate,
-    updateApplePaySummaryItems: updateApplePaySummaryItems,
-    handleURLCallback: handleURLCallback,
+    presentApplePay: _presentApplePay,
+    confirmApplePayPayment: _confirmApplePayPayment,
+    confirmSetupIntent: _confirmSetupIntent,
+    createTokenForCVCUpdate: _createTokenForCVCUpdate,
+    updateApplePaySummaryItems: _updateApplePaySummaryItems,
+    handleURLCallback: _handleURLCallback,
   };
 }
