@@ -1,0 +1,54 @@
+name: RN Stripe
+
+on: push
+
+jobs:
+  test:
+    name: Install Appium dependencies
+    runs-on: macOS-latest
+    steps:
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14.4.0
+      - name: Install React Native CLI
+        run: |
+          npm install react-native-cli
+      - name: Install Repo and Dependencies
+        run: |
+          yarn bootstrap
+      - name: Open Metro Bundler in Background
+        run: |
+          node_modules/react-native/scripts/launchPackager.command &
+      - name: Build iOS App
+        run: |
+          yarn run-example-ios
+          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Debug-iphonesimulator/StripeSdkExample.app`
+          mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Debug-iphonesimulator
+          cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Debug-iphonesimulator
+          sleep 30
+      - name: Run Tests
+        run: |
+          node ./run-appium-tests.js ios
+      - name: Upload Appium logs
+        uses: actions/upload-artifact@v1
+        with:
+          name: appium.log
+          path: appium.log
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results
+          path: __tests__/e2e/output
