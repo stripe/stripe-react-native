@@ -12,7 +12,9 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   useEffect(() => {
     async function initialize() {
       const publishableKey = await fetchPublishableKey(paymentMethod);
-      initStripe({ publishableKey, urlScheme: 'stripe-example' });
+      if (publishableKey) {
+        initStripe({ publishableKey, urlScheme: 'stripe-example' });
+      }
     }
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -5,9 +5,15 @@ import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 
+let index = 0;
+
 describe('Example app payments scenarios', () => {
   beforeEach(() => {
+    driver.saveScreen(`ss-${index}`);
+    index++;
     $('~app-root').waitForDisplayed({ timeout: 30000 });
+    driver.saveScreen(`ss-${index}`);
+    index++;
   });
 
   afterEach(() => {
@@ -269,6 +275,21 @@ describe('Example app payments scenarios', () => {
     expect(alert.getText()).toEqual('Success');
   });
 
+  it('Re-collect CVC sync scenario', () => {
+    homeScreen.goTo('More payment scenarios');
+    homeScreen.goTo('Recollect a CVC');
+
+    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+    getTextInputByPlaceholder('CVC').setValue('123');
+
+    getElementByText('Pay Synchronously').click();
+    const alert = nativeAlert.getAlertElement('Success');
+    alert.waitForDisplayed({
+      timeout: 15000,
+    });
+    expect(alert.getText()).toEqual('Success');
+  });
+
   it('Re-collect CVC async scenario', () => {
     if (driver.isAndroid) {
       homeScreen.goTo('More payment scenarios');
@@ -285,20 +306,5 @@ describe('Example app payments scenarios', () => {
       });
       expect(alert.getText()).toEqual('Success');
     }
-  });
-
-  it('Re-collect CVC sync scenario', () => {
-    homeScreen.goTo('More payment scenarios');
-    homeScreen.goTo('Recollect a CVC');
-
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
-    getTextInputByPlaceholder('CVC').setValue('123');
-
-    getElementByText('Pay Synchronously').click();
-    const alert = nativeAlert.getAlertElement('Success');
-    alert.waitForDisplayed({
-      timeout: 15000,
-    });
-    expect(alert.getText()).toEqual('Success');
   });
 });

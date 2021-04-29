@@ -6,6 +6,8 @@ jobs:
   test:
     name: Install Appium dependencies
     runs-on: macOS-latest
+    env:
+      API_URL: https://rigorous-heartbreaking-cephalopod.glitch.me
     steps:
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -29,26 +31,22 @@ jobs:
       - name: Install Repo and Dependencies
         run: |
           yarn bootstrap
-      - name: Open Metro Bundler in Background
-        run: |
-          node_modules/react-native/scripts/launchPackager.command &
       - name: Build iOS App
         run: |
           yarn run-example-ios
-          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Debug-iphonesimulator/StripeSdkExample.app`
-          mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Debug-iphonesimulator
-          cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Debug-iphonesimulator
+          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app`
+          mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
+          cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
           sleep 30
       - name: Run Tests
         run: |
           node ./run-appium-tests.js ios
-      - name: Upload Appium logs
-        uses: actions/upload-artifact@v1
-        with:
-          name: appium.log
-          path: appium.log
-      - name: Upload Test Results
+      - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
         with:
           name: e2e-results
-          path: __tests__/e2e/output
+          path: tmp
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results
+          path: tmp
