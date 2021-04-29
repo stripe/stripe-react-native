@@ -15,10 +15,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import com.stripe.android.paymentsheet.PaymentOptionCallback
-import com.stripe.android.paymentsheet.PaymentResult
-import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import com.stripe.android.paymentsheet.*
 import com.stripe.android.paymentsheet.model.PaymentOption
 import java.io.ByteArrayOutputStream
 
@@ -62,7 +59,7 @@ class PaymentSheetFragment : Fragment() {
     }
 
     val paymentResultCallback = object : PaymentSheetResultCallback {
-      override fun onPaymentResult(paymentResult: PaymentResult) {
+      override fun onPaymentSheetResult(paymentResult: PaymentSheetResult) {
         val intent = Intent(ON_PAYMENT_RESULT_ACTION)
 
         intent.putExtra("paymentResult", paymentResult)
@@ -94,7 +91,7 @@ class PaymentSheetFragment : Fragment() {
   }
 
   fun present(clientSecret: String) {
-    paymentSheet?.present(clientSecret, paymentSheetConfiguration)
+    paymentSheet?.presentWithPaymentIntent(clientSecret, paymentSheetConfiguration)
   }
 
   fun presentPaymentOptions() {
@@ -102,7 +99,7 @@ class PaymentSheetFragment : Fragment() {
   }
 
   fun confirmPayment() {
-    flowController?.confirmPayment()
+    flowController?.confirm()
   }
 
   private fun configureFlowController(paymentIntentClientSecret: String) {
@@ -122,7 +119,7 @@ class PaymentSheetFragment : Fragment() {
       }
     }
 
-    flowController?.configure(
+    flowController?.configureWithPaymentIntent(
       paymentIntentClientSecret = paymentIntentClientSecret,
       configuration = this.paymentSheetConfiguration,
       callback = onFlowControllerConfigure

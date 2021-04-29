@@ -7,13 +7,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.AsyncTask
 import android.os.Bundle
-import com.stripe.android.paymentsheet.PaymentResult
 import android.os.Parcelable
 import android.util.Log
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
 import androidx.appcompat.app.AppCompatActivity
+import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.ActivityStarter
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 
@@ -154,22 +154,18 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
-        val paymentResult = intent.extras?.getParcelable<PaymentResult>("paymentResult")
-
-        when (paymentResult) {
-          is PaymentResult.Canceled -> {
+        when (intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
+          is PaymentSheetResult.Canceled -> {
             confirmPaymentSheetPaymentPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
             presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Canceled.toString(), "")
           }
-          is PaymentResult.Failed -> {
+          is PaymentSheetResult.Failed -> {
             confirmPaymentSheetPaymentPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
             presentPaymentSheetPromise?.reject(PaymentSheetErrorType.Failed.toString(), "")
           }
-          is PaymentResult.Completed -> {
-            val result = Arguments.createMap()
-            result.putMap("paymentIntent", mapFromPaymentIntentResult(paymentResult.paymentIntent))
-            confirmPaymentSheetPaymentPromise?.resolve(result)
-            presentPaymentSheetPromise?.resolve(result)
+          is PaymentSheetResult.Completed -> {
+            confirmPaymentSheetPaymentPromise?.resolve(Arguments.createMap())
+            presentPaymentSheetPromise?.resolve(Arguments.createMap())
           }
         }
       } else if (intent.action == ON_PAYMENT_OPTION_ACTION) {
@@ -184,7 +180,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           result.putMap("paymentOption", option)
           presentPaymentSheetPromise?.resolve(result)
         } else {
-          presentPaymentSheetPromise?.resolve(null)
+          presentPaymentSheetPromise?.resolve(Arguments.createMap())
         }
       }
       else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {

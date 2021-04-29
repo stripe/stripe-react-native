@@ -90,15 +90,12 @@ export default function PaymentsUICustomScreen() {
 
   const onPressBuy = async () => {
     setLoading(true);
-    const { error, paymentIntent } = await confirmPaymentSheetPayment();
+    const { error } = await confirmPaymentSheetPayment();
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-    } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
-      );
+    } else {
+      Alert.alert('Success', 'The payment was confirmed successfully!');
       setPaymentSheetEnabled(false);
     }
     setLoading(false);

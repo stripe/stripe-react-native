@@ -32,17 +32,14 @@ export default function PaymentsUICompleteScreen() {
       return;
     }
     setLoadng(true);
-    const { error, paymentIntent } = await presentPaymentSheet({
+    const { error } = await presentPaymentSheet({
       clientSecret,
     });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-    } else if (paymentIntent) {
-      Alert.alert(
-        'Success',
-        `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
-      );
+    } else {
+      Alert.alert('Success', 'The payment was confirmed successfully');
     }
     setPaymentSheetEnabled(false);
     setLoadng(false);

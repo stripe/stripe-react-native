@@ -114,30 +114,21 @@ export type InitPaymentSheetResult =
 
 export type PresentPaymentSheetResult =
   | {
-      paymentIntent: PaymentIntent;
       paymentOption?: undefined;
       error?: undefined;
     }
   | {
-      paymentIntent?: undefined;
       paymentOption?: PaymentSheet.PaymentOption;
       error?: undefined;
     }
   | {
-      paymentIntent?: undefined;
       paymentOption?: undefined;
       error: StripeError<PaymentSheetError>;
     };
 
-export type ConfirmPaymentSheetPaymentResult =
-  | {
-      paymentIntent: PaymentIntent;
-      error?: undefined;
-    }
-  | {
-      paymentIntent?: undefined;
-      error: StripeError<PaymentSheetError>;
-    };
+export type ConfirmPaymentSheetPaymentResult = {
+  error?: StripeError<PaymentSheetError>;
+};
 
 export type ApplePayResult = { error?: StripeError<ApplePayError> };
 

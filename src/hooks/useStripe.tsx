@@ -261,15 +261,9 @@ export function useStripe() {
       try {
         const response = await NativeStripeSdk.presentPaymentSheet(params);
 
-        if (response.paymentIntent) {
-          return {
-            paymentIntent: response.paymentIntent,
-          };
-        } else {
-          return {
-            paymentOption: response.paymentOption,
-          };
-        }
+        return {
+          paymentOption: response.paymentOption,
+        };
       } catch (error) {
         return {
           error: createError(error),
@@ -283,13 +277,9 @@ export function useStripe() {
     ConfirmPaymentSheetPaymentResult
   > => {
     try {
-      const {
-        paymentIntent,
-      } = await NativeStripeSdk.confirmPaymentSheetPayment();
+      await NativeStripeSdk.confirmPaymentSheetPayment();
 
-      return {
-        paymentIntent,
-      };
+      return {};
     } catch (error) {
       return {
         error: createError(error),
