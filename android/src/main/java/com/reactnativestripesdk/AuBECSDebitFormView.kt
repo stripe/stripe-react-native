@@ -102,7 +102,7 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
   }
 
 
-  fun onCardChanged(params: PaymentMethodCreateParams) {
+  fun onFormChanged(params: PaymentMethodCreateParams) {
     val billingDetails = params.toParamMap()["billing_details"] as HashMap<*, *>
     val auBecsDebit = params.toParamMap()["au_becs_debit"] as HashMap<*, *>
 
@@ -122,7 +122,7 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
       object : BecsDebitWidget.ValidParamsCallback {
         override fun onInputChanged(isValid: Boolean) {
           becsDebitWidget?.params?.let { params ->
-            onCardChanged(params)
+            onFormChanged(params)
           }
         }
       }

@@ -68,10 +68,10 @@ export default function AuBECSDebitPaymentScreen() {
   return (
     <Screen>
       <AuBECSDebitForm
-        style={styles.form}
         onComplete={(value) => setFormDetails(value)}
         companyName="company"
-        formStyle={formStyle}
+        // eslint-disable-next-line react-native/no-inline-styles
+        formStyle={{ fontSize: 20 }}
       />
 
       <View style={styles.buttonContainer}>
@@ -96,12 +96,3 @@ const styles = StyleSheet.create({
     height: 400,
   },
 });
-
-const formStyle = {
-  textColor: '#000000',
-  fontSize: 22,
-  placeholderColor: '#999999',
-  borderWidth: 1,
-  borderColor: '#000000',
-  borderRadius: 8,
-};
