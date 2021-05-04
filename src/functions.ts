@@ -1,4 +1,4 @@
-import { createError } from './helpers';
+import { createError, isiOS } from './helpers';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -72,6 +72,10 @@ export const confirmPaymentMethod = async (
       error: createError(error),
     };
   }
+};
+
+export const isApplePaySupported = async (): Promise<boolean> => {
+  return isiOS && (await NativeStripeSdk.isApplePaySupported());
 };
 
 export const presentApplePay = async (
