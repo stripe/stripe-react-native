@@ -123,11 +123,13 @@ export default function CVCReCollectionScreen() {
   return (
     <Screen>
       <TextInput
+        autoCapitalize="none"
         style={styles.input}
         placeholder="E-mail"
         onChange={(value) => setEmail(value.nativeEvent.text)}
       />
       <TextInput
+        keyboardType="number-pad"
         style={styles.input}
         placeholder="CVC"
         value={cvc}

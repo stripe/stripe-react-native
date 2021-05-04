@@ -9,7 +9,7 @@ import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, Alert } from 'react-native';
 import { colors } from './colors';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
@@ -38,9 +38,17 @@ export default function App() {
   const [publishableKey, setPublishableKey] = useState('');
 
   const fetchPublishableKey = async () => {
-    const response = await fetch(`${API_URL}/stripe-key`);
-    const { publishableKey: key } = await response.json();
-    setPublishableKey(key);
+    try {
+      const response = await fetch(`${API_URL}/stripe-key`);
+      const { publishableKey: key } = await response.json();
+      setPublishableKey(key);
+    } catch (error) {
+      console.warn('Unable to fetch publishable key. Is your server running?');
+      Alert.alert(
+        'Error',
+        'Unable to fetch publishable key. Is your server running?'
+      );
+    }
   };
 
   useEffect(() => {
