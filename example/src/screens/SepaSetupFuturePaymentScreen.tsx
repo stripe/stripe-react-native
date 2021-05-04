@@ -55,12 +55,14 @@ export default function SepaSetupFuturePaymentScreen() {
   return (
     <Screen>
       <TextInput
+        autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
       <TextInput
+        autoCapitalize="characters"
         placeholder="Iban"
         onChange={(value) => setIban(value.nativeEvent.text.toLowerCase())}
         style={styles.input}

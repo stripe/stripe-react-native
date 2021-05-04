@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
@@ -9,7 +10,7 @@ import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 
 export default function IdealSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
-  const [bankName, setBankName] = useState<string>();
+  const [bankName, setBankName] = useState<string | undefined>();
 
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
@@ -56,23 +57,32 @@ export default function IdealSetupFuturePaymentScreen() {
   return (
     <Screen>
       <TextInput
+        autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />
 
-      <TextInput
-        placeholder="Bank name"
-        onChange={(value) => {
-          const text =
-            value.nativeEvent.text.length > 0
-              ? value.nativeEvent.text.toLowerCase()
-              : undefined;
-          setBankName(text);
-        }}
-        style={styles.input}
-      />
+      <Picker
+        selectedValue={bankName}
+        onValueChange={(itemValue) => setBankName(itemValue)}
+      >
+        <Picker.Item label="Optional - choose your bank" />
+        <Picker.Item label="ABN Amro" value="abn_amro" />
+        <Picker.Item label="ASN Bank" value="asn_bank" />
+        <Picker.Item label="bunq B.V." value="bunq" />
+        <Picker.Item label="Handelsbanken" value="handelsbanken" />
+        <Picker.Item label="ING Bank" value="ing" />
+        <Picker.Item label="Knab" value="knab" />
+        <Picker.Item label="Moneyou" value="moneyou" />
+        <Picker.Item label="Rabobank" value="rabobank" />
+        <Picker.Item label="Regiobank" value="regiobank" />
+        <Picker.Item label="Revolut" value="revolut" />
+        <Picker.Item label="SNS Bank" value="sns_bank" />
+        <Picker.Item label="Triodos Bank" value="triodos_bank" />
+        <Picker.Item label="Van Lanschot" value="van_lanschot" />
+      </Picker>
 
       <View style={styles.buttonContainer}>
         <Button
