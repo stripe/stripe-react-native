@@ -118,10 +118,10 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
   }
 
   private fun setListeners() {
-    becsDebitWidget?.validParamsCallback =
+    becsDebitWidget.validParamsCallback =
       object : BecsDebitWidget.ValidParamsCallback {
         override fun onInputChanged(isValid: Boolean) {
-          becsDebitWidget?.params?.let { params ->
+          becsDebitWidget.params?.let { params ->
             onFormChanged(params)
           }
         }
