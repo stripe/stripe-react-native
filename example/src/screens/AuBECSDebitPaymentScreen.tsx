@@ -68,6 +68,7 @@ export default function AuBECSDebitPaymentScreen() {
   return (
     <Screen>
       <AuBECSDebitForm
+        style={styles.form}
         onComplete={(value) => setFormDetails(value)}
         companyName="company"
         // eslint-disable-next-line react-native/no-inline-styles

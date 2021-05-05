@@ -44,7 +44,7 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
       val exceptionManager = reactContext.getNativeModule(ExceptionsManagerModule::class.java)
       val error: WritableMap = WritableNativeMap()
       error.putString("message", "Only one CardField component on the same screen allowed")
-      exceptionManager.reportException(error)
+      exceptionManager?.reportException(error)
     }
 
     cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
