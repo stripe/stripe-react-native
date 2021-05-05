@@ -202,7 +202,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func isApplePaySupported(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         let isSupported = StripeAPI.deviceSupportsApplePay()
-        resolve([isSupported])
+        resolve(isSupported)
     }
   
     @objc(handleURLCallback:resolver:rejecter:)

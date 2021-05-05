@@ -35,7 +35,7 @@ export function useStripe() {
   useEffect(() => {
     async function checkApplePaySupport() {
       const isSupported =
-        isiOS ?? (await NativeStripeSdk.isApplePaySupported());
+        isiOS && (await NativeStripeSdk.isApplePaySupported());
       setApplePaySupported(isSupported);
     }
 
