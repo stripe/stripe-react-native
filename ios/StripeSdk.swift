@@ -123,13 +123,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func confirmPaymentSheetPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
-            self.paymentSheetFlowController?.confirmPayment(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+            self.paymentSheetFlowController?.confirm(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                 switch paymentResult {
-                case .completed(let paymentIntent):
-                    resolve(["paymentIntent": Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)])
+                case .completed:
+                    resolve([])
                 case .canceled:
                     reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
-                case .failed(let error, _):
+                case .failed(let error):
                     reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
                 }
             }
@@ -157,11 +157,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             } else {
                 self.paymentSheet?.present(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                     switch paymentResult {
-                    case .completed(let paymentIntent):
-                        resolve(["paymentIntent": Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)])
+                    case .completed:
+                        resolve([])
                     case .canceled:
                         reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
-                    case .failed(let error, _):
+                    case .failed(let error):
                         reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
                     }
                 }

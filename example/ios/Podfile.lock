@@ -308,12 +308,12 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.0.0-mc-beta-1):
-    - Stripe/Stripe3DS2 (= 21.0.0-mc-beta-1)
+  - Stripe (21.4.0):
+    - Stripe/Stripe3DS2 (= 21.4.0)
   - stripe-react-native (0.0.1):
     - React
-    - Stripe (~> 21.0.0-mc-beta-1)
-  - Stripe/Stripe3DS2 (21.0.0-mc-beta-1)
+    - Stripe (~> 21.4.0)
+  - Stripe/Stripe3DS2 (21.4.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -371,7 +371,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `mc-beta-2`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `yuki/mc-pb`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -454,7 +454,7 @@ EXTERNAL SOURCES:
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Stripe:
-    :branch: mc-beta-2
+    :branch: yuki/mc-pb
     :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../.."
@@ -463,7 +463,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   Stripe:
-    :commit: afeb50345446f889ca4cc076299ff6e4143e222d
+    :commit: f6eb93a64b03b3e071a5c9febab17bb91c21e178
     :git: https://github.com/stripe/stripe-ios.git
 
 SPEC CHECKSUMS:
@@ -509,11 +509,11 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 4f9369bb8f036ed106d12355e622d934c2ec60a1
-  stripe-react-native: f52a00b5c99fd9cf6d842a42594eaaff19ddefb2
+  Stripe: 7c594b943abb65cf7bc28e37fd5124e65db3ce9e
+  stripe-react-native: b1404e60b441a34c29a062741db2304d6f703df3
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 70f5257608f27114166973aa237cd531e9e87ef3
+PODFILE CHECKSUM: 6b35160405b9a27446918d2312e58532d6b461a7
 
 COCOAPODS: 1.10.1

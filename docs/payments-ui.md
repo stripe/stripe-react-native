@@ -111,21 +111,21 @@ export default function CheckoutScreen() {
 }
 ```
 
-When the checkout button is tapped, call `presentPaymentSheet` with `clientSecret` fetched from the backend before to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `PaymentIntent` or `StripeError<PaymentSheetError>`.
+When the checkout button is tapped, call `presentPaymentSheet` with `clientSecret` fetched from the backend before to open the sheet. After the customer completes the payment, the sheet is dismissed and the Promise is resolved with a `StripeError<PaymentSheetError>` if any occured.
 
 ```tsx
 export default function CheckoutScreen() {
   // continued from above
 
   const openPaymentSheet = async () => {
-    const { error, paymentIntent } = await presentPaymentSheet({
+    const { error } = await presentPaymentSheet({
       clientSecret,
     });
 
     if (error) {
       console.log('error', error.message);
-    } else if (paymentIntent) {
-      console.log('success', paymentIntent);
+    } else {
+      console.log('success');
     }
   };
 
@@ -348,15 +348,12 @@ Finally, when your buy button is tapped, call `confirmPaymentSheetPayment` to co
 const { confirmPaymentSheetPayment } = useStripe();
 
 const onPressBuy = async () => {
-  const { error, paymentIntent } = await confirmPaymentSheetPayment();
+  const { error } = await confirmPaymentSheetPayment();
 
   if (error) {
     Alert.alert(`Error code: ${error.code}`, error.message);
-  } else if (paymentIntent) {
-    Alert.alert(
-      'Success',
-      `The payment was confirmed successfully! amount: ${paymentIntent.amount}`
-    );
+  } else {
+    Alert.alert('Success', 'The payment was confirmed successfully!');
   }
 };
 
