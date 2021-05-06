@@ -33,10 +33,13 @@ const SCREENS = <const>[
 
 class HomeScreen {
   goTo(screen: typeof SCREENS[number]) {
-    const selector = driver.isAndroid
-      ? `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${screen}"))`
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${screen}"))`
+        )
       : $(`~${screen}`);
-    $(selector).click();
+    expect(button).toBeDisplayed();
+    button.click();
   }
 }
 

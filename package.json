@@ -31,7 +31,7 @@
     "bootstrap": "yarn example && yarn && yarn pods",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal --theme ./docs/stripe-theme",
     "run-example-ios": "cd example;react-native run-ios --configuration Release --simulator \"iPhone 12\"",
-    "run-example-android": "cd example;react-native run-android --configuration Release",
+    "run-example-android": "cd example;react-native run-android --variant=release",
     "test:ios": "node ./run-appium-tests.js ios",
     "test:android": "node ./run-appium-tests.js android"
   },
@@ -61,7 +61,7 @@
     "@wdio/mocha-framework": "^7.3.1",
     "@wdio/spec-reporter": "^7.3.1",
     "@wdio/sync": "^7.3.1",
-    "appium": "^1.20.2",
+    "appium": "^1.21.0",
     "appium-chromedriver": "4.26.2",
     "appium-doctor": "^1.16.0",
     "commitlint": "^8.3.5",

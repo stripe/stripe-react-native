@@ -18,23 +18,33 @@ class BasicPaymentScreen {
     getTextInputByPlaceholder('E-mail').setValue(email);
 
     if (bankName) {
-      getTextInputByPlaceholder('Bank name').setValue(bankName);
+      const input = getTextInputByPlaceholder('Bank name');
+      expect(input).toBeDisplayed();
+      input.setValue(bankName);
     }
     if (iban) {
-      getTextInputByPlaceholder('Iban').setValue(iban);
+      const ibanInput = getTextInputByPlaceholder('Iban');
+      expect(ibanInput).toBeDisplayed();
+      ibanInput.setValue(iban);
     }
-    getElementByText(buttonText).click();
+    const button = getElementByText(buttonText);
+    expect(button).toBeDisplayed();
+    button.click();
 
     driver.pause(5000);
   }
 
   authorize() {
+    driver.pause(5000);
+
     expect(driver.getContexts()[1]).toBeTruthy();
 
     driver.switchContext(driver.getContexts()[1]);
 
-    $('button*=Authorize').waitForDisplayed();
-    $('button*=Authorize').click();
+    const button = $('button*=Authorize');
+    button.waitForDisplayed({ timeout: 10000 });
+    expect(button).toBeDisplayed();
+    button.click();
 
     driver.switchContext(driver.getContexts()[0]);
   }
@@ -42,7 +52,7 @@ class BasicPaymentScreen {
   checkStatus(status: string = 'Success') {
     const alert = nativeAlert.getAlertElement(status);
     alert.waitForDisplayed({
-      timeout: 5000,
+      timeout: 10000,
     });
     expect(alert.getText()).toEqual(status);
   }

@@ -5,15 +5,9 @@ import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 
-let index = 0;
-
 describe('Example app payments scenarios', () => {
   beforeEach(() => {
-    driver.saveScreen(`ss-${index}`);
-    index++;
     $('~app-root').waitForDisplayed({ timeout: 30000 });
-    driver.saveScreen(`ss-${index}`);
-    index++;
   });
 
   afterEach(() => {
@@ -133,7 +127,7 @@ describe('Example app payments scenarios', () => {
 
       BasicPaymentScreen.pay({ email: 'test@stripe.com' });
       BasicPaymentScreen.authorize();
-      BasicPaymentScreen.checkStatus();
+      BasicPaymentScreen.checkStatus('Processing');
     }
   });
 
@@ -172,17 +166,17 @@ describe('Example app payments scenarios', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Afterpay/Clearpay payment scenario', () => {
-    // webview handling
-    if (driver.isAndroid) {
-      homeScreen.goTo('Buy now pay later');
-      homeScreen.goTo('Afterpay and Clearpay');
+  // it('Afterpay/Clearpay payment scenario', () => {
+  //   // webview handling
+  //   if (driver.isAndroid) {
+  //     homeScreen.goTo('Buy now pay later');
+  //     homeScreen.goTo('Afterpay and Clearpay');
 
-      BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-      BasicPaymentScreen.authorize();
-      BasicPaymentScreen.checkStatus();
-    }
-  });
+  //     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+  //     BasicPaymentScreen.authorize();
+  //     BasicPaymentScreen.checkStatus();
+  //   }
+  // });
 
   it('OXXO payment scenario', () => {
     if (driver.isAndroid) {
@@ -299,7 +293,10 @@ describe('Example app payments scenarios', () => {
       getTextInputByPlaceholder('CVC').setValue('123');
 
       getElementByText('Pay').click();
-      driver.pause(4000);
+      driver.pause(10000);
+      if (driver.isAndroid) {
+        driver.back();
+      }
       const alert = nativeAlert.getAlertElement('Success');
       alert.waitForDisplayed({
         timeout: 15000,

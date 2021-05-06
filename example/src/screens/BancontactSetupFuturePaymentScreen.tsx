@@ -65,7 +65,7 @@ export default function BancontactSetupFuturePaymentScreen() {
       <Button
         variant="primary"
         onPress={handlePayPress}
-        title="Pay"
+        title="Save"
         loading={loading}
       />
     </PaymentScreen>
