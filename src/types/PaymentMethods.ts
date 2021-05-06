@@ -1,3 +1,4 @@
+import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
 import type { CardFieldInput } from './components/CardFieldInput';
 import type { PaymentIntents } from './PaymentIntents';
 
@@ -27,6 +28,7 @@ export namespace PaymentMethodCreateParams {
     | GiropayParams
     | SepaParams
     | EpsParams
+    | AuBecsDebitParams
     | SofortParams
     | GrabPayParams
     | FPXParams
@@ -127,6 +129,11 @@ export namespace PaymentMethodCreateParams {
 
   export interface P24Params extends Required<BaseParams> {
     type: 'P24';
+  }
+
+  export interface AuBecsDebitParams {
+    type: 'AuBecsDebit';
+    formDetails: AuBECSDebitFormComponent.FormDetails;
   }
 }
 

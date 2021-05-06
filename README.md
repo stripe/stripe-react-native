@@ -180,6 +180,7 @@ You can find more details about the `StripeProvider` component in the [API refer
 
 - [Install the `stripe-cli`](https://stripe.com/docs/stripe-cli)
 - Run `stripe listen --forward-to localhost:4242/webhook`
+- The CLI will print a webhook secret (such as, `whsec_***`) to the console. Set STRIPE_WEBHOOK_SECRET to this value in your `example/.env` file.
 
 ## Troubleshooting
 

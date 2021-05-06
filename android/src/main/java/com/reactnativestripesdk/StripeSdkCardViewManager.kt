@@ -5,7 +5,6 @@ import com.facebook.react.bridge.ReadableNativeMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.common.MapBuilder
-import com.facebook.react.devsupport.DevSupportManagerBase
 import com.facebook.react.modules.core.ExceptionsManagerModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -45,7 +44,7 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
       val exceptionManager = reactContext.getNativeModule(ExceptionsManagerModule::class.java)
       val error: WritableMap = WritableNativeMap()
       error.putString("message", "Only one CardField component on the same screen allowed")
-      exceptionManager.reportException(error)
+      exceptionManager?.reportException(error)
     }
 
     cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)

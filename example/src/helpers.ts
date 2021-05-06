@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { API_URL } from './Config';
 
 export async function fetchPublishableKey(
@@ -12,6 +13,11 @@ export async function fetchPublishableKey(
 
     return publishableKey;
   } catch (e) {
+    console.warn('Unable to fetch publishable key. Is your server running?');
+    Alert.alert(
+      'Error',
+      'Unable to fetch publishable key. Is your server running?'
+    );
     return null;
   }
 }

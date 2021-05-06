@@ -58,6 +58,7 @@ export default function FPXPaymentScreen() {
   return (
     <PaymentScreen paymentMethod="fpx">
       <TextInput
+        autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}

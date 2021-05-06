@@ -23,7 +23,7 @@ class CardFieldManager: RCTViewManager, CardFieldDelegate {
         }
         return CardFieldView(delegate: self)
     }
-    
+        
     override class func requiresMainQueueSetup() -> Bool {
         return false
     }

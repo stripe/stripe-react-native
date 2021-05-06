@@ -15,5 +15,11 @@ export {
   ApplePayButton,
   Props as ApplePayButtonProps,
 } from './components/ApplePayButton';
+export {
+  AuBECSDebitForm,
+  Props as AuBECSDebitFormProps,
+} from './components/AuBECSDebitForm';
+
+export * from './functions';
 
 export * from './types/index';

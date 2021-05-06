@@ -64,6 +64,7 @@ export default function GrabPayPaymentScreen() {
   return (
     <PaymentScreen paymentMethod="grabpay">
       <TextInput
+        autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}

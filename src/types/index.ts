@@ -18,6 +18,7 @@ export * from './PaymentMethods';
 export * from './SetupIntent';
 export * from './ThreeDSecure';
 export * from './components/ApplePayButtonComponent';
+export * from './components/AuBECSDebitForm';
 export * from './components/CardFieldInput';
 export * from './Errors';
 /**
