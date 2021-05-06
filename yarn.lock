@@ -3854,7 +3854,7 @@ appium-base-driver@^7.0.0, appium-base-driver@^7.1.0, appium-base-driver@^7.2.3:
     webdriverio "^6.0.2"
     ws "^7.0.0"
 
-appium-chromedriver@4.62.2:
+appium-chromedriver@4.26.2:
   version "4.26.2"
   resolved "https://registry.yarnpkg.com/appium-chromedriver/-/appium-chromedriver-4.26.2.tgz#c1770f1364005678f8e82348b9b47d033e02313d"
   integrity sha512-flBp6H4Ed+YTzk7Bm4lVDS7eeRqMmz7D3xcfZYQhNwaTPgK4Vdde2F/7vU6c2A2Z73UcX3plgNWz4JJ3KtII7w==

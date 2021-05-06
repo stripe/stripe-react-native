@@ -8,32 +8,6 @@ interface Props {
   paymentMethod?: string;
 }
 
-const threeD = {
-  backgroundColor: '#FFFFFF', // iOS only
-  timeout: 5,
-  label: {
-    headingTextColor: '#cfaa00',
-    headingFontSize: 13,
-  },
-  navigationBar: {
-    headerText: 'Complete card authentication',
-    statusBarColor: '#cfaa00',
-    backgroundColor: '#cd1231',
-  },
-  footer: {
-    // iOS only
-    backgroundColor: '#cfaa00',
-    headingTextColor: '#cfaa00',
-    textColor: '#cfaa00',
-  },
-  submitButton: {
-    backgroundColor: '#cfaa00',
-    borderRadius: 0,
-    textColor: '#FFFFFF',
-    textFontSize: 14,
-  },
-};
-
 const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   useEffect(() => {
     async function initialize() {
@@ -42,7 +16,6 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
         initStripe({
           publishableKey,
           urlScheme: 'stripe-example',
-          threeDSecureParams: threeD,
         });
       }
     }

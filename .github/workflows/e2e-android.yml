@@ -1,3 +1,7 @@
+name: RN Stripe
+
+on: push
+
 jobs:
   build:
     runs-on: macOS-latest
@@ -26,8 +30,8 @@ jobs:
           yarn bootstrap
       - name: Run Android Emulator
         run: |
-          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install 'system-images;android-28;google_apis;x86_64'
-          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n test_device -k 'system-images;android-28;google_apis;x86_64' --force
+          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install 'system-images;android-29;google_apis;x86_64'
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n test_device -k 'system-images;android-29;google_apis;x86_64' --force
           echo $ANDROID_HOME/emulator/emulator -list-avds
           echo "Starting emulator"
           nohup $ANDROID_HOME/emulator/emulator -avd test_device -no-snapshot > /dev/null 2>&1 &
@@ -44,3 +48,13 @@ jobs:
       - name: Run Tests
         run: |
           node ./run-appium-tests.js android
+        continue-on-error: true
+      - name: Upload Screenshoots
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results
+          path: tmp
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results
+          path: tmp

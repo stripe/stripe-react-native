@@ -7,7 +7,11 @@ import homeScreen from './screenObject/HomeScreen';
 
 describe('Example app payments scenarios', () => {
   beforeEach(() => {
+    driver.saveScreen(`screen-${new Date().getTime()}`);
     $('~app-root').waitForDisplayed({ timeout: 30000 });
+  });
+  afterEach(() => {
+    driver.saveScreen(`screen-${new Date().getTime()}`);
   });
 
   afterEach(() => {

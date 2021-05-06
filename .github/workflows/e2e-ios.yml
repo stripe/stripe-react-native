@@ -41,6 +41,7 @@ jobs:
       - name: Run Tests
         run: |
           node ./run-appium-tests.js ios
+        continue-on-error: true
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
         with:
