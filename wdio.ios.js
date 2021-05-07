@@ -1,4 +1,4 @@
-// TODO: use common config - need to figure out why it doesn't work on CI for now
+// TODO: extend common config - need to figure out why it doesn't work on CI for now
 // const config = require('./wdio.conf');
 
 exports.config = {
