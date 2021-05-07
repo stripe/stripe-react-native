@@ -22,6 +22,7 @@ export interface Props {
   stripeAccountId?: string;
   children: React.ReactElement | React.ReactElement[];
   urlScheme?: string;
+  setUrlSchemeOnAndroid?: boolean;
 }
 
 const appInfo: AppInfo = {
@@ -63,6 +64,7 @@ export function StripeProvider({
   threeDSecureParams,
   stripeAccountId,
   urlScheme,
+  setUrlSchemeOnAndroid,
 }: Props) {
   useEffect(() => {
     if (publishableKey === '') {
@@ -75,6 +77,7 @@ export function StripeProvider({
         stripeAccountId,
         threeDSecureParams,
         urlScheme,
+        setUrlSchemeOnAndroid,
       });
     } else {
       NativeStripeSdk.initialise({
@@ -92,6 +95,7 @@ export function StripeProvider({
     stripeAccountId,
     threeDSecureParams,
     urlScheme,
+    setUrlSchemeOnAndroid,
   ]);
 
   return <>{publishableKey ? children : null}</>;

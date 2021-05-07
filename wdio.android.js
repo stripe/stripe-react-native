@@ -1,7 +1,50 @@
-const config = require('./wdio.conf');
+// TODO: use common config - need to figure out why it doesn't work on CI for now
+// const config = require('./wdio.conf');
 
 exports.config = {
-  ...config,
+  runner: 'local',
+  port: 4723,
+  exclude: [],
+  maxInstances: 10,
+  autoCompileOpts: {
+    autoCompile: true,
+    tsNodeOpts: {
+      transpileOnly: true,
+      project: 'tsconfig.json',
+    },
+    tsConfigPathsOpts: {
+      baseUrl: './',
+    },
+  },
+  logLevel: 'info',
+  bail: 0,
+  baseUrl: 'http://localhost',
+  waitforTimeout: 8000,
+  connectionRetryTimeout: 120000,
+  connectionRetryCount: 3,
+  services: [
+    'appium',
+    [
+      'native-app-compare',
+      {
+        baselineFolder: 'test/baseline',
+        formatImageName: '{tag}-{logName}-{width}x{height}',
+        screenshotPath: '.tmp/',
+        savePerInstance: true,
+        autoSaveBaseline: true,
+        blockOutStatusBar: true,
+        blockOutToolBar: true,
+        isHybridApp: true,
+      },
+    ],
+  ],
+  framework: 'mocha',
+  reporters: ['spec'],
+  mochaOpts: {
+    ui: 'bdd',
+    timeout: 200000,
+  },
+  specs: ['./__tests__/*.test.android.ts', './__tests__/*.test.ts'],
   capabilities: [
     {
       maxInstances: 1,
@@ -10,7 +53,7 @@ exports.config = {
       platformVersion: '',
       platformName: 'Android',
       deviceName: 'sdk_gphone_x86_arm',
-      app: 'example/android/app/build/outputs/apk/debug/app-debug.apk',
+      app: 'example/android/app/build/outputs/apk/release/app-release.apk',
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
     },

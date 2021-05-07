@@ -16,6 +16,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
         initStripe({
           publishableKey,
           urlScheme: 'stripe-example',
+          setUrlSchemeOnAndroid: true,
         });
       }
     }

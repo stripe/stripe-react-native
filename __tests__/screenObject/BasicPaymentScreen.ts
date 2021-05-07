@@ -18,9 +18,11 @@ class BasicPaymentScreen {
     getTextInputByPlaceholder('E-mail').setValue(email);
 
     if (bankName) {
-      const input = getTextInputByPlaceholder('Bank name');
-      expect(input).toBeDisplayed();
-      input.setValue(bankName);
+      const select = getElementByText('Optional - choose your bank');
+      expect(select).toBeDisplayed();
+      select.click();
+      const listItem = getElementByText(bankName);
+      listItem.click();
     }
     if (iban) {
       const ibanInput = getTextInputByPlaceholder('Iban');

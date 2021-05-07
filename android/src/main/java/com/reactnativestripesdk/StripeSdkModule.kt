@@ -150,7 +150,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     val stripeAccountId = getValOr(params, "stripeAccountId", null)
-    this.urlScheme = getValOr(params, "urlScheme", null)
+    val urlScheme = getValOr(params, "urlScheme", null)
+    val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
+    this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
 
     getMapOrNull(params, "threeDSecureParams")?.let {
       configure3dSecure(it)
