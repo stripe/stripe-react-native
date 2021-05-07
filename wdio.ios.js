@@ -52,7 +52,7 @@ exports.config = {
       appiumVersion: '1.20.2',
       platformVersion: '14.2',
       platformName: 'iOS',
-      deviceName: 'appiumTest-{IPHONE_UUID}-iPhone 12',
+      deviceName: 'iPhone 12',
       app:
         'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
