@@ -5,6 +5,8 @@
 
 The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
 
+## Getting started
+
 Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
 
 > Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md).
@@ -174,11 +176,16 @@ You can find more details about the `StripeProvider` component in the [API refer
 - Start the example
   - Terminal 1: `yarn example start:server`
   - Terminal 2: `yarn example start`
-  - Terminal 3: `yarn example ios` / `yarn example android`
+  - Terminal 3: depending on what platform you want to build for run either
+    - `yarn example ios`
+    - or
+    - `yarn example android`
 
 ##### Additional steps for webhook forwarding
 
-- [Install the `stripe-cli`](https://stripe.com/docs/stripe-cli)
+Certain payment methods require a [webhook listener](https://stripe.com/docs/payments/payment-intents/verifying-status#webhooks) to notify you of changes in the status. When developing locally, you can use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhook events to your local dev server.
+
+- [Install the `stripe-cli`](https://stripe.com/docs/stripe-cli#install)
 - Run `stripe listen --forward-to localhost:4242/webhook`
 - The CLI will print a webhook secret (such as, `whsec_***`) to the console. Set STRIPE_WEBHOOK_SECRET to this value in your `example/.env` file.
 
@@ -199,6 +206,8 @@ Follow these steps to resolve this:
 - Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
   `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
 - Open Xcode and create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+
+If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://webchat.freenode.net/#stripe).
 
 ## Contributing
 
