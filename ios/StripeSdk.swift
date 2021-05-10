@@ -618,11 +618,23 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     }
 }
 
+func findViewControllerPresenter(from uiViewController: UIViewController) -> UIViewController {
+    // Note: creating a UIViewController inside here results in a nil window
+    // This is a bit of a hack: We traverse the view hierarchy looking for the most reasonable VC to present from.
+    // A VC hosted within a SwiftUI cell, for example, doesn't have a parent, so we need to find the UIWindow.
+    var presentingViewController: UIViewController =
+        uiViewController.view.window?.rootViewController ?? uiViewController
+
+    // Find the most-presented UIViewController
+    while let presented = presentingViewController.presentedViewController {
+        presentingViewController = presented
+    }
+
+    return presentingViewController
+}
+
 extension StripeSdk: STPAuthenticationContext {
     func authenticationPresentingViewController() -> UIViewController {
-        if let topViewController = UIApplication.shared.delegate?.window??.rootViewController {
-            return topViewController
-        }
-        return UIViewController()
+        return findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
     }
 }
