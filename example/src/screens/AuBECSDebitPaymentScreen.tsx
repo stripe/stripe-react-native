@@ -67,7 +67,7 @@ export default function AuBECSDebitPaymentScreen() {
   };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen paymentMethod="au_becs_debit">
       <AuBECSDebitForm
         style={styles.form}
         onComplete={(value) => setFormDetails(value)}
