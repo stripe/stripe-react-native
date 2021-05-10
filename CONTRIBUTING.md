@@ -69,18 +69,30 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 - `feat`: new features, e.g. add new method to the module.
 - `refactor`: code refactor, e.g. migrate from class components to hooks.
 - `docs`: changes into documentation, e.g. add usage example for the module..
-- `test`: adding or updating tests, eg add integration tests using detox.
+- `test`: adding or updating tests, eg add integration tests using appium.
 - `chore`: tooling changes, e.g. change CI config.
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-### Linting and tests
+### Linting
 
 [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
+
+### Tests
+
+We use [Appium](https://github.com/appium/appium) for e2e testing.
+Since we don't have configured CI yet we must remember to run tests locally for both platforms before merge pr's.
+To to that you have to install and configure appium following its [documentation](https://github.com/appium/appium/blob/master/docs/en/about-appium/getting-started.md).
+
+Next, you have to specify emulator/simulator details in the config files.
+To set it up on android, let's open `wdio.android.js/wdio.ios.js` files and edit `capabilities` section accordingly (platformVersion, deviceName, app).
+
+1. run `yarn run-example-ios` / `yarn run-example-android` to build and open example app.
+2. run `yarn test:ios` / `yarn test:android` to run e2e tests.
 
 ### Scripts
 
