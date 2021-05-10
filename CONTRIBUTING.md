@@ -91,6 +91,10 @@ To to that you have to install and configure appium following its [documentation
 Next, you have to specify emulator/simulator details in the config files.
 To set it up on android, let's open `wdio.android.js/wdio.ios.js` files and edit `capabilities` section accordingly (platformVersion, deviceName, app).
 
+As Appium uses chrome-driver on android to handle webviews interactions you must to specify chrome version which is installed on your emulator already.
+In order to do that, edit .npmrc accordinly to https://raw.githubusercontent.com/appium/appium-chromedriver/master/config/mapping.json mapping config.
+e.g. when you have `71.0.3578` chrome version installed you must specify `2.46` version of chrome-driver.
+
 1. run `yarn run-example-ios` / `yarn run-example-android` to build and open example app.
 2. run `yarn test:ios` / `yarn test:android` to run e2e tests.
 
