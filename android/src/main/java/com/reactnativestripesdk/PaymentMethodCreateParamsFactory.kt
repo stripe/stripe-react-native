@@ -3,15 +3,16 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 
-class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?) {
+class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardParams: PaymentMethodCreateParams.Card?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
+  private val cardParams = cardParams
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardPaymentConfirmParams()
-        PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(paymentMethodType)
+        PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams()
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams()
         PaymentMethod.Type.Sofort -> createSofortPaymentConfirmParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams()
@@ -22,6 +23,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams()
         PaymentMethod.Type.P24 -> createP24PaymentConfirmParams()
         PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
+        PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
+        PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -40,6 +43,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         PaymentMethod.Type.Sofort -> createSofortPaymentSetupParams()
         PaymentMethod.Type.Bancontact -> createBancontactPaymentSetupParams()
         PaymentMethod.Type.SepaDebit -> createSepaPaymentSetupParams()
+        PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentSetupParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -50,13 +54,8 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createIDEALPaymentConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
+  private fun createIDEALPaymentConfirmParams(): ConfirmPaymentIntentParams {
     val bankName = getValOr(params, "bankName", null)
-      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
-
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
 
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
@@ -66,7 +65,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme),
         setupFutureUsage = setupFutureUsage
       )
   }
@@ -76,27 +74,23 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
 
     val params = PaymentMethodCreateParams.createP24(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
     val paymentMethodId = getValOr(params, "paymentMethodId", null)
+    val token = getValOr(params, "token", null)
 
-    if (cardParams == null && paymentMethodId == null) {
-      throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
+    if (cardParams == null && paymentMethodId == null && token == null) {
+      throw PaymentMethodCreateParamsException("You must provide cardDetails, token or paymentMethodId")
     }
 
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
@@ -111,14 +105,14 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         clientSecret = clientSecret
       )
     } else {
-      val card = mapToCard(cardParams!!)
-
-      val createParams = PaymentMethodCreateParams
-        .create(card, billingDetailsParams, null)
-
+      var card = cardParams
+      if (token != null) {
+        card = PaymentMethodCreateParams.Card.create(token)
+      }
+      val paymentMethodCreateParams = PaymentMethodCreateParams.create(card!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = createParams,
+          paymentMethodCreateParams = paymentMethodCreateParams,
           clientSecret = clientSecret,
           setupFutureUsage = setupFutureUsage
         )
@@ -128,19 +122,13 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createIDEALPaymentSetupParams(): ConfirmSetupIntentParams {
     val bankName = getValOr(params, "bankName", null)
-      ?: throw PaymentMethodCreateParamsException("You must provide bankName")
 
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams = PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
 
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
-
     return ConfirmSetupIntentParams.create(
       paymentMethodCreateParams = createParams,
-      clientSecret = clientSecret,
-      returnUrl = mapToReturnURL(urlScheme)
+      clientSecret = clientSecret
     )
   }
 
@@ -164,17 +152,9 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
-    val cardParams = getMapOrNull(params, "cardDetails")
-
-    val card = cardParams?.let { mapToCard(it) } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide cardDetails or paymentMethodId")
-    }
-
-    val paymentMethodParams = PaymentMethodCreateParams
-      .create(card, billingDetailsParams, null)
-
+    val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
     return ConfirmSetupIntentParams
-      .create(paymentMethodParams, clientSecret)
+      .create(paymentMethodCreateParams, clientSecret)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -194,15 +174,10 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       billingDetailsParams
     )
 
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
-
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme),
         setupFutureUsage = setupFutureUsage
       )
   }
@@ -212,10 +187,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val country = getValOr(params, "country", null)
       ?: throw PaymentMethodCreateParamsException("You must provide country")
 
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
-
     val params = PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Sofort(country = country),
       billingDetailsParams
@@ -223,24 +194,19 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
     return ConfirmSetupIntentParams.create(
       paymentMethodCreateParams = params,
-      clientSecret = clientSecret,
-      returnUrl = mapToReturnURL(urlScheme)
+      clientSecret = clientSecret
     )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGrabPayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
     val billingDetails = billingDetailsParams ?: PaymentMethod.BillingDetails()
     val params = PaymentMethodCreateParams.createGrabPay(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
@@ -249,9 +215,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
+
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
     val params = PaymentMethodCreateParams.createBancontact(billingDetails)
 
@@ -259,7 +223,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme),
         setupFutureUsage = setupFutureUsage
       )
   }
@@ -268,16 +231,13 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
+
     val params = PaymentMethodCreateParams.createBancontact(billingDetails)
 
     return ConfirmSetupIntentParams
       .create(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
@@ -286,16 +246,13 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
+
     val params = PaymentMethodCreateParams.createOxxo(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
@@ -304,16 +261,13 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
+
     val params = PaymentMethodCreateParams.createEps(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
@@ -322,16 +276,13 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    if (urlScheme == null) {
-      throw PaymentMethodCreateParamsException("You must provide urlScheme")
-    }
+
     val params = PaymentMethodCreateParams.createGiropay(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
       )
   }
 
@@ -359,7 +310,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createFpxPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val bank = getBooleanOrFalse(params, "testOfflineBank")?.let { "test_offline_bank" }
+    val bank = getBooleanOrFalse(params, "testOfflineBank").let { "test_offline_bank" }
     val params = PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Fpx(bank)
     )
@@ -367,8 +318,78 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
+        clientSecret = clientSecret
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAfterpayClearpayPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+
+    val params = PaymentMethodCreateParams.createAfterpayClearpay(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAuBecsDebitPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val formDetails = getMapOrNull(params, "formDetails")?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide form details")
+    }
+
+    val bsbNumber = getValOr(formDetails, "bsbNumber") as String
+    val accountNumber = getValOr(formDetails, "accountNumber") as String
+    val name = getValOr(formDetails, "name") as String
+    val email = getValOr(formDetails, "email") as String
+
+    val billingDetails = PaymentMethod.BillingDetails.Builder()
+      .setName(name)
+      .setEmail(email)
+      .build()
+
+    val params = PaymentMethodCreateParams.create(
+      auBecsDebit = PaymentMethodCreateParams.AuBecsDebit(bsbNumber = bsbNumber, accountNumber = accountNumber),
+      billingDetails = billingDetails
+    )
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAuBecsDebitPaymentSetupParams(): ConfirmSetupIntentParams {
+    val formDetails = getMapOrNull(params, "formDetails")?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide form details")
+    }
+
+    val bsbNumber = getValOr(formDetails, "bsbNumber") as String
+    val accountNumber = getValOr(formDetails, "accountNumber") as String
+    val name = getValOr(formDetails, "name") as String
+    val email = getValOr(formDetails, "email") as String
+
+    val billingDetails = PaymentMethod.BillingDetails.Builder()
+      .setName(name)
+      .setEmail(email)
+      .build()
+
+    val params = PaymentMethodCreateParams.create(
+      auBecsDebit = PaymentMethodCreateParams.AuBecsDebit(bsbNumber = bsbNumber, accountNumber = accountNumber),
+      billingDetails = billingDetails
+    )
+
+    return ConfirmSetupIntentParams
+      .create(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret
       )
   }
 }

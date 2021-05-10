@@ -1,3 +1,4 @@
+import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
 import type { CardFieldInput } from './components/CardFieldInput';
 import type { PaymentIntents } from './PaymentIntents';
 
@@ -27,9 +28,11 @@ export namespace PaymentMethodCreateParams {
     | GiropayParams
     | SepaParams
     | EpsParams
+    | AuBecsDebitParams
     | SofortParams
     | GrabPayParams
     | FPXParams
+    | AfterpayClearpayParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -44,6 +47,16 @@ export namespace PaymentMethodCreateParams {
     addressState?: string;
   };
 
+  export type ShippingDetails = {
+    addressPostalCode?: string;
+    addressCity?: string;
+    addressCountry?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    addressState?: string;
+    name?: string;
+  };
+
   export interface Options {}
 
   export interface BaseParams {
@@ -53,7 +66,7 @@ export namespace PaymentMethodCreateParams {
   export type CardParams =
     | (BaseParams & {
         type: 'Card';
-        cardDetails: CardFieldInput.Details | { token: string };
+        token?: string;
         setupFutureUsage?: PaymentIntents.FutureUsage;
       })
     | (BaseParams & {
@@ -105,12 +118,22 @@ export namespace PaymentMethodCreateParams {
     type: 'Giropay';
   }
 
+  export interface AfterpayClearpayParams extends Required<BaseParams> {
+    type: 'AfterpayClearpay';
+    shippingDetails: ShippingDetails;
+  }
+
   export interface EpsParams extends Required<BaseParams> {
     type: 'Eps';
   }
 
   export interface P24Params extends Required<BaseParams> {
     type: 'P24';
+  }
+
+  export interface AuBecsDebitParams {
+    type: 'AuBecsDebit';
+    formDetails: AuBECSDebitFormComponent.FormDetails;
   }
 }
 

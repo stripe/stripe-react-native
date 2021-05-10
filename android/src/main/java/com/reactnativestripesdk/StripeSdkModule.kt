@@ -9,6 +9,7 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
@@ -17,7 +18,10 @@ import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.ActivityStarter
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 
-class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+
+class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
+  private var cardFieldManager: StripeSdkCardViewManager = cardFieldManager
+
   override fun getName(): String {
     return "StripeSdk"
   }
@@ -211,12 +215,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun initialise(params: ReadableMap) {
-    val publishableKey = getValOr(params,"publishableKey", null) as String
-    val appInfo = getMapOrNull(params,"appInfo") as ReadableMap
-    val stripeAccountId = getValOr(params,"stripeAccountId", null)
+    val publishableKey = getValOr(params, "publishableKey", null) as String
+    val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
+    val stripeAccountId = getValOr(params, "stripeAccountId", null)
     this.urlScheme = getValOr(params, "urlScheme", null)
 
-    getMapOrNull(params,"threeDSecureParams")?.let {
+    getMapOrNull(params, "threeDSecureParams")?.let {
       configure3dSecure(it)
     }
 
@@ -327,8 +331,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
-    val cardDetails = data.getMap("cardDetails") as ReadableMap
-    val paymentMethodCreateParams = mapToPaymentMethodCreateParams(cardDetails)
+    val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams
+            ?: throw PaymentMethodCreateParamsException("Card details not complete")
+    val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
@@ -374,6 +381,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     confirmPromise = promise
     confirmPaymentClientSecret = paymentIntentClientSecret
 
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams
+
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
       return
@@ -386,10 +396,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme, cardParams)
 
     try {
       val confirmParams = factory.createConfirmParams(paymentMethodType)
+      confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
       stripe.confirmPayment(currentActivity!!, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
@@ -424,12 +435,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
 
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams
+
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType")
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme)
+    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme, cardParams)
 
     try {
       val confirmParams = factory.createSetupParams(paymentMethodType)

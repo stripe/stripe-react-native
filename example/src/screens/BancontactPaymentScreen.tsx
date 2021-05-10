@@ -1,7 +1,6 @@
 import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View, Text } from 'react-native';
-import Checkbox from '@react-native-community/checkbox';
+import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import Screen from '../components/Screen';
@@ -70,6 +69,7 @@ export default function BancontactPaymentScreen() {
     <Screen>
       <TextInput
         placeholder="E-mail"
+        autoCapitalize="none"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
@@ -82,7 +82,7 @@ export default function BancontactPaymentScreen() {
         loading={loading}
       />
       <View style={styles.row}>
-        <Checkbox
+        <Switch
           onValueChange={(value) => setSaveIban(value)}
           value={saveIban}
         />

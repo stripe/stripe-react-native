@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => "11.0" }
-  s.source       = { :git => "http://callstack.com.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/stripe/stripe-react-native.git", :tag => "#{s.version}" }
 
   
   s.source_files = "ios/**/*.{h,m,mm,swift}"

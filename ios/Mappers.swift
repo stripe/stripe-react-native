@@ -117,6 +117,8 @@ class Mappers {
         case STPPaymentMethodType.bancontact: return "Bancontact"
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.sofort: return "Sofort"
+        case STPPaymentMethodType.UPI: return "Upi"
+        case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -141,25 +143,11 @@ class Mappers {
             case "Oxxo": return STPPaymentMethodType.OXXO
             case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
+            case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             default: return STPPaymentMethodType.unknown
             }
         }
         return nil
-    }
-
-    class func mapToPaymentMethodCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
-        if let token = params["token"] {
-            let methodParams = STPPaymentMethodCardParams()
-            methodParams.token = RCTConvert.nsString(token)
-            return methodParams
-        }
-        let cardSourceParams = STPCardParams()
-        cardSourceParams.number = RCTConvert.nsString(params["number"])
-        cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
-        cardSourceParams.expMonth = RCTConvert.nsuInteger(params["expiryMonth"])
-        cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
-        
-        return STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
     }
     
     class func mapCaptureMethod(_ captureMethod: STPPaymentIntentCaptureMethod?) -> String {
@@ -288,6 +276,24 @@ class Mappers {
         return billing
     }
     
+    class func mapToShippingDetails(shippingDetails: NSDictionary?) -> STPPaymentIntentShippingDetailsParams? {
+        guard let shippingDetails = shippingDetails else {
+            return nil
+        }
+        let shippingAddress = STPPaymentIntentShippingDetailsAddressParams(line1: shippingDetails["addressLine1"] as? String ?? "")
+        
+        shippingAddress.city = shippingDetails["addressCity"] as? String
+        shippingAddress.postalCode = shippingDetails["addressPostalCode"] as? String
+        shippingAddress.country = shippingDetails["addressCountry"] as? String
+        shippingAddress.line1 = shippingDetails["addressLine1"] as? String ?? ""
+        shippingAddress.line2 = shippingDetails["addressLine2"] as? String
+        shippingAddress.state = shippingDetails["addressState"] as? String
+
+        let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
+
+        return shipping
+    }
+
     class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
         let billing: NSDictionary = [
             "email": billingDetails?.email ?? NSNull(),
@@ -373,16 +379,6 @@ class Mappers {
         return method
     }
     
-    class func mapCardParams(params: NSDictionary) -> STPPaymentMethodCardParams {
-        let cardSourceParams = STPCardParams()
-        cardSourceParams.number = RCTConvert.nsString(params["number"])
-        cardSourceParams.cvc = RCTConvert.nsString(params["cvc"])
-        cardSourceParams.expMonth = RCTConvert.nsuInteger(params["expiryMonth"])
-        cardSourceParams.expYear = RCTConvert.nsuInteger(params["expiryYear"])
-        
-        return STPPaymentMethodCardParams(cardSourceParams: cardSourceParams)
-    }
-    
     class func mapIntentStatus(status: STPSetupIntentStatus?) -> String {
         if let status = status {
             switch status {
@@ -439,9 +435,11 @@ class Mappers {
             "lastSetupError": NSNull()
         ]
         
+    
         let types = setupIntent.paymentMethodTypes.map {
             mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
         }
+        
         intent.setValue(types, forKey: "paymentMethodTypes")
         intent.setValue(convertDateToUnixTimestamp(date: setupIntent.created), forKey: "created")
         

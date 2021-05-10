@@ -9,7 +9,7 @@ import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, Alert } from 'react-native';
 import { colors } from './colors';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
@@ -30,6 +30,9 @@ import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
+import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
+import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
+import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -37,9 +40,17 @@ export default function App() {
   const [publishableKey, setPublishableKey] = useState('');
 
   const fetchPublishableKey = async () => {
-    const response = await fetch(`${API_URL}/stripe-key`);
-    const { publishableKey: key } = await response.json();
-    setPublishableKey(key);
+    try {
+      const response = await fetch(`${API_URL}/stripe-key`);
+      const { publishableKey: key } = await response.json();
+      setPublishableKey(key);
+    } catch (error) {
+      console.warn('Unable to fetch publishable key. Is your server running?');
+      Alert.alert(
+        'Error',
+        'Unable to fetch publishable key. Is your server running?'
+      );
+    }
   };
 
   useEffect(() => {
@@ -102,6 +113,15 @@ export default function App() {
             name="NoWebhookPayment"
             component={NoWebhookPaymentScreen}
           />
+          <Stack.Screen
+            name="AuBECSDebitPaymentScreen"
+            component={AuBECSDebitPaymentScreen}
+          />
+          <Stack.Screen
+            name="AuBECSDebitSetupPaymentScreen"
+            component={AuBECSDebitSetupPaymentScreen}
+          />
+
           <Stack.Screen name="ApplePay" component={ApplePayScreen} />
           <Stack.Screen
             name="SetupFuturePayment"
@@ -170,6 +190,10 @@ export default function App() {
           <Stack.Screen
             name="GiropayPaymentScreen"
             component={GiropayPaymentScreen}
+          />
+          <Stack.Screen
+            name="AfterpayClearpayPaymentScreen"
+            component={AfterpayClearpayPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

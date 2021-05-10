@@ -72,6 +72,7 @@ export default function OxxoPaymentScreen() {
   return (
     <Screen>
       <TextInput
+        autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}

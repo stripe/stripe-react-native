@@ -264,32 +264,6 @@ internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Ty
   }
 }
 
-internal fun mapToPaymentMethodCreateParams(cardData: ReadableMap): PaymentMethodCreateParams {
-  val cardParams = CardParams(
-    cardData.getString("number").orEmpty(),
-    cardData.getInt("expiryMonth"),
-    cardData.getInt("expiryYear"),
-    cardData.getString("cvc"),
-    if (cardData.hasKey("name")) cardData.getString("name") else null,
-    if (cardData.hasKey("postalCode")) Address.Builder().setPostalCode(cardData.getString("postalCode").orEmpty()).build() else null,
-    if (cardData.hasKey("currency")) cardData.getString("currency") else null,
-    null)
-    return PaymentMethodCreateParams.createCard(cardParams)
-}
-
-internal fun mapToCard(card: ReadableMap): PaymentMethodCreateParams.Card {
-  if (card.hasKey("token")) {
-    return PaymentMethodCreateParams.Card.create(card.getString("token")!!)
-  } else {
-    return PaymentMethodCreateParams.Card.Builder()
-      .setCvc(card.getString("cvc"))
-      .setExpiryMonth(card.getInt("expiryMonth"))
-      .setExpiryYear(card.getInt("expiryYear"))
-      .setNumber(card.getString("number").orEmpty())
-      .build()
-  }
-}
-
 fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
 }
@@ -313,6 +287,24 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.Bi
     .setPhone(getValOr(billingDetails, "phone"))
     .setEmail(getValOr(billingDetails, "email"))
     .build()
+}
+
+internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
+  if (shippingDetails == null) {
+    return null
+  }
+
+  return ConfirmPaymentIntentParams.Shipping(
+    name = getValOr(shippingDetails, "name") ?: "",
+    address = Address.Builder()
+      .setLine1(getValOr(shippingDetails, "addressLine1"))
+      .setLine2(getValOr(shippingDetails, "addressLine2"))
+      .setCity(getValOr(shippingDetails, "addressCity"))
+      .setState(getValOr(shippingDetails, "addressState"))
+      .setCountry(getValOr(shippingDetails, "addressCountry"))
+      .setPostalCode(getValOr(shippingDetails, "addressPostalCode"))
+      .build()
+  )
 }
 
 private fun getStringOrNull(map: ReadableMap?, key: String): String? {
@@ -422,6 +414,11 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
     .setButtonCustomization(
       buttonCustomizationBuilder.build(),
       PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SUBMIT
+    )
+
+    .setButtonCustomization(
+      buttonCustomizationBuilder.build(),
+      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CONTINUE
     )
 
   getStringOrNull(params, "backgroundColor")?.let {
