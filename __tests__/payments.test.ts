@@ -19,7 +19,7 @@ describe('Example app payments scenarios (common)', () => {
     driver.reloadSession();
   });
 
-  it.only('BECS direct payment scenario', () => {
+  it('BECS direct payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
 
@@ -35,7 +35,7 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it.only('BECS direct set up payment scenario', () => {
+  it('BECS direct set up payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit set up');
 
