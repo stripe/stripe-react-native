@@ -47,14 +47,6 @@ export default function HomeScreen() {
         <>
           <View style={styles.buttonContainer}>
             <Button
-              title="Card element only"
-              onPress={() => {
-                navigation.navigate('WebhookPayment');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
               title="Prebuilt UI (single-step)"
               onPress={() => {
                 navigation.navigate('PaymentsUICompleteScreen');
@@ -66,6 +58,14 @@ export default function HomeScreen() {
               title="Prebuilt UI (multi-step)"
               onPress={() => {
                 navigation.navigate('PaymentsUICustom');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Card element only"
+              onPress={() => {
+                navigation.navigate('WebhookPayment');
               }}
             />
           </View>
