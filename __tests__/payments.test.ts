@@ -18,6 +18,46 @@ describe('Example app payments scenarios (common)', () => {
     driver.reloadSession();
   });
 
+  it('BECS direct payment scenario', () => {
+    homeScreen.goTo('Bank Debits');
+    homeScreen.goTo('BECS Direct Debit payment');
+
+    getTextInputByPlaceholder('Full name').setValue('stripe');
+    $$(`-ios predicate string: type == "XCUIElementTypeTextField"`)[1].setValue(
+      'test@stripe.com'
+    );
+    getTextInputByPlaceholder('BSB').setValue('000000');
+    getTextInputByPlaceholder('Account number').setValue('000123456');
+
+    const button = getElementByText('Pay');
+    expect(button).toBeDisplayed();
+    button.click();
+
+    BasicPaymentScreen.checkStatus('Processing');
+  });
+
+  it('BECS direct set up payment scenario', () => {
+    homeScreen.goTo('Bank Debits');
+    homeScreen.goTo('BECS Direct Debit set up');
+
+    getTextInputByPlaceholder('Full name').setValue('stripe');
+
+    const emailInput = driver.isAndroid
+      ? getTextInputByPlaceholder('example@example.com')
+      : $$(`-ios predicate string: type == "XCUIElementTypeTextField"`)[1];
+
+    emailInput.setValue('test@stripe.com');
+
+    getTextInputByPlaceholder('BSB').setValue('000000');
+    getTextInputByPlaceholder('Account number').setValue('000123456');
+
+    const button = getElementByText('Save');
+    expect(button).toBeDisplayed();
+    button.click();
+
+    BasicPaymentScreen.checkStatus('Success');
+  });
+
   it('SEPA payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit payment');

@@ -48,7 +48,8 @@ export default function AuBECSDebitSetupPaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntent) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntent.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntent.status}`
       );
     }
   };
@@ -66,7 +67,7 @@ export default function AuBECSDebitSetupPaymentScreen() {
       <View style={styles.buttonContainer}>
         <Button
           disabled={!formDetails}
-          title="Pay"
+          title="Save"
           variant="primary"
           onPress={handlePayPress}
           loading={loading}

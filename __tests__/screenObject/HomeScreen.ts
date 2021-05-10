@@ -30,6 +30,8 @@ const SCREENS = <const>[
   'Finalize payments on the server',
   'Recollect a CVC',
   'Card element only',
+  'BECS Direct Debit payment',
+  'BECS Direct Debit set up',
 ];
 
 class HomeScreen {
