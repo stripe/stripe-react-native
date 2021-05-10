@@ -19,7 +19,7 @@ export default function AfterpayClearpayPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'aud',
+        currency: 'usd',
         items: [{ id: 'id' }],
         payment_method_types: ['afterpay_clearpay'],
       }),

@@ -59,6 +59,10 @@ app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
       secret_key = process.env.STRIPE_SECRET_KEY_MY;
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MY;
       break;
+    case 'au_becs_debit':
+      secret_key = process.env.STRIPE_SECRET_KEY_AU;
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_AU;
+      break;
     case 'oxxo':
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
       secret_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
