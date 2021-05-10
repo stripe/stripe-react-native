@@ -1,0 +1,166 @@
+{
+  "name": "@stripe/stripe-react-native",
+  "version": "0.0.1",
+  "author": "Stripe",
+  "description": "Stripe SDK for React Native",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "stripe-react-native.podspec",
+    "!lib/typescript/example",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "test": "jest",
+    "typescript": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\"",
+    "prepare": "bob build",
+    "release": "./scripts/publish",
+    "example": "yarn --cwd example",
+    "pods": "cd example && pod-install --quiet",
+    "bootstrap": "yarn example && yarn && yarn pods",
+    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --theme minimal --theme ./docs/stripe-theme",
+    "run-example-ios": "cd example;ENVFILE=.env.ci react-native run-ios --configuration Release --simulator \"iPhone 12\"",
+    "run-example-android": "cd example;ENVFILE=.env.ci react-native run-android --variant=release",
+    "test:ios": "node ./run-appium-tests.js ios",
+    "test:android": "node ./run-appium-tests.js android"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": "https://github.com/stripe/stripe-react-native",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stripe/stripe-react-native/issues"
+  },
+  "homepage": "https://github.com/stripe/stripe-react-native/#readme",
+  "devDependencies": {
+    "@babel/plugin-transform-typescript": "^7.13.0",
+    "@commitlint/config-conventional": "^8.3.4",
+    "@react-native-community/bob": "^0.16.2",
+    "@react-native-community/eslint-config": "^2.0.0",
+    "@release-it/conventional-changelog": "^1.1.4",
+    "@types/react": "^16.9.19",
+    "@types/react-native": "0.62.13",
+    "@types/webdriverio": "^5.0.0",
+    "@wdio/appium-service": "^7.3.1",
+    "@wdio/cli": "^7.3.1",
+    "@wdio/local-runner": "^7.3.1",
+    "@wdio/mocha-framework": "^7.3.1",
+    "@wdio/spec-reporter": "^7.3.1",
+    "@wdio/sync": "^7.3.1",
+    "appium": "^1.21.0",
+    "appium-chromedriver": "4.26.2",
+    "appium-doctor": "^1.16.0",
+    "commitlint": "^8.3.5",
+    "eslint": "^7.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "expect-webdriverio": "^2.0.1",
+    "husky": "^4.2.5",
+    "jest": "^26.0.1",
+    "mocha": "^8.3.2",
+    "pod-install": "^0.1.0",
+    "prettier": "^2.0.5",
+    "react": "16.11.0",
+    "react-native": "0.62.2",
+    "release-it": "^13.5.8",
+    "ts-node": "^9.1.1",
+    "typedoc": "^0.20.28",
+    "typescript": "^4.2.3",
+    "wdio-chromedriver-service": "^7.0.0",
+    "webdriverio": "^7.3.1"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "jest": {
+    "preset": "react-native",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "yarn lint && yarn typescript"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "@react-native-community",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": [
+        "error",
+        {
+          "quoteProps": "consistent",
+          "singleQuote": true,
+          "tabWidth": 2,
+          "trailingComma": "es5",
+          "useTabs": false
+        }
+      ]
+    }
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "lib/",
+    "dist/"
+  ],
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "@react-native-community/bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "configFile": true
+        }
+      ],
+      [
+        "module",
+        {
+          "configFile": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "configFile": true
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "@expo/config-plugins": "^1.0.24",
+    "wdio-native-app-compare-service": "^1.2.0"
+  }
+}

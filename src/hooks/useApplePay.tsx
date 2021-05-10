@@ -1,0 +1,155 @@
+import type { ApplePay, ApplePayError, StripeError } from '../types';
+import { useCallback, useEffect, useState } from 'react';
+import { useStripe } from './useStripe';
+import { NativeEventEmitter, NativeModules } from 'react-native';
+
+const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+
+export interface Props {
+  /**
+   *
+   * @example
+   * ```ts
+   * const { presentApplePay } = useApplePay({
+   *  onShippingMethodSelected: (shippingMethod, handler) => {
+   *    handler([
+   *      { label: 'Example item name 1', amount: '11.00' },
+   *      { label: 'Example item name 2', amount: '25.00' },
+   *   ]);
+   *  }
+   * })
+   * ```
+   */
+  onShippingMethodSelected?: (
+    shippingMethod: ApplePay.ShippingMethod,
+    handler: (
+      summaryItems: ApplePay.CartSummaryItem[]
+    ) => Promise<{
+      error?: StripeError<ApplePayError>;
+    }>
+  ) => void;
+  /**
+   *
+   * @example
+   * ```ts
+   * const { presentApplePay } = useApplePay({
+   *  onShippingContactSelected: (shippingContact, handler) => {
+   *    handler([
+   *      { label: 'Example item name 1', amount: '11.00' },
+   *      { label: 'Example item name 2', amount: '25.00' },
+   *   ]);
+   *  }
+   * })
+   * ```
+   */
+  onShippingContactSelected?: (
+    shippingContact: ApplePay.ShippingContact,
+    handler: (
+      summaryItems: ApplePay.CartSummaryItem[]
+    ) => Promise<{
+      error?: StripeError<ApplePayError>;
+    }>
+  ) => void;
+}
+
+const SET_SHIPPING_METHOD_CALLBACK_NAME = 'onDidSetShippingMethod';
+const SET_SHIPPING_CONTACT_CALLBACK_NAME = 'onDidSetShippingContact';
+
+/**
+ * useApplePay hook
+ */
+export function useApplePay({
+  onShippingMethodSelected,
+  onShippingContactSelected,
+}: Props = {}) {
+  const {
+    isApplePaySupported,
+    presentApplePay: presentApplePayNative,
+    confirmApplePayPayment: confirmApplePayPaymentNative,
+    updateApplePaySummaryItems,
+  } = useStripe();
+  const [items, setItems] = useState<ApplePay.CartSummaryItem[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onDidSetShippingMethod = useCallback(
+    (result: { shippingMethod: ApplePay.ShippingMethod }) => {
+      if (onShippingMethodSelected) {
+        onShippingMethodSelected(
+          result.shippingMethod,
+          updateApplePaySummaryItems
+        );
+      } else {
+        updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
+      }
+    },
+    [items, onShippingMethodSelected, updateApplePaySummaryItems]
+  );
+
+  const onDidSetShippingContact = useCallback(
+    (result: { shippingContact: ApplePay.ShippingContact }) => {
+      if (onShippingContactSelected) {
+        onShippingContactSelected(
+          result.shippingContact,
+          updateApplePaySummaryItems
+        );
+      } else {
+        updateApplePaySummaryItems(items as ApplePay.CartSummaryItem[]);
+      }
+    },
+    [items, onShippingContactSelected, updateApplePaySummaryItems]
+  );
+
+  useEffect(() => {
+    eventEmitter.addListener(
+      SET_SHIPPING_METHOD_CALLBACK_NAME,
+      onDidSetShippingMethod
+    );
+    eventEmitter.addListener(
+      SET_SHIPPING_CONTACT_CALLBACK_NAME,
+      onDidSetShippingContact
+    );
+
+    return () => {
+      eventEmitter.removeListener(
+        SET_SHIPPING_METHOD_CALLBACK_NAME,
+        onDidSetShippingMethod
+      );
+      eventEmitter.removeListener(
+        SET_SHIPPING_CONTACT_CALLBACK_NAME,
+        onDidSetShippingContact
+      );
+    };
+  }, [onDidSetShippingContact, onDidSetShippingMethod]);
+
+  const presentApplePay = useCallback(
+    async (params: ApplePay.PresentParams) => {
+      setLoading(true);
+      setItems(params.cartItems);
+      const result = await presentApplePayNative(params);
+      if (result.error) {
+        setItems(null);
+      }
+      setLoading(false);
+      return result;
+    },
+    [presentApplePayNative]
+  );
+
+  const confirmApplePayPayment = useCallback(
+    async (clientSecret: string) => {
+      setLoading(true);
+      const result = await confirmApplePayPaymentNative(clientSecret);
+      setItems(null);
+      setLoading(false);
+      return result;
+    },
+    [confirmApplePayPaymentNative]
+  );
+
+  return {
+    loading,
+    presentApplePay,
+    confirmApplePayPayment,
+    isApplePaySupported,
+  };
+}
