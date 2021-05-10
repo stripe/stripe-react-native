@@ -4,6 +4,7 @@ import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
+import BECSForm from './screenObject/components/BECSForm';
 
 describe('Example app payments scenarios (common)', () => {
   beforeEach(() => {
@@ -18,16 +19,14 @@ describe('Example app payments scenarios (common)', () => {
     driver.reloadSession();
   });
 
-  it('BECS direct payment scenario', () => {
+  it.only('BECS direct payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
 
-    getTextInputByPlaceholder('Full name').setValue('stripe');
-    $$(`-ios predicate string: type == "XCUIElementTypeTextField"`)[1].setValue(
-      'test@stripe.com'
-    );
-    getTextInputByPlaceholder('BSB').setValue('000000');
-    getTextInputByPlaceholder('Account number').setValue('000123456');
+    BECSForm.setName('stripe');
+    BECSForm.setEmail('test@stripe.com');
+    BECSForm.setBSB('000000');
+    BECSForm.setAccountNumber('000123456');
 
     const button = getElementByText('Pay');
     expect(button).toBeDisplayed();
@@ -36,20 +35,14 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('BECS direct set up payment scenario', () => {
+  it.only('BECS direct set up payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit set up');
 
-    getTextInputByPlaceholder('Full name').setValue('stripe');
-
-    const emailInput = driver.isAndroid
-      ? getTextInputByPlaceholder('example@example.com')
-      : $$(`-ios predicate string: type == "XCUIElementTypeTextField"`)[1];
-
-    emailInput.setValue('test@stripe.com');
-
-    getTextInputByPlaceholder('BSB').setValue('000000');
-    getTextInputByPlaceholder('Account number').setValue('000123456');
+    BECSForm.setName('stripe');
+    BECSForm.setEmail('test@stripe.com');
+    BECSForm.setBSB('000000');
+    BECSForm.setAccountNumber('000123456');
 
     const button = getElementByText('Save');
     expect(button).toBeDisplayed();
