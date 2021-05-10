@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
 import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -70,7 +70,7 @@ export default function WebhookPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <PaymentScreen>
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
@@ -79,11 +79,11 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
-        postalCodeEnabled={true}
+        postalCodeEnabled={false}
         placeholder={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',
-          cvc: '123',
+          cvc: 'CVC',
           expiration: 'MM|YY',
         }}
         onCardChange={(cardDetails) => {
@@ -108,7 +108,7 @@ export default function WebhookPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 

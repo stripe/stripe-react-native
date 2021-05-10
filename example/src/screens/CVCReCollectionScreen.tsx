@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -121,7 +121,7 @@ export default function CVCReCollectionScreen() {
   };
 
   return (
-    <Screen>
+    <PaymentScreen>
       <TextInput
         autoCapitalize="none"
         style={styles.input}
@@ -158,7 +158,7 @@ export default function CVCReCollectionScreen() {
           disabled={!cvc}
         />
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

@@ -13,9 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
-import androidx.appcompat.app.AppCompatActivity
 import com.stripe.android.paymentsheet.PaymentSheetResult
-import com.stripe.android.view.ActivityStarter
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 
 
@@ -214,11 +212,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun initialise(params: ReadableMap) {
+  fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     val stripeAccountId = getValOr(params, "stripeAccountId", null)
-    this.urlScheme = getValOr(params, "urlScheme", null)
+    val urlScheme = getValOr(params, "urlScheme", null)
+    val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
+    this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
 
     getMapOrNull(params, "threeDSecureParams")?.let {
       configure3dSecure(it)
@@ -240,6 +240,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
+
+    promise.resolve(null)
   }
 
   @ReactMethod

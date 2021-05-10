@@ -139,6 +139,7 @@ export interface InitStripeParams {
   threeDSecureParams?: ThreeDSecureConfigurationParams;
   merchantIdentifier?: string;
   urlScheme?: string;
+  setUrlSchemeOnAndroid?: boolean;
 }
 
 export interface InitialiseParams extends InitStripeParams {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function PaymentsUICompleteScreen() {
@@ -74,7 +74,7 @@ export default function PaymentsUICompleteScreen() {
   }, []);
 
   return (
-    <Screen>
+    <PaymentScreen>
       <Button
         variant="primary"
         loading={loading}
@@ -82,6 +82,6 @@ export default function PaymentsUICompleteScreen() {
         title="Checkout"
         onPress={openPaymentSheet}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }

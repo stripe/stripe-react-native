@@ -11,7 +11,7 @@ const {
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
 
-describe(setApplePayEntitlement, () => {
+describe('setApplePayEntitlement', () => {
   it(`sets the apple pay entitlement when none exist`, () => {
     expect(setApplePayEntitlement('merchant.com.example', {})).toMatchObject({
       'com.apple.developer.in-app-payments': ['merchant.com.example'],
@@ -68,7 +68,7 @@ describe(setApplePayEntitlement, () => {
   });
 });
 
-describe(setGooglePayMetaData, () => {
+describe('setGooglePayMetaData', () => {
   it(`Properly sets GooglePay metadata in AndroidManifest to true, then removes it when set to false`, async () => {
     let androidManifestJson = await readAndroidManifestAsync(
       sampleManifestPath

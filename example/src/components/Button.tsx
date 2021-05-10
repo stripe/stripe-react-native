@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  AccessibilityProps,
   ActivityIndicator,
   StyleSheet,
   Text,
@@ -8,7 +9,7 @@ import {
 } from 'react-native';
 import { colors } from '../colors';
 
-type Props = {
+type Props = AccessibilityProps & {
   title?: string | React.ReactElement;
   variant?: 'default' | 'primary';
   disabled?: boolean;
@@ -22,6 +23,7 @@ export default function Button({
   disabled,
   loading,
   onPress,
+  ...props
 }: Props) {
   const titleElement = React.isValidElement(title) ? (
     title
@@ -39,6 +41,7 @@ export default function Button({
           variant === 'primary' && styles.primaryContainer,
         ]}
         onPress={onPress}
+        {...props}
       >
         {loading ? (
           <ActivityIndicator color={colors.white} size="small" />

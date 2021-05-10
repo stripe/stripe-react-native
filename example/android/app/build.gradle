@@ -132,6 +132,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
     }
     splits {
         abi {

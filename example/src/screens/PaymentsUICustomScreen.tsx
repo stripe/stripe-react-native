@@ -3,7 +3,7 @@ import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function PaymentsUICustomScreen() {
@@ -110,7 +110,7 @@ export default function PaymentsUICustomScreen() {
   }, []);
 
   return (
-    <Screen>
+    <PaymentScreen>
       <View>
         <Button
           variant="primary"
@@ -144,7 +144,7 @@ export default function PaymentsUICustomScreen() {
           onPress={onPressBuy}
         />
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

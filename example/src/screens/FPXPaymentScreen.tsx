@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -34,7 +34,6 @@ export default function FPXPaymentScreen() {
       clientSecret,
       error: clientSecretError,
     } = await fetchPaymentIntentClientSecret();
-
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
       return;
@@ -57,7 +56,7 @@ export default function FPXPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <PaymentScreen paymentMethod="fpx">
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
@@ -72,7 +71,7 @@ export default function FPXPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 
