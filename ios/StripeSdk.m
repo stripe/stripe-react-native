@@ -6,6 +6,8 @@
 
 RCT_EXTERN_METHOD(
                   initialise:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
                   )
 
 RCT_EXTERN_METHOD(

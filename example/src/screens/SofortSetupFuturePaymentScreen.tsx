@@ -4,7 +4,7 @@ import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 
 export default function SofortSetupFuturePaymentScreen() {
@@ -47,13 +47,14 @@ export default function SofortSetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntent) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntent.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntent.status}`
       );
     }
   };
 
   return (
-    <Screen>
+    <PaymentScreen>
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
@@ -71,7 +72,7 @@ export default function SofortSetupFuturePaymentScreen() {
           disabled={!email}
         />
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

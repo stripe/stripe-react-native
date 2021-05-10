@@ -1,0 +1,12 @@
+2021-04-22 15:41:45:989 - [Appium] Welcome to Appium v1.20.2
+2021-04-22 15:41:45:991 - [Appium] Non-default server args:
+2021-04-22 15:41:45:991 - [Appium]   logTimestamp: true
+2021-04-22 15:41:45:991 - [Appium]   logNoColors: true
+2021-04-22 15:41:45:991 - [Appium]   allowInsecure: {
+2021-04-22 15:41:45:992 - [Appium]     0: chromedriver_autodownload
+2021-04-22 15:41:45:992 - [Appium]   }
+2021-04-22 15:41:46:010 - [Appium] Appium REST http interface listener started on 0.0.0.0:4723
+2021-04-22 15:41:53:933 - [Appium] Received SIGINT - shutting down
+2021-04-22 15:41:53:933 - [debug] [Appium] There are no active sessions for cleanup
+2021-04-22 15:41:53:934 - [HTTP] Waiting until the server is closed
+2021-04-22 15:41:53:934 - [HTTP] Received server close event

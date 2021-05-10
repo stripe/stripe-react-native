@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from './HomeScreen';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'PaymentResultScreen'>;
 
@@ -14,9 +14,10 @@ type Props = {
 
 export default function PaymentResultScreen({ route }: Props) {
   const [result, setResult] = useState<string>();
-  const [paymentIntentResult, setPaymentIntentResult] = useState<
-    PaymentIntent
-  >();
+  const [
+    paymentIntentResult,
+    setPaymentIntentResult,
+  ] = useState<PaymentIntent>();
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
@@ -48,7 +49,7 @@ export default function PaymentResultScreen({ route }: Props) {
   }, [retrievePaymentIntentObject, route]);
 
   return (
-    <Screen>
+    <PaymentScreen>
       {paymentIntentResult && (
         <Text style={styles.text}>
           Payment intent status: {paymentIntentResult?.status}
@@ -56,7 +57,7 @@ export default function PaymentResultScreen({ route }: Props) {
       )}
 
       <Text>{result}</Text>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

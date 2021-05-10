@@ -146,11 +146,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun initialise(params: ReadableMap) {
+  fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     val stripeAccountId = getValOr(params, "stripeAccountId", null)
-    this.urlScheme = getValOr(params, "urlScheme", null)
+    val urlScheme = getValOr(params, "urlScheme", null)
+    val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
+    this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
 
     getMapOrNull(params, "threeDSecureParams")?.let {
       configure3dSecure(it)
@@ -164,6 +166,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+    promise.resolve(null)
   }
 
   private fun payWithFpx() {

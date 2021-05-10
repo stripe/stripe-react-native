@@ -15,8 +15,8 @@ target 'StripeSdkExample' do
   # you should disable these next few lines.
 
   # Workaround for https://github.com/facebook/react-native/issues/30836
-  use_flipper!({ 'Flipper-Folly' => '2.3.0' })
-  post_install do |installer|
-    flipper_post_install(installer)
-  end
+  # use_flipper!({ 'Flipper-Folly' => '2.3.0' })
+  # post_install do |installer|
+  #   flipper_post_install(installer)
+  # end
 end

@@ -113,17 +113,19 @@ export function useStripe() {
     []
   );
 
-  const _createTokenForCVCUpdate = useCallback(async (cvc: string): Promise<
-    CreateTokenForCVCUpdateResult
-  > => {
-    return createTokenForCVCUpdate(cvc);
-  }, []);
+  const _createTokenForCVCUpdate = useCallback(
+    async (cvc: string): Promise<CreateTokenForCVCUpdateResult> => {
+      return createTokenForCVCUpdate(cvc);
+    },
+    []
+  );
 
-  const _handleURLCallback = useCallback(async (url: string): Promise<
-    boolean
-  > => {
-    return handleURLCallback(url);
-  }, []);
+  const _handleURLCallback = useCallback(
+    async (url: string): Promise<boolean> => {
+      return handleURLCallback(url);
+    },
+    []
+  );
 
   return {
     retrievePaymentIntent: _retrievePaymentIntent,

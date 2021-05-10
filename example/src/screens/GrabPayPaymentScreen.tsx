@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -19,7 +19,7 @@ export default function GrabPayPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'sgd',
+        currency: 'myr',
         items: [{ id: 'id' }],
         request_three_d_secure: 'any',
         payment_method_types: ['grabpay'],
@@ -62,7 +62,7 @@ export default function GrabPayPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <PaymentScreen paymentMethod="grabpay">
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
@@ -76,7 +76,7 @@ export default function GrabPayPaymentScreen() {
         title="Pay"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 

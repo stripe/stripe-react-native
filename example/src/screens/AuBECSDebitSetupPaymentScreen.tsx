@@ -6,13 +6,14 @@ import {
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function AuBECSDebitSetupPaymentScreen() {
-  const [formDetails, setFormDetails] = useState<
-    AuBECSDebitFormComponent.FormDetails
-  >();
+  const [
+    formDetails,
+    setFormDetails,
+  ] = useState<AuBECSDebitFormComponent.FormDetails>();
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
   const createSetupIntentOnBackend = async (customerEmail: string) => {
@@ -53,7 +54,7 @@ export default function AuBECSDebitSetupPaymentScreen() {
   };
 
   return (
-    <Screen>
+    <PaymentScreen paymentMethod="au_becs_debit">
       <AuBECSDebitForm
         style={styles.form}
         onComplete={(value) => setFormDetails(value)}
@@ -71,7 +72,7 @@ export default function AuBECSDebitSetupPaymentScreen() {
           loading={loading}
         />
       </View>
-    </Screen>
+    </PaymentScreen>
   );
 }
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
-import Screen from '../components/Screen';
+import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
@@ -47,13 +47,14 @@ export default function SepaSetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', error.message);
     } else if (setupIntent) {
       Alert.alert(
-        `Success: Setup intent created. Intent status: ${setupIntent.status}`
+        'Success',
+        `Setup intent created. Intent status: ${setupIntent.status}`
       );
     }
   };
 
   return (
-    <Screen>
+    <PaymentScreen>
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
@@ -73,7 +74,7 @@ export default function SepaSetupFuturePaymentScreen() {
         title="Save IBAN"
         loading={loading}
       />
-    </Screen>
+    </PaymentScreen>
   );
 }
 
