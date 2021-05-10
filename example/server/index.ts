@@ -56,12 +56,12 @@ app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
   switch (payment_method) {
     case 'grabpay':
     case 'fpx':
-      secret_key = process.env.STRIPE_SECRET_KEY_MYR;
-      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MYR;
+      secret_key = process.env.STRIPE_SECRET_KEY_MY;
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MY;
       break;
     case 'oxxo':
-      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_OXXO;
-      secret_key = process.env.STRIPE_SECRET_KEY_OXXO;
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
+      secret_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
       break;
     default:
     // unknown, maybe send error
