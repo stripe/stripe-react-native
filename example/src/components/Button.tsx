@@ -10,7 +10,7 @@ import {
 import { colors } from '../colors';
 
 type Props = AccessibilityProps & {
-  title: string;
+  title?: string | React.ReactElement;
   variant?: 'default' | 'primary';
   disabled?: boolean;
   loading?: boolean;
@@ -25,6 +25,13 @@ export default function Button({
   onPress,
   ...props
 }: Props) {
+  const titleElement = React.isValidElement(title) ? (
+    title
+  ) : (
+    <Text style={[styles.text, variant === 'primary' && styles.textPrimary]}>
+      {title}
+    </Text>
+  );
   return (
     <View style={disabled && styles.disabled}>
       <TouchableOpacity
@@ -39,11 +46,7 @@ export default function Button({
         {loading ? (
           <ActivityIndicator color={colors.white} size="small" />
         ) : (
-          <Text
-            style={[styles.text, variant === 'primary' && styles.textPrimary]}
-          >
-            {title}
-          </Text>
+          titleElement
         )}
       </TouchableOpacity>
     </View>

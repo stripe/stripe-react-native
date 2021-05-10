@@ -5,12 +5,16 @@ import {
   ApplePayError,
   ApplePayResult,
   ConfirmPaymentMethodResult,
+  ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
   HandleCardActionResult,
+  InitPaymentSheetResult,
   PaymentMethodCreateParams,
+  PaymentSheet,
+  PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
 } from './types';
 
@@ -203,4 +207,48 @@ export const createTokenForCVCUpdate = async (
 export const handleURLCallback = async (url: string): Promise<boolean> => {
   const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
   return stripeHandled;
+};
+
+export const initPaymentSheet = async (
+  params: PaymentSheet.SetupParams
+): Promise<InitPaymentSheetResult> => {
+  try {
+    const paymentOption = await NativeStripeSdk.initPaymentSheet(params);
+
+    return {
+      paymentOption,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const presentPaymentSheet = async (
+  params: PaymentSheet.PresentParams
+): Promise<PresentPaymentSheetResult> => {
+  try {
+    const response = await NativeStripeSdk.presentPaymentSheet(params);
+
+    return {
+      paymentOption: response.paymentOption,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+  try {
+    await NativeStripeSdk.confirmPaymentSheetPayment();
+
+    return {};
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
 };

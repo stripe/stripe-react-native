@@ -29,6 +29,7 @@ const SCREENS = <const>[
   'OXXO',
   'Finalize payments on the server',
   'Recollect a CVC',
+  'Card element only',
 ];
 
 class HomeScreen {

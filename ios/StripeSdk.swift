@@ -4,6 +4,10 @@ import Stripe
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     var merchantIdentifier: String? = nil
+    
+    private var paymentSheet: PaymentSheet?
+    private var paymentSheetFlowController: PaymentSheet.FlowController?
+    
     var urlScheme: String? = nil
 
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
@@ -54,6 +58,119 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.merchantIdentifier = merchantIdentifier
         resolve(NSNull())
     }
+    
+    @objc(initPaymentSheet:resolver:rejecter:)
+    func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
+            reject(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret", nil)
+            return
+        }
+        
+        
+        var configuration = PaymentSheet.Configuration()
+        
+        if  params["applePay"] as? Bool == true {
+            if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
+                configuration.applePay = .init(merchantId: merchantIdentifier,
+                                               merchantCountryCode: merchantCountryCode)
+            } else {
+                reject(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided", nil)
+            }
+        }
+        
+        if let merchantDisplayName = params["merchantDisplayName"] as? String {
+            configuration.merchantDisplayName = merchantDisplayName
+        }
+        
+        if let customerId = params["customerId"] as? String {
+            if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
+                configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
+            }
+        }
+        
+        if #available(iOS 13.0, *) {
+            if let style = params["style"] as? String {
+                configuration.style = Mappers.mapToUserInterfaceStyle(style)
+            }
+        }
+        
+        if params["customFlow"] as? Bool == true {
+            PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
+                                               configuration: configuration) { [weak self] result in
+                switch result {
+                case .failure(let error):
+                    reject("Failed", error.localizedDescription, nil)
+                case .success(let paymentSheetFlowController):
+                    self?.paymentSheetFlowController = paymentSheetFlowController
+                    if let paymentOption = self?.paymentSheetFlowController?.paymentOption {
+                        let option: NSDictionary = [
+                            "label": paymentOption.label,
+                            "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                        ]
+                        resolve(option)
+                    } else {
+                        reject("Failed", "in else", nil)
+                    }
+                }
+            }
+        } else {
+            self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
+            resolve(NSNull())
+        }
+    }
+
+    @objc(confirmPaymentSheetPayment:rejecter:)
+    func confirmPaymentSheetPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
+                                    rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        DispatchQueue.main.async {
+            self.paymentSheetFlowController?.confirm(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+                switch paymentResult {
+                case .completed:
+                    resolve([])
+                case .canceled:
+                    reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
+                case .failed(let error):
+                    reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
+                }
+            }
+        }
+    }
+    
+    @objc(presentPaymentSheet:resolver:rejecter:)
+    func presentPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        let confirmPayment = params["confirmPayment"] as? Bool
+        
+        DispatchQueue.main.async {
+            if (confirmPayment == false) {
+                self.paymentSheetFlowController?.presentPaymentOptions(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) {
+                    if let paymentOption = self.paymentSheetFlowController?.paymentOption {
+                        let option: NSDictionary = [
+                            "label": paymentOption.label,
+                            "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                        ]
+                        resolve(["paymentOption": option])
+                    } else {
+                        resolve(NSNull())
+                    }
+                }
+            } else {
+                self.paymentSheet?.present(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+                    switch paymentResult {
+                    case .completed:
+                        resolve([])
+                    case .canceled:
+                        reject(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil)
+                    case .failed(let error):
+                        reject(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil)
+                    }
+                }
+            }
+        }
+    }
+    
+    
     
     @objc(createTokenForCVCUpdate:resolver:rejecter:)
     func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {

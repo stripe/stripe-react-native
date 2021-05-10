@@ -1,6 +1,7 @@
 import type {
   PaymentMethodCreateParams,
   ApplePay,
+  PaymentSheet,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   ConfirmPaymentMethodResult,
@@ -8,6 +9,9 @@ import type {
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
+  InitPaymentSheetResult,
+  PresentPaymentSheetResult,
+  ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
@@ -24,6 +28,9 @@ import {
   handleURLCallback,
   presentApplePay,
   updateApplePaySummaryItems,
+  initPaymentSheet,
+  presentPaymentSheet,
+  confirmPaymentSheetPayment,
 } from '../functions';
 
 /**
@@ -120,6 +127,28 @@ export function useStripe() {
     []
   );
 
+  const _initPaymentSheet = useCallback(
+    async (
+      params: PaymentSheet.SetupParams
+    ): Promise<InitPaymentSheetResult> => {
+      return initPaymentSheet(params);
+    },
+    []
+  );
+
+  const _presentPaymentSheet = useCallback(
+    async (
+      params: PaymentSheet.PresentParams
+    ): Promise<PresentPaymentSheetResult> => {
+      return presentPaymentSheet(params);
+    },
+    []
+  );
+
+  const _confirmPaymentSheetPayment = useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+    return confirmPaymentSheetPayment();
+  }, []);
+
   const _handleURLCallback = useCallback(
     async (url: string): Promise<boolean> => {
       return handleURLCallback(url);
@@ -139,5 +168,8 @@ export function useStripe() {
     createTokenForCVCUpdate: _createTokenForCVCUpdate,
     updateApplePaySummaryItems: _updateApplePaySummaryItems,
     handleURLCallback: _handleURLCallback,
+    confirmPaymentSheetPayment: _confirmPaymentSheetPayment,
+    presentPaymentSheet: _presentPaymentSheet,
+    initPaymentSheet: _initPaymentSheet,
   };
 }

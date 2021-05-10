@@ -43,6 +43,7 @@ describe('Example app payments scenarios (common)', () => {
 
   it('Card payment using webhooks scenario', () => {
     homeScreen.goTo('Accept a payment');
+    homeScreen.goTo('Card element only');
     getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
     getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 

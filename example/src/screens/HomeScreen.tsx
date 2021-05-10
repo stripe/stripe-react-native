@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStripe } from '@stripe/stripe-react-native';
-import { Linking, Platform, StyleSheet, View, ScrollView } from 'react-native';
+import { Linking, StyleSheet, View, ScrollView, Platform } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
@@ -43,14 +43,34 @@ export default function HomeScreen() {
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Accept a payment"
-          onPress={() => {
-            navigation.navigate('WebhookPayment');
-          }}
-        />
-      </View>
+      <Collapse title="Accept a payment">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Prebuilt UI (single-step)"
+              onPress={() => {
+                navigation.navigate('PaymentsUICompleteScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Prebuilt UI (multi-step)"
+              onPress={() => {
+                navigation.navigate('PaymentsUICustom');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Card element only"
+              onPress={() => {
+                navigation.navigate('WebhookPayment');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
 
       <Collapse title="More payment scenarios">
         <>
