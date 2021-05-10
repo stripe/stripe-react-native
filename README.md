@@ -72,12 +72,14 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 // App.ts
 import { StripeProvider } from '@stripe/stripe-react-native';
 
-<StripeProvider
-  publishableKey={publishableKey}
-  merchantIdentifier="merchant.identifier"
->
-  <PaymentScreen />
-</StripeProvider>;
+return (
+  <StripeProvider
+    publishableKey={publishableKey}
+    merchantIdentifier="merchant.identifier"
+  >
+    <PaymentScreen />
+  </StripeProvider>
+);
 
 // PaymentScreen.ts
 import {
