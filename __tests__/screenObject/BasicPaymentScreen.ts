@@ -29,8 +29,13 @@ class BasicPaymentScreen {
       expect(ibanInput).toBeDisplayed();
       ibanInput.setValue(iban);
     }
-    const button = getElementByText(buttonText);
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${buttonText}"))`
+        )
+      : $(`~${buttonText}`);
     expect(button).toBeDisplayed();
+
     button.click();
 
     driver.pause(5000);

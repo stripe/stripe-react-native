@@ -83,7 +83,7 @@ describe('Example app payments scenarios (android)', () => {
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
-      bankName: 'Revolut',
+      bankName: 'Knab',
     });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
@@ -95,7 +95,7 @@ describe('Example app payments scenarios (android)', () => {
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
-      bankName: 'Revolut',
+      bankName: 'Knab',
       buttonText: 'Save',
     });
     BasicPaymentScreen.authorize();
