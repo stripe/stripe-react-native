@@ -12,7 +12,7 @@ const {
   removeMetaDataItemFromMainApplication,
 } = AndroidConfig.Manifest;
 
-const pkg = require('stripe-react-native/package.json');
+const pkg = require('@stripe/stripe-react-native/package.json');
 
 type StripePluginProps = {
   /**
