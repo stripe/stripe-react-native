@@ -93,6 +93,8 @@ describe('Example app payments scenarios (common)', () => {
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
 
+    driver.hideKeyboard();
+
     getElementByText('Pay').click();
 
     const alert = nativeAlert.getAlertElement('Success');
@@ -111,6 +113,9 @@ describe('Example app payments scenarios (common)', () => {
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
+
+    driver.hideKeyboard();
+
     getElementByText('Save').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
@@ -126,6 +131,9 @@ describe('Example app payments scenarios (common)', () => {
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
+
+    driver.hideKeyboard();
+
     getElementByText('Pay').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
@@ -140,6 +148,8 @@ describe('Example app payments scenarios (common)', () => {
 
     getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
+
+    driver.hideKeyboard();
 
     getElementByText('Pay Synchronously').click();
     const alert = nativeAlert.getAlertElement('Success');
