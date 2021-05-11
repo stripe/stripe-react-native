@@ -134,7 +134,7 @@ describe('Example app payments scenarios (common)', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+    getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
 
     getElementByText('Pay Synchronously').click();
