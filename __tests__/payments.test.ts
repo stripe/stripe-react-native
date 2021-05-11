@@ -27,7 +27,12 @@ describe('Example app payments scenarios (common)', () => {
     BECSForm.setBSB('000000');
     BECSForm.setAccountNumber('000123456');
 
-    const button = getElementByText('Pay');
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("Pay"))`
+        )
+      : $(`~Pay`);
+
     expect(button).toBeDisplayed();
     button.click();
 
@@ -43,7 +48,12 @@ describe('Example app payments scenarios (common)', () => {
     BECSForm.setBSB('000000');
     BECSForm.setAccountNumber('000123456');
 
-    const button = getElementByText('Save');
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("Save"))`
+        )
+      : $(`~Save`);
+
     expect(button).toBeDisplayed();
     button.click();
 
