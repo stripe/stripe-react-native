@@ -51,12 +51,12 @@ jobs:
         with:
           name: e2e-results
           path: .tmp
-        if: ${{ failure() }}
+        if: ${{ always() }}
       - uses: actions/download-artifact@v2
         with:
           name: e2e-results
           path: .tmp
-        if: ${{ failure() }}
+        if: ${{ always() }}
 
   test-ios:
     name: e2e-ios-test
@@ -107,9 +107,9 @@ jobs:
         with:
           name: e2e-results
           path: .tmp
-        if: ${{ failure() }}
+        if: ${{ always() }}
       - uses: actions/download-artifact@v2
         with:
           name: e2e-results
           path: .tmp
-        if: ${{ failure() }}
+        if: ${{ always() }}
