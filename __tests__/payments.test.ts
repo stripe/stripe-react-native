@@ -95,10 +95,6 @@ describe('Example app payments scenarios (common)', () => {
 
     getElementByText('Pay').click();
 
-    driver.pause(10000);
-    if (driver.isAndroid) {
-      driver.back();
-    }
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
       timeout: 15000,

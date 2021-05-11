@@ -1,15 +1,8 @@
-/* eslint-disable no-undef */
-const SELECTORS = {
-  TITLE: 'android=resourceId("android:id/alertTitle")',
-};
+import { getElementByText } from '../../helpers';
 
 class NativeAlert {
   getAlertElement(title: string) {
-    if (driver.isAndroid) {
-      return $(SELECTORS.TITLE);
-    } else {
-      return $(`~${title}`);
-    }
+    return getElementByText(title);
   }
 }
 
