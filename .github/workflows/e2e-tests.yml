@@ -82,34 +82,37 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
-        with:
-          node-version: 14.4.0
-      - name: Install React Native CLI
+      - name: List iOS Devices & Platforms
         run: |
-          npm install react-native-cli
-      - name: Install Repo and Dependencies
-        run: |
-          yarn bootstrap
-      - name: Build iOS App
-        run: |
-          yarn run-example-ios
-          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app`
-          mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
-          cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
-          sleep 30
-      - name: Run Tests
-        run: |
-          node ./run-appium-tests.js ios
-      - name: Upload Screenshoots
-        uses: actions/upload-artifact@v1
-        with:
-          name: e2e-results
-          path: .tmp
-        if: ${{ failure() }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: e2e-results
-          path: .tmp
-        if: ${{ failure() }}
+          xcrun simctl list
+      # - name: Setup Node.js environment
+      #   uses: actions/setup-node@v2.1.5
+      #   with:
+      #     node-version: 14.4.0
+      # - name: Install React Native CLI
+      #   run: |
+      #     npm install react-native-cli
+      # - name: Install Dependencies
+      #   run: |
+      #     yarn bootstrap
+      # - name: Build iOS App
+      #   run: |
+      #     yarn run-example-ios
+      #     BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app`
+      #     mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
+      #     cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
+      #     sleep 30
+      # - name: Run Tests
+      #   run: |
+      #     node ./run-appium-tests.js ios
+      # - name: Upload Screenshoots
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: e2e-results
+      #     path: .tmp
+      #   if: ${{ failure() }}
+      # - uses: actions/download-artifact@v2
+      #   with:
+      #     name: e2e-results
+      #     path: .tmp
+      #   if: ${{ failure() }}
