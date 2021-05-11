@@ -10,11 +10,10 @@ describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
-  afterEach(() => {
-    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
-  });
 
   afterEach(() => {
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+
     driver.reloadSession();
   });
 

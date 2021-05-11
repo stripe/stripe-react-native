@@ -1,6 +1,6 @@
 import { initStripe } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../colors';
 import { fetchPublishableKey } from '../helpers';
 
@@ -29,11 +29,11 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   return loading ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {children}
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <Text style={{ opacity: 0 }}>appium fix</Text>
-    </View>
+    </ScrollView>
   );
 };
 
