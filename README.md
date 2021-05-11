@@ -38,17 +38,19 @@ npm install @stripe/stripe-react-native
 If you're using Expo, add:
 
 ```json
-expo: {
-  ...
-  "plugins": [
-    [
-      "stripe-react-native",
-      {
-        "merchantIdentifier": string | string [],
-        "enableGooglePay": boolean
-      }
-    ]
-  ],
+{
+  "expo": {
+    ...
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": string | string [],
+          "enableGooglePay": boolean
+        }
+      ]
+    ],
+  }
 }
 ```
 
