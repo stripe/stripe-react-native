@@ -42,7 +42,7 @@ exports.config = {
   reporters: ['spec'],
   mochaOpts: {
     ui: 'bdd',
-    timeout: 60000,
+    timeout: 200000,
   },
   specs: ['./__tests__/*.test.ts'],
   capabilities: [

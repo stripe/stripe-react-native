@@ -10,7 +10,6 @@ type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (common)', () => {
   beforeEach(() => {
-    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
   afterEach(() => {

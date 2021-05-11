@@ -4,12 +4,14 @@ import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import nativeAlert from './screenObject/components/NativeAlert';
 import homeScreen from './screenObject/HomeScreen';
 
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
   afterEach(() => {
-    // driver.saveScreen(`screen-${new Date().getTime()}`);
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
   });
 
   afterEach(() => {
