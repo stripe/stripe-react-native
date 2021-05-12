@@ -15,6 +15,7 @@ describe('Example app payments scenarios (common)', () => {
 
   afterEach(() => {
     (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+
     driver.reloadSession();
   });
 
