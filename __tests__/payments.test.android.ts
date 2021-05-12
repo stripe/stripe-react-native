@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
-import nativeAlert from './screenObject/components/NativeAlert';
 import homeScreen from './screenObject/HomeScreen';
 
 type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
@@ -196,7 +195,7 @@ describe('Example app payments scenarios (android)', () => {
 
     driver.pause(10000);
     driver.back();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 15000,
     });

@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from '../helpers';
-import nativeAlert from './components/NativeAlert';
 
 class BasicPaymentScreen {
   pay({
@@ -58,7 +57,7 @@ class BasicPaymentScreen {
   }
 
   checkStatus(status: string = 'Success') {
-    const alert = nativeAlert.getAlertElement(status);
+    const alert = getElementByText(status);
     alert.waitForDisplayed({
       timeout: 10000,
     });

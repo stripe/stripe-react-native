@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
-import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
@@ -105,7 +104,7 @@ describe('Example app payments scenarios (common)', () => {
 
     getElementByText('Pay').click();
 
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,
     });
@@ -125,7 +124,7 @@ describe('Example app payments scenarios (common)', () => {
     cardField.setCvcNumber('123');
 
     getElementByText('Save').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,
     });
@@ -143,7 +142,7 @@ describe('Example app payments scenarios (common)', () => {
     cardField.setCvcNumber('123');
 
     getElementByText('Pay').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,
     });
@@ -160,7 +159,7 @@ describe('Example app payments scenarios (common)', () => {
     getTextInputByPlaceholder('CVC').setValue('123');
 
     getElementByText('Pay Synchronously').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,
     });
