@@ -22,6 +22,8 @@ describe('Example app payments scenarios (common)', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BECSForm.setName('stripe');
     BECSForm.setEmail('test@stripe.com');
     BECSForm.setBSB('000000');
@@ -42,6 +44,8 @@ describe('Example app payments scenarios (common)', () => {
   it('BECS direct set up payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BECSForm.setName('stripe');
     BECSForm.setEmail('test@stripe.com');
@@ -64,6 +68,8 @@ describe('Example app payments scenarios (common)', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit payment');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
       iban: 'AT611904300234573201',
@@ -74,6 +80,8 @@ describe('Example app payments scenarios (common)', () => {
   it('SEPA set up payment scenario', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
@@ -86,7 +94,9 @@ describe('Example app payments scenarios (common)', () => {
   it('Card payment using webhooks scenario', () => {
     homeScreen.goTo('Accept a payment');
     homeScreen.goTo('Card element only');
-    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
     cardField.setCardNumber('4242424242424242');
@@ -105,7 +115,9 @@ describe('Example app payments scenarios (common)', () => {
   it('Setup future payment scenario', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Set up future payments');
-    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
     cardField.setCardNumber('4242424242424242');
@@ -124,6 +136,8 @@ describe('Example app payments scenarios (common)', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Finalize payments on the server');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
@@ -139,6 +153,8 @@ describe('Example app payments scenarios (common)', () => {
   it('Re-collect CVC sync scenario', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
