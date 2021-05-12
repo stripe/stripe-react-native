@@ -32,7 +32,7 @@ jobs:
       - name: Run Android Emulator
         run: |
           echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install 'system-images;android-29;google_apis;x86_64'
-          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n test_device -s "768x1280" -k 'system-images;android-29;google_apis;x86_64' --force
+          echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n test_device -k 'system-images;android-29;google_apis;x86_64' --force
           echo $ANDROID_HOME/emulator/emulator -list-avds
           echo "Starting emulator"
           nohup $ANDROID_HOME/emulator/emulator -avd test_device -no-snapshot > /dev/null 2>&1 &
