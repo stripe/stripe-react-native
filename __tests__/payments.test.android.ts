@@ -164,9 +164,8 @@ describe('Example app payments scenarios (android)', () => {
     getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
 
-    driver.hideKeyboard();
-
     getElementByText('Pay').click();
+
     driver.pause(10000);
     driver.back();
     const alert = nativeAlert.getAlertElement('Success');

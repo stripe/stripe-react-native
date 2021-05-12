@@ -30,8 +30,6 @@ class BasicPaymentScreen {
       ibanInput.setValue(iban);
     }
 
-    driver.hideKeyboard();
-
     const button = driver.isAndroid
       ? $(
           `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${buttonText}"))`

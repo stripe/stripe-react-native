@@ -29,7 +29,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   return loading ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <ScrollView style={styles.container}>
+    <ScrollView keyboardShouldPersistTaps="always" style={styles.container}>
       {children}
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <Text style={{ opacity: 0 }}>appium fix</Text>
