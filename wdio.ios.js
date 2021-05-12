@@ -50,7 +50,7 @@ exports.config = {
       maxInstances: 1,
       browserName: '',
       appiumVersion: '1.20.2',
-      platformVersion: '14.4',
+      platformVersion: '',
       platformName: 'iOS',
       deviceName: 'iPhone 12',
       app:
