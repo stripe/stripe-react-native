@@ -107,7 +107,7 @@ describe('Example app payments scenarios (common)', () => {
 
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
@@ -127,7 +127,7 @@ describe('Example app payments scenarios (common)', () => {
     getElementByText('Save').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
@@ -145,7 +145,7 @@ describe('Example app payments scenarios (common)', () => {
     getElementByText('Pay').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
@@ -162,7 +162,7 @@ describe('Example app payments scenarios (common)', () => {
     getElementByText('Pay Synchronously').click();
     const alert = nativeAlert.getAlertElement('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
