@@ -5,7 +5,7 @@ import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
 
-type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+// type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (common)', () => {
   beforeEach(() => {

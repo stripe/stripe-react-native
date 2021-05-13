@@ -3,7 +3,7 @@ import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
-type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+// type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
