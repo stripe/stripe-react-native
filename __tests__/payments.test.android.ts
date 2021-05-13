@@ -16,7 +16,8 @@ describe('Example app payments scenarios (android)', () => {
     driver.reloadSession();
   });
 
-  it('Bancontact payment scenario', () => {
+  it('Bancontact payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact Payment');
 
@@ -27,7 +28,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Bancontact future payment scenario', () => {
+  it('Bancontact future payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact SEPA Direct Debit set up');
 
@@ -38,7 +40,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('EPS payment scenario', () => {
+  it('EPS payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('EPS');
 
@@ -49,7 +52,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Fpx payment scenario', () => {
+  it('Fpx payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('FPX');
 
@@ -65,7 +69,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('P24 payment scenario', () => {
+  it('P24 payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Przelewy24');
 
@@ -76,7 +81,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Giropay payment scenario', () => {
+  it('Giropay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('giropay');
 
@@ -87,7 +93,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('iDEAL payment scenario', () => {
+  it('iDEAL payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL payment');
 
@@ -101,7 +108,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('iDEAL set up payment scenario', () => {
+  it('iDEAL set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL SEPA Direct Debit set up');
 
@@ -116,7 +124,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Sofort payment scenario', () => {
+  it('Sofort payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort');
 
@@ -127,7 +136,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('Sofort set up payment scenario', () => {
+  it('Sofort set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort SEPA Direct Debit set up');
 
@@ -147,7 +157,8 @@ describe('Example app payments scenarios (android)', () => {
   //     BasicPaymentScreen.checkStatus();
   // });
 
-  it('OXXO payment scenario', () => {
+  it('OXXO payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Vouchers');
     homeScreen.goTo('OXXO');
 
@@ -160,7 +171,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Alipay payment scenario', () => {
+  it('Alipay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Wallets');
     homeScreen.goTo('Alipay');
 
@@ -171,7 +183,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Grabpay payment scenario', () => {
+  it('Grabpay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Wallets');
     homeScreen.goTo('GrabPay');
 
@@ -182,7 +195,8 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Re-collect CVC async scenario', () => {
+  it('Re-collect CVC async scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 

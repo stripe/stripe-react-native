@@ -17,7 +17,8 @@ describe('Example app payments scenarios (common)', () => {
     driver.reloadSession();
   });
 
-  it('BECS direct payment scenario', () => {
+  it('BECS direct payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
 
@@ -40,7 +41,8 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('BECS direct set up payment scenario', () => {
+  it('BECS direct set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit set up');
 
@@ -63,7 +65,8 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Success');
   });
 
-  it('SEPA payment scenario', () => {
+  it('SEPA payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit payment');
 
@@ -76,7 +79,8 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('SEPA set up payment scenario', () => {
+  it('SEPA set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit set up');
 
@@ -90,7 +94,8 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Card payment using webhooks scenario', () => {
+  it('Card payment using webhooks scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Accept a payment');
     homeScreen.goTo('Card element only');
 
@@ -111,7 +116,8 @@ describe('Example app payments scenarios (common)', () => {
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Setup future payment scenario', () => {
+  it('Setup future payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Set up future payments');
 
@@ -131,7 +137,8 @@ describe('Example app payments scenarios (common)', () => {
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Finalize payment on the server scenario', () => {
+  it('Finalize payment on the server scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Finalize payments on the server');
 
@@ -149,7 +156,8 @@ describe('Example app payments scenarios (common)', () => {
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Re-collect CVC sync scenario', () => {
+  it('Re-collect CVC sync scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 
