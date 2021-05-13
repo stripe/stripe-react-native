@@ -39,13 +39,10 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: yarn run-example-android
-
-      - name: Run Tests
-        run: |
-          sleep 15
-          node ./run-appium-tests.js android
-
+          script: |
+            yarn run-example-android
+            sleep 15
+            node ./run-appium-tests.js android
       # - name: Upload Screenshoots
       #   uses: actions/upload-artifact@v1
       #   with:
