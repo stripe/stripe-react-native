@@ -15,6 +15,7 @@
     "ios",
     "cpp",
     "stripe-react-native.podspec",
+    "app.plugin.js",
     "!lib/typescript/example",
     "!**/__tests__",
     "!**/__fixtures__",
