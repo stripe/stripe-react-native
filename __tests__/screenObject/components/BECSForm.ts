@@ -8,6 +8,7 @@ class BECSForm {
       getTextInputByPlaceholder('Full name').setValue(value);
     }
   }
+
   setEmail(value: string) {
     if (driver.isAndroid) {
       getTextInputByPlaceholder('Email Address').setValue(value);
