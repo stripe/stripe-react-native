@@ -27,15 +27,15 @@ jobs:
         with:
           node-version: 14.4.0
 
-      - name: Run server
-        run: yarn start:server
-
       - name: Install React Native CLI
         run: npm install react-native-cli
 
       - name: Install Dependencies
         run: |
           yarn bootstrap
+
+      - name: Run server
+        run: yarn start:server
 
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
@@ -89,9 +89,6 @@ jobs:
         with:
           node-version: 14.4.0
 
-      - name: Run server
-        run: yarn start:server
-
       - name: Install React Native CLI
         run: |
           npm install react-native-cli
@@ -99,6 +96,9 @@ jobs:
       - name: Install Dependencies
         run: |
           yarn bootstrap
+
+      - name: Run server
+        run: yarn start:server
 
       - name: Build iOS App
         run: |
