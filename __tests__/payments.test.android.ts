@@ -165,6 +165,7 @@ describe('Example app payments scenarios (android)', () => {
     $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    driver.pause(3000);
     driver.back();
     driver.pause(3000);
     driver.switchContext(driver.getContexts()[0]);
