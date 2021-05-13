@@ -44,10 +44,11 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
+  specFileRetries: 1,
   specs: ['./__tests__/*.test.android.ts', './__tests__/*.test.ts'],
   capabilities: [
     {
-      maxInstances: 1,
+      maxInstances: 2,
       browserName: '',
       appiumVersion: '1.20.2',
       platformVersion: '',
