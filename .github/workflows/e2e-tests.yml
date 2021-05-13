@@ -35,19 +35,15 @@ jobs:
         run: |
           yarn bootstrap
 
-      - name: Run Android Emulator
+      - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: cd example/android;./gradlew connectedCheck
-
-      - name: Build Android App
-        run: |
-          yarn run-example-android
-          sleep 15
+          script: run-example-android
 
       - name: Run Tests
         run: |
+          sleep 15
           node ./run-appium-tests.js android
 
       - name: Upload Screenshoots
