@@ -42,18 +42,18 @@ jobs:
             yarn run-example-android
             sleep 15
             node ./run-appium-tests.js android
-      # - name: Upload Screenshoots
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: e2e-results
-      #     path: .tmp
-      #   if: ${{ always() }}
+      - name: Upload Screenshoots
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results
+          path: .tmp
+        if: ${{ always() }}
 
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: e2e-results
-      #     path: .tmp
-      #   if: ${{ always() }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results
+          path: .tmp
+        if: ${{ always() }}
 
   test-ios:
     name: e2e-ios-test
@@ -106,15 +106,15 @@ jobs:
         run: |
           node ./run-appium-tests.js ios
 
-      # - name: Upload Screenshoots
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: e2e-results
-      #     path: .tmp
-      #   if: ${{ always() }}
+      - name: Upload Screenshoots
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results
+          path: .tmp
+        if: ${{ always() }}
 
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: e2e-results
-      #     path: .tmp
-      #   if: ${{ always() }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results
+          path: .tmp
+        if: ${{ always() }}
