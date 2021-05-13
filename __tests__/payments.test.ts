@@ -21,7 +21,7 @@ describe('Example app payments scenarios (common)', () => {
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
 
     BECSForm.setName('stripe');
     BECSForm.setEmail('test@stripe.com');
