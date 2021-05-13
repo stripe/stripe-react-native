@@ -35,11 +35,10 @@ jobs:
         run: |
           yarn bootstrap
 
-      - name: run tests
+      - name: Run Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: ./gradlew connectedCheck
 
       - name: Build Android App
         run: |
