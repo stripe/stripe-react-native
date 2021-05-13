@@ -27,9 +27,11 @@ jobs:
         with:
           node-version: 14.4.0
 
+      - name: Run server
+        run: yarn start:server
+
       - name: Install React Native CLI
-        run: |
-          npm install react-native-cli
+        run: npm install react-native-cli
 
       - name: Install Dependencies
         run: |
@@ -86,6 +88,9 @@ jobs:
         uses: actions/setup-node@v2.1.5
         with:
           node-version: 14.4.0
+
+      - name: Run server
+        run: yarn start:server
 
       - name: Install React Native CLI
         run: |
