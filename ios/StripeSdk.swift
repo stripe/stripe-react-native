@@ -600,10 +600,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.confirmPaymentClientSecret = nil
         switch (status) {
         case .failed:
-            confirmPaymentRejecter?(ConfirmPaymentErrorType.Failed.rawValue, error?.localizedDescription ?? "", nil)
+            confirmPaymentRejecter?(ConfirmPaymentErrorType.Failed.rawValue, paymentIntent?.lastPaymentError?.message ?? error?.localizedDescription ?? "", nil)
             break
         case .canceled:
-            confirmPaymentRejecter?(ConfirmPaymentErrorType.Canceled.rawValue, error?.localizedDescription ?? "", nil)
+            let statusCode: String
+            if (paymentIntent?.status == STPPaymentIntentStatus.requiresPaymentMethod) {
+                statusCode = ConfirmPaymentErrorType.Failed.rawValue
+            } else {
+                statusCode = ConfirmPaymentErrorType.Canceled.rawValue
+            }
+            confirmPaymentRejecter?(statusCode, paymentIntent?.lastPaymentError?.message ?? error?.localizedDescription ?? "", nil)
             break
         case .succeeded:
             if let paymentIntent = paymentIntent {
