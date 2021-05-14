@@ -14,6 +14,7 @@
     "android",
     "ios",
     "cpp",
+    "app.plugin.js",
     "stripe-react-native.podspec"
   ],
   "scripts": {
