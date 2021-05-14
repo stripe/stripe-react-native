@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from '../helpers';
-import nativeAlert from './components/NativeAlert';
 
 class BasicPaymentScreen {
   pay({
@@ -29,21 +28,26 @@ class BasicPaymentScreen {
       expect(ibanInput).toBeDisplayed();
       ibanInput.setValue(iban);
     }
-    const button = getElementByText(buttonText);
+
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${buttonText}"))`
+        )
+      : $(`~${buttonText}`);
     expect(button).toBeDisplayed();
     button.click();
 
     driver.pause(5000);
   }
 
-  authorize() {
+  authorize(elementType = 'button') {
     driver.pause(5000);
 
     expect(driver.getContexts()[1]).toBeTruthy();
 
     driver.switchContext(driver.getContexts()[1]);
 
-    const button = $('button*=Authorize');
+    const button = $(`${elementType}*=Authorize`);
     button.waitForDisplayed({ timeout: 10000 });
     expect(button).toBeDisplayed();
     button.click();
@@ -52,7 +56,7 @@ class BasicPaymentScreen {
   }
 
   checkStatus(status: string = 'Success') {
-    const alert = nativeAlert.getAlertElement(status);
+    const alert = getElementByText(status);
     alert.waitForDisplayed({
       timeout: 10000,
     });

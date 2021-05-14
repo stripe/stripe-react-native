@@ -1,7 +1,5 @@
-import { getTextInputByPlaceholder } from '../../helpers';
-
 /* eslint-disable no-undef */
-
+import { getTextInputByPlaceholder } from '../../helpers';
 class BECSForm {
   setName(value: string) {
     if (driver.isAndroid) {

@@ -14,11 +14,6 @@ const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-let stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2020-08-27',
-  typescript: true,
-});
-
 const app = express();
 
 app.use(
@@ -47,11 +42,9 @@ const calculateOrderAmount = (_order?: Order): number => {
   return 1400;
 };
 
-app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
+function getKeys(payment_method?: string) {
   let secret_key: string | undefined = stripeSecretKey;
   let publishable_key: string | undefined = stripePublishableKey;
-
-  const payment_method = req.query.paymentMethod;
 
   switch (payment_method) {
     case 'grabpay':
@@ -68,13 +61,15 @@ app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
       secret_key = process.env.STRIPE_SECRET_KEY_MX;
       break;
     default:
-    // unknown, maybe send error
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY;
+      secret_key = process.env.STRIPE_SECRET_KEY;
   }
 
-  stripe = new Stripe(secret_key as string, {
-    apiVersion: '2020-08-27',
-    typescript: true,
-  });
+  return { secret_key, publishable_key };
+}
+
+app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
+  const { publishable_key } = getKeys(req.query.paymentMethod as string);
 
   res.send({ publishableKey: publishable_key });
 });
@@ -95,6 +90,14 @@ app.post(
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
     } = req.body;
+
+    const { secret_key } = getKeys(payment_method_types[0]);
+
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2020-08-27',
+      typescript: true,
+    });
+
     const customer = await stripe.customers.create({ email });
     // Create a PaymentIntent with the order amount and currency.
     const params: Stripe.PaymentIntentCreateParams = {
@@ -142,6 +145,12 @@ app.post(
       request_three_d_secure: 'any' | 'automatic';
       email: string;
     } = req.body;
+    const { secret_key } = getKeys();
+
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2020-08-27',
+      typescript: true,
+    });
     const customers = await stripe.customers.list({
       email,
     });
@@ -212,6 +221,12 @@ app.post(
     } = req.body;
 
     const orderAmount: number = calculateOrderAmount(items);
+    const { secret_key } = getKeys();
+
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2020-08-27',
+      typescript: true,
+    });
 
     try {
       if (cvcToken && email) {
@@ -291,6 +306,12 @@ app.post('/create-setup-intent', async (req, res) => {
     email,
     payment_method_types = [],
   }: { email: string; payment_method_types: string[] } = req.body;
+  const { secret_key } = getKeys(payment_method_types[0]);
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
   const customer = await stripe.customers.create({ email });
   const setupIntent = await stripe.setupIntents.create({
     customer: customer.id,
@@ -314,6 +335,12 @@ app.post(
   async (req: express.Request, res: express.Response): Promise<void> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event: Stripe.Event;
+    const { secret_key } = getKeys();
+
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2020-08-27',
+      typescript: true,
+    });
     // console.log('webhook!', req);
     try {
       event = stripe.webhooks.constructEvent(
@@ -371,6 +398,14 @@ app.post(
 // In your application you may want a cron job / other internal process
 app.post('/charge-card-off-session', async (req, res) => {
   let paymentIntent, customer;
+
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
   try {
     // You need to attach the PaymentMethod to a Customer in order to reuse
     // Since we are using test cards, create a new Customer here
@@ -437,6 +472,13 @@ app.post('/charge-card-off-session', async (req, res) => {
 // Watch this video to get started: https://youtu.be/rPR2aJ6XnAc.
 
 app.post('/payment-sheet', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
   const customers = await stripe.customers.list();
 
   // Here, we're getting latest customer only for example purposes.
