@@ -41,7 +41,7 @@ jobs:
           script: |
             yarn run-example-android
             sleep 15
-            adb shell ps | grep appium
+            yarn appium-doctor
             adb shell am force-stop io.appium.uiautomator2.server
             node ./run-appium-tests.js android
       - name: Upload Screenshoots
