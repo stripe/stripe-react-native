@@ -342,7 +342,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(e: Exception) {
-          confirmPromise?.reject("Failed", e.localizedMessage)
+          promise.reject("Failed", e.localizedMessage)
         }
 
         override fun onSuccess(result: PaymentMethod) {
