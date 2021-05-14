@@ -1,51 +1,63 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
-import nativeAlert from './screenObject/components/NativeAlert';
 import homeScreen from './screenObject/HomeScreen';
+
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
-  afterEach(() => {
-    // driver.saveScreen(`screen-${new Date().getTime()}`);
-  });
 
   afterEach(() => {
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+
     driver.reloadSession();
   });
 
-  it('Bancontact payment scenario', () => {
+  it('Bancontact payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact Payment');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Bancontact future payment scenario', () => {
+  it('Bancontact future payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact SEPA Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('EPS payment scenario', () => {
+  it('EPS payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('EPS');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Fpx payment scenario', () => {
+  it('Fpx payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('FPX');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
 
@@ -57,116 +69,148 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('P24 payment scenario', () => {
+  it('P24 payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Przelewy24');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Giropay payment scenario', () => {
+  it('Giropay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('giropay');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('iDEAL payment scenario', () => {
+  it('iDEAL payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL payment');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
-      bankName: 'Revolut',
+      bankName: 'Knab',
     });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('iDEAL set up payment scenario', () => {
+  it('iDEAL set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL SEPA Direct Debit set up');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
-      bankName: 'Revolut',
+      bankName: 'Knab',
       buttonText: 'Save',
     });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Sofort payment scenario', () => {
+  it('Sofort payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('Sofort set up payment scenario', () => {
+  it('Sofort set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort SEPA Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  // it('Afterpay/Clearpay payment scenario', () => {
-  //     homeScreen.goTo('Buy now pay later');
-  //     homeScreen.goTo('Afterpay and Clearpay');
+  it('Afterpay/Clearpay payment scenario', () => {
+    homeScreen.goTo('Buy now pay later');
+    homeScreen.goTo('Afterpay and Clearpay');
 
-  //     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-  //     BasicPaymentScreen.authorize();
-  //     BasicPaymentScreen.checkStatus();
-  // });
+    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    BasicPaymentScreen.authorize('a');
+    BasicPaymentScreen.checkStatus();
+  });
 
-  it('OXXO payment scenario', () => {
+  it('OXXO payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Vouchers');
     homeScreen.goTo('OXXO');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    driver.pause(3000);
     driver.back();
     driver.pause(3000);
     driver.switchContext(driver.getContexts()[0]);
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Alipay payment scenario', () => {
+  it('Alipay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Wallets');
     homeScreen.goTo('Alipay');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Grabpay payment scenario', () => {
+  it('Grabpay payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Wallets');
     homeScreen.goTo('GrabPay');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Re-collect CVC async scenario', () => {
+  it('Re-collect CVC async scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
+    getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
 
     getElementByText('Pay').click();
+
     driver.pause(10000);
     driver.back();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 15000,
     });

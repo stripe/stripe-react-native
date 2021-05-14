@@ -1,59 +1,76 @@
 /* eslint-disable no-undef */
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
-import nativeAlert from './screenObject/components/NativeAlert';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
 
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+
 describe('Example app payments scenarios (common)', () => {
   beforeEach(() => {
-    // driver.saveScreen(`screen-${new Date().getTime()}`);
     $('~app-root').waitForDisplayed({ timeout: 30000 });
-  });
-  afterEach(() => {
-    // driver.saveScreen(`screen-${new Date().getTime()}`);
   });
 
   afterEach(() => {
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
     driver.reloadSession();
   });
 
-  it('BECS direct payment scenario', () => {
+  it('BECS direct payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit payment');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
 
     BECSForm.setName('stripe');
     BECSForm.setEmail('test@stripe.com');
     BECSForm.setBSB('000000');
     BECSForm.setAccountNumber('000123456');
 
-    const button = getElementByText('Pay');
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("Pay"))`
+        )
+      : $(`~Pay`);
+
     expect(button).toBeDisplayed();
     button.click();
 
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('BECS direct set up payment scenario', () => {
+  it('BECS direct set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('BECS Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BECSForm.setName('stripe');
     BECSForm.setEmail('test@stripe.com');
     BECSForm.setBSB('000000');
     BECSForm.setAccountNumber('000123456');
 
-    const button = getElementByText('Save');
+    const button = driver.isAndroid
+      ? $(
+          `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("Save"))`
+        )
+      : $(`~Save`);
+
     expect(button).toBeDisplayed();
     button.click();
 
     BasicPaymentScreen.checkStatus('Success');
   });
 
-  it('SEPA payment scenario', () => {
+  it('SEPA payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit payment');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
@@ -62,9 +79,12 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus('Processing');
   });
 
-  it('SEPA set up payment scenario', () => {
+  it('SEPA set up payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('SEPA Direct Debit set up');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
@@ -74,10 +94,13 @@ describe('Example app payments scenarios (common)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Card payment using webhooks scenario', () => {
+  it('Card payment using webhooks scenario', function () {
+    this.retries(2);
     homeScreen.goTo('Accept a payment');
     homeScreen.goTo('Card element only');
-    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
     cardField.setCardNumber('4242424242424242');
@@ -86,60 +109,67 @@ describe('Example app payments scenarios (common)', () => {
 
     getElementByText('Pay').click();
 
-    driver.pause(10000);
-    if (driver.isAndroid) {
-      driver.back();
-    }
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Setup future payment scenario', () => {
+  it('Setup future payment scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Set up future payments');
-    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
+
     getElementByText('Save').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Finalize payment on the server scenario', () => {
+  it('Finalize payment on the server scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Finalize payments on the server');
 
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
+
     getElementByText('Pay').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });
 
-  it('Re-collect CVC sync scenario', () => {
+  it('Re-collect CVC sync scenario', function () {
+    this.retries(2);
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
+    getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
 
     getElementByText('Pay Synchronously').click();
-    const alert = nativeAlert.getAlertElement('Success');
+    const alert = getElementByText('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 20000,
     });
     expect(alert.getText()).toEqual('Success');
   });

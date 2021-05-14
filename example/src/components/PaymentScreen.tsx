@@ -1,6 +1,6 @@
 import { initStripe } from '@stripe/stripe-react-native';
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../colors';
 import { fetchPublishableKey } from '../helpers';
 
@@ -9,27 +9,35 @@ interface Props {
 }
 
 const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function initialize() {
       const publishableKey = await fetchPublishableKey(paymentMethod);
       if (publishableKey) {
-        initStripe({
+        await initStripe({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
           urlScheme: 'stripe-example',
           setUrlSchemeOnAndroid: true,
         });
+        setLoading(false);
       }
     }
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return (
-    <View style={styles.container}>
+  return loading ? (
+    <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
+  ) : (
+    <ScrollView
+      accessibilityLabel="payment-screen"
+      keyboardShouldPersistTaps="always"
+      style={styles.container}
+    >
       {children}
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <Text style={{ opacity: 0 }}>appium fix</Text>
-    </View>
+    </ScrollView>
   );
 };
 

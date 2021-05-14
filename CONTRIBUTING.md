@@ -85,8 +85,7 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 ### Tests
 
 We use [Appium](https://github.com/appium/appium) for e2e testing.
-Since we don't have configured CI yet we must remember to run tests locally for both platforms before merge pr's.
-To to that you have to install and configure appium following its [documentation](https://github.com/appium/appium/blob/master/docs/en/about-appium/getting-started.md).
+In order to run tests locally you have to install and configure appium following its [documentation](https://github.com/appium/appium/blob/master/docs/en/about-appium/getting-started.md).
 
 Next, you have to specify emulator/simulator details in the config files.
 To set it up on android, let's open `wdio.android.js/wdio.ios.js` files and edit `capabilities` section accordingly (platformVersion, deviceName, app).

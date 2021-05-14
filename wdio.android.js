@@ -20,8 +20,8 @@ exports.config = {
   bail: 0,
   baseUrl: 'http://localhost',
   waitforTimeout: 8000,
-  connectionRetryTimeout: 120000,
-  connectionRetryCount: 3,
+  connectionRetryTimeout: 200000,
+  connectionRetryCount: 4,
   services: [
     'appium',
     [
@@ -44,6 +44,7 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
+  specFileRetries: 1,
   specs: ['./__tests__/*.test.android.ts', './__tests__/*.test.ts'],
   capabilities: [
     {
@@ -52,10 +53,12 @@ exports.config = {
       appiumVersion: '1.20.2',
       platformVersion: '',
       platformName: 'Android',
-      deviceName: 'sdk_gphone_x86_arm',
+      deviceName: '',
       app: 'example/android/app/build/outputs/apk/release/app-release.apk',
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
+      ignoreHiddenApiPolicyError: true,
+      noReset: true,
     },
   ],
 };

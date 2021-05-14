@@ -1,0 +1,4 @@
+lib/typescript/example
+**/__tests__
+**/__fixtures__
+**/__mocks__

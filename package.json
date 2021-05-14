@@ -14,12 +14,8 @@
     "android",
     "ios",
     "cpp",
-    "stripe-react-native.podspec",
     "app.plugin.js",
-    "!lib/typescript/example",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__"
+    "stripe-react-native.podspec"
   ],
   "scripts": {
     "test": "jest",
@@ -56,12 +52,12 @@
     "@types/react": "^16.9.19",
     "@types/react-native": "0.62.13",
     "@types/webdriverio": "^5.0.0",
-    "@wdio/appium-service": "^7.3.1",
-    "@wdio/cli": "^7.3.1",
-    "@wdio/local-runner": "^7.3.1",
-    "@wdio/mocha-framework": "^7.3.1",
-    "@wdio/spec-reporter": "^7.3.1",
-    "@wdio/sync": "^7.3.1",
+    "@wdio/appium-service": "^7.5.7",
+    "@wdio/cli": "^7.5.7",
+    "@wdio/local-runner": "^7.5.7",
+    "@wdio/mocha-framework": "^7.5.3",
+    "@wdio/spec-reporter": "^7.5.7",
+    "@wdio/sync": "^7.5.7",
     "appium": "^1.21.0",
     "appium-chromedriver": "4.26.2",
     "appium-doctor": "^1.16.0",
@@ -82,7 +78,8 @@
     "typedoc": "^0.20.28",
     "typescript": "^4.2.3",
     "wdio-chromedriver-service": "^7.0.0",
-    "webdriverio": "^7.3.1"
+    "webdriverio": "^7.5.7",
+    "wdio-native-app-compare-service": "^1.2.0"
   },
   "peerDependencies": {
     "react": "*",
@@ -161,7 +158,6 @@
     ]
   },
   "dependencies": {
-    "@expo/config-plugins": "^1.0.24",
-    "wdio-native-app-compare-service": "^1.2.0"
+    "@expo/config-plugins": "^1.0.24"
   }
 }
