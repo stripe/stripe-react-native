@@ -56,6 +56,7 @@ exports.config = {
       app: 'example/android/app/build/outputs/apk/release/app-release.apk',
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
+      ignoreHiddenApiPolicyError: true,
     },
   ],
 };
