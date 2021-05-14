@@ -25,9 +25,14 @@ export interface Props {
   setUrlSchemeOnAndroid?: boolean;
 }
 
+const repository: any = pjson.repository;
+
 const appInfo: AppInfo = {
   name: shouldAttributeExpo() ? `${pjson.name}/expo` : pjson.name,
-  url: pjson.repository,
+  // package.json output installed via npm is a bit different than from yarn
+  // the repository field can be an object or string
+  // for more context: https://github.com/stripe/stripe-react-native/issues/200
+  url: repository.url || repository,
   version: pjson.version,
   partnerId: shouldAttributeExpo() ? EXPO_PARTNER_ID : undefined,
 };
