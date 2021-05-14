@@ -35,7 +35,6 @@ class BasicPaymentScreen {
         )
       : $(`~${buttonText}`);
     expect(button).toBeDisplayed();
-
     button.click();
 
     driver.pause(5000);
