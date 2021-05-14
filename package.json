@@ -14,11 +14,7 @@
     "android",
     "ios",
     "cpp",
-    "stripe-react-native.podspec",
-    "!lib/typescript/example",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__"
+    "stripe-react-native.podspec"
   ],
   "scripts": {
     "test": "jest",
