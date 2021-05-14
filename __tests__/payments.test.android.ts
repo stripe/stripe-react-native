@@ -148,14 +148,14 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  // it('Afterpay/Clearpay payment scenario', () => {
-  //     homeScreen.goTo('Buy now pay later');
-  //     homeScreen.goTo('Afterpay and Clearpay');
+  it('Afterpay/Clearpay payment scenario', () => {
+    homeScreen.goTo('Buy now pay later');
+    homeScreen.goTo('Afterpay and Clearpay');
 
-  //     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-  //     BasicPaymentScreen.authorize();
-  //     BasicPaymentScreen.checkStatus();
-  // });
+    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    BasicPaymentScreen.authorize('a');
+    BasicPaymentScreen.checkStatus();
+  });
 
   it('OXXO payment scenario', function () {
     this.retries(2);
