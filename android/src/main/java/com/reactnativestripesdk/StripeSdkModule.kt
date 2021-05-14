@@ -15,6 +15,7 @@ import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
+import kotlinx.coroutines.runBlocking
 
 
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
@@ -25,6 +26,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   private lateinit var publishableKey: String
+  private var stripeAccountId: String? = null
   private var paymentSheetFragment: PaymentSheetFragment? = null
 
   private var onConfirmSetupIntentError: Callback? = null
@@ -215,7 +217,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
-    val stripeAccountId = getValOr(params, "stripeAccountId", null)
+    this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
     val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
     this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
@@ -350,6 +352,29 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           promise.resolve(paymentMethodMap)
         }
       })
+  }
+
+  @ReactMethod
+  fun createToken(promise: Promise) {
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams?.toParamMap()
+      ?: throw PaymentMethodCreateParamsException("Card details not complete")
+
+    val params = CardParams(
+      number = cardParams["number"] as String,
+      expMonth = cardParams["exp_month"] as Int,
+      expYear = cardParams["exp_year"] as Int,
+      cvc = cardParams["cvc"] as String,
+    )
+    createToken(params, promise, this.stripeAccountId)
+  }
+
+  private fun createToken(params: CardParams, promise: Promise, stripeAccountId: String?) = runBlocking {
+    val token = stripe.createCardToken(
+      cardParams = params,
+      stripeAccountId = stripeAccountId
+    )
+    promise.resolve(mapFromToken(token))
   }
 
   @ReactMethod

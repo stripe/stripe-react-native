@@ -1,3 +1,4 @@
+import type { Card } from './Card';
 import type {
   ApplePayError,
   CardActionError,
@@ -22,8 +23,10 @@ export * from './ThreeDSecure';
 export * from './components/ApplePayButtonComponent';
 export * from './components/AuBECSDebitForm';
 export * from './components/CardFieldInput';
+export * from './Card';
 export * from './Errors';
 export * from './PaymentSheet';
+
 /**
  * @ignore
  */
@@ -126,6 +129,54 @@ export type PresentPaymentSheetResult =
       paymentOption?: undefined;
       error: StripeError<PaymentSheetError>;
     };
+
+export type CreateTokenResult =
+  | {
+      token: CardToken;
+      error?: undefined;
+    }
+  | {
+      token?: undefined;
+      error: StripeError<CreatePaymentMethodError>;
+    };
+
+export type TokenType =
+  | 'Account'
+  | 'BankAccount'
+  | 'Card'
+  | 'CvcUpdate'
+  | 'Person'
+  | 'Pii';
+
+export interface CardToken {
+  id: string;
+  created: number;
+  type: TokenType;
+  used: boolean;
+  livemode: boolean;
+  card: CardParams;
+  bankAccount?: BankAccount;
+}
+
+export interface BankAccount {
+  bankName: string;
+  accountHolderName: string;
+  accountHolderType: 'Individual' | 'Company';
+  currency: string;
+  country: string;
+  routingNumber: string;
+  status: 'Errored' | 'New' | 'Validated' | 'VerificationFailed' | 'Verified';
+}
+
+export interface CardParams {
+  country: string;
+  brand: Card.Brand;
+  currency: string;
+  expMonth: number;
+  expYear: number;
+  last4: string;
+  funding: string;
+}
 
 export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;

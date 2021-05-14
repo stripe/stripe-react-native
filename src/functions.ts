@@ -10,6 +10,7 @@ import {
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
+  CreateTokenResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
@@ -32,6 +33,19 @@ export const createPaymentMethod = async (
     );
     return {
       paymentMethod,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const createToken = async (): Promise<CreateTokenResult> => {
+  try {
+    const token = await NativeStripeSdk.createToken();
+    return {
+      token,
     };
   } catch (error) {
     return {

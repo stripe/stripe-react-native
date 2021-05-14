@@ -13,6 +13,7 @@ import type {
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
+  CreateTokenResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -31,6 +32,7 @@ import {
   initPaymentSheet,
   presentPaymentSheet,
   confirmPaymentSheetPayment,
+  createToken,
 } from '../functions';
 
 /**
@@ -58,6 +60,10 @@ export function useStripe() {
     },
     []
   );
+
+  const _createToken = useCallback(async (): Promise<CreateTokenResult> => {
+    return createToken();
+  }, []);
 
   const _retrievePaymentIntent = useCallback(
     async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
@@ -171,5 +177,6 @@ export function useStripe() {
     confirmPaymentSheetPayment: _confirmPaymentSheetPayment,
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
+    createToken: _createToken,
   };
 }

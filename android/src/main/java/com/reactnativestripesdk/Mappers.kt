@@ -142,6 +142,88 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
+internal fun mapTokenType(type: Token.Type): String {
+  return when (type) {
+    Token.Type.Account -> "Account"
+    Token.Type.BankAccount -> "BankAccount"
+    Token.Type.Card -> "Card"
+    Token.Type.CvcUpdate -> "CvcUpdate"
+    Token.Type.Person -> "Person"
+    Token.Type.Pii -> "Pii"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccountType(type: BankAccount.Type?): String {
+  return when (type) {
+    BankAccount.Type.Company -> "Company"
+    BankAccount.Type.Individual -> "Individual"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String {
+  return when (status) {
+    BankAccount.Status.Errored -> "Errored"
+    BankAccount.Status.New -> "New"
+    BankAccount.Status.Validated -> "Validated"
+    BankAccount.Status.VerificationFailed -> "VerificationFailed"
+    BankAccount.Status.Verified -> "Verified"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
+  val bankAccountMap: WritableMap = WritableNativeMap()
+
+  if (bankAccount == null) {
+    return null
+  }
+
+  bankAccountMap.putString("bankName", bankAccount.bankName)
+  bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
+  bankAccountMap.putString("accountHolderType", mapFromBankAccountType(bankAccount.accountHolderType))
+  bankAccountMap.putString("currency", bankAccount.currency)
+  bankAccountMap.putString("country", bankAccount.countryCode)
+  bankAccountMap.putString("routingNumber", bankAccount.routingNumber)
+  bankAccountMap.putString("status", mapFromBankAccountStatus(bankAccount.status))
+
+  return bankAccountMap
+}
+
+internal fun mapFromCard(card: Card?): WritableMap? {
+  val cardMap: WritableMap = WritableNativeMap()
+
+  if (card == null) {
+    return null
+  }
+
+  cardMap.putString("country", card.country)
+  cardMap.putString("brand", mapCardBrand(card.brand))
+  cardMap.putString("currency", card.currency)
+  cardMap.putInt("expMonth", card.expMonth ?: 0)
+  cardMap.putInt("expYear", card.expYear ?: 0)
+  cardMap.putString("last4", card.last4)
+  cardMap.putString("funding", card.funding?.name)
+
+  return cardMap
+}
+
+
+internal fun mapFromToken(token: Token): WritableMap {
+  val tokenMap: WritableMap = WritableNativeMap()
+
+  tokenMap.putString("id", token.id)
+  tokenMap.putInt("created", token.created.time.toInt())
+  tokenMap.putString("type", mapTokenType(token.type))
+  tokenMap.putBoolean("used", token.used)
+  tokenMap.putBoolean("livemode", token.livemode)
+  tokenMap.putMap("bankAccount", mapFromBankAccount(token.bankAccount))
+  tokenMap.putMap("card", mapFromCard(token.card))
+
+  return tokenMap
+}
+
 internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   val pm: WritableMap = WritableNativeMap()
   val card: WritableMap = WritableNativeMap()
