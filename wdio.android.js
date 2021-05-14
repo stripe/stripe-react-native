@@ -48,12 +48,12 @@ exports.config = {
   specs: ['./__tests__/*.test.android.ts', './__tests__/*.test.ts'],
   capabilities: [
     {
-      maxInstances: 2,
+      maxInstances: 1,
       browserName: '',
       appiumVersion: '1.20.2',
       platformVersion: '',
       platformName: 'Android',
-      deviceName: 'sdk_gphone_x86_arm',
+      deviceName: '',
       app: 'example/android/app/build/outputs/apk/release/app-release.apk',
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
