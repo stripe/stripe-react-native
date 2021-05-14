@@ -5,6 +5,7 @@ import type {
   ConfirmPaymentError,
   ConfirmSetupIntentError,
   CreatePaymentMethodError,
+  CreateTokenError,
   PaymentSheetError,
   RetrievePaymentIntentError,
   StripeError,
@@ -132,51 +133,13 @@ export type PresentPaymentSheetResult =
 
 export type CreateTokenResult =
   | {
-      token: CardToken;
+      token: Card.Token;
       error?: undefined;
     }
   | {
       token?: undefined;
-      error: StripeError<CreatePaymentMethodError>;
+      error: StripeError<CreateTokenError>;
     };
-
-export type TokenType =
-  | 'Account'
-  | 'BankAccount'
-  | 'Card'
-  | 'CvcUpdate'
-  | 'Person'
-  | 'Pii';
-
-export interface CardToken {
-  id: string;
-  created: number;
-  type: TokenType;
-  used: boolean;
-  livemode: boolean;
-  card: CardParams;
-  bankAccount?: BankAccount;
-}
-
-export interface BankAccount {
-  bankName: string;
-  accountHolderName: string;
-  accountHolderType: 'Individual' | 'Company';
-  currency: string;
-  country: string;
-  routingNumber: string;
-  status: 'Errored' | 'New' | 'Validated' | 'VerificationFailed' | 'Verified';
-}
-
-export interface CardParams {
-  country: string;
-  brand: Card.Brand;
-  currency: string;
-  expMonth: number;
-  expYear: number;
-  last4: string;
-  funding: string;
-}
 
 export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;

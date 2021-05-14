@@ -357,8 +357,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun createToken(promise: Promise) {
     val instance = cardFieldManager.getCardViewInstance()
-    val cardParams = instance?.cardParams?.toParamMap()
-      ?: throw PaymentMethodCreateParamsException("Card details not complete")
+    val cardParams = instance?.cardParams?.toParamMap() ?: run {
+      promise.reject(CreateTokenErrorType.Failed.toString(), "Card details not complete")
+      return
+    }
 
     val params = CardParams(
       number = cardParams["number"] as String,

@@ -23,7 +23,7 @@ enum PaymentSheetErrorType: String {
 }
 
 enum CreateTokenErrorType: String {
-    case Failed, Unknown
+    case Failed
 }
 
 class Errors {
