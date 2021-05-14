@@ -58,6 +58,7 @@ exports.config = {
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
+      noReset: true,
     },
   ],
 };
