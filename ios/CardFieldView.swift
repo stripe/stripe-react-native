@@ -76,7 +76,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-        
+
         self.addSubview(cardField)
     }
     

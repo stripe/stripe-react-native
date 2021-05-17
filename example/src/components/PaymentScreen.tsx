@@ -1,4 +1,4 @@
-import { initStripe } from '@stripe/stripe-react-native';
+import { initStripe, StripeProvider } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../colors';
@@ -10,16 +10,19 @@ interface Props {
 
 const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   const [loading, setLoading] = useState(true);
+  const [publishableKey, setPublishableKey] = useState<string>();
+
   useEffect(() => {
     async function initialize() {
-      const publishableKey = await fetchPublishableKey(paymentMethod);
-      if (publishableKey) {
-        await initStripe({
-          publishableKey,
-          merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'stripe-example',
-          setUrlSchemeOnAndroid: true,
-        });
+      const key = await fetchPublishableKey(paymentMethod);
+      if (key) {
+        setPublishableKey(key);
+        // await initStripe({
+        //   publishableKey,
+        //   merchantIdentifier: 'merchant.com.stripe.react.native',
+        //   urlScheme: 'stripe-example',
+        //   setUrlSchemeOnAndroid: true,
+        // });
         setLoading(false);
       }
     }
@@ -29,15 +32,17 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   return loading ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <ScrollView
-      accessibilityLabel="payment-screen"
-      keyboardShouldPersistTaps="always"
-      style={styles.container}
-    >
-      {children}
-      {/* eslint-disable-next-line react-native/no-inline-styles */}
-      <Text style={{ opacity: 0 }}>appium fix</Text>
-    </ScrollView>
+    <StripeProvider publishableKey={publishableKey as string}>
+      <ScrollView
+        accessibilityLabel="payment-screen"
+        keyboardShouldPersistTaps="always"
+        style={styles.container}
+      >
+        {children}
+        {/* eslint-disable-next-line react-native/no-inline-styles */}
+        <Text style={{ opacity: 0 }}>appium fix</Text>
+      </ScrollView>
+    </StripeProvider>
   );
 };
 
