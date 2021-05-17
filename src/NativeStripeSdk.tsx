@@ -28,7 +28,8 @@ type NativeStripeSdkType = {
   presentApplePay(params: ApplePay.PresentParams): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   updateApplePaySummaryItems(
-    summaryItems: ApplePay.CartSummaryItem[]
+    summaryItems: ApplePay.CartSummaryItem[],
+    errorAddressFields: ApplePay.AddressFields[]
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
