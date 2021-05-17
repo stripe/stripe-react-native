@@ -44,7 +44,7 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
-  specs: ['./__tests__/*.test.ts'],
+  specs: ['./e2e/*.test.ts'],
   capabilities: [
     {
       maxInstances: 1,
