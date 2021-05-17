@@ -2,6 +2,7 @@ import {
   AndroidConfig,
   ConfigPlugin,
   createRunOncePlugin,
+  IOSConfig,
   withAndroidManifest,
   withEntitlementsPlist,
 } from '@expo/config-plugins';
@@ -25,6 +26,7 @@ type StripePluginProps = {
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
   config = withStripeIos(config, props);
+  config = withNoopSwiftFile(config);
   config = withStripeAndroid(config, props);
   return config;
 };
@@ -71,6 +73,22 @@ export function setApplePayEntitlement(
   entitlements[key] = merchants;
   return entitlements;
 }
+
+/**
+ * Add a blank Swift file to the Xcode project for Swift compatibility.
+ */
+export const withNoopSwiftFile: ConfigPlugin = (config) => {
+  return IOSConfig.XcodeProjectFile.withBuildSourceFile(config, {
+    filePath: 'noop-file.swift',
+    contents: [
+      '//',
+      '// @generated',
+      '// A blank Swift file must be created for native modules with Swift files to work correctly.',
+      '//',
+      '',
+    ].join('\n'),
+  });
+};
 
 const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
   expoConfig,

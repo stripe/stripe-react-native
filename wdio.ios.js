@@ -20,7 +20,7 @@ exports.config = {
   bail: 0,
   baseUrl: 'http://localhost',
   waitforTimeout: 8000,
-  connectionRetryTimeout: 120000,
+  connectionRetryTimeout: 200000,
   connectionRetryCount: 3,
   services: [
     'appium',
@@ -42,7 +42,7 @@ exports.config = {
   reporters: ['spec'],
   mochaOpts: {
     ui: 'bdd',
-    timeout: 60000,
+    timeout: 200000,
   },
   specs: ['./__tests__/*.test.ts'],
   capabilities: [
@@ -50,7 +50,7 @@ exports.config = {
       maxInstances: 1,
       browserName: '',
       appiumVersion: '1.20.2',
-      platformVersion: '14.2',
+      platformVersion: '',
       platformName: 'iOS',
       deviceName: 'iPhone 12',
       app:
