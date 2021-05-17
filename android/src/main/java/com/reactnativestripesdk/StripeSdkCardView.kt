@@ -38,6 +38,13 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
+  fun setAutofocus(value: Boolean) {
+    if (value) {
+      val binding = CardInputWidgetBinding.bind(mCardWidget)
+      binding.cardNumberEditText.requestFocus()
+    }
+  }
+
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
     val borderWidth = getIntOrNull(value, "borderWidth")

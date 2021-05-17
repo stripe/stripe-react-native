@@ -20,6 +20,7 @@ export interface Props extends AccessibilityProps {
   postalCodeEnabled?: boolean;
   cardStyle?: CardFieldInput.Styles;
   placeholder?: CardFieldInput.Placeholders;
+  autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
 }

@@ -46,6 +46,7 @@ export namespace CardFieldInput {
     style?: StyleProp<ViewStyle>;
     value?: Partial<Details>;
     postalCodeEnabled?: boolean;
+    autofocus?: boolean;
     onCardChange(event: NativeSyntheticEvent<Details>): void;
     onFocusChange(
       event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>

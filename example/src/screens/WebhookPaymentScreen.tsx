@@ -80,6 +80,7 @@ export default function WebhookPaymentScreen() {
       />
       <CardField
         postalCodeEnabled={false}
+        autofocus
         placeholder={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',

@@ -39,6 +39,14 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc var autofocus: Bool = false {
+        didSet {
+            if autofocus == true {
+                cardField.reactFocus()
+            }
+        }
+    }
+    
     @objc var cardStyle: NSDictionary = NSDictionary() {
         didSet {
             if let borderWidth = cardStyle["borderWidth"]  as? Int {
