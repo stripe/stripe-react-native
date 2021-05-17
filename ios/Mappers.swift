@@ -23,18 +23,18 @@ class Mappers {
         return PKPaymentSummaryItemType.final
     }
     
-    class func mapFromBankAccountHolderType(_ type: STPBankAccountHolderType?) -> String {
+    class func mapFromBankAccountHolderType(_ type: STPBankAccountHolderType?) -> String? {
         if let type = type {
             switch type {
             case STPBankAccountHolderType.company: return "Company"
             case STPBankAccountHolderType.individual: return "Individual"
-            default: return "Unknown"
+            default: return nil
             }
         }
-        return "Unknown"
+        return nil
     }
     
-    class func mapFromBankAccountStatus(_ status: STPBankAccountStatus?) -> String {
+    class func mapFromBankAccountStatus(_ status: STPBankAccountStatus?) -> String? {
         if let status = status {
             switch status {
             case STPBankAccountStatus.errored: return "Errored"
@@ -42,10 +42,10 @@ class Mappers {
             case STPBankAccountStatus.validated: return "Validated"
             case STPBankAccountStatus.verified: return "Verified"
             case STPBankAccountStatus.verificationFailed: return "VerificationFailed"
-            default: return "Unknown"
+            default: return nil
             }
         }
-        return "Unknown"
+        return nil
     }
     
     class func mapFromBankAccount(_ bankAccount: STPBankAccount?) -> NSDictionary? {
@@ -55,11 +55,11 @@ class Mappers {
         let result: NSDictionary = [
             "bankName": bankAccount?.bankName ?? NSNull(),
             "accountHolderName": bankAccount?.accountHolderName ?? NSNull(),
-            "accountHolderType": mapFromBankAccountHolderType(bankAccount?.accountHolderType),
+            "accountHolderType": mapFromBankAccountHolderType(bankAccount?.accountHolderType) ?? NSNull(),
             "country": bankAccount?.country ?? NSNull(),
             "currency": bankAccount?.currency ?? NSNull(),
             "routingNumber": bankAccount?.routingNumber ?? NSNull(),
-            "status": mapFromBankAccountStatus(bankAccount?.status),
+            "status": mapFromBankAccountStatus(bankAccount?.status) ?? NSNull(),
 
         ]
         return result
@@ -76,10 +76,24 @@ class Mappers {
             "expMonth": card?.expMonth ?? NSNull(),
             "expYear": card?.expYear ?? NSNull(),
             "last4": card?.last4 ?? NSNull(),
-            "funding": card?.funding ?? NSNull(),
+            "funding": mapFromFunding(card?.funding) ?? NSNull(),
             "name": card?.name ?? NSNull(),
         ]
         return cardMap
+    }
+    
+    class func mapFromFunding(_ funding: STPCardFundingType?) -> String? {
+        if let funding = funding {
+            switch funding {
+            case STPCardFundingType.credit: return "Credit"
+            case STPCardFundingType.debit: return "Debit"
+            case STPCardFundingType.prepaid: return "Prepaid"
+            case STPCardFundingType.other: return "Unknown"
+
+            default: return nil
+            }
+        }
+        return nil
     }
     
     class func mapFromToken(token: STPToken) -> NSDictionary {
@@ -119,7 +133,7 @@ class Mappers {
         let method: NSDictionary = [
             "detail": shippingMethod.detail ?? "",
             "identifier": shippingMethod.identifier ?? "",
-						"amount": shippingMethod.amount.stringValue,
+			"amount": shippingMethod.amount.stringValue,
             "type": shippingMethod.type,
             "label": shippingMethod.label
         ]

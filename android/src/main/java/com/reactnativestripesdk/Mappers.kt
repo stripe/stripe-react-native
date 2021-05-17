@@ -216,7 +216,6 @@ internal fun mapFromToken(token: Token): WritableMap {
   tokenMap.putString("id", token.id)
   tokenMap.putInt("created", token.created.time.toInt())
   tokenMap.putString("type", mapTokenType(token.type))
-  tokenMap.putBoolean("used", token.used)
   tokenMap.putBoolean("livemode", token.livemode)
   tokenMap.putMap("bankAccount", mapFromBankAccount(token.bankAccount))
   tokenMap.putMap("card", mapFromCard(token.card))

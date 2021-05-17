@@ -465,7 +465,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
-        
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = cardParams.number
         cardSourceParams.cvc = cardParams.cvc
@@ -478,7 +477,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             } else {
                 reject(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription, nil)
             }
-            
         }
     }
     

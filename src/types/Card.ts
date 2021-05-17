@@ -44,6 +44,6 @@ export namespace Card {
     expMonth: number;
     expYear: number;
     last4: string;
-    funding: string;
+    funding: 'Credit' | 'Debit' | 'Prepaid' | 'Unknown';
   }
 }
