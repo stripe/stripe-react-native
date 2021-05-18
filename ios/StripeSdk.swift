@@ -452,11 +452,20 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(createToken:rejecter:)
+    @objc(createToken:params:rejecter:)
     func createToken(
+        params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
+        let billingDetails = params["billingDetails"] as? NSDictionary
+        
+        if let type = params["type"] as? String {
+            if (type != "Card") {
+                reject(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet", nil)
+            }
+        }
+        
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
         let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
@@ -470,7 +479,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         cardSourceParams.cvc = cardParams.cvc
         cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
         cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
-        
+        cardSourceParams.address.email = billingDetails?["email"] as? String
+        cardSourceParams.address.phone = billingDetails?["phone"] as? String
+        cardSourceParams.address.name = billingDetails?["name"] as? String
+        cardSourceParams.address.city = billingDetails?["city"] as? String
+        cardSourceParams.address.country = billingDetails?["country"] as? String
+        cardSourceParams.address.line1 = billingDetails?["line1"] as? String
+        cardSourceParams.address.line2 = billingDetails?["line2"] as? String
+        cardSourceParams.address.postalCode = billingDetails?["postalCode"] as? String
+        cardSourceParams.address.state = billingDetails?["state"] as? String
+
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
             if let token = token {
                 resolve(Mappers.mapFromToken(token: token))

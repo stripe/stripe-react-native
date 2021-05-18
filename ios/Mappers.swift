@@ -78,8 +78,27 @@ class Mappers {
             "last4": card?.last4 ?? NSNull(),
             "funding": mapFromFunding(card?.funding) ?? NSNull(),
             "name": card?.name ?? NSNull(),
+            "address": mapFromAddress(address: card?.address)
         ]
         return cardMap
+    }
+    
+    class func mapFromAddress(address: STPAddress?) -> NSDictionary {
+        let address: NSDictionary = [
+            "email": address?.email ?? NSNull(),
+            "phone": address?.phone ?? NSNull(),
+            "name": address?.name ?? NSNull(),
+            "address": [
+                "city": address?.city,
+                "postalCode": address?.postalCode,
+                "country": address?.country,
+                "line1": address?.line1,
+                "line2": address?.line2,
+                "state": address?.state,
+            ],
+        ]
+        
+        return address
     }
     
     class func mapFromFunding(_ funding: STPCardFundingType?) -> String? {

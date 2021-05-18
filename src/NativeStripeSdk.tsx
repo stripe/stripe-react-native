@@ -48,7 +48,7 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<void>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
   handleURLCallback(url: string): Promise<boolean>;
-  createToken(): Promise<Card.Token>;
+  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
 };
 
 const { StripeSdk } = NativeModules;

@@ -1,3 +1,5 @@
+import type { PaymentMethods } from './PaymentMethods';
+
 export namespace Card {
   export type Brand =
     | 'AmericanExpress'
@@ -45,5 +47,10 @@ export namespace Card {
     expYear: number;
     last4: string;
     funding: 'Credit' | 'Debit' | 'Prepaid' | 'Unknown';
+  }
+
+  export interface CreateTokenParams {
+    type: 'Card' | 'BankAccount' | 'PII' | 'Person';
+    billingDetails: PaymentMethods.BillingDetails;
   }
 }

@@ -14,6 +14,7 @@ import type {
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
   CreateTokenResult,
+  Card,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -61,9 +62,12 @@ export function useStripe() {
     []
   );
 
-  const _createToken = useCallback(async (): Promise<CreateTokenResult> => {
-    return createToken();
-  }, []);
+  const _createToken = useCallback(
+    async (params: Card.CreateTokenParams): Promise<CreateTokenResult> => {
+      return createToken(params);
+    },
+    []
+  );
 
   const _retrievePaymentIntent = useCallback(
     async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
