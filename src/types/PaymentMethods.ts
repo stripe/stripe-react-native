@@ -169,8 +169,8 @@ export declare namespace PaymentMethods {
   export interface Card {
     brand?: Card.Brand;
     country?: string;
-    expYear?: string;
-    expMonth?: string;
+    expYear?: number;
+    expMonth?: number;
     fingerprint?: string;
     funding?: string;
     last4?: string;

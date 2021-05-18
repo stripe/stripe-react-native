@@ -23,7 +23,7 @@ export namespace Card {
     type: TokenType;
     used: boolean;
     livemode: boolean;
-    card: Params;
+    card?: Params;
     bankAccount?: BankAccount;
   }
 
