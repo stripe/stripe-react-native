@@ -1,21 +1,25 @@
 package com.reactnativestripesdk
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
-import com.stripe.android.databinding.CardInputWidgetBinding
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.stripe.android.databinding.CardInputWidgetBinding
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
+
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
@@ -38,6 +42,15 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
+  fun setAutofocus(value: Boolean) {
+    if (value) {
+      val binding = CardInputWidgetBinding.bind(mCardWidget)
+      binding.cardNumberEditText.requestFocus()
+      binding.cardNumberEditText.showSoftKeyboard()
+    }
+  }
+
+
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
     val borderWidth = getIntOrNull(value, "borderWidth")
@@ -45,7 +58,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderColor = getValOr(value, "borderColor", null)
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
-    val fontSize = getIntOrNull(value,"fontSize")
+    val fontSize = getIntOrNull(value, "fontSize")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -74,7 +87,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.postalCodeEditText.textSize = it.toFloat()
     }
 
-    mCardWidget.setPadding(40, 0 ,40 ,0)
+    mCardWidget.setPadding(40, 0, 40, 0)
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
@@ -140,6 +153,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         }
         onCardChanged()
       }
+
       override fun onExpirationComplete() {}
       override fun onCvcComplete() {
         mCardWidget.cardParams?.let {
@@ -148,6 +162,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         }
         onCardChanged()
       }
+
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
           mEventDispatcher?.dispatchEvent(
@@ -192,5 +207,14 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
       MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
     layout(left, top, right, bottom)
+  }
+}
+
+fun View.showSoftKeyboard() {
+  post {
+    if (this.requestFocus()) {
+      val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+      imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    }
   }
 }
