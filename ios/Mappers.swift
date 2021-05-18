@@ -84,21 +84,34 @@ class Mappers {
     }
     
     class func mapFromAddress(address: STPAddress?) -> NSDictionary {
-        let address: NSDictionary = [
+        let result: NSDictionary = [
             "email": address?.email ?? NSNull(),
             "phone": address?.phone ?? NSNull(),
             "name": address?.name ?? NSNull(),
-            "address": [
-                "city": address?.city,
-                "postalCode": address?.postalCode,
-                "country": address?.country,
-                "line1": address?.line1,
-                "line2": address?.line2,
-                "state": address?.state,
-            ],
+            "city": address?.city ?? NSNull(),
+            "postalCode": address?.postalCode ?? NSNull(),
+            "country": address?.country ?? NSNull(),
+            "line1": address?.line1 ?? NSNull(),
+            "line2": address?.line2 ?? NSNull(),
+            "state": address?.state ?? NSNull(),
         ]
         
-        return address
+        return result
+    }
+    
+    class func mapToAddress(address: NSDictionary?) -> STPAddress {
+        let result = STPAddress()
+        result.email = address?["email"] as? String
+        result.phone = address?["phone"] as? String
+        result.name = address?["name"] as? String
+        result.city = address?["addressCity"] as? String
+        result.country = address?["addressCountry"] as? String
+        result.line1 = address?["addressLine1"] as? String
+        result.line2 = address?["addressLine2"] as? String
+        result.postalCode = address?["addressPostalCode"] as? String
+        result.state = address?["addressState"] as? String
+        
+        return result
     }
     
     class func mapFromFunding(_ funding: STPCardFundingType?) -> String? {

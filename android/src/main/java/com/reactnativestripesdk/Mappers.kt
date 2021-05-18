@@ -198,6 +198,8 @@ internal fun mapFromCard(card: Card?): WritableMap? {
     return null
   }
 
+  val address: WritableMap = WritableNativeMap()
+
   cardMap.putString("country", card.country)
   cardMap.putString("brand", mapCardBrand(card.brand))
   cardMap.putString("currency", card.currency)
@@ -205,6 +207,15 @@ internal fun mapFromCard(card: Card?): WritableMap? {
   cardMap.putInt("expYear", card.expYear ?: 0)
   cardMap.putString("last4", card.last4)
   cardMap.putString("funding", card.funding?.name)
+
+  address.putString("addressCity", card.addressCity)
+  address.putString("addressCountry", card.addressCountry)
+  address.putString("addressLine1", card.addressLine1)
+  address.putString("addressLine2", card.addressLine2)
+  address.putString("addressState", card.addressState)
+  address.putString("addressPostalCode", card.addressZip)
+
+  cardMap.putMap("address", address)
 
   return cardMap
 }
@@ -349,18 +360,25 @@ fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
 }
 
+internal fun mapToAddress(addressMap: ReadableMap?): Address? {
+  if (addressMap == null) {
+    return null
+  }
+  return Address.Builder()
+    .setPostalCode(getValOr(addressMap, "addressPostalCode"))
+    .setCity(getValOr(addressMap, "addressCity"))
+    .setCountry(getValOr(addressMap, "addressCountry"))
+    .setLine1(getValOr(addressMap, "addressLine1"))
+    .setLine2(getValOr(addressMap, "addressLine2"))
+    .setState(getValOr(addressMap, "addressState"))
+    .build()
+}
+
 internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.BillingDetails? {
   if (billingDetails == null) {
     return null
   }
-  val address = Address.Builder()
-    .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
-    .setCity(getValOr(billingDetails, "addressCity"))
-    .setCountry(getValOr(billingDetails, "addressCountry"))
-    .setLine1(getValOr(billingDetails, "addressLine1"))
-    .setLine2(getValOr(billingDetails, "addressLine2"))
-    .setState(getValOr(billingDetails, "addressState"))
-    .build()
+  val address = mapToAddress(billingDetails)
 
   return PaymentMethod.BillingDetails.Builder()
     .setAddress(address)

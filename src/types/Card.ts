@@ -1,5 +1,3 @@
-import type { PaymentMethods } from './PaymentMethods';
-
 export namespace Card {
   export type Brand =
     | 'AmericanExpress'
@@ -47,10 +45,19 @@ export namespace Card {
     expYear: number;
     last4: string;
     funding: 'Credit' | 'Debit' | 'Prepaid' | 'Unknown';
+    address: Address;
+  }
+
+  export interface Address {
+    addressCity: 'Houston';
+    addressCountry: 'US';
+    addressLine1: '1459  Circle Drive';
+    addressLine2: 'Texas';
+    addressPostalCode: '77063';
   }
 
   export interface CreateTokenParams {
     type: 'Card' | 'BankAccount' | 'PII' | 'Person';
-    billingDetails: PaymentMethods.BillingDetails;
+    billingDetails: Address;
   }
 }

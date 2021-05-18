@@ -452,7 +452,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(createToken:params:rejecter:)
+    @objc(createToken:resolver:rejecter:)
     func createToken(
         params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -479,15 +479,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         cardSourceParams.cvc = cardParams.cvc
         cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
         cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
-        cardSourceParams.address.email = billingDetails?["email"] as? String
-        cardSourceParams.address.phone = billingDetails?["phone"] as? String
-        cardSourceParams.address.name = billingDetails?["name"] as? String
-        cardSourceParams.address.city = billingDetails?["city"] as? String
-        cardSourceParams.address.country = billingDetails?["country"] as? String
-        cardSourceParams.address.line1 = billingDetails?["line1"] as? String
-        cardSourceParams.address.line2 = billingDetails?["line2"] as? String
-        cardSourceParams.address.postalCode = billingDetails?["postalCode"] as? String
-        cardSourceParams.address.state = billingDetails?["state"] as? String
+        cardSourceParams.address = Mappers.mapToAddress(address: billingDetails)
 
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
             if let token = token {
