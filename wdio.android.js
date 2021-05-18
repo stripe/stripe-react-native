@@ -45,7 +45,7 @@ exports.config = {
     timeout: 200000,
   },
   specFileRetries: 1,
-  specs: ['./__tests__/*.test.android.ts', './__tests__/*.test.ts'],
+  specs: ['./e2e/*.test.android.ts', './e2e/*.test.ts'],
   capabilities: [
     {
       maxInstances: 1,
