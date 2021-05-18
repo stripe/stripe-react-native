@@ -7,8 +7,8 @@ export namespace CardFieldInput {
 
   export interface Details {
     last4: string;
-    expiryMonth: string;
-    expiryYear: string;
+    expiryMonth: number;
+    expiryYear: number;
     postalCode?: string;
     brand: Card.Brand;
     complete: boolean;

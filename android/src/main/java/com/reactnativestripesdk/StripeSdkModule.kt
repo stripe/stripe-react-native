@@ -362,7 +362,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         return
       }
     }
-    val billingDetails = getMapOrNull(params, "billingDetails")
+    val address = getMapOrNull(params, "address")
     val instance = cardFieldManager.getCardViewInstance()
     val cardParams = instance?.cardParams?.toParamMap() ?: run {
       promise.reject(CreateTokenErrorType.Failed.toString(), "Card details not complete")
@@ -374,7 +374,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       expMonth = cardParams["exp_month"] as Int,
       expYear = cardParams["exp_year"] as Int,
       cvc = cardParams["cvc"] as String,
-      address = mapToAddress(billingDetails)
+      address = mapToAddress(address)
     )
     runBlocking {
       val token = stripe.createCardToken(

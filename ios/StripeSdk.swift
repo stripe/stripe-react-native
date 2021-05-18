@@ -458,7 +458,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let billingDetails = params["billingDetails"] as? NSDictionary
+        let address = params["address"] as? NSDictionary
         
         if let type = params["type"] as? String {
             if (type != "Card") {
@@ -479,7 +479,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         cardSourceParams.cvc = cardParams.cvc
         cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
         cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
-        cardSourceParams.address = Mappers.mapToAddress(address: billingDetails)
+        cardSourceParams.address = Mappers.mapToAddress(address: address)
 
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
             if let token = token {

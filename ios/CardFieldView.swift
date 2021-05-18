@@ -111,8 +111,8 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         if onCardChange != nil {
             let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
             var cardData: [String: Any] = [
-                "expiryMonth": textField.cardParams.expMonth?.stringValue ?? "",
-                "expiryYear": textField.cardParams.expYear?.stringValue ?? "",
+                "expiryMonth": textField.cardParams.expMonth ?? 0,
+                "expiryYear": textField.cardParams.expYear ?? 0,
                 "complete": textField.isValid,
                 "brand": Mappers.mapCardBrand(brand),
                 "last4": textField.cardParams.last4 ?? ""

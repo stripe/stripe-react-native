@@ -58,6 +58,6 @@ export namespace Card {
 
   export interface CreateTokenParams {
     type: 'Card' | 'BankAccount' | 'PII' | 'Person';
-    billingDetails: Address;
+    address?: Address;
   }
 }
