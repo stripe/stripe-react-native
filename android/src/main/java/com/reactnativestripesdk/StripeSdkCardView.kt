@@ -46,13 +46,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     if (value) {
       val binding = CardInputWidgetBinding.bind(mCardWidget)
       binding.cardNumberEditText.requestFocus()
+      binding.cardNumberEditText.showSoftKeyboard()
     }
   }
 
-  fun showKeyboard() {
-    val binding = CardInputWidgetBinding.bind(mCardWidget)
-    binding.cardNumberEditText.showSoftKeyboard()
-  }
 
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
@@ -168,7 +165,6 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
-          showKeyboard();
           mEventDispatcher?.dispatchEvent(
             CardFocusEvent(id, focusField.name))
         }
