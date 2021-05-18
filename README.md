@@ -35,6 +35,8 @@ npm install @stripe/stripe-react-native
 
 ### Expo
 
+> **Please note**: Expo is currently supported via [EAS Build](https://docs.expo.io/build/introduction/) and `expo run:[ios | android]`, but usage of this library in the Expo Go app is still in progress.
+
 If you're using Expo, add:
 
 ```json

@@ -3,6 +3,15 @@ import { resolve } from 'path';
 
 import { setApplePayEntitlement, setGooglePayMetaData } from '../withStripe';
 
+jest.mock(
+  '@stripe/stripe-react-native/package.json',
+  () => ({
+    name: 'stripe-react-native',
+    version: '0.1.1',
+  }),
+  { virtual: true }
+);
+
 const {
   getMainApplicationOrThrow,
   readAndroidManifestAsync,
