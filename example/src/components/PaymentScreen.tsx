@@ -31,7 +31,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   ) : (
     <ScrollView
       accessibilityLabel="payment-screen"
-      keyboardShouldPersistTaps="always"
+      keyboardShouldPersistTaps="never"
       style={styles.container}
     >
       {children}
