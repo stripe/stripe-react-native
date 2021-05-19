@@ -40,7 +40,7 @@ export namespace Card {
   export interface Params {
     country: string;
     brand: Card.Brand;
-    currency: string;
+    currency?: string;
     expMonth: number;
     expYear: number;
     last4: string;
@@ -49,15 +49,15 @@ export namespace Card {
   }
 
   export interface Address {
-    addressCity: 'Houston';
-    addressCountry: 'US';
-    addressLine1: '1459  Circle Drive';
-    addressLine2: 'Texas';
-    addressPostalCode: '77063';
+    city?: string;
+    country?: string;
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
   }
 
   export interface CreateTokenParams {
-    type: 'Card' | 'BankAccount' | 'PII' | 'Person';
+    type: 'Card' | 'BankAccount' | 'PII' | 'Person' | 'Account';
     address?: Address;
   }
 }

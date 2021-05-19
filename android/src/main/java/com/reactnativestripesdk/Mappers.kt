@@ -208,12 +208,12 @@ internal fun mapFromCard(card: Card?): WritableMap? {
   cardMap.putString("last4", card.last4)
   cardMap.putString("funding", card.funding?.name)
 
-  address.putString("addressCity", card.addressCity)
-  address.putString("addressCountry", card.addressCountry)
-  address.putString("addressLine1", card.addressLine1)
-  address.putString("addressLine2", card.addressLine2)
-  address.putString("addressState", card.addressState)
-  address.putString("addressPostalCode", card.addressZip)
+  address.putString("city", card.addressCity)
+  address.putString("country", card.addressCountry)
+  address.putString("line1", card.addressLine1)
+  address.putString("line2", card.addressLine2)
+  address.putString("state", card.addressState)
+  address.putString("postalCode", card.addressZip)
 
   cardMap.putMap("address", address)
 
