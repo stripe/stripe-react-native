@@ -23,6 +23,7 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
+  onBlur?(): void;
 }
 
 /**
@@ -46,6 +47,7 @@ export interface Props extends AccessibilityProps {
 export function CardField({
   onCardChange,
   onFocus,
+  onBlur,
   cardStyle,
   placeholder,
   postalCodeEnabled,
@@ -77,9 +79,14 @@ export function CardField({
         focusedField: Nullable<CardFieldInput.Names>;
       }>
     ) => {
-      onFocus?.(event.nativeEvent.focusedField);
+      const { focusedField } = event.nativeEvent;
+      if (focusedField) {
+        onFocus?.(focusedField);
+      } else {
+        onBlur?.();
+      }
     },
-    [onFocus]
+    [onFocus, onBlur]
   );
 
   return (

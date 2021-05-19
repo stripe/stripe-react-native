@@ -115,6 +115,10 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         onFocusChange?(["focusedField": "PostalCode"])
     }
     
+    func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": NSNull()])
+    }
+    
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
         if onCardChange != nil {
             let brand = STPCardValidator.brand(forNumber: textField.cardParams.number ?? "")
