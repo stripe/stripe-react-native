@@ -421,7 +421,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
       PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CONTINUE
     )
 
-  getStringOrNull(params, "backgroundColor")?.let {
+  getStringOrNull(params, "accentColor")?.let {
     uiCustomization.setAccentColor(it)
   }
 
