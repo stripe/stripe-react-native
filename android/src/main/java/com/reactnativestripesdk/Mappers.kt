@@ -365,12 +365,12 @@ internal fun mapToAddress(addressMap: ReadableMap?): Address? {
     return null
   }
   return Address.Builder()
-    .setPostalCode(getValOr(addressMap, "addressPostalCode"))
-    .setCity(getValOr(addressMap, "addressCity"))
-    .setCountry(getValOr(addressMap, "addressCountry"))
-    .setLine1(getValOr(addressMap, "addressLine1"))
-    .setLine2(getValOr(addressMap, "addressLine2"))
-    .setState(getValOr(addressMap, "addressState"))
+    .setPostalCode(getValOr(addressMap, "postalCode"))
+    .setCity(getValOr(addressMap, "city"))
+    .setCountry(getValOr(addressMap, "country"))
+    .setLine1(getValOr(addressMap, "line1"))
+    .setLine2(getValOr(addressMap, "line2"))
+    .setState(getValOr(addressMap, "state"))
     .build()
 }
 
@@ -378,7 +378,14 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.Bi
   if (billingDetails == null) {
     return null
   }
-  val address = mapToAddress(billingDetails)
+  val address = Address.Builder()
+    .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
+    .setCity(getValOr(billingDetails, "addressCity"))
+    .setCountry(getValOr(billingDetails, "addressCountry"))
+    .setLine1(getValOr(billingDetails, "addressLine1"))
+    .setLine2(getValOr(billingDetails, "addressLine2"))
+    .setState(getValOr(billingDetails, "addressState"))
+    .build()
 
   return PaymentMethod.BillingDetails.Builder()
     .setAddress(address)
