@@ -19,7 +19,7 @@ export namespace Card {
 
   export interface Token {
     id: string;
-    created: number;
+    created: string;
     type: TokenType;
     used: boolean;
     livemode: boolean;

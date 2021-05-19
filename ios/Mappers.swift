@@ -698,9 +698,9 @@ class Mappers {
         return uiCustomization
     }
     
-    class func convertDateToUnixTimestamp(date: Date?) -> UInt64? {
+    class func convertDateToUnixTimestamp(date: Date?) -> String? {
         if let date = date {
-            return UInt64(date.timeIntervalSince1970 * 1000.0)
+            return String(date.timeIntervalSince1970 * 1000.0)
         }
         return nil
     }
