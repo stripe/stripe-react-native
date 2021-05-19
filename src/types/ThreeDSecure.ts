@@ -3,7 +3,11 @@ export interface ThreeDSecureConfigurationParams extends ThreeDSecure.Props {
   label?: ThreeDSecure.LabelProps;
   navigationBar?: ThreeDSecure.NavigationBarProps;
   textField?: ThreeDSecure.TextFieldProps;
-  submitButton?: ThreeDSecure.SubmitButtonProps;
+  submitButton?: ThreeDSecure.ButtonProps;
+  cancelButton?: ThreeDSecure.ButtonProps;
+  continueButton?: ThreeDSecure.ButtonProps;
+  nextButton?: ThreeDSecure.ButtonProps;
+  resendButton?: ThreeDSecure.ButtonProps;
 }
 
 export namespace ThreeDSecure {
@@ -68,7 +72,7 @@ export namespace ThreeDSecure {
     textFontSize?: number;
   }
 
-  export interface SubmitButtonProps {
+  export interface ButtonProps {
     backgroundColor?: string;
     borderRadius?: number;
     textColor?: string;
