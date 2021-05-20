@@ -57,7 +57,7 @@ export namespace Card {
   }
 
   export interface CreateTokenParams {
-    type: 'Card' | 'BankAccount' | 'PII' | 'Person' | 'Account';
+    type: 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
     address?: Address;
   }
 }

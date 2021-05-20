@@ -203,10 +203,22 @@ internal fun mapFromCard(card: Card?): WritableMap? {
   cardMap.putString("country", card.country)
   cardMap.putString("brand", mapCardBrand(card.brand))
   cardMap.putString("currency", card.currency)
-  cardMap.putInt("expMonth", card.expMonth ?: 0)
-  cardMap.putInt("expYear", card.expYear ?: 0)
+
+  (card.expMonth)?.let {
+    cardMap.putInt("expMonth", it)
+  } ?: run {
+    cardMap.putNull("expMonth")
+  }
+
+  (card.expYear)?.let {
+    cardMap.putInt("expYear", it)
+  } ?: run {
+    cardMap.putNull("expYear")
+  }
+
   cardMap.putString("last4", card.last4)
   cardMap.putString("funding", card.funding?.name)
+  cardMap.putString("name", card.name)
 
   address.putString("city", card.addressCity)
   address.putString("country", card.addressCountry)

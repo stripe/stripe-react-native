@@ -85,9 +85,6 @@ class Mappers {
     
     class func mapFromAddress(address: STPAddress?) -> NSDictionary {
         let result: NSDictionary = [
-            "email": address?.email ?? NSNull(),
-            "phone": address?.phone ?? NSNull(),
-            "name": address?.name ?? NSNull(),
             "city": address?.city ?? NSNull(),
             "postalCode": address?.postalCode ?? NSNull(),
             "country": address?.country ?? NSNull(),
@@ -101,15 +98,12 @@ class Mappers {
     
     class func mapToAddress(address: NSDictionary?) -> STPAddress {
         let result = STPAddress()
-        result.email = address?["email"] as? String
-        result.phone = address?["phone"] as? String
-        result.name = address?["name"] as? String
-        result.city = address?["addressCity"] as? String
-        result.country = address?["addressCountry"] as? String
-        result.line1 = address?["addressLine1"] as? String
-        result.line2 = address?["addressLine2"] as? String
-        result.postalCode = address?["addressPostalCode"] as? String
-        result.state = address?["addressState"] as? String
+        result.city = address?["city"] as? String
+        result.country = address?["country"] as? String
+        result.line1 = address?["line1"] as? String
+        result.line2 = address?["line2"] as? String
+        result.postalCode = address?["postalCode"] as? String
+        result.state = address?["state"] as? String
         
         return result
     }
