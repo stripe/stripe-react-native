@@ -69,8 +69,8 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 
 Compatible with apps targeting iOS 11 or above.
 
-sdk uses typescript features available from `>= 7.9.0` babel version,
-you can either upgrade babel or use `plugin-transform-typescript` plugin to handle this.
+The SDK uses TypeScript features available in Babel version `7.9.0` and above.
+Alternatively use the `plugin-transform-typescript` plugin in your project.
 
 You'll need to run `pod install` in your `ios` directory to install the native dependencies.
 
