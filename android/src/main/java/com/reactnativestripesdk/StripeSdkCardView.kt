@@ -90,11 +90,11 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.expiryDateEditText.textSize = it.toFloat()
       binding.postalCodeEditText.textSize = it.toFloat()
     }
-    fontSize?.let {
-      binding.cardNumberEditText.typeface = Typeface.createFromAsset(context.assets, "fonts/yourfont.ttf")
-      binding.cvcEditText.typeface = Typeface.create("sans-serif-bold", Typeface.NORMAL)
-      binding.expiryDateEditText.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-      binding.postalCodeEditText.typeface = Typeface.create("sans-serif-bold", Typeface.NORMAL)
+    fontFamily?.let {
+      binding.cardNumberEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.cvcEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.expiryDateEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.postalCodeEditText.typeface = Typeface.create(it, Typeface.NORMAL)
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)
