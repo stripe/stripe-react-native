@@ -15,7 +15,7 @@ export interface Props {
    *    handler([
    *      { label: 'Example item name 1', amount: '11.00' },
    *      { label: 'Example item name 2', amount: '25.00' },
-   *   ], ['country']);
+   *   ]);
    *  }
    * })
    * ```
@@ -23,8 +23,7 @@ export interface Props {
   onShippingMethodSelected?: (
     shippingMethod: ApplePay.ShippingMethod,
     handler: (
-      summaryItems: ApplePay.CartSummaryItem[],
-      errorAddressFields?: ApplePay.AddressFields[]
+      summaryItems: ApplePay.CartSummaryItem[]
     ) => Promise<{
       error?: StripeError<ApplePayError>;
     }>
