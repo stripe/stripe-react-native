@@ -23,6 +23,7 @@ export namespace CardFieldInput {
     placeholderColor?: string;
     cursorColor?: string;
     textErrorColor?: string;
+    fontFamily?: string;
   }
 
   export interface Placeholders {

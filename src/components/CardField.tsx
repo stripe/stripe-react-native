@@ -97,6 +97,7 @@ export function CardField({
         placeholderColor: cardStyle?.placeholderColor,
         textColor: cardStyle?.textColor,
         textErrorColor: cardStyle?.textErrorColor,
+        fontFamily: cardStyle?.fontFamily,
       }}
       placeholder={{
         number: placeholder?.number,
