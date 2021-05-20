@@ -480,6 +480,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
         cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
         cardSourceParams.address = Mappers.mapToAddress(address: address)
+        cardSourceParams.name = params["name"] as? String
 
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
             if let token = token {

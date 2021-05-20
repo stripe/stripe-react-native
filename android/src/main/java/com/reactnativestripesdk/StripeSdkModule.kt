@@ -374,7 +374,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       expMonth = cardParams["exp_month"] as Int,
       expYear = cardParams["exp_year"] as Int,
       cvc = cardParams["cvc"] as String,
-      address = mapToAddress(address)
+      address = mapToAddress(address),
+      name = getValOr(params, "name", null)
     )
     runBlocking {
       val token = stripe.createCardToken(
