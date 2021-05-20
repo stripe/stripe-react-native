@@ -242,7 +242,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     }
     
     @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
-    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [String], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted", nil)
             return
@@ -256,8 +256,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
-        let shippingAddressErrors = Mappers.mapAddressFields(errorAddressFields).map {
-            PKPaymentRequest.paymentShippingAddressInvalidError(withKey: $0, localizedDescription: $0 + " field error")
+        var shippingAddressErrors: [Error] = []
+
+        for item in errorAddressFields {
+            let field = item["field"] as! String
+            let message = item["message"] as? String ?? field + " error"
+            shippingAddressErrors.append(PKPaymentRequest.paymentShippingAddressInvalidError(withKey: field, localizedDescription: message))
         }
 
         shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))

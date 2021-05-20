@@ -107,7 +107,10 @@ export const presentApplePay = async (
 
 export const updateApplePaySummaryItems = async (
   summaryItems: ApplePay.CartSummaryItem[],
-  errorAddressFields: ApplePay.AddressFields[] = []
+  errorAddressFields: Array<{
+    field: ApplePay.AddressFields;
+    message?: string;
+  }> = []
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {

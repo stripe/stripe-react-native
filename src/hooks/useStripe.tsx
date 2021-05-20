@@ -87,7 +87,10 @@ export function useStripe() {
   const _updateApplePaySummaryItems = useCallback(
     async (
       summaryItems: ApplePay.CartSummaryItem[],
-      errorAddressFields: ApplePay.AddressFields[] = []
+      errorAddressFields: Array<{
+        field: ApplePay.AddressFields;
+        message?: string;
+      }> = []
     ): Promise<ApplePayResult> => {
       return updateApplePaySummaryItems(summaryItems, errorAddressFields);
     },
