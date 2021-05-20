@@ -335,12 +335,21 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   val labelCustomization = getMapOrNull(params, "label")
   val navigationBarCustomization = params.getMap("navigationBar")
   val textBoxCustomization = getMapOrNull(params, "textField")
-  val buttonCustomization = getMapOrNull(params, "submitButton")
+  val submitButtonCustomization = getMapOrNull(params, "submitButton")
+  val cancelButtonCustomization = getMapOrNull(params, "cancelButton")
+  val nextButtonCustomization = getMapOrNull(params, "nextButton")
+  val continueButtonCustomization = getMapOrNull(params, "continueButton")
+  val resendButtonCustomization = getMapOrNull(params, "resendButton")
 
   val labelCustomizationBuilder = PaymentAuthConfig.Stripe3ds2LabelCustomization.Builder()
   val toolbarCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ToolbarCustomization.Builder()
   val textBoxCustomizationBuilder = PaymentAuthConfig.Stripe3ds2TextBoxCustomization.Builder()
-  val buttonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
+
+  val submitButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
+  val cancelButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
+  val nextButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
+  val continueButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
+  val resendButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
 
   getStringOrNull(labelCustomization,"headingTextColor")?.let {
     labelCustomizationBuilder.setHeadingTextColor(it)
@@ -390,18 +399,76 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
     textBoxCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(buttonCustomization, "backgroundColor")?.let {
-    buttonCustomizationBuilder.setBackgroundColor(it)
+  // Submit button
+  getStringOrNull(submitButtonCustomization, "backgroundColor")?.let {
+    submitButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(buttonCustomization, "borderRadius")?.let {
-    buttonCustomizationBuilder.setCornerRadius(it)
+  getIntOrNull(submitButtonCustomization, "borderRadius")?.let {
+    submitButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(buttonCustomization, "textColor")?.let {
-    buttonCustomizationBuilder.setTextColor(it)
+  getStringOrNull(submitButtonCustomization, "textColor")?.let {
+    submitButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(buttonCustomization, "textFontSize")?.let {
-    buttonCustomizationBuilder.setTextFontSize(it)
+  getIntOrNull(submitButtonCustomization, "textFontSize")?.let {
+    submitButtonCustomizationBuilder.setTextFontSize(it)
   }
+
+  // Cancel button
+  getStringOrNull(cancelButtonCustomization, "backgroundColor")?.let {
+    cancelButtonCustomizationBuilder.setBackgroundColor(it)
+  }
+  getIntOrNull(cancelButtonCustomization, "borderRadius")?.let {
+    cancelButtonCustomizationBuilder.setCornerRadius(it)
+  }
+  getStringOrNull(cancelButtonCustomization, "textColor")?.let {
+    cancelButtonCustomizationBuilder.setTextColor(it)
+  }
+  getIntOrNull(cancelButtonCustomization, "textFontSize")?.let {
+    cancelButtonCustomizationBuilder.setTextFontSize(it)
+  }
+
+  // Continue button
+  getStringOrNull(continueButtonCustomization, "backgroundColor")?.let {
+    continueButtonCustomizationBuilder.setBackgroundColor(it)
+  }
+  getIntOrNull(continueButtonCustomization, "borderRadius")?.let {
+    continueButtonCustomizationBuilder.setCornerRadius(it)
+  }
+  getStringOrNull(continueButtonCustomization, "textColor")?.let {
+    continueButtonCustomizationBuilder.setTextColor(it)
+  }
+  getIntOrNull(continueButtonCustomization, "textFontSize")?.let {
+    continueButtonCustomizationBuilder.setTextFontSize(it)
+  }
+
+  // Next button
+  getStringOrNull(nextButtonCustomization, "backgroundColor")?.let {
+    nextButtonCustomizationBuilder.setBackgroundColor(it)
+  }
+  getIntOrNull(nextButtonCustomization, "borderRadius")?.let {
+    nextButtonCustomizationBuilder.setCornerRadius(it)
+  }
+  getStringOrNull(nextButtonCustomization, "textColor")?.let {
+    nextButtonCustomizationBuilder.setTextColor(it)
+  }
+  getIntOrNull(nextButtonCustomization, "textFontSize")?.let {
+    nextButtonCustomizationBuilder.setTextFontSize(it)
+  }
+
+  // Resend button
+  getStringOrNull(resendButtonCustomization, "backgroundColor")?.let {
+    resendButtonCustomizationBuilder.setBackgroundColor(it)
+  }
+  getIntOrNull(resendButtonCustomization, "borderRadius")?.let {
+    resendButtonCustomizationBuilder.setCornerRadius(it)
+  }
+  getStringOrNull(resendButtonCustomization, "textColor")?.let {
+    resendButtonCustomizationBuilder.setTextColor(it)
+  }
+  getIntOrNull(resendButtonCustomization, "textFontSize")?.let {
+    resendButtonCustomizationBuilder.setTextFontSize(it)
+  }
+
 
 
   val uiCustomization = PaymentAuthConfig.Stripe3ds2UiCustomization.Builder()
@@ -412,16 +479,27 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
       toolbarCustomizationBuilder.build()
     )
     .setButtonCustomization(
-      buttonCustomizationBuilder.build(),
+      submitButtonCustomizationBuilder.build(),
       PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SUBMIT
     )
-
     .setButtonCustomization(
-      buttonCustomizationBuilder.build(),
+      continueButtonCustomizationBuilder.build(),
       PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CONTINUE
     )
+    .setButtonCustomization(
+      nextButtonCustomizationBuilder.build(),
+      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SELECT
+    )
+    .setButtonCustomization(
+      cancelButtonCustomizationBuilder.build(),
+      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CANCEL
+    )
+    .setButtonCustomization(
+      resendButtonCustomizationBuilder.build(),
+      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.RESEND
+    )
 
-  getStringOrNull(params, "backgroundColor")?.let {
+  getStringOrNull(params, "accentColor")?.let {
     uiCustomization.setAccentColor(it)
   }
 

@@ -557,11 +557,90 @@ class Mappers {
             if let textColor = submitButtonSettings["textColor"] as? String {
                 buttonCustomization.textColor = UIColor(hexString: textColor)
             }
+            
+            uiCustomization.setButtonCustomization(buttonCustomization, for: STPThreeDSCustomizationButtonType.submit)
+        }
+        
+        if let submitButtonSettings = params["cancelButton"] as? Dictionary<String, Any?> {
+            let buttonCustomization = uiCustomization.buttonCustomization(for: STPThreeDSCustomizationButtonType.cancel)
+            
+            if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
+                buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let borderRadius = submitButtonSettings["borderRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(borderRadius)
+            }
+            if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
+                buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = submitButtonSettings["textColor"] as? String {
+                buttonCustomization.textColor = UIColor(hexString: textColor)
+            }
+            
+            uiCustomization.setButtonCustomization(buttonCustomization, for: STPThreeDSCustomizationButtonType.cancel)
+        }
+        
+        if let submitButtonSettings = params["continueButton"] as? Dictionary<String, Any?> {
+            let buttonCustomization = uiCustomization.buttonCustomization(for: STPThreeDSCustomizationButtonType.continue)
+            
+            if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
+                buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let borderRadius = submitButtonSettings["borderRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(borderRadius)
+            }
+            if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
+                buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = submitButtonSettings["textColor"] as? String {
+                buttonCustomization.textColor = UIColor(hexString: textColor)
+            }
+            
+            uiCustomization.setButtonCustomization(buttonCustomization, for: STPThreeDSCustomizationButtonType.continue)
+        }
+        
+        if let submitButtonSettings = params["nextButton"] as? Dictionary<String, Any?> {
+            let buttonCustomization = uiCustomization.buttonCustomization(for: STPThreeDSCustomizationButtonType.next)
+            
+            if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
+                buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let borderRadius = submitButtonSettings["borderRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(borderRadius)
+            }
+            if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
+                buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = submitButtonSettings["textColor"] as? String {
+                buttonCustomization.textColor = UIColor(hexString: textColor)
+            }
+            
+            uiCustomization.setButtonCustomization(buttonCustomization, for: STPThreeDSCustomizationButtonType.next)
+        }
+        
+        if let submitButtonSettings = params["resendButton"] as? Dictionary<String, Any?> {
+            let buttonCustomization = uiCustomization.buttonCustomization(for: STPThreeDSCustomizationButtonType.resend)
+            
+            if let backgroundColor = submitButtonSettings["backgroundColor"] as? String {
+                buttonCustomization.backgroundColor = UIColor(hexString: backgroundColor)
+            }
+            if let borderRadius = submitButtonSettings["borderRadius"] as? Int {
+                buttonCustomization.cornerRadius = CGFloat(borderRadius)
+            }
+            if let textFontSize = submitButtonSettings["textFontSize"] as? Int {
+                buttonCustomization.font = UIFont.systemFont(ofSize: CGFloat(textFontSize))
+            }
+            if let textColor = submitButtonSettings["textColor"] as? String {
+                buttonCustomization.textColor = UIColor(hexString: textColor)
+            }
+            
+            uiCustomization.setButtonCustomization(buttonCustomization, for: STPThreeDSCustomizationButtonType.resend)
         }
         
         if let backgroundColor = params["backgroundColor"] as? String {
             uiCustomization.backgroundColor = UIColor(hexString: backgroundColor)
         }
+        
         
         return uiCustomization
     }
