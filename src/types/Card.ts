@@ -46,6 +46,7 @@ export namespace Card {
     last4: string;
     funding: 'Credit' | 'Debit' | 'Prepaid' | 'Unknown';
     address: Address;
+    name?: string;
   }
 
   export interface Address {
@@ -54,6 +55,7 @@ export namespace Card {
     line1?: string;
     line2?: string;
     postalCode?: string;
+    state?: string;
   }
 
   export interface CreateTokenParams {
