@@ -1,13 +1,16 @@
 package com.reactnativestripesdk
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
+import androidx.core.content.res.ResourcesCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
@@ -59,6 +62,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
     val fontSize = getIntOrNull(value, "fontSize")
+    val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -85,6 +89,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.cvcEditText.textSize = it.toFloat()
       binding.expiryDateEditText.textSize = it.toFloat()
       binding.postalCodeEditText.textSize = it.toFloat()
+    }
+    fontSize?.let {
+      binding.cardNumberEditText.typeface = Typeface.createFromAsset(context.assets, "fonts/yourfont.ttf")
+      binding.cvcEditText.typeface = Typeface.create("sans-serif-bold", Typeface.NORMAL)
+      binding.expiryDateEditText.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+      binding.postalCodeEditText.typeface = Typeface.create("sans-serif-bold", Typeface.NORMAL)
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)
