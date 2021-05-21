@@ -43,7 +43,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var confirmPaymentClientSecret: String? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
-    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
         override fun onSuccess(result: SetupIntentResult) {
           val setupIntent = result.intent
