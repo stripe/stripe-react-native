@@ -142,6 +142,110 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
+internal fun mapTokenType(type: Token.Type): String {
+  return when (type) {
+    Token.Type.Account -> "Account"
+    Token.Type.BankAccount -> "BankAccount"
+    Token.Type.Card -> "Card"
+    Token.Type.CvcUpdate -> "CvcUpdate"
+    Token.Type.Person -> "Person"
+    Token.Type.Pii -> "Pii"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccountType(type: BankAccount.Type?): String {
+  return when (type) {
+    BankAccount.Type.Company -> "Company"
+    BankAccount.Type.Individual -> "Individual"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String {
+  return when (status) {
+    BankAccount.Status.Errored -> "Errored"
+    BankAccount.Status.New -> "New"
+    BankAccount.Status.Validated -> "Validated"
+    BankAccount.Status.VerificationFailed -> "VerificationFailed"
+    BankAccount.Status.Verified -> "Verified"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
+  val bankAccountMap: WritableMap = WritableNativeMap()
+
+  if (bankAccount == null) {
+    return null
+  }
+
+  bankAccountMap.putString("bankName", bankAccount.bankName)
+  bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
+  bankAccountMap.putString("accountHolderType", mapFromBankAccountType(bankAccount.accountHolderType))
+  bankAccountMap.putString("currency", bankAccount.currency)
+  bankAccountMap.putString("country", bankAccount.countryCode)
+  bankAccountMap.putString("routingNumber", bankAccount.routingNumber)
+  bankAccountMap.putString("status", mapFromBankAccountStatus(bankAccount.status))
+
+  return bankAccountMap
+}
+
+internal fun mapFromCard(card: Card?): WritableMap? {
+  val cardMap: WritableMap = WritableNativeMap()
+
+  if (card == null) {
+    return null
+  }
+
+  val address: WritableMap = WritableNativeMap()
+
+  cardMap.putString("country", card.country)
+  cardMap.putString("brand", mapCardBrand(card.brand))
+  cardMap.putString("currency", card.currency)
+
+  (card.expMonth)?.let {
+    cardMap.putInt("expMonth", it)
+  } ?: run {
+    cardMap.putNull("expMonth")
+  }
+
+  (card.expYear)?.let {
+    cardMap.putInt("expYear", it)
+  } ?: run {
+    cardMap.putNull("expYear")
+  }
+
+  cardMap.putString("last4", card.last4)
+  cardMap.putString("funding", card.funding?.name)
+  cardMap.putString("name", card.name)
+
+  address.putString("city", card.addressCity)
+  address.putString("country", card.addressCountry)
+  address.putString("line1", card.addressLine1)
+  address.putString("line2", card.addressLine2)
+  address.putString("state", card.addressState)
+  address.putString("postalCode", card.addressZip)
+
+  cardMap.putMap("address", address)
+
+  return cardMap
+}
+
+
+internal fun mapFromToken(token: Token): WritableMap {
+  val tokenMap: WritableMap = WritableNativeMap()
+
+  tokenMap.putString("id", token.id)
+  tokenMap.putString("created", token.created.time.toString())
+  tokenMap.putString("type", mapTokenType(token.type))
+  tokenMap.putBoolean("livemode", token.livemode)
+  tokenMap.putMap("bankAccount", mapFromBankAccount(token.bankAccount))
+  tokenMap.putMap("card", mapFromCard(token.card))
+
+  return tokenMap
+}
+
 internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   val pm: WritableMap = WritableNativeMap()
   val card: WritableMap = WritableNativeMap()
@@ -266,6 +370,20 @@ internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Ty
 
 fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
+}
+
+internal fun mapToAddress(addressMap: ReadableMap?): Address? {
+  if (addressMap == null) {
+    return null
+  }
+  return Address.Builder()
+    .setPostalCode(getValOr(addressMap, "postalCode"))
+    .setCity(getValOr(addressMap, "city"))
+    .setCountry(getValOr(addressMap, "country"))
+    .setLine1(getValOr(addressMap, "line1"))
+    .setLine2(getValOr(addressMap, "line2"))
+    .setState(getValOr(addressMap, "state"))
+    .build()
 }
 
 internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.BillingDetails? {

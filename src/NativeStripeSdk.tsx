@@ -9,6 +9,7 @@ import type {
   PaymentSheet,
   ConfirmSetupIntent,
   InitialiseParams,
+  Card,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -28,7 +29,11 @@ type NativeStripeSdkType = {
   presentApplePay(params: ApplePay.PresentParams): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   updateApplePaySummaryItems(
-    summaryItems: ApplePay.CartSummaryItem[]
+    summaryItems: ApplePay.CartSummaryItem[],
+    errorAddressFields: Array<{
+      field: ApplePay.AddressFields;
+      message?: string;
+    }>
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
@@ -47,6 +52,7 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<void>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
   handleURLCallback(url: string): Promise<boolean>;
+  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
 };
 
 const { StripeSdk } = NativeModules;

@@ -1,15 +1,16 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 import type { Nullable } from '../';
+import type { Card } from '../Card';
 
 export namespace CardFieldInput {
   export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
   export interface Details {
     last4: string;
-    expiryMonth: string;
-    expiryYear: string;
+    expiryMonth: number;
+    expiryYear: number;
     postalCode?: string;
-    brand: Brand;
+    brand: Card.Brand;
     complete: boolean;
   }
 
@@ -31,16 +32,6 @@ export namespace CardFieldInput {
     cvc?: string;
     postalCode?: string;
   }
-
-  export type Brand =
-    | 'AmericanExpress'
-    | 'DinersClub'
-    | 'Discover'
-    | 'JCB'
-    | 'MasterCard'
-    | 'UnionPay'
-    | 'Visa'
-    | 'Unknown';
 
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
