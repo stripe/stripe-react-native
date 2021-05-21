@@ -480,7 +480,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
         guard let cardParams = cardFieldView?.cardParams else {
-            reject(CreateTokenErrorType.Failed.rawValue, "You must provide card details", nil)
+            reject(CreateTokenErrorType.Failed.rawValue, "Card details not complete", nil)
             return
         }
         
