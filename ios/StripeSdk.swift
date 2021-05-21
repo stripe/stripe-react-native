@@ -452,6 +452,45 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
+    @objc(createToken:resolver:rejecter:)
+    func createToken(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let address = params["address"] as? NSDictionary
+        
+        if let type = params["type"] as? String {
+            if (type != "Card") {
+                reject(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet", nil)
+            }
+        }
+        
+        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
+        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
+        
+        guard let cardParams = cardFieldView?.cardParams else {
+            reject(CreateTokenErrorType.Failed.rawValue, "You must provide card details", nil)
+            return
+        }
+        
+        let cardSourceParams = STPCardParams()
+        cardSourceParams.number = cardParams.number
+        cardSourceParams.cvc = cardParams.cvc
+        cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
+        cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
+        cardSourceParams.address = Mappers.mapToAddress(address: address)
+        cardSourceParams.name = params["name"] as? String
+
+        STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
+            if let token = token {
+                resolve(Mappers.mapFromToken(token: token))
+            } else {
+                reject(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription, nil)
+            }
+        }
+    }
+    
     @objc(handleCardAction:resolver:rejecter:)
     func handleCardAction(
         paymentIntentClientSecret: String,

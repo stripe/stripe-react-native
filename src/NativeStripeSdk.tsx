@@ -9,6 +9,7 @@ import type {
   PaymentSheet,
   ConfirmSetupIntent,
   InitialiseParams,
+  Card,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -47,6 +48,7 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<void>;
   createTokenForCVCUpdate(cvc: string): Promise<string>;
   handleURLCallback(url: string): Promise<boolean>;
+  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
 };
 
 const { StripeSdk } = NativeModules;

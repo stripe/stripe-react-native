@@ -23,7 +23,7 @@ import com.stripe.android.view.CardInputWidget
 
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
-  val cardDetails: MutableMap<String, Any> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
+  val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "")
   var cardParams: PaymentMethodCreateParams.Card? = null
   private var mEventDispatcher: EventDispatcher?
 
@@ -134,7 +134,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
-  fun getValue(): MutableMap<String, Any> {
+  fun getValue(): MutableMap<String, Any?> {
     return cardDetails
   }
 
@@ -176,10 +176,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         val splitted = var1.toString().split("/")
-        cardDetails["expiryMonth"] = splitted[0]
+        cardDetails["expiryMonth"] = splitted[0].toIntOrNull()
 
         if (splitted.size == 2) {
-          cardDetails["expiryYear"] = var1.toString().split("/")[1]
+          cardDetails["expiryYear"] = var1.toString().split("/")[1].toIntOrNull()
         }
 
         onCardChanged()

@@ -22,6 +22,10 @@ enum PaymentSheetErrorType: String {
     case Failed, Canceled
 }
 
+enum CreateTokenErrorType: String {
+    case Failed
+}
+
 class Errors {
     class func createError (code: String, message: String) -> NSDictionary {
         let error: NSDictionary = [

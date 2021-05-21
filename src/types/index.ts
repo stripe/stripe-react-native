@@ -1,9 +1,11 @@
+import type { Card } from './Card';
 import type {
   ApplePayError,
   CardActionError,
   ConfirmPaymentError,
   ConfirmSetupIntentError,
   CreatePaymentMethodError,
+  CreateTokenError,
   PaymentSheetError,
   RetrievePaymentIntentError,
   StripeError,
@@ -22,8 +24,10 @@ export * from './ThreeDSecure';
 export * from './components/ApplePayButtonComponent';
 export * from './components/AuBECSDebitForm';
 export * from './components/CardFieldInput';
+export * from './Card';
 export * from './Errors';
 export * from './PaymentSheet';
+
 /**
  * @ignore
  */
@@ -125,6 +129,16 @@ export type PresentPaymentSheetResult =
   | {
       paymentOption?: undefined;
       error: StripeError<PaymentSheetError>;
+    };
+
+export type CreateTokenResult =
+  | {
+      token: Card.Token;
+      error?: undefined;
+    }
+  | {
+      token?: undefined;
+      error: StripeError<CreateTokenError>;
     };
 
 export type ConfirmPaymentSheetPaymentResult = {
