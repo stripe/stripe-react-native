@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
@@ -59,6 +60,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
     val fontSize = getIntOrNull(value, "fontSize")
+    val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -85,6 +87,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.cvcEditText.textSize = it.toFloat()
       binding.expiryDateEditText.textSize = it.toFloat()
       binding.postalCodeEditText.textSize = it.toFloat()
+    }
+    fontFamily?.let {
+      binding.cardNumberEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.cvcEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.expiryDateEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.postalCodeEditText.typeface = Typeface.create(it, Typeface.NORMAL)
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)
