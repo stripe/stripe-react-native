@@ -132,6 +132,8 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
         if (textField.isValid) {
             self.cardParams = textField.cardParams
+        } else {
+            self.cardParams = nil
         }
     }
     

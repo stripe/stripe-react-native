@@ -337,8 +337,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
     val instance = cardFieldManager.getCardViewInstance()
-    val cardParams = instance?.cardParams
-            ?: throw PaymentMethodCreateParamsException("Card details not complete")
+    val cardParams = instance?.cardParams ?: run {
+      promise.reject("Failed", "Card details not complete")
+      return
+    }
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,

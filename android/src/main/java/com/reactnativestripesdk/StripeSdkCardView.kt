@@ -139,29 +139,25 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun onCardChanged() {
-    mCardWidget.paymentMethodCard?.let { cardParams = it }
+    mCardWidget.paymentMethodCard?.let { cardParams = it } ?: run {
+      cardParams = null
+    }
+    mCardWidget.cardParams?.let {
+      cardDetails["brand"] = mapCardBrand(it.brand)
+      cardDetails["last4"] = it.last4
+    } ?: run {
+      cardDetails["brand"] = null
+      cardDetails["last4"] = null
+    }
     mEventDispatcher?.dispatchEvent(
       CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null))
   }
 
   private fun setListeners() {
     mCardWidget.setCardInputListener(object : CardInputListener {
-      override fun onCardComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
-
+      override fun onCardComplete() {}
       override fun onExpirationComplete() {}
-      override fun onCvcComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
+      override fun onCvcComplete() {}
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
@@ -195,6 +191,21 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       }
     })
 
+    mCardWidget.setCardNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
+
+    mCardWidget.setCvcNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
   }
 
   override fun requestLayout() {

@@ -441,6 +441,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil)
+            return
         }
         
         guard let params = paymentMethodParams else {
@@ -451,6 +452,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         STPAPIClient.shared.createPaymentMethod(with: params) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
+                return
             }
             
             if let paymentMethod = paymentMethod {
@@ -478,7 +480,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
         guard let cardParams = cardFieldView?.cardParams else {
-            reject(CreateTokenErrorType.Failed.rawValue, "You must provide card details", nil)
+            reject(CreateTokenErrorType.Failed.rawValue, "Card details not complete", nil)
             return
         }
         
