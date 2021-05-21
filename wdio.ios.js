@@ -44,13 +44,13 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
-  specs: ['./__tests__/*.test.ts'],
+  specs: ['./e2e/*.test.ts'],
   capabilities: [
     {
       maxInstances: 1,
       browserName: '',
       appiumVersion: '1.20.2',
-      platformVersion: '',
+      platformVersion: '14.4',
       platformName: 'iOS',
       deviceName: 'iPhone 12',
       app:

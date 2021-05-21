@@ -101,11 +101,11 @@ describe('Example app payments scenarios (common)', () => {
 
     $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
-    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
-
     cardField.setCardNumber('4242424242424242');
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
+
+    getTextInputByPlaceholder('E-mail').setValue('test@stripe.com');
 
     getElementByText('Pay').click();
 

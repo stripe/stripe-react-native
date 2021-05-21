@@ -10,6 +10,7 @@ import {
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
+  CreateTokenResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
@@ -17,6 +18,7 @@ import {
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
 } from './types';
+import type { Card } from './types/Card';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -32,6 +34,21 @@ export const createPaymentMethod = async (
     );
     return {
       paymentMethod,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const createToken = async (
+  params: Card.CreateTokenParams
+): Promise<CreateTokenResult> => {
+  try {
+    const token = await NativeStripeSdk.createToken(params);
+    return {
+      token,
     };
   } catch (error) {
     return {

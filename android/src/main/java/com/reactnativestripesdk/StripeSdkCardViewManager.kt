@@ -28,6 +28,11 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
     view.setPostalCodeEnabled(postalCodeEnabled);
   }
 
+  @ReactProp(name = "autofocus")
+  fun setAutofocus(view: StripeSdkCardView, autofocus: Boolean = false) {
+    view.setAutofocus(autofocus);
+  }
+
   @ReactProp(name = "cardStyle")
   fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
     view.setCardStyle(cardStyle);
