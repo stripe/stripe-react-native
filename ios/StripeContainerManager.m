@@ -2,5 +2,5 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTViewManager.h>
 
-@interface RCT_EXTERN_MODULE(StripeProviderManager, RCTViewManager)
+@interface RCT_EXTERN_MODULE(StripeContainerManager, RCTViewManager)
 @end

@@ -1,9 +1,9 @@
 import Foundation
 
-@objc(StripeProviderManager)
-class StripeProviderManager: RCTViewManager {
+@objc(StripeContainerManager)
+class StripeContainerManager: RCTViewManager {
     override func view() -> UIView! {
-        return StripeProviderView()
+        return StripeContainerView()
     }
         
     override class func requiresMainQueueSetup() -> Bool {

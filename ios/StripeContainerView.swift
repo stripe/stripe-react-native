@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
 
-class StripeProviderView: UIView {
+class StripeContainerView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         

@@ -9,7 +9,6 @@ import type {
   InitialiseParams,
 } from '../types';
 import pjson from '../../package.json';
-import { requireNativeComponent, StyleSheet } from 'react-native';
 
 const EXPO_PARTNER_ID = 'pp_partner_JBN7LkABco2yUu';
 
@@ -42,8 +41,6 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
   const extendedParams: InitialiseParams = { ...params, appInfo };
   NativeStripeSdk.initialise(extendedParams);
 };
-
-const StripeProviderNative = requireNativeComponent<any>('StripeProvider');
 
 /**
  *  StripeProvider Component
@@ -106,15 +103,5 @@ export function StripeProvider({
     setUrlSchemeOnAndroid,
   ]);
 
-  return (
-    <StripeProviderNative style={styles.container}>
-      {publishableKey ? children : null}
-    </StripeProviderNative>
-  );
+  return <>{publishableKey ? children : null}</>;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
