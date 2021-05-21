@@ -241,8 +241,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(updateApplePaySummaryItems:resolver:rejecter:)
-    func updateApplePaySummaryItems(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
+    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted", nil)
             return
@@ -256,8 +256,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
+        var shippingAddressErrors: [Error] = []
+
+        for item in errorAddressFields {
+            let field = item["field"] as! String
+            let message = item["message"] as? String ?? field + " error"
+            shippingAddressErrors.append(PKPaymentRequest.paymentShippingAddressInvalidError(withKey: field, localizedDescription: message))
+        }
+
         shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
-        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
         self.shippingMethodUpdateHandler = nil
         self.shippingContactUpdateHandler = nil
         resolve(NSNull())
@@ -396,7 +404,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         paymentRequest.paymentSummaryItems = paymentSummaryItems
         if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
             DispatchQueue.main.async {
-                applePayContext.presentApplePay(on: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                applePayContext.presentApplePay(completion: nil)
             }
         } else {
             reject(ApplePayErrorType.Failed.rawValue, "Apple pay request failed", nil)

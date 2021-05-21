@@ -8,6 +8,16 @@ export namespace ApplePay {
     | 'phoneticName'
     | 'postalAddress';
 
+  export type AddressFields =
+    | 'street'
+    | 'city'
+    | 'subAdministrativeArea'
+    | 'state'
+    | 'postalCode'
+    | 'country'
+    | 'countryCode'
+    | 'subLocality';
+
   export interface ShippingMethod {
     label: string;
     amount: string;

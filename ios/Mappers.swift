@@ -173,7 +173,7 @@ class Mappers {
         let method: NSDictionary = [
             "detail": shippingMethod.detail ?? "",
             "identifier": shippingMethod.identifier ?? "",
-			"amount": shippingMethod.amount.stringValue,
+            "amount": shippingMethod.amount.stringValue,
             "type": shippingMethod.type,
             "label": shippingMethod.label
         ]
@@ -183,12 +183,12 @@ class Mappers {
     
     class func mapFromShippingContact(shippingContact: PKContact) -> NSDictionary {
         let name: NSDictionary = [
-           "familyName": shippingContact.name?.familyName ?? "",
-           "namePrefix": shippingContact.name?.namePrefix ?? "",
-           "nameSuffix": shippingContact.name?.nameSuffix ?? "",
-           "givenName": shippingContact.name?.givenName ?? "",
-           "middleName": shippingContact.name?.middleName ?? "",
-           "nickname": shippingContact.name?.nickname ?? "",
+            "familyName": shippingContact.name?.familyName ?? "",
+            "namePrefix": shippingContact.name?.namePrefix ?? "",
+            "nameSuffix": shippingContact.name?.nameSuffix ?? "",
+            "givenName": shippingContact.name?.givenName ?? "",
+            "middleName": shippingContact.name?.middleName ?? "",
+            "nickname": shippingContact.name?.nickname ?? "",
         ]
         let contact: NSDictionary = [
             "emailAddress": shippingContact.emailAddress ?? "",
@@ -209,6 +209,28 @@ class Mappers {
         return contact
     }
     
+    class func mapAddressFields(_ addressFields: [String]) -> [String] {
+        return addressFields.map {
+            if ($0 == "street") {
+                return CNPostalAddressStreetKey
+            } else if ($0 == "city") {
+                return CNPostalAddressCityKey
+            } else if ($0 == "subAdministrativeArea") {
+                return CNPostalAddressSubAdministrativeAreaKey
+            } else if ($0 == "state") {
+                return CNPostalAddressStateKey
+            } else if ($0 == "postalCode") {
+                return CNPostalAddressPostalCodeKey
+            } else if ($0 == "country") {
+                return CNPostalAddressCountryKey
+            } else if ($0 == "countryCode") {
+                return CNPostalAddressISOCountryCodeKey
+            } else if ($0 == "subLocality") {
+                return CNPostalAddressSubLocalityKey
+            }
+            return ""
+        }
+    }
     
     class func mapIntentStatus(status: STPPaymentIntentStatus?) -> String {
         if let status = status {
@@ -414,12 +436,12 @@ class Mappers {
         shippingAddress.line1 = shippingDetails["addressLine1"] as? String ?? ""
         shippingAddress.line2 = shippingDetails["addressLine2"] as? String
         shippingAddress.state = shippingDetails["addressState"] as? String
-
+        
         let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
-
+        
         return shipping
     }
-
+    
     class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
         let billing: NSDictionary = [
             "email": billingDetails?.email ?? NSNull(),
@@ -561,7 +583,7 @@ class Mappers {
             "lastSetupError": NSNull()
         ]
         
-    
+        
         let types = setupIntent.paymentMethodTypes.map {
             mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
         }
