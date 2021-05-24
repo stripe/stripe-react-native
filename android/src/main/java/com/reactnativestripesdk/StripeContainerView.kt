@@ -22,7 +22,7 @@ class StripeContainerView(private val context: ThemedReactContext) : FrameLayout
   }
 
   override fun dispatchTouchEvent(event: MotionEvent?): Boolean {
-    if (event!!.action == MotionEvent.ACTION_UP && !keyboardShouldPersistTapsValue) {
+    if (event!!.action == MotionEvent.ACTION_DOWN && !keyboardShouldPersistTapsValue) {
       val v = context.currentActivity!!.currentFocus
       if (v is EditText) {
         val outRect = Rect()
