@@ -203,7 +203,7 @@ Certain payment methods require a [webhook listener](https://stripe.com/docs/pay
 
 ## Troubleshooting
 
-While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by a `react-native init` template configuration that is not fully compatible with Swift 5.1.
+While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by `react-native init` template configuration that is not fully compatible with Swift 5.1.
 
 ```
 Undefined symbols for architecture x86_64:
@@ -215,9 +215,9 @@ Undefined symbols for architecture x86_64:
 
 Follow these steps to resolve this:
 
-- Remove all entries from LIBRARY_SEARCH_PATHS in the Project configuration
-  `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`
-- Open Xcode and create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+- Open your project via Xcode, go to `project -> build settings`, find `library search paths` and remove all swift related entries such as:
+  `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`.
+- Create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
 
 If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://webchat.freenode.net/#stripe).
 
