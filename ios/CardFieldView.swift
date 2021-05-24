@@ -19,7 +19,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-    
+
     @objc var placeholder: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholder["number"] as? String {
@@ -90,7 +90,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-        
+
         self.addSubview(cardField)
     }
     

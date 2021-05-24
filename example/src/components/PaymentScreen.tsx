@@ -1,4 +1,4 @@
-import { initStripe } from '@stripe/stripe-react-native';
+import { initStripe, StripeContainer } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../colors';
@@ -10,6 +10,7 @@ interface Props {
 
 const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     async function initialize() {
       const publishableKey = await fetchPublishableKey(paymentMethod);
@@ -26,18 +27,21 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return loading ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <ScrollView
-      accessibilityLabel="payment-screen"
-      keyboardShouldPersistTaps="always"
-      style={styles.container}
-    >
-      {children}
-      {/* eslint-disable-next-line react-native/no-inline-styles */}
-      <Text style={{ opacity: 0 }}>appium fix</Text>
-    </ScrollView>
+    <StripeContainer keyboardShouldPersistTaps={false}>
+      <ScrollView
+        accessibilityLabel="payment-screen"
+        style={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        {children}
+        {/* eslint-disable-next-line react-native/no-inline-styles */}
+        <Text style={{ opacity: 0 }}>appium fix</Text>
+      </ScrollView>
+    </StripeContainer>
   );
 };
 
