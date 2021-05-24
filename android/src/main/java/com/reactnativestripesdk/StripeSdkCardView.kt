@@ -45,7 +45,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderColor = getValOr(value, "borderColor", null)
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
-    val fontSize = getIntOrNull(value,"fontSize")
+    val fontSize = getIntOrNull(value, "fontSize")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -74,7 +74,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.postalCodeEditText.textSize = it.toFloat()
     }
 
-    mCardWidget.setPadding(40, 0 ,40 ,0)
+    mCardWidget.setPadding(40, 0, 40, 0)
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
@@ -140,6 +140,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         }
         onCardChanged()
       }
+
       override fun onExpirationComplete() {}
       override fun onCvcComplete() {
         mCardWidget.cardParams?.let {
@@ -148,6 +149,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         }
         onCardChanged()
       }
+
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
           mEventDispatcher?.dispatchEvent(

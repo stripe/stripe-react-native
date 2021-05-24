@@ -25,9 +25,15 @@ export interface Props {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function StripeContainer({ children }: Props) {
+export function StripeContainer({
+  keyboardShouldPersistTaps,
+  children,
+}: Props) {
   return (
-    <StripeContainerNative style={styles.container}>
+    <StripeContainerNative
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      style={styles.container}
+    >
       <View style={styles.container} accessible={false}>
         {children}
       </View>
