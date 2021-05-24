@@ -8,7 +8,7 @@ class StripeContainerManager : ViewGroupManager<StripeContainerView>() {
   override fun getName() = "StripeContainer"
 
   @ReactProp(name = "keyboardShouldPersistTaps")
-  fun setCardStyle(view: StripeContainerView, keyboardShouldPersistTaps: Boolean) {
+  fun setKeyboardShouldPersistTaps(view: StripeContainerView, keyboardShouldPersistTaps: Boolean) {
     view.setKeyboardShouldPersistTaps(keyboardShouldPersistTaps);
   }
 

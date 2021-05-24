@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 
 import {
   requireNativeComponent,
@@ -6,9 +6,7 @@ import {
   StyleSheet,
   ViewStyle,
   View,
-  UIManager,
 } from 'react-native';
-import ReactNative from 'react-native';
 
 const StripeContainerNative = requireNativeComponent<any>('StripeContainer');
 
@@ -28,32 +26,9 @@ export interface Props {
  * @category ReactComponents
  */
 export function StripeContainer({ children }: Props) {
-  const ref = useRef<any>();
-
-  function onBlur() {
-    UIManager.dispatchViewManagerCommand(
-      ReactNative.findNodeHandle(ref.current),
-      (UIManager as any).StripeContainer.Commands.updateFromManager,
-      []
-    );
-  }
-
   return (
-    <StripeContainerNative ref={ref} style={styles.container}>
-      <View
-        onStartShouldSetResponder={(evt) => {
-          evt.persist();
-          if (
-            ((evt as unknown) as any)?.viewConfig.uiViewClassName !==
-            'CardField'
-          ) {
-            onBlur();
-          }
-          return false;
-        }}
-        style={styles.container}
-        accessible={false}
-      >
+    <StripeContainerNative style={styles.container}>
+      <View style={styles.container} accessible={false}>
         {children}
       </View>
     </StripeContainerNative>
