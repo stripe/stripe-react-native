@@ -72,8 +72,11 @@ export default function NoWebhookPaymentScreen() {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
+      setLoading(false);
+      return;
     }
     if (!paymentMethod) {
+      setLoading(false);
       return;
     }
 

@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
@@ -59,6 +60,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
     val fontSize = getIntOrNull(value, "fontSize")
+    val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -85,6 +87,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.cvcEditText.textSize = it.toFloat()
       binding.expiryDateEditText.textSize = it.toFloat()
       binding.postalCodeEditText.textSize = it.toFloat()
+    }
+    fontFamily?.let {
+      binding.cardNumberEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.cvcEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.expiryDateEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.postalCodeEditText.typeface = Typeface.create(it, Typeface.NORMAL)
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)
@@ -139,29 +147,25 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   fun onCardChanged() {
-    mCardWidget.paymentMethodCard?.let { cardParams = it }
+    mCardWidget.paymentMethodCard?.let { cardParams = it } ?: run {
+      cardParams = null
+    }
+    mCardWidget.cardParams?.let {
+      cardDetails["brand"] = mapCardBrand(it.brand)
+      cardDetails["last4"] = it.last4
+    } ?: run {
+      cardDetails["brand"] = null
+      cardDetails["last4"] = null
+    }
     mEventDispatcher?.dispatchEvent(
       CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null))
   }
 
   private fun setListeners() {
     mCardWidget.setCardInputListener(object : CardInputListener {
-      override fun onCardComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
-
+      override fun onCardComplete() {}
       override fun onExpirationComplete() {}
-      override fun onCvcComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
+      override fun onCvcComplete() {}
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
@@ -195,6 +199,21 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       }
     })
 
+    mCardWidget.setCardNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
+
+    mCardWidget.setCvcNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
   }
 
   override fun requestLayout() {
