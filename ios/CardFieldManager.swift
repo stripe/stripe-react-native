@@ -3,6 +3,11 @@ import Foundation
 @objc(CardFieldManager)
 class CardFieldManager: RCTViewManager, CardFieldDelegate {
     public let cardFieldMap: NSMutableDictionary = [:]
+    
+    func blur() {
+        let ref = getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
+        ref?.blur()
+    }
 
     func onDidCreateViewInstance(id: String, reference: Any?) -> Void {
         cardFieldMap[id] = reference

@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
-import { requireNativeComponent, StyleProp, ViewStyle } from 'react-native';
+import {
+  requireNativeComponent,
+  StyleProp,
+  StyleSheet,
+  ViewStyle,
+  View,
+  UIManager,
+} from 'react-native';
+import ReactNative from 'react-native';
 
 const StripeContainerNative = requireNativeComponent<any>('StripeContainer');
 
@@ -9,6 +17,7 @@ const StripeContainerNative = requireNativeComponent<any>('StripeContainer');
  */
 export interface Props {
   children: React.ReactElement | React.ReactElement[];
+  keyboardShouldPersistTaps?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -18,8 +27,41 @@ export interface Props {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function StripeContainer({ style, children }: Props) {
+export function StripeContainer({ children }: Props) {
+  const ref = useRef<any>();
+
+  function onBlur() {
+    UIManager.dispatchViewManagerCommand(
+      ReactNative.findNodeHandle(ref.current),
+      (UIManager as any).StripeContainer.Commands.updateFromManager,
+      []
+    );
+  }
+
   return (
-    <StripeContainerNative style={style}>{children}</StripeContainerNative>
+    <StripeContainerNative ref={ref} style={styles.container}>
+      <View
+        onStartShouldSetResponder={(evt) => {
+          evt.persist();
+          if (
+            ((evt as unknown) as any)?.viewConfig.uiViewClassName !==
+            'CardField'
+          ) {
+            onBlur();
+          }
+          return false;
+        }}
+        style={styles.container}
+        accessible={false}
+      >
+        {children}
+      </View>
+    </StripeContainerNative>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

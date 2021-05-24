@@ -20,6 +20,10 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc func blur() {
+        cardField.reactBlur()
+    }
+    
     @objc var placeholder: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholder["number"]  as? String {

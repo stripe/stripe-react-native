@@ -1,11 +1,7 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableNativeMap
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.*
 import com.facebook.react.common.MapBuilder
-import com.facebook.react.modules.core.ExceptionsManagerModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
