@@ -20,6 +20,10 @@ export enum CreatePaymentMethodError {
   Failed = 'Failed',
 }
 
+export enum CreateTokenError {
+  Failed = 'Failed',
+}
+
 export enum RetrievePaymentIntentError {
   Canceled = 'Canceled',
 }

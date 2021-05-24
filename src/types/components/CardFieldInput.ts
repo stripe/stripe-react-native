@@ -1,15 +1,16 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 import type { Nullable } from '../';
+import type { Card } from '../Card';
 
 export namespace CardFieldInput {
   export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
   export interface Details {
     last4: string;
-    expiryMonth: string;
-    expiryYear: string;
+    expiryMonth: number;
+    expiryYear: number;
     postalCode?: string;
-    brand: Brand;
+    brand: Card.Brand;
     complete: boolean;
   }
 
@@ -23,6 +24,7 @@ export namespace CardFieldInput {
     placeholderColor?: string;
     cursorColor?: string;
     textErrorColor?: string;
+    fontFamily?: string;
   }
 
   export interface Placeholders {
@@ -32,20 +34,11 @@ export namespace CardFieldInput {
     postalCode?: string;
   }
 
-  export type Brand =
-    | 'AmericanExpress'
-    | 'DinersClub'
-    | 'Discover'
-    | 'JCB'
-    | 'MasterCard'
-    | 'UnionPay'
-    | 'Visa'
-    | 'Unknown';
-
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     value?: Partial<Details>;
     postalCodeEnabled?: boolean;
+    autofocus?: boolean;
     onCardChange(event: NativeSyntheticEvent<Details>): void;
     onFocusChange(
       event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>

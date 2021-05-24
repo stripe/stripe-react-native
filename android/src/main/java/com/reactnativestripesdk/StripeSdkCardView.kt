@@ -1,25 +1,30 @@
 package com.reactnativestripesdk
 
+import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
-import com.stripe.android.databinding.CardInputWidgetBinding
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.stripe.android.databinding.CardInputWidgetBinding
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 
+
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
-  val cardDetails: MutableMap<String, Any> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to "", "expiryYear" to "", "postalCode" to "")
+  val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "")
   var cardParams: PaymentMethodCreateParams.Card? = null
   private var mEventDispatcher: EventDispatcher?
 
@@ -38,6 +43,15 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
+  fun setAutofocus(value: Boolean) {
+    if (value) {
+      val binding = CardInputWidgetBinding.bind(mCardWidget)
+      binding.cardNumberEditText.requestFocus()
+      binding.cardNumberEditText.showSoftKeyboard()
+    }
+  }
+
+
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
     val borderWidth = getIntOrNull(value, "borderWidth")
@@ -46,6 +60,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
     val fontSize = getIntOrNull(value, "fontSize")
+    val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
 
@@ -72,6 +87,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       binding.cvcEditText.textSize = it.toFloat()
       binding.expiryDateEditText.textSize = it.toFloat()
       binding.postalCodeEditText.textSize = it.toFloat()
+    }
+    fontFamily?.let {
+      binding.cardNumberEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.cvcEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.expiryDateEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      binding.postalCodeEditText.typeface = Typeface.create(it, Typeface.NORMAL)
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)
@@ -121,34 +142,30 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
-  fun getValue(): MutableMap<String, Any> {
+  fun getValue(): MutableMap<String, Any?> {
     return cardDetails
   }
 
   fun onCardChanged() {
-    mCardWidget.paymentMethodCard?.let { cardParams = it }
+    mCardWidget.paymentMethodCard?.let { cardParams = it } ?: run {
+      cardParams = null
+    }
+    mCardWidget.cardParams?.let {
+      cardDetails["brand"] = mapCardBrand(it.brand)
+      cardDetails["last4"] = it.last4
+    } ?: run {
+      cardDetails["brand"] = null
+      cardDetails["last4"] = null
+    }
     mEventDispatcher?.dispatchEvent(
       CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null))
   }
 
   private fun setListeners() {
     mCardWidget.setCardInputListener(object : CardInputListener {
-      override fun onCardComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
-
+      override fun onCardComplete() {}
       override fun onExpirationComplete() {}
-      override fun onCvcComplete() {
-        mCardWidget.cardParams?.let {
-          cardDetails["brand"] = mapCardBrand(it.brand)
-          cardDetails["last4"] = it.last4
-        }
-        onCardChanged()
-      }
+      override fun onCvcComplete() {}
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
@@ -163,10 +180,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         val splitted = var1.toString().split("/")
-        cardDetails["expiryMonth"] = splitted[0]
+        cardDetails["expiryMonth"] = splitted[0].toIntOrNull()
 
         if (splitted.size == 2) {
-          cardDetails["expiryYear"] = var1.toString().split("/")[1]
+          cardDetails["expiryYear"] = var1.toString().split("/")[1].toIntOrNull()
         }
 
         onCardChanged()
@@ -182,6 +199,21 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       }
     })
 
+    mCardWidget.setCardNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
+
+    mCardWidget.setCvcNumberTextWatcher(object : TextWatcher {
+      override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+      override fun afterTextChanged(p0: Editable?) {}
+      override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        onCardChanged()
+      }
+    })
   }
 
   override fun requestLayout() {
@@ -194,5 +226,14 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
       MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
     layout(left, top, right, bottom)
+  }
+}
+
+fun View.showSoftKeyboard() {
+  post {
+    if (this.requestFocus()) {
+      val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+      imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    }
   }
 }

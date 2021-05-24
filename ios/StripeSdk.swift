@@ -241,8 +241,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(updateApplePaySummaryItems:resolver:rejecter:)
-    func updateApplePaySummaryItems(summaryItems: NSArray, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
+    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
             reject(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted", nil)
             return
@@ -256,8 +256,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
+        var shippingAddressErrors: [Error] = []
+
+        for item in errorAddressFields {
+            let field = item["field"] as! String
+            let message = item["message"] as? String ?? field + " error"
+            shippingAddressErrors.append(PKPaymentRequest.paymentShippingAddressInvalidError(withKey: field, localizedDescription: message))
+        }
+
         shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
-        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
         self.shippingMethodUpdateHandler = nil
         self.shippingContactUpdateHandler = nil
         resolve(NSNull())
@@ -396,7 +404,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         paymentRequest.paymentSummaryItems = paymentSummaryItems
         if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
             DispatchQueue.main.async {
-                applePayContext.presentApplePay(on: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                applePayContext.presentApplePay(completion: nil)
             }
         } else {
             reject(ApplePayErrorType.Failed.rawValue, "Apple pay request failed", nil)
@@ -433,6 +441,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             reject(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil)
+            return
         }
         
         guard let params = paymentMethodParams else {
@@ -443,11 +452,51 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         STPAPIClient.shared.createPaymentMethod(with: params) { paymentMethod, error in
             if let createError = error {
                 reject(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil)
+                return
             }
             
             if let paymentMethod = paymentMethod {
                 let method = Mappers.mapFromPaymentMethod(paymentMethod)
                 resolve(method)
+            }
+        }
+    }
+    
+    @objc(createToken:resolver:rejecter:)
+    func createToken(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let address = params["address"] as? NSDictionary
+        
+        if let type = params["type"] as? String {
+            if (type != "Card") {
+                reject(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet", nil)
+            }
+        }
+        
+        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
+        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
+        
+        guard let cardParams = cardFieldView?.cardParams else {
+            reject(CreateTokenErrorType.Failed.rawValue, "Card details not complete", nil)
+            return
+        }
+        
+        let cardSourceParams = STPCardParams()
+        cardSourceParams.number = cardParams.number
+        cardSourceParams.cvc = cardParams.cvc
+        cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
+        cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
+        cardSourceParams.address = Mappers.mapToAddress(address: address)
+        cardSourceParams.name = params["name"] as? String
+
+        STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
+            if let token = token {
+                resolve(Mappers.mapFromToken(token: token))
+            } else {
+                reject(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription, nil)
             }
         }
     }
