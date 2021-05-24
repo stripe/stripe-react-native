@@ -22,10 +22,18 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var cardFieldManager: StripeSdkCardViewManager = cardFieldManager
 
   companion object {
-    internal const val PAYMENT_REQUEST_CODE = 50000
-    internal const val SETUP_REQUEST_CODE = 50001
-    internal const val SOURCE_REQUEST_CODE = 50002
-    internal const val ADD_PAYMENT_METHOD_REQUEST_CODE = 6001
+    private const val PAYMENT_REQUEST_CODE = 50000
+    private const val SETUP_REQUEST_CODE = 50001
+    private const val SOURCE_REQUEST_CODE = 50002
+    private const val ADD_PAYMENT_METHOD_REQUEST_CODE = 6001
+    private const val PAYMENT_SHEET_REQUEST_CODE = 6003
+    private const val PAYMENT_SHEET_OPTIONS_REQUEST_CODE = 6004
+
+    private val VALID_REQUEST_CODES = setOf(
+      PAYMENT_REQUEST_CODE, SETUP_REQUEST_CODE, SOURCE_REQUEST_CODE,
+      ADD_PAYMENT_METHOD_REQUEST_CODE, PAYMENT_SHEET_REQUEST_CODE,
+      PAYMENT_SHEET_OPTIONS_REQUEST_CODE
+    )
   }
 
   override fun getName(): String {
@@ -53,7 +61,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       }
       paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
 
-      if (requestCode == PAYMENT_REQUEST_CODE || requestCode == SETUP_REQUEST_CODE || requestCode == SOURCE_REQUEST_CODE || requestCode == ADD_PAYMENT_METHOD_REQUEST_CODE) {
+      if (VALID_REQUEST_CODES.contains(requestCode)) {
         stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
           override fun onSuccess(result: SetupIntentResult) {
             val setupIntent = result.intent
