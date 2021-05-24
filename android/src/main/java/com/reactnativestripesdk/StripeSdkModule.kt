@@ -25,6 +25,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     internal const val PAYMENT_REQUEST_CODE = 50000
     internal const val SETUP_REQUEST_CODE = 50001
     internal const val SOURCE_REQUEST_CODE = 50002
+    internal const val ADD_PAYMENT_METHOD_REQUEST_CODE = 6001
   }
 
   override fun getName(): String {
@@ -47,7 +48,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
-      if (::stripe.isInitialized && (requestCode == PAYMENT_REQUEST_CODE || requestCode == SETUP_REQUEST_CODE || requestCode == SOURCE_REQUEST_CODE)) {
+      if (!::stripe.isInitialized) {
+        return
+      }
+      paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+
+      if (requestCode == PAYMENT_REQUEST_CODE || requestCode == SETUP_REQUEST_CODE || requestCode == SOURCE_REQUEST_CODE || requestCode == ADD_PAYMENT_METHOD_REQUEST_CODE) {
         stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
           override fun onSuccess(result: SetupIntentResult) {
             val setupIntent = result.intent
@@ -118,8 +124,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
             handleCardActionPromise?.reject(NextPaymentActionErrorType.Failed.toString(), e.toString())
           }
         })
-
-        paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
 
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
