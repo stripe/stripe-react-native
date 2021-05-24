@@ -21,6 +21,12 @@ import kotlinx.coroutines.runBlocking
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
   private var cardFieldManager: StripeSdkCardViewManager = cardFieldManager
 
+  companion object {
+    internal const val PAYMENT_REQUEST_CODE = 50000
+    internal const val SETUP_REQUEST_CODE = 50001
+    internal const val SOURCE_REQUEST_CODE = 50002
+  }
+
   override fun getName(): String {
     return "StripeSdk"
   }
@@ -29,8 +35,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var stripeAccountId: String? = null
   private var paymentSheetFragment: PaymentSheetFragment? = null
 
-  private var onConfirmSetupIntentError: Callback? = null
-  private var onConfirmSetupIntentSuccess: Callback? = null
   private var urlScheme: String? = null
 
   private var confirmPromise: Promise? = null
@@ -39,12 +43,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var confirmPaymentSheetPaymentPromise: Promise? = null
   private var presentPaymentSheetPromise: Promise? = null
   private var initPaymentSheetPromise: Promise? = null
-
   private var confirmPaymentClientSecret: String? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
-      if (::stripe.isInitialized) {
+      if (::stripe.isInitialized && (requestCode == PAYMENT_REQUEST_CODE || requestCode == SETUP_REQUEST_CODE || requestCode == SOURCE_REQUEST_CODE)) {
         stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
           override fun onSuccess(result: SetupIntentResult) {
             val setupIntent = result.intent
@@ -460,18 +463,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun registerConfirmSetupIntentCallbacks(successCallback: Callback, errorCallback: Callback) {
-    onConfirmSetupIntentError = errorCallback
-    onConfirmSetupIntentSuccess = successCallback
-  }
-
-  @ReactMethod
-  fun unregisterConfirmSetupIntentCallbacks() {
-    onConfirmSetupIntentError = null
-    onConfirmSetupIntentSuccess = null
-  }
-
-  @ReactMethod
   fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
 
@@ -492,5 +483,4 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       promise.reject(ConfirmPaymentErrorType.Failed.toString(), error.localizedMessage)
     }
   }
-
 }
