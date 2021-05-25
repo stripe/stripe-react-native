@@ -4,6 +4,11 @@ import com.facebook.react.bridge.*
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
 
+internal fun createResult(key: String, value: WritableMap): WritableMap {
+  val map = WritableNativeMap()
+  map.putMap(key, value)
+  return map
+}
 
 internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   return when (status) {

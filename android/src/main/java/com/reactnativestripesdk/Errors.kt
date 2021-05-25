@@ -25,32 +25,26 @@ enum class PaymentSheetErrorType {
   Failed, Canceled
 }
 
-internal fun createError(errorType: String, message: String, declineCode: String?, type: String?): WritableMap {
+internal fun mapError(code: String, message: String?, declineCode: String?, type: String?): WritableMap {
   val map: WritableMap = WritableNativeMap()
-  map.putString("message", message)
-  map.putString("code", errorType)
-  map.putString("declineCode", declineCode)
-  map.putString("type", type)
+  val details: WritableMap = WritableNativeMap()
+  details.putString("message", message)
+  details.putString("code", code)
+  details.putString("declineCode", declineCode)
+  details.putString("type", type)
 
+  map.putMap("error", details)
   return map
 }
 
-internal fun createError(errorType: String, error: PaymentIntent.Error): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  map.putString("message", error.message)
-  map.putString("code", errorType)
-  map.putString("declineCode", error.declineCode)
-  map.putString("type", error.type?.name)
-
-  return map
+internal fun createError(code: String, message: String, declineCode: String?, type: String?): WritableMap {
+  return mapError(code, message, declineCode, type)
 }
 
-internal fun createError(errorType: String, error: SetupIntent.Error): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  map.putString("message", error.message)
-  map.putString("code", errorType)
-  map.putString("declineCode", error.declineCode)
-  map.putString("type", error.type?.name)
+internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
+  return mapError(code, error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty())
+}
 
-  return map
+internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
+  return mapError(code, error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty())
 }

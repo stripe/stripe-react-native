@@ -1,4 +1,4 @@
-import { createError, isiOS } from './helpers';
+import { isiOS } from './helpers';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -12,10 +12,13 @@ import {
   CreateTokenForCVCUpdateResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
+  PaymentIntent,
+  PaymentMethod,
   PaymentMethodCreateParams,
   PaymentSheet,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
+  SetupIntent,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -26,16 +29,21 @@ export const createPaymentMethod = async (
   options: PaymentMethodCreateParams.Options = {}
 ): Promise<CreatePaymentMethodResult> => {
   try {
-    const paymentMethod = await NativeStripeSdk.createPaymentMethod(
+    const { paymentMethod, error } = await NativeStripeSdk.createPaymentMethod(
       data,
       options
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentMethod,
+      paymentMethod: paymentMethod as PaymentMethod,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -44,15 +52,21 @@ export const retrievePaymentIntent = async (
   clientSecret: string
 ): Promise<RetrievePaymentIntentResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.retrievePaymentIntent(
-      clientSecret
-    );
-    return {
+    const {
       paymentIntent,
+      error,
+    } = await NativeStripeSdk.retrievePaymentIntent(clientSecret);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent as PaymentIntent,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -63,17 +77,22 @@ export const confirmPaymentMethod = async (
   options: PaymentMethodCreateParams.Options = {}
 ): Promise<ConfirmPaymentMethodResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.confirmPaymentMethod(
+    const { paymentIntent, error } = await NativeStripeSdk.confirmPaymentMethod(
       paymentIntentClientSecret,
       data,
       options
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentIntent,
+      paymentIntent: paymentIntent as PaymentIntent,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -100,7 +119,7 @@ export const presentApplePay = async (
     return {};
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -123,7 +142,7 @@ export const updateApplePaySummaryItems = async (
     return {};
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -144,7 +163,7 @@ export const confirmApplePayPayment = async (
     return {};
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -153,15 +172,20 @@ export const handleCardAction = async (
   paymentIntentClientSecret: string
 ): Promise<HandleCardActionResult> => {
   try {
-    const paymentIntent = await NativeStripeSdk.handleCardAction(
+    const { paymentIntent, error } = await NativeStripeSdk.handleCardAction(
       paymentIntentClientSecret
     );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentIntent,
+      paymentIntent: paymentIntent as PaymentIntent,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -172,18 +196,22 @@ export const confirmSetupIntent = async (
   options: ConfirmSetupIntent.Options = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {
-    const setupIntent = await NativeStripeSdk.confirmSetupIntent(
+    const { setupIntent, error } = await NativeStripeSdk.confirmSetupIntent(
       paymentIntentClientSecret,
       data,
       options
     );
-
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      setupIntent,
+      setupIntent: setupIntent as SetupIntent,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -192,14 +220,20 @@ export const createTokenForCVCUpdate = async (
   cvc: string
 ): Promise<CreateTokenForCVCUpdateResult> => {
   try {
-    const tokenId = await NativeStripeSdk.createTokenForCVCUpdate(cvc);
-
+    const { tokenId, error } = await NativeStripeSdk.createTokenForCVCUpdate(
+      cvc
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      tokenId,
+      tokenId: tokenId as string,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -213,14 +247,20 @@ export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   try {
-    const paymentOption = await NativeStripeSdk.initPaymentSheet(params);
-
+    const { paymentOption, error } = await NativeStripeSdk.initPaymentSheet(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
       paymentOption,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -229,26 +269,36 @@ export const presentPaymentSheet = async (
   params: PaymentSheet.PresentParams
 ): Promise<PresentPaymentSheetResult> => {
   try {
-    const response = await NativeStripeSdk.presentPaymentSheet(params);
-
+    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      paymentOption: response.paymentOption,
+      paymentOption: paymentOption,
     };
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetPaymentResult> => {
   try {
-    await NativeStripeSdk.confirmPaymentSheetPayment();
-
+    const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {};
   } catch (error) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
