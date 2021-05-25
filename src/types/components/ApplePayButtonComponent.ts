@@ -5,6 +5,7 @@ export namespace ApplePayButtonComponent {
     style?: StyleProp<ViewStyle>;
     type?: number;
     buttonStyle?: number;
+    borderRadius?: number;
     onPressAction(): void;
   }
 
