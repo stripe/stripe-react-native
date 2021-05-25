@@ -1,7 +1,6 @@
 import { NativeModules } from 'react-native';
 import type {
   PaymentMethodCreateParams,
-  ThreeDSecureConfigurationParams,
   ApplePay,
   PaymentSheet,
   ConfirmSetupIntent,
@@ -15,6 +14,7 @@ import type {
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
+  Card,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -35,7 +35,11 @@ type NativeStripeSdkType = {
   presentApplePay(params: ApplePay.PresentParams): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   updateApplePaySummaryItems(
-    summaryItems: ApplePay.CartSummaryItem[]
+    summaryItems: ApplePay.CartSummaryItem[],
+    errorAddressFields: Array<{
+      field: ApplePay.AddressFields;
+      message?: string;
+    }>
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
@@ -54,6 +58,7 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
+  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
 };
 
 const { StripeSdk } = NativeModules;

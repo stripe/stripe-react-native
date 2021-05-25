@@ -15,6 +15,7 @@ import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
+import kotlinx.coroutines.runBlocking
 
 
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
@@ -25,6 +26,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   private lateinit var publishableKey: String
+  private var stripeAccountId: String? = null
   private var paymentSheetFragment: PaymentSheetFragment? = null
 
   private var onConfirmSetupIntentError: Callback? = null
@@ -42,91 +44,96 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent) {
-      stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
-        override fun onSuccess(result: SetupIntentResult) {
-          val setupIntent = result.intent
-          when (setupIntent.status) {
-            StripeIntent.Status.Succeeded -> {
-              confirmSetupIntentPromise?.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
-            }
-            StripeIntent.Status.Canceled -> {
-              confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), setupIntent.lastSetupError))
-            }
-            StripeIntent.Status.RequiresAction -> {
-              val error = setupIntent.lastSetupError
-              confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), error))
-            }
-            else -> {
-              confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), setupIntent.lastSetupError))
+      if (::stripe.isInitialized) {
+        stripe.onSetupResult(requestCode, data, object : ApiResultCallback<SetupIntentResult> {
+          override fun onSuccess(result: SetupIntentResult) {
+            val setupIntent = result.intent
+            when (setupIntent.status) {
+              StripeIntent.Status.Succeeded -> {
+                confirmSetupIntentPromise?.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
+              }
+              StripeIntent.Status.Canceled -> {
+                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), setupIntent.lastSetupError))
+              }
+              StripeIntent.Status.RequiresAction -> {
+                val error = setupIntent.lastSetupError
+                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), error))
+              }
+              else -> {
+                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), setupIntent.lastSetupError))
+              }
             }
           }
-        }
 
-        override fun onError(e: Exception) {
-          confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.localizedMessage ?: e.toString(), null, null))
-        }
-      })
+          override fun onError(e: Exception) {
+            confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.localizedMessage
+              ?: e.toString(), null, null))
+          }
+        })
 
-      stripe.onPaymentResult(requestCode, data, object : ApiResultCallback<PaymentIntentResult> {
-        override fun onSuccess(result: PaymentIntentResult) {
-          val paymentIntent = result.intent
+        stripe.onPaymentResult(requestCode, data, object : ApiResultCallback<PaymentIntentResult> {
+          override fun onSuccess(result: PaymentIntentResult) {
+            val paymentIntent = result.intent
 
-          when (paymentIntent.status) {
-            StripeIntent.Status.Succeeded,
-            StripeIntent.Status.Processing,
-            StripeIntent.Status.RequiresCapture -> {
-              val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
-              confirmPromise?.resolve(pi)
-              handleCardActionPromise?.resolve(pi)
-            }
-            StripeIntent.Status.RequiresAction -> {
-              if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
+            when (paymentIntent.status) {
+              StripeIntent.Status.Succeeded,
+              StripeIntent.Status.Processing,
+              StripeIntent.Status.RequiresCapture -> {
                 val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
                 confirmPromise?.resolve(pi)
                 handleCardActionPromise?.resolve(pi)
-              } else {
+              }
+              StripeIntent.Status.RequiresAction -> {
+                if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
+                  val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
+                  confirmPromise?.resolve(pi)
+                  handleCardActionPromise?.resolve(pi)
+                } else {
+                  val error = paymentIntent.lastPaymentError
+                  confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
+                  handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
+                }
+              }
+              StripeIntent.Status.RequiresPaymentMethod -> {
+                val error = paymentIntent.lastPaymentError
+                confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
+                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), error))
+              }
+              StripeIntent.Status.RequiresConfirmation -> {
+                val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
+                handleCardActionPromise?.resolve(pi)
+              }
+              StripeIntent.Status.Canceled -> {
                 val error = paymentIntent.lastPaymentError
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
                 handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
               }
-            }
-            StripeIntent.Status.RequiresPaymentMethod -> {
-              val error = paymentIntent.lastPaymentError
-              confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
-              handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), error))
-            }
-            StripeIntent.Status.RequiresConfirmation -> {
-              val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
-              handleCardActionPromise?.resolve(pi)
-            }
-            StripeIntent.Status.Canceled -> {
-              val error = paymentIntent.lastPaymentError
-              confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
-              handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
-            }
-            else -> {
-              val lastError = paymentIntent.lastPaymentError
-              confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), lastError))
-              handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), lastError))
+              else -> {
+                val lastError = paymentIntent.lastPaymentError
+                confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), lastError))
+                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), lastError))
+              }
             }
           }
-        }
 
-        override fun onError(e: Exception) {
-          confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e.localizedMessage ?: e.toString(), null, null))
-          handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e.localizedMessage ?: e.toString(), null, null))
-        }
-      })
+          override fun onError(e: Exception) {
+            confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e.localizedMessage
+              ?: e.toString(), null, null))
+            handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e.localizedMessage
+              ?: e.toString(), null, null))
+          }
+        })
 
-      paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
 
-      try {
-        val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-        if (data.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
-          onFpxPaymentMethodResult(result)
+        try {
+          val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+          if (data.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+            onFpxPaymentMethodResult(result)
+          }
+        } catch (e: java.lang.Exception) {
+          Log.d("Error", e.localizedMessage ?: e.toString())
         }
-      } catch (e: java.lang.Exception) {
-        Log.d("Error", e.localizedMessage ?: e.toString())
       }
     }
   }
@@ -184,8 +191,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         } else {
           presentPaymentSheetPromise?.resolve(WritableNativeMap())
         }
-      }
-      else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
+      } else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
         val label = intent.extras?.getString("label")
         val image = intent.extras?.getString("image")
 
@@ -205,7 +211,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
-    val stripeAccountId = getValOr(params, "stripeAccountId", null)
+    this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
     val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
     this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
@@ -267,9 +273,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
       it.arguments = bundle
     }
-      activity.supportFragmentManager.beginTransaction()
-        .add(fragment, "payment_sheet_launch_fragment")
-        .commit()
+    activity.supportFragmentManager.beginTransaction()
+      .add(fragment, "payment_sheet_launch_fragment")
+      .commit()
     if (!customFlow) {
       this.initPaymentSheetPromise?.resolve(WritableNativeMap())
     }
@@ -325,14 +331,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
     val instance = cardFieldManager.getCardViewInstance()
-    val cardParams = instance?.cardParams
-            ?: throw PaymentMethodCreateParamsException("Card details not complete")
+    val cardParams = instance?.cardParams ?: run {
+      promise.reject("Failed", "Card details not complete")
+      return
+    }
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(e: Exception) {
-          promise.resolve(createError("Failed",e.localizedMessage ?: e.toString(), null, null))
+          promise.resolve(createError("Failed", e.localizedMessage ?: e.toString(), null, null))
         }
 
         override fun onSuccess(result: PaymentMethod) {
@@ -340,6 +348,38 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           promise.resolve(createResult("paymentMethod", paymentMethodMap))
         }
       })
+  }
+
+  @ReactMethod
+  fun createToken(params: ReadableMap, promise: Promise) {
+    val type = getValOr(params, "type", null)?.let {
+      if (it != "Card") {
+        promise.reject(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet")
+        return
+      }
+    }
+    val address = getMapOrNull(params, "address")
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams?.toParamMap() ?: run {
+      promise.reject(CreateTokenErrorType.Failed.toString(), "Card details not complete")
+      return
+    }
+
+    val params = CardParams(
+      number = cardParams["number"] as String,
+      expMonth = cardParams["exp_month"] as Int,
+      expYear = cardParams["exp_year"] as Int,
+      cvc = cardParams["cvc"] as String,
+      address = mapToAddress(address),
+      name = getValOr(params, "name", null)
+    )
+    runBlocking {
+      val token = stripe.createCardToken(
+        cardParams = params,
+        stripeAccountId = stripeAccountId
+      )
+      promise.resolve(mapFromToken(token))
+    }
   }
 
   @ReactMethod

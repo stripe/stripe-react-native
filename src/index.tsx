@@ -20,6 +20,10 @@ export {
   AuBECSDebitForm,
   Props as AuBECSDebitFormProps,
 } from './components/AuBECSDebitForm';
+export {
+  StripeContainer,
+  Props as StripeContainerProps,
+} from './components/StripeContainer';
 
 export * from './functions';
 

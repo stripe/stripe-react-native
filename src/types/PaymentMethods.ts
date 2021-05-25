@@ -1,5 +1,5 @@
 import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
-import type { CardFieldInput } from './components/CardFieldInput';
+import type { Card } from './Card';
 import type { PaymentIntents } from './PaymentIntents';
 
 export interface PaymentMethod {
@@ -167,10 +167,10 @@ export declare namespace PaymentMethods {
   }
 
   export interface Card {
-    brand?: CardFieldInput.Brand;
+    brand?: Card.Brand;
     country?: string;
-    expYear?: string;
-    expMonth?: string;
+    expYear?: number;
+    expMonth?: number;
     fingerprint?: string;
     funding?: string;
     last4?: string;

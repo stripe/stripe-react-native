@@ -9,6 +9,11 @@ enum class ConfirmPaymentErrorType {
   Failed, Canceled, Unknown
 }
 
+enum class CreateTokenErrorType {
+  Failed
+}
+
+
 enum class NextPaymentActionErrorType {
   Failed, Canceled, Unknown
 }

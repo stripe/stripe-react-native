@@ -122,6 +122,7 @@ export default function ApplePayScreen() {
           onPress={pay}
           type="plain"
           buttonStyle="black"
+          borderRadius={4}
           style={styles.payButton}
         />
       )}

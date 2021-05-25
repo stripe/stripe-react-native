@@ -10,6 +10,7 @@ import {
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
+  CreateTokenResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentIntent,
@@ -20,6 +21,7 @@ import {
   RetrievePaymentIntentResult,
   SetupIntent,
 } from './types';
+import type { Card } from './types/Card';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -44,6 +46,21 @@ export const createPaymentMethod = async (
   } catch (error) {
     return {
       error,
+    };
+  }
+};
+
+export const createToken = async (
+  params: Card.CreateTokenParams
+): Promise<CreateTokenResult> => {
+  try {
+    const token = await NativeStripeSdk.createToken(params);
+    return {
+      token,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
     };
   }
 };
@@ -125,7 +142,11 @@ export const presentApplePay = async (
 };
 
 export const updateApplePaySummaryItems = async (
-  summaryItems: ApplePay.CartSummaryItem[]
+  summaryItems: ApplePay.CartSummaryItem[],
+  errorAddressFields: Array<{
+    field: ApplePay.AddressFields;
+    message?: string;
+  }> = []
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
@@ -137,7 +158,10 @@ export const updateApplePaySummaryItems = async (
   }
 
   try {
-    await NativeStripeSdk.updateApplePaySummaryItems(summaryItems);
+    await NativeStripeSdk.updateApplePaySummaryItems(
+      summaryItems,
+      errorAddressFields
+    );
 
     return {};
   } catch (error) {
