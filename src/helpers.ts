@@ -21,5 +21,7 @@ export function createError<T>(error: StripeError<T>) {
   return {
     code: error.code,
     message: error.message,
+    declineCode: error.declineCode,
+    type: error.type,
   };
 }

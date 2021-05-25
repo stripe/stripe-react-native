@@ -1,6 +1,10 @@
 import Stripe
 
 class Mappers {
+    class func createResult(_ key: String, _ value: NSDictionary?) -> NSDictionary {
+        return [key: value ?? NSNull()]
+    }
+    
     class func mapToPKContactField(field: String) -> PKContactField {
         switch field {
         case "emailAddress": return PKContactField.emailAddress

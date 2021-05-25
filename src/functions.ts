@@ -1,4 +1,4 @@
-import { isiOS } from './helpers';
+import { createError, isiOS } from './helpers';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -166,7 +166,7 @@ export const updateApplePaySummaryItems = async (
     return {};
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -187,7 +187,7 @@ export const confirmApplePayPayment = async (
     return {};
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -209,7 +209,7 @@ export const handleCardAction = async (
     };
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -235,7 +235,7 @@ export const confirmSetupIntent = async (
     };
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -257,7 +257,7 @@ export const createTokenForCVCUpdate = async (
     };
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -284,7 +284,7 @@ export const initPaymentSheet = async (
     };
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -306,7 +306,7 @@ export const presentPaymentSheet = async (
     };
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
@@ -322,7 +322,7 @@ export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetP
     return {};
   } catch (error) {
     return {
-      error,
+      error: createError(error),
     };
   }
 };
