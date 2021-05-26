@@ -75,6 +75,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                                                merchantCountryCode: merchantCountryCode)
             } else {
                 resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided"))
+                return
             }
         }
         
@@ -115,7 +116,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         } else {
             self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-            resolve(NSNull())
+            resolve([])
         }
     }
 
