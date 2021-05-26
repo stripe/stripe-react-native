@@ -136,6 +136,72 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     reactContext.addActivityEventListener(mActivityEventListener);
   }
 
+  private fun configure3dSecure(params: ReadableMap) {
+    val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
+    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
+    val uiCustomization = mapToUICustomization(params)
+
+    PaymentAuthConfig.init(
+      PaymentAuthConfig.Builder()
+        .set3ds2Config(
+          stripe3dsConfigBuilder
+            .setUiCustomization(uiCustomization)
+            .build()
+        )
+        .build()
+    )
+  }
+
+  private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+      if (intent.action == ON_FRAGMENT_CREATED) {
+        paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
+      }
+      if (intent.action == ON_PAYMENT_RESULT_ACTION) {
+        when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
+          is PaymentSheetResult.Canceled -> {
+            val message = "Payment has been canceled"
+            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
+            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
+          }
+          is PaymentSheetResult.Failed -> {
+            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
+            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
+          }
+          is PaymentSheetResult.Completed -> {
+            confirmPaymentSheetPaymentPromise?.resolve(WritableNativeMap())
+            presentPaymentSheetPromise?.resolve(WritableNativeMap())
+          }
+        }
+      } else if (intent.action == ON_PAYMENT_OPTION_ACTION) {
+        val label = intent.extras?.getString("label")
+        val image = intent.extras?.getString("image")
+
+        if (label != null && image != null) {
+          val option: WritableMap = WritableNativeMap()
+          option.putString("label", label)
+          option.putString("image", image)
+          presentPaymentSheetPromise?.resolve(createResult("paymentOption", option))
+        } else {
+          presentPaymentSheetPromise?.resolve(WritableNativeMap())
+        }
+      }
+      else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
+        val label = intent.extras?.getString("label")
+        val image = intent.extras?.getString("image")
+
+        if (label != null && image != null) {
+          val option: WritableMap = WritableNativeMap()
+          option.putString("label", label)
+          option.putString("image", image)
+          initPaymentSheetPromise?.resolve(createResult("paymentOption", option))
+        } else {
+          initPaymentSheetPromise?.resolve(WritableNativeMap())
+        }
+      }
+    }
+  }
+
   @ReactMethod
   fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
@@ -167,37 +233,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
 
     promise.resolve(null)
-  }
-
-  @ReactMethod
-  fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
-    confirmPromise = promise
-    confirmPaymentClientSecret = paymentIntentClientSecret
-
-    val instance = cardFieldManager.getCardViewInstance()
-    val cardParams = instance?.cardParams
-
-    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
-      return
-    }
-
-    val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
-
-    if (paymentMethodType == PaymentMethod.Type.Fpx && !testOfflineBank) {
-      payWithFpx()
-      return
-    }
-
-    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme, cardParams)
-
-    try {
-      val confirmParams = factory.createConfirmParams(paymentMethodType)
-      confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
-      stripe.confirmPayment(currentActivity!!, confirmParams)
-    } catch (error: PaymentMethodCreateParamsException) {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
-    }
   }
 
   @ReactMethod
@@ -365,6 +400,37 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
+  fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
+    confirmPromise = promise
+    confirmPaymentClientSecret = paymentIntentClientSecret
+
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams
+
+    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
+      return
+    }
+
+    val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
+
+    if (paymentMethodType == PaymentMethod.Type.Fpx && !testOfflineBank) {
+      payWithFpx()
+      return
+    }
+
+    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, urlScheme, cardParams)
+
+    try {
+      val confirmParams = factory.createConfirmParams(paymentMethodType)
+      confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
+      stripe.confirmPayment(currentActivity!!, confirmParams)
+    } catch (error: PaymentMethodCreateParamsException) {
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
+    }
+  }
+
+  @ReactMethod
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
     AsyncTask.execute {
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
@@ -404,71 +470,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.confirmPaymentClientSecret = null
   }
 
-  private fun configure3dSecure(params: ReadableMap) {
-    val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
-    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
-    val uiCustomization = mapToUICustomization(params)
-
-    PaymentAuthConfig.init(
-      PaymentAuthConfig.Builder()
-        .set3ds2Config(
-          stripe3dsConfigBuilder
-            .setUiCustomization(uiCustomization)
-            .build()
-        )
-        .build()
-    )
-  }
-
-  private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent) {
-      if (intent.action == ON_FRAGMENT_CREATED) {
-        paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
-      }
-      if (intent.action == ON_PAYMENT_RESULT_ACTION) {
-        when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
-          is PaymentSheetResult.Canceled -> {
-            val message = "Payment has been canceled"
-            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
-            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
-          }
-          is PaymentSheetResult.Failed -> {
-            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
-            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
-          }
-          is PaymentSheetResult.Completed -> {
-            confirmPaymentSheetPaymentPromise?.resolve(WritableNativeMap())
-            presentPaymentSheetPromise?.resolve(WritableNativeMap())
-          }
-        }
-      } else if (intent.action == ON_PAYMENT_OPTION_ACTION) {
-        val label = intent.extras?.getString("label")
-        val image = intent.extras?.getString("image")
-
-        if (label != null && image != null) {
-          val option: WritableMap = WritableNativeMap()
-          option.putString("label", label)
-          option.putString("image", image)
-          presentPaymentSheetPromise?.resolve(createResult("paymentOption", option))
-        } else {
-          presentPaymentSheetPromise?.resolve(WritableNativeMap())
-        }
-      }
-      else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
-        val label = intent.extras?.getString("label")
-        val image = intent.extras?.getString("image")
-
-        if (label != null && image != null) {
-          val option: WritableMap = WritableNativeMap()
-          option.putString("label", label)
-          option.putString("image", image)
-          initPaymentSheetPromise?.resolve(createResult("paymentOption", option))
-        } else {
-          initPaymentSheetPromise?.resolve(WritableNativeMap())
-        }
-      }
-    }
-  }
 
   /// Check paymentIntent.nextAction is voucher-based payment method.
   /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.
