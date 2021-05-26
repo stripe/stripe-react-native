@@ -181,7 +181,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError("Failed", error?.localizedDescription ?? ""))
             } else {
                 let tokenId = token?.tokenId
-                resolve(["tokenId", tokenId])
+                resolve(["tokenId": tokenId])
             }
         }
     }
