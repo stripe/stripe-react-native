@@ -66,7 +66,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         }
 
         override fun onError(e: Exception) {
-          confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e.message, e.localizedMessage))
+          confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
         }
       })
 
@@ -116,13 +116,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         }
 
         override fun onError(e: Exception) {
-          if (e is InvalidRequestException) {
-            confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
-            handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e))
-          } else {
-            confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e.message, e.localizedMessage))
-            handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e.message, e.localizedMessage))
-          }
+          confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
+          handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e))
         }
       })
 
@@ -185,7 +180,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val cardParams = instance?.cardParams
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType", null))
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
       return
     }
 
@@ -203,7 +198,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
       stripe.confirmPayment(currentActivity!!, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error.message, error.localizedMessage))
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
   }
 
@@ -215,7 +210,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val cardParams = instance?.cardParams
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType", null))
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
       return
     }
 
@@ -225,7 +220,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       val confirmParams = factory.createSetupParams(paymentMethodType)
       stripe.confirmSetupIntent(currentActivity!!, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error.message, error.localizedMessage))
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
   }
 
@@ -234,7 +229,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val activity = currentActivity as AppCompatActivity?
 
     if (activity == null) {
-      promise.resolve(createError("Failed", "Activity doesn't exist", null))
+      promise.resolve(createError("Failed", "Activity doesn't exist"))
       return
     }
     val customFlow = getBooleanOrNull(params, "customFlow") ?: false
@@ -301,7 +296,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(error: Exception) {
-          promise.resolve(createError("Failed", error.message, error.localizedMessage))
+          promise.resolve(createError("Failed", error))
         }
 
         override fun onSuccess(result: PaymentMethod) {
@@ -356,7 +351,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         }
 
         override fun onError(error: Exception) {
-          promise.resolve(createError("Failed", error.message, error.localizedMessage))
+          promise.resolve(createError("Failed", error))
         }
       }
     )
@@ -378,7 +373,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       paymentIntent?.let {
         promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
       } ?: run {
-        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed", null))
+        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed"))
       }
     }
   }
@@ -402,10 +397,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           ));
       }
       is AddPaymentMethodActivityStarter.Result.Failure -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception.message, result.exception.localizedMessage))
+        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception))
       }
       is AddPaymentMethodActivityStarter.Result.Canceled -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled", null))
+        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled"))
       }
     }
     this.confirmPaymentClientSecret = null
@@ -436,12 +431,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
             val message = "Payment has been canceled"
-            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message, null))
-            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message, null))
+            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
+            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
           }
           is PaymentSheetResult.Failed -> {
-            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error.message, result.error.localizedMessage))
-            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error.message, result.error.localizedMessage))
+            confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
+            presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), result.error))
           }
           is PaymentSheetResult.Completed -> {
             confirmPaymentSheetPaymentPromise?.resolve(WritableNativeMap())

@@ -32,32 +32,41 @@ enum class PaymentSheetErrorType {
   Failed, Canceled
 }
 
-internal fun mapError(code: String, message: String?, localizedMessage: String?, declineCode: String?, type: String?): WritableMap {
+internal fun mapError(code: String, message: String?, localizedMessage: String?, declineCode: String?, type: String?, stripeErrorCode: String?): WritableMap {
   val map: WritableMap = WritableNativeMap()
   val details: WritableMap = WritableNativeMap()
+  details.putString("code", code)
   details.putString("message", message)
   details.putString("localizedMessage", localizedMessage)
-  details.putString("code", code)
   details.putString("declineCode", declineCode)
   details.putString("type", type)
+  details.putString("stripeErrorCode", stripeErrorCode)
 
   map.putMap("error", details)
   return map
 }
 
-internal fun createError(code: String, message: String?, localizedMessage: String?): WritableMap {
-  val lm = localizedMessage ?: message
-  return mapError(code, message, lm, null, null)
+internal fun createError(code: String, message: String?): WritableMap {
+  return mapError(code, message, message, null, null, null)
 }
 
 internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
-  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty())
+  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty(), error?.code.orEmpty())
 }
 
 internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
-  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty())
+  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty(), error?.code.orEmpty())
 }
 
-internal fun createError(code: String, error: InvalidRequestException): WritableMap {
-  return mapError(code, error.message.orEmpty(), error?.message.orEmpty(), error.stripeError?.declineCode.orEmpty(), error.stripeError?.code.orEmpty())
+internal fun createError(code: String, error: Exception): WritableMap {
+  if (error is CardException) {
+    return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), error.declineCode.orEmpty(), null, error.code)
+  } else if (error is InvalidRequestException) {
+    return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), error.stripeError?.declineCode.orEmpty(), error.stripeError?.type.orEmpty(), error.stripeError?.code.orEmpty())
+  }
+  return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), null, null, null)
+}
+
+internal fun createError(code: String, error: Throwable): WritableMap {
+  return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), null, null, null)
 }

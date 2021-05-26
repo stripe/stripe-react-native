@@ -123,10 +123,10 @@ export const presentApplePay = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
 
@@ -150,10 +150,10 @@ export const updateApplePaySummaryItems = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
 
@@ -176,10 +176,10 @@ export const confirmApplePayPayment = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: {
+      error: createError({
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
+      }),
     };
   }
   try {
