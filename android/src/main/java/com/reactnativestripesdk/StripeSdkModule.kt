@@ -57,7 +57,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
                 confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), setupIntent.lastSetupError))
               }
               else -> {
-                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), setupIntent.lastSetupError))
+                val errorMessage = "unhandled error: ${setupIntent.status}"
+                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), errorMessage))
               }
             }
           }
@@ -104,9 +105,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
                 handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
               }
               else -> {
-                val lastError = paymentIntent.lastPaymentError
-                confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), lastError))
-                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), lastError))
+                val errorMessage = "unhandled error: ${paymentIntent.status}"
+                confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
+                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), errorMessage))
               }
             }
           }

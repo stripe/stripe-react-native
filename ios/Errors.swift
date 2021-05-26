@@ -29,12 +29,11 @@ enum CreateTokenErrorType: String {
 }
 
 class Errors {
-    class func createError (_ code: String, _ message: String?, _ localizedMessage: String?) -> NSDictionary {
-        let lm = localizedMessage ?? message
+    class func createError (_ code: String, _ message: String?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
             "message": message ?? NSNull(),
-            "localizedMessage": lm ?? NSNull(),
+            "localizedMessage": message ?? NSNull(),
             "declineCode": NSNull(),
             "stripeErrorCode": NSNull(),
             "type": NSNull()

@@ -1,3 +1,5 @@
+import type { PaymentIntents } from './PaymentIntents';
+
 export enum ConfirmPaymentError {
   Canceled = 'Canceled',
   Failed = 'Failed',
@@ -45,5 +47,5 @@ export interface StripeError<T> {
   localizedMessage?: string;
   declineCode?: string;
   stripeErrorCode?: string;
-  type?: string;
+  type?: PaymentIntents.LastPaymentErrorType;
 }

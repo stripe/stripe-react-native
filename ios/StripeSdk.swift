@@ -16,7 +16,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
-    var confirmPaymentRejecter: RCTPromiseRejectBlock? = nil
     
     var confirmPaymentClientSecret: String? = nil
     
@@ -63,7 +62,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
-            resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret", nil))
+            resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret"))
             return
         }
         
@@ -75,7 +74,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 configuration.applePay = .init(merchantId: merchantIdentifier,
                                                merchantCountryCode: merchantCountryCode)
             } else {
-                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided", nil))
+                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided"))
             }
         }
         
@@ -100,7 +99,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                                                configuration: configuration) { [weak self] result in
                 switch result {
                 case .failure(let error):
-                    resolve(Errors.createError("Failed", error.localizedDescription, nil))
+                    resolve(Errors.createError("Failed", error.localizedDescription))
                 case .success(let paymentSheetFlowController):
                     self?.paymentSheetFlowController = paymentSheetFlowController
                     if let paymentOption = self?.paymentSheetFlowController?.paymentOption {
@@ -129,9 +128,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 case .completed:
                     resolve([])
                 case .canceled:
-                    resolve(Errors.createError(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                    resolve(Errors.createError(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled"))
                 case .failed(let error):
-                    resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil))
+                    resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription))
                 }
             }
         }
@@ -161,9 +160,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                     case .completed:
                         resolve([])
                     case .canceled:
-                        resolve(Errors.createError(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                        resolve(Errors.createError(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled"))
                     case .failed(let error):
-                        resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription, nil))
+                        resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription))
                     }
                 }
             }
@@ -175,13 +174,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     @objc(createTokenForCVCUpdate:resolver:rejecter:)
     func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cvc = cvc else {
-            resolve(Errors.createError("Failed", "You must provide CVC", nil))
+            resolve(Errors.createError("Failed", "You must provide CVC"))
             return;
         }
         
         STPAPIClient.shared.createToken(forCVCUpdate: cvc) { (token, error) in
             if error != nil || token == nil {
-                resolve(Errors.createError("Failed", error?.localizedDescription ?? "", nil))
+                resolve(Errors.createError("Failed", error?.localizedDescription ?? ""))
             } else {
                 let tokenId = token?.tokenId
                 resolve(["tokenId", tokenId])
@@ -195,7 +194,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
-            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType", nil))
+            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
         
@@ -208,10 +207,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
-            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil))
+            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
         }
         guard paymentMethodParams != nil else {
-            resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured", nil))
+            resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))
             return
         }
         
@@ -232,7 +231,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 if let lastError = setupIntent?.lastSetupError {
                     resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, lastError))
                 } else {
-                    resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                    resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, "The payment has been canceled"))
                 }
                 break
             case .succeeded:
@@ -248,7 +247,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
     func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
-            resolve(Errors.createError(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted", nil))
+            resolve(Errors.createError(ApplePayErrorType.Failed.rawValue, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
             return
         }
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
@@ -431,7 +430,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     ) -> Void {
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
-            resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, "You must provide paymentMethodType", nil))
+            resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
         
@@ -444,18 +443,18 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
-            resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription, nil))
+            resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription))
             return
         }
         
         guard let params = paymentMethodParams else {
-            resolve(Errors.createError(NextPaymentActionErrorType.Unknown.rawValue, "Unhandled error occured", nil))
+            resolve(Errors.createError(NextPaymentActionErrorType.Unknown.rawValue, "Unhandled error occured"))
             return
         }
         
         STPAPIClient.shared.createPaymentMethod(with: params) { paymentMethod, error in
             if let createError = error {
-                resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription, nil))
+                resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription))
                 return
             }
             
@@ -476,7 +475,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         if let type = params["type"] as? String {
             if (type != "Card") {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet", nil))
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
             }
         }
         
@@ -484,7 +483,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
         guard let cardParams = cardFieldView?.cardParams else {
-            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete", nil))
+            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
         }
         
@@ -500,7 +499,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription, nil))
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
             }
         }
     }
@@ -521,7 +520,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 if let lastError = paymentIntent?.lastPaymentError {
                     resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, lastError))
                 } else {
-                    resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                    resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, "The payment has been canceled"))
                 }
                 break
             case .succeeded:
@@ -530,7 +529,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
                 break
             @unknown default:
-                resolve(Errors.createError(NextPaymentActionErrorType.Unknown.rawValue, "Cannot complete payment", nil))
+                resolve(Errors.createError(NextPaymentActionErrorType.Unknown.rawValue, "Cannot complete payment"))
                 break
             }
         }
@@ -545,7 +544,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         self.confirmPaymentResolver = resolve
-        self.confirmPaymentRejecter = reject
         self.confirmPaymentClientSecret = paymentIntentClientSecret
         
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
@@ -559,7 +557,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
-            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType", nil))
+            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
         
@@ -581,10 +579,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
                 paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
-                resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription, nil))
+                resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
             }
             guard paymentMethodParams != nil else {
-                resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured", nil))
+                resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
@@ -611,7 +609,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 if let lastPaymentError = paymentIntent?.lastPaymentError {
                     resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, lastPaymentError))
                 } else {
-                    resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription, nil))
+                    resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription))
                 }
                
                 return
@@ -620,13 +618,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)))
             } else {
-                resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent", nil))
+                resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent"))
             }
         }
     }
     
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        confirmPaymentRejecter?(ConfirmPaymentErrorType.Canceled.rawValue, "FPX Payment has been canceled", nil)
+        confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Canceled.rawValue, "FPX Payment has been canceled"))
     }
             
     func payWithFPX(_ paymentIntentClientSecret: String) {
@@ -644,7 +642,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     func bankSelectionViewController(_ bankViewController: STPBankSelectionViewController, didCreatePaymentMethodParams paymentMethodParams: STPPaymentMethodParams) {
         guard let clientSecret = confirmPaymentClientSecret else {
-            confirmPaymentRejecter?(ConfirmPaymentErrorType.Failed.rawValue, "Missing paymentIntentClientSecret", nil)
+            confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "Missing paymentIntentClientSecret"))
             return
         }
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
@@ -674,7 +672,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if let lastPaymentError = paymentIntent?.lastPaymentError {
                 confirmPaymentResolver?(Errors.createError(statusCode, lastPaymentError))
             } else {
-                confirmPaymentResolver?(Errors.createError(statusCode, "The payment has been canceled", nil))
+                confirmPaymentResolver?(Errors.createError(statusCode, "The payment has been canceled"))
             }
             break
         case .succeeded:
@@ -684,7 +682,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
             break
         @unknown default:
-            confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Cannot complete the payment", nil))
+            confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Cannot complete the payment"))
             break
         }
     }

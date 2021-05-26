@@ -2,6 +2,8 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.stripe.android.exception.APIException
+import com.stripe.android.exception.AuthenticationException
 import com.stripe.android.exception.CardException
 import com.stripe.android.exception.InvalidRequestException
 import com.stripe.android.model.PaymentIntent
@@ -59,12 +61,21 @@ internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
 }
 
 internal fun createError(code: String, error: Exception): WritableMap {
-  if (error is CardException) {
-    return mapError(code, error.message, error.localizedMessage, error.declineCode, null, error.code)
-  } else if (error is InvalidRequestException) {
-    return mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+  return when (error) {
+    is CardException -> {
+      mapError(code, error.message, error.localizedMessage, error.declineCode, null, error.code)
+    }
+    is InvalidRequestException -> {
+      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+    }
+    is AuthenticationException -> {
+      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+    }
+    is APIException -> {
+      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+    }
+    else -> mapError(code, error.message, error.localizedMessage.orEmpty(), null, null, null)
   }
-  return mapError(code, error.message, error.localizedMessage.orEmpty(), null, null, null)
 }
 
 internal fun createError(code: String, error: Throwable): WritableMap {

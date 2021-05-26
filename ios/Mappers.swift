@@ -368,12 +368,11 @@ class Mappers {
             let paymentError: NSMutableDictionary = [
                 "code": lastPaymentError.code ?? NSNull(),
                 "message": lastPaymentError.message ?? NSNull(),
-                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type)
+                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type),
+                "declineCode": lastPaymentError.declineCode ?? NSNull(),
+                "paymentMethod": mapFromPaymentMethod(lastPaymentError.paymentMethod) ?? NSNull()
             ]
             
-            if let paymentMethod = paymentIntent.lastPaymentError?.paymentMethod {
-                paymentError.setValue(mapFromPaymentMethod(paymentMethod), forKey: "paymentMethod")
-            }
             intent.setValue(paymentError, forKey: "lastPaymentError")
         }
         
@@ -405,7 +404,7 @@ class Mappers {
         return "Unknown"
     }
     
-    class func mapFromSetupIntentLastPaymentErrorType(_ errorType: STPSetupIntentLastSetupErrorType?) -> String {
+    class func mapFromSetupIntentLastPaymentErrorType(_ errorType: STPSetupIntentLastSetupErrorType?) -> String? {
         if let errorType = errorType {
             switch errorType {
             case STPSetupIntentLastSetupErrorType.apiConnection: return "ApiConnection"
@@ -416,10 +415,10 @@ class Mappers {
             case STPSetupIntentLastSetupErrorType.invalidRequest: return "InvalidRequest"
             case STPSetupIntentLastSetupErrorType.rateLimit: return "RateLimit"
             case STPSetupIntentLastSetupErrorType.unknown: return "Unknown"
-            default: return "Unknown"
+            default: return nil
             }
         }
-        return "Unknown"
+        return nil
     }
     
     class func mapToBillingDetails(billingDetails: NSDictionary?) -> STPPaymentMethodBillingDetails? {
@@ -498,7 +497,10 @@ class Mappers {
         return nil
     }
     
-    class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod) -> NSDictionary {
+    class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod?) -> NSDictionary? {
+        guard let paymentMethod = paymentMethod else {
+            return nil
+        }
         let card: NSDictionary = [
             "brand": Mappers.mapCardBrand(paymentMethod.card?.brand) ?? NSNull(),
             "country": paymentMethod.card?.country ?? NSNull(),
@@ -613,13 +615,15 @@ class Mappers {
         intent.setValue(convertDateToUnixTimestamp(date: setupIntent.created), forKey: "created")
         
         if let lastSetupError = setupIntent.lastSetupError {
-            let setupError = [
-                "code": lastSetupError.code,
-                "message": lastSetupError.description
+            let setupError: NSMutableDictionary = [
+                "code": lastSetupError.code ?? NSNull(),
+                "message": lastSetupError.description,
+                "type": mapFromSetupIntentLastPaymentErrorType(lastSetupError.type) ?? NSNull(),
+                "declineCode": lastSetupError.declineCode ?? NSNull(),
+                "paymentMethod": mapFromPaymentMethod(lastSetupError.paymentMethod) ?? NSNull()
             ]
             intent.setValue(setupError, forKey: "lastSetupError")
         }
-        
         
         return intent
     }

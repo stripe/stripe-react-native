@@ -1,11 +1,11 @@
 import type { Nullable, StripeError } from '.';
 import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
-import type { PaymentMethods } from './PaymentMethods';
+import type { PaymentMethod, PaymentMethods } from './PaymentMethods';
 
 export interface SetupIntent {
   id: string;
   clientSecret: string;
-  lastSetupError: Nullable<StripeError<string>>;
+  lastSetupError: Nullable<ConfirmSetupIntent.LastPaymentError>;
   created: Nullable<string>;
   livemode: boolean;
   paymentMethodId: Nullable<string>;
@@ -16,6 +16,10 @@ export interface SetupIntent {
 }
 
 export namespace ConfirmSetupIntent {
+  export type LastPaymentError = StripeError<string> & {
+    paymentMethod: PaymentMethod;
+  };
+
   export type Params =
     | CardParams
     | IdealParams

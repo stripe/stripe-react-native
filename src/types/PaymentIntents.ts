@@ -22,7 +22,6 @@ export interface PaymentIntent {
 export namespace PaymentIntents {
   export type LastPaymentError = StripeError<string> & {
     paymentMethod: PaymentMethod;
-    type: LastPaymentErrorType;
   };
 
   export type LastPaymentErrorType =
