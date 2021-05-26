@@ -236,28 +236,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
-    confirmSetupIntentPromise = promise
-
-    val instance = cardFieldManager.getCardViewInstance()
-    val cardParams = instance?.cardParams
-
-    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
-      return
-    }
-
-    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme, cardParams)
-
-    try {
-      val confirmParams = factory.createSetupParams(paymentMethodType)
-      stripe.confirmSetupIntent(currentActivity!!, confirmParams)
-    } catch (error: PaymentMethodCreateParamsException) {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
-    }
-  }
-
-  @ReactMethod
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
     val activity = currentActivity as AppCompatActivity?
 
@@ -467,6 +445,28 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       } ?: run {
         promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed"))
       }
+    }
+  }
+
+  @ReactMethod
+  fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
+    confirmSetupIntentPromise = promise
+
+    val instance = cardFieldManager.getCardViewInstance()
+    val cardParams = instance?.cardParams
+
+    val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
+      return
+    }
+
+    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, urlScheme, cardParams)
+
+    try {
+      val confirmParams = factory.createSetupParams(paymentMethodType)
+      stripe.confirmSetupIntent(currentActivity!!, confirmParams)
+    } catch (error: PaymentMethodCreateParamsException) {
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
   }
 
