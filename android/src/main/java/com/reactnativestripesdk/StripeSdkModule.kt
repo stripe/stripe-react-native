@@ -251,15 +251,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
     val activity = currentActivity as AppCompatActivity
-
     if (activity == null) {
       promise.reject("Fail", "Activity doesn't exist")
       return
     }
     val customFlow = getBooleanOrNull(params, "customFlow") ?: false
-
-    PaymentConfiguration.init(reactApplicationContext, publishableKey)
-
     val customerId = getValOr(params, "customerId")
     val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
