@@ -405,6 +405,23 @@ class Mappers {
         return "Unknown"
     }
     
+    class func mapFromSetupIntentLastPaymentErrorType(_ errorType: STPSetupIntentLastSetupErrorType?) -> String {
+        if let errorType = errorType {
+            switch errorType {
+            case STPSetupIntentLastSetupErrorType.apiConnection: return "ApiConnection"
+            case STPSetupIntentLastSetupErrorType.API: return "Api"
+            case STPSetupIntentLastSetupErrorType.authentication: return "Authentication"
+            case STPSetupIntentLastSetupErrorType.card: return "Card"
+            case STPSetupIntentLastSetupErrorType.idempotency: return "Idempotency"
+            case STPSetupIntentLastSetupErrorType.invalidRequest: return "InvalidRequest"
+            case STPSetupIntentLastSetupErrorType.rateLimit: return "RateLimit"
+            case STPSetupIntentLastSetupErrorType.unknown: return "Unknown"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
+    }
+    
     class func mapToBillingDetails(billingDetails: NSDictionary?) -> STPPaymentMethodBillingDetails? {
         guard let billingDetails = billingDetails else {
             return nil

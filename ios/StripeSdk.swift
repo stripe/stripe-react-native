@@ -229,11 +229,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError(ConfirmSetupIntentErrorType.Failed.rawValue, error))
                 break
             case .canceled:
-                resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, error))
+                if let lastError = setupIntent?.lastSetupError {
+                    resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, lastError))
+                } else {
+                    resolve(Errors.createError(ConfirmSetupIntentErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                }
                 break
             case .succeeded:
                 let intent = Mappers.mapFromSetupIntent(setupIntent: setupIntent!)
-                resolve(Mappers.createResult("paymentIntent", intent))
+                resolve(Mappers.createResult("setupIntent", intent))
             @unknown default:
                 resolve(Errors.createError(ConfirmSetupIntentErrorType.Unknown.rawValue, error))
                 break
@@ -511,15 +515,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         paymentHandler.handleNextAction(forPayment: paymentIntentClientSecret, with: self, returnURL: nil) { status, paymentIntent, handleActionError in
             switch (status) {
             case .failed:
-                if let lastPaymentError = paymentIntent?.lastPaymentError {
-                    resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, lastPaymentError))
-                } else {
-                    resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, handleActionError))
-                }
-
+                resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, handleActionError))
                 break
             case .canceled:
-                resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                if let lastError = paymentIntent?.lastPaymentError {
+                    resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, lastError))
+                } else {
+                    resolve(Errors.createError(NextPaymentActionErrorType.Canceled.rawValue, "The payment has been canceled", nil))
+                }
                 break
             case .succeeded:
                 if let paymentIntent = paymentIntent {
@@ -659,11 +662,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.confirmPaymentClientSecret = nil
         switch (status) {
         case .failed:
-            if let lastPaymentError = paymentIntent?.lastPaymentError {
-                confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, lastPaymentError))
-            } else {
-                confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error))
-            }
+            confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error))
             break
         case .canceled:
             let statusCode: String
@@ -672,7 +671,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             } else {
                 statusCode = ConfirmPaymentErrorType.Canceled.rawValue
             }
-            confirmPaymentResolver?(Errors.createError(statusCode, "The payment has been canceled", nil))
+            if let lastPaymentError = paymentIntent?.lastPaymentError {
+                confirmPaymentResolver?(Errors.createError(statusCode, lastPaymentError))
+            } else {
+                confirmPaymentResolver?(Errors.createError(statusCode, "The payment has been canceled", nil))
+            }
             break
         case .succeeded:
             if let paymentIntent = paymentIntent {

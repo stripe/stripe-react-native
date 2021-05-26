@@ -40,9 +40,10 @@ export enum PaymentSheetError {
 }
 
 export interface StripeError<T> {
+  code: T;
   message: string;
   localizedMessage: string;
-  code: T;
   declineCode?: string;
+  stripeErrorCode?: string;
   type?: string;
 }

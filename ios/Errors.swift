@@ -30,48 +30,53 @@ enum CreateTokenErrorType: String {
 
 class Errors {
     class func createError (_ code: String, _ message: String?, _ localizedMessage: String?) -> NSDictionary {
-        let error: NSDictionary = [
+        let lm = localizedMessage ?? message
+        let value: NSDictionary = [
             "code": code,
             "message": message ?? NSNull(),
-            "localizedMessage": localizedMessage ?? message ?? NSNull(),
+            "localizedMessage": lm ?? NSNull(),
             "declineCode": NSNull(),
-            "type": NSNull(),
+            "stripeErrorCode": NSNull(),
+            "type": NSNull()
         ]
         
-        return ["error": error]
+        return ["error": value]
     }
     class func createError (_ code: String, _ error: NSError?) -> NSDictionary {
-        let error: NSDictionary = [
+        let value: NSDictionary = [
             "code": code,
-            "message": error?.description ?? NSNull(),
-            "localizedMessage": error?.localizedDescription ?? NSNull(),
-            "declineCode": NSNull(),
-            "type": NSNull(),
+            "message": error?.userInfo["com.stripe.lib:ErrorMessageKey"] ?? NSNull(),
+            "localizedMessage": error?.userInfo["NSLocalizedDescription"] ?? NSNull(),
+            "declineCode": error?.userInfo["com.stripe.lib:DeclineCodeKey"] ?? NSNull(),
+            "stripeErrorCode": error?.userInfo["com.stripe.lib:StripeErrorCodeKey"] ?? NSNull(),
+            "type": error?.userInfo["com.stripe.lib:StripeErrorTypeKey"] ?? NSNull(),
         ]
         
-        return ["error": error]
+        return ["error": value]
     }
     class func createError (_ code: String, _ error: STPSetupIntentLastSetupError?) -> NSDictionary {
-        let error: NSDictionary = [
+        let value: NSDictionary = [
             "code": code,
             "message": error?.message ?? "",
             "localizedMessage": error?.message ?? "",
             "declineCode": error?.declineCode ?? NSNull(),
-            "type": error?.type.rawValue ?? NSNull(),
+            "stripeErrorCode": error?.code ?? NSNull(),
+            "type": Mappers.mapFromSetupIntentLastPaymentErrorType(error?.type)
         ]
         
-        return ["error": error]
+        return ["error": value]
     }
     
     class func createError (_ code: String, _ error: STPPaymentIntentLastPaymentError?) -> NSDictionary {
-        let error: NSDictionary = [
+        let value: NSDictionary = [
             "code": code,
             "message": error?.message ?? "",
             "localizedMessage": error?.message ?? "",
             "declineCode": error?.declineCode ?? NSNull(),
-            "type": error?.type.rawValue ?? NSNull(),
+            "stripeErrorCode": error?.code ?? NSNull(),
+            "type": Mappers.mapFromPaymentIntentLastPaymentErrorType(error?.type)
         ]
         
-        return ["error": error]
+        return ["error": value]
     }
 }
