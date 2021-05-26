@@ -169,8 +169,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    
-    
     @objc(createTokenForCVCUpdate:resolver:rejecter:)
     func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cvc = cvc else {
@@ -208,6 +206,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
+            return
         }
         guard paymentMethodParams != nil else {
             resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))
