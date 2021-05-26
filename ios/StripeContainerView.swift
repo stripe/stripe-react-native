@@ -9,7 +9,7 @@ class StripeContainerView: UIView {
             if (keyboardShouldPersistTaps == true) {
                 removeListener()
             } else {
-                setLiestener()
+                setListener()
             }
         }
     }
@@ -18,7 +18,7 @@ class StripeContainerView: UIView {
         super.init(frame: frame)
     }
 
-    func setLiestener() {
+    func setListener() {
         tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(endEditing(_:)))
 
         tapRecognizer!.cancelsTouchesInView = false
