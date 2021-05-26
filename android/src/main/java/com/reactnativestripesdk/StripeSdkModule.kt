@@ -316,6 +316,34 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     paymentSheetFragment?.confirmPayment()
   }
 
+  private fun payWithFpx() {
+    AddPaymentMethodActivityStarter(currentActivity as AppCompatActivity)
+      .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
+        .setPaymentMethodType(PaymentMethod.Type.Fpx)
+        .build()
+      )
+  }
+
+  private fun onFpxPaymentMethodResult(result: AddPaymentMethodActivityStarter.Result) {
+    when (result) {
+      is AddPaymentMethodActivityStarter.Result.Success -> {
+        stripe.confirmPayment(currentActivity!!,
+          ConfirmPaymentIntentParams.createWithPaymentMethodId(
+            result.paymentMethod.id!!,
+            confirmPaymentClientSecret!!,
+            returnUrl = mapToReturnURL(urlScheme)
+          ));
+      }
+      is AddPaymentMethodActivityStarter.Result.Failure -> {
+        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception))
+      }
+      is AddPaymentMethodActivityStarter.Result.Canceled -> {
+        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled"))
+      }
+    }
+    this.confirmPaymentClientSecret = null
+  }
+
   @ReactMethod
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
@@ -441,35 +469,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       }
     }
   }
-
-  private fun payWithFpx() {
-    AddPaymentMethodActivityStarter(currentActivity as AppCompatActivity)
-      .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
-        .setPaymentMethodType(PaymentMethod.Type.Fpx)
-        .build()
-      )
-  }
-
-  private fun onFpxPaymentMethodResult(result: AddPaymentMethodActivityStarter.Result) {
-    when (result) {
-      is AddPaymentMethodActivityStarter.Result.Success -> {
-        stripe.confirmPayment(currentActivity!!,
-          ConfirmPaymentIntentParams.createWithPaymentMethodId(
-            result.paymentMethod.id!!,
-            confirmPaymentClientSecret!!,
-            returnUrl = mapToReturnURL(urlScheme)
-          ));
-      }
-      is AddPaymentMethodActivityStarter.Result.Failure -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception))
-      }
-      is AddPaymentMethodActivityStarter.Result.Canceled -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled"))
-      }
-    }
-    this.confirmPaymentClientSecret = null
-  }
-
 
   /// Check paymentIntent.nextAction is voucher-based payment method.
   /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.
