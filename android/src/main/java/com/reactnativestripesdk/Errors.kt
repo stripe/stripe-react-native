@@ -51,22 +51,22 @@ internal fun createError(code: String, message: String?): WritableMap {
 }
 
 internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
-  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty(), error?.code.orEmpty())
+  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.name, error?.code)
 }
 
 internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
-  return mapError(code, error?.message.orEmpty(), error?.message.orEmpty(), error?.declineCode.orEmpty(), error?.type?.name.orEmpty(), error?.code.orEmpty())
+  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.name, error?.code)
 }
 
 internal fun createError(code: String, error: Exception): WritableMap {
   if (error is CardException) {
-    return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), error.declineCode.orEmpty(), null, error.code)
+    return mapError(code, error.message, error.localizedMessage, error.declineCode, null, error.code)
   } else if (error is InvalidRequestException) {
-    return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), error.stripeError?.declineCode.orEmpty(), error.stripeError?.type.orEmpty(), error.stripeError?.code.orEmpty())
+    return mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
   }
-  return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), null, null, null)
+  return mapError(code, error.message, error.localizedMessage.orEmpty(), null, null, null)
 }
 
 internal fun createError(code: String, error: Throwable): WritableMap {
-  return mapError(code, error.message.orEmpty(), error.localizedMessage.orEmpty(), null, null, null)
+  return mapError(code, error.message, error.localizedMessage, null, null, null)
 }

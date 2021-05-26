@@ -42,7 +42,7 @@ export enum PaymentSheetError {
 export interface StripeError<T> {
   code: T;
   message: string;
-  localizedMessage: string;
+  localizedMessage?: string;
   declineCode?: string;
   stripeErrorCode?: string;
   type?: string;
