@@ -203,6 +203,8 @@ Certain payment methods require a [webhook listener](https://stripe.com/docs/pay
 
 ## Troubleshooting
 
+### `Undefined symbols for architecture x86_64` on iOS
+
 While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by `react-native init` template configuration that is not fully compatible with Swift 5.1.
 
 ```
@@ -218,6 +220,10 @@ Follow these steps to resolve this:
 - Open your project via Xcode, go to `project -> build settings`, find `library search paths` and remove all swift related entries such as:
   `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`.
 - Create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+
+### `TypeError: null is not an object (evaluating '_NativeStripeSdk.default.initialise')` on Android
+
+You might see error this whilst initializing the `StripeProvider` component with Expo. This is caused by using an older version of Expo before stripe-react-native was [officially supported](https://github.com/stripe/stripe-react-native/issues/3#issuecomment-846225534). Updating Expo Go from the stores (or locally on simulators installed with `expo install:client:[ios|android]`) should fix the problem.
 
 If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://webchat.freenode.net/#stripe).
 
