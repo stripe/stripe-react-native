@@ -26,7 +26,7 @@ export default function WebhookPaymentScreen() {
         email,
         currency: 'usd',
         items: [{ id: 'id' }],
-        request_three_d_secure: 'any',
+        // request_three_d_secure: 'any',
       }),
     });
     const { clientSecret } = await response.json();

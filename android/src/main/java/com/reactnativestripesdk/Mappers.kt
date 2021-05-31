@@ -4,6 +4,11 @@ import com.facebook.react.bridge.*
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
 
+internal fun createResult(key: String, value: WritableMap): WritableMap {
+  val map = WritableNativeMap()
+  map.putMap(key, value)
+  return map
+}
 
 internal fun mapIntentStatus(status: StripeIntent.Status?): String {
   return when (status) {
@@ -357,14 +362,14 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
 
 internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Type?): String? {
   return when (errorType) {
-    PaymentIntent.Error.Type.ApiConnectionError -> "ApiConnection"
-    PaymentIntent.Error.Type.AuthenticationError -> "Authentication"
-    PaymentIntent.Error.Type.ApiError -> "Api"
-    PaymentIntent.Error.Type.CardError -> "Card"
-    PaymentIntent.Error.Type.IdempotencyError -> "Idempotency"
-    PaymentIntent.Error.Type.InvalidRequestError -> "InvalidRequest"
-    PaymentIntent.Error.Type.RateLimitError -> "RateLimit"
-    else -> "Unknown"
+    PaymentIntent.Error.Type.ApiConnectionError -> "api_connection_error"
+    PaymentIntent.Error.Type.AuthenticationError -> "authentication_error"
+    PaymentIntent.Error.Type.ApiError -> "api_error"
+    PaymentIntent.Error.Type.CardError -> "card_error"
+    PaymentIntent.Error.Type.IdempotencyError -> "idempotency_error"
+    PaymentIntent.Error.Type.InvalidRequestError -> "invalid_request_error"
+    PaymentIntent.Error.Type.RateLimitError -> "rate_limit_error"
+    else -> null
   }
 }
 

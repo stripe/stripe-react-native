@@ -1,14 +1,19 @@
 import { NativeModules } from 'react-native';
 import type {
   PaymentMethodCreateParams,
-  ThreeDSecureConfigurationParams,
-  PaymentIntent,
-  PaymentMethod,
   ApplePay,
-  SetupIntent,
   PaymentSheet,
   ConfirmSetupIntent,
   InitialiseParams,
+  CreatePaymentMethodResult,
+  RetrievePaymentIntentResult,
+  ConfirmPaymentMethodResult,
+  HandleCardActionResult,
+  ConfirmSetupIntentResult,
+  CreateTokenForCVCUpdateResult,
+  InitPaymentSheetResult,
+  PresentPaymentSheetResult,
+  ConfirmPaymentSheetPaymentResult,
   Card,
 } from './types';
 
@@ -17,14 +22,15 @@ type NativeStripeSdkType = {
   createPaymentMethod(
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options
-  ): Promise<PaymentMethod>;
-  handleCardAction(paymentIntentClientSecret: string): Promise<PaymentIntent>;
+  ): Promise<CreatePaymentMethodResult>;
+  handleCardAction(
+    paymentIntentClientSecret: string
+  ): Promise<HandleCardActionResult>;
   confirmPaymentMethod(
     paymentIntentClientSecret: string,
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options
-  ): Promise<PaymentIntent>;
-  configure3dSecure(params: ThreeDSecureConfigurationParams): void;
+  ): Promise<ConfirmPaymentMethodResult>;
   isApplePaySupported(): Promise<boolean>;
   presentApplePay(params: ApplePay.PresentParams): Promise<void>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
@@ -39,18 +45,18 @@ type NativeStripeSdkType = {
     paymentIntentClientSecret: string,
     data: ConfirmSetupIntent.Params,
     options: ConfirmSetupIntent.Options
-  ): Promise<SetupIntent>;
-  retrievePaymentIntent(clientSecret: string): Promise<PaymentIntent>;
+  ): Promise<ConfirmSetupIntentResult>;
+  retrievePaymentIntent(
+    clientSecret: string
+  ): Promise<RetrievePaymentIntentResult>;
   initPaymentSheet(
     params: PaymentSheet.SetupParams
-  ): Promise<PaymentSheet.PaymentOption | undefined>;
+  ): Promise<InitPaymentSheetResult>;
   presentPaymentSheet(
     params?: PaymentSheet.PresentParams
-  ): Promise<{
-    paymentOption?: PaymentSheet.PaymentOption;
-  }>;
-  confirmPaymentSheetPayment(): Promise<void>;
-  createTokenForCVCUpdate(cvc: string): Promise<string>;
+  ): Promise<PresentPaymentSheetResult>;
+  confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
+  createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
   createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
 };

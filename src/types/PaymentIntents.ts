@@ -22,18 +22,7 @@ export interface PaymentIntent {
 export namespace PaymentIntents {
   export type LastPaymentError = StripeError<string> & {
     paymentMethod: PaymentMethod;
-    type: LastPaymentErrorType;
   };
-
-  export type LastPaymentErrorType =
-    | 'ApiConnection'
-    | 'Api'
-    | 'Authentication'
-    | 'Card'
-    | 'Idempotency'
-    | 'InvalidRequest'
-    | 'RateLimit'
-    | 'Unknown';
 
   export interface Address {
     city: string;

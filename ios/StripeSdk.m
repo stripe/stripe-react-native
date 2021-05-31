@@ -89,8 +89,6 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
-RCT_EXTERN_METHOD(configure3dSecure:(NSDictionary *)params)
-
 
 RCT_EXTERN_METHOD(
                   confirmSetupIntent:(NSString *)setupIntentClientSecret
