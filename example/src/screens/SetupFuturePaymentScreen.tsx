@@ -132,7 +132,7 @@ export default function SetupFuturePaymentScreen() {
       const errorCode = paymentIntent.lastPaymentError?.code;
 
       let failureReason = 'Payment failed, try again.'; // Default to a generic error message
-      if (paymentIntent?.lastPaymentError?.type === 'Card') {
+      if (paymentIntent?.lastPaymentError?.type === 'card_error') {
         failureReason = paymentIntent.lastPaymentError.message;
       }
 

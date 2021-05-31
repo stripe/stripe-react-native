@@ -53,17 +53,17 @@ internal fun createError(code: String, message: String?): WritableMap {
 }
 
 internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
-  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.name, error?.code)
+  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.code, error?.code)
 }
 
 internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
-  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.name, error?.code)
+  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.code, error?.code)
 }
 
 internal fun createError(code: String, error: Exception): WritableMap {
   return when (error) {
     is CardException -> {
-      mapError(code, error.message, error.localizedMessage, error.declineCode, null, error.code)
+      mapError(code, error.message, error.localizedMessage, error.declineCode, error.stripeError?.type, error.stripeError?.code)
     }
     is InvalidRequestException -> {
       mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)

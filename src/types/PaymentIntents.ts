@@ -24,16 +24,6 @@ export namespace PaymentIntents {
     paymentMethod: PaymentMethod;
   };
 
-  export type LastPaymentErrorType =
-    | 'ApiConnection'
-    | 'Api'
-    | 'Authentication'
-    | 'Card'
-    | 'Idempotency'
-    | 'InvalidRequest'
-    | 'RateLimit'
-    | 'Unknown';
-
   export interface Address {
     city: string;
     county: string;

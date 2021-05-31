@@ -387,34 +387,34 @@ class Mappers {
         return intent;
     }
     
-    class func mapFromPaymentIntentLastPaymentErrorType(_ errorType: STPPaymentIntentLastPaymentErrorType?) -> String {
+    class func mapFromPaymentIntentLastPaymentErrorType(_ errorType: STPPaymentIntentLastPaymentErrorType?) -> String? {
         if let errorType = errorType {
             switch errorType {
-            case STPPaymentIntentLastPaymentErrorType.apiConnection: return "ApiConnection"
-            case STPPaymentIntentLastPaymentErrorType.api: return "Api"
-            case STPPaymentIntentLastPaymentErrorType.authentication: return "Authentication"
-            case STPPaymentIntentLastPaymentErrorType.card: return "Card"
-            case STPPaymentIntentLastPaymentErrorType.idempotency: return "Idempotency"
-            case STPPaymentIntentLastPaymentErrorType.invalidRequest: return "InvalidRequest"
-            case STPPaymentIntentLastPaymentErrorType.rateLimit: return "RateLimit"
-            case STPPaymentIntentLastPaymentErrorType.unknown: return "Unknown"
-            default: return "Unknown"
+            case STPPaymentIntentLastPaymentErrorType.apiConnection: return "api_connection_error"
+            case STPPaymentIntentLastPaymentErrorType.api: return "api_error"
+            case STPPaymentIntentLastPaymentErrorType.authentication: return "authentication_error"
+            case STPPaymentIntentLastPaymentErrorType.card: return "card_error"
+            case STPPaymentIntentLastPaymentErrorType.idempotency: return "idempotency_error"
+            case STPPaymentIntentLastPaymentErrorType.invalidRequest: return "invalid_request_error"
+            case STPPaymentIntentLastPaymentErrorType.rateLimit: return "rate_limit_error"
+            case STPPaymentIntentLastPaymentErrorType.unknown: return nil
+            default: return nil
             }
         }
-        return "Unknown"
+        return nil
     }
     
     class func mapFromSetupIntentLastPaymentErrorType(_ errorType: STPSetupIntentLastSetupErrorType?) -> String? {
         if let errorType = errorType {
             switch errorType {
-            case STPSetupIntentLastSetupErrorType.apiConnection: return "ApiConnection"
-            case STPSetupIntentLastSetupErrorType.API: return "Api"
-            case STPSetupIntentLastSetupErrorType.authentication: return "Authentication"
-            case STPSetupIntentLastSetupErrorType.card: return "Card"
-            case STPSetupIntentLastSetupErrorType.idempotency: return "Idempotency"
-            case STPSetupIntentLastSetupErrorType.invalidRequest: return "InvalidRequest"
-            case STPSetupIntentLastSetupErrorType.rateLimit: return "RateLimit"
-            case STPSetupIntentLastSetupErrorType.unknown: return "Unknown"
+            case STPSetupIntentLastSetupErrorType.apiConnection: return "api_connection_error"
+            case STPSetupIntentLastSetupErrorType.API: return "api_error"
+            case STPSetupIntentLastSetupErrorType.authentication: return "authentication_error"
+            case STPSetupIntentLastSetupErrorType.card: return "card_error"
+            case STPSetupIntentLastSetupErrorType.idempotency: return "idempotency_error"
+            case STPSetupIntentLastSetupErrorType.invalidRequest: return "invalid_request_error"
+            case STPSetupIntentLastSetupErrorType.rateLimit: return "rate_limit_error"
+            case STPSetupIntentLastSetupErrorType.unknown: return nil
             default: return nil
             }
         }

@@ -44,7 +44,7 @@ class Errors {
     class func createError (_ code: String, _ error: NSError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
-            "message": error?.userInfo["com.stripe.lib:ErrorMessageKey"] ?? NSNull(),
+            "message": error?.userInfo["com.stripe.lib:ErrorMessageKey"] ?? error?.userInfo["NSLocalizedDescription"] ?? NSNull(),
             "localizedMessage": error?.userInfo["NSLocalizedDescription"] ?? NSNull(),
             "declineCode": error?.userInfo["com.stripe.lib:DeclineCodeKey"] ?? NSNull(),
             "stripeErrorCode": error?.userInfo["com.stripe.lib:StripeErrorCodeKey"] ?? NSNull(),
@@ -56,11 +56,11 @@ class Errors {
     class func createError (_ code: String, _ error: STPSetupIntentLastSetupError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
-            "message": error?.message ?? "",
-            "localizedMessage": error?.message ?? "",
+            "message": error?.message ?? NSNull(),
+            "localizedMessage": error?.message ?? NSNull(),
             "declineCode": error?.declineCode ?? NSNull(),
             "stripeErrorCode": error?.code ?? NSNull(),
-            "type": Mappers.mapFromSetupIntentLastPaymentErrorType(error?.type)
+            "type": Mappers.mapFromSetupIntentLastPaymentErrorType(error?.type) ?? NSNull()
         ]
         
         return ["error": value]
@@ -69,11 +69,11 @@ class Errors {
     class func createError (_ code: String, _ error: STPPaymentIntentLastPaymentError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
-            "message": error?.message ?? "",
-            "localizedMessage": error?.message ?? "",
+            "message": error?.message ?? NSNull(),
+            "localizedMessage": error?.message ?? NSNull(),
             "declineCode": error?.declineCode ?? NSNull(),
             "stripeErrorCode": error?.code ?? NSNull(),
-            "type": Mappers.mapFromPaymentIntentLastPaymentErrorType(error?.type)
+            "type": Mappers.mapFromPaymentIntentLastPaymentErrorType(error?.type) ?? NSNull()
         ]
         
         return ["error": value]

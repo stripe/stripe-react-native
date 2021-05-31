@@ -86,8 +86,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
                   confirmPromise?.resolve(pi)
                   handleCardActionPromise?.resolve(pi)
                 } else {
-                  confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), paymentIntent.lastPaymentError))
-                  handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), paymentIntent.lastPaymentError))
+                  (paymentIntent.lastPaymentError)?.let {
+                    confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
+                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), it))
+                  } ?: run {
+                    confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
+                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), "The payment has been canceled"))
+                  }
                 }
               }
               StripeIntent.Status.RequiresPaymentMethod -> {
@@ -160,7 +165,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
         when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
-            val message = "Payment has been canceled"
+            val message = "The payment has been canceled"
             confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
             presentPaymentSheetPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
           }
@@ -316,7 +321,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception))
       }
       is AddPaymentMethodActivityStarter.Result.Canceled -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "Fpx payment has been canceled"))
+        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
       }
     }
     this.confirmPaymentClientSecret = null
