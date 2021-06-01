@@ -163,6 +163,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
+        confirmPaymentClientSecret = null
         when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
             val message = "The payment has been canceled"
@@ -257,6 +258,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
 
     this.initPaymentSheetPromise = promise
+    this.confirmPaymentClientSecret = paymentIntentClientSecret
 
     val fragment = PaymentSheetFragment().also {
       val bundle = Bundle()
@@ -279,14 +281,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun presentPaymentSheet(params: ReadableMap, promise: Promise) {
-    val clientSecret = getValOr(params, "clientSecret") as String
+  fun presentPaymentSheet(params: ReadableMap?, promise: Promise) {
     val confirmPayment = getBooleanOrNull(params, "confirmPayment")
     this.presentPaymentSheetPromise = promise
     if (confirmPayment == false) {
       paymentSheetFragment?.presentPaymentOptions()
     } else {
-      paymentSheetFragment?.present(clientSecret)
+      paymentSheetFragment?.present(this.confirmPaymentClientSecret!!)
     }
   }
 
@@ -410,7 +411,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
-    confirmPaymentClientSecret = paymentIntentClientSecret
 
     val instance = cardFieldManager.getCardViewInstance()
     val cardParams = instance?.cardParams

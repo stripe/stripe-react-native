@@ -152,7 +152,7 @@ export function useStripe() {
 
   const _presentPaymentSheet = useCallback(
     async (
-      params: PaymentSheet.PresentParams
+      params?: PaymentSheet.PresentParams
     ): Promise<PresentPaymentSheetResult> => {
       return presentPaymentSheet(params);
     },

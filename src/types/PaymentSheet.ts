@@ -9,15 +9,10 @@ export declare namespace PaymentSheet {
       style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
     };
 
-  export type PresentParams =
-    | {
-        confirmPayment?: false;
-      }
-    | {
-        clientSecret: string;
-        confirmPayment?: true;
-      };
-
+  export type PresentParams = {
+    confirmPayment?: boolean;
+    clientSecret?: string;
+  };
   type ApplePayParams =
     | {
         applePay?: true;
