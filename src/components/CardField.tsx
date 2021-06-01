@@ -23,6 +23,7 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
+  testID?: string;
 }
 
 /**

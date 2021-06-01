@@ -19,6 +19,7 @@ export interface Props extends AccessibilityProps {
   onComplete(value: AuBECSDebitFormComponent.FormDetails): void;
   formStyle?: AuBECSDebitFormComponent.Styles;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 /**
