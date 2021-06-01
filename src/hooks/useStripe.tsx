@@ -9,6 +9,8 @@ import type {
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
+  ApplePayError,
+  StripeError,
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
@@ -101,14 +103,16 @@ export function useStripe() {
         field: ApplePay.AddressFields;
         message?: string;
       }> = []
-    ): Promise<ApplePayResult> => {
+    ): Promise<{ error?: StripeError<ApplePayError> }> => {
       return updateApplePaySummaryItems(summaryItems, errorAddressFields);
     },
     []
   );
 
   const _confirmApplePayPayment = useCallback(
-    async (clientSecret: string): Promise<ApplePayResult> => {
+    async (
+      clientSecret: string
+    ): Promise<{ error?: StripeError<ApplePayError> }> => {
       return confirmApplePayPayment(clientSecret);
     },
     []

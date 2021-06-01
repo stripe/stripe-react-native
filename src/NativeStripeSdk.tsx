@@ -15,6 +15,7 @@ import type {
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
   Card,
+  ApplePayResult,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -32,7 +33,7 @@ type NativeStripeSdkType = {
     options: PaymentMethodCreateParams.Options
   ): Promise<ConfirmPaymentMethodResult>;
   isApplePaySupported(): Promise<boolean>;
-  presentApplePay(params: ApplePay.PresentParams): Promise<void>;
+  presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
   updateApplePaySummaryItems(
     summaryItems: ApplePay.CartSummaryItem[],

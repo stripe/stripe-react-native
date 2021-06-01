@@ -287,14 +287,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
         self.applePayCompletionCallback = completion
-        self.applePayRequestResolver?([])
+        let method = Mappers.mapFromPaymentMethod(paymentMethod)
+        self.applePayRequestResolver?(Mappers.createResult("paymentMethod", method))
+        self.applePayRequestRejecter = nil
     }
     
     @objc(confirmApplePayPayment:resolver:rejecter:)
     func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.applePayCompletionRejecter = reject
-        self.applePayCompletionCallback?(clientSecret, nil)
         self.confirmApplePayPaymentResolver = resolve
+        self.applePayCompletionCallback?(clientSecret, nil)
     }
     
     func applePayContext(_ context: STPApplePayContext, didCompleteWith status: STPPaymentStatus, error: Error?) {
@@ -305,21 +307,21 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             confirmApplePayPaymentResolver?([])
             break
         case .error:
-            let message = "Apple pay completion failed"
+            let message = "Payment not completed"
             applePayCompletionRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             applePayRequestRejecter?(ApplePayErrorType.Failed.rawValue, message, nil)
             applePayCompletionRejecter = nil
             applePayRequestRejecter = nil
             break
         case .userCancellation:
-            let message = "Apple pay payment has been cancelled"
+            let message = "The payment has been canceled"
             applePayCompletionRejecter?(ApplePayErrorType.Canceled.rawValue, message, nil)
             applePayRequestRejecter?(ApplePayErrorType.Canceled.rawValue, message, nil)
             applePayCompletionRejecter = nil
             applePayRequestRejecter = nil
             break
         @unknown default:
-            let message = "Cannot complete payment"
+            let message = "Payment not completed"
             applePayCompletionRejecter?(ApplePayErrorType.Unknown.rawValue, message, nil)
             applePayRequestRejecter?(ApplePayErrorType.Unknown.rawValue, message, nil)
             applePayCompletionRejecter = nil
@@ -410,7 +412,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 applePayContext.presentApplePay(completion: nil)
             }
         } else {
-            reject(ApplePayErrorType.Failed.rawValue, "Apple pay request failed", nil)
+            reject(ApplePayErrorType.Failed.rawValue, "Payment not completed", nil)
         }
     }
 
