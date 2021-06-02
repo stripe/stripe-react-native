@@ -12,6 +12,13 @@ export namespace CardFieldInput {
     postalCode?: string;
     brand: Card.Brand;
     complete: boolean;
+    /**
+     * WARNING: Full card details are only returned when the `returnPCIData` prop
+     * on the `CardField` component is set to `true`.
+     * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
+     * See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance
+     */
+    number?: string;
   }
 
   export interface Styles {
