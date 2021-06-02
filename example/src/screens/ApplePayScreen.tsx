@@ -81,7 +81,7 @@ export default function ApplePayScreen() {
   };
 
   const pay = async () => {
-    const { error } = await presentApplePay({
+    const { error, paymentMethod } = await presentApplePay({
       cartItems: cart,
       country: 'US',
       currency: 'USD',
@@ -98,6 +98,7 @@ export default function ApplePayScreen() {
     if (error) {
       Alert.alert(error.code, error.message);
     } else {
+      console.log(JSON.stringify(paymentMethod, null, 2));
       const clientSecret = await fetchPaymentIntentClientSecret();
 
       const { error: confirmApplePayError } = await confirmApplePayPayment(

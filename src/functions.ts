@@ -13,13 +13,11 @@ import {
   CreateTokenResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
-  PaymentIntent,
-  PaymentMethod,
   PaymentMethodCreateParams,
   PaymentSheet,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
-  SetupIntent,
+  StripeError,
 } from './types';
 import type { Card } from './types/Card';
 
@@ -41,7 +39,7 @@ export const createPaymentMethod = async (
       };
     }
     return {
-      paymentMethod: paymentMethod as PaymentMethod,
+      paymentMethod: paymentMethod!,
     };
   } catch (error) {
     return {
@@ -79,7 +77,7 @@ export const retrievePaymentIntent = async (
       };
     }
     return {
-      paymentIntent: paymentIntent as PaymentIntent,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
@@ -105,7 +103,7 @@ export const confirmPaymentMethod = async (
       };
     }
     return {
-      paymentIntent: paymentIntent as PaymentIntent,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
@@ -131,9 +129,15 @@ export const presentApplePay = async (
   }
 
   try {
-    await NativeStripeSdk.presentApplePay(params);
-
-    return {};
+    const { paymentMethod, error } = await NativeStripeSdk.presentApplePay(
+      params
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return { paymentMethod: paymentMethod! };
   } catch (error) {
     return {
       error,
@@ -147,7 +151,7 @@ export const updateApplePaySummaryItems = async (
     field: ApplePay.AddressFields;
     message?: string;
   }> = []
-): Promise<ApplePayResult> => {
+): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
       error: createError({
@@ -173,7 +177,7 @@ export const updateApplePaySummaryItems = async (
 
 export const confirmApplePayPayment = async (
   clientSecret: string
-): Promise<ApplePayResult> => {
+): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
       error: createError({
@@ -205,7 +209,7 @@ export const handleCardAction = async (
       };
     }
     return {
-      paymentIntent: paymentIntent as PaymentIntent,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
@@ -231,7 +235,7 @@ export const confirmSetupIntent = async (
       };
     }
     return {
-      setupIntent: setupIntent as SetupIntent,
+      setupIntent: setupIntent!,
     };
   } catch (error) {
     return {
@@ -253,7 +257,7 @@ export const createTokenForCVCUpdate = async (
       };
     }
     return {
-      tokenId: tokenId as string,
+      tokenId: tokenId!,
     };
   } catch (error) {
     return {

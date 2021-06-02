@@ -145,7 +145,15 @@ export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;
 };
 
-export type ApplePayResult = { error?: StripeError<ApplePayError> };
+export type ApplePayResult =
+  | {
+      paymentMethod: PaymentMethod;
+      error?: undefined;
+    }
+  | {
+      paymentMethod?: undefined;
+      error: StripeError<ApplePayError>;
+    };
 
 export interface InitStripeParams {
   publishableKey: string;
