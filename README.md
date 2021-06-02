@@ -92,15 +92,10 @@ function App() {
 }
 
 // PaymentScreen.ts
-import {
-  CardField,
-  CardFieldInput,
-  useStripe,
-} from '@stripe/stripe-react-native';
+import { CardField, useStripe } from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
-  const [card, setCard] = useState<CardFieldInput.Details | null>(null);
-  const { confirmPayment, handleCardAction } = useStripe();
+  const { confirmPayment } = useStripe();
 
   return (
     <CardField
@@ -118,7 +113,7 @@ export default function PaymentScreen() {
         marginVertical: 30,
       }}
       onCardChange={(cardDetails) => {
-        setCard(cardDetails);
+        console.log('cardDetails', cardDetails);
       }}
       onFocus={(focusedField) => {
         console.log('focusField', focusedField);
