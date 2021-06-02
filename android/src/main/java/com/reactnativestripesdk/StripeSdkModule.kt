@@ -411,6 +411,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun confirmPaymentMethod(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
+    confirmPaymentClientSecret = paymentIntentClientSecret
 
     val instance = cardFieldManager.getCardViewInstance()
     val cardParams = instance?.cardParams
