@@ -546,6 +546,9 @@ class Mappers {
             "Sofort": [
                 "country": paymentMethod.sofort?.country
             ],
+            "Upi": [
+                "vpa": paymentMethod.upi?.vpa
+            ],
         ]
         return method
     }
