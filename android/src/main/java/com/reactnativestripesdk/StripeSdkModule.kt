@@ -12,8 +12,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
-import com.stripe.android.exception.CardException
-import com.stripe.android.exception.InvalidRequestException
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
@@ -163,7 +161,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
-        confirmPaymentClientSecret = null
         when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
             val message = "The payment has been canceled"
@@ -253,18 +250,19 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val customerId = getValOr(params, "customerId")
     val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
+    val setupIntentClientSecret = getValOr(params, "setupIntentClientSecret")
     val merchantDisplayName = getValOr(params, "merchantDisplayName")
     val countryCode = getValOr(params, "merchantCountryCode")
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
 
     this.initPaymentSheetPromise = promise
-    this.confirmPaymentClientSecret = paymentIntentClientSecret
 
     val fragment = PaymentSheetFragment().also {
       val bundle = Bundle()
       bundle.putString("customerId", customerId)
       bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
       bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
+      bundle.putString("setupIntentClientSecret", setupIntentClientSecret)
       bundle.putString("merchantDisplayName", merchantDisplayName)
       bundle.putString("countryCode", countryCode)
       bundle.putBoolean("customFlow", customFlow)
@@ -287,7 +285,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     if (confirmPayment == false) {
       paymentSheetFragment?.presentPaymentOptions()
     } else {
-      paymentSheetFragment?.present(this.confirmPaymentClientSecret!!)
+      paymentSheetFragment?.present()
     }
   }
 
