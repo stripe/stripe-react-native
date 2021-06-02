@@ -17,6 +17,7 @@ export interface Props {
   children: React.ReactElement | React.ReactElement[];
   keyboardShouldPersistTaps?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 /**

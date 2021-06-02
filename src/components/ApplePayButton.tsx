@@ -20,6 +20,7 @@ export interface Props extends AccessibilityProps {
   buttonStyle?: ApplePayButtonComponent.Styles;
   borderRadius?: number;
   onPress(): void;
+  testID?: string;
 }
 
 /**
