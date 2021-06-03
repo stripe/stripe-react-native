@@ -27,6 +27,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "")
   var cardParams: PaymentMethodCreateParams.Card? = null
   private var mEventDispatcher: EventDispatcher?
+  private var dangerouslyGetFullCardDetails: Boolean = false
 
   init {
     mCardWidget = CardInputWidget(context);
@@ -138,6 +139,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     }
   }
 
+  fun setDangerouslyGetFullCardDetails(isEnabled: Boolean) {
+    dangerouslyGetFullCardDetails = isEnabled
+  }
+
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
   }
@@ -158,7 +163,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       cardDetails["last4"] = null
     }
     mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null))
+      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null, dangerouslyGetFullCardDetails))
   }
 
   private fun setListeners() {
@@ -203,6 +208,9 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
+        if (dangerouslyGetFullCardDetails) {
+          cardDetails["number"] = var1.toString().replace(" ", "")
+        }
         onCardChanged()
       }
     })

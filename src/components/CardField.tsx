@@ -24,6 +24,13 @@ export interface Props extends AccessibilityProps {
   onCardChange?(card: CardFieldInput.Details): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
   testID?: string;
+  /**
+   * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.
+   * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
+   * Make sure that you're not mistakenly logging or storing full card details!
+   * See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance
+   */
+  dangerouslyGetFullCardDetails?: boolean;
 }
 
 /**
@@ -66,6 +73,14 @@ export function CardField({
 
       if (card.hasOwnProperty('postalCode')) {
         data.postalCode = card.postalCode || '';
+      }
+      if (card.hasOwnProperty('number')) {
+        data.number = card.number || '';
+        if (__DEV__ && onCardChange && card.complete) {
+          console.warn(
+            `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
+          );
+        }
       }
       onCardChange?.(data);
     },
