@@ -12,8 +12,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.stripe.android.*
-import com.stripe.android.exception.CardException
-import com.stripe.android.exception.InvalidRequestException
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
@@ -252,6 +250,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val customerId = getValOr(params, "customerId")
     val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
     val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
+    val setupIntentClientSecret = getValOr(params, "setupIntentClientSecret")
     val merchantDisplayName = getValOr(params, "merchantDisplayName")
     val countryCode = getValOr(params, "merchantCountryCode")
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
@@ -263,6 +262,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       bundle.putString("customerId", customerId)
       bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
       bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
+      bundle.putString("setupIntentClientSecret", setupIntentClientSecret)
       bundle.putString("merchantDisplayName", merchantDisplayName)
       bundle.putString("countryCode", countryCode)
       bundle.putBoolean("customFlow", customFlow)
@@ -279,14 +279,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun presentPaymentSheet(params: ReadableMap, promise: Promise) {
-    val clientSecret = getValOr(params, "clientSecret") as String
+  fun presentPaymentSheet(params: ReadableMap?, promise: Promise) {
     val confirmPayment = getBooleanOrNull(params, "confirmPayment")
     this.presentPaymentSheetPromise = promise
     if (confirmPayment == false) {
       paymentSheetFragment?.presentPaymentOptions()
     } else {
-      paymentSheetFragment?.present(clientSecret)
+      paymentSheetFragment?.present()
     }
   }
 

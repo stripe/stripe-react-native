@@ -1,21 +1,27 @@
 export declare namespace PaymentSheet {
-  export type SetupParams = GooglePayParams &
+  export type SetupParams = ClientSecretParams &
+    GooglePayParams &
     ApplePayParams & {
       customerId?: string;
       customerEphemeralKeySecret?: string;
-      paymentIntentClientSecret: string;
       customFlow?: boolean;
       merchantDisplayName?: string;
       style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
     };
 
-  export type PresentParams =
+  export type PresentParams = {
+    confirmPayment?: boolean;
+    clientSecret?: string;
+  };
+
+  type ClientSecretParams =
     | {
-        confirmPayment?: false;
+        paymentIntentClientSecret: string;
+        setupIntentClientSecret?: undefined;
       }
     | {
-        clientSecret: string;
-        confirmPayment?: true;
+        setupIntentClientSecret: string;
+        paymentIntentClientSecret?: undefined;
       };
 
   type ApplePayParams =

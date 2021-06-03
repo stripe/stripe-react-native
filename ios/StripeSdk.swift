@@ -61,12 +61,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     @objc(initPaymentSheet:resolver:rejecter:)
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        guard let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String else {
-            resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "You must provide the paymentIntentClientSecret"))
-            return
-        }
-        
-        
         var configuration = PaymentSheet.Configuration()
         
         if  params["applePay"] as? Bool == true {
@@ -74,7 +68,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 configuration.applePay = .init(merchantId: merchantIdentifier,
                                                merchantCountryCode: merchantCountryCode)
             } else {
-                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "merchantIdentifier or merchantCountryCode is not provided"))
+                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "Either merchantIdentifier or merchantCountryCode is missing"))
                 return
             }
         }
@@ -95,29 +89,48 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
         
-        if params["customFlow"] as? Bool == true {
-            PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
-                                               configuration: configuration) { [weak self] result in
-                switch result {
-                case .failure(let error):
-                    resolve(Errors.createError("Failed", error.localizedDescription))
-                case .success(let paymentSheetFlowController):
-                    self?.paymentSheetFlowController = paymentSheetFlowController
-                    if let paymentOption = self?.paymentSheetFlowController?.paymentOption {
-                        let option: NSDictionary = [
-                            "label": paymentOption.label,
-                            "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
-                        ]
-                        resolve(Mappers.createResult("paymentOption", option))
-                    } else {
-                        resolve(Mappers.createResult("paymentOption", nil))
-                    }
+        func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
+            switch result {
+            case .failure(let error):
+                resolve(Errors.createError("Failed", error.localizedDescription))
+            case .success(let paymentSheetFlowController):
+                stripeSdk?.paymentSheetFlowController = paymentSheetFlowController
+                if let paymentOption = stripeSdk?.paymentSheetFlowController?.paymentOption {
+                    let option: NSDictionary = [
+                        "label": paymentOption.label,
+                        "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                    ]
+                    resolve(Mappers.createResult("paymentOption", option))
+                } else {
+                    resolve(Mappers.createResult("paymentOption", nil))
                 }
             }
-        } else {
-            self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-            resolve([])
         }
+        
+        if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
+            if params["customFlow"] as? Bool == true {
+                PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
+                                                   configuration: configuration) { [weak self] result in
+                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
+                }
+            } else {
+                self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
+                resolve([])
+            }
+        } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
+            if params["customFlow"] as? Bool == true {
+                PaymentSheet.FlowController.create(setupIntentClientSecret: setupIntentClientSecret,
+                                                   configuration: configuration) { [weak self] result in
+                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
+                }
+            } else {
+                self.paymentSheet = PaymentSheet(setupIntentClientSecret: setupIntentClientSecret, configuration: configuration)
+                resolve([])
+            }
+        } else {
+            resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "You must provide either paymentIntentClientSecret or setupIntentClientSecret"))
+        }
+        
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)
