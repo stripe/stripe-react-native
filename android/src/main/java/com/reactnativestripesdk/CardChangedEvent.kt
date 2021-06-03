@@ -5,7 +5,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any?>, private val postalCodeEnabled: Boolean, private val complete: Boolean, private val returnPCIData: Boolean) : Event<CardChangedEvent>(viewTag) {
+internal class CardChangedEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any?>, private val postalCodeEnabled: Boolean, private val complete: Boolean, private val dangerouslyGetFullCardDetails: Boolean) : Event<CardChangedEvent>(viewTag) {
   override fun getEventName(): String {
     return EVENT_NAME
   }
@@ -41,7 +41,7 @@ internal class CardChangedEvent constructor(viewTag: Int, private val cardDetail
       eventData.putString("postalCode", cardDetails["postalCode"]?.toString())
     }
 
-    if (returnPCIData) {
+    if (dangerouslyGetFullCardDetails) {
       eventData.putString("number", cardDetails["number"]?.toString()?.replace(" ", ""))
     }
 

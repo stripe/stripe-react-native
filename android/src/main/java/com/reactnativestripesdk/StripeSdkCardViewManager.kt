@@ -19,9 +19,9 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
       CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
   }
 
-  @ReactProp(name = "returnPCIData")
-  fun setReturnPCIData(view: StripeSdkCardView, returnPCIData: Boolean = false) {
-    view.setReturnPCIData(returnPCIData);
+  @ReactProp(name = "dangerouslyGetFullCardDetails")
+  fun setDangerouslyGetFullCardDetails(view: StripeSdkCardView, dangerouslyGetFullCardDetails: Boolean = false) {
+    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails);
   }
 
   @ReactProp(name = "postalCodeEnabled")

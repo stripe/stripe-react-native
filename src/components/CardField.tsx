@@ -26,10 +26,11 @@ export interface Props extends AccessibilityProps {
   testID?: string;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.
-   * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
+   * Only do this if you're certain that you fulfill the necessary PCI compliance requirements
+   * and make sure that you're not mistakenly logging full card details!
    * See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance
    */
-  returnPCIData?: boolean;
+  dangerouslyGetFullCardDetails?: boolean;
 }
 
 /**
@@ -75,6 +76,11 @@ export function CardField({
       }
       if (card.hasOwnProperty('number')) {
         data.number = card.number || '';
+        if (__DEV__ && onCardChange && card.complete) {
+          console.warn(
+            `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements and make sure that you're not mistakenly logging full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
+          );
+        }
       }
       onCardChange?.(data);
     },

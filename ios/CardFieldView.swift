@@ -7,7 +7,7 @@ let CARD_FIELD_INSTANCE_ID = "CardFieldInstance"
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
     @objc var onFocusChange: RCTDirectEventBlock?
-    @objc var returnPCIData: Bool = false
+    @objc var dangerouslyGetFullCardDetails: Bool = false
     
     private var cardField = STPPaymentCardTextField()
     
@@ -135,7 +135,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             if (cardField.postalCodeEntryEnabled) {
                 cardData["postalCode"] = textField.postalCode ?? ""
             }
-            if (returnPCIData) {
+            if (dangerouslyGetFullCardDetails) {
                 cardData["number"] = textField.cardParams.number ?? ""
             }
             onCardChange!(cardData as [AnyHashable : Any])
