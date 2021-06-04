@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
