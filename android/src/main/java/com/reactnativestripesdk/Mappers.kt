@@ -373,6 +373,19 @@ internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Ty
   }
 }
 
+internal fun mapFromSetupIntentLastErrorType(errorType: SetupIntent.Error.Type?): String? {
+  return when (errorType) {
+    SetupIntent.Error.Type.ApiConnectionError -> "api_connection_error"
+    SetupIntent.Error.Type.AuthenticationError -> "authentication_error"
+    SetupIntent.Error.Type.ApiError -> "api_error"
+    SetupIntent.Error.Type.CardError -> "card_error"
+    SetupIntent.Error.Type.IdempotencyError -> "idempotency_error"
+    SetupIntent.Error.Type.InvalidRequestError -> "invalid_request_error"
+    SetupIntent.Error.Type.RateLimitError -> "rate_limit_error"
+    else -> null
+  }
+}
+
 fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
 }
@@ -648,6 +661,11 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
     val setupError: WritableMap = WritableNativeMap()
     setupError.putString("code", it.code)
     setupError.putString("message", it.message)
+    setupError.putString("type", mapFromSetupIntentLastErrorType(it.type))
+
+    setupIntent.lastSetupError?.paymentMethod?.let { paymentMethod ->
+      setupError.putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+    }
 
     map.putMap("lastSetupError", setupError)
   }

@@ -4,6 +4,7 @@ import type {
   PaymentSheet,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
+  RetrieveSetupIntentResult,
   ConfirmPaymentMethodResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
@@ -25,6 +26,7 @@ import {
   confirmPaymentMethod,
   createPaymentMethod,
   retrievePaymentIntent,
+  retrieveSetupIntent,
   confirmApplePayPayment,
   confirmSetupIntent,
   createTokenForCVCUpdate,
@@ -74,6 +76,13 @@ export function useStripe() {
   const _retrievePaymentIntent = useCallback(
     async (clientSecret: string): Promise<RetrievePaymentIntentResult> => {
       return retrievePaymentIntent(clientSecret);
+    },
+    []
+  );
+
+  const _retrieveSetupIntent = useCallback(
+    async (clientSecret: string): Promise<RetrieveSetupIntentResult> => {
+      return retrieveSetupIntent(clientSecret);
     },
     []
   );
@@ -176,6 +185,7 @@ export function useStripe() {
 
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
+    retrieveSetupIntent: _retrieveSetupIntent,
     confirmPayment: _confirmPaymentMethod,
     createPaymentMethod: _createPaymentMethod,
     handleCardAction: _handleCardAction,

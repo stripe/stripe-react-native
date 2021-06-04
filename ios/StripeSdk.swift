@@ -633,7 +633,32 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)))
             } else {
-                resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, "Cannot retrieve PaymentIntent"))
+                resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, "Failed to retrieve the PaymentIntent"))
+            }
+        }
+    }
+    
+    @objc(retrieveSetupIntent:resolver:rejecter:)
+    func retrieveSetupIntent(
+        clientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        STPAPIClient.shared.retrieveSetupIntent(withClientSecret: clientSecret) { (setupIntent, error) in
+            guard error == nil else {
+                if let lastSetupError = setupIntent?.lastSetupError {
+                    resolve(Errors.createError(RetrieveSetupIntentErrorType.Unknown.rawValue, lastSetupError))
+                } else {
+                    resolve(Errors.createError(RetrieveSetupIntentErrorType.Unknown.rawValue, error?.localizedDescription))
+                }
+               
+                return
+            }
+            
+            if let setupIntent = setupIntent {
+                resolve(Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: setupIntent)))
+            } else {
+                resolve(Errors.createError(RetrieveSetupIntentErrorType.Unknown.rawValue, "Failed to retrieve the SetupIntent"))
             }
         }
     }

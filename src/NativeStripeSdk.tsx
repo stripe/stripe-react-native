@@ -7,6 +7,7 @@ import type {
   InitialiseParams,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
+  RetrieveSetupIntentResult,
   ConfirmPaymentMethodResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
@@ -50,6 +51,7 @@ type NativeStripeSdkType = {
   retrievePaymentIntent(
     clientSecret: string
   ): Promise<RetrievePaymentIntentResult>;
+  retrieveSetupIntent(clientSecret: string): Promise<RetrieveSetupIntentResult>;
   initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;

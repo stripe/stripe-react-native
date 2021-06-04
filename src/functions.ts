@@ -17,6 +17,7 @@ import {
   PaymentSheet,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
+  RetrieveSetupIntentResult,
   StripeError,
 } from './types';
 import type { Card } from './types/Card';
@@ -78,6 +79,28 @@ export const retrievePaymentIntent = async (
     }
     return {
       paymentIntent: paymentIntent!,
+    };
+  } catch (error) {
+    return {
+      error,
+    };
+  }
+};
+
+export const retrieveSetupIntent = async (
+  clientSecret: string
+): Promise<RetrieveSetupIntentResult> => {
+  try {
+    const { setupIntent, error } = await NativeStripeSdk.retrieveSetupIntent(
+      clientSecret
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
     };
   } catch (error) {
     return {
