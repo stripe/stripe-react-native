@@ -444,7 +444,19 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       paymentIntent?.let {
         promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
       } ?: run {
-        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Retrieving payment intent failed"))
+        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Failed to retrieve the PaymentIntent"))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
+    AsyncTask.execute {
+      val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
+      setupIntent?.let {
+        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
+      } ?: run {
+        promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), "Failed to retrieve the SetupIntent"))
       }
     }
   }

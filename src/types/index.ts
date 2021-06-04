@@ -8,6 +8,7 @@ import type {
   CreateTokenError,
   PaymentSheetError,
   RetrievePaymentIntentError,
+  RetrieveSetupIntentError,
   StripeError,
 } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
@@ -65,6 +66,16 @@ export type RetrievePaymentIntentResult =
   | {
       paymentIntent?: undefined;
       error: StripeError<RetrievePaymentIntentError>;
+    };
+
+export type RetrieveSetupIntentResult =
+  | {
+      setupIntent: SetupIntent;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
+      error: StripeError<RetrieveSetupIntentError>;
     };
 
 export type ConfirmPaymentMethodResult =

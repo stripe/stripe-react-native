@@ -20,6 +20,10 @@ enum RetrievePaymentIntentErrorType: String {
     case Unknown
 }
 
+enum RetrieveSetupIntentErrorType: String {
+    case Unknown
+}
+
 enum PaymentSheetErrorType: String {
     case Failed, Canceled
 }

@@ -17,7 +17,6 @@ enum class CreateTokenErrorType {
   Failed
 }
 
-
 enum class NextPaymentActionErrorType {
   Failed, Canceled, Unknown
 }
@@ -27,6 +26,10 @@ enum class ConfirmSetupIntentErrorType {
 }
 
 enum class RetrievePaymentIntentErrorType {
+  Unknown
+}
+
+enum class RetrieveSetupIntentErrorType {
   Unknown
 }
 

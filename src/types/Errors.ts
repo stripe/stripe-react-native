@@ -25,7 +25,11 @@ export enum CreateTokenError {
 }
 
 export enum RetrievePaymentIntentError {
-  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}
+
+export enum RetrieveSetupIntentError {
+  Unknown = 'Unknown',
 }
 
 export enum ApplePayError {
