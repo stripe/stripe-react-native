@@ -212,9 +212,12 @@ Undefined symbols for architecture x86_64:
 
 Follow these steps to resolve this:
 
+- `optional` Choose `project -> build settings -> all`, search for `bridging header` and remove the bridging header entry and the `{projectname}-Bridging-Header.h` file.
+- `optional` Remove previous .swift files made for bridging header generation.
 - Open your project via Xcode, go to `project -> build settings`, find `library search paths` and remove all swift related entries such as:
   `$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)` and `$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)`.
 - Create a new Swift file to the project (File > New > File > Swift), give it any name (e.g. `Fix.swift`) and create a bridging header when prompted by Xcode.
+
 
 ### `TypeError: null is not an object (evaluating '_NativeStripeSdk.default.initialise')` on Android
 
