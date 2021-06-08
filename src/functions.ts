@@ -134,6 +134,7 @@ export const confirmPaymentMethod = async (
     };
   }
 };
+export const confirmPayment = confirmPaymentMethod;
 
 export const isApplePaySupported = async (): Promise<boolean> => {
   return isiOS && (await NativeStripeSdk.isApplePaySupported());
