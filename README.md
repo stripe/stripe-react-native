@@ -25,6 +25,11 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Pre-built payments UI (beta)**: [Learn how to integrate](https://stripe.com/docs/mobile/payments-ui-beta) Payment Sheet, our new pre-built payments UI for mobile apps. Our pre-built UI lets you accept cards, Apple Pay, and Google Pay out of the box, and includes support for saving & reusing cards. We'll be adding support for many more payment method during the beta.
 
+#### Recommended usage
+
+If you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. For all other scenarios you can use this SDK to process payments via Stripe.
+
+
 ## Installation
 
 ```sh
