@@ -10,52 +10,52 @@ import com.facebook.react.uimanager.annotations.ReactProp
 const val CARD_FIELD_INSTANCE_NAME = "CardFieldInstance"
 
 class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
-  override fun getName() = "CardField"
+    override fun getName() = "CardField"
 
-  private var cardViewInstanceMap: MutableMap<String, Any?> = mutableMapOf()
+    private var cardViewInstanceMap: MutableMap<String, Any?> = mutableMapOf()
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
-    return MapBuilder.of(
-      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
-      CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
-  }
-
-  override fun receiveCommand(root: StripeSdkCardView, commandId: String?, args: ReadableArray?) {
-    when (commandId) {
-      "focus" -> root.requestFocusFromJS()
-      "blur" -> root.requestBlurFromJS()
-      "clear" -> root.requestClearFromJS()
+    override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
+        return MapBuilder.of(
+                CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
+                CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
     }
-  }
 
-  @ReactProp(name = "dangerouslyGetFullCardDetails")
-  fun setDangerouslyGetFullCardDetails(view: StripeSdkCardView, dangerouslyGetFullCardDetails: Boolean = false) {
-    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails);
-  }
+    override fun receiveCommand(root: StripeSdkCardView, commandId: String?, args: ReadableArray?) {
+        when (commandId) {
+            "focus" -> root.requestFocusFromJS()
+            "blur" -> root.requestBlurFromJS()
+            "clear" -> root.requestClearFromJS()
+        }
+    }
 
-  @ReactProp(name = "postalCodeEnabled")
-  fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean = true) {
-    view.setPostalCodeEnabled(postalCodeEnabled);
-  }
+    @ReactProp(name = "dangerouslyGetFullCardDetails")
+    fun setDangerouslyGetFullCardDetails(view: StripeSdkCardView, dangerouslyGetFullCardDetails: Boolean = false) {
+        view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails);
+    }
 
-  @ReactProp(name = "autofocus")
-  fun setAutofocus(view: StripeSdkCardView, autofocus: Boolean = false) {
-    view.setAutofocus(autofocus);
-  }
+    @ReactProp(name = "postalCodeEnabled")
+    fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean = true) {
+        view.setPostalCodeEnabled(postalCodeEnabled);
+    }
 
-  @ReactProp(name = "cardStyle")
-  fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
-    view.setCardStyle(cardStyle);
-  }
+    @ReactProp(name = "autofocus")
+    fun setAutofocus(view: StripeSdkCardView, autofocus: Boolean = false) {
+        view.setAutofocus(autofocus);
+    }
 
-  @ReactProp(name = "placeholder")
-  fun setPlaceHolders(view: StripeSdkCardView, placeholder: ReadableMap) {
-    view.setPlaceHolders(placeholder);
-  }
+    @ReactProp(name = "cardStyle")
+    fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
+        view.setCardStyle(cardStyle);
+    }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
-    // as it's reasonable we handle only one CardField component on the same screen
-    // TODO: temporary commented out due to android state persistence and improper behavior after app reload
+    @ReactProp(name = "placeholder")
+    fun setPlaceHolders(view: StripeSdkCardView, placeholder: ReadableMap) {
+        view.setPlaceHolders(placeholder);
+    }
+
+    override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
+        // as it's reasonable we handle only one CardField component on the same screen
+        // TODO: temporary commented out due to android state persistence and improper behavior after app reload
 //    if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
 //      val exceptionManager = reactContext.getNativeModule(ExceptionsManagerModule::class.java)
 //      val error: WritableMap = WritableNativeMap()
@@ -63,20 +63,20 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
 //      exceptionManager?.reportException(error)
 //    }
 
-    cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
-    return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
-  }
-
-  override fun onDropViewInstance(view: StripeSdkCardView) {
-    super.onDropViewInstance(view)
-
-    this.cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = null
-  }
-
-  fun getCardViewInstance(): StripeSdkCardView? {
-    if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
-      return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
+        cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
+        return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
     }
-    return null
-  }
+
+    override fun onDropViewInstance(view: StripeSdkCardView) {
+        super.onDropViewInstance(view)
+
+        this.cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = null
+    }
+
+    fun getCardViewInstance(): StripeSdkCardView? {
+        if (cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] != null) {
+            return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
+        }
+        return null
+    }
 }
