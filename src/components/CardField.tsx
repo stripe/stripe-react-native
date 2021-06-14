@@ -1,12 +1,21 @@
 import type { CardFieldInput, Nullable } from '../types';
-import React, { useCallback } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+} from 'react';
 import {
   AccessibilityProps,
   NativeSyntheticEvent,
   requireNativeComponent,
+  UIManager,
   StyleProp,
+  findNodeHandle,
   ViewStyle,
 } from 'react-native';
+const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
 const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
   'CardField'
@@ -22,6 +31,7 @@ export interface Props extends AccessibilityProps {
   placeholder?: CardFieldInput.Placeholders;
   autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
+  onBlur?(): void;
   onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
   testID?: string;
   /**
@@ -51,77 +61,132 @@ export interface Props extends AccessibilityProps {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function CardField({
-  onCardChange,
-  onFocus,
-  cardStyle,
-  placeholder,
-  postalCodeEnabled,
-  ...props
-}: Props) {
-  const onCardChangeHandler = useCallback(
-    (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
-      const card = event.nativeEvent;
+export const CardField = forwardRef<CardFieldInput.Methods, Props>(
+  (
+    {
+      onCardChange,
+      onFocus,
+      onBlur,
+      cardStyle,
+      placeholder,
+      postalCodeEnabled,
+      ...props
+    },
+    ref
+  ) => {
+    const inputRef = useRef<any>(null);
 
-      const data: CardFieldInput.Details = {
-        last4: card.last4,
-        expiryMonth: card.expiryMonth,
-        expiryYear: card.expiryYear,
-        complete: card.complete,
-        brand: card.brand,
-      };
+    const onCardChangeHandler = useCallback(
+      (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
+        const card = event.nativeEvent;
 
-      if (card.hasOwnProperty('postalCode')) {
-        data.postalCode = card.postalCode || '';
-      }
-      if (card.hasOwnProperty('number')) {
-        data.number = card.number || '';
-        if (__DEV__ && onCardChange && card.complete) {
-          console.warn(
-            `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
-          );
+        const data: CardFieldInput.Details = {
+          last4: card.last4,
+          expiryMonth: card.expiryMonth,
+          expiryYear: card.expiryYear,
+          complete: card.complete,
+          brand: card.brand,
+        };
+
+        if (card.hasOwnProperty('postalCode')) {
+          data.postalCode = card.postalCode || '';
         }
+        if (card.hasOwnProperty('number')) {
+          data.number = card.number || '';
+          if (__DEV__ && onCardChange && card.complete) {
+            console.warn(
+              `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
+            );
+          }
+        }
+        onCardChange?.(data);
+      },
+      [onCardChange]
+    );
+
+    const onFocusHandler = useCallback(
+      (event) => {
+        const { focusedField } = event.nativeEvent;
+        if (focusedField) {
+          TextInputState.focusInput(inputRef.current);
+          onFocus?.(focusedField);
+        } else {
+          onBlur?.();
+        }
+      },
+      [onFocus, onBlur]
+    );
+
+    const focus = () => {
+      UIManager.dispatchViewManagerCommand(
+        findNodeHandle(inputRef.current),
+        'focus' as any,
+        []
+      );
+    };
+
+    const blur = () => {
+      UIManager.dispatchViewManagerCommand(
+        findNodeHandle(inputRef.current),
+        'blur' as any,
+        []
+      );
+    };
+
+    const clear = () => {
+      UIManager.dispatchViewManagerCommand(
+        findNodeHandle(inputRef.current),
+        'clear' as any,
+        []
+      );
+    };
+
+    useImperativeHandle(ref, () => ({
+      focus,
+      blur,
+      clear,
+    }));
+
+    useLayoutEffect(() => {
+      const inputRefValue = inputRef.current;
+      if (inputRefValue !== null) {
+        TextInputState.registerInput(inputRefValue);
+        return () => {
+          TextInputState.unregisterInput(inputRefValue);
+          if (TextInputState.currentlyFocusedInput() === inputRefValue) {
+            inputRefValue.blur();
+          }
+        };
       }
-      onCardChange?.(data);
-    },
-    [onCardChange]
-  );
+      return () => {};
+    }, [inputRef]);
 
-  const onFocusHandler = useCallback(
-    (
-      event: NativeSyntheticEvent<{
-        focusedField: Nullable<CardFieldInput.Names>;
-      }>
-    ) => {
-      onFocus?.(event.nativeEvent.focusedField);
-    },
-    [onFocus]
-  );
-
-  return (
-    <CardFieldNative
-      onCardChange={onCardChangeHandler}
-      onFocusChange={onFocusHandler}
-      postalCodeEnabled={postalCodeEnabled ?? true}
-      cardStyle={{
-        backgroundColor: cardStyle?.backgroundColor,
-        borderColor: cardStyle?.borderColor,
-        borderWidth: cardStyle?.borderWidth,
-        borderRadius: cardStyle?.borderRadius,
-        cursorColor: cardStyle?.cursorColor,
-        fontSize: cardStyle?.fontSize,
-        placeholderColor: cardStyle?.placeholderColor,
-        textColor: cardStyle?.textColor,
-        textErrorColor: cardStyle?.textErrorColor,
-        fontFamily: cardStyle?.fontFamily,
-      }}
-      placeholder={{
-        number: placeholder?.number,
-        expiration: placeholder?.expiration,
-        cvc: placeholder?.cvc,
-        postalCode: placeholder?.postalCode,
-      }}
-      {...props}
-    />
-  );
-}
+    return (
+      <CardFieldNative
+        ref={inputRef}
+        onCardChange={onCardChangeHandler}
+        onFocusChange={onFocusHandler}
+        postalCodeEnabled={postalCodeEnabled ?? true}
+        cardStyle={{
+          backgroundColor: cardStyle?.backgroundColor,
+          borderColor: cardStyle?.borderColor,
+          borderWidth: cardStyle?.borderWidth,
+          borderRadius: cardStyle?.borderRadius,
+          cursorColor: cardStyle?.cursorColor,
+          fontSize: cardStyle?.fontSize,
+          placeholderColor: cardStyle?.placeholderColor,
+          textColor: cardStyle?.textColor,
+          textErrorColor: cardStyle?.textErrorColor,
+          fontFamily: cardStyle?.fontFamily,
+        }}
+        placeholder={{
+          number: placeholder?.number,
+          expiration: placeholder?.expiration,
+          cvc: placeholder?.cvc,
+          postalCode: placeholder?.postalCode,
+        }}
+        {...props}
+      />
+    );
+  }
+);
