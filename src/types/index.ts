@@ -78,7 +78,7 @@ export type RetrieveSetupIntentResult =
       error: StripeError<RetrieveSetupIntentError>;
     };
 
-export type ConfirmPaymentMethodResult =
+export type ConfirmPaymentResult =
   | {
       paymentIntent: PaymentIntent;
       error?: undefined;

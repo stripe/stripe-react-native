@@ -550,8 +550,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(confirmPaymentMethod:data:options:resolver:rejecter:)
-    func confirmPaymentMethod(
+    @objc(confirmPayment:data:options:resolver:rejecter:)
+    func confirmPayment(
         paymentIntentClientSecret: String,
         params: NSDictionary,
         options: NSDictionary,

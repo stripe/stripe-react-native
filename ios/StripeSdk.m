@@ -89,7 +89,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  confirmPaymentMethod:(NSString *)paymentIntentClientSecret
+                  confirmPayment:(NSString *)paymentIntentClientSecret
                   data:(NSDictionary *)data
                   options:(NSDictionary *)options
                   resolver: (RCTPromiseResolveBlock)resolve

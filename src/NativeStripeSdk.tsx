@@ -8,7 +8,7 @@ import type {
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
-  ConfirmPaymentMethodResult,
+  ConfirmPaymentResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
@@ -28,11 +28,11 @@ type NativeStripeSdkType = {
   handleCardAction(
     paymentIntentClientSecret: string
   ): Promise<HandleCardActionResult>;
-  confirmPaymentMethod(
+  confirmPayment(
     paymentIntentClientSecret: string,
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options
-  ): Promise<ConfirmPaymentMethodResult>;
+  ): Promise<ConfirmPaymentResult>;
   isApplePaySupported(): Promise<boolean>;
   presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
   confirmApplePayPayment(clientSecret: string): Promise<void>;
