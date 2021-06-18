@@ -5,7 +5,7 @@ import type {
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
-  ConfirmPaymentMethodResult,
+  ConfirmPaymentResult,
   HandleCardActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
 import {
-  confirmPaymentMethod,
+  confirmPayment,
   createPaymentMethod,
   retrievePaymentIntent,
   retrieveSetupIntent,
@@ -87,13 +87,13 @@ export function useStripe() {
     []
   );
 
-  const _confirmPaymentMethod = useCallback(
+  const _confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: PaymentMethodCreateParams.Params,
       options: PaymentMethodCreateParams.Options = {}
-    ): Promise<ConfirmPaymentMethodResult> => {
-      return confirmPaymentMethod(paymentIntentClientSecret, data, options);
+    ): Promise<ConfirmPaymentResult> => {
+      return confirmPayment(paymentIntentClientSecret, data, options);
     },
     []
   );
@@ -186,7 +186,7 @@ export function useStripe() {
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
-    confirmPayment: _confirmPaymentMethod,
+    confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
     handleCardAction: _handleCardAction,
     isApplePaySupported: isApplePaySupported,
