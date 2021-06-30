@@ -5,12 +5,12 @@ class CardFieldManager: RCTViewManager, CardFieldDelegate {
     public let cardFieldMap: NSMutableDictionary = [:]
 
     func onDidCreateViewInstance(id: String, reference: Any?) -> Void {
+        // Handle only one CardField component on the same screen
+        cardFieldMap[id] = nil
         cardFieldMap[id] = reference
     }
     
-    func onDidDestroyViewInstance(id: String) {
-        cardFieldMap[id] = nil
-    }
+    func onDidDestroyViewInstance(id: String) { }
         
     public func getCardFieldReference(id: String) -> Any? {
         return self.cardFieldMap[id]

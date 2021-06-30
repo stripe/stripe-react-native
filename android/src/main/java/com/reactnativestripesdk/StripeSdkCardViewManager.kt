@@ -54,14 +54,15 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
 //      exceptionManager?.reportException(error)
 //    }
 
+    // Handle only one CardField component on the same screen
+    cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = null
+
     cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = StripeSdkCardView(reactContext)
     return cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] as StripeSdkCardView
   }
 
   override fun onDropViewInstance(view: StripeSdkCardView) {
     super.onDropViewInstance(view)
-
-    this.cardViewInstanceMap[CARD_FIELD_INSTANCE_NAME] = null
   }
 
   fun getCardViewInstance(): StripeSdkCardView? {
