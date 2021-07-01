@@ -599,6 +599,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
                 resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
+                return
             }
             guard paymentMethodParams != nil else {
                 resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))

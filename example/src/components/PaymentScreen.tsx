@@ -34,7 +34,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
     <ScrollView
       accessibilityLabel="payment-screen"
       style={styles.container}
-      keyboardShouldPersistTaps="never"
+      keyboardShouldPersistTaps="always"
     >
       {children}
       {/* eslint-disable-next-line react-native/no-inline-styles */}
