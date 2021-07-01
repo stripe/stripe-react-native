@@ -4,7 +4,7 @@ import {
   ApplePay,
   ApplePayError,
   ApplePayResult,
-  ConfirmPaymentMethodResult,
+  ConfirmPaymentResult,
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
   ConfirmSetupIntentResult,
@@ -109,13 +109,13 @@ export const retrieveSetupIntent = async (
   }
 };
 
-export const confirmPaymentMethod = async (
+export const confirmPayment = async (
   paymentIntentClientSecret: string,
   data: PaymentMethodCreateParams.Params,
   options: PaymentMethodCreateParams.Options = {}
-): Promise<ConfirmPaymentMethodResult> => {
+): Promise<ConfirmPaymentResult> => {
   try {
-    const { paymentIntent, error } = await NativeStripeSdk.confirmPaymentMethod(
+    const { paymentIntent, error } = await NativeStripeSdk.confirmPayment(
       paymentIntentClientSecret,
       data,
       options

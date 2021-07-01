@@ -7,9 +7,9 @@ import { useStripe } from './useStripe';
  */
 export function useConfirmPayment() {
   const [loading, setLoading] = useState(false);
-  const { confirmPayment: confirmPaymentMethod } = useStripe();
+  const { confirmPayment } = useStripe();
 
-  const confirmPayment = useCallback(
+  const _confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: PaymentMethodCreateParams.Params,
@@ -17,7 +17,7 @@ export function useConfirmPayment() {
     ) => {
       setLoading(true);
 
-      const result = await confirmPaymentMethod(
+      const result = await confirmPayment(
         paymentIntentClientSecret,
         data,
         options
@@ -27,11 +27,11 @@ export function useConfirmPayment() {
 
       return result;
     },
-    [confirmPaymentMethod]
+    [confirmPayment]
   );
 
   return {
-    confirmPayment,
+    confirmPayment: _confirmPayment,
     loading,
   };
 }
