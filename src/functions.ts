@@ -53,9 +53,15 @@ export const createToken = async (
   params: Card.CreateTokenParams
 ): Promise<CreateTokenResult> => {
   try {
-    const token = await NativeStripeSdk.createToken(params);
+    const { token, error } = await NativeStripeSdk.createToken(params);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
     return {
-      token,
+      token: token!,
     };
   } catch (error) {
     return {
