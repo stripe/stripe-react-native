@@ -189,7 +189,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           presentPaymentSheetPromise?.resolve(WritableNativeMap())
         }
       }
-      else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
+      else if (intent.action == ON_INIT_PAYMENT_SHEET) {
+        initPaymentSheetPromise?.resolve(WritableNativeMap())
+      } else if (intent.action == ON_CONFIGURE_FLOW_CONTROLLER) {
         val label = intent.extras?.getString("label")
         val image = intent.extras?.getString("image")
 
@@ -234,6 +236,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
+    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
 
     promise.resolve(null)
   }
@@ -273,9 +276,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     activity.supportFragmentManager.beginTransaction()
       .add(fragment, "payment_sheet_launch_fragment")
       .commit()
-    if (!customFlow) {
-      this.initPaymentSheetPromise?.resolve(WritableNativeMap())
-    }
   }
 
   @ReactMethod

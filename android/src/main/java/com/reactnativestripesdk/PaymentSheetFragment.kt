@@ -87,6 +87,8 @@ class PaymentSheetFragment : Fragment() {
       configureFlowController()
     } else {
       paymentSheet = PaymentSheet(this, paymentResultCallback)
+      val intent = Intent(ON_INIT_PAYMENT_SHEET)
+      activity?.sendBroadcast(intent)
     }
 
     val intent = Intent(ON_FRAGMENT_CREATED)
