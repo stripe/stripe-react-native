@@ -213,7 +213,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-        
+        let paymentMethodId = params["paymentMethodId"]
         let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
         let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
 
@@ -223,16 +223,21 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
-            resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
-            return
+            if (paymentMethodId == nil) {
+                resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, error.localizedDescription))
+                return
+            }
         }
-        guard paymentMethodParams != nil else {
+        guard paymentMethodParams != nil || paymentMethodId != nil else {
             resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))
             return
         }
         
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
+        if let paymentMethodId = paymentMethodId as? String {
+            setupIntentParams.paymentMethodID = paymentMethodId
+        }
         
         if let urlScheme = urlScheme {
             setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)

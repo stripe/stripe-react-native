@@ -34,9 +34,15 @@ export namespace ConfirmSetupIntent {
     billingDetails?: PaymentMethods.BillingDetails;
   }
 
-  export interface CardParams extends BaseParams {
-    type: 'Card';
-  }
+  export type CardParams =
+    | (BaseParams & {
+        type: 'Card';
+        token?: string;
+      })
+    | (BaseParams & {
+        type: 'Card';
+        paymentMethodId?: string;
+      });
 
   export interface IdealParams extends BaseParams {
     type: 'Ideal';
