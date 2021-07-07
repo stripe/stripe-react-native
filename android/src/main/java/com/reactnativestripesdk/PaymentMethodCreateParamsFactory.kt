@@ -105,6 +105,7 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodId = paymentMethodId,
         paymentMethodOptions = paymentMethodOptionParams,
         clientSecret = clientSecret,
+        setupFutureUsage = setupFutureUsage,
         returnUrl = mapToReturnURL(urlScheme)
       )
     } else {
