@@ -350,14 +350,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun createToken(params: ReadableMap, promise: Promise) {
     val type = getValOr(params, "type", null)?.let {
       if (it != "Card") {
-        promise.reject(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet")
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet"))
         return
       }
     }
     val address = getMapOrNull(params, "address")
     val instance = cardFieldManager.getCardViewInstance()
     val cardParams = instance?.cardParams?.toParamMap() ?: run {
-      promise.reject(CreateTokenErrorType.Failed.toString(), "Card details not complete")
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
       return
     }
 
@@ -374,7 +374,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         cardParams = params,
         stripeAccountId = stripeAccountId
       )
-      promise.resolve(mapFromToken(token))
+      promise.resolve(createResult("token", mapFromToken(token)))
     }
   }
 

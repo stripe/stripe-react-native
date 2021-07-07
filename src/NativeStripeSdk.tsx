@@ -17,6 +17,7 @@ import type {
   ConfirmPaymentSheetPaymentResult,
   Card,
   ApplePayResult,
+  CreateTokenResult,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -61,7 +62,7 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
-  createToken(params: Card.CreateTokenParams): Promise<Card.Token>;
+  createToken(params: Card.CreateTokenParams): Promise<CreateTokenResult>;
 };
 
 const { StripeSdk } = NativeModules;
