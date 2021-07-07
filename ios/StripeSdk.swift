@@ -608,10 +608,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             paymentIntentParams.paymentMethodParams = paymentMethodParams
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             paymentIntentParams.shipping = Mappers.mapToShippingDetails(shippingDetails: params["shippingDetails"] as? NSDictionary)
-
-            if let urlScheme = urlScheme {
-                paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
-            }
+        }
+      
+        if let urlScheme = urlScheme {
+            paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
         
         let paymentHandler = STPPaymentHandler.shared()
