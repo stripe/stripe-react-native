@@ -325,7 +325,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putString("status", mapIntentStatus(paymentIntent.status))
   map.putString("description", paymentIntent.description)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
-  map.putInt("created", convertToUnixTimestamp(paymentIntent.created))
+  map.putString("created", convertToUnixTimestamp(paymentIntent.created))
   map.putString("captureMethod", mapCaptureMethod(paymentIntent.captureMethod))
   map.putString("confirmationMethod", mapConfirmationMethod(paymentIntent.confirmationMethod))
   map.putNull("lastPaymentError")
@@ -355,7 +355,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
     map.putDouble("amount", it.toDouble())
   }
   paymentIntent.canceledAt?.let {
-    map.putInt("canceledAt", convertToUnixTimestamp(it))
+    map.putString("canceledAt", convertToUnixTimestamp(it))
   }
   return map
 }
@@ -463,8 +463,8 @@ fun getBooleanOrFalse(map: ReadableMap?, key: String): Boolean {
   return if (map?.hasKey(key) == true) map.getBoolean(key) else false
 }
 
-private fun convertToUnixTimestamp(timestamp: Long): Int {
-  return (timestamp * 1000).toInt()
+private fun convertToUnixTimestamp(timestamp: Long): String {
+  return (timestamp * 1000).toString()
 }
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
@@ -654,7 +654,7 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
 
   if(setupIntent.created != null) {
-    map.putInt("created", convertToUnixTimestamp(setupIntent.created))
+    map.putString("created", convertToUnixTimestamp(setupIntent.created))
   }
 
   setupIntent.lastSetupError?.let {
