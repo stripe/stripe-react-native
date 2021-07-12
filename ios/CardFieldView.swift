@@ -20,7 +20,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-
+    
     @objc var placeholder: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholder["number"] as? String {
@@ -74,7 +74,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 cardField.textErrorColor = UIColor(hexString: textErrorColor)
             }
             let fontSize = cardStyle["fontSize"] as? Int ?? 14
-
+            
             if let fontFamily = cardStyle["fontFamily"] as? String {
                 cardField.font = UIFont(name: fontFamily, size: CGFloat(fontSize)) ?? UIFont.systemFont(ofSize: CGFloat(fontSize))
             } else {
@@ -91,7 +91,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-
+        
         self.addSubview(cardField)
     }
     
@@ -102,8 +102,24 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         self.delegate?.onDidCreateViewInstance(id: CARD_FIELD_INSTANCE_ID, reference: self)
     }
     
+    func focus() {
+        cardField.becomeFirstResponder()
+    }
+    
+    func blur() {
+        cardField.resignFirstResponder()
+    }
+    
+    func clear() {
+        cardField.clear()
+    }
+    
     override func removeFromSuperview() {
         self.delegate?.onDidDestroyViewInstance(id: CARD_FIELD_INSTANCE_ID)
+    }
+    
+    func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": NSNull()])
     }
     
     func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {

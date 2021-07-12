@@ -54,4 +54,10 @@ export namespace CardFieldInput {
     cardStyle?: Styles;
     placeholder?: Placeholders;
   }
+
+  export interface Methods {
+    focus(): void;
+    blur(): void;
+    clear(): void;
+  }
 }

@@ -52,6 +52,28 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     }
   }
 
+  fun requestFocusFromJS() {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    binding.cardNumberEditText.requestFocus()
+    binding.cardNumberEditText.showSoftKeyboard()
+  }
+
+  fun requestBlurFromJS() {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    binding.cardNumberEditText.hideSoftKeyboard()
+    binding.cardNumberEditText.clearFocus()
+    binding.container.requestFocus()
+  }
+
+  fun requestClearFromJS() {
+    val binding = CardInputWidgetBinding.bind(mCardWidget)
+    binding.cardNumberEditText.setText("")
+    binding.cvcEditText.setText("")
+    binding.expiryDateEditText.setText("")
+    if (mCardWidget.postalCodeEnabled) {
+      binding.postalCodeEditText.setText("")
+    }
+  }
 
   fun setCardStyle(value: ReadableMap) {
     val binding = CardInputWidgetBinding.bind(mCardWidget)
@@ -242,6 +264,15 @@ fun View.showSoftKeyboard() {
     if (this.requestFocus()) {
       val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
       imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    }
+  }
+}
+
+fun View.hideSoftKeyboard() {
+  post {
+    if (this.requestFocus()) {
+      val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+      imm?.hideSoftInputFromWindow(windowToken, 0)
     }
   }
 }

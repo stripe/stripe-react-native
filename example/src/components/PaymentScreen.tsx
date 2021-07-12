@@ -1,4 +1,4 @@
-import { initStripe, StripeContainer } from '@stripe/stripe-react-native';
+import { initStripe } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { colors } from '../colors';
@@ -31,17 +31,15 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
   return loading ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <StripeContainer keyboardShouldPersistTaps={false}>
-      <ScrollView
-        accessibilityLabel="payment-screen"
-        style={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        {children}
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Text style={{ opacity: 0 }}>appium fix</Text>
-      </ScrollView>
-    </StripeContainer>
+    <ScrollView
+      accessibilityLabel="payment-screen"
+      style={styles.container}
+      keyboardShouldPersistTaps="always"
+    >
+      {children}
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <Text style={{ opacity: 0 }}>appium fix</Text>
+    </ScrollView>
   );
 };
 

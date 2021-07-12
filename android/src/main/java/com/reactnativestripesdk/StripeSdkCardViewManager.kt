@@ -1,6 +1,7 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -17,6 +18,14 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
     return MapBuilder.of(
       CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
       CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
+  }
+
+  override fun receiveCommand(root: StripeSdkCardView, commandId: String?, args: ReadableArray?) {
+    when (commandId) {
+      "focus" -> root.requestFocusFromJS()
+      "blur" -> root.requestBlurFromJS()
+      "clear" -> root.requestClearFromJS()
+    }
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
