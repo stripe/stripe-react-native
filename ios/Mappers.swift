@@ -823,7 +823,8 @@ class Mappers {
     
     class func convertDateToUnixTimestamp(date: Date?) -> String? {
         if let date = date {
-            return String(date.timeIntervalSince1970 * 1000.0)
+            let value = date.timeIntervalSince1970 * 1000.0
+            return String(format: "%.0f", value)
         }
         return nil
     }
