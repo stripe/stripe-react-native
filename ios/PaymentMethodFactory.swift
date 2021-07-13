@@ -6,11 +6,13 @@ class PaymentMethodFactory {
     var billingDetailsParams: STPPaymentMethodBillingDetails? = nil
     var params: NSDictionary? = nil
     var cardFieldView: CardFieldView? = nil
-    
-    init(params: NSDictionary, cardFieldView: CardFieldView?) {
+    var cardFormView: CardFormView? = nil
+
+    init(params: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
         self.billingDetailsParams = Mappers.mapToBillingDetails(billingDetails: params["billingDetails"] as? NSDictionary)
         self.params = params
         self.cardFieldView = cardFieldView
+        self.cardFormView = cardFormView
     }
     
     func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
@@ -112,7 +114,8 @@ class PaymentMethodFactory {
             methodParams.token = RCTConvert.nsString(token)
             return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: nil)
         }
-        guard let cardParams = cardFieldView?.cardParams else {
+        
+        guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             throw PaymentMethodError.cardPaymentMissingParams
         }
         

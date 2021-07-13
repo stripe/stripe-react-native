@@ -12,7 +12,7 @@ class CardFieldManager: RCTViewManager, CardFieldDelegate {
         cardFieldMap[id] = nil
     }
     
-    public func getCardFieldReference(id: String) -> Any? {
+    public func getReference(id: String) -> Any? {
         return self.cardFieldMap[id]
     }
     
