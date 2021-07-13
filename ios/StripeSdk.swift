@@ -500,7 +500,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         let cardFieldView = getCardFieldView()
         let cardFormView = getCardFormView()
-         
+                 
         guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return

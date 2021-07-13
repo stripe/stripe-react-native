@@ -33,8 +33,8 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         
         setStyles()
 
-        self.addSubview(_cardForm)
         self.cardForm = _cardForm
+        self.addSubview(_cardForm)
     }
 
     func cardFormView(_ form: STPCardFormView, didChangeToStateComplete complete: Bool) {

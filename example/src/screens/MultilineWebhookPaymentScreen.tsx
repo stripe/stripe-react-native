@@ -3,7 +3,15 @@ import type {
   PaymentMethodCreateParams,
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  Switch,
+  Platform,
+} from 'react-native';
 import { CardForm, useConfirmPayment } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -107,8 +115,15 @@ export default function MultilineWebhookPaymentScreen() {
 const styles = StyleSheet.create({
   cardField: {
     width: '100%',
-    height: 300,
-    marginVertical: 30,
+    ...Platform.select({
+      ios: {
+        height: 250,
+      },
+      android: {
+        height: 320,
+      },
+    }),
+    marginTop: 30,
   },
   row: {
     flexDirection: 'row',

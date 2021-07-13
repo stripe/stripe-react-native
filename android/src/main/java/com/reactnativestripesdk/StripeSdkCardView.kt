@@ -258,21 +258,3 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     layout(left, top, right, bottom)
   }
 }
-
-fun View.showSoftKeyboard() {
-  post {
-    if (this.requestFocus()) {
-      val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-      imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-    }
-  }
-}
-
-fun View.hideSoftKeyboard() {
-  post {
-    if (this.requestFocus()) {
-      val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-      imm?.hideSoftInputFromWindow(windowToken, 0)
-    }
-  }
-}
