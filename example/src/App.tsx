@@ -31,6 +31,7 @@ import P24PaymentScreen from './screens/P24PaymentScreen';
 import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
 import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
+import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -64,6 +65,10 @@ export default function App() {
           <Stack.Screen
             name="WebhookPayment"
             component={WebhookPaymentScreen}
+          />
+          <Stack.Screen
+            name="MultilineWebhookPaymentScreen"
+            component={MultilineWebhookPaymentScreen}
           />
           <Stack.Screen
             name="NoWebhookPayment"

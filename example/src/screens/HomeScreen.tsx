@@ -69,6 +69,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Multiline Card element only"
+              onPress={() => {
+                navigation.navigate('MultilineWebhookPaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
