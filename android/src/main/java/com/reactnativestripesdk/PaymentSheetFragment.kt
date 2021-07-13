@@ -42,6 +42,7 @@ class PaymentSheetFragment : Fragment() {
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
     val countryCode = arguments?.getString("countryCode").orEmpty()
+    val googlePayEnabled = arguments?.getBoolean("googlePay")
     val testEnv = arguments?.getBoolean("testEnv")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
@@ -76,10 +77,10 @@ class PaymentSheetFragment : Fragment() {
         id = customerId,
         ephemeralKeySecret = customerEphemeralKeySecret
       ) else null,
-      googlePay = PaymentSheet.GooglePayConfiguration(
+      googlePay = if (googlePayEnabled == true) PaymentSheet.GooglePayConfiguration(
         environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode
-      )
+      ) else null
     )
 
     if (arguments?.getBoolean("customFlow") == true) {

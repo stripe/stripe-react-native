@@ -257,6 +257,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val merchantDisplayName = getValOr(params, "merchantDisplayName")
     val countryCode = getValOr(params, "merchantCountryCode")
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
+    val googlePay = getBooleanOrNull(params, "googlePay") ?: false
 
     this.initPaymentSheetPromise = promise
 
@@ -270,6 +271,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       bundle.putString("countryCode", countryCode)
       bundle.putBoolean("customFlow", customFlow)
       bundle.putBoolean("testEnv", testEnv)
+      bundle.putBoolean("googlePay", googlePay)
 
       it.arguments = bundle
     }
