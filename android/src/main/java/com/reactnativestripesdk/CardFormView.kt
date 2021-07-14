@@ -22,12 +22,13 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   var cardParams: PaymentMethodCreateParams.Card? = null
+  private val cardFormViewBinding = StripeCardFormViewBinding.bind(cardForm)
+  private val multilineWidgetBinding = CardMultilineWidgetBinding.bind(cardFormViewBinding.cardMultilineWidget)
 
   init {
-    val binding = StripeCardFormViewBinding.bind(cardForm)
-    binding.cardMultilineWidgetContainer.isFocusable = true
-    binding.cardMultilineWidgetContainer.isFocusableInTouchMode = true
-    binding.cardMultilineWidgetContainer.requestFocus()
+    cardFormViewBinding.cardMultilineWidgetContainer.isFocusable = true
+    cardFormViewBinding.cardMultilineWidgetContainer.isFocusableInTouchMode = true
+    cardFormViewBinding.cardMultilineWidgetContainer.requestFocus()
 
     addView(cardForm)
     setListeners()
@@ -45,7 +46,6 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
 
   fun setPlaceHolders(value: ReadableMap) {
     val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
 
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
@@ -53,13 +53,13 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
     val postalCodePlaceholder = getValOr(value, "postalCode", null)
 
     numberPlaceholder?.let {
-//      multilineWidget.tlCardNumber.hint = it
+//      multilineWidgetBinding.tlCardNumber.hint = it
     }
     expirationPlaceholder?.let {
-      multilineWidget.tlExpiry.hint = it
+      multilineWidgetBinding.tlExpiry.hint = it
     }
     cvcPlaceholder?.let {
-      multilineWidget.tlCvc.hint = it
+      multilineWidgetBinding.tlCvc.hint = it
     }
     postalCodePlaceholder?.let {
       cardFormView.postalCodeContainer.hint = it
@@ -68,37 +68,29 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
 
   fun setAutofocus(value: Boolean) {
     if (value) {
-      val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-      val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
-      val cardNumberEditText = multilineWidget.etCardNumber
+      val cardNumberEditText = multilineWidgetBinding.etCardNumber
       cardNumberEditText.requestFocus()
       cardNumberEditText.showSoftKeyboard()
     }
   }
 
   fun requestFocusFromJS() {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
-    val cardNumberEditText = multilineWidget.etCardNumber
+    val cardNumberEditText = multilineWidgetBinding.etCardNumber
     cardNumberEditText.requestFocus()
     cardNumberEditText.showSoftKeyboard()
   }
 
   fun requestBlurFromJS() {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
-    val cardNumberEditText = multilineWidget.etCardNumber
+    val cardNumberEditText = multilineWidgetBinding.etCardNumber
     cardNumberEditText.hideSoftKeyboard()
     cardNumberEditText.clearFocus()
   }
 
   fun requestClearFromJS() {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
-    multilineWidget.etCardNumber.setText("")
-    multilineWidget.etCvc.setText("")
-    multilineWidget.etExpiry.setText("")
-    cardFormView.postalCode.setText("")
+    multilineWidgetBinding.etCardNumber.setText("")
+    multilineWidgetBinding.etCvc.setText("")
+    multilineWidgetBinding.etExpiry.setText("")
+    cardFormViewBinding.postalCode.setText("")
   }
 
   private fun onChangeFocus() {
@@ -151,12 +143,10 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
       }
     }
 
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
-    val cardNumberEditText = multilineWidget.etCardNumber
-    val cvcEditText = multilineWidget.etCvc
-    val expiryEditText = multilineWidget.etExpiry
-    val postalCodeEditText = cardFormView.postalCode
+    val cardNumberEditText = multilineWidgetBinding.etCardNumber
+    val cvcEditText = multilineWidgetBinding.etCvc
+    val expiryEditText = multilineWidgetBinding.etExpiry
+    val postalCodeEditText = cardFormViewBinding.postalCode
 
     cardNumberEditText.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
       currentFocusedField = if (hasFocus) CardInputListener.FocusField.CardNumber.toString() else  null
