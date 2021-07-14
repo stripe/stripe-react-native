@@ -91,8 +91,21 @@ export default function MultilineWebhookPaymentScreen() {
         cardStyle={inputStyles}
         dangerouslyGetFullCardDetails
         style={styles.cardField}
+        postalCodeEnabled={false}
+        placeholder={{
+          cvc: '99',
+          expiration: '00',
+          number: '0231',
+          postalCode: '999',
+        }}
         onCardComplete={(cardDetails) => {
           console.log(cardDetails);
+        }}
+        onFocus={(focusedField) => {
+          console.log(focusedField);
+        }}
+        onBlur={() => {
+          console.log('blur');
         }}
       />
       <View style={styles.row}>

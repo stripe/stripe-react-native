@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
+import com.facebook.react.uimanager.ReactStylesDiffMap
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
@@ -16,6 +17,7 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
+      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
       CardFormCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardComplete"))
   }
 
@@ -23,12 +25,23 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     when (commandId) {
       "focus" -> root.requestFocusFromJS()
       "blur" -> root.requestBlurFromJS()
+      "clear" -> root.requestClearFromJS()
     }
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
   fun setDangerouslyGetFullCardDetails(view: CardFormView, dangerouslyGetFullCardDetails: Boolean = false) {
     view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails);
+  }
+
+  @ReactProp(name = "postalCodeEnabled")
+  fun setPostalCodeEnabled(view: CardFormView, postalCodeEnabled: Boolean = false) {
+    view.setPostalCodeEnabled(postalCodeEnabled);
+  }
+
+  @ReactProp(name = "placeholder")
+  fun setPlaceHolders(view: CardFormView, placeholder: ReadableMap) {
+    view.setPlaceHolders(placeholder);
   }
 
   @ReactProp(name = "autofocus")

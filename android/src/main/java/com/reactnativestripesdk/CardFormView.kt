@@ -2,58 +2,112 @@ package com.reactnativestripesdk
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.MaterialShapeDrawable
+import com.stripe.android.databinding.CardMultilineWidgetBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardFormView
+import com.stripe.android.view.CardInputListener
 
 class CardFormView(private val context: ThemedReactContext) : FrameLayout(context) {
-  private var mCardWidget: CardFormView = CardFormView(context)
+  private var cardForm: CardFormView = CardFormView(context, null, R.style.StripeCardFormView_Borderless)
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
+  private var currentFocusedField: String? = null
   var cardParams: PaymentMethodCreateParams.Card? = null
 
   init {
-    val binding = StripeCardFormViewBinding.bind(mCardWidget)
-    binding.cardMultilineWidget.setShouldShowPostalCode(false)
+    val binding = StripeCardFormViewBinding.bind(cardForm)
     binding.cardMultilineWidgetContainer.isFocusable = true
     binding.cardMultilineWidgetContainer.isFocusableInTouchMode = true
     binding.cardMultilineWidgetContainer.requestFocus()
 
-    addView(mCardWidget)
+    addView(cardForm)
     setListeners()
 
     viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
+  fun setPostalCodeEnabled(value: Boolean) {
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val visibility = if (value) View.VISIBLE else View.GONE
+
+    cardFormView.cardMultilineWidget.postalCodeRequired = false
+    cardFormView.postalCodeContainer.visibility = visibility
+  }
+
+  fun setPlaceHolders(value: ReadableMap) {
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+
+    val numberPlaceholder = getValOr(value, "number", null)
+    val expirationPlaceholder = getValOr(value, "expiration", null)
+    val cvcPlaceholder = getValOr(value, "cvc", null)
+    val postalCodePlaceholder = getValOr(value, "postalCode", null)
+
+    numberPlaceholder?.let {
+//      multilineWidget.tlCardNumber.hint = it
+    }
+    expirationPlaceholder?.let {
+      multilineWidget.tlExpiry.hint = it
+    }
+    cvcPlaceholder?.let {
+      multilineWidget.tlCvc.hint = it
+    }
+    postalCodePlaceholder?.let {
+      cardFormView.postalCodeContainer.hint = it
+    }
+  }
+
   fun setAutofocus(value: Boolean) {
     if (value) {
-      val binding = StripeCardFormViewBinding.bind(mCardWidget)
-      binding.cardMultilineWidget.requestFocus()
-      binding.cardMultilineWidget.showSoftKeyboard()
+      val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+      val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+      val cardNumberEditText = multilineWidget.etCardNumber
+      cardNumberEditText.requestFocus()
+      cardNumberEditText.showSoftKeyboard()
     }
   }
 
   fun requestFocusFromJS() {
-    val binding = StripeCardFormViewBinding.bind(mCardWidget)
-    binding.cardMultilineWidget.requestFocus()
-    binding.cardMultilineWidget.showSoftKeyboard()
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+    val cardNumberEditText = multilineWidget.etCardNumber
+    cardNumberEditText.requestFocus()
+    cardNumberEditText.showSoftKeyboard()
   }
 
   fun requestBlurFromJS() {
-    val binding = StripeCardFormViewBinding.bind(mCardWidget)
-    binding.cardMultilineWidget.hideSoftKeyboard()
-    binding.cardMultilineWidget.clearFocus()
-    binding.cardMultilineWidgetContainer.requestFocus()
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+    val cardNumberEditText = multilineWidget.etCardNumber
+    cardNumberEditText.hideSoftKeyboard()
+    cardNumberEditText.clearFocus()
+  }
+
+  fun requestClearFromJS() {
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+    multilineWidget.etCardNumber.setText("")
+    multilineWidget.etCvc.setText("")
+    multilineWidget.etExpiry.setText("")
+    cardFormView.postalCode.setText("")
+  }
+
+  private fun onChangeFocus() {
+    mEventDispatcher?.dispatchEvent(
+      CardFocusEvent(id, currentFocusedField))
   }
 
   fun setCardStyle(value: ReadableMap) {
-    val binding = StripeCardFormViewBinding.bind(mCardWidget)
+    val binding = StripeCardFormViewBinding.bind(cardForm)
     val backgroundColor = getValOr(value, "backgroundColor", null)
 
     binding.cardMultilineWidgetContainer.background = MaterialShapeDrawable().also { shape ->
@@ -69,9 +123,9 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   }
 
   private fun setListeners() {
-    mCardWidget.setCardValidCallback { isValid, _ ->
+    cardForm.setCardValidCallback { isValid, _ ->
       if (isValid) {
-        mCardWidget.cardParams?.let {
+        cardForm.cardParams?.let {
           val cardParamsMap = it.toParamMap()["card"] as HashMap<*, *>
           val cardDetails: MutableMap<String, Any> = mutableMapOf(
             "expiryMonth" to cardParamsMap["exp_month"] as Int,
@@ -89,12 +143,36 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
           mEventDispatcher?.dispatchEvent(
             CardFormCompleteEvent(id, cardDetails, isValid, dangerouslyGetFullCardDetails))
 
-          val binding = StripeCardFormViewBinding.bind(mCardWidget)
+          val binding = StripeCardFormViewBinding.bind(cardForm)
           binding.cardMultilineWidget.paymentMethodCard?.let { params -> cardParams = params }
         }
       } else {
         cardParams = null
       }
+    }
+
+    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+    val multilineWidget = CardMultilineWidgetBinding.bind(cardFormView.cardMultilineWidget)
+    val cardNumberEditText = multilineWidget.etCardNumber
+    val cvcEditText = multilineWidget.etCvc
+    val expiryEditText = multilineWidget.etExpiry
+    val postalCodeEditText = cardFormView.postalCode
+
+    cardNumberEditText.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.CardNumber.toString() else  null
+      onChangeFocus()
+    }
+    cvcEditText.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.Cvc.toString() else  null
+      onChangeFocus()
+    }
+    expiryEditText.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.ExpiryDate.toString() else  null
+      onChangeFocus()
+    }
+    postalCodeEditText.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.PostalCode.toString() else  null
+      onChangeFocus()
     }
   }
 

@@ -1,4 +1,4 @@
-import type { CardFormView } from '../types';
+import type { CardFormView, Nullable } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -30,6 +30,10 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   testID?: string;
   isUserInteractionEnabled?: boolean;
+  placeholder: CardFormView.Placeholders;
+  postalCodeEnabled?: boolean;
+  onBlur?(): void;
+  onFocus?(focusedField: Nullable<CardFormView.Names>): void;
   onCardComplete?(card: CardFormView.Details): void;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardComplete` handler.
@@ -59,7 +63,16 @@ export interface Props extends AccessibilityProps {
  */
 export const CardForm = forwardRef<CardFormView.Methods, Props>(
   (
-    { onCardComplete, cardStyle, isUserInteractionEnabled = true, ...props },
+    {
+      onCardComplete,
+      onFocus,
+      onBlur,
+      placeholder,
+      cardStyle,
+      isUserInteractionEnabled = true,
+      postalCodeEnabled = true,
+      ...props
+    },
     ref
   ) => {
     const inputRef = useRef<any>(null);
@@ -112,6 +125,19 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       blur,
     }));
 
+    const onFocusHandler = useCallback(
+      (event) => {
+        const { focusedField } = event.nativeEvent;
+        if (focusedField) {
+          TextInputState.focusInput(inputRef.current);
+          onFocus?.(focusedField);
+        } else {
+          onBlur?.();
+        }
+      },
+      [onFocus, onBlur]
+    );
+
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
       if (inputRefValue !== null) {
@@ -130,12 +156,20 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       <CardFormNative
         ref={inputRef}
         onCardComplete={onCardCompleteHandler}
+        onFocusChange={onFocusHandler}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
           type: cardStyle?.type,
         }}
+        postalCodeEnabled={postalCodeEnabled}
         isUserInteractionEnabledValue={isUserInteractionEnabled}
+        placeholder={{
+          number: placeholder?.number,
+          expiration: placeholder?.expiration,
+          cvc: placeholder?.cvc,
+          postalCode: placeholder?.postalCode,
+        }}
         {...props}
       />
     );

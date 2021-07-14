@@ -1,7 +1,10 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
+import type { Nullable } from '..';
 import type { Card } from '../Card';
 
 export namespace CardFormView {
+  export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
+
   export interface Details {
     last4: string;
     expiryMonth: number;
@@ -26,12 +29,24 @@ export namespace CardFormView {
     type?: 'borderless' | 'standard';
   }
 
+  export interface Placeholders {
+    number?: string;
+    expiration?: string;
+    cvc?: string;
+    postalCode?: string;
+  }
+
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     autofocus?: boolean;
     isUserInteractionEnabledValue?: boolean;
-    onCardComplete(event: NativeSyntheticEvent<Details>): void;
     cardStyle?: Styles;
+    postalCodeEnabled: boolean;
+    placeholder: Placeholders;
+    onFocusChange(
+      event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
+    ): void;
+    onCardComplete(event: NativeSyntheticEvent<Details>): void;
   }
 
   export interface Methods {
