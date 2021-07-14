@@ -6880,10 +6880,10 @@ strip-eof@^1.0.0:
   resolved "https://registry.yarnpkg.com/strip-eof/-/strip-eof-1.0.0.tgz#bb43ff5598a6eb05d89b59fcd129c983313606bf"
   integrity sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=
 
-stripe@^8.0.1:
-  version "8.121.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.121.0.tgz#45f073998e3d987647d48a2ec575b78e3ab374c9"
-  integrity sha512-Uswmut57hVdyPrb+EJUTWbrLcTIEL4LS5T6UQZPO5AJNYT0PGHajgY1esQwmV7yVBL+Kgt3y/16zIAY/gAwifg==
+stripe@^8.161.0:
+  version "8.161.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-8.161.0.tgz#ed8a9e7ba4954ed4ae493563a797e017b1ccafd6"
+  integrity sha512-fvlN+JIGBDzyvybVkHku6p/qCUx7fQwqhAgNJjFv9MEqSxE+NpVRLK/nTf71snOeeLziYobLXfC2VzGQAei+BQ==
   dependencies:
     "@types/node" ">=8.1.0"
     qs "^6.6.0"

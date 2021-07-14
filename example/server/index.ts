@@ -83,12 +83,14 @@ app.post(
       currency,
       request_three_d_secure,
       payment_method_types = [],
+      client = 'ios',
     }: {
       email: string;
       items: Order;
       currency: string;
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
+      client: 'ios' | 'android';
     } = req.body;
 
     const { secret_key } = getKeys(payment_method_types[0]);
@@ -110,6 +112,10 @@ app.post(
         },
         sofort: {
           preferred_language: 'en',
+        },
+        wechat_pay: {
+          app_id: 'wx65907d6307c3827d',
+          client: client,
         },
       },
       payment_method_types: payment_method_types,

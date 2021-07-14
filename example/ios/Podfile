@@ -8,7 +8,7 @@ target 'StripeSdkExample' do
   use_react_native!(:path => config["reactNativePath"])
 
   pod 'stripe-react-native', :path => '../..'
-
+  pod 'Stripe', :git => 'https://github.com/stripe/stripe-ios.git', :branch => 'wechatpay-pm-beta'
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
