@@ -257,6 +257,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val merchantDisplayName = getValOr(params, "merchantDisplayName")
     val countryCode = getValOr(params, "merchantCountryCode")
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
+    val googlePay = getBooleanOrNull(params, "googlePay") ?: false
 
     this.initPaymentSheetPromise = promise
 
@@ -270,6 +271,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       bundle.putString("countryCode", countryCode)
       bundle.putBoolean("customFlow", customFlow)
       bundle.putBoolean("testEnv", testEnv)
+      bundle.putBoolean("googlePay", googlePay)
 
       it.arguments = bundle
     }
@@ -370,11 +372,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       name = getValOr(params, "name", null)
     )
     runBlocking {
-      val token = stripe.createCardToken(
-        cardParams = params,
-        stripeAccountId = stripeAccountId
-      )
-      promise.resolve(createResult("token", mapFromToken(token)))
+      try {
+        val token = stripe.createCardToken(
+          cardParams = params,
+          stripeAccountId = stripeAccountId
+        )
+        promise.resolve(createResult("token", mapFromToken(token)))
+      } catch (e: Exception) {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
+      }
     }
   }
 

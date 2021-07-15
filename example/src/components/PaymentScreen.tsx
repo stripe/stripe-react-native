@@ -18,7 +18,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
         await initStripe({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'stripe-example',
+          urlScheme: 'wxa0df51ec63e578ce',
           setUrlSchemeOnAndroid: true,
         });
         setLoading(false);
