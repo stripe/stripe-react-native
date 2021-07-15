@@ -372,11 +372,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       name = getValOr(params, "name", null)
     )
     runBlocking {
-      val token = stripe.createCardToken(
-        cardParams = params,
-        stripeAccountId = stripeAccountId
-      )
-      promise.resolve(createResult("token", mapFromToken(token)))
+      try {
+        val token = stripe.createCardToken(
+          cardParams = params,
+          stripeAccountId = stripeAccountId
+        )
+        promise.resolve(createResult("token", mapFromToken(token)))
+      } catch (e: Exception) {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
+      }
     }
   }
 
