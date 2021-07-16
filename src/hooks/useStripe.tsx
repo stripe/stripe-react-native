@@ -18,6 +18,7 @@ import type {
   ConfirmSetupIntent,
   CreateTokenResult,
   Card,
+  GooglePayResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -38,6 +39,7 @@ import {
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
+  initGooglePay,
 } from '../functions';
 
 /**
@@ -83,6 +85,13 @@ export function useStripe() {
   const _retrieveSetupIntent = useCallback(
     async (clientSecret: string): Promise<RetrieveSetupIntentResult> => {
       return retrieveSetupIntent(clientSecret);
+    },
+    []
+  );
+
+  const _initGooglePay = useCallback(
+    async (params: any): Promise<GooglePayResult> => {
+      return initGooglePay(params);
     },
     []
   );
@@ -200,5 +209,6 @@ export function useStripe() {
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
+    initGooglePay: _initGooglePay,
   };
 }

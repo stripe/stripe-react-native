@@ -92,7 +92,7 @@ class PaymentSheetFragment : Fragment() {
       activity?.sendBroadcast(intent)
     }
 
-    val intent = Intent(ON_FRAGMENT_CREATED)
+    val intent = Intent(ON_PAYMENT_SHEET_FRAGMENT_CREATED)
     activity?.sendBroadcast(intent)
   }
 

@@ -11,6 +11,7 @@ import {
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
+  GooglePayResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
@@ -355,6 +356,26 @@ export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetP
     return {};
   } catch (error) {
     return {
+      error: createError(error),
+    };
+  }
+};
+
+export const initGooglePay = async (params: any): Promise<GooglePayResult> => {
+  try {
+    const { error, isReady } = await NativeStripeSdk.initGooglePay(params);
+    if (error) {
+      return {
+        error,
+        isReady: false,
+      };
+    }
+    return {
+      isReady,
+    };
+  } catch (error) {
+    return {
+      isReady: false,
       error: createError(error),
     };
   }

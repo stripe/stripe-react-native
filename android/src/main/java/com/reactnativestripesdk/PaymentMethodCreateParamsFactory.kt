@@ -3,7 +3,7 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.model.*
 
-class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, private val urlScheme: String?, cardParams: PaymentMethodCreateParams.Card?) {
+class PaymentMethodCreateParamsFactory(private val clientSecret: String, private val params: ReadableMap, cardParams: PaymentMethodCreateParams.Card?) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
   private val cardParams = cardParams
 
@@ -66,7 +66,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
         setupFutureUsage = setupFutureUsage,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -82,7 +81,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -106,7 +104,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodOptions = paymentMethodOptionParams,
         clientSecret = clientSecret,
         setupFutureUsage = setupFutureUsage,
-        returnUrl = mapToReturnURL(urlScheme)
       )
     } else {
       var card = cardParams
@@ -119,7 +116,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
           paymentMethodCreateParams = paymentMethodCreateParams,
           clientSecret = clientSecret,
           setupFutureUsage = setupFutureUsage,
-          returnUrl = mapToReturnURL(urlScheme)
         )
     }
   }
@@ -134,7 +130,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     return ConfirmSetupIntentParams.create(
       paymentMethodCreateParams = createParams,
       clientSecret = clientSecret,
-      returnUrl = mapToReturnURL(urlScheme)
     )
   }
 
@@ -185,7 +180,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
         setupFutureUsage = setupFutureUsage,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -202,7 +196,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
     return ConfirmSetupIntentParams.create(
       paymentMethodCreateParams = params,
       clientSecret = clientSecret,
-      returnUrl = mapToReturnURL(urlScheme)
     )
   }
 
@@ -215,7 +208,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -233,7 +225,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
         setupFutureUsage = setupFutureUsage,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -248,7 +239,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .create(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -264,7 +254,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -280,7 +269,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -296,7 +284,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -333,7 +320,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -349,7 +335,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -378,7 +363,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 
@@ -407,7 +391,6 @@ class PaymentMethodCreateParamsFactory(private val clientSecret: String, private
       .create(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        returnUrl = mapToReturnURL(urlScheme)
       )
   }
 }

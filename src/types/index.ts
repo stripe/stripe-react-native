@@ -6,6 +6,7 @@ import type {
   ConfirmSetupIntentError,
   CreatePaymentMethodError,
   CreateTokenError,
+  GooglePayError,
   PaymentSheetError,
   RetrievePaymentIntentError,
   RetrieveSetupIntentError,
@@ -178,3 +179,13 @@ export interface InitStripeParams {
 export interface InitialiseParams extends InitStripeParams {
   appInfo: AppInfo;
 }
+
+export type GooglePayResult =
+  | {
+      isReady: boolean;
+      error?: undefined;
+    }
+  | {
+      isReady: boolean;
+      error: StripeError<GooglePayError>;
+    };
