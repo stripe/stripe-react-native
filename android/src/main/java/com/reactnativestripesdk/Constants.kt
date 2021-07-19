@@ -9,3 +9,6 @@ var ON_PAYMENT_SHEET_FRAGMENT_CREATED = "com.reactnativestripesdk.FRAGMENT_CREAT
 
 // Google pay fragment
 var ON_GOOGLE_PAY_FRAGMENT_CREATED = "com.reactnativestripesdk.ON_GOOGLE_PAY_FRAGMENT_CREATED"
+var ON_INIT_GOOGLE_PAY = "com.reactnativestripesdk.ON_INIT_GOOGLE_PAY"
+var ON_PAY_WITH_GOOGLE = "com.reactnativestripesdk.ON_PAY_WITH_GOOGLE"
+

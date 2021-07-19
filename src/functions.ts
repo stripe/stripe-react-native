@@ -11,15 +11,18 @@ import {
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
-  GooglePayResult,
+  GooglePay,
+  GooglePayInitResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
   PaymentSheet,
+  PayWithGooglePayResult,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   StripeError,
+  TokenizationSpecificationResult,
 } from './types';
 import type { Card } from './types/Card';
 
@@ -361,21 +364,62 @@ export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetP
   }
 };
 
-export const initGooglePay = async (params: any): Promise<GooglePayResult> => {
+export const initGooglePay = async (
+  params: GooglePay.InitParams
+): Promise<GooglePayInitResult> => {
   try {
-    const { error, isReady } = await NativeStripeSdk.initGooglePay(params);
+    const { error } = await NativeStripeSdk.initGooglePay(params);
     if (error) {
       return {
         error,
-        isReady: false,
+      };
+    }
+    return {};
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const payWithGoogle = async (
+  params: GooglePay.PayParams
+): Promise<PayWithGooglePayResult> => {
+  try {
+    const { error, paymentIntent } = await NativeStripeSdk.payWithGoogle(
+      params
+    );
+    if (error) {
+      return {
+        error,
       };
     }
     return {
-      isReady,
+      paymentIntent: paymentIntent!,
     };
   } catch (error) {
     return {
-      isReady: false,
+      error: createError(error),
+    };
+  }
+};
+
+export const getTokenizationSpecification = async (): Promise<TokenizationSpecificationResult> => {
+  try {
+    const {
+      error,
+      tokenizationSpecification,
+    } = await NativeStripeSdk.getTokenizationSpecification();
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      tokenizationSpecification: tokenizationSpecification!,
+    };
+  } catch (error) {
+    return {
       error: createError(error),
     };
   }

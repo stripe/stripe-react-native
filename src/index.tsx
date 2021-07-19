@@ -3,6 +3,7 @@ export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
 export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
+export { useGooglePay } from './hooks/useGooglePay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 
 //components

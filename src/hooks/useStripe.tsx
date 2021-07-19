@@ -18,7 +18,9 @@ import type {
   ConfirmSetupIntent,
   CreateTokenResult,
   Card,
-  GooglePayResult,
+  GooglePayInitResult,
+  PayWithGooglePayResult,
+  TokenizationSpecificationResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -40,6 +42,8 @@ import {
   confirmPaymentSheetPayment,
   createToken,
   initGooglePay,
+  payWithGoogle,
+  getTokenizationSpecification,
 } from '../functions';
 
 /**
@@ -85,13 +89,6 @@ export function useStripe() {
   const _retrieveSetupIntent = useCallback(
     async (clientSecret: string): Promise<RetrieveSetupIntentResult> => {
       return retrieveSetupIntent(clientSecret);
-    },
-    []
-  );
-
-  const _initGooglePay = useCallback(
-    async (params: any): Promise<GooglePayResult> => {
-      return initGooglePay(params);
     },
     []
   );
@@ -192,6 +189,24 @@ export function useStripe() {
     []
   );
 
+  const _initGooglePay = useCallback(
+    async (params: any): Promise<GooglePayInitResult> => {
+      return initGooglePay(params);
+    },
+    []
+  );
+
+  const _payWithGoogle = useCallback(
+    async (params: any): Promise<PayWithGooglePayResult> => {
+      return payWithGoogle(params);
+    },
+    []
+  );
+
+  const _getTokenizationSpecification = useCallback(async (): Promise<TokenizationSpecificationResult> => {
+    return getTokenizationSpecification();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -210,5 +225,7 @@ export function useStripe() {
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
     initGooglePay: _initGooglePay,
+    payWithGoogle: _payWithGoogle,
+    getTokenizationSpecification: _getTokenizationSpecification,
   };
 }

@@ -3,6 +3,9 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.*
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 
 internal fun createResult(key: String, value: WritableMap): WritableMap {
   val map = WritableNativeMap()
@@ -699,4 +702,36 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
     "OnSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
     else ->  null
   }
+}
+
+@Throws(JSONException::class)
+fun toJsonObject(readableMap: ReadableMap?): JSONObject? {
+  val objc = JSONObject()
+  val iter = readableMap!!.keySetIterator()
+  while (iter.hasNextKey()) {
+    val key = iter.nextKey()
+    when (readableMap.getType(key)) {
+      ReadableType.Boolean -> objc.put(key, readableMap.getBoolean(key))
+      ReadableType.Number -> objc.put(key, readableMap.getDouble(key))
+      ReadableType.String -> objc.put(key, readableMap.getString(key))
+      ReadableType.Map -> objc.put(key, toJsonObject(readableMap.getMap(key)))
+      ReadableType.Array -> objc.put(key, toJsonArray(readableMap.getArray(key)))
+    }
+  }
+  return objc
+}
+
+@Throws(JSONException::class)
+fun toJsonArray(readableArray: ReadableArray?): JSONArray? {
+  val array = JSONArray()
+  for (idx in 0 until readableArray!!.size()) {
+    when (readableArray.getType(idx)) {
+      ReadableType.Boolean -> array.put(readableArray.getBoolean(idx))
+      ReadableType.Number -> array.put(readableArray.getDouble(idx))
+      ReadableType.String -> array.put(readableArray.getString(idx))
+      ReadableType.Map -> array.put(toJsonObject(readableArray.getMap(idx)))
+      ReadableType.Array -> array.put(toJsonArray(readableArray.getArray(idx)))
+    }
+  }
+  return array
 }

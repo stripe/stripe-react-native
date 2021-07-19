@@ -19,6 +19,7 @@ import type { SetupIntent } from './SetupIntent';
 import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
 
 export * from './ApplePay';
+export * from './GooglePay';
 export * from './PaymentIntents';
 export * from './PaymentMethods';
 export * from './SetupIntent';
@@ -180,12 +181,30 @@ export interface InitialiseParams extends InitStripeParams {
   appInfo: AppInfo;
 }
 
-export type GooglePayResult =
+export type GooglePayInitResult =
   | {
-      isReady: boolean;
       error?: undefined;
     }
   | {
-      isReady: boolean;
+      error: StripeError<GooglePayError>;
+    };
+
+export type PayWithGooglePayResult =
+  | {
+      paymentIntent: PaymentIntent;
+      error?: undefined;
+    }
+  | {
+      paymentIntent?: undefined;
+      error: StripeError<GooglePayError>;
+    };
+
+export type TokenizationSpecificationResult =
+  | {
+      tokenizationSpecification: string;
+      error?: undefined;
+    }
+  | {
+      tokenizationSpecification?: undefined;
       error: StripeError<GooglePayError>;
     };

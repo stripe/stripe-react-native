@@ -277,6 +277,18 @@ export default function HomeScreen() {
               />
             </View>
           )}
+
+          {Platform.OS === 'android' && (
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Google Pay"
+                onPress={() => {
+                  navigation.navigate('GooglePayScreen');
+                }}
+              />
+            </View>
+          )}
+
           <View style={styles.buttonContainer}>
             <Button
               title="GrabPay"

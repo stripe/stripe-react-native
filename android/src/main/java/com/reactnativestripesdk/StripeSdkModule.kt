@@ -28,11 +28,6 @@ import org.json.JSONObject
 
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
   private var cardFieldManager: StripeSdkCardViewManager = cardFieldManager
-  private var paymentsClient: PaymentsClient? = null
-
-  companion object {
-    private const val LOAD_PAYMENT_DATA_REQUEST_CODE = 53
-  }
 
   override fun getName(): String {
     return "StripeSdk"
@@ -51,27 +46,34 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var presentPaymentSheetPromise: Promise? = null
   private var initPaymentSheetPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
-  private var payWithGooglePromise: Promise? = null
 
-  private var paymentIntentClientSecret: String? = null
+  private var payWithGooglePromise: Promise? = null
+  private var googlePayFragment: GooglePayFragment? = null
+  private var initGooglePayPromise: Promise? = null
+  private var googlePayClientSecret: String? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
         when (requestCode) {
-          LOAD_PAYMENT_DATA_REQUEST_CODE -> {
+          GooglePayFragment.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
             when (resultCode) {
               Activity.RESULT_OK -> {
                 if (data != null) {
                   onGooglePayResult(data)
+                } else {
+                  payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Unhandled error"))
+                  googlePayClientSecret = null
                 }
               }
               Activity.RESULT_CANCELED -> {
                 payWithGooglePromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), "Google pay has been canceled"))
+                googlePayClientSecret = null
               }
               AutoResolveHelper.RESULT_ERROR -> {
                 val status = AutoResolveHelper.getStatusFromIntent(data)
                 payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), status.statusMessage))
+                googlePayClientSecret = null
               }
             }
           }
@@ -158,6 +160,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         })
 
         paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
 
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
@@ -189,6 +192,27 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         )
         .build()
     )
+  }
+
+  private val googlePayReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+      if (intent.action == ON_GOOGLE_PAY_FRAGMENT_CREATED) {
+        googlePayFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
+      }
+      if (intent.action == ON_INIT_GOOGLE_PAY) {
+        val isReady = intent.extras?.getBoolean("isReady")
+
+        if (isReady == true) {
+          initGooglePayPromise?.resolve(WritableNativeMap())
+
+        } else {
+          initGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "couldn't initialize Google Pay"))
+        }
+      }
+      if (intent.action == ON_PAY_WITH_GOOGLE) {
+        payWithGooglePromise?.resolve(WritableNativeMap())
+      }
+    }
   }
 
   private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -275,8 +299,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_SHEET_FRAGMENT_CREATED));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(
-      ON_GOOGLE_PAY_FRAGMENT_CREATED));
+
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_PAY_WITH_GOOGLE))
 
     promise.resolve(null)
   }
@@ -446,7 +472,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   @ReactMethod
   fun handleCardAction(paymentIntentClientSecret: String, promise: Promise) {
-    val activity = currentActivity as ComponentActivity
+    val activity = currentActivity as ComponentActivity?
     if (activity != null) {
       handleCardActionPromise = promise
       stripe.handleNextActionForPayment(activity, paymentIntentClientSecret)
@@ -534,71 +560,59 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   @ReactMethod
   fun initGooglePay(params: ReadableMap, promise: Promise) {
-    paymentsClient = Wallet.getPaymentsClient(
-      currentActivity!!,
-      Wallet.WalletOptions.Builder()
-        .setEnvironment(WalletConstants.ENVIRONMENT_TEST)
-        .build()
-    )
+    val activity = currentActivity as AppCompatActivity?
 
-    val request = createIsReadyToPayRequest()
-    paymentsClient!!.isReadyToPay(request)
-      .addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-          val map = Arguments.createMap()
-          map.putBoolean("isReady", true)
-          promise.resolve(createResult("googlePay", map))
-        } else {
-          val map = Arguments.createMap()
-          map.putBoolean("isReady", false)
-          promise.resolve(createResult("googlePay", map))
-        }
-      }
+    if (activity == null) {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "Activity doesn't exist"))
+      return
+    }
+    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
+    val readyToPayParams = getMapOrNull(params, "readyToPayParams")
+
+    val readyToPayParamsJSON = toJsonObject(readyToPayParams)
+
+    val fragment = GooglePayFragment().also {
+      val bundle = Bundle()
+      bundle.putBoolean("testEnv", testEnv)
+      bundle.putString("readyToPayParams", readyToPayParamsJSON.toString())
+
+      it.arguments = bundle
+    }
+
+    initGooglePayPromise = promise
+
+    activity.supportFragmentManager.beginTransaction()
+      .add(fragment, "google_pay_launch_fragment")
+      .commit()
+  }
+
+  @ReactMethod
+  fun getTokenizationSpecification(promise: Promise) {
+    if (googlePayFragment == null) {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "Google pay is not initialized"))
+    }
+    val tokenizationSpecification = googlePayFragment?.getTokenizationSpecification()
+    val result = WritableNativeMap()
+    result.putString("tokenizationSpecification", tokenizationSpecification)
+    promise.resolve(result)
   }
 
   @ReactMethod
   fun payWithGoogle(params: ReadableMap, promise: Promise) {
-    val activity = currentActivity as ComponentActivity
-    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null)
+    payWithGooglePromise = promise
+    val clientSecret = getValOr(params, "clientSecret", null)
 
-    paymentIntentClientSecret ?: run {
+    val requestParams = getMapOrNull(params, "requestParams")
+    val requestParamsJSON = toJsonObject(requestParams)
+
+    clientSecret ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
       return
     }
 
-    this.paymentIntentClientSecret = paymentIntentClientSecret
-
-    val reqData = createPaymentDataRequest()
-    this.payWithGooglePromise = promise
-
-    AutoResolveHelper.resolveTask(
-      paymentsClient?.loadPaymentData(reqData!!),
-      activity,
-      LOAD_PAYMENT_DATA_REQUEST_CODE
-    );
+    googlePayClientSecret = clientSecret
+    googlePayFragment?.payWithGoogle(requestParamsJSON.toString())
   }
-
-//  @ReactMethod
-//  fun initGooglePay(params: ReadableMap, promise: Promise) {
-//    val activity = currentActivity as AppCompatActivity?
-//
-//    if (activity == null) {
-//      promise.resolve(createError("Failed", "Activity doesn't exist"))
-//      return
-//    }
-//    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
-//
-//
-//    val fragment = GooglePayFragment().also {
-//      val bundle = Bundle()
-//      bundle.putBoolean("testEnv", testEnv)
-//
-//      it.arguments = bundle
-//    }
-//    activity.supportFragmentManager.beginTransaction()
-//      .add(fragment, "google_pay_launch_fragment")
-//      .commit()
-//  }
 
   private fun onGooglePayResult(data: Intent) {
     val paymentData = PaymentData.getFromIntent(data) ?: return
@@ -616,98 +630,20 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           val confirmParams = ConfirmPaymentIntentParams
             .createWithPaymentMethodId(
               paymentMethodId = result.id.orEmpty(),
-              clientSecret = paymentIntentClientSecret!!
+              clientSecret = googlePayClientSecret!!
             )
           stripe.confirmPayment(
             activity,
             confirmPaymentIntentParams = confirmParams
           )
+          googlePayClientSecret = null
         },
         onFailure = {
           payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), it))
+          googlePayClientSecret = null
         }
       )
     }
-  }
-
-  @Throws(JSONException::class)
-  private fun createIsReadyToPayRequest(): IsReadyToPayRequest {
-    val allowedAuthMethods = JSONArray()
-    allowedAuthMethods.put("PAN_ONLY")
-    allowedAuthMethods.put("CRYPTOGRAM_3DS")
-    val allowedCardNetworks = JSONArray()
-    allowedCardNetworks.put("AMEX")
-    allowedCardNetworks.put("DISCOVER")
-    allowedCardNetworks.put("MASTERCARD")
-    allowedCardNetworks.put("VISA")
-    val cardParameters = JSONObject()
-    cardParameters.put("allowedAuthMethods", allowedAuthMethods)
-    cardParameters.put("allowedCardNetworks", allowedCardNetworks)
-    val cardPaymentMethod = JSONObject()
-    cardPaymentMethod.put("type", "CARD")
-    cardPaymentMethod.put("parameters", cardParameters)
-    val allowedPaymentMethods = JSONArray()
-    allowedPaymentMethods.put(cardPaymentMethod)
-    val isReadyToPayRequestJson = JSONObject()
-    isReadyToPayRequestJson.put("apiVersion", 2)
-    isReadyToPayRequestJson.put("apiVersionMinor", 0)
-    isReadyToPayRequestJson.put("allowedPaymentMethods", allowedPaymentMethods)
-    return IsReadyToPayRequest.fromJson(isReadyToPayRequestJson.toString())
-  }
-
-  private fun createPaymentDataRequest(): PaymentDataRequest? {
-    val activity = currentActivity as ComponentActivity
-
-    val tokenizationSpec: JSONObject = GooglePayConfig(activity).tokenizationSpecification
-    val cardPaymentMethod = JSONObject()
-      .put("type", "CARD")
-      .put(
-        "parameters",
-        JSONObject()
-          .put(
-            "allowedAuthMethods", JSONArray()
-              .put("PAN_ONLY")
-              .put("CRYPTOGRAM_3DS")
-          )
-          .put(
-            "allowedCardNetworks",
-            JSONArray()
-              .put("AMEX")
-              .put("DISCOVER")
-              .put("MASTERCARD")
-              .put("VISA")
-          ) // require billing address
-          .put("billingAddressRequired", true)
-          .put(
-            "billingAddressParameters",
-            JSONObject() // require full billing address
-              .put("format", "MIN") // require phone number
-              .put("phoneNumberRequired", true)
-          )
-      )
-      .put("tokenizationSpecification", tokenizationSpec)
-
-    // create PaymentDataRequest
-    val paymentDataRequest: String = JSONObject()
-      .put("apiVersion", 2)
-      .put("apiVersionMinor", 0)
-      .put(
-        "allowedPaymentMethods",
-        JSONArray().put(cardPaymentMethod)
-      )
-      .put(
-        "transactionInfo", JSONObject()
-          .put("totalPrice", "10.00")
-          .put("totalPriceStatus", "FINAL")
-          .put("currencyCode", "USD")
-      )
-      .put(
-        "merchantInfo", JSONObject()
-          .put("merchantName", "Example Merchant")
-      ) // require email address
-      .put("emailRequired", true)
-      .toString()
-    return PaymentDataRequest.fromJson(paymentDataRequest)
   }
 
   /// Check paymentIntent.nextAction is voucher-based payment method.
