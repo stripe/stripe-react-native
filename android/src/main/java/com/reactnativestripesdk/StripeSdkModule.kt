@@ -53,6 +53,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var confirmPaymentClientSecret: String? = null
   private var payWithGooglePromise: Promise? = null
 
+  private var paymentIntentClientSecret: String? = null
+
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
@@ -65,22 +67,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
                 }
               }
               Activity.RESULT_CANCELED -> {
-                payWithGooglePromise?.resolve(createError("Canceled", "Google pay is canceled"))
+                payWithGooglePromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), "Google pay has been canceled"))
               }
               AutoResolveHelper.RESULT_ERROR -> {
-                // Log the status for debugging
-                // Generally there is no need to show an error to
-                // the user as the Google Payment API will do that
                 val status = AutoResolveHelper.getStatusFromIntent(data)
-                payWithGooglePromise?.resolve(createError(status.statusCode.toString(), status.statusMessage))
-              }
-              else -> {
-                // Do nothing.
+                payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), status.statusMessage))
               }
             }
-          }
-          else -> {
-            // Handle any other startActivityForResult calls you may have made.
           }
         }
 
@@ -566,6 +559,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun payWithGoogle(params: ReadableMap, promise: Promise) {
     val activity = currentActivity as ComponentActivity
+    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret", null)
+
+    paymentIntentClientSecret ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
+      return
+    }
+
+    this.paymentIntentClientSecret = paymentIntentClientSecret
+
     val reqData = createPaymentDataRequest()
     this.payWithGooglePromise = promise
 
@@ -614,7 +616,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           val confirmParams = ConfirmPaymentIntentParams
             .createWithPaymentMethodId(
               paymentMethodId = result.id.orEmpty(),
-              clientSecret = "{{PAYMENT_INTENT_CLIENT_SECRET}}"
+              clientSecret = paymentIntentClientSecret!!
             )
           stripe.confirmPayment(
             activity,
@@ -622,7 +624,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           )
         },
         onFailure = {
-          payWithGooglePromise?.resolve(createError("Failed", it))
+          payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), it))
         }
       )
     }
