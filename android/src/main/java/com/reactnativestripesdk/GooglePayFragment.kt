@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
+import com.facebook.react.bridge.ReadableMap
 import com.google.android.gms.wallet.*
 import com.stripe.android.GooglePayConfig
 
@@ -50,21 +51,22 @@ class GooglePayFragment : Fragment() {
     val request = IsReadyToPayRequest.fromJson(requestParams)
     paymentsClient!!.isReadyToPay(request)
       .addOnCompleteListener { task ->
+        val intent = Intent(ON_INIT_GOOGLE_PAY)
+
         if (task.isSuccessful) {
-          val intent = Intent(ON_INIT_GOOGLE_PAY)
           intent.putExtra("isReady", true)
-          activity?.sendBroadcast(intent)
         } else {
-          val intent = Intent(ON_INIT_GOOGLE_PAY)
           intent.putExtra("isReady", false)
-          activity?.sendBroadcast(intent)
         }
+        activity?.sendBroadcast(intent)
       }
   }
 
-  fun payWithGoogle(requestParams: String) {
+  fun payWithGoogle(requestParams: ReadableMap) {
+    val requestParamsJSON = toJsonObject(requestParams).toString()
+
     AutoResolveHelper.resolveTask(
-      paymentsClient?.loadPaymentData(PaymentDataRequest.fromJson(requestParams)),
+      paymentsClient?.loadPaymentData(PaymentDataRequest.fromJson(requestParamsJSON)),
       requireActivity(),
       LOAD_PAYMENT_DATA_REQUEST_CODE
     );

@@ -572,14 +572,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       return
     }
     val testEnv = getBooleanOrNull(params, "testEnv") ?: false
-    val readyToPayParams = getMapOrNull(params, "readyToPayParams")
 
-    val readyToPayParamsJSON = toJsonObject(readyToPayParams)
+    val readyToPayParams = getMapOrNull(params, "readyToPayParams") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide readyToPayParams"))
+      return
+    }
 
     val fragment = GooglePayFragment().also {
       val bundle = Bundle()
       bundle.putBoolean("testEnv", testEnv)
-      bundle.putString("readyToPayParams", readyToPayParamsJSON.toString())
+      bundle.putString("readyToPayParams", toJsonObject(readyToPayParams).toString())
 
       it.arguments = bundle
     }
@@ -607,8 +609,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     payWithGooglePromise = promise
     val clientSecret = getValOr(params, "clientSecret", null)
 
-    val requestParams = getMapOrNull(params, "requestParams")
-    val requestParamsJSON = toJsonObject(requestParams)
+    val requestParams = getMapOrNull(params, "requestParams") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide requestParams"))
+      return
+    }
 
     clientSecret ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
@@ -616,7 +620,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     }
 
     googlePayClientSecret = clientSecret
-    googlePayFragment?.payWithGoogle(requestParamsJSON.toString())
+    googlePayFragment?.payWithGoogle(requestParams)
   }
 
   private fun onGooglePayResult(data: Intent) {
