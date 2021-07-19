@@ -113,21 +113,27 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
               StripeIntent.Status.Processing,
               StripeIntent.Status.RequiresCapture -> {
                 val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
+
+                payWithGooglePromise?.resolve(pi)
                 confirmPromise?.resolve(pi)
                 handleCardActionPromise?.resolve(pi)
               }
               StripeIntent.Status.RequiresAction -> {
                 if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
                   val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
+                  payWithGooglePromise?.resolve(pi)
                   confirmPromise?.resolve(pi)
                   handleCardActionPromise?.resolve(pi)
                 } else {
                   (paymentIntent.lastPaymentError)?.let {
+                    payWithGooglePromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), it))
                     confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
                     handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), it))
                   } ?: run {
-                    confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
-                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), "The payment has been canceled"))
+                    val message = "The payment has been canceled"
+                    payWithGooglePromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), message))
+                    confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message))
+                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), message))
                   }
                 }
               }
@@ -142,11 +148,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
               }
               StripeIntent.Status.Canceled -> {
                 val error = paymentIntent.lastPaymentError
+                payWithGooglePromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), error))
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
                 handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
               }
               else -> {
                 val errorMessage = "unhandled error: ${paymentIntent.status}"
+                payWithGooglePromise?.resolve(createError(GooglePayErrorType.Unknown.toString(), errorMessage))
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
                 handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), errorMessage))
               }
@@ -154,6 +162,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
           }
 
           override fun onError(e: Exception) {
+            payWithGooglePromise?.resolve(createError(GooglePayErrorType.Failed.toString(), e))
             confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
             handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e))
           }
@@ -208,9 +217,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         } else {
           initGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "couldn't initialize Google Pay"))
         }
-      }
-      if (intent.action == ON_PAY_WITH_GOOGLE) {
-        payWithGooglePromise?.resolve(WritableNativeMap())
       }
     }
   }
@@ -302,7 +308,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
     this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
     this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
-    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_PAY_WITH_GOOGLE))
 
     promise.resolve(null)
   }

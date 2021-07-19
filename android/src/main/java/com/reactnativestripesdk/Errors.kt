@@ -38,7 +38,7 @@ enum class PaymentSheetErrorType {
 }
 
 enum class GooglePayErrorType {
-  Failed, Canceled
+  Failed, Canceled, Unknown
 }
 
 internal fun mapError(code: String, message: String?, localizedMessage: String?, declineCode: String?, type: String?, stripeErrorCode: String?): WritableMap {

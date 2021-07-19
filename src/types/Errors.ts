@@ -46,6 +46,7 @@ export enum PaymentSheetError {
 export enum GooglePayError {
   Failed = 'Failed',
   Canceled = 'Canceled',
+  Unknown = 'Unknown',
 }
 
 export type ErrorType =

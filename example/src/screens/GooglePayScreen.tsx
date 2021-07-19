@@ -57,7 +57,7 @@ export default function GooglePayScreen() {
           billingAddressRequired: true,
           billingAddressParameters: {
             format: 'MIN',
-            phoneNumberRequired: true,
+            phoneNumberRequired: false,
           },
         },
         tokenizationSpecification: JSON.parse(tokenizationSpecification),
@@ -74,7 +74,7 @@ export default function GooglePayScreen() {
           allowedPaymentMethods: [cardPaymentMethod],
           transactionInfo: {
             totalPriceStatus: 'FINAL',
-            totalPrice: '12.34',
+            totalPrice: '0.12',
             currencyCode: 'USD',
           },
           emailRequired: true,
@@ -84,7 +84,10 @@ export default function GooglePayScreen() {
       if (payError) {
         Alert.alert(payError.code, payError.message);
       } else if (paymentIntent) {
-        //
+        Alert.alert(
+          'Success',
+          `The payment was confirmed successfully. Intent status: ${paymentIntent.status}`
+        );
       }
     }
   };
