@@ -40,6 +40,7 @@ export default function GooglePayScreen() {
     } = await getTokenizationSpecification();
 
     if (tokenError) {
+      Alert.alert(tokenError.code, tokenError.message);
       return;
     } else if (tokenizationSpecification) {
       const cardPaymentMethod: GooglePay.CardPaymentMethod = {
