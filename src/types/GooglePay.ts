@@ -2,20 +2,22 @@ export namespace GooglePay {
   export interface CardPaymentMethod {
     type: 'CARD';
     parameters: CardParameters;
-    tokenizationSpecification?: {
-      type: string;
-      parameters: {
-        gateway: string;
-        gatewayMerchantId: string;
-      };
-    };
+    // https://developers.google.com/pay/api/android/reference/request-objects#PaymentMethodTokenizationSpecification
+    tokenizationSpecification?: TokenizationSpecification;
   }
 
   export interface PayPalPaymentMethod {
     type: 'PAYPAL';
     parameters: PayPalParameters;
-    tokenizationSpecification?: {
-      type: 'DIRECT';
+    // https://developers.google.com/pay/api/android/reference/request-objects#PaymentMethodTokenizationSpecification
+    tokenizationSpecification?: TokenizationSpecification;
+  }
+
+  export interface TokenizationSpecification {
+    type: 'PAYMENT_GATEWAY' | 'DIRECT';
+    parameters?: {
+      gateway: string;
+      gatewayMerchantId: string;
     };
   }
 
@@ -42,6 +44,7 @@ export namespace GooglePay {
     allowCreditCards?: boolean;
     assuranceDetailsRequired?: boolean;
     billingAddressRequired?: boolean;
+    // https://developers.google.com/pay/api/android/reference/request-objects#BillingAddressParameters
     billingAddressParameters?: BillingAddressParameters;
   }
 
@@ -52,26 +55,36 @@ export namespace GooglePay {
 
   export interface InitParams {
     testEnv: boolean;
-    readyToPayParams: {
-      apiVersion: number;
-      apiVersionMinor: number;
-      allowedPaymentMethods: PaymentMethod[];
-      existingPaymentMethodRequired?: boolean;
-    };
+    // https://developers.google.com/pay/api/android/reference/request-objects#IsReadyToPayRequest
+    readyToPayParams: IsReadyToPayRequest;
+  }
+
+  export interface IsReadyToPayRequest {
+    apiVersion: number;
+    apiVersionMinor: number;
+    // https://developers.google.com/pay/api/android/reference/request-objects#PaymentMethod
+    allowedPaymentMethods: PaymentMethod[];
+    existingPaymentMethodRequired?: boolean;
   }
 
   export interface PayParams {
     clientSecret: string;
-    requestParams: {
-      apiVersion: number;
-      apiVersionMinor: number;
-      allowedPaymentMethods: PaymentMethod[];
-      merchantInfo: MerchantInfo;
-      transactionInfo: TransactionInfo;
-      emailRequired?: boolean;
-      shippingAddressRequired?: boolean;
-      shippingAddressParameters?: ShippingAddressParameters;
-    };
+    // https://developers.google.com/pay/api/android/reference/request-objects#PaymentDataRequest
+    requestParams: PaymentDataRequest;
+  }
+
+  export interface PaymentDataRequest {
+    apiVersion: number;
+    apiVersionMinor: number;
+    // https://developers.google.com/pay/api/android/reference/request-objects#PaymentMethod
+    allowedPaymentMethods: PaymentMethod[];
+    merchantInfo: MerchantInfo;
+    // https://developers.google.com/pay/api/android/reference/request-objects#TransactionInfo
+    transactionInfo: TransactionInfo;
+    emailRequired?: boolean;
+    shippingAddressRequired?: boolean;
+    // https://developers.google.com/pay/api/android/reference/request-objects#ShippingAddressParameters
+    shippingAddressParameters?: ShippingAddressParameters;
   }
 
   export interface ShippingAddressParameters {
