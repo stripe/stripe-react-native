@@ -32,8 +32,11 @@ export default function GooglePayScreen() {
   };
 
   const pay = async () => {
+    // 2. Fetch payment intent client secret
     const clientSecret = await fetchPaymentIntentClientSecret();
 
+    // 3. Get tokenization specification or provide it manually
+    // see https://developers.google.com/pay/api/android/reference/request-objects#PaymentMethodTokenizationSpecification for more details
     const {
       tokenizationSpecification,
       error: tokenError,
@@ -43,6 +46,7 @@ export default function GooglePayScreen() {
       Alert.alert(tokenError.code, tokenError.message);
       return;
     } else if (tokenizationSpecification) {
+      // 4. Gather a payment method details
       const cardPaymentMethod: GooglePay.CardPaymentMethod = {
         type: 'CARD',
         parameters: {
@@ -64,6 +68,7 @@ export default function GooglePayScreen() {
         tokenizationSpecification: JSON.parse(tokenizationSpecification),
       };
 
+      // 5. Open Google Pay sheet and proceed a payment
       const { paymentIntent, error: payError } = await payWithGoogle({
         clientSecret,
         requestParams: {
@@ -94,6 +99,7 @@ export default function GooglePayScreen() {
   };
 
   useEffect(() => {
+    // 1. Initialize Google Pay
     async function initialize() {
       const { error } = await initGooglePay({
         testEnv: true,
