@@ -706,19 +706,19 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
 
 @Throws(JSONException::class)
 fun toJsonObject(readableMap: ReadableMap?): JSONObject? {
-  val objc = JSONObject()
+  val obj = JSONObject()
   val iter = readableMap!!.keySetIterator()
   while (iter.hasNextKey()) {
     val key = iter.nextKey()
     when (readableMap.getType(key)) {
-      ReadableType.Boolean -> objc.put(key, readableMap.getBoolean(key))
-      ReadableType.Number -> objc.put(key, readableMap.getDouble(key))
-      ReadableType.String -> objc.put(key, readableMap.getString(key))
-      ReadableType.Map -> objc.put(key, toJsonObject(readableMap.getMap(key)))
-      ReadableType.Array -> objc.put(key, toJsonArray(readableMap.getArray(key)))
+      ReadableType.Boolean -> obj.put(key, readableMap.getBoolean(key))
+      ReadableType.Number -> obj.put(key, readableMap.getDouble(key))
+      ReadableType.String -> obj.put(key, readableMap.getString(key))
+      ReadableType.Map -> obj.put(key, toJsonObject(readableMap.getMap(key)))
+      ReadableType.Array -> obj.put(key, toJsonArray(readableMap.getArray(key)))
     }
   }
-  return objc
+  return obj
 }
 
 @Throws(JSONException::class)
