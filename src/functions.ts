@@ -11,14 +11,18 @@ import {
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
+  GooglePayInitResult,
   HandleCardActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
   PaymentSheet,
+  PayWithGooglePayResult,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   StripeError,
+  GooglePay,
+  CreateGooglePayPaymentMethodResult,
 } from './types';
 import type { Card } from './types/Card';
 
@@ -74,10 +78,8 @@ export const retrievePaymentIntent = async (
   clientSecret: string
 ): Promise<RetrievePaymentIntentResult> => {
   try {
-    const {
-      paymentIntent,
-      error,
-    } = await NativeStripeSdk.retrievePaymentIntent(clientSecret);
+    const { paymentIntent, error } =
+      await NativeStripeSdk.retrievePaymentIntent(clientSecret);
     if (error) {
       return {
         error,
@@ -344,15 +346,73 @@ export const presentPaymentSheet = async (
   }
 };
 
-export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+export const confirmPaymentSheetPayment =
+  async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+    try {
+      const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
+      if (error) {
+        return {
+          error,
+        };
+      }
+      return {};
+    } catch (error) {
+      return {
+        error: createError(error),
+      };
+    }
+  };
+
+export const initGooglePay = async (
+  params: GooglePay.InitParams
+): Promise<GooglePayInitResult> => {
   try {
-    const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
+    const { error } = await NativeStripeSdk.initGooglePay(params);
     if (error) {
       return {
         error,
       };
     }
     return {};
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const payWithGoogle = async (
+  params: GooglePay.PayParams
+): Promise<PayWithGooglePayResult> => {
+  try {
+    const { error } = await NativeStripeSdk.payWithGoogle(params);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {};
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const createGooglePayPaymentMethod = async (
+  params: GooglePay.CreatePaymentMethodParams
+): Promise<CreateGooglePayPaymentMethodResult> => {
+  try {
+    const { error, paymentMethod } =
+      await NativeStripeSdk.createGooglePayPaymentMethod(params);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentMethod: paymentMethod!,
+    };
   } catch (error) {
     return {
       error: createError(error),

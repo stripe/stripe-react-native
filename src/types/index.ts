@@ -6,6 +6,7 @@ import type {
   ConfirmSetupIntentError,
   CreatePaymentMethodError,
   CreateTokenError,
+  GooglePayError,
   PaymentSheetError,
   RetrievePaymentIntentError,
   RetrieveSetupIntentError,
@@ -21,6 +22,7 @@ export * from './ApplePay';
 export * from './PaymentIntents';
 export * from './PaymentMethods';
 export * from './SetupIntent';
+export * from './GooglePay';
 export * from './ThreeDSecure';
 export * from './components/ApplePayButtonComponent';
 export * from './components/AuBECSDebitForm';
@@ -178,3 +180,29 @@ export interface InitStripeParams {
 export interface InitialiseParams extends InitStripeParams {
   appInfo: AppInfo;
 }
+
+export type GooglePayInitResult =
+  | {
+      error?: undefined;
+    }
+  | {
+      error: StripeError<GooglePayError>;
+    };
+
+export type PayWithGooglePayResult =
+  | {
+      error?: undefined;
+    }
+  | {
+      error: StripeError<GooglePayError>;
+    };
+
+export type CreateGooglePayPaymentMethodResult =
+  | {
+      paymentMethod: PaymentMethod;
+      error?: undefined;
+    }
+  | {
+      paymentMethod?: undefined;
+      error: StripeError<GooglePayError>;
+    };

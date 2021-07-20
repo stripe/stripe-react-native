@@ -18,6 +18,10 @@ import type {
   Card,
   ApplePayResult,
   CreateTokenResult,
+  GooglePayInitResult,
+  PayWithGooglePayResult,
+  CreateGooglePayPaymentMethodResult,
+  GooglePay,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -63,6 +67,11 @@ type NativeStripeSdkType = {
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
   createToken(params: Card.CreateTokenParams): Promise<CreateTokenResult>;
+  initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
+  payWithGoogle(params: GooglePay.PayParams): Promise<PayWithGooglePayResult>;
+  createGooglePayPaymentMethod(
+    params: GooglePay.CreatePaymentMethodParams
+  ): Promise<CreateGooglePayPaymentMethodResult>;
 };
 
 const { StripeSdk } = NativeModules;

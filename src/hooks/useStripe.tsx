@@ -18,6 +18,10 @@ import type {
   ConfirmSetupIntent,
   CreateTokenResult,
   Card,
+  PayWithGooglePayResult,
+  GooglePayInitResult,
+  GooglePay,
+  CreateGooglePayPaymentMethodResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -38,6 +42,9 @@ import {
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
+  initGooglePay,
+  payWithGoogle,
+  createGooglePayPaymentMethod,
 } from '../functions';
 
 /**
@@ -172,13 +179,37 @@ export function useStripe() {
     []
   );
 
-  const _confirmPaymentSheetPayment = useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
-    return confirmPaymentSheetPayment();
-  }, []);
+  const _confirmPaymentSheetPayment =
+    useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+      return confirmPaymentSheetPayment();
+    }, []);
 
   const _handleURLCallback = useCallback(
     async (url: string): Promise<boolean> => {
       return handleURLCallback(url);
+    },
+    []
+  );
+
+  const _initGooglePay = useCallback(
+    async (params: GooglePay.InitParams): Promise<GooglePayInitResult> => {
+      return initGooglePay(params);
+    },
+    []
+  );
+
+  const _payWithGoogle = useCallback(
+    async (params: GooglePay.PayParams): Promise<PayWithGooglePayResult> => {
+      return payWithGoogle(params);
+    },
+    []
+  );
+
+  const _createGooglePayPaymentMethod = useCallback(
+    async (
+      params: GooglePay.CreatePaymentMethodParams
+    ): Promise<CreateGooglePayPaymentMethodResult> => {
+      return _createGooglePayPaymentMethod(params);
     },
     []
   );
@@ -200,5 +231,8 @@ export function useStripe() {
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
+    initGooglePay: _initGooglePay,
+    payWithGoogle: _payWithGoogle,
+    createGooglePayPaymentMethod: createGooglePayPaymentMethod,
   };
 }
