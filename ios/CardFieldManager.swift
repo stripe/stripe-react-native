@@ -2,14 +2,10 @@ import Foundation
 
 @objc(CardFieldManager)
 class CardFieldManager: RCTViewManager {
-    private var cardField: CardFieldView?
-    
-    public func getCardFieldReference() -> Any? {
-        return cardField
-    }
-    
     override func view() -> UIView! {
-        cardField = CardFieldView()
+        let cardField = CardFieldView()
+        let stripeSdk = bridge.module(forName: "StripeSdk") as? StripeSdk
+        stripeSdk?.cardFieldView = cardField;
         return cardField
     }
     

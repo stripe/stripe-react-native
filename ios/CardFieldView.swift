@@ -12,7 +12,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     private var cardField = STPPaymentCardTextField()
     
     public var cardParams: STPPaymentMethodCardParams? = nil
-        
+    
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
@@ -104,7 +104,6 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     func clear() {
         cardField.clear()
     }
-
     
     func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": NSNull()])
