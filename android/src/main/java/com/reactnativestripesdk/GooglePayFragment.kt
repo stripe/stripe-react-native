@@ -38,8 +38,8 @@ class GooglePayFragment : Fragment() {
         fragment = this,
         config = GooglePayPaymentMethodLauncher.Config(
           environment = if (testEnv == true) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
-          merchantCountryCode = "FR",
-          merchantName = "Widget Store"
+          merchantCountryCode = countryCode,
+          merchantName = merchantName
         ),
         readyCallback = ::onGooglePayReady,
         resultCallback = ::onGooglePayResult
