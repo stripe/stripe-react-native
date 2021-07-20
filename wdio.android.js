@@ -54,11 +54,12 @@ exports.config = {
       platformVersion: '',
       platformName: 'Android',
       deviceName: '',
-      app: 'example/android/app/build/outputs/apk/release/app-release.apk',
+      app: 'example/android/app/build/outputs/apk/debug/app-debug.apk',
       automationName: 'UiAutomator2',
       chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
       noReset: true,
+      enableWebviewDetailsCollection: true,
     },
   ],
 };

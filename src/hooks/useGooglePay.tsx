@@ -12,14 +12,12 @@ export function useGooglePay() {
     getTokenizationSpecification,
   } = useStripe();
   const [loading, setLoading] = useState(false);
-  const [isGooglePayReady, setGooglePayReady] = useState(false);
 
   const _initGooglePay = useCallback(
     async (params: GooglePay.InitParams) => {
       setLoading(true);
 
       const result = await initGooglePay(params);
-      setGooglePayReady(!result.error);
       setLoading(false);
 
       return result;
@@ -41,7 +39,6 @@ export function useGooglePay() {
 
   return {
     loading,
-    isGooglePayReady,
     initGooglePay: _initGooglePay,
     payWithGoogle: _payWithGoogle,
     getTokenizationSpecification,
