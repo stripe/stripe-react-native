@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
+import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
@@ -29,48 +30,46 @@ class GooglePayFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     val testEnv = arguments?.getBoolean("testEnv")
-    val createPaymentMethod = arguments?.getBoolean("createPaymentMethod")
     val merchantName = arguments?.getString("merchantName").orEmpty()
     val countryCode = arguments?.getString("countryCode").orEmpty()
-    val isRequired = arguments?.getBoolean("isRequired") ?: false
-    val formatString = arguments?.getString("format").orEmpty()
-    val isPhoneNumberRequired = arguments?.getBoolean("isPhoneNumberRequired") ?: false
     val isEmailRequired = arguments?.getBoolean("isEmailRequired") ?: false
     val existingPaymentMethodRequired = arguments?.getBoolean("existingPaymentMethodRequired") ?: false
 
-    if (createPaymentMethod == true) {
-      val billingAddressConfig = mapToGooglePayPaymentMethodLauncherBillingAddressConfig(formatString, isRequired, isPhoneNumberRequired)
+    val billingAddressConfigBundle = arguments?.getBundle("billingAddressConfig") ?: Bundle()
+    val isRequired = billingAddressConfigBundle.getBoolean("isRequired")
+    val formatString = billingAddressConfigBundle.getString("format").orEmpty()
+    val isPhoneNumberRequired = billingAddressConfigBundle.getBoolean("isPhoneNumberRequired")
 
-      googlePayMethodLauncher = GooglePayPaymentMethodLauncher(
-        fragment = this,
-        config = GooglePayPaymentMethodLauncher.Config(
-          environment = if (testEnv == true) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
-          merchantCountryCode = countryCode,
-          merchantName = merchantName,
-          billingAddressConfig = billingAddressConfig,
-          isEmailRequired = isEmailRequired,
-          existingPaymentMethodRequired = existingPaymentMethodRequired
-        ),
-        readyCallback = ::onGooglePayReady,
-        resultCallback = ::onGooglePayResult
-      )
-    } else {
-      val billingAddressConfig = mapToGooglePayLauncherBillingAddressConfig(formatString, isRequired, isPhoneNumberRequired)
+    val billingAddressConfig = mapToGooglePayPaymentMethodLauncherBillingAddressConfig(formatString, isRequired, isPhoneNumberRequired)
 
-      googlePayLauncher = GooglePayLauncher(
-        fragment = this,
-        config = GooglePayLauncher.Config(
-          environment = if (testEnv == true) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
-          merchantCountryCode = countryCode,
-          merchantName = merchantName,
-          billingAddressConfig = billingAddressConfig,
-          isEmailRequired = isEmailRequired,
-          existingPaymentMethodRequired = existingPaymentMethodRequired
-        ),
-        readyCallback = ::onGooglePayReady,
-        resultCallback = ::onGooglePayResult
-      )
-    }
+    googlePayMethodLauncher = GooglePayPaymentMethodLauncher(
+      fragment = this,
+      config = GooglePayPaymentMethodLauncher.Config(
+        environment = if (testEnv == true) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
+        merchantCountryCode = countryCode,
+        merchantName = merchantName,
+        billingAddressConfig = billingAddressConfig,
+        isEmailRequired = isEmailRequired,
+        existingPaymentMethodRequired = existingPaymentMethodRequired
+      ),
+      readyCallback = ::onGooglePayReady,
+      resultCallback = ::onGooglePayResult
+    )
+
+    val paymentMethodBillingAddressConfig = mapToGooglePayLauncherBillingAddressConfig(formatString, isRequired, isPhoneNumberRequired)
+    googlePayLauncher = GooglePayLauncher(
+      fragment = this,
+      config = GooglePayLauncher.Config(
+        environment = if (testEnv == true) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
+        merchantCountryCode = countryCode,
+        merchantName = merchantName,
+        billingAddressConfig = paymentMethodBillingAddressConfig,
+        isEmailRequired = isEmailRequired,
+        existingPaymentMethodRequired = existingPaymentMethodRequired
+      ),
+      readyCallback = ::onGooglePayReady,
+      resultCallback = ::onGooglePayResult
+    )
 
     val intent = Intent(ON_GOOGLE_PAY_FRAGMENT_CREATED)
     activity?.sendBroadcast(intent)
@@ -79,7 +78,7 @@ class GooglePayFragment : Fragment() {
   fun presentForPaymentIntent(clientSecret: String) {
     if (googlePayLauncher == null) {
       val intent = Intent(ON_GOOGLE_PAY_RESULT)
-      intent.putExtra("error", "GooglePayLauncher is not initialized. Please make sure that createPaymentMethod option is set to false")
+      intent.putExtra("error", "GooglePayLauncher is not initialized.")
       activity?.sendBroadcast(intent)
       return
     }
@@ -87,23 +86,24 @@ class GooglePayFragment : Fragment() {
   }
 
   fun presentForSetupIntent(clientSecret: String, currencyCode: String) {
-    if (googlePayLauncher == null) {
+    val launcher = googlePayLauncher ?: run {
       val intent = Intent(ON_GOOGLE_PAY_RESULT)
-      intent.putExtra("error", "GooglePayLauncher is not initialized. Please make sure that createPaymentMethod option is set to false")
+      intent.putExtra("error", "GooglePayLauncher is not initialized.")
       activity?.sendBroadcast(intent)
       return
     }
-    googlePayLauncher?.presentForSetupIntent(clientSecret, currencyCode)
+    launcher.presentForSetupIntent(clientSecret, currencyCode)
   }
 
   fun createPaymentMethod(currencyCode: String, amount: Int) {
-    if (googlePayMethodLauncher == null) {
+    val launcher = googlePayMethodLauncher ?: run {
       val intent = Intent(ON_GOOGLE_PAYMENT_METHOD_RESULT)
-      intent.putExtra("error", "GooglePayPaymentMethodLauncher is not initialized. Please make sure that createPaymentMethod option is set to true")
+      intent.putExtra("error", "GooglePayPaymentMethodLauncher is not initialized.")
       activity?.sendBroadcast(intent)
       return
     }
-    googlePayMethodLauncher?.present(
+
+    launcher.present(
       currencyCode = currencyCode,
       amount = amount
     )

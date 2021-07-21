@@ -7,8 +7,9 @@ import {
   ViewStyle,
 } from 'react-native';
 
-const ApplePayButtonNative =
-  requireNativeComponent<ApplePayButtonComponent.NativeProps>('ApplePayButton');
+const ApplePayButtonNative = requireNativeComponent<ApplePayButtonComponent.NativeProps>(
+  'ApplePayButton'
+);
 
 /**
  *  Apple Pay Button Component Props

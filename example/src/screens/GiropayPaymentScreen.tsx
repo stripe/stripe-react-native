@@ -30,8 +30,10 @@ export default function GiropayPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    const { clientSecret, error: clientSecretError } =
-      await fetchPaymentIntentClientSecret();
+    const {
+      clientSecret,
+      error: clientSecretError,
+    } = await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);

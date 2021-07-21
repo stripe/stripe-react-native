@@ -6,8 +6,11 @@ import { useStripe } from './useStripe';
  * useGooglePay hook
  */
 export function useGooglePay() {
-  const { initGooglePay, presentGooglePay, createGooglePayPaymentMethod } =
-    useStripe();
+  const {
+    initGooglePay,
+    presentGooglePay,
+    createGooglePayPaymentMethod,
+  } = useStripe();
   const [loading, setLoading] = useState(false);
 
   const _initGooglePay = useCallback(

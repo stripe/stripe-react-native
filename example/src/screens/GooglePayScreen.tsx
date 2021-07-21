@@ -75,7 +75,6 @@ export default function GooglePayScreen() {
     async function initialize() {
       const { error } = await initGooglePay({
         testEnv: true,
-        createPaymentMethod: true,
         merchantName: 'Test',
         countryCode: 'US',
         billingAddressConfig: {

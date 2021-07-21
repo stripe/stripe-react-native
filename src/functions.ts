@@ -78,8 +78,10 @@ export const retrievePaymentIntent = async (
   clientSecret: string
 ): Promise<RetrievePaymentIntentResult> => {
   try {
-    const { paymentIntent, error } =
-      await NativeStripeSdk.retrievePaymentIntent(clientSecret);
+    const {
+      paymentIntent,
+      error,
+    } = await NativeStripeSdk.retrievePaymentIntent(clientSecret);
     if (error) {
       return {
         error,
@@ -346,22 +348,21 @@ export const presentPaymentSheet = async (
   }
 };
 
-export const confirmPaymentSheetPayment =
-  async (): Promise<ConfirmPaymentSheetPaymentResult> => {
-    try {
-      const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
-      if (error) {
-        return {
-          error,
-        };
-      }
-      return {};
-    } catch (error) {
+export const confirmPaymentSheetPayment = async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+  try {
+    const { error } = await NativeStripeSdk.confirmPaymentSheetPayment();
+    if (error) {
       return {
-        error: createError(error),
+        error,
       };
     }
-  };
+    return {};
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
 
 export const initGooglePay = async (
   params: GooglePay.InitParams
@@ -403,8 +404,10 @@ export const createGooglePayPaymentMethod = async (
   params: GooglePay.CreatePaymentMethodParams
 ): Promise<CreateGooglePayPaymentMethodResult> => {
   try {
-    const { error, paymentMethod } =
-      await NativeStripeSdk.createGooglePayPaymentMethod(params);
+    const {
+      error,
+      paymentMethod,
+    } = await NativeStripeSdk.createGooglePayPaymentMethod(params);
     if (error) {
       return {
         error,

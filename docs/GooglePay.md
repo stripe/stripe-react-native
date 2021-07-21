@@ -48,8 +48,6 @@ Next, initialize a Google Pay by calling `initGooglePay` method. Call this on in
 `initGooglePay` accepts several configuration options that can be customized for your needs.
 See [SDK Reference](https://stripe.dev/stripe-react-native/api-reference/index.html) for more details.
 
-In order to create a PaymentMethod instead of confirming a payment you can pass `createPaymentMethod: true`.
-
 ```tsx
 import { useGooglePay } from 'stripe-react-native';
 
@@ -61,7 +59,6 @@ function CheckoutScreen() {
     async function initialize() {
       const { error } = await initGooglePay({
         testEnv: true,
-        createPaymentMethod: false, // <-- indicates whether you want to create a paymentMethod or confirm a payment
         merchantName: 'Widget Store'
         countryCode: 'US',
         billingAddressConfig: {
@@ -154,22 +151,10 @@ const pay = async () => {
 ## Creating a PaymentMethod
 
 If you confirm your payment on your server, you can use GooglePay to only collect a `PaymentMethod` instead of confirm payment.
-In order to do that, set `createPaymentMethod` to `true` while initializing GooglePay and then call a `createGooglePayPaymentMethod` method.
+In order to do that call a `createGooglePayPaymentMethod` method.
 
 ```tsx
 const { initGooglePay, createGooglePayPaymentMethod } = useGooglePay();
-
-useEffect(() => {
-  async function initialize() {
-    const { error } = await initGooglePay({
-      // the rest of params...
-      createPaymentMethod: true,
-    });
-
-    // ...
-  }
-  initialize();
-}, [initGooglePay]);
 
 const createPaymentMethod = async () => {
   const { error, paymentMethod } = await createGooglePayPaymentMethod({

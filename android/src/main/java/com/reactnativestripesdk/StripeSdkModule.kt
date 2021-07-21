@@ -307,30 +307,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       promise.resolve(createError("Failed", "Activity doesn't exist"))
       return
     }
-    val customFlow = getBooleanOrNull(params, "customFlow") ?: false
-    val customerId = getValOr(params, "customerId")
-    val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
-    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
-    val setupIntentClientSecret = getValOr(params, "setupIntentClientSecret")
-    val merchantDisplayName = getValOr(params, "merchantDisplayName")
-    val countryCode = getValOr(params, "merchantCountryCode")
-    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
-    val googlePay = getBooleanOrNull(params, "googlePay") ?: false
 
     this.initPaymentSheetPromise = promise
 
     val fragment = PaymentSheetFragment().also {
-      val bundle = Bundle()
-      bundle.putString("customerId", customerId)
-      bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
-      bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
-      bundle.putString("setupIntentClientSecret", setupIntentClientSecret)
-      bundle.putString("merchantDisplayName", merchantDisplayName)
-      bundle.putString("countryCode", countryCode)
-      bundle.putBoolean("customFlow", customFlow)
-      bundle.putBoolean("testEnv", testEnv)
-      bundle.putBoolean("googlePay", googlePay)
-
+      val bundle = toBundleObject(params)
       it.arguments = bundle
     }
     activity.supportFragmentManager.beginTransaction()
@@ -552,36 +533,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
   @ReactMethod
   fun initGooglePay(params: ReadableMap, promise: Promise) {
-    val activity = currentActivity as AppCompatActivity?
-
-    if (activity == null) {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "Activity doesn't exist"))
-      return
-    }
-    val testEnv = getBooleanOrFalse(params, "testEnv")
-    val countryCode = getValOr(params, "countryCode", null)
-    val merchantName = getValOr(params, "merchantName", null)
-    val createPaymentMethod = getBooleanOrFalse(params, "createPaymentMethod")
-    val billingAddressConfig = getMapOrNull(params, "billingAddressConfig") ?: WritableNativeMap()
-    val isRequired = getBooleanOrFalse(billingAddressConfig, "isRequired")
-    val format = getValOr(billingAddressConfig, "format", null)
-    val isPhoneNumberRequired = getBooleanOrFalse(billingAddressConfig, "isPhoneNumberRequired")
-    val isEmailRequired = getBooleanOrFalse(params, "isEmailRequired")
-    val existingPaymentMethodRequired = getBooleanOrNull(params, "existingPaymentMethodRequired") ?: true
-
+    val activity = currentActivity as AppCompatActivity
     val fragment = GooglePayFragment().also {
-      val bundle = Bundle()
-      bundle.putBoolean("testEnv", testEnv)
-      bundle.putBoolean("createPaymentMethod", createPaymentMethod)
-      bundle.putString("countryCode", countryCode)
-      bundle.putString("merchantName", merchantName)
-
-      bundle.putBoolean("isRequired", isRequired)
-      bundle.putString("format", format)
-      bundle.putBoolean("isPhoneNumberRequired", isPhoneNumberRequired)
-      bundle.putBoolean("isEmailRequired", isEmailRequired)
-      bundle.putBoolean("existingPaymentMethodRequired", existingPaymentMethodRequired)
-
+      val bundle = toBundleObject(params)
       it.arguments = bundle
     }
 

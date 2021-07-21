@@ -11,8 +11,10 @@ import Button from '../components/Button';
 import { API_URL } from '../Config';
 
 export default function AuBECSDebitPaymentScreen() {
-  const [formDetails, setFormDetails] =
-    useState<AuBECSDebitFormComponent.FormDetails>();
+  const [
+    formDetails,
+    setFormDetails,
+  ] = useState<AuBECSDebitFormComponent.FormDetails>();
   const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {

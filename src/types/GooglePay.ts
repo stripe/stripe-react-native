@@ -33,10 +33,6 @@ export namespace GooglePay {
     merchantName: string;
     countryCode: string;
     /**
-     * Set to true if you only want to create a paymentMethod rather than processing a payment.
-     */
-    createPaymentMethod?: boolean;
-    /**
      * Billing address collection configuration.
      */
     billingAddressConfig?: BillingAddressConfig;

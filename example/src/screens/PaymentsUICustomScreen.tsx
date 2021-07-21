@@ -7,8 +7,11 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function PaymentsUICustomScreen() {
-  const { initPaymentSheet, presentPaymentSheet, confirmPaymentSheetPayment } =
-    useStripe();
+  const {
+    initPaymentSheet,
+    presentPaymentSheet,
+    confirmPaymentSheetPayment,
+  } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<{
@@ -36,8 +39,11 @@ export default function PaymentsUICustomScreen() {
     setLoading(true);
 
     try {
-      const { paymentIntent, ephemeralKey, customer } =
-        await fetchPaymentSheetParams();
+      const {
+        paymentIntent,
+        ephemeralKey,
+        customer,
+      } = await fetchPaymentSheetParams();
 
       const { error, paymentOption } = await initPaymentSheet({
         customerId: customer,
