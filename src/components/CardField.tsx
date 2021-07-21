@@ -48,6 +48,14 @@ const unregisterInput = (ref: React.MutableRefObject<any>) => {
   }
 };
 
+const currentlyFocusedInput = () => {
+  if ('currentlyFocusedInput' in TextInputState) {
+    TextInputState.currentlyFocusedInput();
+  } else {
+    console.warn(unsupportedMethodMessage('currentlyFocusedInput'));
+  }
+};
+
 /**
  *  Card Field Component Props
  */
@@ -180,7 +188,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
         registerInput(inputRefValue);
         return () => {
           unregisterInput(inputRefValue);
-          if (TextInputState.currentlyFocusedInput() === inputRefValue) {
+          if (currentlyFocusedInput() === inputRefValue) {
             inputRefValue.blur();
           }
         };
