@@ -3,6 +3,7 @@ import Stripe
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
+    public var cardFieldView: CardFieldView? = nil
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
@@ -213,9 +214,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-        
-        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
 
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
@@ -453,9 +451,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
-        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
-        
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
         
@@ -497,9 +492,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
             }
         }
-        
-        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
         
         guard let cardParams = cardFieldView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
@@ -564,9 +556,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     ) -> Void {
         self.confirmPaymentResolver = resolve
         self.confirmPaymentClientSecret = paymentIntentClientSecret
-        
-        let cardFieldUIManager = bridge.module(forName: "CardFieldManager") as? CardFieldManager
-        let cardFieldView = cardFieldUIManager?.getCardFieldReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
                 
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)

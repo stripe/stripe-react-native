@@ -13,8 +13,6 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     public var cardParams: STPPaymentMethodCardParams? = nil
     
-    public var delegate: CardFieldDelegate?
-    
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
@@ -95,13 +93,6 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         self.addSubview(cardField)
     }
     
-    convenience init(delegate: CardFieldDelegate) {
-        self.init(frame: CGRect.zero)
-        self.delegate = delegate
-        
-        self.delegate?.onDidCreateViewInstance(id: CARD_FIELD_INSTANCE_ID, reference: self)
-    }
-    
     func focus() {
         cardField.becomeFirstResponder()
     }
@@ -112,10 +103,6 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     
     func clear() {
         cardField.clear()
-    }
-    
-    override func removeFromSuperview() {
-        self.delegate?.onDidDestroyViewInstance(id: CARD_FIELD_INSTANCE_ID)
     }
     
     func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
