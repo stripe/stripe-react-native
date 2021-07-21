@@ -59,6 +59,7 @@ exports.config = {
       chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
       noReset: true,
+      enableWebviewDetailsCollection: true,
     },
   ],
 };
