@@ -7,9 +7,10 @@ import {
 } from 'react-native';
 import type { AuBECSDebitFormComponent } from '../types';
 
-const AuBECSDebitFormNative = requireNativeComponent<AuBECSDebitFormComponent.NativeProps>(
-  'AuBECSDebitForm'
-);
+const AuBECSDebitFormNative =
+  requireNativeComponent<AuBECSDebitFormComponent.NativeProps>(
+    'AuBECSDebitForm'
+  );
 
 /**
  *  BECS Debit Form Component Props

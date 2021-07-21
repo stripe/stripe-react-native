@@ -35,33 +35,30 @@ export default function ApplePayScreen() {
     { label: 'Total', amount: '12.75', type: 'pending' }, // Last item in array needs to reflect the total.
   ]);
 
-  const {
-    presentApplePay,
-    confirmApplePayPayment,
-    isApplePaySupported,
-  } = useApplePay({
-    onShippingMethodSelected: (shippingMethod, handler) => {
-      console.log('shippingMethod', shippingMethod);
-      // Update cart summary based on selected shipping method.
-      const updatedCart = [
-        cart[0],
-        { label: shippingMethod.label, amount: shippingMethod.amount },
-        {
-          label: 'Total',
-          amount: (
-            parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
-          ).toFixed(2),
-        },
-      ];
-      setCart(updatedCart);
-      handler(updatedCart);
-    },
-    onShippingContactSelected: (shippingContact, handler) => {
-      console.log('shippingContact', shippingContact);
-      // Make modifications to cart here e.g. adding tax.
-      handler(cart);
-    },
-  });
+  const { presentApplePay, confirmApplePayPayment, isApplePaySupported } =
+    useApplePay({
+      onShippingMethodSelected: (shippingMethod, handler) => {
+        console.log('shippingMethod', shippingMethod);
+        // Update cart summary based on selected shipping method.
+        const updatedCart = [
+          cart[0],
+          { label: shippingMethod.label, amount: shippingMethod.amount },
+          {
+            label: 'Total',
+            amount: (
+              parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
+            ).toFixed(2),
+          },
+        ];
+        setCart(updatedCart);
+        handler(updatedCart);
+      },
+      onShippingContactSelected: (shippingContact, handler) => {
+        console.log('shippingContact', shippingContact);
+        // Make modifications to cart here e.g. adding tax.
+        handler(cart);
+      },
+    });
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {

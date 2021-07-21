@@ -46,11 +46,8 @@ export default function PaymentsUICompleteScreen() {
   };
 
   const initialisePaymentSheet = async () => {
-    const {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-    } = await fetchPaymentSheetParams();
+    const { paymentIntent, ephemeralKey, customer } =
+      await fetchPaymentSheetParams();
 
     const { error } = await initPaymentSheet({
       customerId: customer,

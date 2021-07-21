@@ -20,20 +20,16 @@ export default function SetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
-  const [
-    retrievedPaymentIntent,
-    setRetrievedPaymentIntent,
-  ] = useState<PaymentIntent | null>(null);
+  const [retrievedPaymentIntent, setRetrievedPaymentIntent] =
+    useState<PaymentIntent | null>(null);
   const [setupIntent, setSetupIntent] = useState<SetupIntent | null>(null);
 
   // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
-  const {
-    confirmPayment,
-    loading: confirmPaymentLoading,
-  } = useConfirmPayment();
+  const { confirmPayment, loading: confirmPaymentLoading } =
+    useConfirmPayment();
 
   const { retrievePaymentIntent } = useStripe();
 

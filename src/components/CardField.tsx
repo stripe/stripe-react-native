@@ -17,9 +17,8 @@ import {
 } from 'react-native';
 const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
-const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
-  'CardField'
-);
+const CardFieldNative =
+  requireNativeComponent<CardFieldInput.NativeProps>('CardField');
 
 /**
  *  Card Field Component Props

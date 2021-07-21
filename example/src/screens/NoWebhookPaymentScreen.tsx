@@ -35,13 +35,10 @@ export default function NoWebhookPaymentScreen() {
 
   const confirmIntent = async (paymentIntentId: string) => {
     // Call API to confirm intent
-    const {
-      clientSecret,
-      error,
-      requiresAction,
-    } = await callNoWebhookPayEndpoint({
-      paymentIntentId,
-    });
+    const { clientSecret, error, requiresAction } =
+      await callNoWebhookPayEndpoint({
+        paymentIntentId,
+      });
 
     if (error) {
       // Error during confirming Intent
