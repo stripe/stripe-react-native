@@ -21,6 +21,33 @@ const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
   'CardField'
 );
 
+const unsupportedMethodMessage = (field: string) =>
+  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x at least`;
+
+const focusInput = (ref: React.MutableRefObject<any>) => {
+  if ('focusInput' in TextInputState) {
+    TextInputState.focusInput(ref);
+  } else {
+    console.warn(unsupportedMethodMessage('focusInput'));
+  }
+};
+
+const registerInput = (ref: React.MutableRefObject<any>) => {
+  if ('registerInput' in TextInputState) {
+    TextInputState.registerInput(ref);
+  } else {
+    console.warn(unsupportedMethodMessage('registerInput'));
+  }
+};
+
+const unregisterInput = (ref: React.MutableRefObject<any>) => {
+  if ('unregisterInput' in TextInputState) {
+    TextInputState.unregisterInput(ref);
+  } else {
+    console.warn(unsupportedMethodMessage('unregisterInput'));
+  }
+};
+
 /**
  *  Card Field Component Props
  */
@@ -108,7 +135,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       (event) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
-          TextInputState.focusInput(inputRef.current);
+          focusInput(inputRef.current);
           onFocus?.(focusedField);
         } else {
           onBlur?.();
@@ -150,9 +177,9 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
       if (inputRefValue !== null) {
-        TextInputState.registerInput(inputRefValue);
+        registerInput(inputRefValue);
         return () => {
-          TextInputState.unregisterInput(inputRefValue);
+          unregisterInput(inputRefValue);
           if (TextInputState.currentlyFocusedInput() === inputRefValue) {
             inputRefValue.blur();
           }
