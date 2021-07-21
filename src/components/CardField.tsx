@@ -22,7 +22,7 @@ const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
 );
 
 const unsupportedMethodMessage = (field: string) =>
-  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x at least`;
+  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x or higher`;
 
 const focusInput = (ref: React.MutableRefObject<any>) => {
   if ('focusInput' in TextInputState) {
