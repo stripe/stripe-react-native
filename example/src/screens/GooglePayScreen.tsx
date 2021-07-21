@@ -8,7 +8,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 export default function GooglePayScreen() {
   const {
     initGooglePay,
-    payWithGoogle,
+    presentGooglePay,
     loading,
     createGooglePayPaymentMethod,
   } = useGooglePay();
@@ -36,8 +36,9 @@ export default function GooglePayScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     // 3. Open Google Pay sheet and proceed a payment
-    const { error } = await payWithGoogle({
+    const { error } = await presentGooglePay({
       clientSecret,
+      forSetupIntent: false,
     });
 
     if (error) {
@@ -48,6 +49,9 @@ export default function GooglePayScreen() {
     setInitialized(false);
   };
 
+  /*
+    As an alternative you can only create a paymentMethod instead of confirming the payment.
+  */
   const createPaymentMethod = async () => {
     const { error, paymentMethod } = await createGooglePayPaymentMethod({
       amount: 12,
@@ -71,9 +75,16 @@ export default function GooglePayScreen() {
     async function initialize() {
       const { error } = await initGooglePay({
         testEnv: true,
+        createPaymentMethod: true,
         merchantName: 'Test',
         countryCode: 'US',
-        createPaymentMethod: true,
+        billingAddressConfig: {
+          format: 'FULL',
+          isPhoneNumberRequired: true,
+          isRequired: false,
+        },
+        existingPaymentMethodRequired: false,
+        isEmailRequired: true,
       });
 
       if (error) {

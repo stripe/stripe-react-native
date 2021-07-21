@@ -68,7 +68,9 @@ type NativeStripeSdkType = {
   handleURLCallback(url: string): Promise<boolean>;
   createToken(params: Card.CreateTokenParams): Promise<CreateTokenResult>;
   initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
-  payWithGoogle(params: GooglePay.PayParams): Promise<PayWithGooglePayResult>;
+  presentGooglePay(
+    params: GooglePay.PresentGooglePayParams
+  ): Promise<PayWithGooglePayResult>;
   createGooglePayPaymentMethod(
     params: GooglePay.CreatePaymentMethodParams
   ): Promise<CreateGooglePayPaymentMethodResult>;

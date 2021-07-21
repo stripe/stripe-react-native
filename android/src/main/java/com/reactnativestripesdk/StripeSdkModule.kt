@@ -558,10 +558,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "Activity doesn't exist"))
       return
     }
-    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
+    val testEnv = getBooleanOrFalse(params, "testEnv")
     val countryCode = getValOr(params, "countryCode", null)
     val merchantName = getValOr(params, "merchantName", null)
     val createPaymentMethod = getBooleanOrFalse(params, "createPaymentMethod")
+    val billingAddressConfig = getMapOrNull(params, "billingAddressConfig") ?: WritableNativeMap()
+    val isRequired = getBooleanOrFalse(billingAddressConfig, "isRequired")
+    val format = getValOr(billingAddressConfig, "format", null)
+    val isPhoneNumberRequired = getBooleanOrFalse(billingAddressConfig, "isPhoneNumberRequired")
+    val isEmailRequired = getBooleanOrFalse(params, "isEmailRequired")
+    val existingPaymentMethodRequired = getBooleanOrNull(params, "existingPaymentMethodRequired") ?: true
 
     val fragment = GooglePayFragment().also {
       val bundle = Bundle()
@@ -569,6 +575,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       bundle.putBoolean("createPaymentMethod", createPaymentMethod)
       bundle.putString("countryCode", countryCode)
       bundle.putString("merchantName", merchantName)
+
+      bundle.putBoolean("isRequired", isRequired)
+      bundle.putString("format", format)
+      bundle.putBoolean("isPhoneNumberRequired", isPhoneNumberRequired)
+      bundle.putBoolean("isEmailRequired", isEmailRequired)
+      bundle.putBoolean("existingPaymentMethodRequired", existingPaymentMethodRequired)
 
       it.arguments = bundle
     }
@@ -581,13 +593,21 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   }
 
   @ReactMethod
-  fun payWithGoogle(params: ReadableMap, promise: Promise) {
+  fun presentGooglePay(params: ReadableMap, promise: Promise) {
     val clientSecret = getValOr(params, "clientSecret") ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
       return
     }
     presentGooglePayPromise = promise
-    googlePayFragment?.payWithGoogle(clientSecret)
+    if (getBooleanOrFalse(params, "forSetupIntent")) {
+      val currencyCode = getValOr(params, "currencyCode") ?: run {
+        promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
+        return
+      }
+      googlePayFragment?.presentForSetupIntent(clientSecret, currencyCode)
+    } else {
+      googlePayFragment?.presentForPaymentIntent(clientSecret)
+    }
   }
 
   @ReactMethod

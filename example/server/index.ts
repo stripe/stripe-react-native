@@ -117,9 +117,8 @@ app.post(
     };
 
     try {
-      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-        params
-      );
+      const paymentIntent: Stripe.PaymentIntent =
+        await stripe.paymentIntents.create(params);
       // Send publishable key and PaymentIntent client_secret to client.
       res.send({
         clientSecret: paymentIntent.client_secret,
@@ -188,9 +187,8 @@ app.post(
       customer: customers.data[0].id,
     };
 
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-      params
-    );
+    const paymentIntent: Stripe.PaymentIntent =
+      await stripe.paymentIntents.create(params);
 
     // Send publishable key and PaymentIntent client_secret to client.
     res.send({

@@ -381,11 +381,11 @@ export const initGooglePay = async (
   }
 };
 
-export const payWithGoogle = async (
-  params: GooglePay.PayParams
+export const presentGooglePay = async (
+  params: GooglePay.SetupIntentParams
 ): Promise<PayWithGooglePayResult> => {
   try {
-    const { error } = await NativeStripeSdk.payWithGoogle(params);
+    const { error } = await NativeStripeSdk.presentGooglePay(params);
     if (error) {
       return {
         error,

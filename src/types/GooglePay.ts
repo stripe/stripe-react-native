@@ -1,5 +1,30 @@
 export namespace GooglePay {
-  export interface PayParams {
+  export type PresentGooglePayParams = PresentGooglePayType & {
+    clientSecret: string;
+  };
+
+  export type PresentGooglePayType =
+    | {
+        /*
+         * Present Google Pay to collect customer payment details and use it to confirm the
+         * [SetupIntent] represented by [clientSecret].
+         */
+        forSetupIntent?: true;
+        /*
+         * The Google Pay API requires a [currencyCode](https://developers.google.com/pay/api/android/reference/request-objects#TransactionInfo).
+         * [currencyCode] is required even though the SetupIntent API does not require it.
+         */
+        currencyCode: string;
+      }
+    | {
+        /*
+         * Present Google Pay to collect customer payment details and use it to confirm the
+         * [PaymentIntent] represented by [clientSecret].
+         */
+        forSetupIntent?: false;
+      };
+
+  export interface SetupIntentParams {
     clientSecret: string;
   }
 
@@ -7,7 +32,39 @@ export namespace GooglePay {
     testEnv: boolean;
     merchantName: string;
     countryCode: string;
+    /**
+     * Set to true if you only want to create a paymentMethod rather than processing a payment.
+     */
     createPaymentMethod?: boolean;
+    /**
+     * Billing address collection configuration.
+     */
+    billingAddressConfig?: BillingAddressConfig;
+    /**
+     * Flag to indicate whether Google Pay collect the customer's email address.
+     *
+     * Default to `false`.
+     */
+    isEmailRequired?: boolean;
+    /**
+     * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
+     * has existing payment methods.
+     *
+     * Default to `true`.
+     */
+    existingPaymentMethodRequired?: boolean;
+  }
+
+  export interface BillingAddressConfig {
+    isRequired?: boolean;
+    /**
+     * Billing address format required to complete the transaction.
+     */
+    format?: 'FULL' | 'MIN';
+    /**
+     * Set to true if a phone number is required to process the transaction.
+     */
+    isPhoneNumberRequired?: boolean;
   }
 
   export interface CreatePaymentMethodParams {
