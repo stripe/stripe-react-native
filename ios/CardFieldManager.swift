@@ -9,7 +9,6 @@ class CardFieldManager: RCTViewManager {
         return cardField
     }
     
-    
     @objc func focus(_ reactTag: NSNumber) {
         self.bridge!.uiManager.addUIBlock { (_: RCTUIManager?, viewRegistry: [NSNumber: UIView]?) in
             let view: CardFieldView = (viewRegistry![reactTag] as? CardFieldView)!
