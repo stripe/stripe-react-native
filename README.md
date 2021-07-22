@@ -29,7 +29,6 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 If you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. For all other scenarios you can use this SDK to process payments via Stripe.
 
-
 ## Installation
 
 ```sh
@@ -42,7 +41,13 @@ npm install @stripe/stripe-react-native
 
 > [Find Expo's full documentation here](https://docs.expo.io/versions/latest/sdk/stripe/).
 
-If you're using Expo, add:
+Each Expo SDK version requires a specific `stripe-react-native` version. See the [CHANGELOG](./CHANGELOG.md) for a mapping of versions. To install the correct version for your Expo SDK version run:
+
+```sh
+expo install @stripe/stripe-react-native
+```
+
+Next, add:
 
 ```json
 {
