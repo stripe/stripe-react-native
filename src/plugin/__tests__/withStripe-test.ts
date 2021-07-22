@@ -52,6 +52,12 @@ describe('setApplePayEntitlement', () => {
     });
   });
 
+  it(`does not add in-app-payments if no merchant ID is provided`, () => {
+    expect(setApplePayEntitlement('', {})).toEqual({});
+    expect(setApplePayEntitlement([], {})).toEqual({});
+    expect(setApplePayEntitlement([''], {})).toEqual({});
+  });
+
   it(`properly handles multiple merchantIdentifiers`, () => {
     expect(
       setApplePayEntitlement(['merchant.com.example', 'merchant.com.example'], {

@@ -35,6 +35,7 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
   { merchantIdentifier }
 ) => {
+  console.log({ merchantIdentifier });
   return withEntitlementsPlist(expoConfig, (config) => {
     config.modResults = setApplePayEntitlement(
       merchantIdentifier,
@@ -65,12 +66,14 @@ export function setApplePayEntitlement(
   }
 
   for (const id of merchantIdentifiers) {
-    if (!merchants.includes(id)) {
+    if (id && !merchants.includes(id)) {
       merchants.push(id);
     }
   }
 
-  entitlements[key] = merchants;
+  if (merchants.length) {
+    entitlements[key] = merchants;
+  }
   return entitlements;
 }
 
