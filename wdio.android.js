@@ -59,10 +59,10 @@ exports.config = {
       chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
       noReset: true,
-      enableWebviewDetailsCollection: true,
-      chromeOptions: {
-        args: ['--no-sandbox'],
-      },
+      // enableWebviewDetailsCollection: true,
+      // chromeOptions: {
+      //   args: ['--no-sandbox'],
+      // },
     },
   ],
 };
