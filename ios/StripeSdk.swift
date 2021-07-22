@@ -377,6 +377,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
+        if (params["jcbEnabled"] as? Bool == true) {
+            StripeAPI.additionalEnabledApplePayNetworks = [.JCB]
+        }
+        
         guard let summaryItems = params["cartItems"] as? NSArray else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
             return
