@@ -12,7 +12,8 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     private var cardField = STPPaymentCardTextField()
     
     public var cardParams: STPPaymentMethodCardParams? = nil
-    
+    public var cardPostalCode: String? = nil
+
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
@@ -145,8 +146,10 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
         if (textField.isValid) {
             self.cardParams = textField.cardParams
+            self.cardPostalCode = textField.postalCode
         } else {
             self.cardParams = nil
+            self.cardPostalCode = nil
         }
     }
     
