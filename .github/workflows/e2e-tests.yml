@@ -41,7 +41,7 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 31
           script: |
             yarn run-example-android
             sleep 15
