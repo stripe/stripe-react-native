@@ -58,7 +58,11 @@ export default function PaymentsUICompleteScreen() {
       paymentIntentClientSecret: paymentIntent,
       customFlow: false,
       merchantDisplayName: 'Example Inc.',
+      applePay: true,
+      merchantCountryCode: 'US',
       style: 'alwaysDark',
+      googlePay: true,
+      testEnv: true,
     });
     if (!error) {
       setPaymentSheetEnabled(true);

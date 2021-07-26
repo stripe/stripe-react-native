@@ -3,6 +3,7 @@ import Stripe
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
+    public var cardFieldView: CardFieldView? = nil
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
@@ -213,10 +214,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-        
-        let cardFieldView = getCardFieldView()
-        let cardFormView = getCardFormView()
-        
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
         
@@ -379,6 +376,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
+        if (params["jcbEnabled"] as? Bool == true) {
+            StripeAPI.additionalEnabledApplePayNetworks = [.JCB]
+        }
+        
         guard let summaryItems = params["cartItems"] as? NSArray else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
             return
@@ -453,9 +454,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
-        let cardFieldView = getCardFieldView()
-        let cardFormView = getCardFormView()
-        
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
         
@@ -498,10 +496,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
         
-        let cardFieldView = getCardFieldView()
-        let cardFormView = getCardFormView()
-                 
-        guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
+        guard let cardParams = cardFieldView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
         }
@@ -580,10 +575,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     ) -> Void {
         self.confirmPaymentResolver = resolve
         self.confirmPaymentClientSecret = paymentIntentClientSecret
-        
-        let cardFieldView = getCardFieldView()
-        let cardFormView = getCardFormView()
-
+                
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
         if let setupFutureUsage = params["setupFutureUsage"] as? String {
