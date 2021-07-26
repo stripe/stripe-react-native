@@ -2,8 +2,6 @@ import Foundation
 import UIKit
 import Stripe
 
-let CARD_FIELD_INSTANCE_ID = "CardFieldInstance"
-
 class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
     @objc var onFocusChange: RCTDirectEventBlock?

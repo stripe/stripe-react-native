@@ -2,13 +2,9 @@ import Foundation
 import UIKit
 import Stripe
 
-let CARD_FORM_INSTANCE_ID = "CardFormInstance"
-
 class CardFormView: UIView, STPCardFormViewDelegate {
     private var cardForm: STPCardFormView?
     
-    public var delegate: CardFieldDelegate?
-
     public var cardParams: STPPaymentMethodCardParams? = nil
     
     @objc var dangerouslyGetFullCardDetails: Bool = false
@@ -81,13 +77,6 @@ class CardFormView: UIView, STPCardFormViewDelegate {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-    }
-    
-    convenience init(delegate: CardFieldDelegate) {
-        self.init(frame: CGRect.zero)
-        self.delegate = delegate
-        
-        self.delegate?.onDidCreateViewInstance(id: CARD_FORM_INSTANCE_ID, reference: self)
     }
     
     override func layoutSubviews() {

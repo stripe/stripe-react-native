@@ -1,23 +1,12 @@
 import Foundation
 
 @objc(CardFormManager)
-class CardFormManager: RCTViewManager, CardFieldDelegate {
-    public let cardFormMap: NSMutableDictionary = [:]
-    
-    func onDidCreateViewInstance(id: String, reference: Any?) -> Void {
-        cardFormMap[id] = reference
-    }
-    
-    func onDidDestroyViewInstance(id: String) {
-        cardFormMap[id] = nil
-    }
-    
-    public func getReference(id: String) -> Any? {
-        return self.cardFormMap[id]
-    }
-    
+class CardFormManager: RCTViewManager {
     override func view() -> UIView! {
-        return CardFormView(delegate: self)
+        let cardForm = CardFormView()
+        let stripeSdk = bridge.module(forName: "StripeSdk") as? StripeSdk
+        stripeSdk?.cardFormView = cardForm;
+        return cardForm
     }
     
     override class func requiresMainQueueSetup() -> Bool {

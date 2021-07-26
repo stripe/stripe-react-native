@@ -4,6 +4,8 @@ import Stripe
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     public var cardFieldView: CardFieldView? = nil
+    public var cardFormView: CardFormView? = nil
+
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
@@ -548,23 +550,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
-    private func getCardFieldView() -> CardFieldView? {
-        if let manager = bridge.module(forName: "CardFieldManager") as? CardFieldManager {
-            let view = manager.getReference(id: CARD_FIELD_INSTANCE_ID) as? CardFieldView
-            return view
-        }
-        return nil
-    }
-    
-    private func getCardFormView() -> CardFormView? {
-        if let manager = bridge.module(forName: "CardFormManager") as? CardFormManager {
-            let view = manager.getReference(id: CARD_FORM_INSTANCE_ID) as? CardFormView
-            return view
-        }
-        return nil
-    }
-    
+
     @objc(confirmPayment:data:options:resolver:rejecter:)
     func confirmPayment(
         paymentIntentClientSecret: String,
