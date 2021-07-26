@@ -115,6 +115,16 @@ class PaymentMethodFactory {
         guard let cardParams = cardFieldView?.cardParams else {
             throw PaymentMethodError.cardPaymentMissingParams
         }
+        if let postalCode = cardFieldView?.cardPostalCode {
+            if (billingDetailsParams == nil) {
+                let bd = STPPaymentMethodBillingDetails()
+                bd.address = STPPaymentMethodAddress()
+                bd.address?.postalCode = postalCode
+                billingDetailsParams = bd
+            } else {
+                billingDetailsParams?.address?.postalCode = postalCode
+            }
+        }
         
         return STPPaymentMethodParams(card: cardParams, billingDetails: billingDetailsParams, metadata: nil)
     }

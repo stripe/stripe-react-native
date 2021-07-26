@@ -65,5 +65,6 @@ export namespace ApplePay {
     requiredShippingAddressFields?: ContactFieldsType[];
     requiredBillingContactFields?: ContactFieldsType[];
     shippingMethods?: ShippingMethod[];
+    jcbEnabled?: boolean;
   }
 }

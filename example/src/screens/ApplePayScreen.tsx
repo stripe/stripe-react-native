@@ -93,6 +93,7 @@ export default function ApplePayScreen() {
         'name',
       ],
       requiredBillingContactFields: ['phoneNumber', 'name'],
+      jcbEnabled: true,
     });
 
     if (error) {
