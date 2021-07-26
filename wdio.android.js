@@ -60,13 +60,6 @@ exports.config = {
       ignoreHiddenApiPolicyError: true,
       noReset: true,
       enableWebviewDetailsCollection: true,
-      chromeOptions: {
-        androidPackage: 'com.android.chrome',
-        androidUseRunningApp: true,
-        androidDeviceSerial: 'emulator-5554',
-        androidProcess: 'chrome',
-        args: ['--no-sandbox'],
-      },
     },
   ],
 };
