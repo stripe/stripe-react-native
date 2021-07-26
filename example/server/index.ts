@@ -60,6 +60,10 @@ function getKeys(payment_method?: string) {
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
       secret_key = process.env.STRIPE_SECRET_KEY_MX;
       break;
+    case 'wechat_pay':
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_WECHAT;
+      secret_key = process.env.STRIPE_SECRET_KEY_WECHAT;
+      break;
     default:
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY;
       secret_key = process.env.STRIPE_SECRET_KEY;
@@ -122,9 +126,8 @@ app.post(
     };
 
     try {
-      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-        params
-      );
+      const paymentIntent: Stripe.PaymentIntent =
+        await stripe.paymentIntents.create(params);
       // Send publishable key and PaymentIntent client_secret to client.
       res.send({
         clientSecret: paymentIntent.client_secret,
@@ -193,9 +196,8 @@ app.post(
       customer: customers.data[0].id,
     };
 
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-      params
-    );
+    const paymentIntent: Stripe.PaymentIntent =
+      await stripe.paymentIntents.create(params);
 
     // Send publishable key and PaymentIntent client_secret to client.
     res.send({
