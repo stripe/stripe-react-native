@@ -44,19 +44,12 @@ class BasicPaymentScreen {
     driver.pause(5000);
 
     if (isFirstTest) {
-      getElementByText('Accept & continue').waitForDisplayed({
-        timeout: 10000,
-      });
       const accept = getElementByText('Accept & continue');
       if (accept.isDisplayed()) {
         accept.click();
       }
 
-      getElementByText('No thanks').waitForDisplayed({
-        timeout: 10000,
-      });
       const noThanks = getElementByText('No thanks');
-
       if (noThanks.isDisplayed()) {
         noThanks.click();
       }

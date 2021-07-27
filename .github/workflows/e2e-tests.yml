@@ -41,10 +41,10 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 28
           profile: Nexus 6
           target: google_apis
-          arch: x86_64
+          arch: x86
           script: |
             yarn run-example-android
             sleep 15

@@ -7,7 +7,6 @@ type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
-    // driver.findElement(By.id('com.android.chrome:id/negative_button')).click();
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
 
