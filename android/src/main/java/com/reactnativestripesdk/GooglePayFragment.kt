@@ -76,13 +76,19 @@ class GooglePayFragment : Fragment() {
   }
 
   fun presentForPaymentIntent(clientSecret: String) {
-    if (googlePayLauncher == null) {
+    val launcher = googlePayLauncher ?: run {
       val intent = Intent(ON_GOOGLE_PAY_RESULT)
       intent.putExtra("error", "GooglePayLauncher is not initialized.")
       activity?.sendBroadcast(intent)
       return
     }
-    googlePayLauncher?.presentForPaymentIntent(clientSecret)
+    runCatching {
+      launcher.presentForPaymentIntent(clientSecret)
+    }.onFailure {
+      val intent = Intent(ON_GOOGLE_PAY_RESULT)
+      intent.putExtra("error", it.localizedMessage)
+      activity?.sendBroadcast(intent)
+    }
   }
 
   fun presentForSetupIntent(clientSecret: String, currencyCode: String) {
@@ -92,7 +98,13 @@ class GooglePayFragment : Fragment() {
       activity?.sendBroadcast(intent)
       return
     }
-    launcher.presentForSetupIntent(clientSecret, currencyCode)
+    runCatching {
+      launcher.presentForSetupIntent(clientSecret, currencyCode)
+    }.onFailure {
+      val intent = Intent(ON_GOOGLE_PAY_RESULT)
+      intent.putExtra("error", it.localizedMessage)
+      activity?.sendBroadcast(intent)
+    }
   }
 
   fun createPaymentMethod(currencyCode: String, amount: Int) {
@@ -103,10 +115,16 @@ class GooglePayFragment : Fragment() {
       return
     }
 
-    launcher.present(
-      currencyCode = currencyCode,
-      amount = amount
-    )
+    runCatching {
+      launcher.present(
+        currencyCode = currencyCode,
+        amount = amount
+      )
+    }.onFailure {
+      val intent = Intent(ON_GOOGLE_PAYMENT_METHOD_RESULT)
+      intent.putExtra("error", it.localizedMessage)
+      activity?.sendBroadcast(intent)
+    }
   }
 
   private fun onGooglePayReady(isReady: Boolean) {
