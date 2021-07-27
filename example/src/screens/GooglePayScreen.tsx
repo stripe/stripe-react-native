@@ -93,7 +93,8 @@ export default function GooglePayScreen() {
       setInitialized(true);
     }
     initialize();
-  }, [initGooglePay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PaymentScreen>
