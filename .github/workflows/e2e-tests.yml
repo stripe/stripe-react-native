@@ -42,7 +42,6 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 28
-          profile: Nexus 6
           target: google_apis
           arch: x86
           script: |
