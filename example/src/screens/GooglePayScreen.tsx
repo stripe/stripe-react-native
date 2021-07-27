@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useGooglePay } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -70,34 +70,30 @@ export default function GooglePayScreen() {
     setInitialized(false);
   };
 
-  useEffect(() => {
-    // 1. Initialize Google Pay
-    async function initialize() {
-      const { error } = await initGooglePay({
-        testEnv: true,
-        merchantName: 'Test',
-        countryCode: 'US',
-        billingAddressConfig: {
-          format: 'FULL',
-          isPhoneNumberRequired: true,
-          isRequired: false,
-        },
-        existingPaymentMethodRequired: false,
-        isEmailRequired: true,
-      });
+  // 1. Initialize Google Pay
+  const initialize = async () => {
+    const { error } = await initGooglePay({
+      testEnv: true,
+      merchantName: 'Test',
+      countryCode: 'US',
+      billingAddressConfig: {
+        format: 'FULL',
+        isPhoneNumberRequired: true,
+        isRequired: false,
+      },
+      existingPaymentMethodRequired: false,
+      isEmailRequired: true,
+    });
 
-      if (error) {
-        Alert.alert(error.code, error.message);
-        return;
-      }
-      setInitialized(true);
+    if (error) {
+      Alert.alert(error.code, error.message);
+      return;
     }
-    initialize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setInitialized(true);
+  };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen onInit={initialize}>
       <Button
         disabled={!initialized}
         onPress={pay}
