@@ -3,15 +3,16 @@ import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
-type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+// type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
+    // driver.findElement(By.id('com.android.chrome:id/negative_button')).click();
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
 
   afterEach(() => {
-    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+    // (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
 
     driver.reloadSession();
   });
@@ -24,7 +25,7 @@ describe('Example app payments scenarios (android)', () => {
     $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize();
+    BasicPaymentScreen.authorize({ isFirstTest: true });
     BasicPaymentScreen.checkStatus();
   });
 
@@ -153,7 +154,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Afterpay and Clearpay');
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize('a');
+    BasicPaymentScreen.authorize({ elementType: 'a' });
     BasicPaymentScreen.checkStatus();
   });
 
