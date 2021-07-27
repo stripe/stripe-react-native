@@ -118,7 +118,7 @@ app.post(
           preferred_language: 'en',
         },
         wechat_pay: {
-          app_id: 'wxa0df51ec63e578ce',
+          app_id: 'wx65907d6307c3827d',
           client: client,
         },
       },

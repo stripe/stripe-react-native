@@ -609,6 +609,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             paymentIntentParams.paymentMethodOptions = paymentMethodOptions
             paymentIntentParams.shipping = Mappers.mapToShippingDetails(shippingDetails: params["shippingDetails"] as? NSDictionary)
         }
+        
+        if (paymentMethodType == STPPaymentMethodType.weChatPay) {
+            STPPaymentHandler.shared().simulateAppToAppRedirect = true
+        }
       
         if let urlScheme = urlScheme {
             paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
