@@ -3,7 +3,7 @@ import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
-// type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
@@ -12,13 +12,13 @@ describe('Example app payments scenarios (android)', () => {
   });
 
   afterEach(() => {
-    // (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
 
     driver.reloadSession();
   });
 
   it('Bancontact payment scenario', function () {
-    this.retries(2);
+    this.retries(3);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact Payment');
 
