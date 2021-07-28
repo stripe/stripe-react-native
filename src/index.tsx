@@ -25,6 +25,10 @@ export {
   StripeContainer,
   Props as StripeContainerProps,
 } from './components/StripeContainer';
+export {
+  GooglePayButton,
+  Props as GooglePayButtonProps,
+} from './components/GooglePayButton';
 
 export * from './functions';
 

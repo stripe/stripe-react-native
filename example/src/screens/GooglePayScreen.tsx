@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useGooglePay } from '@stripe/stripe-react-native';
+import { GooglePayButton, useGooglePay } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import Button from '../components/Button';
@@ -94,13 +94,46 @@ export default function GooglePayScreen() {
 
   return (
     <PaymentScreen onInit={initialize}>
-      <Button
+      {/* <Button
         disabled={!initialized}
         onPress={pay}
         loading={loading}
         variant="primary"
         title="Pay with Google Pay"
+      /> */}
+      <GooglePayButton
+        style={{ width: 152, height: 40 }}
+        type="pay"
+        onPress={pay}
       />
+      <GooglePayButton
+        style={{ width: 152, height: 40 }}
+        type="pay_shadow"
+        onPress={pay}
+      />
+      <GooglePayButton
+        style={{ width: 152, height: 40 }}
+        type="pay_dark"
+        onPress={pay}
+      />
+
+      <GooglePayButton
+        style={{ width: 90, height: 40 }}
+        type="standard"
+        onPress={pay}
+      />
+      <GooglePayButton
+        style={{ width: 90, height: 40 }}
+        type="standard_shadow"
+        onPress={pay}
+      />
+
+      <GooglePayButton
+        style={{ width: 90, height: 40 }}
+        type="standard_dark"
+        onPress={pay}
+      />
+
       <View style={styles.row}>
         <Button
           disabled={!initialized}
