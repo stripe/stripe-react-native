@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { GooglePayButton, useGooglePay } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import Button from '../components/Button';
 import { Alert, StyleSheet, View } from 'react-native';
 
 export default function GooglePayScreen() {
@@ -94,42 +93,19 @@ export default function GooglePayScreen() {
 
   return (
     <PaymentScreen onInit={initialize}>
-      {/* <Button
-        disabled={!initialized}
-        onPress={pay}
-        loading={loading}
-        variant="primary"
-        title="Pay with Google Pay"
-      /> */}
       <GooglePayButton
-        style={{ width: 152, height: 40 }}
-        type="standard"
-        onPress={pay}
-      />
-      <GooglePayButton
-        style={{ width: 152, height: 40 }}
-        type="standard"
-        onPress={pay}
-      />
-
-      <GooglePayButton
-        style={{ width: 90, height: 40 }}
-        type="standard"
-        onPress={pay}
-      />
-      <GooglePayButton
-        style={{ width: 90, height: 40 }}
-        type="standard"
+        disabled={!initialized || loading}
+        style={styles.payButton}
+        type="pay"
         onPress={pay}
       />
 
       <View style={styles.row}>
-        <Button
-          disabled={!initialized}
+        <GooglePayButton
+          disabled={!initialized || loading}
+          style={styles.standardButton}
+          type="standard"
           onPress={createPaymentMethod}
-          loading={loading}
-          variant="primary"
-          title="Crete payment method"
         />
       </View>
     </PaymentScreen>
@@ -139,5 +115,13 @@ export default function GooglePayScreen() {
 const styles = StyleSheet.create({
   row: {
     marginTop: 30,
+  },
+  payButton: {
+    width: 152,
+    height: 40,
+  },
+  standardButton: {
+    width: 90,
+    height: 40,
   },
 });
