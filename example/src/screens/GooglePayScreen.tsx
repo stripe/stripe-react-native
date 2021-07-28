@@ -103,17 +103,12 @@ export default function GooglePayScreen() {
       /> */}
       <GooglePayButton
         style={{ width: 152, height: 40 }}
-        type="pay"
+        type="standard"
         onPress={pay}
       />
       <GooglePayButton
         style={{ width: 152, height: 40 }}
-        type="pay_shadow"
-        onPress={pay}
-      />
-      <GooglePayButton
-        style={{ width: 152, height: 40 }}
-        type="pay_dark"
+        type="standard"
         onPress={pay}
       />
 
@@ -124,13 +119,7 @@ export default function GooglePayScreen() {
       />
       <GooglePayButton
         style={{ width: 90, height: 40 }}
-        type="standard_shadow"
-        onPress={pay}
-      />
-
-      <GooglePayButton
-        style={{ width: 90, height: 40 }}
-        type="standard_dark"
+        type="standard"
         onPress={pay}
       />
 

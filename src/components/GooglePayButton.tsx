@@ -3,7 +3,6 @@ import {
   AccessibilityProps,
   StyleProp,
   ViewStyle,
-  StyleSheet,
   requireNativeComponent,
 } from 'react-native';
 
@@ -14,13 +13,7 @@ const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
-  type?:
-    | 'pay'
-    | 'pay_shadow'
-    | 'pay_dark'
-    | 'standard'
-    | 'standard_shadow'
-    | 'standard_dark';
+  type?: 'pay' | 'pay_shadow' | 'standard' | 'standard_shadow';
   onPress(): void;
   testID?: string;
 }
@@ -42,15 +35,3 @@ export interface Props extends AccessibilityProps {
 export function GooglePayButton({ type = 'pay', ...props }: Props) {
   return <GooglePayButtonNative buttonType={type} {...props} />;
 }
-
-const styles = StyleSheet.create({
-  outerContainer: {
-    padding: 8,
-  },
-  container: {
-    elevation: 4,
-    minWidth: 152,
-    height: 80,
-    borderRadius: 12,
-  },
-});
