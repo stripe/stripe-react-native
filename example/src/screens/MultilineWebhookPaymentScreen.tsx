@@ -21,6 +21,7 @@ import { colors } from '../colors';
 export default function MultilineWebhookPaymentScreen() {
   const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
+  const [isComplete, setComplete] = useState(false);
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -91,7 +92,6 @@ export default function MultilineWebhookPaymentScreen() {
         cardStyle={inputStyles}
         dangerouslyGetFullCardDetails
         style={styles.cardField}
-        postalCodeEnabled={false}
         placeholder={{
           cvc: '99',
           expiration: '00',
@@ -100,12 +100,7 @@ export default function MultilineWebhookPaymentScreen() {
         }}
         onCardComplete={(cardDetails) => {
           console.log(cardDetails);
-        }}
-        onFocus={(focusedField) => {
-          console.log(focusedField);
-        }}
-        onBlur={() => {
-          console.log('blur');
+          setComplete(cardDetails.complete);
         }}
       />
       <View style={styles.row}>
@@ -119,6 +114,7 @@ export default function MultilineWebhookPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        disabled={!isComplete}
         loading={loading}
       />
     </PaymentScreen>

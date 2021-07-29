@@ -140,6 +140,8 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
         }
       } else {
         cardParams = null
+        mEventDispatcher?.dispatchEvent(
+          CardFormCompleteEvent(id, null, isValid, dangerouslyGetFullCardDetails))
       }
     }
 

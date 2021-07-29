@@ -1,5 +1,4 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
-import type { Nullable } from '..';
 import type { Card } from '../Card';
 
 export namespace CardFormView {
@@ -41,11 +40,11 @@ export namespace CardFormView {
     autofocus?: boolean;
     isUserInteractionEnabledValue?: boolean;
     cardStyle?: Styles;
-    postalCodeEnabled: boolean;
     placeholder: Placeholders;
-    onFocusChange(
-      event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
-    ): void;
+    // postalCodeEnabled: boolean;
+    // onFocusChange(
+    //   event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
+    // ): void;
     onCardComplete(event: NativeSyntheticEvent<Details>): void;
   }
 

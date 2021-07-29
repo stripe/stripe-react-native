@@ -1,4 +1,4 @@
-import type { CardFormView, Nullable } from '../types';
+import type { CardFormView } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -17,23 +17,28 @@ import {
 } from 'react-native';
 const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
-const CardFormNative = requireNativeComponent<CardFormView.NativeProps>(
-  'CardForm'
-);
+const CardFormNative =
+  requireNativeComponent<CardFormView.NativeProps>('CardForm');
 
 /**
  *  Card Form Component Props
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
-  cardStyle?: CardFormView.Styles;
   autofocus?: boolean;
   testID?: string;
-  isUserInteractionEnabled?: boolean;
   placeholder: CardFormView.Placeholders;
-  postalCodeEnabled?: boolean;
-  onBlur?(): void;
-  onFocus?(focusedField: Nullable<CardFormView.Names>): void;
+
+  // props iOS only
+  cardStyle?: CardFormView.Styles;
+  isUserInteractionEnabled?: boolean;
+
+  // TODO: will make it public when android-sdk allows for this
+  // postalCodeEnabled?: boolean;
+
+  // TODO: will make it public when ios-sdk allows for this
+  // onBlur?(): void;
+  // onFocus?(focusedField: Nullable<CardFormView.Names>): void;
   onCardComplete?(card: CardFormView.Details): void;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardComplete` handler.
@@ -65,12 +70,12 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
   (
     {
       onCardComplete,
-      onFocus,
-      onBlur,
       placeholder,
       cardStyle,
       isUserInteractionEnabled = true,
-      postalCodeEnabled = true,
+      // postalCodeEnabled = true,
+      // onFocus,
+      // onBlur,
       ...props
     },
     ref
@@ -125,18 +130,18 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       blur,
     }));
 
-    const onFocusHandler = useCallback(
-      (event) => {
-        const { focusedField } = event.nativeEvent;
-        if (focusedField) {
-          TextInputState.focusInput(inputRef.current);
-          onFocus?.(focusedField);
-        } else {
-          onBlur?.();
-        }
-      },
-      [onFocus, onBlur]
-    );
+    // const onFocusHandler = useCallback(
+    //   (event) => {
+    //     const { focusedField } = event.nativeEvent;
+    //     if (focusedField) {
+    //       TextInputState.focusInput(inputRef.current);
+    //       onFocus?.(focusedField);
+    //     } else {
+    //       onBlur?.();
+    //     }
+    //   },
+    //   [onFocus, onBlur]
+    // );
 
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
@@ -156,13 +161,11 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       <CardFormNative
         ref={inputRef}
         onCardComplete={onCardCompleteHandler}
-        onFocusChange={onFocusHandler}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
           type: cardStyle?.type,
         }}
-        postalCodeEnabled={postalCodeEnabled}
         isUserInteractionEnabledValue={isUserInteractionEnabled}
         placeholder={{
           number: placeholder?.number,
@@ -170,6 +173,8 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           cvc: placeholder?.cvc,
           postalCode: placeholder?.postalCode,
         }}
+        // onFocusChange={onFocusHandler}
+        // postalCodeEnabled={postalCodeEnabled}
         {...props}
       />
     );

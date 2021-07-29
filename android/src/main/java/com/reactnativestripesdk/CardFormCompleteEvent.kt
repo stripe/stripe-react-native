@@ -5,7 +5,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardFormCompleteEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>, private val complete: Boolean, private val dangerouslyGetFullCardDetails: Boolean) : Event<CardChangedEvent>(viewTag) {
+internal class CardFormCompleteEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>?, private val complete: Boolean, private val dangerouslyGetFullCardDetails: Boolean) : Event<CardChangedEvent>(viewTag) {
   override fun getEventName(): String {
     return EVENT_NAME
   }
@@ -16,6 +16,10 @@ internal class CardFormCompleteEvent constructor(viewTag: Int, private val cardD
 
   private fun serializeEventData(): WritableMap {
     val eventData = Arguments.createMap()
+
+    if (cardDetails == null) {
+      return eventData
+    }
     eventData.putString("brand", cardDetails["brand"]?.toString())
     eventData.putString("last4", cardDetails["last4"]?.toString())
     eventData.putString("country", cardDetails["country"]?.toString())
