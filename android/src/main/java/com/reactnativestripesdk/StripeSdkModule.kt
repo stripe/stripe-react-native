@@ -11,15 +11,17 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.runBlocking
 
-class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager, cardFormManager: CardFormViewManager) : ReactContextBaseJavaModule(reactContext) {
-  private var cardFieldManager: StripeSdkCardViewManager = cardFieldManager
-  private var cardFormManager: CardFormViewManager = cardFormManager
+@ReactModule(name = StripeSdkModule.NAME)
+class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+  var cardFieldView: StripeSdkCardView? = null
+  var cardFormView: CardFormView? = null
 
   override fun getName(): String {
     return "StripeSdk"
@@ -329,10 +331,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   @ReactMethod
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
-    val cardFieldInstance = cardFieldManager.getCardViewInstance()
-    val cardFormInstance = cardFormManager.getCardViewInstance()
 
-    val cardParams = (cardFieldInstance?.cardParams ?: cardFormInstance?.cardParams) ?: run {
+    val cardParams = (cardFieldView?.cardParams ?: cardFormView?.cardParams) ?: run {
       promise.reject("Failed", "Card details not complete")
       return
     }
@@ -360,9 +360,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       }
     }
     val address = getMapOrNull(params, "address")
-    val cardFieldInstance = cardFieldManager.getCardViewInstance()
-    val cardFormInstance = cardFormManager.getCardViewInstance()
-    val cardParams = (cardFieldInstance?.cardParams ?: cardFormInstance?.cardParams)?.toParamMap() ?: run {
+
+    val cardParams = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap() ?: run {
       promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
       return
     }
@@ -421,9 +420,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     confirmPromise = promise
     confirmPaymentClientSecret = paymentIntentClientSecret
 
-    val cardFieldInstance = cardFieldManager.getCardViewInstance()
-    val cardFormInstance = cardFormManager.getCardViewInstance()
-    val cardParams = cardFieldInstance?.cardParams ?: cardFormInstance?.cardParams
+    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
@@ -476,9 +473,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
 
-    val cardFieldInstance = cardFieldManager.getCardViewInstance()
-    val cardFormInstance = cardFormManager.getCardViewInstance()
-    val cardParams = cardFieldInstance?.cardParams ?: cardFormInstance?.cardParams
+    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
 
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
@@ -503,5 +498,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       return it == StripeIntent.NextActionType.DisplayOxxoDetails
     }
     return false
+  }
+
+  companion object {
+    const val NAME = "StripeSdk"
   }
 }
