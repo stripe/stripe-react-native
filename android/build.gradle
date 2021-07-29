@@ -132,8 +132,6 @@ dependencies {
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.stripe:stripe-android:17.1.0'
-  implementation 'com.stripe:stripe-wechatpay:17.1.0'
-  implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.0'
   implementation 'com.google.android.material:material:1.3.0'
   implementation 'androidx.appcompat:appcompat:1.2.0'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
