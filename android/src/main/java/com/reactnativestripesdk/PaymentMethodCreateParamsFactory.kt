@@ -29,7 +29,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
         PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
-        PaymentMethod.Type.WeChatPay -> createWeChatPayPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -56,13 +55,6 @@ class PaymentMethodCreateParamsFactory(
     } catch (error: PaymentMethodCreateParamsException) {
       throw error
     }
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createWeChatPayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val weChatPaymentMethodCreateParams = PaymentMethodCreateParams.createWeChatPay()
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(weChatPaymentMethodCreateParams, clientSecret)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)

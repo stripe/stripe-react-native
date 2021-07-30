@@ -11,11 +11,13 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.*
 import com.stripe.android.*
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: StripeSdkCardViewManager) : ReactContextBaseJavaModule(reactContext) {
@@ -332,7 +334,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
     val instance = cardFieldManager.getCardViewInstance()
     val cardParams = instance?.cardParams ?: run {
-      promise.reject("Failed", "Card details not complete")
+      promise.resolve(createError("Failed", "Card details not complete"))
       return
     }
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
@@ -414,6 +416,24 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     }
   }
 
+  private fun payWithWeChatPay(paymentIntentClientSecret: String, appId: String) {
+    val activity = currentActivity as ComponentActivity
+
+    activity.lifecycleScope.launch {
+      stripe.createPaymentMethod(PaymentMethodCreateParams.createWeChatPay()).id?.let { paymentMethodId ->
+        val confirmPaymentIntentParams =
+          ConfirmPaymentIntentParams.createWithPaymentMethodId(
+            paymentMethodId = paymentMethodId,
+            clientSecret = paymentIntentClientSecret,
+            paymentMethodOptions = PaymentMethodOptionsParams.WeChatPay(
+              appId
+            )
+          )
+        stripe.confirmPayment(activity, confirmPaymentIntentParams)
+      }
+    }
+  }
+
   @ReactMethod
   fun confirmPayment(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmPromise = promise
@@ -431,6 +451,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
 
     if (paymentMethodType == PaymentMethod.Type.Fpx && !testOfflineBank) {
       payWithFpx()
+      return
+    }
+
+    if (paymentMethodType == PaymentMethod.Type.WeChatPay) {
+      val appId = getValOr(params, "appId") ?: run {
+        promise.resolve(createError("Failed", "You must provide appId"))
+        return
+      }
+      payWithWeChatPay(paymentIntentClientSecret, appId)
+
       return
     }
 
