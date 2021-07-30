@@ -70,8 +70,6 @@
 	<array>
 		<string>armv7</string>
 	</array>
-	<key>LSApplicationQueriesSchemes</key>
-	<string>weixin</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
