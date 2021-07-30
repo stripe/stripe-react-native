@@ -102,6 +102,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.SepaDebit -> "SepaDebit"
     PaymentMethod.Type.Sofort -> "Sofort"
     PaymentMethod.Type.Upi -> "Upi"
+    PaymentMethod.Type.WeChatPay -> "WeChatPay"
     else -> "Unknown"
   }
 }
@@ -126,6 +127,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "SepaDebit" -> PaymentMethod.Type.SepaDebit
     "Sofort" -> PaymentMethod.Type.Sofort
     "Upi" -> PaymentMethod.Type.Upi
+    "WeChatPay" -> PaymentMethod.Type.WeChatPay
     else -> null
   }
 }

@@ -32,6 +32,7 @@ const SCREENS = <const>[
   'Card element only',
   'BECS Direct Debit payment',
   'BECS Direct Debit set up',
+  'WeChat Pay',
 ];
 
 class HomeScreen {
