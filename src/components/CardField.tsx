@@ -17,9 +17,51 @@ import {
 } from 'react-native';
 const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
-const CardFieldNative = requireNativeComponent<CardFieldInput.NativeProps>(
-  'CardField'
-);
+const CardFieldNative =
+  requireNativeComponent<CardFieldInput.NativeProps>('CardField');
+
+const unsupportedMethodMessage = (field: string) =>
+  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x or higher`;
+
+const focusInput = (ref: React.MutableRefObject<any>) => {
+  if ('focusInput' in TextInputState) {
+    TextInputState.focusInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('focusInput'));
+    }
+  }
+};
+
+const registerInput = (ref: React.MutableRefObject<any>) => {
+  if ('registerInput' in TextInputState) {
+    TextInputState.registerInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('registerInput'));
+    }
+  }
+};
+
+const unregisterInput = (ref: React.MutableRefObject<any>) => {
+  if ('unregisterInput' in TextInputState) {
+    TextInputState.unregisterInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('unregisterInput'));
+    }
+  }
+};
+
+const currentlyFocusedInput = () => {
+  if ('currentlyFocusedInput' in TextInputState) {
+    return TextInputState.currentlyFocusedInput();
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('currentlyFocusedInput'));
+    }
+  }
+};
 
 /**
  *  Card Field Component Props
@@ -108,7 +150,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       (event) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
-          TextInputState.focusInput(inputRef.current);
+          focusInput(inputRef.current);
           onFocus?.(focusedField);
         } else {
           onBlur?.();
@@ -150,10 +192,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
       if (inputRefValue !== null) {
-        TextInputState.registerInput(inputRefValue);
+        registerInput(inputRefValue);
         return () => {
-          TextInputState.unregisterInput(inputRefValue);
-          if (TextInputState.currentlyFocusedInput() === inputRefValue) {
+          unregisterInput(inputRefValue);
+          if (currentlyFocusedInput() === inputRefValue) {
             inputRefValue.blur();
           }
         };
