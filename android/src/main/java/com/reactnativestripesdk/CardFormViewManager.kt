@@ -11,12 +11,10 @@ import com.facebook.react.uimanager.annotations.ReactProp
 class CardFormViewManager : SimpleViewManager<CardFormView>() {
   override fun getName() = "CardForm"
 
-  private var cardViewInstanceMap: MutableMap<String, Any?> = mutableMapOf()
-
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
       CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
-      CardFormCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardComplete"))
+      CardFormCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFormComplete"))
   }
 
   override fun receiveCommand(root: CardFormView, commandId: String?, args: ReadableArray?) {
@@ -37,10 +35,10 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     view.setPostalCodeEnabled(postalCodeEnabled);
   }
 
-  @ReactProp(name = "placeholder")
-  fun setPlaceHolders(view: CardFormView, placeholder: ReadableMap) {
-    view.setPlaceHolders(placeholder);
-  }
+  // @ReactProp(name = "placeholder")
+  // fun setPlaceHolders(view: CardFormView, placeholder: ReadableMap) {
+  //   view.setPlaceHolders(placeholder);
+  // }
 
   @ReactProp(name = "autofocus")
   fun setAutofocus(view: CardFormView, autofocus: Boolean = false) {
@@ -53,10 +51,10 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFormView {
-    val stripeSdkModule: StripeSdkModule = reactContext.getNativeModule(StripeSdkModule::class.java)
+    val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFormView(reactContext)
 
-    stripeSdkModule.cardFormView = view
+    stripeSdkModule?.cardFormView = view
     return view
   }
 }

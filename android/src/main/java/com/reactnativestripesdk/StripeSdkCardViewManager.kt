@@ -53,10 +53,10 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): StripeSdkCardView {
-    val stripeSdkModule: StripeSdkModule = reactContext.getNativeModule(StripeSdkModule::class.java)
+    val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = StripeSdkCardView(reactContext)
 
-    stripeSdkModule.cardFieldView = view
+    stripeSdkModule?.cardFieldView = view
     return view
   }
 }

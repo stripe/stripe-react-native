@@ -40,12 +40,12 @@ export namespace CardFormView {
     autofocus?: boolean;
     isUserInteractionEnabledValue?: boolean;
     cardStyle?: Styles;
-    placeholder: Placeholders;
+    // placeholder: Placeholders;
     // postalCodeEnabled: boolean;
     // onFocusChange(
     //   event: NativeSyntheticEvent<{ focusedField: Nullable<Names> }>
     // ): void;
-    onCardComplete(event: NativeSyntheticEvent<Details>): void;
+    onFormComplete(event: NativeSyntheticEvent<Details>): void;
   }
 
   export interface Methods {

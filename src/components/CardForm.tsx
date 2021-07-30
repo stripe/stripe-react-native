@@ -27,7 +27,6 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   autofocus?: boolean;
   testID?: string;
-  placeholder: CardFormView.Placeholders;
 
   // props iOS only
   cardStyle?: CardFormView.Styles;
@@ -37,11 +36,12 @@ export interface Props extends AccessibilityProps {
   // postalCodeEnabled?: boolean;
 
   // TODO: will make it public when ios-sdk allows for this
+  // placeholder: CardFormView.Placeholders;
   // onBlur?(): void;
   // onFocus?(focusedField: Nullable<CardFormView.Names>): void;
-  onCardComplete?(card: CardFormView.Details): void;
+  onFormComplete?(card: CardFormView.Details): void;
   /**
-   * WARNING: If set to `true` the full card number will be returned in the `onCardComplete` handler.
+   * WARNING: If set to `true` the full card number will be returned in the `onFormComplete` handler.
    * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
    * Make sure that you're not mistakenly logging or storing full card details!
    * See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance
@@ -55,7 +55,7 @@ export interface Props extends AccessibilityProps {
  * @example
  * ```ts
  * <CardForm
- *    onCardComplete={(cardDetails) => {
+ *    onFormComplete={(cardDetails) => {
  *    console.log('card details', cardDetails);
  *      setCard(cardDetails);
  *    }}
@@ -69,20 +69,20 @@ export interface Props extends AccessibilityProps {
 export const CardForm = forwardRef<CardFormView.Methods, Props>(
   (
     {
-      onCardComplete,
-      placeholder,
+      onFormComplete,
       cardStyle,
       isUserInteractionEnabled = true,
       // postalCodeEnabled = true,
       // onFocus,
       // onBlur,
+      // placeholder,
       ...props
     },
     ref
   ) => {
     const inputRef = useRef<any>(null);
 
-    const onCardCompleteHandler = useCallback(
+    const onFormCompleteHandler = useCallback(
       (event: NativeSyntheticEvent<CardFormView.Details>) => {
         const card = event.nativeEvent;
 
@@ -98,15 +98,15 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
 
         if (card.hasOwnProperty('number')) {
           data.number = card.number || '';
-          if (__DEV__ && onCardComplete && card.complete) {
+          if (__DEV__ && onFormComplete && card.complete) {
             console.warn(
               `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
             );
           }
         }
-        onCardComplete?.(data);
+        onFormComplete?.(data);
       },
-      [onCardComplete]
+      [onFormComplete]
     );
 
     const focus = () => {
@@ -160,19 +160,19 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     return (
       <CardFormNative
         ref={inputRef}
-        onCardComplete={onCardCompleteHandler}
+        onFormComplete={onFormCompleteHandler}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
           type: cardStyle?.type,
         }}
         isUserInteractionEnabledValue={isUserInteractionEnabled}
-        placeholder={{
-          number: placeholder?.number,
-          expiration: placeholder?.expiration,
-          cvc: placeholder?.cvc,
-          postalCode: placeholder?.postalCode,
-        }}
+        // placeholder={{
+        //   number: placeholder?.number,
+        //   expiration: placeholder?.expiration,
+        //   cvc: placeholder?.cvc,
+        //   postalCode: placeholder?.postalCode,
+        // }}
         // onFocusChange={onFocusHandler}
         // postalCodeEnabled={postalCodeEnabled}
         {...props}

@@ -3,15 +3,14 @@ import UIKit
 import Stripe
 
 class CardFormView: UIView, STPCardFormViewDelegate {
-    private var cardForm: STPCardFormView?
+    public var cardForm: STPCardFormView?
     
     public var cardParams: STPPaymentMethodCardParams? = nil
     
     @objc var dangerouslyGetFullCardDetails: Bool = false
-    @objc var onCardComplete: RCTDirectEventBlock?
+    @objc var onFormComplete: RCTDirectEventBlock?
     @objc var autofocus: Bool = false
     @objc var isUserInteractionEnabledValue: Bool = true
-    @objc var cardStyle: NSDictionary = NSDictionary()
     
     override func didSetProps(_ changedProps: [String]!) {
         if let cardForm = self.cardForm {
@@ -27,14 +26,19 @@ class CardFormView: UIView, STPCardFormViewDelegate {
             let _ = _cardForm.becomeFirstResponder()
         }
         
-        setStyles()
-
         self.cardForm = _cardForm
         self.addSubview(_cardForm)
+        setStyles()
+    }
+    
+    @objc var cardStyle: NSDictionary = NSDictionary() {
+        didSet {
+           setStyles()
+        }
     }
 
     func cardFormView(_ form: STPCardFormView, didChangeToStateComplete complete: Bool) {
-        if onCardComplete != nil {
+        if onFormComplete != nil {
             let brand = STPCardValidator.brand(forNumber: cardForm?.cardParams?.card?.number ?? "")
             var cardData: [String: Any?] = [
                 "expiryMonth": cardForm?.cardParams?.card?.expMonth ?? NSNull(),
@@ -54,7 +58,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
             } else {
                 self.cardParams = nil
             }
-            onCardComplete!(cardData as [AnyHashable : Any])
+            onFormComplete!(cardData as [AnyHashable : Any])
         }
     }
     

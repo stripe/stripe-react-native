@@ -90,15 +90,8 @@ export default function MultilineWebhookPaymentScreen() {
       <CardForm
         autofocus
         cardStyle={inputStyles}
-        dangerouslyGetFullCardDetails
         style={styles.cardField}
-        placeholder={{
-          cvc: '99',
-          expiration: '00',
-          number: '0231',
-          postalCode: '999',
-        }}
-        onCardComplete={(cardDetails) => {
+        onFormComplete={(cardDetails) => {
           console.log(cardDetails);
           setComplete(cardDetails.complete);
         }}

@@ -3,7 +3,7 @@
 #import <React/RCTViewManager.h>
 
 @interface RCT_EXTERN_MODULE(CardFormManager, RCTViewManager)
-RCT_EXPORT_VIEW_PROPERTY(onCardComplete, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFormComplete, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(dangerouslyGetFullCardDetails, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(autofocus, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(isUserInteractionEnabledValue, BOOL)
