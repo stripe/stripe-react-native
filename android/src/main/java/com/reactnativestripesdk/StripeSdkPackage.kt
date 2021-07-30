@@ -21,6 +21,6 @@ class StripeSdkPackage : ReactPackage {
       if (!this::cardFieldManager.isInitialized) {
         cardFieldManager = StripeSdkCardViewManager()
       }
-      return Arrays.asList<ViewManager<*, *>>(cardFieldManager, AuBECSDebitFormViewManager(), StripeContainerManager())
+      return Arrays.asList<ViewManager<*, *>>(cardFieldManager, AuBECSDebitFormViewManager(), StripeContainerManager(), GooglePayButtonManager())
     }
 }

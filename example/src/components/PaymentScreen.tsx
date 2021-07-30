@@ -6,9 +6,14 @@ import { fetchPublishableKey } from '../helpers';
 
 interface Props {
   paymentMethod?: string;
+  onInit?(): void;
 }
 
-const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
+const PaymentScreen: React.FC<Props> = ({
+  paymentMethod,
+  children,
+  onInit,
+}) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +28,7 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
           setUrlSchemeOnAndroid: true,
         });
         setLoading(false);
+        onInit?.();
       }
     }
     initialize();

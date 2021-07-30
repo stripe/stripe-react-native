@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
@@ -7,11 +7,8 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function PaymentsUICustomScreen() {
-  const {
-    initPaymentSheet,
-    presentPaymentSheet,
-    confirmPaymentSheetPayment,
-  } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet, confirmPaymentSheetPayment } =
+    useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<{
@@ -39,11 +36,8 @@ export default function PaymentsUICustomScreen() {
     setLoading(true);
 
     try {
-      const {
-        paymentIntent,
-        ephemeralKey,
-        customer,
-      } = await fetchPaymentSheetParams();
+      const { paymentIntent, ephemeralKey, customer } =
+        await fetchPaymentSheetParams();
 
       const { error, paymentOption } = await initPaymentSheet({
         customerId: customer,
@@ -101,16 +95,10 @@ export default function PaymentsUICustomScreen() {
     setLoading(false);
   };
 
-  useEffect(() => {
+  return (
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    initialisePaymentSheet();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <PaymentScreen>
+    <PaymentScreen onInit={initialisePaymentSheet}>
       <View>
         <Button
           variant="primary"

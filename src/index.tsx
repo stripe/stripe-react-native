@@ -4,6 +4,7 @@ export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
 export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
+export { useGooglePay } from './hooks/useGooglePay';
 
 //components
 export {
@@ -24,6 +25,10 @@ export {
   StripeContainer,
   Props as StripeContainerProps,
 } from './components/StripeContainer';
+export {
+  GooglePayButton,
+  Props as GooglePayButtonProps,
+} from './components/GooglePayButton';
 
 export * from './functions';
 

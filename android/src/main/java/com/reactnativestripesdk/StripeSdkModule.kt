@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.*
 import com.stripe.android.*
+import com.stripe.android.googlepaylauncher.GooglePayLauncher
+import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
@@ -40,6 +42,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
   private var presentPaymentSheetPromise: Promise? = null
   private var initPaymentSheetPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
+
+  private var googlePayFragment: GooglePayFragment? = null
+  private var initGooglePayPromise: Promise? = null
+  private var presentGooglePayPromise: Promise? = null
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
@@ -125,6 +131,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         })
 
         paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
 
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
@@ -156,6 +163,51 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
         )
         .build()
     )
+  }
+
+  private val googlePayReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent) {
+      if (intent.action == ON_GOOGLE_PAY_FRAGMENT_CREATED) {
+        googlePayFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
+      }
+      if (intent.action == ON_INIT_GOOGLE_PAY) {
+        initGooglePayPromise?.resolve(WritableNativeMap())
+      }
+      if (intent.action == ON_GOOGLE_PAYMENT_METHOD_RESULT) {
+        intent.extras?.getString("error")?.let {
+          presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), it))
+          return
+        }
+        when (val result = intent.extras?.getParcelable<GooglePayPaymentMethodLauncher.Result>("paymentResult")) {
+          is GooglePayPaymentMethodLauncher.Result.Completed -> {
+            presentGooglePayPromise?.resolve(createResult("paymentMethod", mapFromPaymentMethod(result.paymentMethod)))
+          }
+          GooglePayPaymentMethodLauncher.Result.Canceled -> {
+            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Google Pay has been canceled"))
+          }
+          is GooglePayPaymentMethodLauncher.Result.Failed -> {
+            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), result.error))
+          }
+        }
+      }
+      if (intent.action == ON_GOOGLE_PAY_RESULT) {
+        intent.extras?.getString("error")?.let {
+          presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), it))
+          return
+        }
+        when (val result = intent.extras?.getParcelable<GooglePayLauncher.Result>("paymentResult")) {
+          GooglePayLauncher.Result.Completed -> {
+            presentGooglePayPromise?.resolve(WritableNativeMap())
+          }
+          GooglePayLauncher.Result.Canceled -> {
+            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Google Pay has been canceled"))
+          }
+          is GooglePayLauncher.Result.Failed -> {
+            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), result.error))
+          }
+        }
+      }
+    }
   }
 
   private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -241,6 +293,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
     this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
 
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_RESULT))
+    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAYMENT_METHOD_RESULT))
+
     promise.resolve(null)
   }
 
@@ -252,30 +309,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       promise.resolve(createError("Failed", "Activity doesn't exist"))
       return
     }
-    val customFlow = getBooleanOrNull(params, "customFlow") ?: false
-    val customerId = getValOr(params, "customerId")
-    val customerEphemeralKeySecret = getValOr(params, "customerEphemeralKeySecret")
-    val paymentIntentClientSecret = getValOr(params, "paymentIntentClientSecret")
-    val setupIntentClientSecret = getValOr(params, "setupIntentClientSecret")
-    val merchantDisplayName = getValOr(params, "merchantDisplayName")
-    val countryCode = getValOr(params, "merchantCountryCode")
-    val testEnv = getBooleanOrNull(params, "testEnv") ?: false
-    val googlePay = getBooleanOrNull(params, "googlePay") ?: false
 
     this.initPaymentSheetPromise = promise
 
     val fragment = PaymentSheetFragment().also {
-      val bundle = Bundle()
-      bundle.putString("customerId", customerId)
-      bundle.putString("customerEphemeralKeySecret", customerEphemeralKeySecret)
-      bundle.putString("paymentIntentClientSecret", paymentIntentClientSecret)
-      bundle.putString("setupIntentClientSecret", setupIntentClientSecret)
-      bundle.putString("merchantDisplayName", merchantDisplayName)
-      bundle.putString("countryCode", countryCode)
-      bundle.putBoolean("customFlow", customFlow)
-      bundle.putBoolean("testEnv", testEnv)
-      bundle.putBoolean("googlePay", googlePay)
-
+      val bundle = toBundleObject(params)
       it.arguments = bundle
     }
     activity.supportFragmentManager.beginTransaction()
@@ -522,6 +560,54 @@ class StripeSdkModule(reactContext: ReactApplicationContext, cardFieldManager: S
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
   }
+
+  @ReactMethod
+  fun initGooglePay(params: ReadableMap, promise: Promise) {
+    val activity = currentActivity as AppCompatActivity
+    val fragment = GooglePayFragment().also {
+      val bundle = toBundleObject(params)
+      it.arguments = bundle
+    }
+
+    initGooglePayPromise = promise
+
+    activity.supportFragmentManager.beginTransaction()
+      .add(fragment, "google_pay_launch_fragment")
+      .commit()
+  }
+
+  @ReactMethod
+  fun presentGooglePay(params: ReadableMap, promise: Promise) {
+    val clientSecret = getValOr(params, "clientSecret") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
+      return
+    }
+    presentGooglePayPromise = promise
+    if (getBooleanOrFalse(params, "forSetupIntent")) {
+      val currencyCode = getValOr(params, "currencyCode") ?: run {
+        promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
+        return
+      }
+      googlePayFragment?.presentForSetupIntent(clientSecret, currencyCode)
+    } else {
+      googlePayFragment?.presentForPaymentIntent(clientSecret)
+    }
+  }
+
+  @ReactMethod
+  fun createGooglePayPaymentMethod(params: ReadableMap, promise: Promise) {
+    val currencyCode = getValOr(params, "currencyCode", null) ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
+      return
+    }
+    val amount = getIntOrNull(params, "amount") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide amount"))
+      return
+    }
+    presentGooglePayPromise = promise
+    googlePayFragment?.createPaymentMethod(currencyCode, amount)
+  }
+
 
   /// Check paymentIntent.nextAction is voucher-based payment method.
   /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.

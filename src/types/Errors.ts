@@ -60,3 +60,9 @@ export interface StripeError<T> {
   stripeErrorCode?: string;
   type?: ErrorType;
 }
+
+export enum GooglePayError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+  Unknown = 'Unknown',
+}

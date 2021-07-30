@@ -25,6 +25,7 @@ app.use(
     if (req.originalUrl === '/webhook') {
       next();
     } else {
+      /* @ts-ignore */
       bodyParser.json()(req, res, next);
     }
   }
@@ -339,6 +340,7 @@ app.post('/create-setup-intent', async (req, res) => {
 app.post(
   '/webhook',
   // Use body-parser to retrieve the raw body as a buffer.
+  /* @ts-ignore */
   bodyParser.raw({ type: 'application/json' }),
   async (req: express.Request, res: express.Response): Promise<void> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
