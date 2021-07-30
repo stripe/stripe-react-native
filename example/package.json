@@ -36,6 +36,6 @@
     "express": "^4.17.1",
     "metro-react-native-babel-preset": "^0.59.0",
     "path": "^0.12.7",
-    "stripe": "^8.0.1"
+    "stripe": "^8.161.0"
   }
 }

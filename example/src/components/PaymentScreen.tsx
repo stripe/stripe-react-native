@@ -18,7 +18,8 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
         await initStripe({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'stripe-example',
+          urlScheme:
+            paymentMethod === 'wechat_pay' ? undefined : 'stripe-example',
           setUrlSchemeOnAndroid: true,
         });
         setLoading(false);

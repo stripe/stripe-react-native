@@ -296,6 +296,7 @@ class Mappers {
             case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
+            case "WeChatPay": return STPPaymentMethodType.weChatPay
             default: return STPPaymentMethodType.unknown
             }
         }

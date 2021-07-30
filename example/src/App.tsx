@@ -31,6 +31,7 @@ import P24PaymentScreen from './screens/P24PaymentScreen';
 import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
 import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
+import WeChatPaymentScreen from './screens/WeChatPaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -150,6 +151,10 @@ export default function App() {
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
             component={AfterpayClearpayPaymentScreen}
+          />
+          <Stack.Screen
+            name="WeChatPaymentScreen"
+            component={WeChatPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

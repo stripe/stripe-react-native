@@ -17,6 +17,25 @@ describe('Example app payments scenarios (common)', () => {
     driver.reloadSession();
   });
 
+  it('WeChat pay payment scenario', function () {
+    this.retries(2);
+    homeScreen.goTo('Wallets');
+    homeScreen.goTo('WeChat Pay');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+
+    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+
+    const message = driver.isAndroid
+      ? 'WeChatPay registerApp fails'
+      : 'This PaymentIntent action requires an app, but the app is not either not installed or the request to open the app was denied.';
+    const alert = getElementByText(message);
+    alert.waitForDisplayed({
+      timeout: 10000,
+    });
+    expect(alert.getText()).toEqual(message);
+  });
+
   it('BECS direct payment scenario', function () {
     this.retries(2);
     homeScreen.goTo('Bank Debits');

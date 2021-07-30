@@ -60,6 +60,10 @@ function getKeys(payment_method?: string) {
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MX;
       secret_key = process.env.STRIPE_SECRET_KEY_MX;
       break;
+    case 'wechat_pay':
+      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_WECHAT;
+      secret_key = process.env.STRIPE_SECRET_KEY_WECHAT;
+      break;
     default:
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY;
       secret_key = process.env.STRIPE_SECRET_KEY;
@@ -83,12 +87,14 @@ app.post(
       currency,
       request_three_d_secure,
       payment_method_types = [],
+      client = 'ios',
     }: {
       email: string;
       items: Order;
       currency: string;
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
+      client: 'ios' | 'android';
     } = req.body;
 
     const { secret_key } = getKeys(payment_method_types[0]);
@@ -111,14 +117,17 @@ app.post(
         sofort: {
           preferred_language: 'en',
         },
+        wechat_pay: {
+          app_id: 'wx65907d6307c3827d',
+          client: client,
+        },
       },
       payment_method_types: payment_method_types,
     };
 
     try {
-      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-        params
-      );
+      const paymentIntent: Stripe.PaymentIntent =
+        await stripe.paymentIntents.create(params);
       // Send publishable key and PaymentIntent client_secret to client.
       res.send({
         clientSecret: paymentIntent.client_secret,
@@ -187,9 +196,8 @@ app.post(
       customer: customers.data[0].id,
     };
 
-    const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-      params
-    );
+    const paymentIntent: Stripe.PaymentIntent =
+      await stripe.paymentIntents.create(params);
 
     // Send publishable key and PaymentIntent client_secret to client.
     res.send({
