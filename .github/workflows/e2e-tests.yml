@@ -60,9 +60,9 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          cores: 2
+          cores: 3
           arch: x86_64
-          ram-size: 8192M
+          ram-size: 4096M
           target: google_apis
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -79,8 +79,8 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          cores: 2
-          ram-size: 8192M
+          cores: 3
+          ram-size: 4096M
           script: |
             yarn run-example-android
             sleep 15
