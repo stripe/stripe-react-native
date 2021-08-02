@@ -11,6 +11,8 @@ import com.facebook.react.uimanager.annotations.ReactProp
 class CardFormViewManager : SimpleViewManager<CardFormView>() {
   override fun getName() = "CardForm"
 
+  private var reactContextRef: ThemedReactContext? = null
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
       CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
@@ -54,7 +56,17 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFormView(reactContext)
 
+    reactContextRef = reactContext
+
     stripeSdkModule?.cardFormView = view
     return view
+  }
+
+  override fun onDropViewInstance(view: CardFormView) {
+    super.onDropViewInstance(view)
+
+    val stripeSdkModule: StripeSdkModule? = reactContextRef?.getNativeModule(StripeSdkModule::class.java)
+    stripeSdkModule?.cardFormView = null
+    reactContextRef = null
   }
 }

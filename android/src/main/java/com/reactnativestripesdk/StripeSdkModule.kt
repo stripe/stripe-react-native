@@ -372,12 +372,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
-    val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"))
-
     val cardParams = (cardFieldView?.cardParams ?: cardFormView?.cardParams) ?: run {
       promise.resolve(createError("Failed", "Card details not complete"))
       return
     }
+    val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+
+    val billingDetailsParams = mapToBillingDetails(getMapOrNull(data, "billingDetails"), cardAddress)
+
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
@@ -408,12 +410,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
+    val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+
     val cardParams = CardParams(
       number = cardParamsMap["number"] as String,
       expMonth = cardParamsMap["exp_month"] as Int,
       expYear = cardParamsMap["exp_year"] as Int,
       cvc = cardParamsMap["cvc"] as String,
-      address = mapToAddress(address),
+      address = mapToAddress(address, cardAddress),
       name = getValOr(params, "name", null)
     )
     runBlocking {
@@ -480,8 +484,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     confirmPromise = promise
     confirmPaymentClientSecret = paymentIntentClientSecret
 
-    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
-
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
       return
@@ -504,7 +506,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, cardParams)
+    val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, cardFieldView, cardFormView)
 
     try {
       val activity = currentActivity as ComponentActivity
@@ -544,14 +546,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     confirmSetupIntentPromise = promise
 
-    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
-
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
       return
     }
 
-    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, cardParams)
+    val factory = PaymentMethodCreateParamsFactory(setupIntentClientSecret, params, cardFieldView, cardFormView)
 
     try {
       val activity = currentActivity as ComponentActivity

@@ -12,6 +12,7 @@ import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.stripe.android.databinding.CardMultilineWidgetBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
+import com.stripe.android.model.Address
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardFormView
 import com.stripe.android.view.CardInputListener
@@ -22,6 +23,7 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   var cardParams: PaymentMethodCreateParams.Card? = null
+  var cardAddress: Address? = null
   private val cardFormViewBinding = StripeCardFormViewBinding.bind(cardForm)
   private val multilineWidgetBinding = CardMultilineWidgetBinding.bind(cardFormViewBinding.cardMultilineWidget)
 
@@ -135,11 +137,17 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
           mEventDispatcher?.dispatchEvent(
             CardFormCompleteEvent(id, cardDetails, isValid, dangerouslyGetFullCardDetails))
 
+          cardAddress = Address.Builder()
+            .setPostalCode(it.address?.postalCode)
+            .setCountry(it.address?.country)
+            .build()
+
           val binding = StripeCardFormViewBinding.bind(cardForm)
           binding.cardMultilineWidget.paymentMethodCard?.let { params -> cardParams = params }
         }
       } else {
         cardParams = null
+        cardAddress = null
         mEventDispatcher?.dispatchEvent(
           CardFormCompleteEvent(id, null, isValid, dangerouslyGetFullCardDetails))
       }
