@@ -24,7 +24,7 @@ describe('Example app payments scenarios (android)', () => {
     $('~payment-screen').waitForDisplayed({ timeout: 15000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize();
+    BasicPaymentScreen.authorize({ isFirstTest: true });
     BasicPaymentScreen.checkStatus();
   });
 

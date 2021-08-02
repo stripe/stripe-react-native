@@ -40,8 +40,21 @@ class BasicPaymentScreen {
     driver.pause(5000);
   }
 
-  authorize({ elementType = 'button' } = {}) {
+  authorize({ elementType = 'button', isFirstTest = false } = {}) {
     driver.pause(5000);
+
+    if (isFirstTest) {
+      const accept = getElementByText('Accept & continue');
+      if (accept.isDisplayed()) {
+        accept.click();
+
+        const noThanks = getElementByText('No thanks');
+
+        if (noThanks.isDisplayed()) {
+          noThanks.click();
+        }
+      }
+    }
 
     expect(driver.getContexts()[1]).toBeTruthy();
 
