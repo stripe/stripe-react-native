@@ -120,6 +120,7 @@ describe('Example app payments scenarios (android)', () => {
       bankName: 'Knab',
       buttonText: 'Save',
     });
+
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
