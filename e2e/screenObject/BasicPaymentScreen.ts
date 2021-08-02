@@ -43,19 +43,6 @@ class BasicPaymentScreen {
   authorize({ elementType = 'button' } = {}) {
     driver.pause(5000);
 
-    // if (isFirstTest) {
-    //   const accept = getElementByText('Accept & continue');
-    //   if (accept.isDisplayed()) {
-    //     accept.click();
-
-    //     const noThanks = getElementByText('No thanks');
-
-    //     if (noThanks.isDisplayed()) {
-    //       noThanks.click();
-    //     }
-    //   }
-    // }
-
     expect(driver.getContexts()[1]).toBeTruthy();
 
     driver.switchContext(driver.getContexts()[2] ?? driver.getContexts()[1]);
