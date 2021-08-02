@@ -70,7 +70,6 @@ jobs:
           script: echo "Generated AVD snapshot for caching."
 
       - name: Run Android Emulator and app
-        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
