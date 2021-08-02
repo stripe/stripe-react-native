@@ -53,14 +53,14 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-30
+          key: avd-29
 
       - name: create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
-          arch: x86_64
+          api-level: 29
+          arch: x86
           cores: 2
           ram-size: 4096M
           target: google_apis
@@ -72,9 +72,9 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 29
+          arch: x86
           target: google_apis
-          arch: x86_64
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
