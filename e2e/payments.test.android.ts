@@ -148,7 +148,7 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Afterpay/Clearpay payment scenario', () => {
+  it.only('Afterpay/Clearpay payment scenario', () => {
     homeScreen.goTo('Buy now pay later');
     homeScreen.goTo('Afterpay and Clearpay');
 
