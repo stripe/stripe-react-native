@@ -50,7 +50,7 @@ exports.config = {
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.20.2',
+      appiumVersion: '1.21.0',
       platformVersion: '',
       platformName: 'Android',
       deviceName: '',
@@ -59,6 +59,7 @@ exports.config = {
       chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
       noReset: true,
+      enableWebviewDetailsCollection: true,
     },
   ],
 };

@@ -17,7 +17,7 @@ describe('Example app payments scenarios (android)', () => {
   });
 
   it('Bancontact payment scenario', function () {
-    this.retries(2);
+    this.retries(3);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact Payment');
 
@@ -153,7 +153,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Afterpay and Clearpay');
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize('a');
+    BasicPaymentScreen.authorize({ elementType: 'a' });
     BasicPaymentScreen.checkStatus();
   });
 

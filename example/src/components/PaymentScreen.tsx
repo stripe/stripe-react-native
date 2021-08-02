@@ -6,9 +6,14 @@ import { fetchPublishableKey } from '../helpers';
 
 interface Props {
   paymentMethod?: string;
+  onInit?(): void;
 }
 
-const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
+const PaymentScreen: React.FC<Props> = ({
+  paymentMethod,
+  children,
+  onInit,
+}) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,10 +23,12 @@ const PaymentScreen: React.FC<Props> = ({ paymentMethod, children }) => {
         await initStripe({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'stripe-example',
+          urlScheme:
+            paymentMethod === 'wechat_pay' ? undefined : 'stripe-example',
           setUrlSchemeOnAndroid: true,
         });
         setLoading(false);
+        onInit?.();
       }
     }
     initialize();
