@@ -62,7 +62,7 @@ jobs:
           api-level: 30
           cores: 3
           arch: x86_64
-          ram-size: 4096M
+          ram-size: 8192M
           target: google_apis
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -80,7 +80,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           cores: 3
-          ram-size: 4096M
+          ram-size: 8192M
           script: |
             yarn run-example-android
             sleep 15
