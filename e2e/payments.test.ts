@@ -28,7 +28,7 @@ describe('Example app payments scenarios (common)', () => {
 
     const message = driver.isAndroid
       ? 'WeChatPay registerApp fails'
-      : 'This PaymentIntent action requires an app, but the app is not either not installed or the request to open the app was denied.';
+      : 'This PaymentIntent action requires an app, but the app is not installed or the request to open the app was denied.';
     const alert = getElementByText(message);
     alert.waitForDisplayed({
       timeout: 10000,
