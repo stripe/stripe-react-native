@@ -10,7 +10,9 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.MaterialShapeDrawable
+import com.reactnativestripesdk.databinding.PayWithGooglepayButtonNoShadowBinding
 import com.stripe.android.databinding.CardMultilineWidgetBinding
+import com.stripe.android.databinding.CountryAutocompleteViewBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
 import com.stripe.android.model.Address
 import com.stripe.android.model.PaymentMethodCreateParams
@@ -103,6 +105,15 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   fun setCardStyle(value: ReadableMap) {
     val binding = StripeCardFormViewBinding.bind(cardForm)
     val backgroundColor = getValOr(value, "backgroundColor", null)
+    val textColor = getValOr(value, "textColor", null)
+
+    textColor?.let {
+      multilineWidgetBinding.etCardNumber.setTextColor(Color.parseColor(it))
+      multilineWidgetBinding.etPostalCode.setTextColor(Color.parseColor(it))
+      multilineWidgetBinding.etExpiry.setTextColor(Color.parseColor(it))
+      multilineWidgetBinding.etCvc.setTextColor(Color.parseColor(it))
+      binding.postalCode.setTextColor(Color.parseColor(it))
+    }
 
     binding.cardMultilineWidgetContainer.background = MaterialShapeDrawable().also { shape ->
       shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
