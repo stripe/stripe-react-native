@@ -4,6 +4,8 @@ import Stripe
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     public var cardFieldView: CardFieldView? = nil
+    public var cardFormView: CardFormView? = nil
+
     var merchantIdentifier: String? = nil
     
     private var paymentSheet: PaymentSheet?
@@ -214,9 +216,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-
         var paymentMethodParams: STPPaymentMethodParams?
-        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
+        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
         
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
@@ -456,7 +457,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         var paymentMethodParams: STPPaymentMethodParams?
-        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
+        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
         
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
@@ -549,7 +550,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(confirmPayment:data:options:resolver:rejecter:)
     func confirmPayment(
         paymentIntentClientSecret: String,
@@ -585,7 +586,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         } else {
             var paymentMethodParams: STPPaymentMethodParams?
             var paymentMethodOptions: STPConfirmPaymentMethodOptions?
-            let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView)
+            let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
             
             do {
                 paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)

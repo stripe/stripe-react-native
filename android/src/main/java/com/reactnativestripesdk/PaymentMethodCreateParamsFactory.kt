@@ -6,10 +6,10 @@ import com.stripe.android.model.*
 class PaymentMethodCreateParamsFactory(
   private val clientSecret: String,
   private val params: ReadableMap,
-  cardParams: PaymentMethodCreateParams.Card?
+  private val cardFieldView: StripeSdkCardView?,
+  private val cardFormView: CardFormView?,
 ) {
-  private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"))
-  private val cardParams = cardParams
+  private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"), cardFieldView?.cardAddress ?: cardFormView?.cardAddress)
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
@@ -94,6 +94,8 @@ class PaymentMethodCreateParamsFactory(
     val paymentMethodId = getValOr(params, "paymentMethodId", null)
     val token = getValOr(params, "token", null)
 
+    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
+
     if (cardParams == null && paymentMethodId == null && token == null) {
       throw PaymentMethodCreateParamsException("Card details not complete")
     }
@@ -116,6 +118,7 @@ class PaymentMethodCreateParamsFactory(
       if (token != null) {
         card = PaymentMethodCreateParams.Card.create(token)
       }
+
       val paymentMethodCreateParams = PaymentMethodCreateParams.create(card!!, billingDetailsParams)
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
@@ -161,8 +164,12 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
+    val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
+      ?: throw PaymentMethodCreateParamsException("Card details not complete")
+
     val paymentMethodCreateParams =
-      PaymentMethodCreateParams.create(cardParams!!, billingDetailsParams)
+      PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
+
     return ConfirmSetupIntentParams
       .create(paymentMethodCreateParams, clientSecret)
   }

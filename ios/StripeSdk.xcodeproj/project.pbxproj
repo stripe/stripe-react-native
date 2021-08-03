@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		24172CD126284587005FB3C6 /* CardFieldDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24172CD026284587005FB3C6 /* CardFieldDelegate.swift */; };
+		243A967D269C223B0037175A /* CardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243A967C269C223B0037175A /* CardFormView.swift */; };
+		243A967F269C22530037175A /* CardFormViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243A967E269C22530037175A /* CardFormViewManager.swift */; };
+		243A9681269C226A0037175A /* CardFormViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 243A9680269C226A0037175A /* CardFormViewManager.m */; };
 		247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */; };
 		2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */; };
 		2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */; };
@@ -36,6 +39,9 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libStripeSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStripeSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		24172CD026284587005FB3C6 /* CardFieldDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldDelegate.swift; sourceTree = "<group>"; };
+		243A967C269C223B0037175A /* CardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFormView.swift; sourceTree = "<group>"; };
+		243A967E269C22530037175A /* CardFormViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFormViewManager.swift; sourceTree = "<group>"; };
+		243A9680269C226A0037175A /* CardFormViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CardFormViewManager.m; sourceTree = "<group>"; };
 		247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodFactory.swift; sourceTree = "<group>"; };
 		2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayButtonManager.swift; sourceTree = "<group>"; };
 		2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ApplePayButtonManager.m; sourceTree = "<group>"; };
@@ -72,6 +78,9 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				243A9680269C226A0037175A /* CardFormViewManager.m */,
+				243A967E269C22530037175A /* CardFormViewManager.swift */,
+				243A967C269C223B0037175A /* CardFormView.swift */,
 				24EA331B26244898007AF858 /* BECSDebitFormManager.m */,
 				24EA32E5262446E6007AF858 /* BECSDebitFormView.swift */,
 				24EA32E2262446DC007AF858 /* BECSDebitFormManager.swift */,
@@ -146,11 +155,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				243A967D269C223B0037175A /* CardFormView.swift in Sources */,
 				24172CD126284587005FB3C6 /* CardFieldDelegate.swift in Sources */,
 				24FF2C37256530F9002FF847 /* CardFieldManager.swift in Sources */,
 				24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */,
 				24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */,
 				24EA331C26244898007AF858 /* BECSDebitFormManager.m in Sources */,
+				243A967F269C22530037175A /* CardFormViewManager.swift in Sources */,
 				2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */,
 				247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */,
 				2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */,
@@ -158,6 +169,7 @@
 				249BA096256CF67B00B32764 /* UIColorExtension.swift in Sources */,
 				2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */,
 				24EA32E3262446DC007AF858 /* BECSDebitFormManager.swift in Sources */,
+				243A9681269C226A0037175A /* CardFormViewManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

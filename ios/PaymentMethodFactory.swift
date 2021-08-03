@@ -5,11 +5,13 @@ class PaymentMethodFactory {
     var billingDetailsParams: STPPaymentMethodBillingDetails? = nil
     var params: NSDictionary? = nil
     var cardFieldView: CardFieldView? = nil
-    
-    init(params: NSDictionary, cardFieldView: CardFieldView?) {
+    var cardFormView: CardFormView? = nil
+
+    init(params: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
         self.billingDetailsParams = Mappers.mapToBillingDetails(billingDetails: params["billingDetails"] as? NSDictionary)
         self.params = params
         self.cardFieldView = cardFieldView
+        self.cardFormView = cardFormView
     }
     
     func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
@@ -130,17 +132,35 @@ class PaymentMethodFactory {
             methodParams.token = RCTConvert.nsString(token)
             return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: nil)
         }
-        guard let cardParams = cardFieldView?.cardParams else {
+        
+        guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             throw PaymentMethodError.cardPaymentMissingParams
         }
-        if let postalCode = cardFieldView?.cardPostalCode {
-            if (billingDetailsParams == nil) {
-                let bd = STPPaymentMethodBillingDetails()
-                bd.address = STPPaymentMethodAddress()
-                bd.address?.postalCode = postalCode
-                billingDetailsParams = bd
-            } else {
-                billingDetailsParams?.address?.postalCode = postalCode
+        
+        if cardFieldView?.cardParams != nil {
+            if let postalCode = cardFieldView?.cardPostalCode{
+                if (billingDetailsParams == nil) {
+                    let bd = STPPaymentMethodBillingDetails()
+                    bd.address = STPPaymentMethodAddress()
+                    bd.address?.postalCode = postalCode
+                    billingDetailsParams = bd
+                } else {
+                    billingDetailsParams?.address?.postalCode = postalCode
+                }
+            }
+        }
+        if cardFormView?.cardParams != nil {
+            if let address = cardFormView?.cardForm?.cardParams?.billingDetails?.address {
+                if (billingDetailsParams == nil) {
+                    let bd = STPPaymentMethodBillingDetails()
+                    bd.address = STPPaymentMethodAddress()
+                    bd.address?.postalCode = address.postalCode
+                    bd.address?.country = address.country
+                    billingDetailsParams = bd
+                } else {
+                    billingDetailsParams?.address?.postalCode = address.postalCode
+                    billingDetailsParams?.address?.country = address.country
+                }
             }
         }
         

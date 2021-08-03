@@ -394,21 +394,31 @@ fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
   return if (map.hasKey(key)) map.getString(key) else default
 }
 
-internal fun mapToAddress(addressMap: ReadableMap?): Address? {
+internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Address? {
   if (addressMap == null) {
     return null
   }
-  return Address.Builder()
+  val address = Address.Builder()
     .setPostalCode(getValOr(addressMap, "postalCode"))
     .setCity(getValOr(addressMap, "city"))
     .setCountry(getValOr(addressMap, "country"))
     .setLine1(getValOr(addressMap, "line1"))
     .setLine2(getValOr(addressMap, "line2"))
     .setState(getValOr(addressMap, "state"))
-    .build()
+
+    cardAddress?.let { ca ->
+      ca.postalCode?.let {
+        address.setPostalCode(it)
+      }
+      ca.country?.let {
+        address.setCountry(it)
+      }
+    }
+
+  return address.build()
 }
 
-internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.BillingDetails? {
+internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Address?): PaymentMethod.BillingDetails? {
   if (billingDetails == null) {
     return null
   }
@@ -419,10 +429,18 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?): PaymentMethod.Bi
     .setLine1(getValOr(billingDetails, "addressLine1"))
     .setLine2(getValOr(billingDetails, "addressLine2"))
     .setState(getValOr(billingDetails, "addressState"))
-    .build()
+
+    cardAddress?.let { ca ->
+      ca.postalCode?.let {
+        address.setPostalCode(it)
+      }
+      ca.country?.let {
+        address.setCountry(it)
+      }
+    }
 
   return PaymentMethod.BillingDetails.Builder()
-    .setAddress(address)
+    .setAddress(address.build())
     .setName(getValOr(billingDetails, "name"))
     .setPhone(getValOr(billingDetails, "phone"))
     .setEmail(getValOr(billingDetails, "email"))

@@ -13,6 +13,7 @@ export {
   Props as StripeProviderProps,
 } from './components/StripeProvider';
 export { CardField, Props as CardFieldProps } from './components/CardField';
+export { CardForm, Props as CardFormProps } from './components/CardForm';
 export {
   ApplePayButton,
   Props as ApplePayButtonProps,
