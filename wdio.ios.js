@@ -53,8 +53,7 @@ exports.config = {
       platformVersion: '14.4',
       platformName: 'iOS',
       deviceName: 'iPhone 12',
-      app:
-        'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
+      app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
     },
   ],

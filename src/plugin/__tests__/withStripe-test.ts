@@ -12,10 +12,8 @@ jest.mock(
   { virtual: true }
 );
 
-const {
-  getMainApplicationOrThrow,
-  readAndroidManifestAsync,
-} = AndroidConfig.Manifest;
+const { getMainApplicationOrThrow, readAndroidManifestAsync } =
+  AndroidConfig.Manifest;
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');

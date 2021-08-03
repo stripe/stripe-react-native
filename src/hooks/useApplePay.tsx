@@ -22,9 +22,7 @@ export interface Props {
    */
   onShippingMethodSelected?: (
     shippingMethod: ApplePay.ShippingMethod,
-    handler: (
-      summaryItems: ApplePay.CartSummaryItem[]
-    ) => Promise<{
+    handler: (summaryItems: ApplePay.CartSummaryItem[]) => Promise<{
       error?: StripeError<ApplePayError>;
     }>
   ) => void;

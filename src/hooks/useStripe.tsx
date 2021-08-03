@@ -179,9 +179,10 @@ export function useStripe() {
     []
   );
 
-  const _confirmPaymentSheetPayment = useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
-    return confirmPaymentSheetPayment();
-  }, []);
+  const _confirmPaymentSheetPayment =
+    useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {
+      return confirmPaymentSheetPayment();
+    }, []);
 
   const _handleURLCallback = useCallback(
     async (url: string): Promise<boolean> => {
