@@ -130,18 +130,15 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       blur,
     }));
 
-    // const onFocusHandler = useCallback(
-    //   (event) => {
-    //     const { focusedField } = event.nativeEvent;
-    //     if (focusedField) {
-    //       TextInputState.focusInput(inputRef.current);
-    //       onFocus?.(focusedField);
-    //     } else {
-    //       onBlur?.();
-    //     }
-    //   },
-    //   [onFocus, onBlur]
-    // );
+    const onFocusHandler = useCallback((event) => {
+      const { focusedField } = event.nativeEvent;
+      if (focusedField) {
+        TextInputState.focusInput(inputRef.current);
+        // onFocus?.(focusedField);
+      } else {
+        // onBlur?.();
+      }
+    }, []);
 
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
@@ -173,7 +170,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
         //   cvc: placeholder?.cvc,
         //   postalCode: placeholder?.postalCode,
         // }}
-        // onFocusChange={onFocusHandler}
+        onFocusChange={onFocusHandler}
         // postalCodeEnabled={postalCodeEnabled}
         {...props}
       />
