@@ -115,7 +115,6 @@ describe('Example app payments scenarios (common)', () => {
 
   it('Card payment using webhooks scenario', function () {
     this.retries(2);
-
     homeScreen.goTo('Accept a payment');
     homeScreen.goTo('Card element only');
 
