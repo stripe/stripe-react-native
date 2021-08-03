@@ -38,16 +38,30 @@ jobs:
         run: |
           yarn bootstrap
 
+      - name: Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 28
-          target: google_apis
+          api-level: 30
           arch: x86
+          target: google_apis
+          force-avd-creation: false
+          disable-animations: true
+          cores: 2
+          ram-size: 4096M
           script: |
             yarn run-example-android
             sleep 15
+            adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
             node ./run-appium-tests.js android
+
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
         with:
