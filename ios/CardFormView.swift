@@ -20,7 +20,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         let style = self.cardStyle["type"] as? String == "borderless" ? STPCardFormViewStyle.borderless : STPCardFormViewStyle.standard
         let _cardForm = STPCardFormView(style: style)
         _cardForm.delegate = self
-        _cardForm.isUserInteractionEnabled = isUserInteractionEnabledValue
+        // _cardForm.isUserInteractionEnabled = isUserInteractionEnabledValue
         
         if autofocus == true {
             let _ = _cardForm.becomeFirstResponder()
@@ -74,9 +74,9 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         if let backgroundColor = cardStyle["backgroundColor"] as? String {
             cardForm?.backgroundColor = UIColor(hexString: backgroundColor)
         }
-        if let disabledBackgroundColor = cardStyle["disabledBackgroundColor"] as? String {
-            cardForm?.disabledBackgroundColor = UIColor(hexString: disabledBackgroundColor)
-        }
+        // if let disabledBackgroundColor = cardStyle["disabledBackgroundColor"] as? String {
+        //     cardForm?.disabledBackgroundColor = UIColor(hexString: disabledBackgroundColor)
+        // }
     }
     
     override init(frame: CGRect) {

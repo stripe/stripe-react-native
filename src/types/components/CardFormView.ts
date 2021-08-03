@@ -24,8 +24,8 @@ export namespace CardFormView {
 
   export interface Styles {
     backgroundColor?: string;
-    disabledBackgroundColor?: string;
-    type?: 'borderless' | 'standard';
+    // disabledBackgroundColor?: string;
+    // type?: 'borderless' | 'standard';
   }
 
   export interface Placeholders {
@@ -38,7 +38,7 @@ export namespace CardFormView {
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     autofocus?: boolean;
-    isUserInteractionEnabledValue?: boolean;
+    // isUserInteractionEnabledValue?: boolean;
     cardStyle?: Styles;
     // placeholder: Placeholders;
     // postalCodeEnabled: boolean;

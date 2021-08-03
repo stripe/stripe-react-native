@@ -144,6 +144,4 @@ const styles = StyleSheet.create({
 
 const inputStyles: CardFormView.Styles = {
   backgroundColor: '#FFFFFF',
-  disabledBackgroundColor: '#c0c0c0',
-  type: 'standard',
 };
