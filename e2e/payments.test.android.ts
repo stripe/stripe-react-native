@@ -155,7 +155,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Afterpay and Clearpay');
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize({ elementType: 'a' });
+    BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
     BasicPaymentScreen.checkStatus();
   });
 

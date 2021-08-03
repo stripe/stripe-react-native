@@ -40,8 +40,8 @@ class BasicPaymentScreen {
     driver.pause(5000);
   }
 
-  authorize({ elementType = 'button' } = {}) {
-    driver.pause(5000);
+  authorize({ elementType = 'button', pause = 5000 } = {}) {
+    driver.pause(pause);
 
     expect(driver.getContexts()[1]).toBeTruthy();
 
