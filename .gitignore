@@ -63,4 +63,4 @@ dist/
 .env
 
 # Docs
-docs/api-reference/
+# docs/api-reference/
