@@ -69,6 +69,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Multiline Card element only"
+              onPress={() => {
+                navigation.navigate('MultilineWebhookPaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
@@ -277,11 +285,31 @@ export default function HomeScreen() {
               />
             </View>
           )}
+
           <View style={styles.buttonContainer}>
             <Button
               title="GrabPay"
               onPress={() => {
                 navigation.navigate('GrabPayPaymentScreen');
+              }}
+            />
+          </View>
+
+          {Platform.OS === 'android' && (
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Google Pay"
+                onPress={() => {
+                  navigation.navigate('GooglePayScreen');
+                }}
+              />
+            </View>
+          )}
+          <View style={styles.buttonContainer}>
+            <Button
+              title="WeChat Pay"
+              onPress={() => {
+                navigation.navigate('WeChatPaymentScreen');
               }}
             />
           </View>

@@ -40,12 +40,12 @@ class BasicPaymentScreen {
     driver.pause(5000);
   }
 
-  authorize(elementType = 'button') {
-    driver.pause(5000);
+  authorize({ elementType = 'button', pause = 5000 } = {}) {
+    driver.pause(pause);
 
     expect(driver.getContexts()[1]).toBeTruthy();
 
-    driver.switchContext(driver.getContexts()[1]);
+    driver.switchContext(driver.getContexts()[2] ?? driver.getContexts()[1]);
 
     const button = $(`${elementType}*=Authorize`);
     button.waitForDisplayed({ timeout: 10000 });

@@ -33,6 +33,7 @@ export namespace PaymentMethodCreateParams {
     | GrabPayParams
     | FPXParams
     | AfterpayClearpayParams
+    | WeChatPayParams
     | BancontactParams;
 
   export type BillingDetails = {
@@ -129,6 +130,11 @@ export namespace PaymentMethodCreateParams {
 
   export interface P24Params extends Required<BaseParams> {
     type: 'P24';
+  }
+
+  export interface WeChatPayParams extends BaseParams {
+    type: 'WeChatPay';
+    appId: string;
   }
 
   export interface AuBecsDebitParams {

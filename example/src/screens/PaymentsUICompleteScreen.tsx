@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -46,11 +46,8 @@ export default function PaymentsUICompleteScreen() {
   };
 
   const initialisePaymentSheet = async () => {
-    const {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-    } = await fetchPaymentSheetParams();
+    const { paymentIntent, ephemeralKey, customer } =
+      await fetchPaymentSheetParams();
 
     const { error } = await initPaymentSheet({
       customerId: customer,
@@ -69,16 +66,10 @@ export default function PaymentsUICompleteScreen() {
     }
   };
 
-  useEffect(() => {
+  return (
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    initialisePaymentSheet();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <PaymentScreen>
+    <PaymentScreen onInit={initialisePaymentSheet}>
       <Button
         variant="primary"
         loading={loading}

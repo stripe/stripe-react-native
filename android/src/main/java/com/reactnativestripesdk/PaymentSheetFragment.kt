@@ -41,7 +41,7 @@ class PaymentSheetFragment : Fragment() {
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
-    val countryCode = arguments?.getString("countryCode").orEmpty()
+    val countryCode = arguments?.getString("merchantCountryCode").orEmpty()
     val googlePayEnabled = arguments?.getBoolean("googlePay")
     val testEnv = arguments?.getBoolean("testEnv")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
