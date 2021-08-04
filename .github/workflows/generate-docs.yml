@@ -31,7 +31,7 @@ jobs:
         run: |
           yarn example && yarn
 
-      - name: build docs
+      - name: Build docs
         run: yarn docs
 
       - name: Commit files
@@ -41,6 +41,7 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git commit -m "CI: Automated build push" -a | exit 0
+
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
