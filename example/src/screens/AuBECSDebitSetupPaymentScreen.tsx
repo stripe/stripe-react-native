@@ -10,10 +10,8 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
 export default function AuBECSDebitSetupPaymentScreen() {
-  const [
-    formDetails,
-    setFormDetails,
-  ] = useState<AuBECSDebitFormComponent.FormDetails>();
+  const [formDetails, setFormDetails] =
+    useState<AuBECSDebitFormComponent.FormDetails>();
   const { confirmSetupIntent, loading } = useConfirmSetupIntent();
 
   const createSetupIntentOnBackend = async (customerEmail: string) => {

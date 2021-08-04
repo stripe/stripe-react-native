@@ -14,10 +14,8 @@ type Props = {
 
 export default function PaymentResultScreen({ route }: Props) {
   const [result, setResult] = useState<string>();
-  const [
-    paymentIntentResult,
-    setPaymentIntentResult,
-  ] = useState<PaymentIntent>();
+  const [paymentIntentResult, setPaymentIntentResult] =
+    useState<PaymentIntent>();
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
