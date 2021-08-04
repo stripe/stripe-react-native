@@ -38,8 +38,6 @@ function App() {
 
 Securely collect card information on the client with `CardForm` component.
 
-![CardForm component](./assets/card-form-example.gif 'CardForm component')
-
 Add `CardForm` component to your payment screen. To collect card details you can use `onFormComplete` prop and save received data in component state..
 
 ```tsx
