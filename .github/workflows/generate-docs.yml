@@ -42,7 +42,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -m "CI: Automated build push" -a | exit 0
       - name: Push changes
-        if: github.ref == 'refs/heads/feat/update-docs-workflow'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: feat/update-docs-workflow
+          force: true
