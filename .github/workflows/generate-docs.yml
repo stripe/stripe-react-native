@@ -3,8 +3,6 @@ name: Generate docs
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: ['**']
 
 jobs:
   generate-docs:
