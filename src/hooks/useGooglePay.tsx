@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { GooglePay } from 'src/types';
+import type { GooglePay } from '../types';
 import { useStripe } from './useStripe';
 
 /**
