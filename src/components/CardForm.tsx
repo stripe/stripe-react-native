@@ -39,7 +39,7 @@ export interface Props extends AccessibilityProps {
   // placeholder: CardFormView.Placeholders;
   // onBlur?(): void;
   // onFocus?(focusedField: Nullable<CardFormView.Names>): void;
-  onFormComplete?(card: CardFormView.Details): void;
+  onFormComplete?: (card: CardFormView.Details) => void;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onFormComplete` handler.
    * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
