@@ -40,18 +40,11 @@ function App() {
 
 Before you begin, activate WeChat Pay in the [Dashboard](https://dashboard.stripe.com/account/payments/settings).
 
-Obtain the following values from your app’s detail page in the [WeChat Open Platform](https://open.weixin.qq.com/).
+Next, get the App ID of your app when you registered with the WeChat open platform account. The App ID is a string that begins with `wx` (e.g., `wx65907d6307c3827d`). [Contact Stripe](https://support.stripe.com/contact) with your App ID to set your app up to process WeChat payments.
 
-- **App ID** — A string that begins with `wx` (e.g. `wx65907d6307c3827d`).
-- **App Signature** — A 32-bit MD5 string. Found under the **Development information** section of the app detail page.
-- **Package name** — A Java/Kotlin package name. Found under the **Development information** section of the app detail page.
-- **Contact Stripe** with your App ID in order to set your app up to process WeChat payments.
+## **WeChat SDK Integration**
 
-[Contact Stripe](https://support.stripe.com/contact) with your App ID in order to set your app up to process WeChat payments.
-
-### **WeChat SDK Integration**
-
-## Android
+### Android
 
 In `app/build.gradle`, add these dependencies:
 
@@ -61,7 +54,7 @@ implementation 'com.stripe:stripe-wechatpay:$stripe_sdk_version' // WeChat Pay m
 implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.0'
 ```
 
-## iOS
+### iOS
 
 **Register your custom URL scheme**
 
