@@ -66,9 +66,7 @@ export default function PaymentsUICustomScreen() {
   };
 
   const choosePaymentOption = async () => {
-    const { error, paymentOption } = await presentPaymentSheet({
-      confirmPayment: false,
-    });
+    const { error, paymentOption } = await presentPaymentSheet();
 
     if (error) {
       console.log('error', error);

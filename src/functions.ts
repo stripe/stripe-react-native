@@ -324,13 +324,10 @@ export const initPaymentSheet = async (
   }
 };
 
-export const presentPaymentSheet = async (
-  params?: PaymentSheet.PresentParams
-): Promise<PresentPaymentSheetResult> => {
+export const presentPaymentSheet = 
+  async (): Promise<PresentPaymentSheetResult> => {
   try {
-    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet(
-      params
-    );
+    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet();
     if (error) {
       return {
         error,
