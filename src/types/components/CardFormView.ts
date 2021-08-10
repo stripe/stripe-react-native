@@ -36,6 +36,9 @@ export namespace CardFormView {
     postalCode?: string;
   }
 
+  /**
+   * @ignore
+   */
   export interface NativeProps {
     style?: StyleProp<ViewStyle>;
     autofocus?: boolean;

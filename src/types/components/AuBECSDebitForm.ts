@@ -1,6 +1,9 @@
 import type { NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
 
 export namespace AuBECSDebitFormComponent {
+  /**
+   * @ignore
+   */
   export interface NativeProps {
     companyName: string;
     style?: StyleProp<ViewStyle>;
