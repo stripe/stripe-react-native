@@ -126,7 +126,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve([])
             }
         } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
-            if (!Errors.isSIClientSecretValid(clientSecret: setupIntentClientSecret)) {
+            if (!Errors.isSetiClientSecretValid(clientSecret: setupIntentClientSecret)) {
                 resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`secret` format does not match expected client secret formatting."))
                 return
             }
