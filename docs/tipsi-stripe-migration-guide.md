@@ -1,8 +1,13 @@
 # **Tipsi-stripe migration guide**
 
+## Introduction
+
+`stripe-react-native` is a official replacement for `tipsi-stripe`, provides bunch of functionalities which allows you to build delightful payment experiences using `React Native`.
+In addition to those already available in `tipsi-stripe` we also offer features like [Pre-built payments UI](https://stripe.com/docs/mobile/payments-ui-beta), [Simplified Security](https://stripe.com/docs/security) and [more](https://github.com/stripe/stripe-react-native/tree/feat/tipsi-migration-guide#features)...
+
 ## Usage
 
-`stripe-react-native` library provides two ways of initializing, in order to do this import and use `StripeProvider` component or `initStripe` method.
+`stripe-react-native` library provides two initializing ways, in order to do this you can use either `StripeProvider` component or `initStripe` method.
 Please refer to [documentation](https://github.com/stripe/stripe-react-native#stripe-initialization) for more details.
 
 _before_:
@@ -24,7 +29,7 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 // ...
 
 <StripeProvider
-  publishableKey={publishableKey}
+  publishableKey="publishable_key"
   merchantIdentifier="merchant.identifier"
  >
   // Your app code here
@@ -37,7 +42,7 @@ import { initStripe } from '@stripe/stripe-react-native';
 // ...
 
 initStripe({
-  publishableKey: publishableKey
+  publishableKey: 'publishable_key'
   merchantIdentifier: 'merchant.identifier',
 });
 ```
@@ -80,7 +85,7 @@ import { confirmPayment } from '@stripe/stripe-react-native';
 
 ## Card components
 
-Use these components on your payment screen to securely collect card details from your customers.
+Use below components on your payment screen to securely collect card details from your customers.
 
 _before:_
 
@@ -426,7 +431,7 @@ const { error } = await confirmApplePayPayment('client_secret');
 #### how to accept payments using Google Pay.
 
 _before:_
-Use the same API as for [ApplePay](#apple-pay)
+The same API as for [ApplePay](#apple-pay)
 
 _after:_
 As against to `tipsi-stripe`, `stripe-react-native` provide separate API for GooglePay, please refer to the [documentation](https://github.com/stripe/stripe-react-native/blob/master/docs/GooglePay.md) for more details.
