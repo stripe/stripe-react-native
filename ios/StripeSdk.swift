@@ -60,7 +60,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.merchantIdentifier = merchantIdentifier
         resolve(NSNull())
     }
-    
+
     @objc(initPaymentSheet:resolver:rejecter:)
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
@@ -111,6 +111,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         
         if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
+            if (!Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret)) {
+                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`secret` format does not match expected client secret formatting."))
+                return
+            }
+            
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
                                                    configuration: configuration) { [weak self] result in
@@ -121,6 +126,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve([])
             }
         } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
+            if (!Errors.isSIClientSecretValid(clientSecret: setupIntentClientSecret)) {
+                resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`secret` format does not match expected client secret formatting."))
+                return
+            }
+            
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(setupIntentClientSecret: setupIntentClientSecret,
                                                    configuration: configuration) { [weak self] result in
@@ -183,7 +193,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                     case .canceled:
                         resolve(Errors.createError(PaymentSheetErrorType.Canceled.rawValue, "The payment has been canceled"))
                     case .failed(let error):
-                        resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription))
+                        resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error as NSError))
                     }
                 }
             }
