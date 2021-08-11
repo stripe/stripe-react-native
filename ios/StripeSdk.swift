@@ -95,7 +95,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
             switch result {
             case .failure(let error):
-                resolve(Errors.createError("Failed", error.localizedDescription))
+                resolve(Errors.createError("Failed", error as NSError))
             case .success(let paymentSheetFlowController):
                 stripeSdk?.paymentSheetFlowController = paymentSheetFlowController
                 if let paymentOption = stripeSdk?.paymentSheetFlowController?.paymentOption {
