@@ -61,6 +61,8 @@ export default function PaymentsUICompleteScreen() {
     });
     if (!error) {
       setPaymentSheetEnabled(true);
+    } else {
+      Alert.alert(`Error code: ${error.code}`, error.message);
     }
   };
 

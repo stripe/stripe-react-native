@@ -246,6 +246,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         } else {
           presentPaymentSheetPromise?.resolve(WritableNativeMap())
         }
+        presentPaymentSheetPromise = null
       }
       else if (intent.action == ON_INIT_PAYMENT_SHEET) {
         initPaymentSheetPromise?.resolve(WritableNativeMap())
