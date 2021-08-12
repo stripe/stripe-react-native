@@ -82,6 +82,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         if let customerId = params["customerId"] as? String {
             if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
+                if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {
+                    resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`customerEphemeralKeySecret` format does not match expected client secret formatting."))
+                    return
+                }
                 configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
             }
         }

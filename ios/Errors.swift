@@ -38,6 +38,9 @@ class Errors {
 
     static internal let isSetiClientSecretValidRegex: NSRegularExpression? = try? NSRegularExpression(
         pattern: "^seti_[^_]+_secret_[^_]+$", options: [])
+    
+    static internal let isEKClientSecretValidRegex: NSRegularExpression? = try? NSRegularExpression(
+        pattern: "^ek_[^_](.)+$", options: [])
 
     class func isPIClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isPIClientSecretValidRegex?.numberOfMatches(
@@ -47,6 +50,12 @@ class Errors {
     }
     class func isSetiClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isSetiClientSecretValidRegex?.numberOfMatches(
+            in: clientSecret,
+            options: .anchored,
+            range: NSRange(location: 0, length: clientSecret.count))) == 1
+    }
+    class func isEKClientSecretValid(clientSecret: String) -> Bool {
+        return (Errors.isEKClientSecretValidRegex?.numberOfMatches(
             in: clientSecret,
             options: .anchored,
             range: NSRange(location: 0, length: clientSecret.count))) == 1
