@@ -54,6 +54,8 @@ export default function PaymentsUICustomScreen() {
 
       if (!error) {
         setPaymentSheetEnabled(true);
+      } else {
+        Alert.alert(`Error code: ${error.code}`, error.message);
       }
       if (paymentOption) {
         setPaymentMethod(paymentOption);
@@ -71,7 +73,7 @@ export default function PaymentsUICustomScreen() {
     });
 
     if (error) {
-      console.log('error', error);
+      Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentOption) {
       setPaymentMethod({
         label: paymentOption.label,
