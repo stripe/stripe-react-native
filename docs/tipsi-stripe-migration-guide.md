@@ -162,7 +162,7 @@ or
 
 Please note that for PCI compliance reasons all of the sensitive data is sent to the specific methods under the hood and you don’t need to hand it over on your own. This means that in order to proceed any `Card` payment, you have to collect the data using either [CardField](https://stripe.dev/stripe-react-native/api-reference/modules.html#CardField) or [CardForm](https://stripe.dev/stripe-react-native/api-reference/modules.html#CardForm) component provided by `stripe-react-native` library. In this way the personal data is secure, as it is kept confidential from developers.
 
-### createPaymentMethod
+### createPaymentMethod()
 
 Creating a payment method using card details:
 
@@ -428,12 +428,54 @@ const { error } = await confirmApplePayPayment('client_secret');
 
 ## GooglePay
 
-#### how to accept payments using Google Pay.
+### paymentRequestWithNativePay()
 
 _before:_
-The same API as for [ApplePay](#apple-pay)
 
-_after:_
+```tsx
+const token = await stripe.paymentRequestWithNativePay({
+  total_price: '100.00',
+  currency_code: 'USD',
+  shipping_address_required: true,
+  phone_number_required: true,
+  shipping_countries: ['US', 'CA'],
+  line_items: [
+    {
+      currency_code: 'USD',
+      description: 'Whisky',
+      total_price: '50.00',
+      unit_price: '50.00',
+      quantity: '1',
+    },
+  ],
+});
+```
+
+_after:_ [initGooglePay](https://stripe.dev/stripe-react-native/api-reference/modules.html#initGooglePay) and [presentGooglePay](https://stripe.dev/stripe-react-native/api-reference/modules.html#presentGooglePay)
+
+```tsx
+const { error } = await initGooglePay({
+    merchantName: 'Widget Store'
+    countryCode: 'US',
+    billingAddressConfig: {
+      format: 'FULL',
+      isPhoneNumberRequired: true,
+      isRequired: false,
+    },
+    existingPaymentMethodRequired: false,
+    isEmailRequired: true,
+});
+if (error) {
+    // handle error
+    return;
+}
+const { error: presentError } = await presentGooglePay({
+    clientSecret,
+    forSetupIntent: true,
+    currencyCode: 'USD',
+});
+```
+
 As against to `tipsi-stripe`, `stripe-react-native` provide separate API for GooglePay, please refer to the [documentation](https://github.com/stripe/stripe-react-native/blob/master/docs/GooglePay.md) for more details.
 
 ## createTokenWithCard
