@@ -478,7 +478,9 @@ const { error: presentError } = await presentGooglePay({
 
 As against to `tipsi-stripe`, `stripe-react-native` provide separate API for GooglePay, please refer to the [documentation](https://github.com/stripe/stripe-react-native/blob/master/docs/GooglePay.md) for more details.
 
-## createTokenWithCard
+## Create a token
+
+### createTokenWithCard()
 
 Use this method to convert information collected by card components into a single-use [Token](https://stripe.com/docs/api#tokens) that you safely pass to your server to use in an API call.
 
