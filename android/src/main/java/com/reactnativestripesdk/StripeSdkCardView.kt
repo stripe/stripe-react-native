@@ -198,6 +198,12 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   }
 
   private fun setListeners() {
+    mCardWidget.setCardValidCallback { isValid, _ ->
+      if (isValid) {
+        onCardChanged()
+      }
+    }
+
     mCardWidget.setCardInputListener(object : CardInputListener {
       override fun onCardComplete() {}
       override fun onExpirationComplete() {}
