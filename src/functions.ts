@@ -324,24 +324,25 @@ export const initPaymentSheet = async (
   }
 };
 
-export const presentPaymentSheet = 
+export const presentPaymentSheet =
   async (): Promise<PresentPaymentSheetResult> => {
-  try {
-    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet();
-    if (error) {
+    try {
+      const { paymentOption, error } =
+        await NativeStripeSdk.presentPaymentSheet();
+      if (error) {
+        return {
+          error,
+        };
+      }
       return {
-        error,
+        paymentOption: paymentOption,
+      };
+    } catch (error) {
+      return {
+        error: createError(error),
       };
     }
-    return {
-      paymentOption: paymentOption,
-    };
-  } catch (error) {
-    return {
-      error: createError(error),
-    };
-  }
-};
+  };
 
 export const confirmPaymentSheetPayment =
   async (): Promise<ConfirmPaymentSheetPaymentResult> => {

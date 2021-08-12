@@ -170,7 +170,7 @@ export function useStripe() {
     []
   );
 
-  const _presentPaymentSheet = 
+  const _presentPaymentSheet =
     useCallback(async (): Promise<PresentPaymentSheetResult> => {
       return presentPaymentSheet();
     }, []);

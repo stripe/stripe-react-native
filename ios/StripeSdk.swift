@@ -140,7 +140,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func confirmPaymentSheetPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
-            if let paymentSheetFlowController = self.paymentSheetFlowController {
+            if (self.paymentSheetFlowController != nil) {
                 self.paymentSheetFlowController?.confirm(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
                     switch paymentResult {
                     case .completed:
@@ -159,7 +159,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(presentPaymentSheet:resolver:rejecter:)
+    @objc(presentPaymentSheet:rejecter:)
     func presentPaymentSheet(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         
