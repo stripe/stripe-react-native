@@ -51,7 +51,9 @@ import {
  * useStripe hook
  */
 export function useStripe() {
-  const [isApplePaySupported, setApplePaySupported] = useState(false);
+  const [isApplePaySupported, setApplePaySupported] = useState<boolean | null>(
+    null
+  );
 
   useEffect(() => {
     async function checkApplePaySupport() {
