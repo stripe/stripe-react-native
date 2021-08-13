@@ -492,15 +492,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    if (paymentMethodType == PaymentMethod.Type.WeChatPay) {
-      val appId = getValOr(params, "appId") ?: run {
-        promise.resolve(createError("Failed", "You must provide appId"))
-        return
-      }
-      payWithWeChatPay(paymentIntentClientSecret, appId)
-
-      return
-    }
+//    if (paymentMethodType == PaymentMethod.Type.WeChatPay) {
+//      val appId = getValOr(params, "appId") ?: run {
+//        promise.resolve(createError("Failed", "You must provide appId"))
+//        return
+//      }
+//      payWithWeChatPay(paymentIntentClientSecret, appId)
+//
+//      return
+//    }
 
     val factory = PaymentMethodCreateParamsFactory(paymentIntentClientSecret, params, cardFieldView, cardFormView)
 

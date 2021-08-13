@@ -33,7 +33,7 @@ export namespace PaymentMethodCreateParams {
     | GrabPayParams
     | FPXParams
     | AfterpayClearpayParams
-    | WeChatPayParams
+    // | WeChatPayParams
     | BancontactParams;
 
   export type BillingDetails = {
