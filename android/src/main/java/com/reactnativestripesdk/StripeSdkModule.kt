@@ -326,14 +326,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun presentPaymentSheet(params: ReadableMap?, promise: Promise) {
-    val confirmPayment = getBooleanOrNull(params, "confirmPayment")
+  fun presentPaymentSheet(promise: Promise) {
     this.presentPaymentSheetPromise = promise
-    if (confirmPayment == false) {
-      paymentSheetFragment?.presentPaymentOptions()
-    } else {
-      paymentSheetFragment?.present()
-    }
+    paymentSheetFragment?.present()
   }
 
   @ReactMethod

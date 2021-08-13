@@ -20,9 +20,9 @@ export function usePaymentSheet() {
     return result;
   };
 
-  const presentPaymentSheet = async (params: PaymentSheet.PresentParams) => {
+  const presentPaymentSheet = async () => {
     setLoading(true);
-    const result = await presentPaymentSheetNative(params);
+    const result = await presentPaymentSheetNative();
     setLoading(false);
     return result;
   };

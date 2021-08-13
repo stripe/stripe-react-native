@@ -32,9 +32,7 @@ export default function PaymentsUICompleteScreen() {
       return;
     }
     setLoadng(true);
-    const { error } = await presentPaymentSheet({
-      clientSecret,
-    });
+    const { error } = await presentPaymentSheet();
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
