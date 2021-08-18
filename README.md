@@ -75,7 +75,8 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 - Android 5.0 (API level 21) and above
 - Android gradle plugin 4.x and above
 
-_CardForm_
+_Components_
+
 In order to use [CardForm](https://stripe.dev/stripe-react-native/api-reference/modules.html#CardForm) component, you need to install and configure [Material Components theme](https://github.com/material-components/material-components-android/blob/master/docs/getting-started.md#4-change-your-app-theme-to-inherit-from-a-material-components-theme) in your app.
 
 1. Add below dependency to your `app/build.gradle` file with specified version
