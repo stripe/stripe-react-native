@@ -319,7 +319,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             library.openPaymentSetup()
             resolve([])
         } else {
-            resolve(Errors.createError("Failed", "Cannot to open payment setup"))
+            resolve(Errors.createError("Failed", "Cannot open payment setup"))
         }
     }
     
