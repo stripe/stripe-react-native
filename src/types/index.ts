@@ -207,3 +207,11 @@ export type CreateGooglePayPaymentMethodResult =
       paymentMethod?: undefined;
       error: StripeError<GooglePayError>;
     };
+
+export type OpenApplePaySetupResult =
+  | {
+      error?: undefined;
+    }
+  | {
+      error: StripeError<ApplePayError>;
+    };

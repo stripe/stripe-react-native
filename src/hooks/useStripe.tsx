@@ -22,6 +22,7 @@ import type {
   GooglePayInitResult,
   GooglePay,
   CreateGooglePayPaymentMethodResult,
+  OpenApplePaySetupResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -45,6 +46,7 @@ import {
   initGooglePay,
   createGooglePayPaymentMethod,
   presentGooglePay,
+  openApplePaySetup,
 } from '../functions';
 
 /**
@@ -209,10 +211,15 @@ export function useStripe() {
     async (
       params: GooglePay.CreatePaymentMethodParams
     ): Promise<CreateGooglePayPaymentMethodResult> => {
-      return _createGooglePayPaymentMethod(params);
+      return createGooglePayPaymentMethod(params);
     },
     []
   );
+
+  const _openApplePaySetup =
+    useCallback(async (): Promise<OpenApplePaySetupResult> => {
+      return openApplePaySetup();
+    }, []);
 
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
@@ -233,6 +240,7 @@ export function useStripe() {
     createToken: _createToken,
     initGooglePay: _initGooglePay,
     presentGooglePay: _presentGooglePay,
-    createGooglePayPaymentMethod: createGooglePayPaymentMethod,
+    createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
+    openApplePaySetup: _openApplePaySetup,
   };
 }

@@ -25,6 +25,10 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
+                  openApplePaySetup: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
                   updateApplePaySummaryItems:(NSArray *)summaryItems
                   errorAddressFields: (NSArray *)errorAddressFields
                   resolver: (RCTPromiseResolveBlock)resolve
