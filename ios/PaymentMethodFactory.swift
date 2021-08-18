@@ -45,8 +45,8 @@ class PaymentMethodFactory {
                 return try createBECSDebitPaymentMethodParams()
             case STPPaymentMethodType.afterpayClearpay:
                 return try createAfterpayClearpayPaymentMethodParams()
-            case STPPaymentMethodType.weChatPay:
-                return try createWeChatPayPaymentMethodParams()
+//            case STPPaymentMethodType.weChatPay:
+//                return try createWeChatPayPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -96,11 +96,11 @@ class PaymentMethodFactory {
         }
     }
     
-    private func createWeChatPayPaymentMethodParams() throws -> STPPaymentMethodParams {
-        let params = STPPaymentMethodWeChatPayParams()
-        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: nil)
-    }
-    
+//    private func createWeChatPayPaymentMethodParams() throws -> STPPaymentMethodParams {
+//        let params = STPPaymentMethodWeChatPayParams()
+//        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: nil)
+//    }
+//
     private func createWeChatPayPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
         guard let appId = self.params?["appId"] as? String else {
             throw PaymentMethodError.weChatPayPaymentMissingParams
