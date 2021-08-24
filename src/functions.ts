@@ -23,6 +23,7 @@ import {
   StripeError,
   GooglePay,
   CreateGooglePayPaymentMethodResult,
+  OpenApplePaySetupResult,
 } from './types';
 import type { Card } from './types/Card';
 
@@ -411,6 +412,22 @@ export const createGooglePayPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
+  try {
+    const { error } = await NativeStripeSdk.openApplePaySetup();
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {};
   } catch (error) {
     return {
       error: createError(error),

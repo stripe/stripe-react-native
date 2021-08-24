@@ -68,9 +68,10 @@ export function useApplePay({
 }: Props = {}) {
   const {
     isApplePaySupported,
-    presentApplePay: presentApplePayNative,
-    confirmApplePayPayment: confirmApplePayPaymentNative,
+    presentApplePay: _presentApplePay,
+    confirmApplePayPayment: _confirmApplePayPayment,
     updateApplePaySummaryItems,
+    openApplePaySetup: _openApplePaySetup,
   } = useStripe();
   const [items, setItems] = useState<ApplePay.CartSummaryItem[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -129,25 +130,32 @@ export function useApplePay({
     async (params: ApplePay.PresentParams) => {
       setLoading(true);
       setItems(params.cartItems);
-      const result = await presentApplePayNative(params);
+      const result = await _presentApplePay(params);
       if (result.error) {
         setItems(null);
       }
       setLoading(false);
       return result;
     },
-    [presentApplePayNative]
+    [_presentApplePay]
   );
+
+  const openApplePaySetup = useCallback(async () => {
+    setLoading(true);
+    const result = await _openApplePaySetup();
+    setLoading(false);
+    return result;
+  }, [_openApplePaySetup]);
 
   const confirmApplePayPayment = useCallback(
     async (clientSecret: string) => {
       setLoading(true);
-      const result = await confirmApplePayPaymentNative(clientSecret);
+      const result = await _confirmApplePayPayment(clientSecret);
       setItems(null);
       setLoading(false);
       return result;
     },
-    [confirmApplePayPaymentNative]
+    [_confirmApplePayPayment]
   );
 
   return {
@@ -155,5 +163,6 @@ export function useApplePay({
     presentApplePay,
     confirmApplePayPayment,
     isApplePaySupported,
+    openApplePaySetup,
   };
 }
