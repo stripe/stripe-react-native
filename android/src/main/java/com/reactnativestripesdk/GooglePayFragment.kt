@@ -16,6 +16,26 @@ import com.stripe.android.model.StripeIntent
 class GooglePayFragment : Fragment() {
   private var googlePayLauncher: GooglePayLauncher? = null
   private var googlePayMethodLauncher: GooglePayPaymentMethodLauncher? = null
+  private var isGooglePayMethodLauncherReady: Boolean = false
+  private var isGooglePayLauncherReady: Boolean = false
+
+  private fun onGooglePayMethodLauncherReady(isReady: Boolean) {
+    if(isReady) {
+      isGooglePayMethodLauncherReady = true
+      if (isGooglePayLauncherReady) {
+        onGooglePayReady(true)
+      }
+    }
+  }
+
+  private fun onGooglePayLauncherReady(isReady: Boolean) {
+    if(isReady) {
+      isGooglePayLauncherReady = true
+      if (isGooglePayMethodLauncherReady) {
+        onGooglePayReady(true)
+      }
+    }
+  }
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -52,7 +72,7 @@ class GooglePayFragment : Fragment() {
         isEmailRequired = isEmailRequired,
         existingPaymentMethodRequired = existingPaymentMethodRequired
       ),
-      readyCallback = ::onGooglePayReady,
+      readyCallback = ::onGooglePayMethodLauncherReady,
       resultCallback = ::onGooglePayResult
     )
 
@@ -67,7 +87,7 @@ class GooglePayFragment : Fragment() {
         isEmailRequired = isEmailRequired,
         existingPaymentMethodRequired = existingPaymentMethodRequired
       ),
-      readyCallback = ::onGooglePayReady,
+      readyCallback = ::onGooglePayLauncherReady,
       resultCallback = ::onGooglePayResult
     )
 
