@@ -20,20 +20,16 @@ class GooglePayFragment : Fragment() {
   private var isGooglePayLauncherReady: Boolean = false
 
   private fun onGooglePayMethodLauncherReady(isReady: Boolean) {
-    if(isReady) {
-      isGooglePayMethodLauncherReady = true
-      if (isGooglePayLauncherReady) {
-        onGooglePayReady(true)
-      }
+    isGooglePayMethodLauncherReady = true
+    if (isGooglePayLauncherReady) {
+      onGooglePayReady(isReady)
     }
   }
 
   private fun onGooglePayLauncherReady(isReady: Boolean) {
-    if(isReady) {
-      isGooglePayLauncherReady = true
-      if (isGooglePayMethodLauncherReady) {
-        onGooglePayReady(true)
-      }
+    isGooglePayLauncherReady = true
+    if (isGooglePayMethodLauncherReady) {
+      onGooglePayReady(isReady)
     }
   }
 

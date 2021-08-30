@@ -174,7 +174,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         googlePayFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
       }
       if (intent.action == ON_INIT_GOOGLE_PAY) {
-        initGooglePayPromise?.resolve(WritableNativeMap())
+        val isReady = intent.extras?.getBoolean("isReady") ?: false
+
+        if (isReady) {
+          initGooglePayPromise?.resolve(WritableNativeMap())
+        } else {
+          initGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Google Pay is not available on this device"))
+        }
       }
       if (intent.action == ON_GOOGLE_PAYMENT_METHOD_RESULT) {
         intent.extras?.getString("error")?.let {
