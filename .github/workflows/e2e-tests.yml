@@ -54,6 +54,7 @@ jobs:
           target: google_apis
           force-avd-creation: false
           disable-animations: true
+          profile: Nexus 6
           cores: 3
           ram-size: 4096M
           script: |
