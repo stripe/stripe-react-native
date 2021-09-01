@@ -55,7 +55,7 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           cores: 3
-          ram-size: 4096M
+          ram-size: 8192M
           script: |
             yarn run-example-android
             sleep 15
