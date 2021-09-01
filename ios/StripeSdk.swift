@@ -336,6 +336,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
         self.applePayCompletionCallback = completion
+        
+        let address = paymentMethod.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
+        if (address?.indices.contains(0) == true) {
+            paymentMethod.billingDetails?.address?.line1 = String(address?[0] ?? "")
+        }
+        if (address?.indices.contains(1) == true) {
+            paymentMethod.billingDetails?.address?.line2 = String(address?[1] ?? "")
+        }
+        
         let method = Mappers.mapFromPaymentMethod(paymentMethod)
         self.applePayRequestResolver?(Mappers.createResult("paymentMethod", method))
         self.applePayRequestRejecter = nil
