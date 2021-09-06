@@ -15,7 +15,8 @@
     "ios",
     "cpp",
     "app.plugin.js",
-    "stripe-react-native.podspec"
+    "stripe-react-native.podspec",
+    "jest"
   ],
   "scripts": {
     "test": "jest",
