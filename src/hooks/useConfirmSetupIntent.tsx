@@ -7,9 +7,9 @@ import { useStripe } from './useStripe';
  */
 export function useConfirmSetupIntent() {
   const [loading, setLoading] = useState(false);
-  const { confirmSetupIntent: confirmSetupIntentNative } = useStripe();
+  const { confirmSetupIntent: confirmSetupIntent } = useStripe();
 
-  const confirmSetupIntent = useCallback(
+  const _confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
       data: ConfirmSetupIntent.Params,
@@ -17,7 +17,7 @@ export function useConfirmSetupIntent() {
     ) => {
       setLoading(true);
 
-      const result = await confirmSetupIntentNative(
+      const result = await confirmSetupIntent(
         paymentIntentClientSecret,
         data,
         options
@@ -27,11 +27,11 @@ export function useConfirmSetupIntent() {
 
       return result;
     },
-    [confirmSetupIntentNative]
+    [confirmSetupIntent]
   );
 
   return {
-    confirmSetupIntent,
+    confirmSetupIntent: _confirmSetupIntent,
     loading,
   };
 }
