@@ -15,53 +15,15 @@ import {
   findNodeHandle,
   ViewStyle,
 } from 'react-native';
-const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
+import {
+  currentlyFocusedInput,
+  focusInput,
+  registerInput,
+  unregisterInput,
+} from '../helpers';
 
 const CardFieldNative =
   requireNativeComponent<CardFieldInput.NativeProps>('CardField');
-
-const unsupportedMethodMessage = (field: string) =>
-  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x or higher`;
-
-const focusInput = (ref: React.MutableRefObject<any>) => {
-  if ('focusInput' in TextInputState) {
-    TextInputState.focusInput(ref);
-  } else {
-    if (__DEV__) {
-      console.log(unsupportedMethodMessage('focusInput'));
-    }
-  }
-};
-
-const registerInput = (ref: React.MutableRefObject<any>) => {
-  if ('registerInput' in TextInputState) {
-    TextInputState.registerInput(ref);
-  } else {
-    if (__DEV__) {
-      console.log(unsupportedMethodMessage('registerInput'));
-    }
-  }
-};
-
-const unregisterInput = (ref: React.MutableRefObject<any>) => {
-  if ('unregisterInput' in TextInputState) {
-    TextInputState.unregisterInput(ref);
-  } else {
-    if (__DEV__) {
-      console.log(unsupportedMethodMessage('unregisterInput'));
-    }
-  }
-};
-
-const currentlyFocusedInput = () => {
-  if ('currentlyFocusedInput' in TextInputState) {
-    return TextInputState.currentlyFocusedInput();
-  } else {
-    if (__DEV__) {
-      console.log(unsupportedMethodMessage('currentlyFocusedInput'));
-    }
-  }
-};
 
 /**
  *  Card Field Component Props
