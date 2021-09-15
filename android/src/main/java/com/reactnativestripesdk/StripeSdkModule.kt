@@ -301,7 +301,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    val localBroadcastManager = LocalBroadcastManager.getInstance(requireNotNull(this.currentActivity?.baseContext))
+    val localBroadcastManager = LocalBroadcastManager.getInstance(reactApplicationContext)
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
