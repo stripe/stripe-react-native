@@ -1,17 +1,20 @@
 package com.reactnativestripesdk
 
 import android.app.Activity
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.stripe.android.*
@@ -27,6 +30,7 @@ import kotlinx.coroutines.runBlocking
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   var cardFieldView: StripeSdkCardView? = null
   var cardFormView: CardFormView? = null
+  private lateinit var localBroadcastManager: LocalBroadcastManager
 
   override fun getName(): String {
     return "StripeSdk"
@@ -225,7 +229,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
-        when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
+        val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")
+        Log.e("STRIPE", "$ON_PAYMENT_RESULT_ACTION $result")
+        when (result) {
           is PaymentSheetResult.Canceled -> {
             val message = "The payment has been canceled"
             confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
@@ -297,16 +303,17 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
-    this.currentActivity?.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
+    val localBroadcastManager = LocalBroadcastManager.getInstance(requireNotNull(this.currentActivity?.baseContext))
+    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
+    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
+    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
+    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
+    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
 
-    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
-    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
-    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_RESULT))
-    this.currentActivity?.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAYMENT_METHOD_RESULT))
+    localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
+    localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
+    localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_RESULT))
+    localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAYMENT_METHOD_RESULT))
 
     promise.resolve(null)
   }
