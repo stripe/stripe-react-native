@@ -229,9 +229,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
       }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
-        val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")
-        Log.e("STRIPE", "$ON_PAYMENT_RESULT_ACTION $result")
-        when (result) {
+        when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
             val message = "The payment has been canceled"
             confirmPaymentSheetPaymentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
