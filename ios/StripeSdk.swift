@@ -532,19 +532,52 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let address = params["address"] as? NSDictionary
-        
-        if let type = params["type"] as? String {
-            if (type != "Card") {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
-            }
+        guard let type = params["type"] as? String else {
+            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "type parameter is required"))
+            return
         }
+
+        if (type != "Card" && type != "BankAccount") {
+            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
+            return
+        }
+        
+        if (type == "BankAccount") {
+            let accountHolderName = params["accountHolderName"] as? String
+            let accountHolderType = params["accountHolderType"] as? String
+            let accountNumber = params["accountNumber"] as? String
+            let country = params["country"] as? String
+            let currency = params["currency"] as? String
+            let routingNumber = params["routingNumber"] as? String
+
+            let bankAccountParams = STPBankAccountParams()
+            bankAccountParams.accountHolderName = accountHolderName
+            bankAccountParams.accountNumber = accountNumber
+            bankAccountParams.country = country
+            bankAccountParams.currency = currency
+            bankAccountParams.routingNumber = routingNumber
+            
+            if let holderType = Mappers.mapToBankAccountHolderType(accountHolderType) {
+                bankAccountParams.accountHolderType = holderType
+            }
+            
+            STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
+                if let token = token {
+                    resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
+                } else {
+                    resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
+                }
+            }
+            return
+        }
+        
         
         guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
         }
         
+        let address = params["address"] as? NSDictionary
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = cardParams.number
         cardSourceParams.cvc = cardParams.cvc

@@ -24,8 +24,8 @@ import {
   GooglePay,
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
+  CreateTokenParams,
 } from './types';
-import type { Card } from './types/Card';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -55,7 +55,7 @@ export const createPaymentMethod = async (
 };
 
 export const createToken = async (
-  params: Card.CreateTokenParams
+  params: CreateTokenParams
 ): Promise<CreateTokenResult> => {
   try {
     const { token, error } = await NativeStripeSdk.createToken(params);

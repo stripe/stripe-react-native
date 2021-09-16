@@ -215,3 +215,25 @@ export type OpenApplePaySetupResult =
   | {
       error: StripeError<ApplePayError>;
     };
+
+export type CreateTokenParams =
+  | CreateTokenCardParams
+  | CreateTokenBankAccountParams;
+
+export type CreateTokenCardParams = {
+  type: 'Card';
+  address?: Card.Address;
+  name?: string;
+};
+
+export type BankAcccountHolerType = 'company' | 'individual';
+
+export type CreateTokenBankAccountParams = {
+  type: 'BankAccount';
+  accountHolderName: string;
+  accountHolderType: BankAcccountHolerType;
+  accountNumber: string;
+  country: string;
+  currency?: string;
+  routingNumber: string;
+};

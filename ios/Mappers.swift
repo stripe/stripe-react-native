@@ -38,6 +38,17 @@ class Mappers {
         return nil
     }
     
+    class func mapToBankAccountHolderType(_ type: String?) -> STPBankAccountHolderType? {
+        if let type = type {
+            switch type {
+            case "Company": return STPBankAccountHolderType.company
+            case "Individual": return STPBankAccountHolderType.individual
+            default: return nil
+            }
+        }
+        return nil
+    }
+    
     class func mapFromBankAccountStatus(_ status: STPBankAccountStatus?) -> String? {
         if let status = status {
             switch status {
