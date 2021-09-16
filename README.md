@@ -230,7 +230,7 @@ This library includes a built in mock file for Jest.
 In order to use it, add the following code to the Jest setup file:
 
 ```tsx
-import mock from '@stripe/stripe-react-native/jest/stripe-react-native-mock.js';
+import mock from '@stripe/stripe-react-native/jest/mock.js';
 
 jest.mock('@stripe/stripe-react-native', () => mock);
 ```

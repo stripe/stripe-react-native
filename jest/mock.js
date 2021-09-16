@@ -119,10 +119,10 @@ const mockHooks = {
 module.exports = {
   ...mockFunctions,
   ...mockHooks,
-  StripeProvider: jest.fn(({ children }) => children),
-  CardField: jest.fn(() => null),
-  ApplePayButton: jest.fn(() => null),
-  AuBECSDebitForm: jest.fn(() => null),
-  GooglePayButton: jest.fn(() => null),
+  StripeProvider: () => 'StripeProvider',
+  CardField: () => 'CardField',
+  ApplePayButton: () => 'ApplePayButton',
+  AuBECSDebitForm: () => 'AuBECSDebitForm',
+  GooglePayButton: () => 'GooglePayButton',
   useStripe: jest.fn(() => mockHooks),
 };
