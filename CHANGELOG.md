@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.2 - 2021-09-15
+
+- [#588](https://github.com/stripe/stripe-react-native/pull/588) fix: use the LocalBroadcastManager ([#588](https://github.com/stripe/stripe-react-native/issues/588))
+
 ## 0.2.1 - 2021-09-02
 
 - [#548](https://github.com/stripe/stripe-react-native/pull/548) chore: split apple pay address by new line ([#531](https://github.com/stripe/stripe-react-native/issues/531))
