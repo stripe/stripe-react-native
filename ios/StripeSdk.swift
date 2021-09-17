@@ -542,6 +542,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             return
         }
         
+        // TODO: create a service for creating tokens from a difference sources.
         if (type == "BankAccount") {
             let accountHolderName = params["accountHolderName"] as? String
             let accountHolderType = params["accountHolderType"] as? String

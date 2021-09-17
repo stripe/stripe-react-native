@@ -404,13 +404,42 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun createToken(params: ReadableMap, promise: Promise) {
-    val type = getValOr(params, "type", null)?.let {
-      if (it != "Card") {
+    val type = getValOr(params, "type", null)
+    type?.let {
+      if (it != "Card" && it != "BankAccount") {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet"))
         return
       }
     }
-    val address = getMapOrNull(params, "address")
+
+    // TODO: create a service for creating tokens from a difference sources.
+    if (type == "BankAccount") {
+      val accountHolderName = getValOr(params, "accountHolderName")
+      val accountHolderType = getValOr(params, "accountHolderType")
+      val accountNumber = getValOr(params, "accountNumber")
+      val country = getValOr(params, "country")
+      val currency =  getValOr(params, "currency")
+      val routingNumber = getValOr(params, "routingNumber")
+
+      val bankAccountParams = BankAccountTokenParams(
+        country = country!!,
+        currency = currency!!,
+        accountNumber = accountNumber!!,
+        accountHolderName = accountHolderName,
+        routingNumber = routingNumber,
+        accountHolderType = mapToBankAccountType(accountHolderType)
+      )
+
+      runBlocking {
+        try {
+          val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
+          promise.resolve(createResult("token", mapFromToken(token)))
+        } catch (e: Exception) {
+          promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
+        }
+      }
+      return
+    }
 
     val cardParamsMap = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap() ?: run {
       promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
@@ -418,7 +447,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
-
+    val address = getMapOrNull(params, "address")
     val cardParams = CardParams(
       number = cardParamsMap["number"] as String,
       expMonth = cardParamsMap["exp_month"] as Int,
