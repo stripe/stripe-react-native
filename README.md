@@ -224,6 +224,28 @@ Certain payment methods require a [webhook listener](https://stripe.com/docs/pay
 - Run `stripe listen --forward-to localhost:4242/webhook`
 - The CLI will print a webhook secret (such as, `whsec_***`) to the console. Set STRIPE_WEBHOOK_SECRET to this value in your `example/.env` file.
 
+## Testing
+
+This library includes a built in mock file for Jest.
+In order to use it, add the following code to the Jest setup file:
+
+```tsx
+import mock from '@stripe/stripe-react-native/jest/mock.js';
+
+jest.mock('@stripe/stripe-react-native', () => mock);
+```
+
+To have a more control over the mocks, you can extend and override particular methods e.g.:
+
+```tsx
+const presentApplePayMock = jest.fn();
+
+jest.mock('@stripe/stripe-react-native', () => ({
+  ...mock,
+  presentApplePay: presentApplePayMock,
+}));
+```
+
 ## Troubleshooting
 
 ### `Undefined symbols for architecture x86_64` on iOS
