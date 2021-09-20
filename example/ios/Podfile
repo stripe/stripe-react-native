@@ -6,6 +6,10 @@ target 'StripeSdkExample' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
+pod 'Stripe', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
+pod 'StripeUICore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
+pod 'StripeCore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
+
 
   pod 'stripe-react-native', :path => '../..'
   # Enables Flipper.
