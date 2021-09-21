@@ -76,6 +76,7 @@ export default function PaymentsUICompleteScreen() {
       primaryButtonColor: '#635BFF', // Blurple
       returnURL: 'stripe-example://stripe-redirect',
       defaultBillingDetails: billingDetails,
+      allowsDelayedPaymentMethods: true,
     });
     if (!error) {
       setPaymentSheetEnabled(true);

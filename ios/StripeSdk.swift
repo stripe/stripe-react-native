@@ -89,6 +89,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             configuration.primaryButtonColor = primaryButtonColor
         }
         
+        if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
+            configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
+        }
+        
         if let defaultBillingDetails = params["defaultBillingDetails"] as? [String: Any?] {
             configuration.defaultBillingDetails.name = defaultBillingDetails["name"] as? String
             configuration.defaultBillingDetails.email = defaultBillingDetails["email"] as? String

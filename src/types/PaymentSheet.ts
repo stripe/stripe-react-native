@@ -10,6 +10,7 @@ export declare namespace PaymentSheet {
       returnURL?: string;
       primaryButtonColor?: string;
       defaultBillingDetails?: BillingDetails;
+      allowsDelayedPaymentMethods?: boolean;
     };
 
   type ClientSecretParams =
