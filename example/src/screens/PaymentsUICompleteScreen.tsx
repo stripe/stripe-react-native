@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
-import { useStripe, PaymentSheet } from '@stripe/stripe-react-native';
+import {
+  useStripe,
+  PaymentSheet,
+  PaymentSheetError,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -34,10 +38,18 @@ export default function PaymentsUICompleteScreen() {
     setLoadng(true);
     const { error } = await presentPaymentSheet();
 
-    if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    } else {
+    if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');
+    } else if (error.code === PaymentSheetError.Failed) {
+      Alert.alert(
+        `PaymentSheet present failed with error code: ${error.code}`,
+        error.message
+      );
+    } else if (error.code === PaymentSheetError.Canceled) {
+      Alert.alert(
+        `PaymentSheet present was canceled with code: ${error.code}`,
+        error.message
+      );
     }
     setPaymentSheetEnabled(false);
     setLoadng(false);
@@ -80,8 +92,16 @@ export default function PaymentsUICompleteScreen() {
     });
     if (!error) {
       setPaymentSheetEnabled(true);
-    } else {
-      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (error.code === PaymentSheetError.Failed) {
+      Alert.alert(
+        `PaymentSheet init failed with error code: ${error.code}`,
+        error.message
+      );
+    } else if (error.code === PaymentSheetError.Canceled) {
+      Alert.alert(
+        `PaymentSheet init was canceled with code: ${error.code}`,
+        error.message
+      );
     }
   };
 
