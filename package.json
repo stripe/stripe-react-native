@@ -31,7 +31,8 @@
     "run-example-ios": "cd example;ENVFILE=.env.ci react-native run-ios --configuration Release --simulator \"iPhone 12\"",
     "run-example-android": "cd example;ENVFILE=.env.ci react-native run-android --variant=release",
     "test:ios": "node ./run-appium-tests.js ios",
-    "test:android": "node ./run-appium-tests.js android"
+    "test:android": "yarn get:testbutler && node ./run-appium-tests.js android",
+    "get:testbutler": "curl -f -o ./test-butler-app.apk https://repo1.maven.org/maven2/com/linkedin/testbutler/test-butler-app/2.2.1/test-butler-app-2.2.1.apk"
   },
   "keywords": [
     "react-native",
