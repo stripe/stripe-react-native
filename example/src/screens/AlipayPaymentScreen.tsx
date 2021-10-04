@@ -23,7 +23,6 @@ export default function AlipayPaymentScreen() {
         payment_method_types: ['alipay'],
       }),
     });
-
     const { clientSecret, error } = await response.json();
 
     return { clientSecret, error };
