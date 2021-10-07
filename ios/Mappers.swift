@@ -829,4 +829,16 @@ class Mappers {
         }
         return nil
     }
+    
+    class func mapFromCardValidationState(state: STPCardValidationState?) -> String {
+        if let state = state {
+            switch state {
+            case STPCardValidationState.valid: return "Valid"
+            case STPCardValidationState.invalid: return "Invalid"
+            case STPCardValidationState.incomplete: return "Incomplete"
+            default: return "Unknown"
+            }
+        }
+        return "Unknown"
+    }
 }
