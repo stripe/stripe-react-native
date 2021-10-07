@@ -8,7 +8,7 @@ In addition to those already available in `tipsi-stripe` we also offer features 
 ## Installation
 
 **IMPORTANT:**
-In order to migrate from `tipsi-stripe` to `stripe-react-native` please make sure that you've removed all `tipsi-stripe` dependencies from your project. It comes from the fact that both libraries include different versions of `stripe-android` and `stripe-ios` which might introduces an errors.
+If migrating from `tipsi-stripe` to `stripe-react-native`, please be sure to first remove all `tipsi-stripe` dependencies from your project. `tipsi-stripe` uses older versions of `stripe-android` and `stripe-ios` which aren't compatible with `stripe-react-native`.
 
 ## Usage
 
