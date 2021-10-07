@@ -175,7 +175,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     return cardDetails
   }
 
-  fun onCardChanged() {
+  fun onValidCardChange() {
     mCardWidget.paymentMethodCard?.let {
       cardParams = it
       cardAddress = Address.Builder()
@@ -193,6 +193,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       cardDetails["brand"] = null
       cardDetails["last4"] = null
     }
+    sendCardDetailsEvent()
+  }
+
+  private fun sendCardDetailsEvent() {
     mEventDispatcher?.dispatchEvent(
       CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null, dangerouslyGetFullCardDetails))
   }
@@ -200,7 +204,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   private fun setListeners() {
     mCardWidget.setCardValidCallback { isValid, _ ->
       if (isValid) {
-        onCardChanged()
+        onValidCardChange()
+      } else {
+        cardParams = null
+        cardAddress = null
       }
     }
 
@@ -228,7 +235,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
           cardDetails["expiryYear"] = var1.toString().split("/")[1].toIntOrNull()
         }
 
-        onCardChanged()
+        sendCardDetailsEvent()
       }
     })
 
@@ -237,7 +244,8 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         cardDetails["postalCode"] = var1.toString()
-        onCardChanged()
+
+        sendCardDetailsEvent()
       }
     })
 
@@ -248,7 +256,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
         if (dangerouslyGetFullCardDetails) {
           cardDetails["number"] = var1.toString().replace(" ", "")
         }
-        onCardChanged()
+        sendCardDetailsEvent()
       }
     })
 
@@ -256,7 +264,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
-        onCardChanged()
+        sendCardDetailsEvent()
       }
     })
   }
