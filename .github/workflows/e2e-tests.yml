@@ -141,3 +141,6 @@ jobs:
           name: e2e-results
           path: .tmp
         if: ${{ always() }}
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
