@@ -7,6 +7,10 @@ export declare namespace PaymentSheet {
       customFlow?: boolean;
       merchantDisplayName?: string;
       style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+      returnURL?: string;
+      primaryButtonColor?: string;
+      defaultBillingDetails?: BillingDetails;
+      allowsDelayedPaymentMethods?: boolean;
     };
 
   type ClientSecretParams =
@@ -40,7 +44,20 @@ export declare namespace PaymentSheet {
         merchantCountryCode?: string;
         testEnv?: boolean;
       };
-
+  export interface Address {
+    city?: string;
+    country?: string;
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
+    state?: string;
+  }
+  export interface BillingDetails {
+    address: Address;
+    name?: string;
+    email?: string;
+    phone?: string;
+  }
   export interface PaymentOption {
     label: string;
     image: string;

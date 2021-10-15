@@ -264,12 +264,16 @@ PODS:
   - Stripe (21.8.1):
     - Stripe/Stripe3DS2 (= 21.8.1)
     - StripeCore (= 21.8.1)
-  - stripe-react-native (0.2.1):
+    - StripeUICore (= 21.8.1)
+  - stripe-react-native (0.2.2):
     - React
     - Stripe (~> 21.8.1)
   - Stripe/Stripe3DS2 (21.8.1):
     - StripeCore (= 21.8.1)
+    - StripeUICore (= 21.8.1)
   - StripeCore (21.8.1)
+  - StripeUICore (21.8.1):
+    - StripeCore (= 21.8.1)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -307,14 +311,15 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `mc-ga-preview-1`)
   - stripe-react-native (from `../..`)
+  - StripeCore (from `https://github.com/stripe/stripe-ios.git`, branch `mc-ga-preview-1`)
+  - StripeUICore (from `https://github.com/stripe/stripe-ios.git`, branch `mc-ga-preview-1`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - boost-for-react-native
-    - Stripe
-    - StripeCore
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -381,10 +386,30 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: mc-ga-preview-1
+    :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../.."
+  StripeCore:
+    :branch: mc-ga-preview-1
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :branch: mc-ga-preview-1
+    :git: https://github.com/stripe/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 963e482a4ecfdc5896cc268c9854ceae505e57ae
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCore:
+    :commit: 963e482a4ecfdc5896cc268c9854ceae505e57ae
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :commit: 963e482a4ecfdc5896cc268c9854ceae505e57ae
+    :git: https://github.com/stripe/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
@@ -420,11 +445,12 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 57c6997c64042a3f5aedae9b76e331942f8b75d2
-  stripe-react-native: e06c16c83cfce2884926941c0422f4299aeef02b
+  Stripe: 9467a5453f72f32dd3377091664a84a5342921cd
+  stripe-react-native: ae53a97cc9ab084cc6228f2250da56b0e53da276
   StripeCore: a6e50d58119a0c7601773b56f274db2d394dcdac
+  StripeUICore: 7b8d704860201e5bd912f2e4ca7320e349d92185
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: 32acfd4fec652a6f224d467187287782155cfbdc
+PODFILE CHECKSUM: d0e12335f3e1cedfebbc730c7c504cbe64fee55f
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.10.2
