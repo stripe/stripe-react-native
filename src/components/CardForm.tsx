@@ -15,7 +15,12 @@ import {
   findNodeHandle,
   ViewStyle,
 } from 'react-native';
-const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
+import {
+  currentlyFocusedInput,
+  focusInput,
+  registerInput,
+  unregisterInput,
+} from '../helpers';
 
 const CardFormNative =
   requireNativeComponent<CardFormView.NativeProps>('CardForm');
@@ -133,7 +138,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     const onFocusHandler = useCallback((event) => {
       const { focusedField } = event.nativeEvent;
       if (focusedField) {
-        TextInputState.focusInput(inputRef.current);
+        focusInput(inputRef.current);
         // onFocus?.(focusedField);
       } else {
         // onBlur?.();
@@ -143,10 +148,10 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
       if (inputRefValue !== null) {
-        TextInputState.registerInput(inputRefValue);
+        registerInput(inputRefValue);
         return () => {
-          TextInputState.unregisterInput(inputRefValue);
-          if (TextInputState.currentlyFocusedInput() === inputRefValue) {
+          unregisterInput(inputRefValue);
+          if (currentlyFocusedInput() === inputRefValue) {
             inputRefValue.blur();
           }
         };
