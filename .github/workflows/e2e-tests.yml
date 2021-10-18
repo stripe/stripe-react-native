@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -77,10 +77,13 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macOS-latest
+    runs-on: macos-11
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      - name: Get Xcode version
+        run: /usr/bin/xcodebuild -version
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
