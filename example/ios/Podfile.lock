@@ -266,7 +266,7 @@ PODS:
     - StripeCore (= 21.9.0)
     - StripeUICore (= 21.9.0)
   - stripe-react-native (0.2.2):
-    - React
+    - React-Core
     - Stripe (~> 21.9.0)
   - Stripe/Stripe3DS2 (21.9.0):
     - StripeCore (= 21.9.0)
@@ -426,7 +426,7 @@ SPEC CHECKSUMS:
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   Stripe: 41c3d261501e1dc84755b1bdabdaae50ebf92b53
-  stripe-react-native: c0b21b8e8323d64affab3e0f72df25e31ada1362
+  stripe-react-native: 5ada54a0985880a76fd1bec0d9434a70b04f5d62
   StripeCore: 2ea9531e863ef20f191a0d61f00dedb7f061baef
   StripeUICore: a0f9e40520823d34c63baec0782fc4a0c7fb7484
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
