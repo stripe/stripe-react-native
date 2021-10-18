@@ -103,5 +103,5 @@ export function StripeProvider({
     setUrlSchemeOnAndroid,
   ]);
 
-  return <>{publishableKey ? children : null}</>;
+  return children;
 }

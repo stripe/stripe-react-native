@@ -5,6 +5,11 @@
 `stripe-react-native` is a official replacement for `tipsi-stripe`, provides bunch of functionalities which allows you to build delightful payment experiences using `React Native`.
 In addition to those already available in `tipsi-stripe` we also offer features like [Pre-built payments UI](https://stripe.com/docs/mobile/payments-ui-beta), [Simplified Security](https://stripe.com/docs/security) and [more](https://github.com/stripe/stripe-react-native/tree/feat/tipsi-migration-guide#features)...
 
+## Installation
+
+**IMPORTANT:**
+If migrating from `tipsi-stripe` to `stripe-react-native`, please be sure to first remove all `tipsi-stripe` dependencies from your project. `tipsi-stripe` uses older versions of `stripe-android` and `stripe-ios` which aren't compatible with `stripe-react-native`.
+
 ## Usage
 
 `stripe-react-native` library provides two initializing ways, in order to do this you can use either `StripeProvider` component or `initStripe` method.
