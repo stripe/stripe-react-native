@@ -1,6 +1,8 @@
 import type { StripeError } from './types';
 import { Platform, NativeModules } from 'react-native';
 
+const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
+
 /**
  * Determines whether or not this library is being used inside of
  * an "Expo" project by identifying if Expo's native module
@@ -27,3 +29,46 @@ export function createError<T>(error: StripeError<T>) {
     type: error.type,
   };
 }
+
+export const unsupportedMethodMessage = (field: string) =>
+  `${field} method is not supported. Consider to upgrade react-native version to 0.63.x or higher`;
+
+export const focusInput = (ref: React.MutableRefObject<any>) => {
+  if ('focusInput' in TextInputState) {
+    TextInputState.focusInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('focusInput'));
+    }
+  }
+};
+
+export const registerInput = (ref: React.MutableRefObject<any>) => {
+  if ('registerInput' in TextInputState) {
+    TextInputState.registerInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('registerInput'));
+    }
+  }
+};
+
+export const unregisterInput = (ref: React.MutableRefObject<any>) => {
+  if ('unregisterInput' in TextInputState) {
+    TextInputState.unregisterInput(ref);
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('unregisterInput'));
+    }
+  }
+};
+
+export const currentlyFocusedInput = () => {
+  if ('currentlyFocusedInput' in TextInputState) {
+    return TextInputState.currentlyFocusedInput();
+  } else {
+    if (__DEV__) {
+      console.log(unsupportedMethodMessage('currentlyFocusedInput'));
+    }
+  }
+};
