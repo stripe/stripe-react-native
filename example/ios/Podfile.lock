@@ -261,15 +261,19 @@ PODS:
     - React-Core
   - RNScreens (2.15.0):
     - React-Core
-  - Stripe (21.8.1):
-    - Stripe/Stripe3DS2 (= 21.8.1)
-    - StripeCore (= 21.8.1)
+  - Stripe (21.9.0):
+    - Stripe/Stripe3DS2 (= 21.9.0)
+    - StripeCore (= 21.9.0)
+    - StripeUICore (= 21.9.0)
   - stripe-react-native (0.2.2):
     - React-Core
-    - Stripe (~> 21.8.1)
-  - Stripe/Stripe3DS2 (21.8.1):
-    - StripeCore (= 21.8.1)
-  - StripeCore (21.8.1)
+    - Stripe (~> 21.9.0)
+  - Stripe/Stripe3DS2 (21.9.0):
+    - StripeCore (= 21.9.0)
+    - StripeUICore (= 21.9.0)
+  - StripeCore (21.9.0)
+  - StripeUICore (21.9.0):
+    - StripeCore (= 21.9.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -315,6 +319,7 @@ SPEC REPOS:
     - boost-for-react-native
     - Stripe
     - StripeCore
+    - StripeUICore
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -420,11 +425,12 @@ SPEC CHECKSUMS:
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
-  Stripe: 57c6997c64042a3f5aedae9b76e331942f8b75d2
-  stripe-react-native: 8df9699a6788463d2a0febf481b429a1974321a4
-  StripeCore: a6e50d58119a0c7601773b56f274db2d394dcdac
+  Stripe: 41c3d261501e1dc84755b1bdabdaae50ebf92b53
+  stripe-react-native: 5ada54a0985880a76fd1bec0d9434a70b04f5d62
+  StripeCore: 2ea9531e863ef20f191a0d61f00dedb7f061baef
+  StripeUICore: a0f9e40520823d34c63baec0782fc4a0c7fb7484
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
 PODFILE CHECKSUM: 32acfd4fec652a6f224d467187287782155cfbdc
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.10.2

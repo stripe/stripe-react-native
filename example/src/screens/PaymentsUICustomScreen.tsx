@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, View } from 'react-native';
-import { useStripe } from '@stripe/stripe-react-native';
+import { useStripe, PaymentSheet } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -39,6 +39,21 @@ export default function PaymentsUICustomScreen() {
       const { paymentIntent, ephemeralKey, customer } =
         await fetchPaymentSheetParams();
 
+      const address: PaymentSheet.Address = {
+        city: 'San Francisco',
+        country: 'AT',
+        line1: '510 Townsend St.',
+        line2: '123 Street',
+        postalCode: '94102',
+        state: 'California',
+      };
+      const billingDetails: PaymentSheet.BillingDetails = {
+        name: 'Jane Doe',
+        email: 'foo@bar.com',
+        phone: '555-555-555',
+        address: address,
+      };
+
       const { error, paymentOption } = await initPaymentSheet({
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
@@ -47,9 +62,12 @@ export default function PaymentsUICustomScreen() {
         merchantDisplayName: 'Example Inc.',
         applePay: true,
         merchantCountryCode: 'US',
-        style: 'alwaysDark',
+        style: 'automatic',
         googlePay: true,
         testEnv: true,
+        primaryButtonColor: '#635BFF', // Blurple
+        returnURL: 'stripe-example://stripe-redirect',
+        defaultBillingDetails: billingDetails,
       });
 
       if (!error) {

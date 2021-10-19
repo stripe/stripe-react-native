@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
-import { useStripe } from '@stripe/stripe-react-native';
+import {
+  useStripe,
+  PaymentSheet,
+  PaymentSheetError,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -34,10 +38,18 @@ export default function PaymentsUICompleteScreen() {
     setLoadng(true);
     const { error } = await presentPaymentSheet();
 
-    if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
-    } else {
+    if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');
+    } else if (error.code === PaymentSheetError.Failed) {
+      Alert.alert(
+        `PaymentSheet present failed with error code: ${error.code}`,
+        error.message
+      );
+    } else if (error.code === PaymentSheetError.Canceled) {
+      Alert.alert(
+        `PaymentSheet present was canceled with code: ${error.code}`,
+        error.message
+      );
     }
     setPaymentSheetEnabled(false);
     setLoadng(false);
@@ -47,6 +59,21 @@ export default function PaymentsUICompleteScreen() {
     const { paymentIntent, ephemeralKey, customer } =
       await fetchPaymentSheetParams();
 
+    const address: PaymentSheet.Address = {
+      city: 'San Francisco',
+      country: 'AT',
+      line1: '510 Townsend St.',
+      line2: '123 Street',
+      postalCode: '94102',
+      state: 'California',
+    };
+    const billingDetails: PaymentSheet.BillingDetails = {
+      name: 'Jane Doe',
+      email: 'foo@bar.com',
+      phone: '555-555-555',
+      address: address,
+    };
+
     const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
@@ -55,14 +82,26 @@ export default function PaymentsUICompleteScreen() {
       merchantDisplayName: 'Example Inc.',
       applePay: true,
       merchantCountryCode: 'US',
-      style: 'alwaysDark',
+      style: 'automatic',
       googlePay: true,
       testEnv: true,
+      primaryButtonColor: '#635BFF', // Blurple
+      returnURL: 'stripe-example://stripe-redirect',
+      defaultBillingDetails: billingDetails,
+      allowsDelayedPaymentMethods: true,
     });
     if (!error) {
       setPaymentSheetEnabled(true);
-    } else {
-      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (error.code === PaymentSheetError.Failed) {
+      Alert.alert(
+        `PaymentSheet init failed with error code: ${error.code}`,
+        error.message
+      );
+    } else if (error.code === PaymentSheetError.Canceled) {
+      Alert.alert(
+        `PaymentSheet init was canceled with code: ${error.code}`,
+        error.message
+      );
     }
   };
 
