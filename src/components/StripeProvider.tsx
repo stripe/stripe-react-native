@@ -103,5 +103,5 @@ export function StripeProvider({
     setUrlSchemeOnAndroid,
   ]);
 
-  return children;
+  return <>{children}</>;
 }
