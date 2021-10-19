@@ -432,7 +432,9 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
 
     cardAddress?.let { ca ->
       ca.postalCode?.let {
-        address.setPostalCode(it)
+        if (it.isNotEmpty()) {
+          address.setPostalCode(it)
+        }
       }
       ca.country?.let {
         address.setCountry(it)
