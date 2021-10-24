@@ -356,10 +356,7 @@ app.post(
   // Use body-parser to retrieve the raw body as a buffer.
   /* @ts-ignore */
   bodyParser.raw({ type: 'application/json' }),
-  async (
-    req: express.Request,
-    res: express.Response
-  ): Promise<express.Response<any>> => {
+  (req: express.Request, res: express.Response): express.Response<any> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event: Stripe.Event;
     const { secret_key } = getKeys();
