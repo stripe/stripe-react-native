@@ -73,15 +73,21 @@ function getKeys(payment_method?: string) {
   return { secret_key, publishable_key };
 }
 
-app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
-  const { publishable_key } = getKeys(req.query.paymentMethod as string);
+app.get(
+  '/stripe-key',
+  (req: express.Request, res: express.Response): express.Response<any> => {
+    const { publishable_key } = getKeys(req.query.paymentMethod as string);
 
-  return res.send({ publishableKey: publishable_key });
-});
+    return res.send({ publishableKey: publishable_key });
+  }
+);
 
 app.post(
   '/create-payment-intent',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       email,
       items,
@@ -143,7 +149,10 @@ app.post(
 
 app.post(
   '/create-payment-intent-with-payment-method',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       items,
       currency,
@@ -210,7 +219,10 @@ app.post(
 
 app.post(
   '/pay-without-webhooks',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       paymentMethodId,
       paymentIntentId,
@@ -259,7 +271,7 @@ app.post(
         });
 
         if (!paymentMethods.data[0]) {
-         return res.send({
+          return res.send({
             error: `There is no associated payment method to the provided customer's e-mail`,
           });
         }
@@ -302,6 +314,8 @@ app.post(
         // After confirm, if the PaymentIntent's status is succeeded, fulfill the order.
         return res.send(generateResponse(intent));
       }
+
+      return res.sendStatus(400);
     } catch (e) {
       // Handle "hard declines" e.g. insufficient funds, expired card, etc
       // See https://stripe.com/docs/declines/codes for more.
@@ -342,7 +356,10 @@ app.post(
   // Use body-parser to retrieve the raw body as a buffer.
   /* @ts-ignore */
   bodyParser.raw({ type: 'application/json' }),
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event: Stripe.Event;
     const { secret_key } = getKeys();
@@ -473,6 +490,7 @@ app.post('/charge-card-off-session', async (req, res) => {
       });
     } else {
       console.log('Unknown error occurred', err);
+      return res.sendStatus(500);
     }
   }
 });
