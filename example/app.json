@@ -1,9 +1,0 @@
-{
-  "name": "StripeSdkExample",
-  "displayName": "StripeSdk Example",
-  "expo": {
-    "name": "StripeSdkExample",
-    "slug": "StripeSdkExample",
-    "sdkVersion": "UNVERSIONED"
-  }
-}
