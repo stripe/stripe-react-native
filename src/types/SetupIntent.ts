@@ -1,6 +1,10 @@
 import type { Nullable, StripeError } from '.';
 import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
-import type { PaymentMethod, PaymentMethods, PaymentMethodCreateParams } from './PaymentMethods';
+import type {
+  PaymentMethod,
+  PaymentMethods,
+  PaymentMethodCreateParams,
+} from './PaymentMethods';
 
 export interface SetupIntent {
   id: string;
