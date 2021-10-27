@@ -6,7 +6,7 @@ export interface PaymentMethod {
   id: string;
   liveMode: boolean;
   customerId: string;
-  billingDetails: PaymentMethods.BillingDetails;
+  billing_details: PaymentMethods.BillingDetails;
   type: PaymentMethods.Types;
   AuBecsDebit: PaymentMethods.AuBecsDebit;
   BacsDebit: PaymentMethods.BacsDebit;
@@ -153,10 +153,10 @@ export declare namespace PaymentMethods {
 
   export interface Address {
     city: string;
-    county: string;
+    country: string;
     line1: string;
     line2: string;
-    postalCode: string;
+    postal_code: string;
     state: string;
   }
 
@@ -175,8 +175,8 @@ export declare namespace PaymentMethods {
   export interface Card {
     brand?: Card.Brand;
     country?: string;
-    expYear?: number;
-    expMonth?: number;
+    exp_year?: number;
+    exp_month?: number;
     fingerprint?: string;
     funding?: string;
     last4?: string;
