@@ -56,5 +56,8 @@ android/keystores/debug.keystore
 # Expo
 .expo/*
 
+dist/
+.env
+
 # Docs
 docs/api-reference/
