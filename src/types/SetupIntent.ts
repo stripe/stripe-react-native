@@ -1,6 +1,6 @@
 import type { Nullable, StripeError } from '.';
 import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
-import type { PaymentMethod, PaymentMethods } from './PaymentMethods';
+import type { PaymentMethod, PaymentMethods, PaymentMethodCreateParams } from './PaymentMethods';
 
 export interface SetupIntent {
   id: string;
@@ -31,7 +31,7 @@ export namespace ConfirmSetupIntent {
   export interface Options {}
 
   export interface BaseParams {
-    billingDetails?: PaymentMethods.BillingDetails;
+    billingDetails?: PaymentMethodCreateParams.BillingDetails;
   }
 
   export interface CardParams extends BaseParams {

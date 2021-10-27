@@ -10,7 +10,7 @@ export interface PaymentMethod {
   type: PaymentMethods.Types;
   AuBecsDebit: PaymentMethods.AuBecsDebit;
   BacsDebit: PaymentMethods.BacsDebit;
-  Card: PaymentMethods.Card;
+  card: PaymentMethods.Card;
   Fpx: PaymentMethods.Fpx;
   Ideal: PaymentMethods.Ideal;
   SepaDebit: PaymentMethods.SepaDebit;

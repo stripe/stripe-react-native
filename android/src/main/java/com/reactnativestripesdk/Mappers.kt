@@ -422,18 +422,14 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   if (billingDetails == null) {
     return null
   }
-  var addressMap = billingDetails.getMap("address");
-  if (addressMap == null) {
-    return null
-  }
 
   val address = Address.Builder()
-    .setPostalCode(getValOr(addressMap, "postalCode"))
-    .setCity(getValOr(addressMap, "city"))
-    .setCountry(getValOr(addressMap, "county"))
-    .setLine1(getValOr(addressMap, "line1"))
-    .setLine2(getValOr(addressMap, "line2"))
-    .setState(getValOr(addressMap, "state"))
+    .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
+    .setCity(getValOr(billingDetails, "addressCity"))
+    .setCountry(getValOr(billingDetails, "addressCountry"))
+    .setLine1(getValOr(billingDetails, "addressLine1"))
+    .setLine2(getValOr(billingDetails, "addressLine2"))
+    .setState(getValOr(billingDetails, "addressState"))
 
   var builder = com.stripe.android.model.PaymentMethod.BillingDetails.Builder();
   builder.setAddress(address.build()).setName(getValOr(billingDetails, "name")).setEmail(getValOr(billingDetails, "email"))
