@@ -433,13 +433,27 @@ class Mappers {
         
         let billingAddres = STPPaymentMethodAddress()
         
-        billingAddres.city = RCTConvert.nsString(billingDetails["addressCity"])
-        billingAddres.postalCode = RCTConvert.nsString(billingDetails["addressPostalCode"])
-        billingAddres.country = RCTConvert.nsString(billingDetails["addressCountry"])
-        billingAddres.line1 = RCTConvert.nsString(billingDetails["addressLine1"])
-        billingAddres.line2 = RCTConvert.nsString(billingDetails["addressLine2"])
-        billingAddres.state = RCTConvert.nsString(billingDetails["addressState"])
-        
+        if let address = billingDetails["address"] as? NSDictionary {
+            if let city = address["city"] {
+                billingAddres.city = RCTConvert.nsString(city)
+            }
+            if let postalCode = address["postalCode"] {
+                billingAddres.postalCode = RCTConvert.nsString(postalCode)
+            }
+            if let country = address["country"] {
+                billingAddres.country = RCTConvert.nsString(country)
+            }
+            if let line1 = address["line1"] {
+                billingAddres.line1 = RCTConvert.nsString(line1)
+            }
+            if let line2 = address["line2"] {
+                billingAddres.line2 = RCTConvert.nsString(line2)
+            }
+            if let state = address["state"] {
+                billingAddres.state = RCTConvert.nsString(state)
+            }
+        }
+            
         billing.address = billingAddres
         
         return billing
