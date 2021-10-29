@@ -46,7 +46,7 @@ export namespace GooglePay {
      * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
      * has existing payment methods.
      *
-     * Default to `true`.
+     * Default to `false`.
      */
     existingPaymentMethodRequired?: boolean;
   }
