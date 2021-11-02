@@ -192,7 +192,7 @@ function App() {
 
   useEffect(() => {
     initStripe({
-      publishableKey: publishableKey
+      publishableKey: publishableKey,
       merchantIdentifier: 'merchant.identifier',
     });
   }, []);
