@@ -59,7 +59,7 @@ function CheckoutScreen() {
     async function initialize() {
       const { error } = await initGooglePay({
         testEnv: true,
-        merchantName: 'Widget Store'
+        merchantName: 'Widget Store',
         countryCode: 'US',
         billingAddressConfig: {
           format: 'FULL',
