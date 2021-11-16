@@ -36,6 +36,9 @@ internal class CardChangedEvent constructor(viewTag: Int, private val cardDetail
     }
 
     eventData.putBoolean("complete", complete)
+    eventData.putString("validNumber", cardDetails["validNumber"]?.toString())
+    eventData.putString("validCVC", cardDetails["validCVC"]?.toString())
+    eventData.putString("validExpiryDate", cardDetails["validExpiryDate"]?.toString())
 
     if (postalCodeEnabled) {
       eventData.putString("postalCode", cardDetails["postalCode"]?.toString())

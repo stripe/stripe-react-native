@@ -4,6 +4,12 @@ import type { Card } from '../Card';
 
 export namespace CardFieldInput {
   export type Names = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
+  export enum ValidationState {
+    Valid = 'Valid',
+    Invalid = 'Invalid',
+    Incomplete = 'Incomplete',
+    Unknown = 'Unknown',
+  }
 
   export interface Details {
     last4: string;
@@ -12,6 +18,9 @@ export namespace CardFieldInput {
     postalCode?: string;
     brand: Card.Brand;
     complete: boolean;
+    validExpiryDate: ValidationState;
+    validCVC: ValidationState;
+    validNumber: ValidationState;
     /**
      * WARNING: Full card details are only returned when the `dangerouslyGetFullCardDetails` prop
      * on the `CardField` component is set to `true`.
