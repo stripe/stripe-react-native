@@ -73,15 +73,21 @@ function getKeys(payment_method?: string) {
   return { secret_key, publishable_key };
 }
 
-app.get('/stripe-key', (req: express.Request, res: express.Response): void => {
-  const { publishable_key } = getKeys(req.query.paymentMethod as string);
+app.get(
+  '/stripe-key',
+  (req: express.Request, res: express.Response): express.Response<any> => {
+    const { publishable_key } = getKeys(req.query.paymentMethod as string);
 
-  res.send({ publishableKey: publishable_key });
-});
+    return res.send({ publishableKey: publishable_key });
+  }
+);
 
 app.post(
   '/create-payment-intent',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       email,
       items,
@@ -130,11 +136,11 @@ app.post(
       const paymentIntent: Stripe.PaymentIntent =
         await stripe.paymentIntents.create(params);
       // Send publishable key and PaymentIntent client_secret to client.
-      res.send({
+      return res.send({
         clientSecret: paymentIntent.client_secret,
       });
     } catch (error) {
-      res.send({
+      return res.send({
         error: error.raw.message,
       });
     }
@@ -143,7 +149,10 @@ app.post(
 
 app.post(
   '/create-payment-intent-with-payment-method',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       items,
       currency,
@@ -169,7 +178,7 @@ app.post(
     // For this example we're taking the first returned customer but in a production integration
     // you should make sure that you have the right Customer.
     if (!customers.data[0]) {
-      res.send({
+      return res.send({
         error: 'There is no associated customer object to the provided e-mail',
       });
     }
@@ -180,7 +189,7 @@ app.post(
     });
 
     if (!paymentMethods.data[0]) {
-      res.send({
+      return res.send({
         error: `There is no associated payment method to the provided customer's e-mail`,
       });
     }
@@ -201,7 +210,7 @@ app.post(
       await stripe.paymentIntents.create(params);
 
     // Send publishable key and PaymentIntent client_secret to client.
-    res.send({
+    return res.send({
       clientSecret: paymentIntent.client_secret,
       paymentMethodId: paymentMethods.data[0].id,
     });
@@ -210,7 +219,10 @@ app.post(
 
 app.post(
   '/pay-without-webhooks',
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
     const {
       paymentMethodId,
       paymentIntentId,
@@ -247,7 +259,7 @@ app.post(
         // For this example we're taking the first returned customer but in a production integration
         // you should make sure that you have the right Customer.
         if (!customers.data[0]) {
-          res.send({
+          return res.send({
             error:
               'There is no associated customer object to the provided e-mail',
           });
@@ -259,7 +271,7 @@ app.post(
         });
 
         if (!paymentMethods.data[0]) {
-          res.send({
+          return res.send({
             error: `There is no associated payment method to the provided customer's e-mail`,
           });
         }
@@ -279,7 +291,7 @@ app.post(
           customer: customers.data[0].id,
         };
         const intent = await stripe.paymentIntents.create(params);
-        res.send(generateResponse(intent));
+        return res.send(generateResponse(intent));
       } else if (paymentMethodId) {
         // Create new PaymentIntent with a PaymentMethod ID from the client.
         const params: Stripe.PaymentIntentCreateParams = {
@@ -294,18 +306,20 @@ app.post(
         };
         const intent = await stripe.paymentIntents.create(params);
         // After create, if the PaymentIntent's status is succeeded, fulfill the order.
-        res.send(generateResponse(intent));
+        return res.send(generateResponse(intent));
       } else if (paymentIntentId) {
         // Confirm the PaymentIntent to finalize payment after handling a required action
         // on the client.
         const intent = await stripe.paymentIntents.confirm(paymentIntentId);
         // After confirm, if the PaymentIntent's status is succeeded, fulfill the order.
-        res.send(generateResponse(intent));
+        return res.send(generateResponse(intent));
       }
+
+      return res.sendStatus(400);
     } catch (e) {
       // Handle "hard declines" e.g. insufficient funds, expired card, etc
       // See https://stripe.com/docs/declines/codes for more.
-      res.send({ error: e.message });
+      return res.send({ error: e.message });
     }
   }
 );
@@ -328,7 +342,7 @@ app.post('/create-setup-intent', async (req, res) => {
   });
 
   // Send publishable key and SetupIntent details to client
-  res.send({
+  return res.send({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     clientSecret: setupIntent.client_secret,
   });
@@ -342,7 +356,7 @@ app.post(
   // Use body-parser to retrieve the raw body as a buffer.
   /* @ts-ignore */
   bodyParser.raw({ type: 'application/json' }),
-  async (req: express.Request, res: express.Response): Promise<void> => {
+  (req: express.Request, res: express.Response): express.Response<any> => {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event: Stripe.Event;
     const { secret_key } = getKeys();
@@ -360,8 +374,7 @@ app.post(
       );
     } catch (err) {
       console.log(`⚠️  Webhook signature verification failed.`);
-      res.sendStatus(400);
-      return;
+      return res.sendStatus(400);
     }
 
     // Extract the data from the event.
@@ -400,7 +413,7 @@ app.post(
       console.log(`🔔  A new SetupIntent is created. ${setupIntent.id}`);
     }
 
-    res.sendStatus(200);
+    return res.sendStatus(200);
   }
 );
 
@@ -441,7 +454,7 @@ app.post('/charge-card-off-session', async (req, res) => {
       confirm: true,
     });
 
-    res.send({
+    return res.send({
       succeeded: true,
       clientSecret: paymentIntent.client_secret,
       publicKey: stripePublishableKey,
@@ -453,7 +466,7 @@ app.post('/charge-card-off-session', async (req, res) => {
       // the off-session purchase failed
       // Use the PM ID and client_secret to authenticate the purchase
       // without asking your customers to re-enter their details
-      res.send({
+      return res.send({
         error: 'authentication_required',
         paymentMethod: err.raw.payment_method.id,
         clientSecret: err.raw.payment_intent.client_secret,
@@ -467,13 +480,14 @@ app.post('/charge-card-off-session', async (req, res) => {
     } else if (err.code) {
       // The card was declined for other reasons (e.g. insufficient funds)
       // Bring the customer back on-session to ask them for a new payment method
-      res.send({
+      return res.send({
         error: err.code,
         clientSecret: err.raw.payment_intent.client_secret,
         publicKey: stripePublishableKey,
       });
     } else {
       console.log('Unknown error occurred', err);
+      return res.sendStatus(500);
     }
   }
 });
@@ -495,7 +509,7 @@ app.post('/payment-sheet', async (_, res) => {
   const customer = customers.data[0];
 
   if (!customer) {
-    res.send({
+    return res.send({
       error: 'You have no customer created',
     });
   }
@@ -509,7 +523,7 @@ app.post('/payment-sheet', async (_, res) => {
     currency: 'usd',
     customer: customer.id,
   });
-  res.json({
+  return res.json({
     paymentIntent: paymentIntent.client_secret,
     ephemeralKey: ephemeralKey.secret,
     customer: customer.id,
