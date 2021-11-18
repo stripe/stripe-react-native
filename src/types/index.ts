@@ -14,10 +14,10 @@ import type {
 } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
 import type { PaymentMethod } from './PaymentMethods';
+import type { ApplePay } from './ApplePay';
 import type { PaymentSheet } from './PaymentSheet';
 import type { SetupIntent } from './SetupIntent';
 import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
-
 export * from './ApplePay';
 export * from './PaymentIntents';
 export * from './PaymentMethods';
@@ -162,10 +162,12 @@ export type ConfirmPaymentSheetPaymentResult = {
 export type ApplePayResult =
   | {
       paymentMethod: PaymentMethod;
+      shippingContact: ApplePay.ShippingContact;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      shippingContact?: undefined;
       error: StripeError<ApplePayError>;
     };
 

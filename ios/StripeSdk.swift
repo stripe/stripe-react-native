@@ -373,9 +373,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         if (address?.indices.contains(1) == true) {
             paymentMethod.billingDetails?.address?.line2 = String(address?[1] ?? "")
         }
-        
+
         let method = Mappers.mapFromPaymentMethod(paymentMethod)
-        self.applePayRequestResolver?(Mappers.createResult("paymentMethod", method))
+        var shippingContact: NSDictionary = [:];
+        if (paymentInformation.shippingContact != nil) {
+            shippingContact = Mappers.mapFromShippingContact(shippingContact: paymentInformation.shippingContact!);
+        }
+        self.applePayRequestResolver?([
+            "paymentMethod": method,
+            "shippingContact": shippingContact
+        ]);
         self.applePayRequestRejecter = nil
     }
     
