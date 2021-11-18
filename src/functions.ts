@@ -161,15 +161,14 @@ export const presentApplePay = async (
   }
 
   try {
-    const { paymentMethod, error } = await NativeStripeSdk.presentApplePay(
-      params
-    );
+    const { paymentMethod, shippingContact, error } =
+      await NativeStripeSdk.presentApplePay(params);
     if (error) {
       return {
         error,
       };
     }
-    return { paymentMethod: paymentMethod! };
+    return { paymentMethod: paymentMethod!, shippingContact: shippingContact! };
   } catch (error) {
     return {
       error,

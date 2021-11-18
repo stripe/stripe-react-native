@@ -2,6 +2,7 @@ import type { Card } from './Card';
 import type { ApplePayError, CardActionError, ConfirmPaymentError, ConfirmSetupIntentError, CreatePaymentMethodError, CreateTokenError, GooglePayError, PaymentSheetError, RetrievePaymentIntentError, RetrieveSetupIntentError, StripeError } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
 import type { PaymentMethod } from './PaymentMethods';
+import type { ApplePay } from './ApplePay';
 import type { PaymentSheet } from './PaymentSheet';
 import type { SetupIntent } from './SetupIntent';
 import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
@@ -112,9 +113,11 @@ export declare type ConfirmPaymentSheetPaymentResult = {
 };
 export declare type ApplePayResult = {
     paymentMethod: PaymentMethod;
+    shippingContact: ApplePay.ShippingContact;
     error?: undefined;
 } | {
     paymentMethod?: undefined;
+    shippingContact?: undefined;
     error: StripeError<ApplePayError>;
 };
 export interface InitStripeParams {
