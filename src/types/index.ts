@@ -226,14 +226,14 @@ export type CreateTokenCardParams = {
   name?: string;
 };
 
-export type BankAcccountHolerType = 'company' | 'individual';
+export type BankAcccountHolderType = 'company' | 'individual';
 
 export type CreateTokenBankAccountParams = {
   type: 'BankAccount';
-  accountHolderName: string;
-  accountHolderType: BankAcccountHolerType;
+  accountHolderName?: string;
+  accountHolderType?: BankAcccountHolderType;
   accountNumber: string;
   country: string;
-  currency?: string;
-  routingNumber: string;
+  currency: string;
+  routingNumber?: string;
 };

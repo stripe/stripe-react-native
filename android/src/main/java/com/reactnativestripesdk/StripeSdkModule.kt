@@ -405,6 +405,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun createToken(params: ReadableMap, promise: Promise) {
     val type = getValOr(params, "type", null)
+    if(type == null) {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "type is required"))
+      return
+    }
+
     type?.let {
       if (it != "Card" && it != "BankAccount") {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet"))
@@ -412,31 +417,29 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       }
     }
 
-    // TODO: create a service for creating tokens from a difference sources.
     if (type == "BankAccount") {
       val accountHolderName = getValOr(params, "accountHolderName")
       val accountHolderType = getValOr(params, "accountHolderType")
-      val accountNumber = getValOr(params, "accountNumber")
-      val country = getValOr(params, "country")
-      val currency =  getValOr(params, "currency")
+      val accountNumber = getValOr(params, "accountNumber", null)
+      val country = getValOr(params, "country", null)
+      val currency =  getValOr(params, "currency", null)
       val routingNumber = getValOr(params, "routingNumber")
 
-      val bankAccountParams = BankAccountTokenParams(
-        country = country!!,
-        currency = currency!!,
-        accountNumber = accountNumber!!,
-        accountHolderName = accountHolderName,
-        routingNumber = routingNumber,
-        accountHolderType = mapToBankAccountType(accountHolderType)
-      )
-
-      runBlocking {
-        try {
+r      runCatching {
+        val bankAccountParams = BankAccountTokenParams(
+          country = country!!,
+          currency = currency!!,
+          accountNumber = accountNumber!!,
+          accountHolderName = accountHolderName,
+          routingNumber = routingNumber,
+          accountHolderType = mapToBankAccountType(accountHolderType)
+        )
+        runBlocking {
           val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
           promise.resolve(createResult("token", mapFromToken(token)))
-        } catch (e: Exception) {
-          promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
         }
+      }.onFailure {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
       return
     }
