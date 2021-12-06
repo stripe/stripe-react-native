@@ -1,0 +1,11 @@
+* acomley-stripe
+
+# These are the directory and approval assignment for the android code base
+android/ @stripe/stripe-android-administrator
+example/android/  @stripe/stripe-android-administrator
+e2e/payments.test.android.ts  @stripe/stripe-android-administrator
+
+
+# These are the directory and approval assignments for ios code base
+ios @stripe/stripe-android-administrator
+example/ios/  @stripe/stripe-android-administrator
