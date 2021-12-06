@@ -7,5 +7,5 @@ e2e/payments.test.android.ts  @stripe/stripe-android-administrator
 
 
 # These are the directory and approval assignments for ios code base
-ios @stripe/stripe-android-administrator
-example/ios/  @stripe/stripe-android-administrator
+ios @davidme-stripe
+example/ios/  @davidme-stripe
