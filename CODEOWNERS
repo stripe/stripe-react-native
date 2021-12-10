@@ -1,0 +1,13 @@
+* acomley-stripe
+
+# These are reviewed by both teams
+e2e/ @stripe/stripe-android-administrator @davidme-stripe @csabol-stripe @yuki-stripe @porter-stripe @ramont-stripe
+
+# These are the directory and approval assignment for the android code base
+android/ @stripe/stripe-android-administrator
+example/android/  @stripe/stripe-android-administrator
+
+
+# These are the directory and approval assignments for ios code base
+ios   @davidme-stripe @csabol-stripe @yuki-stripe @porter-stripe @ramont-stripe
+example/ios/  @davidme-stripe @csabol-stripe @yuki-stripe @porter-stripe @ramont-stripe
