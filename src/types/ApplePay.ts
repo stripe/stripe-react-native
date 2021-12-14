@@ -59,6 +59,8 @@ export namespace ApplePay {
   }
 
   export interface PresentParams {
+    capabilityCredit?: Boolean;
+    capabilityDebit?: Boolean;
     cartItems: CartSummaryItem[];
     country: string;
     currency: string;

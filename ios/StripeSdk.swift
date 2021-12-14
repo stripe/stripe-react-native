@@ -472,6 +472,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
         
+        if (params["capabilityCredit"] as? Bool ?? false) {
+          paymentRequest.merchantCapabilities.update(with: .capabilityCredit)
+        }
+        if (params["capabilityDebit"] as? Bool ?? false) {
+          paymentRequest.merchantCapabilities.update(with: .capabilityDebit)
+        }
+        
         let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
         let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
         let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
