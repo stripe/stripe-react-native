@@ -419,34 +419,39 @@ internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Addr
 }
 
 internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Address?): PaymentMethod.BillingDetails? {
-  if (billingDetails == null) {
-    return null
+  if (billingDetails == null && cardAddress == null) {
+    return null;
   }
   val address = Address.Builder()
-    .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
-    .setCity(getValOr(billingDetails, "addressCity"))
-    .setCountry(getValOr(billingDetails, "addressCountry"))
-    .setLine1(getValOr(billingDetails, "addressLine1"))
-    .setLine2(getValOr(billingDetails, "addressLine2"))
-    .setState(getValOr(billingDetails, "addressState"))
-
-    cardAddress?.let { ca ->
-      ca.postalCode?.let {
-        if (it.isNotEmpty()) {
-          address.setPostalCode(it)
-        }
-      }
-      ca.country?.let {
-        address.setCountry(it)
+  if (billingDetails != null) {
+    address
+      .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
+      .setCity(getValOr(billingDetails, "addressCity"))
+      .setCountry(getValOr(billingDetails, "addressCountry"))
+      .setLine1(getValOr(billingDetails, "addressLine1"))
+      .setLine2(getValOr(billingDetails, "addressLine2"))
+      .setState(getValOr(billingDetails, "addressState"))
+  }
+  cardAddress?.let { ca ->
+    ca.postalCode?.let {
+      if (it.isNotEmpty()) {
+        address.setPostalCode(it)
       }
     }
+    ca.country?.let {
+      address.setCountry(it)
+    }
+  }
 
-  return PaymentMethod.BillingDetails.Builder()
+  val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
     .setAddress(address.build())
-    .setName(getValOr(billingDetails, "name"))
-    .setPhone(getValOr(billingDetails, "phone"))
-    .setEmail(getValOr(billingDetails, "email"))
-    .build()
+  if (billingDetails != null) {
+    paymentMethodBillingDetailsBuilder
+      .setName(getValOr(billingDetails, "name"))
+      .setPhone(getValOr(billingDetails, "phone"))
+      .setEmail(getValOr(billingDetails, "email"))
+  }
+  return paymentMethodBillingDetailsBuilder.build()
 }
 
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
