@@ -111,7 +111,7 @@ _before:_
 			Month: ${params.expMonth || '-'}
 			Year: ${params.expYear || '-'}
 			CVC: ${params.cvc || '-'}
-`		)
+`		);
 	}}
 />
 ```
@@ -143,7 +143,7 @@ _after:_
 		fontSize: 14,
 		placeholderColor: '#999999',
 	}}
-	style={{ width: 100%, height: 200 }}
+	style={{ width: '100%', height: 200 }}
 />
 ```
 
@@ -156,7 +156,7 @@ or
 	cardStyle={{
 		backgroundColor: '#FFFFFF',
 	}}
-	style={{ width: 100%, height: 350 }}
+	style={{ width: '100%', height: 350 }}
 	onFormComplete={(cardDetails) => {
 		setComplete(cardDetails.complete);
 	}}
@@ -240,7 +240,7 @@ const confirmPaymentResult = await stripe.confirmPaymentIntent({
 			expYear: 2040,
 			number: '4000002500003155',
 		}
-	})
+	});
 ```
 
 _after:_
@@ -260,7 +260,7 @@ return (
     style={{ width: '100%', height: 100 }}
     postalCodeEnabled={true}
   />
-)
+);
 ```
 
 ## Set up future payments
@@ -314,7 +314,7 @@ return (
 	{isApplePaySupported && (
 		<Button onPress={pay} />
 	)}
-)
+);
 ```
 
 _after:_
@@ -330,7 +330,7 @@ return (
 	{isApplePaySupported && (
 		<Button onPress={pay} />
 	)}
-)
+);
 ```
 
 if your application doesn't use functional components, as an alternative you can import `isApplePaySupported` method directly.
@@ -515,18 +515,18 @@ _after:_
 ```tsx
 const { createToken } = useStripe()
 // ...
-const { token, error } = createToken({
+const { token, error } = await createToken({
 	type: 'Card'
 	address: {
 		country: 'US',
 		// ...
 	},
 	name: 'card_name'
-})
+});
 // ...
 return (
  <CardField
     style={{ width: '100%', height: 100 }}
   />
-)
+);
 ```
