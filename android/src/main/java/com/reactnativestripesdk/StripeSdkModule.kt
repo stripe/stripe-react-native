@@ -405,69 +405,71 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun createToken(params: ReadableMap, promise: Promise) {
     val type = getValOr(params, "type", null)
-    if(type == null) {
+    if (type == null) {
       promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "type is required"))
       return
     }
 
-    type?.let {
-      if (it != "Card" && it != "BankAccount") {
-        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet"))
-        return
+    when (type) {
+      "BankAccount" -> {
+        val accountHolderName = getValOr(params, "accountHolderName")
+        val accountHolderType = getValOr(params, "accountHolderType")
+        val accountNumber = getValOr(params, "accountNumber", null)
+        val country = getValOr(params, "country", null)
+        val currency = getValOr(params, "currency", null)
+        val routingNumber = getValOr(params, "routingNumber")
+
+        runCatching {
+          val bankAccountParams = BankAccountTokenParams(
+            country = country!!,
+            currency = currency!!,
+            accountNumber = accountNumber!!,
+            accountHolderName = accountHolderName,
+            routingNumber = routingNumber,
+            accountHolderType = mapToBankAccountType(accountHolderType)
+          )
+          runBlocking {
+            val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
+            promise.resolve(createResult("token", mapFromToken(token)))
+          }
+        }.onFailure {
+          promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
+        }
       }
-    }
+      "Card" -> {
+        val cardParamsMap = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap()
+          ?: run {
+            promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
+            return
+          }
 
-    if (type == "BankAccount") {
-      val accountHolderName = getValOr(params, "accountHolderName")
-      val accountHolderType = getValOr(params, "accountHolderType")
-      val accountNumber = getValOr(params, "accountNumber", null)
-      val country = getValOr(params, "country", null)
-      val currency =  getValOr(params, "currency", null)
-      val routingNumber = getValOr(params, "routingNumber")
-
-r      runCatching {
-        val bankAccountParams = BankAccountTokenParams(
-          country = country!!,
-          currency = currency!!,
-          accountNumber = accountNumber!!,
-          accountHolderName = accountHolderName,
-          routingNumber = routingNumber,
-          accountHolderType = mapToBankAccountType(accountHolderType)
+        val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+        val address = getMapOrNull(params, "address")
+        val cardParams = CardParams(
+          number = cardParamsMap["number"] as String,
+          expMonth = cardParamsMap["exp_month"] as Int,
+          expYear = cardParamsMap["exp_year"] as Int,
+          cvc = cardParamsMap["cvc"] as String,
+          address = mapToAddress(address, cardAddress),
+          name = getValOr(params, "name", null)
         )
         runBlocking {
-          val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
-          promise.resolve(createResult("token", mapFromToken(token)))
+          try {
+            val token = stripe.createCardToken(
+              cardParams = cardParams,
+              stripeAccountId = stripeAccountId
+            )
+            promise.resolve(createResult("token", mapFromToken(token)))
+          } catch (e: Exception) {
+            promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
+          }
         }
-      }.onFailure {
-        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
-      return
-    }
-
-    val cardParamsMap = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap() ?: run {
-      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
-      return
-    }
-
-    val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
-    val address = getMapOrNull(params, "address")
-    val cardParams = CardParams(
-      number = cardParamsMap["number"] as String,
-      expMonth = cardParamsMap["exp_month"] as Int,
-      expYear = cardParamsMap["exp_year"] as Int,
-      cvc = cardParamsMap["cvc"] as String,
-      address = mapToAddress(address, cardAddress),
-      name = getValOr(params, "name", null)
-    )
-    runBlocking {
-      try {
-        val token = stripe.createCardToken(
-          cardParams = cardParams,
-          stripeAccountId = stripeAccountId
-        )
-        promise.resolve(createResult("token", mapFromToken(token)))
-      } catch (e: Exception) {
-        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
+      null -> {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "type is required"))
+      }
+      else -> {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$type type is not supported yet"))
       }
     }
   }
