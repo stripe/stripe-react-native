@@ -113,6 +113,10 @@ class PaymentSheetFragment : Fragment() {
       ) else null
     )
 
+    // Call ON_FRAGMENT_CREATED before ON_INIT_PAYMENT_SHEET
+    val intent = Intent(ON_FRAGMENT_CREATED)
+    localBroadcastManager.sendBroadcast(intent)
+
     if (arguments?.getBoolean("customFlow") == true) {
       flowController = PaymentSheet.FlowController.create(this, paymentOptionCallback, paymentResultCallback)
       configureFlowController()
@@ -122,8 +126,6 @@ class PaymentSheetFragment : Fragment() {
       localBroadcastManager.sendBroadcast(intent)
     }
 
-    val intent = Intent(ON_FRAGMENT_CREATED)
-    localBroadcastManager.sendBroadcast(intent)
   }
 
   fun present() {
