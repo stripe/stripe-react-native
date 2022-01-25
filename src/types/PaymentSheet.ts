@@ -37,11 +37,13 @@ export declare namespace PaymentSheet {
     | {
         googlePay?: true;
         merchantCountryCode: string;
+        currencyCode?: string;
         testEnv?: boolean;
       }
     | {
         googlePay?: false;
         merchantCountryCode?: string;
+        currencyCode?: string;
         testEnv?: boolean;
       };
   export interface Address {
