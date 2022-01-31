@@ -12,7 +12,7 @@ import { API_URL } from '../Config';
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
-  const [loading, setLoadng] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
 
   const fetchPaymentSheetParams = async () => {
@@ -35,7 +35,7 @@ export default function PaymentsUICompleteScreen() {
     if (!clientSecret) {
       return;
     }
-    setLoadng(true);
+    setLoading(true);
     const { error } = await presentPaymentSheet();
 
     if (!error) {
@@ -52,7 +52,7 @@ export default function PaymentsUICompleteScreen() {
       );
     }
     setPaymentSheetEnabled(false);
-    setLoadng(false);
+    setLoading(false);
   };
 
   const initialisePaymentSheet = async () => {
