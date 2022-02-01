@@ -53,7 +53,7 @@ import { useGooglePay } from 'stripe-react-native';
 
 function CheckoutScreen() {
   const { initGooglePay } = useGooglePay();
-  const [initialized, setInitialized] = useState(false)
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function initialize() {
