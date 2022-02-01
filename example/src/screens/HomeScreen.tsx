@@ -1,14 +1,17 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStripe } from '@stripe/stripe-react-native';
-import { Linking, StyleSheet, View, ScrollView, Platform } from 'react-native';
+import {
+  Linking,
+  StyleSheet,
+  View,
+  ScrollView,
+  Platform,
+  Alert,
+} from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
-
-export type RootStackParamList = {
-  PaymentResultScreen: { url: string };
-};
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -30,15 +33,16 @@ export default function HomeScreen() {
       handleDeepLink(initialUrl);
     };
 
-    const urlCallback = (event: { url: string }) => {
-      handleDeepLink(event.url);
-    };
-
     getUrlAsync();
 
-    Linking.addEventListener('url', urlCallback);
+    const deepLinkListener = Linking.addEventListener(
+      'url',
+      (event: { url: string }) => {
+        handleDeepLink(event.url);
+      }
+    );
 
-    return () => Linking.removeEventListener('url', urlCallback);
+    return () => deepLinkListener.remove();
   }, [handleDeepLink]);
 
   return (
@@ -57,7 +61,7 @@ export default function HomeScreen() {
             <Button
               title="Prebuilt UI (multi-step)"
               onPress={() => {
-                navigation.navigate('PaymentsUICustom');
+                navigation.navigate('PaymentsUICustomScreen');
               }}
             />
           </View>
@@ -65,7 +69,7 @@ export default function HomeScreen() {
             <Button
               title="Card element only"
               onPress={() => {
-                navigation.navigate('WebhookPayment');
+                navigation.navigate('WebhookPaymentScreen');
               }}
             />
           </View>
@@ -86,7 +90,7 @@ export default function HomeScreen() {
             <Button
               title="Set up future payments"
               onPress={() => {
-                navigation.navigate('SetupFuturePayment');
+                navigation.navigate('SetupFuturePaymentScreen');
               }}
             />
           </View>
@@ -94,7 +98,7 @@ export default function HomeScreen() {
             <Button
               title="Finalize payments on the server"
               onPress={() => {
-                navigation.navigate('NoWebhookPayment');
+                navigation.navigate('NoWebhookPaymentScreen');
               }}
             />
           </View>
@@ -196,7 +200,7 @@ export default function HomeScreen() {
             <Button
               title="iDEAL payment"
               onPress={() => {
-                navigation.navigate('IdealPayment');
+                navigation.navigate('IdealPaymentScreen');
               }}
             />
           </View>
@@ -280,7 +284,7 @@ export default function HomeScreen() {
               <Button
                 title="Apple Pay"
                 onPress={() => {
-                  navigation.navigate('ApplePay');
+                  navigation.navigate('ApplePayScreen');
                 }}
               />
             </View>
@@ -309,7 +313,8 @@ export default function HomeScreen() {
             <Button
               title="WeChat Pay"
               onPress={() => {
-                navigation.navigate('WeChatPaymentScreen');
+                // navigation.navigate('WeChatPaymentScreen');
+                Alert.alert('WeChat Pay is not yet supported.');
               }}
             />
           </View>

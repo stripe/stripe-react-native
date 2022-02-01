@@ -1,13 +1,12 @@
 import React from 'react';
-import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar } from 'react-native';
 import { colors } from './colors';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
@@ -34,7 +33,45 @@ import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScre
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export type RootStackParamList = {
+  WebhookPaymentScreen: undefined;
+  HomeScreen: undefined;
+  NoWebhookPaymentScreen: undefined;
+  ApplePayScreen: undefined;
+  SetupFuturePaymentScreen: undefined;
+  PaymentsUICompleteScreen: undefined;
+  PaymentsUICustomScreen: undefined;
+  CVCReCollectionScreen: undefined;
+  IdealPaymentScreen: undefined;
+  IdealSetupFuturePaymentScreen: undefined;
+  AlipayPaymentScreen: undefined;
+  PaymentResultScreen: { url: string };
+  SofortPaymentScreen: undefined;
+  SofortSetupFuturePaymentScreen: undefined;
+  FPXPaymentScreen: undefined;
+  BancontactPaymentScreen: undefined;
+  BancontactSetupFuturePaymentScreen: undefined;
+  SepaPaymentScreen: undefined;
+  SepaSetupFuturePaymentScreen: undefined;
+  OxxoPaymentScreen: undefined;
+  GiropayPaymentScreen: undefined;
+  EPSPaymentScreen: undefined;
+  GrabPayPaymentScreen: undefined;
+  P24PaymentScreen: undefined;
+  AuBECSDebitPaymentScreen: undefined;
+  AfterpayClearpayPaymentScreen: undefined;
+  AuBECSDebitSetupPaymentScreen: undefined;
+  MultilineWebhookPaymentScreen: undefined;
+  GooglePayScreen: undefined;
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
 
 export default function App() {
   return (
@@ -49,22 +86,16 @@ export default function App() {
           screenOptions={{
             headerTintColor: colors.white,
             headerStyle: {
-              shadowOpacity: 0,
               backgroundColor: colors.blurple,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: colors.slate,
             },
             headerTitleStyle: {
               color: colors.white,
             },
-            headerBackTitleStyle: {
-              color: colors.white,
-            },
           }}
         >
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen
-            name="WebhookPayment"
+            name="WebhookPaymentScreen"
             component={WebhookPaymentScreen}
           />
           <Stack.Screen
@@ -72,7 +103,7 @@ export default function App() {
             component={MultilineWebhookPaymentScreen}
           />
           <Stack.Screen
-            name="NoWebhookPayment"
+            name="NoWebhookPaymentScreen"
             component={NoWebhookPaymentScreen}
           />
           <Stack.Screen
@@ -84,9 +115,9 @@ export default function App() {
             component={AuBECSDebitSetupPaymentScreen}
           />
 
-          <Stack.Screen name="ApplePay" component={ApplePayScreen} />
+          <Stack.Screen name="ApplePayScreen" component={ApplePayScreen} />
           <Stack.Screen
-            name="SetupFuturePayment"
+            name="SetupFuturePaymentScreen"
             component={SetupFuturePaymentScreen}
           />
           <Stack.Screen
@@ -94,14 +125,17 @@ export default function App() {
             component={PaymentsUICompleteScreen}
           />
           <Stack.Screen
-            name="PaymentsUICustom"
+            name="PaymentsUICustomScreen"
             component={PaymentsUICustomScreen}
           />
           <Stack.Screen
             name="CVCReCollectionScreen"
             component={CVCReCollectionScreen}
           />
-          <Stack.Screen name="IdealPayment" component={IdealPaymentScreen} />
+          <Stack.Screen
+            name="IdealPaymentScreen"
+            component={IdealPaymentScreen}
+          />
           <Stack.Screen
             name="IdealSetupFuturePaymentScreen"
             component={IdealSetupFuturePaymentScreen}

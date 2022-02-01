@@ -3,7 +3,7 @@ import { PaymentIntent, useStripe } from '@stripe/stripe-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
-import type { RootStackParamList } from './HomeScreen';
+import type { RootStackParamList } from '../App';
 import PaymentScreen from '../components/PaymentScreen';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'PaymentResultScreen'>;
