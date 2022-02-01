@@ -46,6 +46,7 @@ class PaymentSheetFragment : Fragment() {
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
     val countryCode = arguments?.getString("merchantCountryCode").orEmpty()
+    val currencyCode = arguments?.getString("currencyCode").orEmpty()
     val googlePayEnabled = arguments?.getBoolean("googlePay")
     val testEnv = arguments?.getBoolean("testEnv")
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
@@ -109,7 +110,8 @@ class PaymentSheetFragment : Fragment() {
       ) else null,
       googlePay = if (googlePayEnabled == true) PaymentSheet.GooglePayConfiguration(
         environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
-        countryCode = countryCode
+        countryCode = countryCode,
+        currencyCode = currencyCode
       ) else null
     )
 
