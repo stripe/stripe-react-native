@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- [#774](https://github.com/stripe/stripe-react-native/pull/774) feat: Add `currencyCode` support to `initPaymentSheet` for Google Pay & Setup Intents
+
 ## 0.2.3 - 2021-10-18
 
 - [#565](https://github.com/stripe/stripe-react-native/pull/565) chore: Add jest mock file ([#565](https://github.com/stripe/stripe-react-native/issues/565))
