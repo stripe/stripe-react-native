@@ -284,10 +284,6 @@ PODS:
     - React-Core
   - RNCPicker (2.2.1):
     - React-Core
-  - RNGestureHandler (1.10.3):
-    - React-Core
-  - RNReanimated (1.13.3):
-    - React-Core
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
@@ -342,8 +338,6 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
-  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - stripe-react-native (from `../..`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -422,10 +416,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-masked-view/masked-view"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
-  RNGestureHandler:
-    :path: "../node_modules/react-native-gesture-handler"
-  RNReanimated:
-    :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   stripe-react-native:
@@ -466,8 +456,6 @@ SPEC CHECKSUMS:
   ReactCommon: 57b69f6383eafcbd7da625bfa6003810332313c4
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
-  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNReanimated: 514a11da3a2bcc6c3dfd9de32b38e2b9bf101926
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   Stripe: 22c1b8da5ee20a1aaf40fd198160efa72e71644a
   stripe-react-native: 980f3d19f52a7dc4b373c6c20d30ebd760bc39e5
