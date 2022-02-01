@@ -53,6 +53,20 @@ To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` i
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
+## Testing inside of the Expo Go app
+
+> This section only needs to be done during an Expo SDK release.
+
+Inside of the Expo Go app, you are limited to using the `react-native` version that comes bundled inside. To test the example app accurately, you must modify `example/package.json` by:
+
+1. Navigate to the example app directory: `cd example/`
+2. Install the Expo SDK: `yarn add expo`
+3. Set the `sdkVersion` in `example/app.json` to the version you want to test
+4. Install the proper versions of `react` and `react-native`: `expo install react react-native`
+   - There may be other dependencies to update. If there are, it will be indicated in the logs when running the app.
+5. Use `expo client:install:[android|ios]` to install Expo Go on your simulator
+6. Run `expo start` to run the app.
+
 ### Install library as local repository
 
 To install local/private packages across local environment we recommend use [yalc](https://github.com/wclr/yalc) tool.
