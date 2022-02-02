@@ -21,7 +21,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact Payment');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -33,7 +33,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Bancontact SEPA Direct Debit set up');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
     BasicPaymentScreen.authorize();
@@ -45,7 +45,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('EPS');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -57,7 +57,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('FPX');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
 
@@ -74,7 +74,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Przelewy24');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -86,7 +86,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('giropay');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -98,7 +98,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL payment');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
@@ -113,7 +113,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('iDEAL SEPA Direct Debit set up');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({
       email: 'test@stripe.com',
@@ -130,7 +130,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -142,7 +142,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('Sofort SEPA Direct Debit set up');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com', buttonText: 'Save' });
     BasicPaymentScreen.authorize();
@@ -165,7 +165,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Vouchers');
     homeScreen.goTo('OXXO');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     driver.pause(3000);
@@ -180,7 +180,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Wallets');
     homeScreen.goTo('Alipay');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -192,7 +192,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('Wallets');
     homeScreen.goTo('GrabPay');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize();
@@ -204,7 +204,7 @@ describe('Example app payments scenarios (android)', () => {
     homeScreen.goTo('More payment scenarios');
     homeScreen.goTo('Recollect a CVC');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 15000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     getTextInputByPlaceholder('E-mail').setValue('test_pm@stripe.com');
     getTextInputByPlaceholder('CVC').setValue('123');
@@ -215,7 +215,7 @@ describe('Example app payments scenarios (android)', () => {
     driver.back();
     const alert = getElementByText('Success');
     alert.waitForDisplayed({
-      timeout: 15000,
+      timeout: 30000,
     });
     expect(alert.getText()).toEqual('Success');
   });

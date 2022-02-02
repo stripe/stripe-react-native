@@ -50,7 +50,7 @@ exports.config = {
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.21.0',
+      appiumVersion: '1.22.1',
       platformVersion: '',
       platformName: 'Android',
       deviceName: '',

@@ -35,8 +35,7 @@ jobs:
         run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: |
-          yarn bootstrap
+        run: yarn bootstrap
 
       - name: Gradle cache
         uses: actions/cache@v2
@@ -107,12 +106,10 @@ jobs:
           node-version: 14.15.0
 
       - name: Install React Native CLI
-        run: |
-          npm install react-native-cli
+        run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: |
-          yarn bootstrap
+        run: yarn bootstrap
 
       - name: Build iOS App
         run: |
