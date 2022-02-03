@@ -121,7 +121,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          node_modules/@wdio/cli/bin/wdio.js run ./wdio.ios.js
+          node_modules/@wdio/cli/bin/wdio.js run ./wdio.ios.js --logLevel debug
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
