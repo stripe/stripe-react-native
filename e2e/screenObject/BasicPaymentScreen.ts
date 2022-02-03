@@ -43,9 +43,14 @@ class BasicPaymentScreen {
   authorize({ elementType = 'button', pause = 5000 } = {}) {
     driver.pause(pause);
 
-    expect(driver.getContexts()[1]).toBeTruthy();
-
-    driver.switchContext(driver.getContexts()[2] ?? driver.getContexts()[1]);
+    expect(driver.getContexts().length).toBeGreaterThan(1);
+    const webviewContext = driver
+      .getContexts()
+      .find((name) => name.toLowerCase().includes('webview'));
+    if (!webviewContext) {
+      throw new Error('No webview context was found.');
+    }
+    driver.switchContext(webviewContext);
 
     const button = $(`${elementType}*=Authorize`);
     button.waitForDisplayed({ timeout: 10000 });
