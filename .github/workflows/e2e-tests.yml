@@ -59,7 +59,7 @@ jobs:
             yarn run-example-android
             sleep 15
             adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
-            node ./run-appium-tests.js android
+            node_modules/@wdio/cli/bin/wdio.js run ./wdio.android.js
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
@@ -121,7 +121,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          node ./run-appium-tests.js ios
+          node_modules/@wdio/cli/bin/wdio.js run ./wdio.ios.js
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
