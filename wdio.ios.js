@@ -50,7 +50,6 @@ exports.config = {
       maxInstances: 1,
       browserName: '',
       appiumVersion: '1.22.1',
-      platformVersion: '15.2',
       platformName: 'ios',
       deviceName: 'iPhone 12',
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
