@@ -51,7 +51,7 @@ exports.config = {
       browserName: '',
       appiumVersion: '1.22.1',
       platformVersion: '15.2',
-      platformName: 'iOS',
+      platformName: 'ios',
       deviceName: 'iPhone 12',
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
