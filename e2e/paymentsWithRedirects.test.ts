@@ -58,7 +58,9 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
 
     getElementByText('Public Bank').click();
-    $('//android.widget.TextView[@content-desc="OK"]').click();
+    if (driver.isAndroid) {
+      $('//android.widget.TextView[@content-desc="OK"]').click();
+    }
 
     driver.pause(5000);
     BasicPaymentScreen.authorize();
@@ -136,6 +138,11 @@ describe('Example app payments scenarios (android)', () => {
   it('Sofort set up payment scenario', function () {
     this.retries(2);
     homeScreen.goTo('Bank redirects');
+    if (driver.isIOS) {
+      driver.execute('mobile: scroll', {
+        direction: 'down',
+      });
+    }
     homeScreen.goTo('Sofort SEPA Direct Debit set up');
 
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });
@@ -164,7 +171,13 @@ describe('Example app payments scenarios (android)', () => {
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     driver.pause(3000);
-    driver.back();
+    if (driver.isAndroid) {
+      driver.back();
+    } else {
+      // TODO: File an issue for Appium to support the 'Close' button.
+      driver.touchAction({ action: 'tap', x: 20, y: 50 });
+    }
+
     driver.pause(3000);
     driver.switchContext(driver.getContexts()[0]);
     BasicPaymentScreen.checkStatus();
