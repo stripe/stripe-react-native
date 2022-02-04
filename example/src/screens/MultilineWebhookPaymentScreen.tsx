@@ -107,6 +107,7 @@ export default function MultilineWebhookPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         disabled={!isComplete}
         loading={loading}
       />

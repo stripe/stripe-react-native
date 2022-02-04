@@ -98,6 +98,7 @@ export default function IdealPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
       <View style={styles.row}>

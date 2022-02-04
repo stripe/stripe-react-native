@@ -67,6 +67,7 @@ export default function FPXPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
     </PaymentScreen>

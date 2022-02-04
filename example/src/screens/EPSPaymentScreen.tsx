@@ -72,6 +72,7 @@ export default function EPSPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
     </PaymentScreen>

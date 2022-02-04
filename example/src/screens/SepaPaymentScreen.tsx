@@ -93,6 +93,7 @@ export default function SepaPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
       <View style={styles.row}>

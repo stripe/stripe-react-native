@@ -87,6 +87,7 @@ export default function AfterpayClearpayPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
     </PaymentScreen>
