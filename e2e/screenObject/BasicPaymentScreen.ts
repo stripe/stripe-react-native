@@ -75,7 +75,7 @@ function getAllWebviewContexts(): string[] {
   let allContexts = driver.getContexts();
   if (driver.isIOS) {
     // Hacky workaround for https://github.com/appium/appium/issues/13770
-    driver.pause(1000);
+    driver.pause(2000);
     allContexts = driver.getContexts();
   }
 

@@ -55,6 +55,7 @@ exports.config = {
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
       nativeWebTap: true,
+      autoAcceptAlerts: true,
     },
   ],
 };
