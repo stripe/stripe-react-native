@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // TODO: extend common config - need to figure out why it doesn't work on CI for now
 // const config = require('./wdio.conf');
 
@@ -62,4 +63,11 @@ exports.config = {
       enableWebviewDetailsCollection: true,
     },
   ],
+  afterTest: function (test, _context, { passed }) {
+    if (!passed) {
+      driver.saveScreen(
+        test.title.replace(/\s+/g, '') + '-' + new Date().getTime()
+      );
+    }
+  },
 };
