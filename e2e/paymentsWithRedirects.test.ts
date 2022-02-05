@@ -4,6 +4,10 @@ import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
 describe('Example app payments scenarios (android)', () => {
+  beforeAll(() => {
+    driver.reloadSession();
+  });
+
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
