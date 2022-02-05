@@ -57,8 +57,9 @@ jobs:
           ram-size: 8192M
           script: |
             yarn run-example-android
-            sleep 15
+            sleep 30
             adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
+            adb shell am set-debug-app --persistent com.android.chrome
             yarn test:android
 
       - name: Upload Screenshoots
