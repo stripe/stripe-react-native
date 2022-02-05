@@ -5,16 +5,16 @@ import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
 
-describe('Example app payments scenarios (common)', () => {
-  beforeAll(() => {
-    driver.reloadSession();
-  });
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
+describe('Example app payments scenarios (common)', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
 
   afterEach(() => {
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+
     driver.reloadSession();
   });
 

@@ -61,6 +61,19 @@ jobs:
             adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
             yarn test:android
 
+      - name: Upload Screenshoots
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results-android
+          path: .tmp
+        if: ${{ always() }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results-android
+          path: .tmp
+        if: ${{ always() }}
+
   test-ios:
     name: e2e-ios-test
     runs-on: macos-10.15
@@ -110,3 +123,15 @@ jobs:
         run: |
           yarn test:ios
 
+      - name: Upload Screenshoots
+        uses: actions/upload-artifact@v1
+        with:
+          name: e2e-results-ios
+          path: .tmp
+        if: ${{ always() }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: e2e-results-ios
+          path: .tmp
+        if: ${{ always() }}

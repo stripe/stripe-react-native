@@ -3,16 +3,16 @@ import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
-describe('Example app payments scenarios (android)', () => {
-  beforeAll(() => {
-    driver.reloadSession();
-  });
+type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
+describe('Example app payments scenarios (android)', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
 
   afterEach(() => {
+    (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
+
     driver.reloadSession();
   });
 
