@@ -53,12 +53,11 @@ class BasicPaymentScreen {
         const button = $(`${elementType}*=Authorize`);
         if (button.isDisplayed()) {
           button.click();
+          driver.pause(3000);
+          driver.closeWindow();
         }
       } catch (e) {}
     }
-
-    driver.pause(3000);
-    driver.closeWindow();
     driver.switchContext(getNativeContext());
   }
 
