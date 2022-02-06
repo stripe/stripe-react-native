@@ -61,7 +61,7 @@ exports.config = {
       ignoreHiddenApiPolicyError: true,
       noReset: true,
       enableWebviewDetailsCollection: true,
-      appWaitForLaunch: true,
+      avdArgs: '-wipe-data',
       autoGrantPermissions: true,
     },
   ],
