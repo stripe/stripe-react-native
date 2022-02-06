@@ -1,5 +1,9 @@
 /* eslint-disable no-undef */
-import { getElementByText, getTextInputByPlaceholder } from './helpers';
+import {
+  getElementByText,
+  getTextInputByPlaceholder,
+  getElementByTextContaining,
+} from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
@@ -58,7 +62,7 @@ describe('Payment scenarios with redirects', () => {
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
 
-    getElementByText('Public Bank').click();
+    getElementByTextContaining('HSBC').click();
     if (driver.isAndroid) {
       $('//android.widget.TextView[@content-desc="OK"]').click();
     }
