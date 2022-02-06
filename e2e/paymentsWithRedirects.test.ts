@@ -63,7 +63,7 @@ describe('Payment scenarios with redirects', () => {
       $('//android.widget.TextView[@content-desc="OK"]').click();
     }
 
-    driver.pause(10000);
+    driver.pause(7000);
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
