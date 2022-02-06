@@ -2,14 +2,9 @@
 import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
-type WDIO = { saveScreen: (name: string) => void } & WebdriverIO.Browser;
 
 describe('Payment scenarios with redirects', () => {
   beforeEach(() => {
-    if (driver.isAndroid) {
-      driver.pause(2000);
-      (driver as WDIO).saveScreen(`screen-${new Date().getTime()}`);
-    }
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
 
