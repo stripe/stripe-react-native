@@ -5,7 +5,7 @@ import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
 
-describe('Example app payments scenarios (common)', () => {
+describe('Direct payment scenarios', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });

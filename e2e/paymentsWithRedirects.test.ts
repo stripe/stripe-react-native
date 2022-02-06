@@ -3,7 +3,7 @@ import { getElementByText, getTextInputByPlaceholder } from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import homeScreen from './screenObject/HomeScreen';
 
-describe('Example app payments scenarios (android)', () => {
+describe('Payment scenarios with redirects', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
   });
@@ -48,8 +48,9 @@ describe('Example app payments scenarios (android)', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Fpx payment scenario', function () {
-    this.retries(2);
+  // FPX banks can go offline for maintenance, so this test has higher timeouts and more retries
+  it('FPX payment scenario', function () {
+    this.retries(5);
     homeScreen.goTo('Bank redirects');
     homeScreen.goTo('FPX');
 
@@ -62,7 +63,7 @@ describe('Example app payments scenarios (android)', () => {
       $('//android.widget.TextView[@content-desc="OK"]').click();
     }
 
-    driver.pause(5000);
+    driver.pause(10000);
     BasicPaymentScreen.authorize();
     BasicPaymentScreen.checkStatus();
   });
