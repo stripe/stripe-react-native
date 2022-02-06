@@ -70,6 +70,7 @@ jobs:
         if: ${{ always() }}
 
       - uses: actions/download-artifact@v2
+        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
         with:
           name: e2e-results-android
           path: .tmp
@@ -132,6 +133,7 @@ jobs:
         if: ${{ always() }}
 
       - uses: actions/download-artifact@v2
+        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
         with:
           name: e2e-results-ios
           path: .tmp
