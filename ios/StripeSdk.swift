@@ -536,43 +536,55 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "type parameter is required"))
             return
         }
-
-        if (type != "Card" && type != "BankAccount") {
+        
+        // TODO: Consider moving this to its own class when more types are supported.
+        switch type {
+        case "BankAccount":
+            createTokenFromBankAccount(params: params, resolver: resolve, rejecter: reject)
+        case "Card":
+            createTokenFromCard(params: params, resolver: resolve, rejecter: reject)
+        default:
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
-            return
         }
-        
-        // TODO: create a service for creating tokens from a difference sources.
-        if (type == "BankAccount") {
-            let accountHolderName = params["accountHolderName"] as? String
-            let accountHolderType = params["accountHolderType"] as? String
-            let accountNumber = params["accountNumber"] as? String
-            let country = params["country"] as? String
-            let currency = params["currency"] as? String
-            let routingNumber = params["routingNumber"] as? String
+    }
+    
+    func createTokenFromBankAccount(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let accountHolderName = params["accountHolderName"] as? String
+        let accountHolderType = params["accountHolderType"] as? String
+        let accountNumber = params["accountNumber"] as? String
+        let country = params["country"] as? String
+        let currency = params["currency"] as? String
+        let routingNumber = params["routingNumber"] as? String
 
-            let bankAccountParams = STPBankAccountParams()
-            bankAccountParams.accountHolderName = accountHolderName
-            bankAccountParams.accountNumber = accountNumber
-            bankAccountParams.country = country
-            bankAccountParams.currency = currency
-            bankAccountParams.routingNumber = routingNumber
-            
-            if let holderType = Mappers.mapToBankAccountHolderType(accountHolderType) {
-                bankAccountParams.accountHolderType = holderType
-            }
-            
-            STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
-                if let token = token {
-                    resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
-                } else {
-                    resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
-                }
-            }
-            return
+        let bankAccountParams = STPBankAccountParams()
+        bankAccountParams.accountHolderName = accountHolderName
+        bankAccountParams.accountNumber = accountNumber
+        bankAccountParams.country = country
+        bankAccountParams.currency = currency
+        bankAccountParams.routingNumber = routingNumber
+        
+        if let holderType = Mappers.mapToBankAccountHolderType(accountHolderType) {
+            bankAccountParams.accountHolderType = holderType
         }
         
-        
+        STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
+            if let token = token {
+                resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
+            } else {
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
+            }
+        }
+    }
+    
+    func createTokenFromCard(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
