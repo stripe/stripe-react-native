@@ -226,7 +226,7 @@ export type CreateTokenCardParams = {
   name?: string;
 };
 
-export type BankAcccountHolderType = 'company' | 'individual';
+export type BankAcccountHolderType = 'Company' | 'Individual';
 
 export type CreateTokenBankAccountParams = {
   type: 'BankAccount';
