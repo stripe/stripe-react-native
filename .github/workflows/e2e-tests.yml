@@ -49,7 +49,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
-          arch: x86
+          arch: x86_64
           target: google_apis
           force-avd-creation: false
           disable-animations: true
