@@ -57,7 +57,6 @@ exports.config = {
       appPackage: 'com.example.reactnativestripesdk',
       appActivity: '.MainActivity',
       automationName: 'UiAutomator2',
-      chromedriverUseSystemExecutable: true,
       ignoreHiddenApiPolicyError: true,
       noReset: true,
       enableWebviewDetailsCollection: true,
