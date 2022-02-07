@@ -422,35 +422,31 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   if (billingDetails == null && cardAddress == null) {
     return null;
   }
-  val address = Address.Builder()
+  val addressBuilder = Address.Builder()
+  val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
+
   if (billingDetails != null) {
-    address
+    addressBuilder
       .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
       .setCity(getValOr(billingDetails, "addressCity"))
       .setCountry(getValOr(billingDetails, "addressCountry"))
       .setLine1(getValOr(billingDetails, "addressLine1"))
       .setLine2(getValOr(billingDetails, "addressLine2"))
       .setState(getValOr(billingDetails, "addressState"))
-  }
-  cardAddress?.let { ca ->
-    ca.postalCode?.let {
-      if (it.isNotEmpty()) {
-        address.setPostalCode(it)
-      }
-    }
-    ca.country?.let {
-      address.setCountry(it)
-    }
-  }
-
-  val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
-    .setAddress(address.build())
-  if (billingDetails != null) {
     paymentMethodBillingDetailsBuilder
       .setName(getValOr(billingDetails, "name"))
       .setPhone(getValOr(billingDetails, "phone"))
       .setEmail(getValOr(billingDetails, "email"))
   }
+
+  if (cardAddress?.postalCode?.isNotEmpty() == true) {
+    addressBuilder.setPostalCode(cardAddress.postalCode)
+  }
+  if (cardAddress?.country?.isNotEmpty() == true) {
+    addressBuilder.setCountry(cardAddress.country)
+  }
+
+  paymentMethodBillingDetailsBuilder.setAddress(addressBuilder.build())
   return paymentMethodBillingDetailsBuilder.build()
 }
 
