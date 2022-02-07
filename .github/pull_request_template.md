@@ -8,3 +8,9 @@
 <!-- Did you test your changes? Ideally you should check both of the following boxes. -->
 - [ ] I tested this manually
 - [ ] I added automated tests
+
+## Documentation
+
+Select one: 
+- [ ] I have added relevant documentation for my changes.
+- [ ] This PR does not result in any developer-facing changes.
