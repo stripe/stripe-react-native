@@ -107,6 +107,7 @@ export default function WebhookPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
     </PaymentScreen>

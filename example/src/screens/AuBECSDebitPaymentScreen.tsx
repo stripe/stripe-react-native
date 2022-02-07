@@ -78,6 +78,7 @@ export default function AuBECSDebitPaymentScreen() {
         <Button
           disabled={!formDetails}
           title="Pay"
+          accessibilityLabel="Pay"
           variant="primary"
           onPress={onPressPay}
           loading={loading}

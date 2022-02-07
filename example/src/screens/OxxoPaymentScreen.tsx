@@ -81,6 +81,7 @@ export default function OxxoPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        accessibilityLabel="Pay"
         loading={loading}
       />
     </PaymentScreen>

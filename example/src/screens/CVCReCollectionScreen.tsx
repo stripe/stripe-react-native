@@ -142,6 +142,7 @@ export default function CVCReCollectionScreen() {
           variant="primary"
           onPress={payAsynchronously}
           title="Pay"
+          accessibilityLabel="Pay"
           loading={loading}
           disabled={!email || !cvc}
         />

@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -35,8 +35,7 @@ jobs:
         run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: |
-          yarn bootstrap
+        run: yarn bootstrap
 
       - name: Gradle cache
         uses: actions/cache@v2
@@ -49,7 +48,7 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 29
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -60,24 +59,26 @@ jobs:
             yarn run-example-android
             sleep 15
             adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
-            node ./run-appium-tests.js android
+            adb shell am set-debug-app --persistent com.android.chrome
+            yarn test:android
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
         with:
-          name: e2e-results
+          name: e2e-results-android
           path: .tmp
         if: ${{ always() }}
 
       - uses: actions/download-artifact@v2
+        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
         with:
-          name: e2e-results
+          name: e2e-results-android
           path: .tmp
         if: ${{ always() }}
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macOS-latest
+    runs-on: macos-10.15
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -107,12 +108,10 @@ jobs:
           node-version: 14.15.0
 
       - name: Install React Native CLI
-        run: |
-          npm install react-native-cli
+        run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: |
-          yarn bootstrap
+        run: yarn bootstrap
 
       - name: Build iOS App
         run: |
@@ -124,17 +123,18 @@ jobs:
 
       - name: Run Tests
         run: |
-          node ./run-appium-tests.js ios
+          yarn test:ios
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
         with:
-          name: e2e-results
+          name: e2e-results-ios
           path: .tmp
         if: ${{ always() }}
 
       - uses: actions/download-artifact@v2
+        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
         with:
-          name: e2e-results
+          name: e2e-results-ios
           path: .tmp
         if: ${{ always() }}

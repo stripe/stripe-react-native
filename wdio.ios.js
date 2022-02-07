@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // TODO: extend common config - need to figure out why it doesn't work on CI for now
 // const config = require('./wdio.conf');
 
@@ -49,12 +50,19 @@ exports.config = {
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.20.2',
-      platformVersion: '14.4',
-      platformName: 'iOS',
+      appiumVersion: '1.22.1',
+      platformName: 'ios',
       deviceName: 'iPhone 12',
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
+      nativeWebTap: true,
     },
   ],
+  afterTest: function (test, _context, { passed }) {
+    if (!passed) {
+      driver.saveScreen(
+        test.title.replace(/\s+/g, '') + '-' + new Date().getTime()
+      );
+    }
+  },
 };
