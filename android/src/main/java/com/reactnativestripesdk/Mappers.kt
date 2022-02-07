@@ -420,7 +420,7 @@ internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Addr
 
 internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Address?): PaymentMethod.BillingDetails? {
   if (billingDetails == null && cardAddress == null) {
-    return null;
+    return null
   }
   val addressBuilder = Address.Builder()
   val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
