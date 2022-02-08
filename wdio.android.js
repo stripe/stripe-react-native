@@ -58,7 +58,7 @@ exports.config = {
       appActivity: '.MainActivity',
       automationName: 'UiAutomator2',
       ignoreHiddenApiPolicyError: true,
-      fullReset: true,
+      noReset: true,
       enableWebviewDetailsCollection: true,
       avdArgs: '-wipe-data',
       autoGrantPermissions: true,
