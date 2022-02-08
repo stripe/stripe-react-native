@@ -566,10 +566,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         bankAccountParams.country = country
         bankAccountParams.currency = currency
         bankAccountParams.routingNumber = routingNumber
+        bankAccountParams.accountHolderType = Mappers.mapToBankAccountHolderType(accountHolderType)
         
-        if let holderType = Mappers.mapToBankAccountHolderType(accountHolderType) {
-            bankAccountParams.accountHolderType = holderType
-        }
         
         STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
             if let token = token {

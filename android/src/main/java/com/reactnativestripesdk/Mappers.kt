@@ -171,11 +171,11 @@ internal fun mapFromBankAccountType(type: BankAccount.Type?): String {
   }
 }
 
-internal fun mapToBankAccountType(type: String?): BankAccountTokenParams.Type? {
+internal fun mapToBankAccountType(type: String?): BankAccountTokenParams.Type {
   return when (type) {
     "Company" -> BankAccountTokenParams.Type.Company
     "Individual" -> BankAccountTokenParams.Type.Individual
-    else -> null
+    else -> BankAccountTokenParams.Type.Individual
   }
 }
 
