@@ -105,24 +105,18 @@ export function useApplePay({
   );
 
   useEffect(() => {
-    eventEmitter.addListener(
+    const didSetShippingMethodListener = eventEmitter.addListener(
       SET_SHIPPING_METHOD_CALLBACK_NAME,
       onDidSetShippingMethod
     );
-    eventEmitter.addListener(
+    const didSetShippingContactListener = eventEmitter.addListener(
       SET_SHIPPING_CONTACT_CALLBACK_NAME,
       onDidSetShippingContact
     );
 
     return () => {
-      eventEmitter.removeListener(
-        SET_SHIPPING_METHOD_CALLBACK_NAME,
-        onDidSetShippingMethod
-      );
-      eventEmitter.removeListener(
-        SET_SHIPPING_CONTACT_CALLBACK_NAME,
-        onDidSetShippingContact
-      );
+      didSetShippingMethodListener.remove();
+      didSetShippingContactListener.remove();
     };
   }, [onDidSetShippingContact, onDidSetShippingMethod]);
 

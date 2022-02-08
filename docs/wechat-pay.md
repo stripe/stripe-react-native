@@ -92,12 +92,11 @@ export default function HomeScreen() {
     };
     getUrlAsync();
 
-    const urlCallback = (event) => {
+    const deepLinkListener = Linking.addEventListener('url', (event) => {
       handleDeepLink(event.url);
-    };
+    });
 
-    Linking.addEventListener('url', urlCallback);
-    return () => Linking.removeEventListener('url', urlCallback);
+    return () => deepLinkListener.remove();
   }, []);
 
   return <Screen>{/* ... */}</Screen>;
