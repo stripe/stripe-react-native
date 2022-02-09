@@ -212,6 +212,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun onCardComplete() {}
       override fun onExpirationComplete() {}
       override fun onCvcComplete() {}
+      override fun onPostalCodeComplete() {}
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
         if (mEventDispatcher != null) {
