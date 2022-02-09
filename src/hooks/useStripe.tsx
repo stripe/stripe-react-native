@@ -17,12 +17,12 @@ import type {
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
   CreateTokenResult,
-  Card,
   PayWithGooglePayResult,
   GooglePayInitResult,
   GooglePay,
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
+  CreateTokenParams,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -78,7 +78,7 @@ export function useStripe() {
   );
 
   const _createToken = useCallback(
-    async (params: Card.CreateTokenParams): Promise<CreateTokenResult> => {
+    async (params: CreateTokenParams): Promise<CreateTokenResult> => {
       return createToken(params);
     },
     []

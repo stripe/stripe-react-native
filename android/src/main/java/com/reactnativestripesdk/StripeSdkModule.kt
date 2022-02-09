@@ -23,8 +23,7 @@ import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -404,21 +403,60 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun createToken(params: ReadableMap, promise: Promise) {
-    val type = getValOr(params, "type", null)?.let {
-      if (it != "Card") {
-        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$it type is not supported yet"))
-        return
-      }
-    }
-    val address = getMapOrNull(params, "address")
-
-    val cardParamsMap = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap() ?: run {
-      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
+    val type = getValOr(params, "type", null)
+    if (type == null) {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "type parameter is required"))
       return
     }
 
-    val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+    when (type) {
+      "BankAccount" -> {
+        createTokenFromBankAccount(params, promise)
+      }
+      "Card" -> {
+        createTokenFromCard(params, promise)
+      }
+      else -> {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$type type is not supported yet"))
+      }
+    }
+  }
 
+  private fun createTokenFromBankAccount(params: ReadableMap, promise: Promise) {
+    val accountHolderName = getValOr(params, "accountHolderName")
+    val accountHolderType = getValOr(params, "accountHolderType")
+    val accountNumber = getValOr(params, "accountNumber", null)
+    val country = getValOr(params, "country", null)
+    val currency = getValOr(params, "currency", null)
+    val routingNumber = getValOr(params, "routingNumber")
+
+    runCatching {
+      val bankAccountParams = BankAccountTokenParams(
+        country = country!!,
+        currency = currency!!,
+        accountNumber = accountNumber!!,
+        accountHolderName = accountHolderName,
+        routingNumber = routingNumber,
+        accountHolderType = mapToBankAccountType(accountHolderType)
+      )
+      CoroutineScope(Dispatchers.IO).launch {
+        val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
+        promise.resolve(createResult("token", mapFromToken(token)))
+      }
+    }.onFailure {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
+    }
+  }
+
+  private fun createTokenFromCard(params: ReadableMap, promise: Promise) {
+    val cardParamsMap = (cardFieldView?.cardParams ?: cardFormView?.cardParams)?.toParamMap()
+      ?: run {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Card details not complete"))
+        return
+      }
+
+    val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+    val address = getMapOrNull(params, "address")
     val cardParams = CardParams(
       number = cardParamsMap["number"] as String,
       expMonth = cardParamsMap["exp_month"] as Int,
@@ -427,7 +465,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       address = mapToAddress(address, cardAddress),
       name = getValOr(params, "name", null)
     )
-    runBlocking {
+
+    CoroutineScope(Dispatchers.IO).launch {
       try {
         val token = stripe.createCardToken(
           cardParams = cardParams,

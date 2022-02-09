@@ -57,10 +57,4 @@ export namespace Card {
     postalCode?: string;
     state?: string;
   }
-
-  export interface CreateTokenParams {
-    type: 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
-    address?: Address;
-    name?: string;
-  }
 }

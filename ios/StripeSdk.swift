@@ -561,19 +561,63 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let address = params["address"] as? NSDictionary
-        
-        if let type = params["type"] as? String {
-            if (type != "Card") {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
-            }
+        guard let type = params["type"] as? String else {
+            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "type parameter is required"))
+            return
         }
         
+        // TODO: Consider moving this to its own class when more types are supported.
+        switch type {
+        case "BankAccount":
+            createTokenFromBankAccount(params: params, resolver: resolve, rejecter: reject)
+        case "Card":
+            createTokenFromCard(params: params, resolver: resolve, rejecter: reject)
+        default:
+            resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
+        }
+    }
+    
+    func createTokenFromBankAccount(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let accountHolderName = params["accountHolderName"] as? String
+        let accountHolderType = params["accountHolderType"] as? String
+        let accountNumber = params["accountNumber"] as? String
+        let country = params["country"] as? String
+        let currency = params["currency"] as? String
+        let routingNumber = params["routingNumber"] as? String
+
+        let bankAccountParams = STPBankAccountParams()
+        bankAccountParams.accountHolderName = accountHolderName
+        bankAccountParams.accountNumber = accountNumber
+        bankAccountParams.country = country
+        bankAccountParams.currency = currency
+        bankAccountParams.routingNumber = routingNumber
+        bankAccountParams.accountHolderType = Mappers.mapToBankAccountHolderType(accountHolderType)
+        
+        
+        STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
+            if let token = token {
+                resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
+            } else {
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
+            }
+        }
+    }
+    
+    func createTokenFromCard(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
         }
         
+        let address = params["address"] as? NSDictionary
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = cardParams.number
         cardSourceParams.cvc = cardParams.cvc
