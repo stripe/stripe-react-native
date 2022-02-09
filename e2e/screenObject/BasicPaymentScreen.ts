@@ -47,16 +47,19 @@ class BasicPaymentScreen {
     // but we can safely do so as the test would still fail after we return back to the native context.
     const webviewContexts = getAllWebviewContexts();
     for (const context of webviewContexts) {
-      driver.switchContext(context);
-
       try {
+        driver.switchContext(context);
         const button = $(`${elementType}*=Authorize`);
         if (button.isDisplayed()) {
           button.click();
           driver.pause(3000);
           driver.closeWindow();
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log(
+          `Unable to switch to ${context} context. This context may no logner exist.`
+        );
+      }
     }
     driver.switchContext(getNativeContext());
   }
