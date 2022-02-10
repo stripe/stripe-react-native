@@ -184,17 +184,18 @@ describe('Payment scenarios with redirects', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  it('Alipay payment scenario', function () {
-    this.retries(2);
-    homeScreen.goTo('Wallets');
-    homeScreen.goTo('Alipay');
+  // TODO: Figure out why the following test executes so slowly
+  // it('Alipay payment scenario', function () {
+  //   this.retries(2);
+  //   homeScreen.goTo('Wallets');
+  //   homeScreen.goTo('Alipay');
 
-    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
+  //   $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
-    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize();
-    BasicPaymentScreen.checkStatus();
-  });
+  //   BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+  //   BasicPaymentScreen.authorize();
+  //   BasicPaymentScreen.checkStatus();
+  // });
 
   it('Grabpay payment scenario', function () {
     this.retries(2);
