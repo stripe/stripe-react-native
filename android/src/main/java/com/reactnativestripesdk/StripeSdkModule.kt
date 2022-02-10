@@ -224,9 +224,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private val mPaymentSheetReceiver: BroadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
-      if (intent.action == ON_FRAGMENT_CREATED) {
-        paymentSheetFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("payment_sheet_launch_fragment") as PaymentSheetFragment
-      }
       if (intent.action == ON_PAYMENT_RESULT_ACTION) {
         when (val result = intent.extras?.getParcelable<PaymentSheetResult>("paymentResult")) {
           is PaymentSheetResult.Canceled -> {
@@ -304,7 +301,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION));
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_OPTION_ACTION));
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER));
-    localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_FRAGMENT_CREATED));
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET));
 
     localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
@@ -326,12 +322,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     this.initPaymentSheetPromise = promise
 
-    val fragment = PaymentSheetFragment().also {
+    paymentSheetFragment = PaymentSheetFragment().also {
       val bundle = toBundleObject(params)
       it.arguments = bundle
     }
     activity.supportFragmentManager.beginTransaction()
-      .add(fragment, "payment_sheet_launch_fragment")
+      .add(paymentSheetFragment!!, "payment_sheet_launch_fragment")
       .commit()
   }
 

@@ -123,9 +123,6 @@ class PaymentSheetFragment : Fragment() {
       val intent = Intent(ON_INIT_PAYMENT_SHEET)
       localBroadcastManager.sendBroadcast(intent)
     }
-
-    val intent = Intent(ON_FRAGMENT_CREATED)
-    localBroadcastManager.sendBroadcast(intent)
   }
 
   fun present() {
