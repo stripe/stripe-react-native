@@ -4,31 +4,25 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
-To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package:
+### Running the example app
 
-```sh
-yarn bootstrap
-```
+- Install the dependencies
+  - `yarn bootstrap`
+- Set up env vars
+  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
+- Start the example
+  - Terminal 1: `yarn example start:server`
+  - Terminal 2: `yarn example start`
+  - Terminal 3: depending on what platform you want to build for run either
+    - `yarn example ios`
+    - or
+    - `yarn example android`
 
-While developing, you can run the [example app](/example/) to test your changes.
+To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
 
-To start the packager:
+To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
-```sh
-yarn example start
-```
-
-To run the example app on Android:
-
-```sh
-yarn example android
-```
-
-To run the example app on iOS:
-
-```sh
-yarn example ios
-```
+Use your editor of choice for editing the Typescript files in `src/` and `example/`.
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
@@ -43,15 +37,7 @@ To fix formatting errors, run the following:
 yarn lint --fix
 ```
 
-Remember to add tests for your change if possible. Run the unit tests by:
-
-```sh
-yarn test
-```
-
-To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
-
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
+Remember to add tests for your change if possible. End to end tests are done with Appium, and can be found in `e2e/`. Read the [test section below](#tests) for more details on setup.
 
 ## Testing inside of the Expo Go app
 
