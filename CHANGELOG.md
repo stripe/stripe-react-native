@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.2.4 - 2021-11-19
+## 0.2.4 - 2022-02-10
 
 - [#788](https://github.com/stripe/stripe-react-native/pull/788) fix: assign `paymentSheetFragment` directly, instead of through intents which would sometimes result in a `NullPointerException`.
 - [#591](https://github.com/stripe/stripe-react-native/pull/591) feat: add option to create a token directly from a bank account.
