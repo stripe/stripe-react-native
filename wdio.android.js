@@ -54,8 +54,6 @@ exports.config = {
       appiumVersion: '1.22.1',
       platformName: 'Android',
       app: 'example/android/app/build/outputs/apk/release/app-release.apk',
-      appPackage: 'com.example.reactnativestripesdk',
-      appActivity: '.MainActivity',
       automationName: 'UiAutomator2',
       ignoreHiddenApiPolicyError: true,
       fullReset: true,
