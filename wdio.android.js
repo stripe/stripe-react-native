@@ -60,6 +60,7 @@ exports.config = {
       enableWebviewDetailsCollection: true,
       avdArgs: '-wipe-data',
       autoGrantPermissions: true,
+      androidInstallTimeout: 200000,
     },
   ],
   afterTest: function (test, _context, { passed }) {
