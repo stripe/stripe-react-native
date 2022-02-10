@@ -35,7 +35,7 @@ jobs:
         run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: yarn bootstrap
+        run: yarn bootstrap-no-pods
 
       - name: Gradle cache
         uses: actions/cache@v2
