@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix: properly assign `cursorColor` style on Android `CardField` (requires Android 10 or higher).
+
 ## 0.2.4 - 2022-02-10
 
 - [#788](https://github.com/stripe/stripe-react-native/pull/788) fix: assign `paymentSheetFragment` directly, instead of through intents which would sometimes result in a `NullPointerException`.
