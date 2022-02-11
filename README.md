@@ -24,6 +24,7 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
 **PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps. PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods. PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, iDEAL, and Sofort.
+
 #### Recommended usage
 
 If you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. For all other scenarios you can use this SDK to process payments via Stripe.
@@ -201,20 +202,6 @@ function App() {
 
 You can find more details about the `StripeProvider` component in the [API reference](https://stripe.dev/stripe-react-native/api-reference/modules.html#stripeprovider).
 
-## Run the example app
-
-- Install the dependencies
-  - `yarn bootstrap`
-- Set up env vars
-  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
-- Start the example
-  - Terminal 1: `yarn example start:server`
-  - Terminal 2: `yarn example start`
-  - Terminal 3: depending on what platform you want to build for run either
-    - `yarn example ios`
-    - or
-    - `yarn example android`
-
 ##### Additional steps for webhook forwarding
 
 Certain payment methods require a [webhook listener](https://stripe.com/docs/payments/payment-intents/verifying-status#webhooks) to notify you of changes in the status. When developing locally, you can use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhook events to your local dev server.
@@ -245,6 +232,10 @@ jest.mock('@stripe/stripe-react-native', () => ({
 }));
 ```
 
+## Contributing
+
+See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository or to learn how to run the example app.
+
 ## Troubleshooting
 
 ### `Undefined symbols for architecture x86_64` on iOS
@@ -270,7 +261,3 @@ Follow these steps to resolve this:
 You might see error this whilst initializing the `StripeProvider` component with Expo. This is caused by using an older version of Expo before stripe-react-native was [officially supported](https://github.com/stripe/stripe-react-native/issues/3#issuecomment-846225534). Updating Expo Go from the stores (or locally on simulators installed with `expo install:client:[ios|android]`) should fix the problem.
 
 If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://stripe.com/go/developer-chat).
-
-## Contributing
-
-See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository.
