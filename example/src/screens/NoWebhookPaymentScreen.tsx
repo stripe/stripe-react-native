@@ -129,6 +129,16 @@ export default function NoWebhookPaymentScreen() {
     setLoading(false);
   };
 
+  const cardStyle = {
+    borderWidth: 4,
+    borderColor: '#A020F0',
+    borderRadius: 10,
+    textColor: '#0000ff',
+    placeholderColor: '#FFC0CB',
+    textErrorColor: 'red',
+    cursorColor: '#ffff00',
+  };
+
   return (
     <PaymentScreen>
       <CardField
@@ -140,6 +150,7 @@ export default function NoWebhookPaymentScreen() {
         }}
         style={styles.cardField}
         postalCodeEnabled={false}
+        cardStyle={cardStyle}
       />
 
       <Button
