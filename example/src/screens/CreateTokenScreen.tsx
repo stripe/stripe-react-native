@@ -44,7 +44,11 @@ export default function CreateTokenScreen() {
         accessibilityLabel="Create a token from a bank account"
       />
       <Text style={styles.or}>OR</Text>
-      <CardField cardStyle={inputStyles} style={styles.cardField} />
+      <CardField
+        cardStyle={inputStyles}
+        style={styles.cardField}
+        postalCodeEnabled={false}
+      />
       <Button
         variant="primary"
         onPress={() => _createToken('Card')}

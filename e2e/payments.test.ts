@@ -189,4 +189,30 @@ describe('Common payment scenarios', () => {
     });
     expect(alert.getText()).toEqual('Success');
   });
+
+  it('Create tokens with a bank account and with a card', function () {
+    this.retries(1);
+    homeScreen.goTo('More payment scenarios');
+    homeScreen.goTo('Create tokens');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
+
+    getElementByText('Create a token from a bank account').click();
+    let alert = getElementByText('Success');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    expect(alert.getText()).toEqual('Success');
+    alert.dismissAlert();
+
+    cardField.setCardNumber('4242424242424242');
+    cardField.setExpiryDate('12/22');
+    cardField.setCvcNumber('123');
+    getElementByText('Create a token from a card').click();
+    alert = getElementByText('Success');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    expect(alert.getText()).toEqual('Success');
+  });
 });
