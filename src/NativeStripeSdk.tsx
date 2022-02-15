@@ -66,6 +66,9 @@ type NativeStripeSdkType = {
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
   createToken(params: CreateTokenParams): Promise<CreateTokenResult>;
+  isGooglePaySupported(
+    params: GooglePay.IsGooglePaySupportedParams
+  ): Promise<boolean>;
   initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
   presentGooglePay(
     params: GooglePay.PresentGooglePayParams
