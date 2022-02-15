@@ -6,6 +6,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 
 export default function GooglePayScreen() {
   const {
+    isGooglePaySupported,
     initGooglePay,
     presentGooglePay,
     loading,
@@ -71,6 +72,11 @@ export default function GooglePayScreen() {
 
   // 1. Initialize Google Pay
   const initialize = async () => {
+    if (!(await isGooglePaySupported({ testEnv: true }))) {
+      Alert.alert('Google Pay is not supported.');
+      return;
+    }
+
     const { error } = await initGooglePay({
       testEnv: true,
       merchantName: 'Test',
