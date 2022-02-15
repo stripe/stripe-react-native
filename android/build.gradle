@@ -137,4 +137,5 @@ dependencies {
   implementation 'androidx.appcompat:appcompat:1.2.0'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+  implementation 'com.google.android.gms:play-services-wallet:19.0.1'
 }

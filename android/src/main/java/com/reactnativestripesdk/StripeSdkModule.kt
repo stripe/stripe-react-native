@@ -1,14 +1,11 @@
 package com.reactnativestripesdk
 
 import android.app.Activity
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.AsyncTask
-import android.os.Build
-import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -17,6 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.google.android.gms.wallet.IsReadyToPayRequest
+import com.google.android.gms.wallet.Wallet
+import com.google.android.gms.wallet.WalletConstants
 import com.stripe.android.*
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
@@ -26,7 +26,7 @@ import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.*
 
 @ReactModule(name = StripeSdkModule.NAME)
-class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class StripeSdkModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   var cardFieldView: StripeSdkCardView? = null
   var cardFormView: CardFormView? = null
   private lateinit var localBroadcastManager: LocalBroadcastManager
@@ -602,6 +602,26 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     } catch (error: PaymentMethodCreateParamsException) {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
+  }
+
+  @ReactMethod
+  fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
+    val isTestEnv = getBooleanOrFalse(params, "testEnv")
+    val paymentMethodRequired = getBooleanOrFalse(params, "existingPaymentMethodRequired")
+    val options = Wallet.WalletOptions.Builder()
+      .setEnvironment(if (isTestEnv) WalletConstants.ENVIRONMENT_TEST else WalletConstants.ENVIRONMENT_PRODUCTION)
+      .build()
+    val request = IsReadyToPayRequest.fromJson(GooglePayJsonFactory(reactContext)
+      .createIsReadyToPayRequest(null, paymentMethodRequired)
+      .toString())
+
+    Wallet.getPaymentsClient(reactContext, options)
+      .isReadyToPay(request)
+      .addOnCompleteListener { task ->
+        runCatching {
+          promise.resolve(task.result == true)
+        }.onFailure { promise.resolve(false) }
+      }
   }
 
   @ReactMethod
