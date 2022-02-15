@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Fix: properly assign `cursorColor` style on Android `CardField` (requires Android 10 or higher).
+- [#810](https://github.com/stripe/stripe-react-native/pull/810) Feat: add `isGooglePaySupported` method
+- [#806](https://github.com/stripe/stripe-react-native/pull/806) Fix: properly assign `cursorColor` style on Android `CardField` (requires Android 10 or higher).
 
 ## 0.2.4 - 2022-02-10
 
