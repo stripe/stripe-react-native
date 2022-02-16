@@ -43,7 +43,7 @@ function App() {
 
 ## Initialize Google Pay
 
-Next, initialize a Google Pay by calling `initGooglePay` method. Call this on initial render of your checkout screen for best performance.
+First, check whether or not the device supports Google Pay by calling `isGooglePaySupported`. Once you know it's supported, initialize Google Pay by calling `initGooglePay`. Call this on initial render of your checkout screen for best performance.
 
 `initGooglePay` accepts several configuration options that can be customized for your needs.
 See [SDK Reference](https://stripe.dev/stripe-react-native/api-reference/index.html) for more details.
@@ -52,11 +52,16 @@ See [SDK Reference](https://stripe.dev/stripe-react-native/api-reference/index.h
 import { useGooglePay } from 'stripe-react-native';
 
 function CheckoutScreen() {
-  const { initGooglePay } = useGooglePay();
+  const { isGooglePaySupported, initGooglePay } = useGooglePay();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function initialize() {
+      if (!(await isGooglePaySupported())) {
+        Alert.alert('Google Pay is not supported.');
+        return;
+      }
+
       const { error } = await initGooglePay({
         testEnv: true,
         merchantName: 'Widget Store',

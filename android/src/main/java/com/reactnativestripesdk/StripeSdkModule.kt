@@ -1,14 +1,11 @@
 package com.reactnativestripesdk
 
 import android.app.Activity
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.AsyncTask
-import android.os.Build
-import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -25,8 +22,9 @@ import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.*
 
+
 @ReactModule(name = StripeSdkModule.NAME)
-class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class StripeSdkModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   var cardFieldView: StripeSdkCardView? = null
   var cardFormView: CardFormView? = null
   private lateinit var localBroadcastManager: LocalBroadcastManager
@@ -602,6 +600,20 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     } catch (error: PaymentMethodCreateParamsException) {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
     }
+  }
+
+  @ReactMethod
+  fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
+    val fragment = GooglePayPaymentMethodLauncherFragment(
+      currentActivity as AppCompatActivity,
+      getBooleanOrFalse(params, "testEnv"),
+      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
+      promise
+    )
+
+    (currentActivity as AppCompatActivity).supportFragmentManager.beginTransaction()
+      .add(fragment, "google_pay_support_fragment")
+      .commit()
   }
 
   @ReactMethod

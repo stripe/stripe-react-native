@@ -1,4 +1,4 @@
-import { createError, isiOS } from './helpers';
+import { createError, isAndroid, isiOS } from './helpers';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -361,6 +361,14 @@ export const confirmPaymentSheetPayment =
       };
     }
   };
+
+export const isGooglePaySupported = async (
+  params?: GooglePay.IsGooglePaySupportedParams
+): Promise<boolean> => {
+  return (
+    isAndroid && (await NativeStripeSdk.isGooglePaySupported(params ?? {}))
+  );
+};
 
 export const initGooglePay = async (
   params: GooglePay.InitParams

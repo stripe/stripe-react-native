@@ -6,9 +6,25 @@ import { useStripe } from './useStripe';
  * useGooglePay hook
  */
 export function useGooglePay() {
-  const { initGooglePay, presentGooglePay, createGooglePayPaymentMethod } =
-    useStripe();
+  const {
+    isGooglePaySupported,
+    initGooglePay,
+    presentGooglePay,
+    createGooglePayPaymentMethod,
+  } = useStripe();
   const [loading, setLoading] = useState(false);
+
+  const _isGooglePaySupported = useCallback(
+    async (params?: GooglePay.IsGooglePaySupportedParams) => {
+      setLoading(true);
+
+      const result = await isGooglePaySupported(params);
+      setLoading(false);
+
+      return result;
+    },
+    [isGooglePaySupported]
+  );
 
   const _initGooglePay = useCallback(
     async (params: GooglePay.InitParams) => {
@@ -48,6 +64,7 @@ export function useGooglePay() {
 
   return {
     loading,
+    isGooglePaySupported: _isGooglePaySupported,
     initGooglePay: _initGooglePay,
     presentGooglePay: _presentGooglePay,
     createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
