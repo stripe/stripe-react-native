@@ -156,6 +156,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             } else {
                 self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
+                self.paymentSheetFlowController = nil
                 resolve([])
             }
         } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
@@ -171,6 +172,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             } else {
                 self.paymentSheet = PaymentSheet(setupIntentClientSecret: setupIntentClientSecret, configuration: configuration)
+                self.paymentSheetFlowController = nil
                 resolve([])
             }
         } else {
