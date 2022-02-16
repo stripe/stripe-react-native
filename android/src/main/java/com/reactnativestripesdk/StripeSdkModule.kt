@@ -14,9 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.google.android.gms.wallet.IsReadyToPayRequest
-import com.google.android.gms.wallet.Wallet
-import com.google.android.gms.wallet.WalletConstants
 import com.stripe.android.*
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
@@ -24,6 +21,7 @@ import com.stripe.android.model.*
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.*
+
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -606,22 +604,16 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
   @ReactMethod
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
-    val isTestEnv = getBooleanOrFalse(params, "testEnv")
-    val paymentMethodRequired = getBooleanOrFalse(params, "existingPaymentMethodRequired")
-    val options = Wallet.WalletOptions.Builder()
-      .setEnvironment(if (isTestEnv) WalletConstants.ENVIRONMENT_TEST else WalletConstants.ENVIRONMENT_PRODUCTION)
-      .build()
-    val request = IsReadyToPayRequest.fromJson(GooglePayJsonFactory(reactContext)
-      .createIsReadyToPayRequest(null, paymentMethodRequired)
-      .toString())
+    val fragment = GooglePayPaymentMethodLauncherFragment(
+      currentActivity as AppCompatActivity,
+      getBooleanOrFalse(params, "testEnv"),
+      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
+      promise
+    )
 
-    Wallet.getPaymentsClient(reactContext, options)
-      .isReadyToPay(request)
-      .addOnCompleteListener { task ->
-        runCatching {
-          promise.resolve(task.result == true)
-        }.onFailure { promise.resolve(false) }
-      }
+    (currentActivity as AppCompatActivity).supportFragmentManager.beginTransaction()
+      .add(fragment, "google_pay_support_fragment")
+      .commit()
   }
 
   @ReactMethod
