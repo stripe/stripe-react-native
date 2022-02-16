@@ -31,8 +31,8 @@ class GooglePayPaymentMethodLauncherFragment(
       config = GooglePayPaymentMethodLauncher.Config(
         environment = if (isTestEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
         existingPaymentMethodRequired = paymentMethodRequired,
-        merchantCountryCode = "",
-        merchantName = "",
+        merchantCountryCode = "", // Unnecessary since all we are checking for is Google Pay availability
+        merchantName = "",        // Same as above
       ),
       readyCallback = {
         promise.resolve(it)
