@@ -65,6 +65,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         var configuration = PaymentSheet.Configuration()
+        self.paymentSheetFlowController = nil
         
         if  params["applePay"] as? Bool == true {
             if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
@@ -156,7 +157,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             } else {
                 self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-                self.paymentSheetFlowController = nil
                 resolve([])
             }
         } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
@@ -172,7 +172,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             } else {
                 self.paymentSheet = PaymentSheet(setupIntentClientSecret: setupIntentClientSecret, configuration: configuration)
-                self.paymentSheetFlowController = nil
                 resolve([])
             }
         } else {
