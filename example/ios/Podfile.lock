@@ -287,19 +287,23 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
-  - Stripe (21.11.1):
-    - Stripe/Stripe3DS2 (= 21.11.1)
-    - StripeCore (= 21.11.1)
-    - StripeUICore (= 21.11.1)
-  - stripe-react-native (0.2.3):
+  - Stripe (21.12.0):
+    - Stripe/Stripe3DS2 (= 21.12.0)
+    - StripeApplePay (= 21.12.0)
+    - StripeCore (= 21.12.0)
+    - StripeUICore (= 21.12.0)
+  - stripe-react-native (0.2.4):
     - React-Core
-    - Stripe (~> 21.11.1)
-  - Stripe/Stripe3DS2 (21.11.1):
-    - StripeCore (= 21.11.1)
-    - StripeUICore (= 21.11.1)
-  - StripeCore (21.11.1)
-  - StripeUICore (21.11.1):
-    - StripeCore (= 21.11.1)
+    - Stripe (~> 21.12.0)
+  - Stripe/Stripe3DS2 (21.12.0):
+    - StripeApplePay (= 21.12.0)
+    - StripeCore (= 21.12.0)
+    - StripeUICore (= 21.12.0)
+  - StripeApplePay (21.12.0):
+    - StripeCore (= 21.12.0)
+  - StripeCore (21.12.0)
+  - StripeUICore (21.12.0):
+    - StripeCore (= 21.12.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -346,6 +350,7 @@ SPEC REPOS:
   trunk:
     - fmt
     - Stripe
+    - StripeApplePay
     - StripeCore
     - StripeUICore
 
@@ -459,10 +464,11 @@ SPEC CHECKSUMS:
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
-  Stripe: f2bed8369154c35c8ec794704e042e05240d6f21
-  stripe-react-native: 6b54d3978a5599c5004f9ab286184f3c809714ea
-  StripeCore: 36571be19dae15e90c8ad47e1af45712aea93f5a
-  StripeUICore: 1b32566d6a69581be786609a032872b0fb5a6823
+  Stripe: c3692f360abcdfeef9751e3c240e7efbc68b921f
+  stripe-react-native: 30eb013db6da5dd02b4be5271160ecd0f6097d16
+  StripeApplePay: 14db90fdf89abb2809ce41fc68bc6b1a86221408
+  StripeCore: 5e38cdea3dc176a32d8797ef312fe1ab41571272
+  StripeUICore: c28e371b385f968388ae38bedb93a2723c078442
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
 
 PODFILE CHECKSUM: 36578772e693cd3f5c59e5bd4fd36997ba0f865b
