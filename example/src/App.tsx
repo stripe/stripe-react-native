@@ -8,6 +8,7 @@ import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar } from 'react-native';
 import { colors } from './colors';
+import CreateTokenScreen from './screens/CreateTokenScreen';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   WebhookPaymentScreen: undefined;
   HomeScreen: undefined;
   NoWebhookPaymentScreen: undefined;
+  CreateTokenScreen: undefined;
   ApplePayScreen: undefined;
   SetupFuturePaymentScreen: undefined;
   PaymentsUICompleteScreen: undefined;
@@ -114,7 +116,10 @@ export default function App() {
             name="AuBECSDebitSetupPaymentScreen"
             component={AuBECSDebitSetupPaymentScreen}
           />
-
+          <Stack.Screen
+            name="CreateTokenScreen"
+            component={CreateTokenScreen}
+          />
           <Stack.Screen name="ApplePayScreen" component={ApplePayScreen} />
           <Stack.Screen
             name="SetupFuturePaymentScreen"

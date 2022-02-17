@@ -110,6 +110,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Create tokens"
+              onPress={() => {
+                navigation.navigate('CreateTokenScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 

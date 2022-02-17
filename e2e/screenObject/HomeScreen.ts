@@ -3,6 +3,7 @@
 const SCREENS = <const>[
   'Accept a payment',
   'More payment scenarios',
+  'Create tokens',
   'Set up future payments',
   'inalize payments on the server',
   'Bank Debits',

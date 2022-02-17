@@ -1,4 +1,5 @@
 import { createError, isAndroid, isiOS } from './helpers';
+import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -57,6 +58,16 @@ export const createPaymentMethod = async (
 export const createToken = async (
   params: CreateTokenParams
 ): Promise<CreateTokenResult> => {
+  if (
+    params.type === 'BankAccount' &&
+    params.country?.toLowerCase() === 'us' &&
+    !params.routingNumber
+  ) {
+    return {
+      error: MissingRoutingNumber,
+    };
+  }
+
   try {
     const { token, error } = await NativeStripeSdk.createToken(params);
 

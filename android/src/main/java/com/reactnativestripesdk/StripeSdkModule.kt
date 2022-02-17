@@ -417,29 +417,30 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   }
 
   private fun createTokenFromBankAccount(params: ReadableMap, promise: Promise) {
-    val accountHolderName = getValOr(params, "accountHolderName")
-    val accountHolderType = getValOr(params, "accountHolderType")
+    val accountHolderName = getValOr(params, "accountHolderName", null)
+    val accountHolderType = getValOr(params, "accountHolderType", null)
     val accountNumber = getValOr(params, "accountNumber", null)
     val country = getValOr(params, "country", null)
     val currency = getValOr(params, "currency", null)
-    val routingNumber = getValOr(params, "routingNumber")
+    val routingNumber = getValOr(params, "routingNumber", null)
 
-    runCatching {
-      val bankAccountParams = BankAccountTokenParams(
-        country = country!!,
-        currency = currency!!,
-        accountNumber = accountNumber!!,
-        accountHolderName = accountHolderName,
-        routingNumber = routingNumber,
-        accountHolderType = mapToBankAccountType(accountHolderType)
-      )
-      CoroutineScope(Dispatchers.IO).launch {
+    val bankAccountParams = BankAccountTokenParams(
+      country = country!!,
+      currency = currency!!,
+      accountNumber = accountNumber!!,
+      accountHolderName = accountHolderName,
+      routingNumber = routingNumber,
+      accountHolderType = mapToBankAccountType(accountHolderType)
+    )
+    CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
         val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
         promise.resolve(createResult("token", mapFromToken(token)))
+      }.onFailure {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
-    }.onFailure {
-      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
     }
+
   }
 
   private fun createTokenFromCard(params: ReadableMap, promise: Promise) {
