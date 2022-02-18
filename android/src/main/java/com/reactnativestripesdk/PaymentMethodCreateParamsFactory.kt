@@ -29,6 +29,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
         PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
+        PaymentMethod.Type.Klarna -> createKlarnaPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -411,6 +412,21 @@ class PaymentMethodCreateParamsFactory(
 
     return ConfirmSetupIntentParams
       .create(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createKlarnaPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val billingDetails = billingDetailsParams?.let { it } ?: run {
+      throw PaymentMethodCreateParamsException("You must provide billing details")
+    }
+    val metaData = emptyMap<String, String>()
+    val params = PaymentMethodCreateParams.createKlarna(billingDetails, metaData)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
       )
