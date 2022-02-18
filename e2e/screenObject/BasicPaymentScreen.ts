@@ -73,7 +73,7 @@ class BasicPaymentScreen {
   }
 }
 
-function getAllWebviewContexts(): string[] {
+export function getAllWebviewContexts(): string[] {
   let allContexts = driver.getContexts();
   if (driver.isIOS) {
     // Hacky workaround for https://github.com/appium/appium/issues/13770
