@@ -422,8 +422,7 @@ class PaymentMethodCreateParamsFactory(
     val billingDetails = billingDetailsParams?.let { it } ?: run {
       throw PaymentMethodCreateParamsException("You must provide billing details")
     }
-    val metaData = emptyMap<String, String>()
-    val params = PaymentMethodCreateParams.createKlarna(billingDetails, metaData)
+    val params = PaymentMethodCreateParams.createKlarna(billingDetails)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(

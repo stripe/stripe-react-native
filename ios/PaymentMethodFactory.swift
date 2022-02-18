@@ -312,8 +312,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.klarnaPaymentMissingParams
         }
 
-        let metaData = [String : String]()
-        return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: metaData)
+        return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: nil)
     }
 }
 
