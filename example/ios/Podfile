@@ -10,6 +10,9 @@ target 'StripeSdkExample' do
     # to enable hermes on iOS, change `false` to `true` and then install pods
     hermes_enabled: false
   )
+  pod 'Stripe', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
+  pod 'StripeUICore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
+  pod 'StripeCore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
   pod 'stripe-react-native', path: '../..'
 
   # Enables Flipper.

@@ -33,6 +33,7 @@ import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScre
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
+import AffirmPaymentScreen from './screens/AffirmPaymentScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -64,6 +65,7 @@ export type RootStackParamList = {
   P24PaymentScreen: undefined;
   AuBECSDebitPaymentScreen: undefined;
   AfterpayClearpayPaymentScreen: undefined;
+  AffirmPaymentScreen: undefined;
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
   GooglePayScreen: undefined;
@@ -195,6 +197,10 @@ export default function App() {
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
             component={AfterpayClearpayPaymentScreen}
+          />
+          <Stack.Screen
+            name="AffirmPaymentScreen"
+            component={AffirmPaymentScreen}
           />
           <Stack.Screen name="GooglePayScreen" component={GooglePayScreen} />
         </Stack.Navigator>

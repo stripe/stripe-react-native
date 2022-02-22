@@ -29,6 +29,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams()
         PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
+        PaymentMethod.Type.Affirm -> createAffirmPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -346,6 +347,17 @@ class PaymentMethodCreateParamsFactory(
     }
 
     val params = PaymentMethodCreateParams.createAfterpayClearpay(billingDetails)
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+      )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAffirmPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val params = PaymentMethodCreateParams.createAffirm(billingDetailsParams)
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(

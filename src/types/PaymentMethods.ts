@@ -34,7 +34,8 @@ export namespace PaymentMethodCreateParams {
     | FPXParams
     | AfterpayClearpayParams
     // | WeChatPayParams
-    | BancontactParams;
+    | BancontactParams
+    | AffirmParams;
 
   export type BillingDetails = {
     email?: string;
@@ -140,6 +141,11 @@ export namespace PaymentMethodCreateParams {
   export interface AuBecsDebitParams {
     type: 'AuBecsDebit';
     formDetails: AuBECSDebitFormComponent.FormDetails;
+  }
+
+  export interface AffirmParams extends BaseParams {
+    type: 'Affirm';
+    shippingDetails: ShippingDetails;
   }
 }
 

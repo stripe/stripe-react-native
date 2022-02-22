@@ -279,6 +279,7 @@ class Mappers {
         case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
+        case STPPaymentMethodType.affirm: return "Affirm"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -305,6 +306,7 @@ class Mappers {
             case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             case "WeChatPay": return STPPaymentMethodType.weChatPay
+            case "Affirm": return STPPaymentMethodType.affirm
             default: return STPPaymentMethodType.unknown
             }
         }
@@ -837,7 +839,7 @@ class Mappers {
         }
         return nil
     }
-    
+
     class func mapFromCardValidationState(state: STPCardValidationState?) -> String {
         if let state = state {
             switch state {

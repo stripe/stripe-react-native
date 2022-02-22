@@ -31,16 +31,26 @@ app.use(
   }
 );
 
-// tslint:disable-next-line: interface-name
-interface Order {
-  items: object[];
+const itemIdToPrice: { [id: string]: number } = {
+  '1': 1000,
+  '2': 2000,
+  '3': 3000,
+  '4': 4000,
+  '5': 5000,
+};
+
+interface Item {
+  id: string;
 }
 
-const calculateOrderAmount = (_order?: Order): number => {
-  // Replace this constant with a calculation of the order's amount.
+const calculateOrderAmount = (items?: Item[]): number => {
   // Calculate the order total on the server to prevent
   // people from directly manipulating the amount on the client.
-  return 1400;
+  const total = items
+    ?.map((item) => itemIdToPrice[item.id])
+    .reduce((prev, curr) => prev + curr, 0);
+
+  return total ? total : 1400;
 };
 
 function getKeys(payment_method?: string) {
@@ -97,7 +107,7 @@ app.post(
       client = 'ios',
     }: {
       email: string;
-      items: Order;
+      items: Item[];
       currency: string;
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
@@ -139,7 +149,7 @@ app.post(
       return res.send({
         clientSecret: paymentIntent.client_secret,
       });
-    } catch (error) {
+    } catch (error: any) {
       return res.send({
         error: error.raw.message,
       });
@@ -159,7 +169,7 @@ app.post(
       request_three_d_secure,
       email,
     }: {
-      items: Order;
+      items: Item[];
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
       email: string;
@@ -235,7 +245,7 @@ app.post(
       paymentMethodId?: string;
       paymentIntentId?: string;
       cvcToken?: string;
-      items: Order;
+      items: Item[];
       currency: string;
       useStripeSdk: boolean;
       email?: string;
@@ -316,7 +326,7 @@ app.post(
       }
 
       return res.sendStatus(400);
-    } catch (e) {
+    } catch (e: any) {
       // Handle "hard declines" e.g. insufficient funds, expired card, etc
       // See https://stripe.com/docs/declines/codes for more.
       return res.send({ error: e.message });
@@ -459,7 +469,7 @@ app.post('/charge-card-off-session', async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       publicKey: stripePublishableKey,
     });
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'authentication_required') {
       // Bring the customer back on-session to authenticate the purchase
       // You can do this by sending an email or app notification to let them know
