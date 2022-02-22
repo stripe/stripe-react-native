@@ -210,7 +210,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
             presentGooglePayPromise?.resolve(WritableNativeMap())
           }
           GooglePayLauncher.Result.Canceled -> {
-            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Google Pay has been canceled"))
+            presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Canceled.toString(), "Google Pay has been canceled"))
           }
           is GooglePayLauncher.Result.Failed -> {
             presentGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), result.error))
