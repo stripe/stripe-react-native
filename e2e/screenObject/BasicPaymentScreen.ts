@@ -57,7 +57,7 @@ class BasicPaymentScreen {
         }
       } catch (e) {
         console.log(
-          `Unable to switch to ${context} context. This context may no logner exist.`
+          `Unable to switch to ${context} context. This context may no longer exist.`
         );
       }
     }

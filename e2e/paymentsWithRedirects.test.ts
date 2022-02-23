@@ -88,7 +88,7 @@ describe('Payment scenarios with redirects', () => {
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize();
+    BasicPaymentScreen.authorize({ elementType: 'a' });
     BasicPaymentScreen.checkStatus();
   });
 
