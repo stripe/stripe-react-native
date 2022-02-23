@@ -17,7 +17,7 @@ export default function AffirmPaymentScreen() {
       },
       body: JSON.stringify({
         currency: 'usd',
-        items: [{ id: '5' }],
+        items: [{ id: 'id-5' }],
         payment_method_types: ['affirm'],
       }),
     });

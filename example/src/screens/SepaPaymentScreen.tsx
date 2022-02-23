@@ -25,7 +25,7 @@ export default function SepaPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'eur',
-        items: [{ id: 'id' }],
+        items: [{ id: 'id-1' }],
         payment_method_types: ['sepa_debit'],
       }),
     });

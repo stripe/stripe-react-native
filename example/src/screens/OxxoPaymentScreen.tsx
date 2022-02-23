@@ -23,7 +23,7 @@ export default function OxxoPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'mxn',
-        items: [{ id: 'id' }],
+        items: [{ id: 'id-1' }],
         request_three_d_secure: 'any',
         payment_method_types: ['oxxo'],
       }),

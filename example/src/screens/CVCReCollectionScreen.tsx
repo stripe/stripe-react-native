@@ -23,7 +23,7 @@ export default function CVCReCollectionScreen() {
         },
         body: JSON.stringify({
           currency: 'usd',
-          items: [{ id: 'id' }],
+          items: [{ id: 'id-1' }],
           request_three_d_secure: 'any',
           // e-mail of the customer which has set up payment method
           email,
@@ -104,7 +104,7 @@ export default function CVCReCollectionScreen() {
       const paymentIntent = await callNoWebhookPayEndpoint({
         useStripeSdk: true,
         currency: 'usd',
-        items: [{ id: 'id' }],
+        items: [{ id: 'id-1' }],
         cvcToken: tokenId,
         email,
       });

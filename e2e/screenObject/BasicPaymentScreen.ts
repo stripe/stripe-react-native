@@ -7,13 +7,15 @@ class BasicPaymentScreen {
     iban,
     buttonText = 'Pay',
   }: {
-    email: string;
+    email?: string;
     bankName?: string;
     iban?: string;
     buttonText?: string;
   }) {
-    getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
-    getTextInputByPlaceholder('E-mail').setValue(email);
+    if (email) {
+      getTextInputByPlaceholder('E-mail').waitForDisplayed({ timeout: 10000 });
+      getTextInputByPlaceholder('E-mail').setValue(email);
+    }
 
     if (bankName && driver.isAndroid) {
       const select = getElementByText('Optional - choose your bank');

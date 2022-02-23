@@ -32,25 +32,25 @@ app.use(
 );
 
 const itemIdToPrice: { [id: string]: number } = {
-  '1': 1000,
-  '2': 2000,
-  '3': 3000,
-  '4': 4000,
-  '5': 5000,
+  'id-1': 1000,
+  'id-2': 2000,
+  'id-3': 3000,
+  'id-4': 4000,
+  'id-5': 5000,
 };
 
 interface Item {
   id: string;
 }
 
-const calculateOrderAmount = (items?: Item[]): number => {
+const calculateOrderAmount = (items: Item[] = [{ id: 'id-1' }]): number => {
   // Calculate the order total on the server to prevent
   // people from directly manipulating the amount on the client.
   const total = items
-    ?.map((item) => itemIdToPrice[item.id])
+    .map((item) => itemIdToPrice[item.id])
     .reduce((prev, curr) => prev + curr, 0);
 
-  return total ? total : 1400;
+  return total;
 };
 
 function getKeys(payment_method?: string) {

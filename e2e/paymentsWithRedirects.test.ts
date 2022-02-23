@@ -163,6 +163,16 @@ describe('Payment scenarios with redirects', () => {
   //   BasicPaymentScreen.checkStatus();
   // });
 
+  it('Affirm payment scenario', function () {
+    this.retries(2);
+    homeScreen.goTo('Buy now pay later');
+    homeScreen.goTo('Affirm');
+
+    BasicPaymentScreen.pay({});
+    BasicPaymentScreen.authorize({ pause: 10000 });
+    BasicPaymentScreen.checkStatus();
+  });
+
   it('OXXO payment scenario', function () {
     this.retries(2);
     homeScreen.goTo('Vouchers');
