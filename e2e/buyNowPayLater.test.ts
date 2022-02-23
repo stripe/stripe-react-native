@@ -7,7 +7,6 @@ import homeScreen from './screenObject/HomeScreen';
 describe('Payment scenarios with redirects', () => {
   beforeEach(() => {
     $('~app-root').waitForDisplayed({ timeout: 30000 });
-    homeScreen.goTo('Buy now pay later');
   });
 
   afterEach(() => {
@@ -17,7 +16,9 @@ describe('Payment scenarios with redirects', () => {
   it('Afterpay/Clearpay payment scenario', function () {
     this.retries(2);
 
+    homeScreen.goTo('Buy now pay later');
     homeScreen.goTo('Afterpay and Clearpay');
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
     BasicPaymentScreen.checkStatus();
@@ -26,7 +27,9 @@ describe('Payment scenarios with redirects', () => {
   it('Opens Klarna webview', function () {
     this.retries(2);
 
+    homeScreen.goTo('Buy now pay later');
     homeScreen.goTo('Klarna');
+
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     const webviewContexts = getAllWebviewContexts();
     expect(webviewContexts.length).toBeGreaterThan(0);
