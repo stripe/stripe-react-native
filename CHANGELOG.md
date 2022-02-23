@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- [#824](https://github.com/stripe/stripe-react-native/pull/824) Fix: Google Pay error code when canceled should be 'Canceled' 
+
 ## 0.3.0 - 2022-02-17
 
 - [#810](https://github.com/stripe/stripe-react-native/pull/810) Feat: add `isGooglePaySupported` method
