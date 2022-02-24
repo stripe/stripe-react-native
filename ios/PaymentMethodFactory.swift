@@ -308,11 +308,11 @@ class PaymentMethodFactory {
     private func createKlarnaPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodKlarnaParams()
         
-        guard let billingDetails = billingDetailsParams else {
+        if let billingDetails = billingDetailsParams, billingDetails.address?.country != nil, billingDetails.email != nil {
+            return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: nil)
+        } else {
             throw PaymentMethodError.klarnaPaymentMissingParams
         }
-
-        return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: nil)
     }
 }
 
@@ -360,7 +360,7 @@ extension PaymentMethodError: LocalizedError {
         case .weChatPayPaymentMissingParams:
             return NSLocalizedString("You must provide appId", comment: "Create payment error")
         case .klarnaPaymentMissingParams:
-            return NSLocalizedString("You must provide billing details", comment: "Create payment error")
+            return NSLocalizedString("Klarna requires that you provide the following billing details: email, country", comment: "Create payment error")
         }
     }
 }

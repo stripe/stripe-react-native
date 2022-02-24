@@ -1,4 +1,3 @@
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
@@ -38,30 +37,12 @@ export default function KlarnaPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
-      email: 'email@stripe.com',
-      phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressState: 'Texas',
-      addressPostalCode: '77063',
-      name: 'John Doe',
-    };
-
-    const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
-      addressLine1: '1459  Circle Drive',
-      addressCountry: 'US',
-      addressPostalCode: '77063',
-      addressState: 'Texas',
-      addressCity: 'Houston',
-      name: 'John Doe',
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       type: 'Klarna',
-      billingDetails,
-      shippingDetails,
+      billingDetails: {
+        email: 'stripe@test.com',
+        addressCountry: 'US',
+      },
     });
 
     if (error) {
