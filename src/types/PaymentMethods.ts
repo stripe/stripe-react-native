@@ -125,10 +125,11 @@ export namespace PaymentMethodCreateParams {
     shippingDetails: ShippingDetails;
   }
 
-  export interface KlarnaParams extends Required<BaseParams> {
+  export type KlarnaParams = {
     type: 'Klarna';
-    shippingDetails: ShippingDetails;
-  }
+    billingDetails: Pick<Required<BillingDetails>, 'email' | 'addressCountry'> &
+      BillingDetails;
+  };
 
   export interface EpsParams extends Required<BaseParams> {
     type: 'Eps';
