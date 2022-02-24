@@ -85,7 +85,6 @@ export function getAllWebviewContexts(): string[] {
     contextName.toLowerCase().includes('webview')
   );
   if (!webviewContext.length) {
-    console.log({ allContexts });
     throw new Error('No webview context was found.');
   }
 

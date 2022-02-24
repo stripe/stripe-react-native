@@ -31,6 +31,7 @@ describe('Payment scenarios with redirects', () => {
     homeScreen.goTo('Klarna');
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    driver.pause(10000);
     const webviewContexts = getAllWebviewContexts();
     expect(webviewContexts.length).toBeGreaterThan(0);
   });
