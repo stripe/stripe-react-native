@@ -169,7 +169,7 @@ describe('Payment scenarios with redirects', () => {
     homeScreen.goTo('Affirm');
 
     BasicPaymentScreen.pay({});
-    BasicPaymentScreen.authorize({ pause: 10000 });
+    BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
     BasicPaymentScreen.checkStatus();
   });
 
