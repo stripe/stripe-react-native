@@ -18,7 +18,7 @@ class GooglePayPaymentMethodLauncherFragment(
   private val promise: Promise
   ) : Fragment() {
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                            savedInstanceState: Bundle?): View? {
+                            savedInstanceState: Bundle?): View {
     return FrameLayout(requireActivity()).also {
       it.visibility = View.GONE
     }

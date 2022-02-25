@@ -22,7 +22,7 @@ enum class NextPaymentActionErrorType {
 }
 
 enum class ConfirmSetupIntentErrorType {
-  Failed, Canceled, Unknown
+  Failed, Canceled
 }
 
 enum class RetrievePaymentIntentErrorType {
@@ -38,7 +38,7 @@ enum class PaymentSheetErrorType {
 }
 
 enum class GooglePayErrorType {
-  Failed, Canceled, Unknown
+  Failed, Canceled
 }
 
 internal fun mapError(code: String, message: String?, localizedMessage: String?, declineCode: String?, type: String?, stripeErrorCode: String?): WritableMap {

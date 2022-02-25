@@ -366,7 +366,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   paymentIntent.amount?.let {
     map.putDouble("amount", it.toDouble())
   }
-  paymentIntent.canceledAt?.let {
+  paymentIntent.canceledAt.let {
     map.putString("canceledAt", convertToUnixTimestamp(it))
   }
   return map
@@ -482,10 +482,6 @@ private fun getStringOrNull(map: ReadableMap?, key: String): String? {
 
 fun getIntOrNull(map: ReadableMap?, key: String): Int? {
   return if (map?.hasKey(key) == true) map.getInt(key) else null
-}
-
-public fun getBooleanOrNull(map: ReadableMap?, key: String): Boolean? {
-  return if (map?.hasKey(key) == true) map.getBoolean(key) else null
 }
 
 fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
@@ -685,10 +681,7 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putString("clientSecret", setupIntent.clientSecret)
   map.putString("paymentMethodId", setupIntent.paymentMethodId)
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
-
-  if(setupIntent.created != null) {
-    map.putString("created", convertToUnixTimestamp(setupIntent.created))
-  }
+  map.putString("created", convertToUnixTimestamp(setupIntent.created))
 
   setupIntent.lastSetupError?.let {
     val setupError: WritableMap = WritableNativeMap()
@@ -734,7 +727,7 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
   }
 }
 
-fun toBundleObject(readableMap: ReadableMap?): Bundle? {
+fun toBundleObject(readableMap: ReadableMap?): Bundle {
   val result = Bundle()
   if (readableMap == null) {
     return result

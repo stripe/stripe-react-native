@@ -5,12 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.AsyncTask
 import android.os.Parcelable
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -25,10 +23,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @ReactModule(name = StripeSdkModule.NAME)
-class StripeSdkModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   var cardFieldView: StripeSdkCardView? = null
   var cardFormView: CardFormView? = null
-  private lateinit var localBroadcastManager: LocalBroadcastManager
 
   override fun getName(): String {
     return "StripeSdk"
@@ -390,8 +387,8 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     stripe.createPaymentMethod(
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
-        override fun onError(error: Exception) {
-          promise.resolve(createError("Failed", error))
+        override fun onError(e: Exception) {
+          promise.resolve(createError("Failed", e))
         }
 
         override fun onSuccess(result: PaymentMethod) {
@@ -494,8 +491,8 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
           promise.resolve(res)
         }
 
-        override fun onError(error: Exception) {
-          promise.resolve(createError("Failed", error))
+        override fun onError(e: Exception) {
+          promise.resolve(createError("Failed", e))
         }
       }
     )
@@ -504,30 +501,30 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   @ReactMethod
   @SuppressWarnings("unused")
   fun handleCardAction(paymentIntentClientSecret: String, promise: Promise) {
-    val activity = currentActivity as ComponentActivity
+    val activity = currentActivity as ComponentActivity?
     if (activity != null) {
       handleCardActionPromise = promise
       stripe.handleNextActionForPayment(activity, paymentIntentClientSecret)
     }
   }
-
-  private fun payWithWeChatPay(paymentIntentClientSecret: String, appId: String) {
-    val activity = currentActivity as ComponentActivity
-
-    activity.lifecycleScope.launch {
-      stripe.createPaymentMethod(PaymentMethodCreateParams.createWeChatPay()).id?.let { paymentMethodId ->
-        val confirmPaymentIntentParams =
-          ConfirmPaymentIntentParams.createWithPaymentMethodId(
-            paymentMethodId = paymentMethodId,
-            clientSecret = paymentIntentClientSecret,
-            paymentMethodOptions = PaymentMethodOptionsParams.WeChatPay(
-              appId
-            )
-          )
-        stripe.confirmPayment(activity, confirmPaymentIntentParams)
-      }
-    }
-  }
+// TODO: Uncomment when WeChat is re-enabled in stripe-ios
+//  private fun payWithWeChatPay(paymentIntentClientSecret: String, appId: String) {
+//    val activity = currentActivity as ComponentActivity
+//
+//    activity.lifecycleScope.launch {
+//      stripe.createPaymentMethod(PaymentMethodCreateParams.createWeChatPay()).id?.let { paymentMethodId ->
+//        val confirmPaymentIntentParams =
+//          ConfirmPaymentIntentParams.createWithPaymentMethodId(
+//            paymentMethodId = paymentMethodId,
+//            clientSecret = paymentIntentClientSecret,
+//            paymentMethodOptions = PaymentMethodOptionsParams.WeChatPay(
+//              appId
+//            )
+//          )
+//        stripe.confirmPayment(activity, confirmPaymentIntentParams)
+//      }
+//    }
+//  }
 
   @ReactMethod
   @SuppressWarnings("unused")
@@ -572,7 +569,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   @ReactMethod
   @SuppressWarnings("unused")
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
-    AsyncTask.execute {
+    CoroutineScope(Dispatchers.IO).launch {
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
       paymentIntent?.let {
         promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
@@ -585,7 +582,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   @ReactMethod
   @SuppressWarnings("unused")
   fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
-    AsyncTask.execute {
+    CoroutineScope(Dispatchers.IO).launch {
       val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
       setupIntent?.let {
         promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
