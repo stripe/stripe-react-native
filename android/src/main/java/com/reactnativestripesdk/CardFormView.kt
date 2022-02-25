@@ -30,7 +30,6 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   init {
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusable = true
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusableInTouchMode = true
-    cardFormViewBinding.cardMultilineWidgetContainer.requestFocus()
 
     addView(cardForm)
     setListeners()
