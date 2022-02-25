@@ -76,17 +76,17 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createP24PaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createP24(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createP24(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -145,21 +145,22 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSepaPaymentSetupParams(): ConfirmSetupIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
-    }
-    val iban = getValOr(params, "iban", null)?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide IBAN")
+    billingDetailsParams?.let {
+      val iban = getValOr(params, "iban", null) ?: run {
+        throw PaymentMethodCreateParamsException("You must provide IBAN")
+      }
+
+      val sepaParams = PaymentMethodCreateParams.SepaDebit(iban)
+      val createParams =
+        PaymentMethodCreateParams.create(sepaDebit = sepaParams, billingDetails = it)
+
+      return ConfirmSetupIntentParams.create(
+        paymentMethodCreateParams = createParams,
+        clientSecret = clientSecret
+      )
     }
 
-    val sepaParams = PaymentMethodCreateParams.SepaDebit(iban)
-    val createParams =
-      PaymentMethodCreateParams.create(sepaDebit = sepaParams, billingDetails = billingDetails)
-
-    return ConfirmSetupIntentParams.create(
-      paymentMethodCreateParams = createParams,
-      clientSecret = clientSecret
-    )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -181,7 +182,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSofortPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val country = getValOr(params, "country", null)?.let { it } ?: run {
+    val country = getValOr(params, "country", null) ?: run {
       throw PaymentMethodCreateParamsException("You must provide bank account country")
     }
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
@@ -229,100 +230,101 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage", null))
+      val params = PaymentMethodCreateParams.createBancontact(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+          setupFutureUsage = setupFutureUsage,
+        )
     }
 
-    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
-    val params = PaymentMethodCreateParams.createBancontact(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = setupFutureUsage,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   private fun createBancontactPaymentSetupParams(): ConfirmSetupIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createBancontact(it)
+
+      return ConfirmSetupIntentParams
+        .create(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createBancontact(billingDetails)
-
-    return ConfirmSetupIntentParams
-      .create(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createOXXOPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createOxxo(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createOxxo(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createEps(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createEps(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGiropayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createGiropay(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createGiropay(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSepaPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
-    }
-    val iban = getValOr(params, "iban", null)?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide IBAN")
-    }
-    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
-    val params = PaymentMethodCreateParams.create(
-      sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
-      billingDetails = billingDetails
-    )
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = setupFutureUsage
+    billingDetailsParams?.let {
+      val iban = getValOr(params, "iban", null) ?: run {
+        throw PaymentMethodCreateParamsException("You must provide IBAN")
+      }
+      val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
+      val params = PaymentMethodCreateParams.create(
+        sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
+        billingDetails = it
       )
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+          setupFutureUsage = setupFutureUsage
+        )
+    }
+
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -341,22 +343,22 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAfterpayClearpayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams?.let { it } ?: run {
-      throw PaymentMethodCreateParamsException("You must provide billing details")
+    billingDetailsParams?.let {
+      val params = PaymentMethodCreateParams.createAfterpayClearpay(it)
+
+      return ConfirmPaymentIntentParams
+        .createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = params,
+          clientSecret = clientSecret,
+        )
     }
 
-    val params = PaymentMethodCreateParams.createAfterpayClearpay(billingDetails)
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAuBecsDebitPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val formDetails = getMapOrNull(params, "formDetails")?.let { it } ?: run {
+    val formDetails = getMapOrNull(params, "formDetails") ?: run {
       throw PaymentMethodCreateParamsException("You must provide form details")
     }
 
@@ -387,7 +389,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAuBecsDebitPaymentSetupParams(): ConfirmSetupIntentParams {
-    val formDetails = getMapOrNull(params, "formDetails")?.let { it } ?: run {
+    val formDetails = getMapOrNull(params, "formDetails") ?: run {
       throw PaymentMethodCreateParamsException("You must provide form details")
     }
 
