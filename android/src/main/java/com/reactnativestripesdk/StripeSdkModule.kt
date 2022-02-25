@@ -559,6 +559,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     try {
       val activity = currentActivity as ComponentActivity
       val confirmParams = factory.createConfirmParams(paymentMethodType)
+      urlScheme?.let {
+        confirmParams.returnUrl = mapToReturnURL(urlScheme)
+      }
       confirmParams.shipping = mapToShippingDetails(getMapOrNull(params, "shippingDetails"))
       stripe.confirmPayment(activity, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
@@ -607,6 +610,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     try {
       val activity = currentActivity as ComponentActivity
       val confirmParams = factory.createSetupParams(paymentMethodType)
+      urlScheme?.let {
+        confirmParams.returnUrl = mapToReturnURL(urlScheme)
+      }
       stripe.confirmSetupIntent(activity, confirmParams)
     } catch (error: PaymentMethodCreateParamsException) {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
