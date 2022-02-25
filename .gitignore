@@ -65,3 +65,6 @@ dist/
 
 # Docs
 docs/api-reference/
+
+# Appium Screenshots
+.tmp/screenshots
