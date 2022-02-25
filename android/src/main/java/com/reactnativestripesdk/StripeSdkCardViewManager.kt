@@ -27,26 +27,31 @@ class StripeSdkCardViewManager : SimpleViewManager<StripeSdkCardView>() {
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
+  @SuppressWarnings("unused")
   fun setDangerouslyGetFullCardDetails(view: StripeSdkCardView, dangerouslyGetFullCardDetails: Boolean = false) {
     view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
   }
 
   @ReactProp(name = "postalCodeEnabled")
+  @SuppressWarnings("unused")
   fun setPostalCodeEnabled(view: StripeSdkCardView, postalCodeEnabled: Boolean = true) {
     view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
   @ReactProp(name = "autofocus")
+  @SuppressWarnings("unused")
   fun setAutofocus(view: StripeSdkCardView, autofocus: Boolean = false) {
     view.setAutofocus(autofocus)
   }
 
   @ReactProp(name = "cardStyle")
+  @SuppressWarnings("unused")
   fun setCardStyle(view: StripeSdkCardView, cardStyle: ReadableMap) {
     view.setCardStyle(cardStyle)
   }
 
   @ReactProp(name = "placeholder")
+  @SuppressWarnings("unused")
   fun setPlaceHolders(view: StripeSdkCardView, placeholder: ReadableMap) {
     view.setPlaceHolders(placeholder)
   }
