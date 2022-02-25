@@ -17,7 +17,10 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.stripe.android.paymentsheet.*
+import com.stripe.android.paymentsheet.PaymentOptionCallback
+import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResult
+import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import com.stripe.android.paymentsheet.model.PaymentOption
 import java.io.ByteArrayOutputStream
 
@@ -183,7 +186,7 @@ fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
 
   drawable = DrawableCompat.wrap(drawable).mutate()
   val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-  bitmap.eraseColor(Color.WHITE);
+  bitmap.eraseColor(Color.WHITE)
   val canvas = Canvas(bitmap)
   drawable.setBounds(0, 0, canvas.width, canvas.height)
   drawable.draw(canvas)

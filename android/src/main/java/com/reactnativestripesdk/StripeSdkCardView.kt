@@ -21,7 +21,6 @@ import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.CardValidCallback
 
-
 class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "", "validNumber" to "Unknown", "validCVC" to "Unknown", "validExpiryDate" to "Unknown")
@@ -31,7 +30,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
   private var dangerouslyGetFullCardDetails: Boolean = false
 
   init {
-    mCardWidget = CardInputWidget(context);
+    mCardWidget = CardInputWidget(context)
     mEventDispatcher = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
 
     val binding = CardInputWidgetBinding.bind(mCardWidget)
