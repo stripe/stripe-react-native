@@ -91,7 +91,7 @@ export type ConfirmPaymentResult =
       error: StripeError<ConfirmPaymentError>;
     };
 
-export type HandleCardActionResult =
+export type HandleNextActionResult =
   | {
       paymentIntent: PaymentIntent;
       error?: undefined;

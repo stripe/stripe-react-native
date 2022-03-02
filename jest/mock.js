@@ -27,7 +27,7 @@ const mockFunctions = {
   })),
   updateApplePaySummaryItems: jest.fn(async () => ({})),
   confirmApplePayPayment: jest.fn(async () => ({})),
-  handleCardAction: jest.fn(async () => ({
+  handleNextAction: jest.fn(async () => ({
     paymentIntent: {},
     error: null,
   })),

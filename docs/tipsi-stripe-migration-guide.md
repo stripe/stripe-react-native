@@ -121,29 +121,29 @@ _after:_
 
 ```tsx
 <CardField
-	postalCodeEnabled={false}
-	autofocus
-	placeholder={{
-		number: '4242 4242 4242 4242',
-		postalCode: '12345',
-		cvc: 'CVC',
-		expiration: 'MM|YY',
-	}}
-	onCardChange={(cardDetails) => {
-		console.log('cardDetails', cardDetails);
-	}}
-	onFocus={(focusedField) => {
-		console.log('focusField', focusedField);
-	}}
-	cardStyle={{
-		borderWidth: 1,
-		backgroundColor: '#FFFFFF',
-		borderColor: '#000000',
-		borderRadius: 8,
-		fontSize: 14,
-		placeholderColor: '#999999',
-	}}
-	style={{ width: '100%', height: 200 }}
+  postalCodeEnabled={false}
+  autofocus
+  placeholder={{
+    number: '4242 4242 4242 4242',
+    postalCode: '12345',
+    cvc: 'CVC',
+    expiration: 'MM|YY',
+  }}
+  onCardChange={(cardDetails) => {
+    console.log('cardDetails', cardDetails);
+  }}
+  onFocus={(focusedField) => {
+    console.log('focusField', focusedField);
+  }}
+  cardStyle={{
+    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#000000',
+    borderRadius: 8,
+    fontSize: 14,
+    placeholderColor: '#999999',
+  }}
+  style={{ width: '100%', height: 200 }}
 />
 ```
 
@@ -152,14 +152,14 @@ or
 
 ```tsx
 <CardForm
-	autofocus
-	cardStyle={{
-		backgroundColor: '#FFFFFF',
-	}}
-	style={{ width: '100%', height: 350 }}
-	onFormComplete={(cardDetails) => {
-		setComplete(cardDetails.complete);
-	}}
+  autofocus
+  cardStyle={{
+    backgroundColor: '#FFFFFF',
+  }}
+  style={{ width: '100%', height: 350 }}
+  onFormComplete={(cardDetails) => {
+    setComplete(cardDetails.complete);
+  }}
 />
 ```
 
@@ -217,10 +217,10 @@ await stripe.authenticatePaymentIntent({ clientSecret: 'client_secret' });
 ```
 
 _after:_
-[handleCardAction](https://stripe.dev/stripe-react-native/api-reference/modules.html#handleCardAction)
+[handleNextAction](https://stripe.dev/stripe-react-native/api-reference/modules.html#handleNextAction)
 
 ```tsx
-const { error, paymentIntent } = await handleCardAction('client_secret');
+const { error, paymentIntent } = await handleNextAction('client_secret');
 ```
 
 ## Confirm payment Intent - Automatic

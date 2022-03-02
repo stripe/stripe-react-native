@@ -13,7 +13,7 @@ import {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   GooglePayInitResult,
-  HandleCardActionResult,
+  HandleNextActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
   PaymentSheet,
@@ -239,11 +239,11 @@ export const confirmApplePayPayment = async (
   }
 };
 
-export const handleCardAction = async (
+export const handleNextAction = async (
   paymentIntentClientSecret: string
-): Promise<HandleCardActionResult> => {
+): Promise<HandleNextActionResult> => {
   try {
-    const { paymentIntent, error } = await NativeStripeSdk.handleCardAction(
+    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
       paymentIntentClientSecret
     );
     if (error) {

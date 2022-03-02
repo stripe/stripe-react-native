@@ -11,7 +11,7 @@ import {
 
 export default function NoWebhookPaymentScreen() {
   const [loading, setLoading] = useState(false);
-  const { createPaymentMethod, handleCardAction } = useStripe();
+  const { createPaymentMethod, handleNextAction } = useStripe();
 
   const callNoWebhookPayEndpoint = async (
     data:
@@ -103,15 +103,15 @@ export default function NoWebhookPaymentScreen() {
     }
 
     if (clientSecret && requiresAction) {
-      // 4. if payment requires action calling handleCardAction
-      const { error: cardActionError, paymentIntent } = await handleCardAction(
+      // 4. if payment requires action calling handleNextAction
+      const { error: nextActionError, paymentIntent } = await handleNextAction(
         clientSecret
       );
 
-      if (cardActionError) {
+      if (nextActionError) {
         Alert.alert(
-          `Error code: ${cardActionError.code}`,
-          cardActionError.message
+          `Error code: ${nextActionError.code}`,
+          nextActionError.message
         );
       } else if (paymentIntent) {
         if (

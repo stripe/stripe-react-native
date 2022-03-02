@@ -9,7 +9,7 @@ import type {
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   ConfirmPaymentResult,
-  HandleCardActionResult,
+  HandleNextActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   InitPaymentSheetResult,
@@ -31,9 +31,9 @@ type NativeStripeSdkType = {
     data: PaymentMethodCreateParams.Params,
     options: PaymentMethodCreateParams.Options
   ): Promise<CreatePaymentMethodResult>;
-  handleCardAction(
+  handleNextAction(
     paymentIntentClientSecret: string
-  ): Promise<HandleCardActionResult>;
+  ): Promise<HandleNextActionResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
     data: PaymentMethodCreateParams.Params,

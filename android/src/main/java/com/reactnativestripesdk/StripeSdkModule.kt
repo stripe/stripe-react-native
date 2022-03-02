@@ -38,7 +38,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private var urlScheme: String? = null
   private var confirmPromise: Promise? = null
-  private var handleCardActionPromise: Promise? = null
+  private var handleNextActionPromise: Promise? = null
   private var confirmSetupIntentPromise: Promise? = null
   private var confirmPaymentSheetPaymentPromise: Promise? = null
   private var presentPaymentSheetPromise: Promise? = null
@@ -87,48 +87,48 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
               StripeIntent.Status.RequiresCapture -> {
                 val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
                 confirmPromise?.resolve(pi)
-                handleCardActionPromise?.resolve(pi)
+                handleNextActionPromise?.resolve(pi)
               }
               StripeIntent.Status.RequiresAction -> {
                 if (isPaymentIntentNextActionVoucherBased(paymentIntent.nextActionType)) {
                   val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
                   confirmPromise?.resolve(pi)
-                  handleCardActionPromise?.resolve(pi)
+                  handleNextActionPromise?.resolve(pi)
                 } else {
                   (paymentIntent.lastPaymentError)?.let {
                     confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
-                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), it))
+                    handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), it))
                   } ?: run {
                     confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
-                    handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), "The payment has been canceled"))
+                    handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), "The payment has been canceled"))
                   }
                 }
               }
               StripeIntent.Status.RequiresPaymentMethod -> {
                 val error = paymentIntent.lastPaymentError
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
-                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), error))
+                handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), error))
               }
               StripeIntent.Status.RequiresConfirmation -> {
                 val pi = createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent))
-                handleCardActionPromise?.resolve(pi)
+                handleNextActionPromise?.resolve(pi)
               }
               StripeIntent.Status.Canceled -> {
                 val error = paymentIntent.lastPaymentError
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
-                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
+                handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Canceled.toString(), error))
               }
               else -> {
                 val errorMessage = "unhandled error: ${paymentIntent.status}"
                 confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
-                handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), errorMessage))
+                handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Unknown.toString(), errorMessage))
               }
             }
           }
 
           override fun onError(e: Exception) {
             confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
-            handleCardActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e))
+            handleNextActionPromise?.resolve(createError(NextPaymentActionErrorType.Failed.toString(), e))
           }
         })
 
@@ -500,10 +500,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   @SuppressWarnings("unused")
-  fun handleCardAction(paymentIntentClientSecret: String, promise: Promise) {
+  fun handleNextAction(paymentIntentClientSecret: String, promise: Promise) {
     val activity = currentActivity as ComponentActivity?
     if (activity != null) {
-      handleCardActionPromise = promise
+      handleNextActionPromise = promise
       stripe.handleNextActionForPayment(activity, paymentIntentClientSecret)
     }
   }
