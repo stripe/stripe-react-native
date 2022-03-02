@@ -6,7 +6,7 @@ import com.stripe.android.model.*
 class PaymentMethodCreateParamsFactory(
   private val clientSecret: String,
   private val params: ReadableMap,
-  private val cardFieldView: StripeSdkCardView?,
+  private val cardFieldView: CardFieldView?,
   private val cardFormView: CardFormView?,
 ) {
   private val billingDetailsParams = mapToBillingDetails(getMapOrNull(params, "billingDetails"), cardFieldView?.cardAddress ?: cardFormView?.cardAddress)

@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-  var cardFieldView: StripeSdkCardView? = null
+  var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
 
   override fun getName(): String {
