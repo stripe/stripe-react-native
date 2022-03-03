@@ -244,7 +244,6 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         cardDetails["postalCode"] = var1.toString()
-
         sendCardDetailsEvent()
       }
     })
