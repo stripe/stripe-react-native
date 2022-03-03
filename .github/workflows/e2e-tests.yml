@@ -50,6 +50,7 @@ jobs:
         with:
           api-level: 29
           arch: x86_64
+          profile: Galaxy Nexus
           target: google_apis
           force-avd-creation: false
           disable-animations: true
