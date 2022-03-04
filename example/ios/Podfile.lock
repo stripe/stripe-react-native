@@ -292,7 +292,7 @@ PODS:
     - StripeApplePay (= 21.12.0)
     - StripeCore (= 21.12.0)
     - StripeUICore (= 21.12.0)
-  - stripe-react-native (0.2.4):
+  - stripe-react-native (0.3.0):
     - React-Core
     - Stripe (~> 21.12.0)
   - Stripe/Stripe3DS2 (21.12.0):
@@ -430,11 +430,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
-  DoubleConversion: cde416483dac037923206447da6e1454df403714
+  DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: e5569e42a1c79ca00521846c223173a57aca1fe1
   FBReactNativeSpec: fe08c1cd7e2e205718d77ad14b34957cce949b58
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
+  glog: 5337263514dd6f09803962437687240c5dc39aa4
   RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
   RCTRequired: 4bf86c70714490bca4bf2696148638284622644b
   RCTTypeSafety: c475a7059eb77935fa53d2c17db299893f057d5d
@@ -465,7 +465,7 @@ SPEC CHECKSUMS:
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   Stripe: c3692f360abcdfeef9751e3c240e7efbc68b921f
-  stripe-react-native: 30eb013db6da5dd02b4be5271160ecd0f6097d16
+  stripe-react-native: a8e376386d39d8668c399eec23ca9fee3f23f97f
   StripeApplePay: 14db90fdf89abb2809ce41fc68bc6b1a86221408
   StripeCore: 5e38cdea3dc176a32d8797ef312fe1ab41571272
   StripeUICore: c28e371b385f968388ae38bedb93a2723c078442
