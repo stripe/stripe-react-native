@@ -23,22 +23,7 @@ exports.config = {
   waitforTimeout: 8000,
   connectionRetryTimeout: 200000,
   connectionRetryCount: 3,
-  services: [
-    'appium',
-    [
-      'native-app-compare',
-      {
-        baselineFolder: 'test/baseline',
-        formatImageName: '{tag}-{logName}-{width}x{height}',
-        screenshotPath: '.tmp/',
-        savePerInstance: true,
-        autoSaveBaseline: true,
-        blockOutStatusBar: true,
-        blockOutToolBar: true,
-        isHybridApp: true,
-      },
-    ],
-  ],
+  services: ['appium'],
   framework: 'mocha',
   reporters: ['spec'],
   mochaOpts: {
@@ -60,8 +45,8 @@ exports.config = {
   ],
   afterTest: function (test, _context, { passed }) {
     if (!passed) {
-      driver.saveScreen(
-        test.title.replace(/\s+/g, '') + '-' + new Date().getTime()
+      driver.saveScreenshot(
+        '.tmp/screenshots/' + test.title.replace(/\s+/g, '') + '-ios.png'
       );
     }
   },

@@ -21,22 +21,7 @@ module.exports = {
   waitforTimeout: 8000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
-  services: [
-    'appium',
-    [
-      'native-app-compare',
-      {
-        baselineFolder: 'test/baseline',
-        formatImageName: '{tag}-{logName}-{width}x{height}',
-        screenshotPath: '.tmp/',
-        savePerInstance: true,
-        autoSaveBaseline: true,
-        blockOutStatusBar: true,
-        blockOutToolBar: true,
-        isHybridApp: true,
-      },
-    ],
-  ],
+  services: ['appium'],
   framework: 'mocha',
   reporters: ['spec'],
   mochaOpts: {

@@ -199,6 +199,13 @@ android {
 }
 
 dependencies {
+    // TODO: Remove after upgrade to React Native 0.68
+    implementation ("androidx.appcompat:appcompat:1.3.1") {
+        version {
+            strictly '1.3.1'
+        }
+    }
+    // END TODO
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
