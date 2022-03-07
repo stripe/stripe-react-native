@@ -33,6 +33,7 @@ export namespace PaymentMethodCreateParams {
     | GrabPayParams
     | FPXParams
     | AfterpayClearpayParams
+    | KlarnaParams
     // | WeChatPayParams
     | BancontactParams;
 
@@ -123,6 +124,12 @@ export namespace PaymentMethodCreateParams {
     type: 'AfterpayClearpay';
     shippingDetails: ShippingDetails;
   }
+
+  export type KlarnaParams = {
+    type: 'Klarna';
+    billingDetails: Pick<Required<BillingDetails>, 'email' | 'addressCountry'> &
+      BillingDetails;
+  };
 
   export interface EpsParams extends Required<BaseParams> {
     type: 'Eps';

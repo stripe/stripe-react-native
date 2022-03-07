@@ -279,6 +279,7 @@ class Mappers {
         case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
+        case STPPaymentMethodType.klarna: return "Klarna"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -304,6 +305,7 @@ class Mappers {
             case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
+            case "Klarna": return STPPaymentMethodType.klarna
             case "WeChatPay": return STPPaymentMethodType.weChatPay
             default: return STPPaymentMethodType.unknown
             }
@@ -377,7 +379,7 @@ class Mappers {
             let paymentError: NSMutableDictionary = [
                 "code": lastPaymentError.code ?? NSNull(),
                 "message": lastPaymentError.message ?? NSNull(),
-                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type),
+                "type": mapFromPaymentIntentLastPaymentErrorType(lastPaymentError.type) ?? NSNull(),
                 "declineCode": lastPaymentError.declineCode ?? NSNull(),
                 "paymentMethod": mapFromPaymentMethod(lastPaymentError.paymentMethod) ?? NSNull()
             ]

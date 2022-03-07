@@ -30,6 +30,7 @@ import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
 import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
 import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
+import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
@@ -64,6 +65,7 @@ export type RootStackParamList = {
   P24PaymentScreen: undefined;
   AuBECSDebitPaymentScreen: undefined;
   AfterpayClearpayPaymentScreen: undefined;
+  KlarnaPaymentScreen: undefined;
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
   GooglePayScreen: undefined;
@@ -195,6 +197,10 @@ export default function App() {
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
             component={AfterpayClearpayPaymentScreen}
+          />
+          <Stack.Screen
+            name="KlarnaPaymentScreen"
+            component={KlarnaPaymentScreen}
           />
           <Stack.Screen name="GooglePayScreen" component={GooglePayScreen} />
         </Stack.Navigator>
