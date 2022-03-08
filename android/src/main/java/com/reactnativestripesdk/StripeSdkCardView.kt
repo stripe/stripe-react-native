@@ -41,8 +41,6 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
 
     addView(mCardWidget)
     setListeners()
-
-    viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
   fun setAutofocus(value: Boolean) {
@@ -229,6 +227,7 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun onPostalCodeComplete() {}
 
       override fun onFocusChange(focusField: CardInputListener.FocusField) {
+        requestLayout()
         if (mEventDispatcher != null) {
           mEventDispatcher?.dispatchEvent(
             CardFocusEvent(id, focusField.name))
