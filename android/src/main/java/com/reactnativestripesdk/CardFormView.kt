@@ -34,8 +34,6 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
 
     addView(cardForm)
     setListeners()
-
-    viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
 
   fun setPostalCodeEnabled(value: Boolean) {
@@ -96,6 +94,7 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   }
 
   private fun onChangeFocus() {
+    requestLayout()
     mEventDispatcher?.dispatchEvent(
       CardFocusEvent(id, currentFocusedField))
   }
