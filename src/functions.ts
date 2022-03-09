@@ -1,4 +1,4 @@
-import { createError, isAndroid, isiOS } from './helpers';
+import { isAndroid, isiOS } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
@@ -9,7 +9,7 @@ import {
   ConfirmPaymentError,
   ConfirmSetupIntentError,
   ConfirmPaymentSheetPaymentResult,
-  ConfirmSetupIntent,
+  SetupIntent,
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
@@ -17,7 +17,7 @@ import {
   GooglePayInitResult,
   HandleNextActionResult,
   InitPaymentSheetResult,
-  PaymentMethodCreateParams,
+  PaymentMethod,
   PaymentSheet,
   PayWithGooglePayResult,
   PresentPaymentSheetResult,
@@ -27,7 +27,7 @@ import {
   GooglePay,
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
-  CreateTokenParams,
+  Token,
   VerifyMicrodepositsParams,
   CollectBankAccountParams,
 } from './types';
@@ -38,12 +38,12 @@ const PAYMENT_INTENT = 'payment';
 const SETUP_INTENT = 'setup';
 
 export const createPaymentMethod = async (
-  data: PaymentMethodCreateParams.Params,
-  options: PaymentMethodCreateParams.Options = {}
+  params: PaymentMethod.CreateParams,
+  options: PaymentMethod.CreateOptions = {}
 ): Promise<CreatePaymentMethodResult> => {
   try {
     const { paymentMethod, error } = await NativeStripeSdk.createPaymentMethod(
-      data,
+      params,
       options
     );
     if (error) {
@@ -54,7 +54,7 @@ export const createPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -62,7 +62,7 @@ export const createPaymentMethod = async (
 };
 
 export const createToken = async (
-  params: CreateTokenParams
+  params: Token.CreateParams
 ): Promise<CreateTokenResult> => {
   if (
     params.type === 'BankAccount' &&
@@ -85,9 +85,9 @@ export const createToken = async (
     return {
       token: token!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -106,7 +106,7 @@ export const retrievePaymentIntent = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -128,7 +128,7 @@ export const retrieveSetupIntent = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -137,13 +137,13 @@ export const retrieveSetupIntent = async (
 
 export const confirmPayment = async (
   paymentIntentClientSecret: string,
-  data: PaymentMethodCreateParams.Params,
-  options: PaymentMethodCreateParams.Options = {}
+  params: PaymentMethod.ConfirmParams,
+  options: PaymentMethod.ConfirmOptions = {}
 ): Promise<ConfirmPaymentResult> => {
   try {
     const { paymentIntent, error } = await NativeStripeSdk.confirmPayment(
       paymentIntentClientSecret,
-      data,
+      params,
       options
     );
     if (error) {
@@ -154,7 +154,7 @@ export const confirmPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -170,10 +170,10 @@ export const presentApplePay = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
 
@@ -187,7 +187,7 @@ export const presentApplePay = async (
       };
     }
     return { paymentMethod: paymentMethod! };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -203,10 +203,10 @@ export const updateApplePaySummaryItems = async (
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
 
@@ -217,9 +217,9 @@ export const updateApplePaySummaryItems = async (
     );
 
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -229,18 +229,18 @@ export const confirmApplePayPayment = async (
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
   try {
     await NativeStripeSdk.confirmApplePayPayment(clientSecret);
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -285,22 +285,22 @@ export const handleCardAction = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const confirmSetupIntent = async (
   paymentIntentClientSecret: string,
-  data: ConfirmSetupIntent.Params,
-  options: ConfirmSetupIntent.Options = {}
+  params: SetupIntent.ConfirmParams,
+  options: SetupIntent.ConfirmOptions = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {
     const { setupIntent, error } = await NativeStripeSdk.confirmSetupIntent(
       paymentIntentClientSecret,
-      data,
+      params,
       options
     );
     if (error) {
@@ -311,9 +311,9 @@ export const confirmSetupIntent = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -333,9 +333,9 @@ export const createTokenForCVCUpdate = async (
     return {
       tokenId: tokenId!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -430,9 +430,9 @@ export const initPaymentSheet = async (
     return {
       paymentOption,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -450,9 +450,9 @@ export const presentPaymentSheet =
       return {
         paymentOption: paymentOption,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
-        error: createError(error),
+        error,
       };
     }
   };
@@ -467,15 +467,15 @@ export const confirmPaymentSheetPayment =
         };
       }
       return {};
-    } catch (error) {
+    } catch (error: any) {
       return {
-        error: createError(error),
+        error,
       };
     }
   };
 
 export const isGooglePaySupported = async (
-  params?: GooglePay.IsGooglePaySupportedParams
+  params?: GooglePay.IsSupportedParams
 ): Promise<boolean> => {
   return (
     isAndroid && (await NativeStripeSdk.isGooglePaySupported(params ?? {}))
@@ -493,15 +493,15 @@ export const initGooglePay = async (
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const presentGooglePay = async (
-  params: GooglePay.SetupIntentParams
+  params: GooglePay.PresentParams
 ): Promise<PayWithGooglePayResult> => {
   try {
     const { error } = await NativeStripeSdk.presentGooglePay(params);
@@ -511,9 +511,9 @@ export const presentGooglePay = async (
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -532,9 +532,9 @@ export const createGooglePayPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -548,9 +548,9 @@ export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };

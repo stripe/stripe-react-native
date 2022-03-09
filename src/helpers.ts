@@ -1,12 +1,12 @@
-import type { StripeError } from './types';
-import { Platform, NativeModules } from 'react-native';
+import type React from 'react';
 
+import { Platform, NativeModules } from 'react-native';
 const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
 /**
  * Determines whether or not this library is being used inside of
  * an "Expo" project by identifying if Expo's native module
- * infrastructure (react-native-unimodules) is available.
+ * infrastructure (react-native-unimodules AKA expo-modules) is available.
  */
 export const shouldAttributeExpo = () => {
   try {
@@ -18,17 +18,6 @@ export const shouldAttributeExpo = () => {
 
 export const isiOS = Platform.OS === 'ios';
 export const isAndroid = Platform.OS === 'android';
-
-export function createError<T>(error: StripeError<T>) {
-  return {
-    code: error.code,
-    message: error.message,
-    localizedMessage: error.localizedMessage,
-    declineCode: error.declineCode,
-    stripeErrorCode: error.stripeErrorCode,
-    type: error.type,
-  };
-}
 
 export const unsupportedMethodMessage = (field: string) =>
   `${field} method is not supported. Consider to upgrade react-native version to 0.63.x or higher`;

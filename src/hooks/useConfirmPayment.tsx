@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { PaymentMethodCreateParams } from '../types';
+import type { PaymentMethod } from '../types';
 import { useStripe } from './useStripe';
 
 /**
@@ -12,8 +12,8 @@ export function useConfirmPayment() {
   const _confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: PaymentMethodCreateParams.Params,
-      options: PaymentMethodCreateParams.Options = {}
+      data: PaymentMethod.ConfirmParams,
+      options: PaymentMethod.ConfirmOptions = {}
     ) => {
       setLoading(true);
 
