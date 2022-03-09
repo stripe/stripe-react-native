@@ -1,5 +1,39 @@
 # CHANGELOG
 
+- [THIS PR](link to PR) BREAKING CHANGE: Mostly fixes and changes to types, but some method's now accept slightly different parameters:
+  - `createPaymentMethod`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
+  - `confirmPayment`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
+  - `Card.Token` is now `Token.Result`
+  - `Card.Brand` is now `Token.CardBrand`
+  - `Card.TokenType` is now `Token.Type`
+  - `Card.BankAccount` is now `Token.BankAccount`
+  - `Card.Params` is now `Token.Params`
+  - `CardFormView.Names` is now `CardFormView.FieldName`
+  - `CardFieldInput.Names` is now `CardFieldInput.FieldName`
+  - `ApplePayButtonComponent.Styles` is now `ApplePayButtonComponent.Style`
+  - `ApplePayButtonComponent.Types` is now `ApplePayButtonComponent.Type`
+  - `PaymentMethod` is now `PaymentMethod.Result`
+  - `PaymentIntent` is now `PaymentIntent.Result`
+  - `SetupIntent` is now `SetupIntent.Result`
+  - `Card.Token` is now `Token`
+  - `CreateTokenParams` is now `Token.CreateParams`
+  - `BankAcccountHolderType` is now `Token.BankAcccountHolderType`
+  - `ThreeDSecureConfigurationParams` is now `ThreeDSecure.ConfigurationParams`
+  - `PaymentMethodCreateParams.Params` is now `PaymentMethod.CreateParams`
+  - `PaymentMethodCreateParams.Options` is now `PaymentMethod.ConfirmOptions`
+  - `CreateTokenParams` is now `Token.CreateParams`
+  - `ConfirmSetupIntent.Params` is now `SetupIntent.ConfirmParams`
+  - `ConfirmSetupIntent.Options` is now `SetupIntent.ConfirmOptions`
+  - The `confirmPayment` now accepts the `PaymentMethod.ConfirmParams` (same type, just renamed).
+  - `BillingDetails` type is now exported directly, instead of under the `PaymentMethodCreateParams` object.
+  - `BillingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
+  - `ShippingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
+  - `presentGooglePy` now accepts `GooglePay.PresentParams`
+  - `GooglePay.PresentGooglePayParams` is now `GooglePay.PresentParams`
+  - `GooglePay.PresentGooglePayType` is now `GooglePay.PresentType`
+  - `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
+  - Removed `GooglePay.SetupIntentParams`
+
 ## 0.6.0
 
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) BREAKING: This library now supports iOS 12 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 11, please continue to use `@stripe/stripe-react-native@0.5.0`.
