@@ -11,7 +11,7 @@ import Button from '../components/Button';
 import { colors } from '../colors';
 import PaymentScreen from '../components/PaymentScreen';
 import type {
-  PaymentMethodCreateParams,
+  BillingDetails,
   PaymentIntent,
   SetupIntent,
 } from '@stripe/stripe-react-native';
@@ -21,8 +21,10 @@ export default function SetupFuturePaymentScreen() {
   const [paymentError, setPaymentError] = useState<string | null>();
   const [offSessionLoading, setOffSessionLoading] = useState(false);
   const [retrievedPaymentIntent, setRetrievedPaymentIntent] =
-    useState<PaymentIntent | null>(null);
-  const [setupIntent, setSetupIntent] = useState<SetupIntent | null>(null);
+    useState<PaymentIntent.Result | null>(null);
+  const [setupIntent, setSetupIntent] = useState<SetupIntent.Result | null>(
+    null
+  );
 
   // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support
@@ -65,14 +67,16 @@ export default function SetupFuturePaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(email);
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       email: email,
       phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
+      address: {
+        city: 'Houston',
+        country: 'US',
+        line1: '1459  Circle Drive',
+        line2: 'Texas',
+        postalCode: '77063',
+      },
     }; // mocked data for tests
 
     // 3. Confirm setup intent
@@ -149,14 +153,16 @@ export default function SetupFuturePaymentScreen() {
   // If the payment failed because it requires authentication, try again with the existing PaymentMethod instead of creating a new one.
   // Otherwise collect new details and create new PaymentMethod.
   const handleRecoveryFlow = async () => {
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       email: email,
       phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
+      address: {
+        city: 'Houston',
+        country: 'US',
+        line1: '1459  Circle Drive',
+        line2: 'Texas',
+        postalCode: '77063',
+      },
     }; // mocked data for tests
 
     if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id) {

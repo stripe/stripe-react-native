@@ -1,5 +1,5 @@
 import {
-  PaymentMethodCreateParams,
+  BillingDetails,
   useConfirmSetupIntent,
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
@@ -32,7 +32,7 @@ export default function BancontactSetupFuturePaymentScreen() {
   const handlePayPress = async () => {
     const clientSecret = await createSetupIntentOnBackend(email);
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       name: 'John Doe',
       email,
     };

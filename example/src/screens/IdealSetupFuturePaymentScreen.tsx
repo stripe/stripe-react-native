@@ -6,7 +6,7 @@ import { API_URL } from '../Config';
 import Button from '../components/Button';
 import { colors } from '../colors';
 import PaymentScreen from '../components/PaymentScreen';
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import type { BillingDetails } from '@stripe/stripe-react-native';
 
 export default function IdealSetupFuturePaymentScreen() {
   const [email, setEmail] = useState('');
@@ -33,7 +33,7 @@ export default function IdealSetupFuturePaymentScreen() {
   const handlePayPress = async () => {
     const clientSecret = await createSetupIntentOnBackend(email);
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       email: email,
       name: 'John Doe',
     };

@@ -1,4 +1,4 @@
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import type { BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmSetupIntent } from '@stripe/stripe-react-native';
@@ -31,7 +31,7 @@ export default function SepaSetupFuturePaymentScreen() {
   const handlePayPress = async () => {
     const clientSecret = await createSetupIntentOnBackend(email);
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       name: 'John Doe',
       email: email,
     };

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import {
   useStripe,
-  PaymentSheet,
+  BillingDetails,
+  Address,
   PaymentSheetError,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -59,7 +60,7 @@ export default function PaymentsUICompleteScreen() {
     const { paymentIntent, ephemeralKey, customer } =
       await fetchPaymentSheetParams();
 
-    const address: PaymentSheet.Address = {
+    const address: Address = {
       city: 'San Francisco',
       country: 'AT',
       line1: '510 Townsend St.',
@@ -67,7 +68,7 @@ export default function PaymentsUICompleteScreen() {
       postalCode: '94102',
       state: 'California',
     };
-    const billingDetails: PaymentSheet.BillingDetails = {
+    const billingDetails: BillingDetails = {
       name: 'Jane Doe',
       email: 'foo@bar.com',
       phone: '555-555-555',
