@@ -83,16 +83,18 @@ class PaymentSheetFragment : Fragment() {
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     if (billingDetailsBundle != null) {
       val addressBundle = billingDetailsBundle.getBundle("address")
-      val address = PaymentSheet.Address(addressBundle?.getString("city"),
-                                          addressBundle?.getString("country"),
-                                          addressBundle?.getString("line1"),
-                                          addressBundle?.getString("line2"),
-                                          addressBundle?.getString("postalCode"),
-                                          addressBundle?.getString("state"))
-      defaultBillingDetails = PaymentSheet.BillingDetails(address,
-                                                          billingDetailsBundle.getString("email"),
-                                                          billingDetailsBundle.getString("name"),
-                                                          billingDetailsBundle.getString("phone"))
+      val address = PaymentSheet.Address(
+        addressBundle?.getString("city"),
+        addressBundle?.getString("country"),
+        addressBundle?.getString("line1"),
+        addressBundle?.getString("line2"),
+        addressBundle?.getString("postalCode"),
+        addressBundle?.getString("state"))
+      defaultBillingDetails = PaymentSheet.BillingDetails(
+        address,
+        billingDetailsBundle.getString("email"),
+        billingDetailsBundle.getString("name"),
+        billingDetailsBundle.getString("phone"))
     }
 
     paymentSheetConfiguration = PaymentSheet.Configuration(
@@ -179,12 +181,13 @@ fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
   drawable.draw(canvas)
   return bitmap
 }
- fun getBase64FromBitmap(bitmap: Bitmap?): String? {
-   if (bitmap == null) {
-     return null
-   }
-   val stream = ByteArrayOutputStream()
-   bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-   val imageBytes: ByteArray = stream.toByteArray()
-   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
- }
+
+fun getBase64FromBitmap(bitmap: Bitmap?): String? {
+  if (bitmap == null) {
+    return null
+  }
+  val stream = ByteArrayOutputStream()
+  bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+  val imageBytes: ByteArray = stream.toByteArray()
+  return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+}
