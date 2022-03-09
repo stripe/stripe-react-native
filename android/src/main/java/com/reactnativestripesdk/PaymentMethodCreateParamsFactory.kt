@@ -152,7 +152,10 @@ class PaymentMethodCreateParamsFactory(
 
       val sepaParams = PaymentMethodCreateParams.SepaDebit(iban)
       val createParams =
-        PaymentMethodCreateParams.create(sepaDebit = sepaParams, billingDetails = it)
+        PaymentMethodCreateParams.create(
+                     sepaDebit = sepaParams, 
+                     billingDetails = it
+        )
 
       return ConfirmSetupIntentParams.create(
         paymentMethodCreateParams = createParams,

@@ -142,11 +142,11 @@ class PaymentSheetFragment : Fragment() {
       val paymentOption = flowController?.getPaymentOption()
       val intent = Intent(ON_CONFIGURE_FLOW_CONTROLLER)
 
-      if (paymentOption != null) {
-        val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
+      paymentOption?.let {
+        val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
         val imageString = getBase64FromBitmap(bitmap)
 
-        intent.putExtra("label", paymentOption.label)
+        intent.putExtra("label", it.label)
         intent.putExtra("image", imageString)
       }
       localBroadcastManager.sendBroadcast(intent)

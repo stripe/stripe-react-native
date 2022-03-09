@@ -366,9 +366,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   paymentIntent.amount?.let {
     map.putDouble("amount", it.toDouble())
   }
-  paymentIntent.canceledAt.let {
-    map.putString("canceledAt", convertToUnixTimestamp(it))
-  }
+  map.putString("canceledAt", convertToUnixTimestamp(paymentIntent.canceledAt))
   return map
 }
 
