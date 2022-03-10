@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- [#821](https://github.com/stripe/stripe-react-native/pull/821) Feat: Add support for Klarna
 - [#630](https://github.com/stripe/stripe-react-native/pull/630) Fix: card field focus jumps back to the card number field on Android
 - [#824](https://github.com/stripe/stripe-react-native/pull/824) Fix: Google Pay error code when canceled should be 'Canceled' 
 
