@@ -235,6 +235,7 @@ export function useStripe() {
     confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
     handleNextAction: _handleNextAction,
+    handleCardAction: _handleNextAction,
     isApplePaySupported: isApplePaySupported,
     presentApplePay: _presentApplePay,
     confirmApplePayPayment: _confirmApplePayPayment,
