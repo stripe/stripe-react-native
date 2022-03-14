@@ -221,8 +221,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
-    val setUrlSchemeOnAndroid = getBooleanOrFalse(params, "setUrlSchemeOnAndroid")
-    this.urlScheme = if (setUrlSchemeOnAndroid) urlScheme else null
+    val setReturnUrlSchemeOnAndroid = getBooleanOrFalse(params, "setReturnUrlSchemeOnAndroid")
+    this.urlScheme = if (setReturnUrlSchemeOnAndroid) urlScheme else null
 
     getMapOrNull(params, "threeDSecureParams")?.let {
       configure3dSecure(it)
