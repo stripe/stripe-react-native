@@ -22,6 +22,7 @@ const SCREENS = <const>[
   'Sofort SEPA Direct Debit set up',
   'Buy now pay later',
   'Afterpay and Clearpay',
+  'Klarna',
   'Vouchers',
   'Wallets',
   'Alipay',

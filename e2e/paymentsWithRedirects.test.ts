@@ -153,16 +153,6 @@ describe('Payment scenarios with redirects', () => {
     BasicPaymentScreen.checkStatus();
   });
 
-  // it.('Afterpay/Clearpay payment scenario', function () {
-  //   this.retries(2);
-  //   homeScreen.goTo('Buy now pay later');
-  //   homeScreen.goTo('Afterpay and Clearpay');
-
-  //   BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-  //   BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
-  //   BasicPaymentScreen.checkStatus();
-  // });
-
   it('OXXO payment scenario', function () {
     this.retries(2);
     homeScreen.goTo('Vouchers');

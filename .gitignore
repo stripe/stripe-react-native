@@ -68,3 +68,6 @@ docs/api-reference/
 
 # Appium Screenshots
 .tmp/screenshots
+
+# Local stripe-android dependency
+example/android/stripe-android

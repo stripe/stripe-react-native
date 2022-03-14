@@ -103,6 +103,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.Sofort -> "Sofort"
     PaymentMethod.Type.Upi -> "Upi"
     PaymentMethod.Type.WeChatPay -> "WeChatPay"
+    PaymentMethod.Type.Klarna -> "Klarna"
     else -> "Unknown"
   }
 }
@@ -128,6 +129,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "Sofort" -> PaymentMethod.Type.Sofort
     "Upi" -> PaymentMethod.Type.Upi
     "WeChatPay" -> PaymentMethod.Type.WeChatPay
+    "Klarna" -> PaymentMethod.Type.Klarna
     else -> null
   }
 }
