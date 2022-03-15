@@ -90,7 +90,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private val googlePayReceiver: BroadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
       if (intent.action == ON_GOOGLE_PAY_FRAGMENT_CREATED) {
-        googlePayFragment = (currentActivity as AppCompatActivity).supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
+        (currentActivity as? AppCompatActivity)?.let {
+          googlePayFragment = it.supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
+        }
       }
       if (intent.action == ON_INIT_GOOGLE_PAY) {
         val isReady = intent.extras?.getBoolean("isReady") ?: false
@@ -236,22 +238,19 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   @SuppressWarnings("unused")
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
-    val activity = currentActivity as AppCompatActivity?
+    (currentActivity as? AppCompatActivity)?.let {
+      this.initPaymentSheetPromise = promise
 
-    if (activity == null) {
-      promise.resolve(createError("Failed", "Activity doesn't exist"))
-      return
+      paymentSheetFragment = PaymentSheetFragment().also {
+        val bundle = toBundleObject(params)
+        it.arguments = bundle
+      }
+      it.supportFragmentManager.beginTransaction()
+        .add(paymentSheetFragment!!, "payment_sheet_launch_fragment")
+        .commit()
+    } ?: run {
+      promise.resolve(createMissingActivityError())
     }
-
-    this.initPaymentSheetPromise = promise
-
-    paymentSheetFragment = PaymentSheetFragment().also {
-      val bundle = toBundleObject(params)
-      it.arguments = bundle
-    }
-    activity.supportFragmentManager.beginTransaction()
-      .add(paymentSheetFragment!!, "payment_sheet_launch_fragment")
-      .commit()
   }
 
   @ReactMethod
@@ -269,12 +268,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   private fun payWithFpx() {
-    AddPaymentMethodActivityStarter(currentActivity as AppCompatActivity)
-      .startForResult(
-        AddPaymentMethodActivityStarter.Args.Builder()
-          .setPaymentMethodType(PaymentMethod.Type.Fpx)
-          .build()
-      )
+    (currentActivity as? AppCompatActivity)?.let {
+      AddPaymentMethodActivityStarter(it)
+        .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
+                          .setPaymentMethodType(PaymentMethod.Type.Fpx)
+                          .build()
+        )
+    } ?: run {
+      confirmPromise?.resolve(createMissingActivityError())
+    }
   }
 
   private fun onFpxPaymentMethodResult(result: AddPaymentMethodActivityStarter.Result) {
@@ -482,7 +484,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 //        promise.resolve(createError("Failed", "You must provide appId"))
 //        return
 //      }
-//      payWithWeChatPay(paymentIntentClientSecret, appId)
+//      payWithWeChatPay(paymentIntentClientSecret, appId, promise)
 //
 //      return
 //    }
@@ -559,32 +561,39 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   @SuppressWarnings("unused")
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
-    val fragment = GooglePayPaymentMethodLauncherFragment(
-      currentActivity as AppCompatActivity,
-      getBooleanOrFalse(params, "testEnv"),
-      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
-      promise
-    )
+    (currentActivity as? AppCompatActivity)?.let {
+      val fragment = GooglePayPaymentMethodLauncherFragment(
+        it,
+        getBooleanOrFalse(params, "testEnv"),
+        getBooleanOrFalse(params, "existingPaymentMethodRequired"),
+        promise
+      )
 
-    (currentActivity as AppCompatActivity).supportFragmentManager.beginTransaction()
-      .add(fragment, "google_pay_support_fragment")
-      .commit()
+      it.supportFragmentManager.beginTransaction()
+        .add(fragment, "google_pay_support_fragment")
+        .commit()
+    } ?: run {
+      promise.resolve(createMissingActivityError())
+    }
   }
 
   @ReactMethod
   @SuppressWarnings("unused")
   fun initGooglePay(params: ReadableMap, promise: Promise) {
-    val activity = currentActivity as AppCompatActivity
     val fragment = GooglePayFragment().also {
       val bundle = toBundleObject(params)
       it.arguments = bundle
     }
 
-    initGooglePayPromise = promise
+    (currentActivity as? AppCompatActivity)?.let {
+      initGooglePayPromise = promise
 
-    activity.supportFragmentManager.beginTransaction()
-      .add(fragment, "google_pay_launch_fragment")
-      .commit()
+      it.supportFragmentManager.beginTransaction()
+        .add(fragment, "google_pay_launch_fragment")
+        .commit()
+    } ?: run {
+      promise.resolve(createMissingActivityError())
+    }
   }
 
   @ReactMethod
