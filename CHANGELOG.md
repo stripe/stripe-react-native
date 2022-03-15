@@ -1,5 +1,7 @@
 # CHANGELOG
 
+- [#845](https://github.com/stripe/stripe-react-native/pull/845) Feat: Added support for `placeholderColor`, `textErrorColor `, `borderColor`, `borderRadius`, and `borderWidth` for `AuBECSDebitForm` on iOS
+
 ## 0.4.0
 
 - [#821](https://github.com/stripe/stripe-react-native/pull/821) Feat: Add support for Klarna

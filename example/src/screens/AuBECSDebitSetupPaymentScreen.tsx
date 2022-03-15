@@ -59,7 +59,16 @@ export default function AuBECSDebitSetupPaymentScreen() {
         onComplete={(value) => setFormDetails(value)}
         companyName="test"
         // eslint-disable-next-line react-native/no-inline-styles
-        formStyle={{ fontSize: 20 }}
+        formStyle={{
+          borderWidth: 2.5,
+          backgroundColor: '#ffffff',
+          borderColor: '#D3D3D3',
+          borderRadius: 10.9,
+          textColor: '#000000',
+          fontSize: 20,
+          placeholderColor: '#D3D3D3',
+          textErrorColor: '#ff0000',
+        }}
       />
 
       <View style={styles.buttonContainer}>
