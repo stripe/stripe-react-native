@@ -50,6 +50,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var initGooglePayPromise: Promise? = null
   private var presentGooglePayPromise: Promise? = null
 
+  private val currentActivity: AppCompatActivity?
+    get() = (super.getCurrentActivity() as? AppCompatActivity)
+
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
@@ -90,7 +93,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private val googlePayReceiver: BroadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
       if (intent.action == ON_GOOGLE_PAY_FRAGMENT_CREATED) {
-        (currentActivity as? AppCompatActivity)?.let {
+        currentActivity?.let {
           googlePayFragment = it.supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
         }
       }
@@ -238,7 +241,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   @SuppressWarnings("unused")
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
-    (currentActivity as? AppCompatActivity)?.let { activity ->
+    currentActivity?.let { activity ->
       this.initPaymentSheetPromise = promise
 
       paymentSheetFragment = PaymentSheetFragment().also {
@@ -268,7 +271,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   private fun payWithFpx() {
-    (currentActivity as? AppCompatActivity)?.let {
+    currentActivity?.let {
       AddPaymentMethodActivityStarter(it)
         .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
                           .setPaymentMethodType(PaymentMethod.Type.Fpx)
@@ -561,7 +564,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   @SuppressWarnings("unused")
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
-    (currentActivity as? AppCompatActivity)?.let {
+    currentActivity?.let {
       val fragment = GooglePayPaymentMethodLauncherFragment(
         it,
         getBooleanOrFalse(params, "testEnv"),
@@ -585,7 +588,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       it.arguments = bundle
     }
 
-    (currentActivity as? AppCompatActivity)?.let {
+    currentActivity?.let {
       initGooglePayPromise = promise
 
       it.supportFragmentManager.beginTransaction()
