@@ -33,15 +33,15 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   testID?: string;
 
-  // props iOS only
+  /** All styles except backgroundColor are Android only */
   cardStyle?: CardFormView.Styles;
   // isUserInteractionEnabled?: boolean;
 
   // TODO: will make it public when android-sdk allows for this
   // postalCodeEnabled?: boolean;
 
-  // TODO: will make it public when ios-sdk allows for this
-  // placeholder: CardFormView.Placeholders;
+  /** Android only */
+  placeholder?: CardFormView.Placeholders;
   // onBlur?(): void;
   // onFocus?(focusedField: CardFormView.FieldNames | null): void;
   onFormComplete?(card: CardFormView.Details): void;
@@ -80,7 +80,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       // postalCodeEnabled = true,
       // onFocus,
       // onBlur,
-      // placeholder,
+      placeholder,
       ...props
     },
     ref
@@ -165,16 +165,25 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
         onFormComplete={onFormCompleteHandler}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
+          borderColor: cardStyle?.borderColor,
+          borderWidth: cardStyle?.borderWidth,
+          borderRadius: cardStyle?.borderRadius,
+          cursorColor: cardStyle?.cursorColor,
+          fontSize: cardStyle?.fontSize,
+          placeholderColor: cardStyle?.placeholderColor,
+          textColor: cardStyle?.textColor,
+          textErrorColor: cardStyle?.textErrorColor,
+          fontFamily: cardStyle?.fontFamily,
           // disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
           // type: cardStyle?.type,
         }}
         // isUserInteractionEnabledValue={isUserInteractionEnabled}
-        // placeholder={{
-        //   number: placeholder?.number,
-        //   expiration: placeholder?.expiration,
-        //   cvc: placeholder?.cvc,
-        //   postalCode: placeholder?.postalCode,
-        // }}
+        placeholder={{
+          number: placeholder?.number,
+          expiration: placeholder?.expiration,
+          cvc: placeholder?.cvc,
+          postalCode: placeholder?.postalCode,
+        }}
         onFocusChange={onFocusHandler}
         // postalCodeEnabled={postalCodeEnabled}
         {...props}

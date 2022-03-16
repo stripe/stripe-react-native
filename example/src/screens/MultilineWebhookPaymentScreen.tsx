@@ -87,6 +87,12 @@ export default function MultilineWebhookPaymentScreen() {
         style={styles.input}
       />
       <CardForm
+        placeholder={{
+          number: '4242 4242 4242 4242',
+          postalCode: '12345',
+          cvc: 'CVC',
+          expiration: 'MM|YY',
+        }}
         autofocus
         cardStyle={inputStyles}
         style={styles.cardField}
@@ -143,5 +149,13 @@ const styles = StyleSheet.create({
 });
 
 const inputStyles: CardFormView.Styles = {
-  backgroundColor: '#FFFFFF',
+  backgroundColor: '#D3D3D3',
+  textColor: '#A020F0',
+  borderColor: '#000000',
+  borderWidth: 2,
+  borderRadius: 10,
+  cursorColor: '#000000',
+  fontSize: 16,
+  placeholderColor: '#A020F0',
+  textErrorColor: '#ff0000',
 };
