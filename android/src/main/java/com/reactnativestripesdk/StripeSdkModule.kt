@@ -92,18 +92,17 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private val googlePayReceiver: BroadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent) {
-      if (intent.action == ON_GOOGLE_PAY_FRAGMENT_CREATED) {
-        currentActivity?.let {
-          googlePayFragment = it.supportFragmentManager.findFragmentByTag("google_pay_launch_fragment") as GooglePayFragment
-        }
-      }
       if (intent.action == ON_INIT_GOOGLE_PAY) {
         val isReady = intent.extras?.getBoolean("isReady") ?: false
-
         if (isReady) {
           initGooglePayPromise?.resolve(WritableNativeMap())
         } else {
-          initGooglePayPromise?.resolve(createError(GooglePayErrorType.Failed.toString(), "Google Pay is not available on this device"))
+          initGooglePayPromise?.resolve(
+            createError(
+              GooglePayErrorType.Failed.toString(),
+              "Google Pay is not available on this device. You can use isGooglePaySupported to preemptively check for Google Pay support."
+            )
+          )
         }
       }
       if (intent.action == ON_GOOGLE_PAYMENT_METHOD_RESULT) {
@@ -230,7 +229,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_CONFIGURE_FLOW_CONTROLLER))
     localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_INIT_PAYMENT_SHEET))
 
-    localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_FRAGMENT_CREATED))
     localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_INIT_GOOGLE_PAY))
     localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAY_RESULT))
     localBroadcastManager.registerReceiver(googlePayReceiver, IntentFilter(ON_GOOGLE_PAYMENT_METHOD_RESULT))
@@ -583,7 +581,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   @SuppressWarnings("unused")
   fun initGooglePay(params: ReadableMap, promise: Promise) {
-    val fragment = GooglePayFragment().also {
+    googlePayFragment = GooglePayFragment().also {
       val bundle = toBundleObject(params)
       it.arguments = bundle
     }
@@ -592,7 +590,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       initGooglePayPromise = promise
 
       it.supportFragmentManager.beginTransaction()
-        .add(fragment, "google_pay_launch_fragment")
+        .add(googlePayFragment!!, "google_pay_launch_fragment")
         .commit()
     } ?: run {
       promise.resolve(createMissingActivityError())
