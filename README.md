@@ -261,3 +261,7 @@ Follow these steps to resolve this:
 You might see error this whilst initializing the `StripeProvider` component with Expo. This is caused by using an older version of Expo before stripe-react-native was [officially supported](https://github.com/stripe/stripe-react-native/issues/3#issuecomment-846225534). Updating Expo Go from the stores (or locally on simulators installed with `expo install:client:[ios|android]`) should fix the problem.
 
 If you're still having troubles, please [open an issue](https://github.com/stripe/stripe-react-native/issues/new/choose) or jump in our [developer chat](https://stripe.com/go/developer-chat).
+
+### `Apple Pay Is Not Available in "My App Name"`
+
+This can occur if you attempt to process an Apple Pay payment on a physical device (even in test mode) without having created **and uploaded** your Apple Pay Certificate to the Stripe Dashboard. Learn how to do that [here](https://stripe.com/docs/apple-pay#csr).
