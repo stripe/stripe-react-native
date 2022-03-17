@@ -30,7 +30,6 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   var cardAddress: Address? = null
   private val cardFormViewBinding = StripeCardFormViewBinding.bind(cardForm)
   private val multilineWidgetBinding = CardMultilineWidgetBinding.bind(cardFormViewBinding.cardMultilineWidget)
-  private var lastCardWasValid = true
 
   init {
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusable = true
@@ -43,16 +42,13 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   fun setPostalCodeEnabled(value: Boolean) {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
     val visibility = if (value) View.VISIBLE else View.GONE
 
-    cardFormView.cardMultilineWidget.postalCodeRequired = false
-    cardFormView.postalCodeContainer.visibility = visibility
+    cardFormViewBinding.cardMultilineWidget.postalCodeRequired = false
+    cardFormViewBinding.postalCodeContainer.visibility = visibility
   }
 
   fun setPlaceHolders(value: ReadableMap) {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
     val cvcPlaceholder = getValOr(value, "cvc", null)
@@ -68,7 +64,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       multilineWidgetBinding.tlCvc.hint = it
     }
     postalCodePlaceholder?.let {
-      cardFormView.postalCodeContainer.hint = it
+      cardFormViewBinding.postalCodeContainer.hint = it
     }
   }
 
@@ -105,7 +101,6 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   fun setCardStyle(value: ReadableMap) {
-    val binding = StripeCardFormViewBinding.bind(cardForm)
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
     val borderWidth = getIntOrNull(value, "borderWidth")
@@ -121,30 +116,19 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       cardFormViewBinding.cardMultilineWidget.cardNumberEditText,
       cardFormViewBinding.cardMultilineWidget.cvcEditText,
       cardFormViewBinding.cardMultilineWidget.expiryDateEditText,
-      cardFormViewBinding.postalCodeContainer.editText
+      cardFormViewBinding.postalCode
     )
-
-    binding.cardMultilineWidgetContainer.background = MaterialShapeDrawable().also { shape ->
-      shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
-      backgroundColor?.let {
-        shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
-      }
-    }
 
     textColor?.let {
       for (binding in editTextBindings) {
-        binding?.setTextColor(Color.parseColor(it))
+        binding.setTextColor(Color.parseColor(it))
       }
       cardFormViewBinding.countryLayout.countryAutocomplete.setTextColor(Color.parseColor(it))
     }
     textErrorColor?.let {
-      val bindingsWithErrorText = setOf(
-        cardFormViewBinding.cardMultilineWidget.cardNumberEditText,
-        cardFormViewBinding.cardMultilineWidget.cvcEditText,
-        cardFormViewBinding.cardMultilineWidget.expiryDateEditText
-      )
-      for (binding in bindingsWithErrorText) {
+      for (binding in editTextBindings) {
         binding.setErrorColor(Color.parseColor(it))
+        cardFormViewBinding.postalCode.setErrorColor(Color.parseColor(it))
       }
     }
     placeholderColor?.let {
@@ -155,23 +139,23 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     }
     fontSize?.let {
       for (binding in editTextBindings) {
-        binding?.textSize = it.toFloat()
+        binding.textSize = it.toFloat()
       }
     }
     fontFamily?.let {
       for (binding in editTextBindings) {
-        binding?.typeface = Typeface.create(it, Typeface.NORMAL)
+        binding.typeface = Typeface.create(it, Typeface.NORMAL)
       }
     }
     cursorColor?.let {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val color = Color.parseColor(it)
         for (binding in editTextBindings) {
-          binding?.textCursorDrawable?.setTint(color)
-          binding?.textSelectHandle?.setTint(color)
-          binding?.textSelectHandleLeft?.setTint(color)
-          binding?.textSelectHandleRight?.setTint(color)
-          binding?.highlightColor = color
+          binding.textCursorDrawable?.setTint(color)
+          binding.textSelectHandle?.setTint(color)
+          binding.textSelectHandleLeft?.setTint(color)
+          binding.textSelectHandleRight?.setTint(color)
+          binding.highlightColor = color
         }
       }
     }
@@ -228,8 +212,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
             .setCountry(it.address?.country)
             .build()
 
-          val binding = StripeCardFormViewBinding.bind(cardForm)
-          binding.cardMultilineWidget.paymentMethodCard?.let { params -> cardParams = params }
+          cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params -> cardParams = params }
         }
       } else {
         cardParams = null
