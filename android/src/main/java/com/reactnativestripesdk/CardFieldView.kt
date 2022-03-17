@@ -158,7 +158,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     } catch (e: Exception) {
       Log.e(
         "StripeReactNative",
-        "Unable to set card brand tint color.")
+        "Unable to set card brand tint color: " + e.message)
     }
   }
 
