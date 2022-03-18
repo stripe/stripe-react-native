@@ -49,7 +49,7 @@ First, check whether or not the device supports Google Pay by calling `isGoogleP
 See [SDK Reference](https://stripe.dev/stripe-react-native/api-reference/index.html) for more details.
 
 ```tsx
-import { useGooglePay } from 'stripe-react-native';
+import { useGooglePay } from '@stripe/stripe-react-native';
 
 function CheckoutScreen() {
   const { isGooglePaySupported, initGooglePay } = useGooglePay();
