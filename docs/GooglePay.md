@@ -6,11 +6,9 @@ Google Pay allows customers to make payments in your app or website using any cr
 
 Google Pay is fully compatible with Stripe’s products and features (e.g., [subscriptions](https://stripe.com/docs/billing)), allowing you to use it in place of a traditional payment form whenever possible. Use it to accept payments for physical goods, donations, subscriptions, and more.
 
-## Setup Stripe
+## Setup 
 
-### Server side
-
-//
+Make sure you've followed [Google's prerequisite steps](https://developers.google.com/pay/api/android/guides/setup#set-up-your-app-in-your-google-pay-account). However, you do not need to make any changes to your `build.gradle` files, as that is handled by `@stripe/stripe-react-native` for you. If you're using Expo and do not have access to your `AndroidManifest.xml` file, please use Stripe's [Expo Config Plugin](https://github.com/stripe/stripe-react-native#expo).
 
 ### Client side
 
@@ -18,7 +16,7 @@ The [React Native SDK](https://github.com/stripe/stripe-react-native) is open so
 Install the SDK by running:
 
 ```sh
-yarn add react-native-stripe-sdk
+yarn add @stripe/stripe-react-native
 ```
 
 For iOS you will have to run `pod install` inside `ios` directory in order to install needed native dependencies. Android won't require any additional steps.
@@ -89,7 +87,7 @@ function CheckoutScreen() {
 After initializing GooglePay, the `initGooglePay` promise is resolved, it's successful if there is no error. This information can be used to update your UI to indicate to your customer that Google Pay is ready to be used.
 
 ```tsx
-import { useGooglePay } from 'stripe-react-native';
+import { useGooglePay } from '@stripe/stripe-react-native';
 
 function CheckoutScreen() {
   const [initialized, setInitialized] = useState(false);
