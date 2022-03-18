@@ -31,7 +31,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   override fun getName(): String {
     return "StripeSdk"
   }
-  private lateinit var stripe: Stripe
+  private var stripe: Stripe? = null
 
   private lateinit var paymentLauncherFragment: PaymentLauncherFragment
 
@@ -49,6 +49,11 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   private var googlePayFragment: GooglePayFragment? = null
   private var initGooglePayPromise: Promise? = null
   private var presentGooglePayPromise: Promise? = null
+
+  private val MISSING_INIT_ERROR = createError(
+    "Failed",
+    "Stripe has not been initialized. Make sure you have initialized Stripe in your app with the StripeProvider component or the initStripe method."
+  )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
@@ -236,6 +241,11 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
   @ReactMethod
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
+    if (stripe == null) {
+      promise.resolve(MISSING_INIT_ERROR)
+      return
+    }
+
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       this.initPaymentSheetPromise = promise
 
@@ -251,14 +261,24 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
   @ReactMethod
   fun presentPaymentSheet(promise: Promise) {
-    this.presentPaymentSheetPromise = promise
-    paymentSheetFragment?.present()
+    paymentSheetFragment?.let {
+      this.presentPaymentSheetPromise = promise
+      it.present()
+    } ?: run {
+      promise.resolve(
+        createError("Failed", "Payment sheet has not been initialized."))
+    }
   }
 
   @ReactMethod
   fun confirmPaymentSheetPayment(promise: Promise) {
-    this.confirmPaymentSheetPaymentPromise = promise
-    paymentSheetFragment?.confirmPayment()
+    paymentSheetFragment?.let {
+      this.confirmPaymentSheetPaymentPromise = promise
+      it.confirmPayment()
+    } ?: run {
+      promise.resolve(
+        createError("Failed", "Payment sheet has not been initialized."))
+    }
   }
 
   private fun payWithFpx() {
@@ -310,7 +330,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(paymentMethodData, "billingDetails"), cardAddress)
 
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
-    stripe.createPaymentMethod(
+    stripe?.createPaymentMethod(
       paymentMethodCreateParams,
       callback = object : ApiResultCallback<PaymentMethod> {
         override fun onError(e: Exception) {
@@ -321,7 +341,9 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
           val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
           promise.resolve(createResult("paymentMethod", paymentMethodMap))
         }
-      })
+      }) ?: run {
+      promise.resolve(MISSING_INIT_ERROR)
+    }
   }
 
   @ReactMethod
@@ -363,8 +385,12 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     )
     CoroutineScope(Dispatchers.IO).launch {
       runCatching {
-        val token = stripe.createBankAccountToken(bankAccountParams, null, stripeAccountId)
-        promise.resolve(createResult("token", mapFromToken(token)))
+        stripe?.let {
+          val token = it.createBankAccountToken(bankAccountParams, null, stripeAccountId)
+          promise.resolve(createResult("token", mapFromToken(token)))
+        } ?: run {
+          promise.resolve(MISSING_INIT_ERROR)
+        }
       }.onFailure {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
@@ -393,11 +419,15 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
     CoroutineScope(Dispatchers.IO).launch {
       try {
-        val token = stripe.createCardToken(
-          cardParams = cardParams,
-          stripeAccountId = stripeAccountId
-        )
-        promise.resolve(createResult("token", mapFromToken(token)))
+        stripe?.let {
+          val token = it.createCardToken(
+            cardParams = cardParams,
+            stripeAccountId = stripeAccountId
+          )
+          promise.resolve(createResult("token", mapFromToken(token)))
+        } ?: run {
+          promise.resolve(MISSING_INIT_ERROR)
+        }
       } catch (e: Exception) {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), e.message))
       }
@@ -406,7 +436,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
   @ReactMethod
   fun createTokenForCVCUpdate(cvc: String, promise: Promise) {
-    stripe.createCvcUpdateToken(
+    stripe?.createCvcUpdateToken(
       cvc,
       callback = object : ApiResultCallback<Token> {
         override fun onSuccess(result: Token) {
@@ -420,7 +450,9 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
           promise.resolve(createError("Failed", e))
         }
       }
-    )
+    ) ?: run {
+      promise.resolve(MISSING_INIT_ERROR)
+    }
   }
 
   @ReactMethod
@@ -498,11 +530,15 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   @ReactMethod
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
-      val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
-      paymentIntent?.let {
-        promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
+      stripe?.let {
+        val paymentIntent = it.retrievePaymentIntentSynchronous(clientSecret)
+        paymentIntent?.let {
+          promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
+        } ?: run {
+          promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Failed to retrieve the PaymentIntent"))
+        }
       } ?: run {
-        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Failed to retrieve the PaymentIntent"))
+        promise.resolve(MISSING_INIT_ERROR)
       }
     }
   }
@@ -510,11 +546,15 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   @ReactMethod
   fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
-      val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
-      setupIntent?.let {
-        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
+      stripe?.let {
+        val setupIntent = it.retrieveSetupIntentSynchronous(clientSecret)
+        setupIntent?.let {
+          promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
+        } ?: run {
+          promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), "Failed to retrieve the SetupIntent"))
+        }
       } ?: run {
-        promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), "Failed to retrieve the SetupIntent"))
+        promise.resolve(MISSING_INIT_ERROR)
       }
     }
   }
