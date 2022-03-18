@@ -54,10 +54,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let url = RCTConvert.nsString(appInfo["url"]) ?? ""
         
         self.merchantIdentifier = merchantIdentifier
-        
-        self.apiClient = STPAPIClient.init(publishableKey: publishableKey)
-        self.apiClient?.stripeAccount = stripeAccountId
-        self.apiClient?.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
+
+        STPAPIClient.shared.publishableKey = publishableKey
+        STPAPIClient.shared.stripeAccount = stripeAccountId
+        STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
+        self.apiClient = STPAPIClient.shared
         
         self.paymentHandler = STPPaymentHandler.shared()
         self.paymentHandler?.apiClient = self.apiClient!
