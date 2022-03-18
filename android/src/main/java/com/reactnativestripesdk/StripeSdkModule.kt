@@ -62,7 +62,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
         googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-          if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+          data?.getParcelableExtra<Parcelable>("extra_activity_result")?.let {
             onFpxPaymentMethodResult(result)
           }
         } catch (e: java.lang.Exception) {
