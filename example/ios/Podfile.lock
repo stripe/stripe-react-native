@@ -343,16 +343,16 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
   - stripe-react-native (from `../..`)
+  - StripeCore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
+  - StripeUICore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - fmt
-    - Stripe
     - StripeApplePay
-    - StripeCore
-    - StripeUICore
 
 EXTERNAL SOURCES:
   boost:
@@ -423,10 +423,30 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: private
+    :git: https://github.com/stripe-ios/stripe-ios.git
   stripe-react-native:
     :path: "../.."
+  StripeCore:
+    :branch: private
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :branch: private
+    :git: https://github.com/stripe-ios/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: aef0208d29b063414eed00a5d0d523b2df79f68a
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeCore:
+    :commit: aef0208d29b063414eed00a5d0d523b2df79f68a
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :commit: aef0208d29b063414eed00a5d0d523b2df79f68a
+    :git: https://github.com/stripe-ios/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
@@ -471,6 +491,6 @@ SPEC CHECKSUMS:
   StripeUICore: a7e450146986fab95293b0164dd37dda7994982b
   Yoga: e7dc4e71caba6472ff48ad7d234389b91dadc280
 
-PODFILE CHECKSUM: 36578772e693cd3f5c59e5bd4fd36997ba0f865b
+PODFILE CHECKSUM: a96ac79051a9613a1ca50ab39513110826bdbbd7
 
 COCOAPODS: 1.11.2
