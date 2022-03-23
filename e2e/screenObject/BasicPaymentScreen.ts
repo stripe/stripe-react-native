@@ -52,8 +52,8 @@ class BasicPaymentScreen {
         const button = $(`${elementType}*=Authorize`);
         if (button.isDisplayed()) {
           button.click();
-          driver.pause(3000);
-          driver.closeWindow();
+          driver.pause(1000);
+          break;
         }
       } catch (e) {
         console.log(
@@ -77,7 +77,7 @@ export function getAllWebviewContexts(): string[] {
   let allContexts = driver.getContexts();
   if (driver.isIOS) {
     // Hacky workaround for https://github.com/appium/appium/issues/13770
-    driver.pause(2000);
+    driver.pause(1000);
     allContexts = driver.getContexts();
   }
 
@@ -88,7 +88,14 @@ export function getAllWebviewContexts(): string[] {
     throw new Error('No webview context was found.');
   }
 
-  return webviewContext;
+  return webviewContext.sort((a, b) => {
+    if (a.includes('stripe') && !b.includes('stripe')) {
+      return -1;
+    } else if (b.includes('stripe') && !a.includes('stripe')) {
+      return 1;
+    }
+    return 0;
+  });
 }
 
 function getNativeContext(): string {

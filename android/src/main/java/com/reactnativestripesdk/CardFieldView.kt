@@ -21,18 +21,15 @@ import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.CardValidCallback
 
-
-class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(context) {
-  private var mCardWidget: CardInputWidget
+class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
+  private var mCardWidget: CardInputWidget = CardInputWidget(context)
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "", "validNumber" to "Unknown", "validCVC" to "Unknown", "validExpiryDate" to "Unknown")
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
-  private var mEventDispatcher: EventDispatcher?
+  private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
 
   init {
-    mCardWidget = CardInputWidget(context);
-    mEventDispatcher = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
 
     val binding = CardInputWidgetBinding.bind(mCardWidget)
     binding.container.isFocusable = true
@@ -240,10 +237,10 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
       override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
-        val splitted = var1.toString().split("/")
-        cardDetails["expiryMonth"] = splitted[0].toIntOrNull()
+        val splitText = var1.toString().split("/")
+        cardDetails["expiryMonth"] = splitText[0].toIntOrNull()
 
-        if (splitted.size == 2) {
+        if (splitText.size == 2) {
           cardDetails["expiryYear"] = var1.toString().split("/")[1].toIntOrNull()
         }
 

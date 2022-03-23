@@ -5,7 +5,7 @@ import android.widget.FrameLayout
 import com.facebook.react.uimanager.ThemedReactContext
 
 class GooglePayButtonView(private val context: ThemedReactContext) : FrameLayout(context) {
-  var buttonType: String? = null
+  private var buttonType: String? = null
 
   fun initialize() {
     val type = when (buttonType) {

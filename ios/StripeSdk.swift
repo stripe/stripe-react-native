@@ -636,8 +636,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(handleCardAction:resolver:rejecter:)
-    func handleCardAction(
+    @objc(handleNextAction:resolver:rejecter:)
+    func handleNextAction(
         paymentIntentClientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock

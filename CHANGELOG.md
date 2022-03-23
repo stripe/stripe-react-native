@@ -8,6 +8,11 @@
 - [#821](https://github.com/stripe/stripe-react-native/pull/821) Feat: Add support for Klarna
 - [#630](https://github.com/stripe/stripe-react-native/pull/630) Fix: card field focus jumps back to the card number field on Android
 - [#824](https://github.com/stripe/stripe-react-native/pull/824) Fix: Google Pay error code when canceled should be 'Canceled'
+- [#832](https://github.com/stripe/stripe-react-native/pull/832)
+  - Deprecated `setUrlSchemeOnAndroid` in favor of `setReturnUrlSchemeOnAndroid`. `setReturnUrlSchemeOnAndroid` functions exactly the same, this is just a rename. `setUrlSchemeOnAndroid` will be removed in a future release.
+  - Deprecated `handleCardAction` in favor of `handleNextAction`. `handleNextAction` functions exactly the same, this is just a rename. `handleCardAction` will be removed in a future release.
+  - fix: Set `returnUrl` on Android in `confirmPayment` and `confirmSetupIntent`.
+  - fix: Don't request focus on initialization of `CardForm` by default.
 
 ## 0.3.0 - 2022-02-17
 

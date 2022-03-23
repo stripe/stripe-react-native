@@ -6,7 +6,7 @@ import type {
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   ConfirmPaymentResult,
-  HandleCardActionResult,
+  HandleNextActionResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   ApplePayResult,
@@ -35,7 +35,7 @@ import {
   confirmApplePayPayment,
   confirmSetupIntent,
   createTokenForCVCUpdate,
-  handleCardAction,
+  handleNextAction,
   handleURLCallback,
   presentApplePay,
   updateApplePaySummaryItems,
@@ -139,11 +139,11 @@ export function useStripe() {
     []
   );
 
-  const _handleCardAction = useCallback(
+  const _handleNextAction = useCallback(
     async (
       paymentIntentClientSecret: string
-    ): Promise<HandleCardActionResult> => {
-      return handleCardAction(paymentIntentClientSecret);
+    ): Promise<HandleNextActionResult> => {
+      return handleNextAction(paymentIntentClientSecret);
     },
     []
   );
@@ -234,7 +234,8 @@ export function useStripe() {
     retrieveSetupIntent: _retrieveSetupIntent,
     confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
-    handleCardAction: _handleCardAction,
+    handleNextAction: _handleNextAction,
+    handleCardAction: _handleNextAction,
     isApplePaySupported: isApplePaySupported,
     presentApplePay: _presentApplePay,
     confirmApplePayPayment: _confirmApplePayPayment,

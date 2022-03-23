@@ -13,7 +13,7 @@ import {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   GooglePayInitResult,
-  HandleCardActionResult,
+  HandleNextActionResult,
   InitPaymentSheetResult,
   PaymentMethodCreateParams,
   PaymentSheet,
@@ -239,11 +239,36 @@ export const confirmApplePayPayment = async (
   }
 };
 
+export const handleNextAction = async (
+  paymentIntentClientSecret: string
+): Promise<HandleNextActionResult> => {
+  try {
+    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
+      paymentIntentClientSecret
+    );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent!,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+/**
+ * @deprecated This method is deprecated, you should use `handleNextAction` as a drop-in replacement instead.
+ */
 export const handleCardAction = async (
   paymentIntentClientSecret: string
-): Promise<HandleCardActionResult> => {
+): Promise<HandleNextActionResult> => {
   try {
-    const { paymentIntent, error } = await NativeStripeSdk.handleCardAction(
+    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
       paymentIntentClientSecret
     );
     if (error) {

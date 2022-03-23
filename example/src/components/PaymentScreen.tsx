@@ -25,7 +25,7 @@ const PaymentScreen: React.FC<Props> = ({
           merchantIdentifier: 'merchant.com.stripe.react.native',
           urlScheme:
             paymentMethod === 'wechat_pay' ? undefined : 'stripe-example',
-          setUrlSchemeOnAndroid: true,
+          setReturnUrlSchemeOnAndroid: true,
         });
         setLoading(false);
         onInit?.();

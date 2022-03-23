@@ -6,7 +6,6 @@ import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Base64
 import android.view.LayoutInflater
@@ -17,8 +16,9 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.stripe.android.paymentsheet.*
-import com.stripe.android.paymentsheet.model.PaymentOption
+import com.stripe.android.paymentsheet.PaymentOptionCallback
+import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import java.io.ByteArrayOutputStream
 
 class PaymentSheetFragment : Fragment() {
@@ -55,48 +55,46 @@ class PaymentSheetFragment : Fragment() {
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
 
-    val paymentOptionCallback = object: PaymentOptionCallback {
-      override fun onPaymentOption(paymentOption: PaymentOption?) {
-        val intent = Intent(ON_PAYMENT_OPTION_ACTION)
+    val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
+      val intent = Intent(ON_PAYMENT_OPTION_ACTION)
 
-        if (paymentOption != null) {
-          val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
-          val imageString = getBase64FromBitmap(bitmap)
+      if (paymentOption != null) {
+        val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
+        val imageString = getBase64FromBitmap(bitmap)
 
-          intent.putExtra("label", paymentOption.label)
-          intent.putExtra("image", imageString)
-        }
-        localBroadcastManager.sendBroadcast(intent)
+        intent.putExtra("label", paymentOption.label)
+        intent.putExtra("image", imageString)
       }
+      localBroadcastManager.sendBroadcast(intent)
     }
 
-    val paymentResultCallback = object : PaymentSheetResultCallback {
-      override fun onPaymentSheetResult(paymentResult: PaymentSheetResult) {
-        val intent = Intent(ON_PAYMENT_RESULT_ACTION)
+    val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
+      val intent = Intent(ON_PAYMENT_RESULT_ACTION)
 
-        intent.putExtra("paymentResult", paymentResult)
-        localBroadcastManager.sendBroadcast(intent)
-      }
+      intent.putExtra("paymentResult", paymentResult)
+      localBroadcastManager.sendBroadcast(intent)
     }
 
     var primaryButtonColor: ColorStateList? = null
-    if (primaryButtonColorHexStr != null && primaryButtonColorHexStr.isNotEmpty()) {
+    if (primaryButtonColorHexStr.isNotEmpty()) {
       primaryButtonColor = ColorStateList.valueOf(Color.parseColor(primaryButtonColorHexStr))
     }
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     if (billingDetailsBundle != null) {
       val addressBundle = billingDetailsBundle.getBundle("address")
-      val address = PaymentSheet.Address(addressBundle?.getString("city"),
-                                          addressBundle?.getString("country"),
-                                          addressBundle?.getString("line1"),
-                                          addressBundle?.getString("line2"),
-                                          addressBundle?.getString("postalCode"),
-                                          addressBundle?.getString("state"))
-      defaultBillingDetails = PaymentSheet.BillingDetails(address,
-                                                          billingDetailsBundle?.getString("email"),
-                                                          billingDetailsBundle?.getString("name"),
-                                                          billingDetailsBundle?.getString("phone"))
+      val address = PaymentSheet.Address(
+        addressBundle?.getString("city"),
+        addressBundle?.getString("country"),
+        addressBundle?.getString("line1"),
+        addressBundle?.getString("line2"),
+        addressBundle?.getString("postalCode"),
+        addressBundle?.getString("state"))
+      defaultBillingDetails = PaymentSheet.BillingDetails(
+        address,
+        billingDetailsBundle.getString("email"),
+        billingDetailsBundle.getString("name"),
+        billingDetailsBundle.getString("phone"))
     }
 
     paymentSheetConfiguration = PaymentSheet.Configuration(
@@ -142,20 +140,18 @@ class PaymentSheetFragment : Fragment() {
   }
 
   private fun configureFlowController() {
-    val onFlowControllerConfigure = object : PaymentSheet.FlowController.ConfigCallback {
-      override fun onConfigured(success: Boolean, error: Throwable?) {
-        val paymentOption = flowController?.getPaymentOption()
-        val intent = Intent(ON_CONFIGURE_FLOW_CONTROLLER)
+    val onFlowControllerConfigure = PaymentSheet.FlowController.ConfigCallback { _, _ ->
+      val paymentOption = flowController?.getPaymentOption()
+      val intent = Intent(ON_CONFIGURE_FLOW_CONTROLLER)
 
-        if (paymentOption != null) {
-          val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
-          val imageString = getBase64FromBitmap(bitmap)
+      paymentOption?.let {
+        val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
+        val imageString = getBase64FromBitmap(bitmap)
 
-          intent.putExtra("label", paymentOption.label)
-          intent.putExtra("image", imageString)
-        }
-        localBroadcastManager.sendBroadcast(intent)
+        intent.putExtra("label", it.label)
+        intent.putExtra("image", imageString)
       }
+      localBroadcastManager.sendBroadcast(intent)
     }
 
     if (!paymentIntentClientSecret.isNullOrEmpty()) {
@@ -175,26 +171,23 @@ class PaymentSheetFragment : Fragment() {
 }
 
 fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
-  var drawable: Drawable? = AppCompatResources.getDrawable(context!!, drawableId)
-
-  if (drawable == null) {
-    return null
-  }
+  var drawable = AppCompatResources.getDrawable(context!!, drawableId) ?: return null
 
   drawable = DrawableCompat.wrap(drawable).mutate()
   val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-  bitmap.eraseColor(Color.WHITE);
+  bitmap.eraseColor(Color.WHITE)
   val canvas = Canvas(bitmap)
   drawable.setBounds(0, 0, canvas.width, canvas.height)
   drawable.draw(canvas)
   return bitmap
 }
- fun getBase64FromBitmap(bitmap: Bitmap?): String? {
-   if (bitmap == null) {
-     return null
-   }
-   val baos = ByteArrayOutputStream()
-   bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
-   val imageBytes: ByteArray = baos.toByteArray()
-   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
- }
+
+fun getBase64FromBitmap(bitmap: Bitmap?): String? {
+  if (bitmap == null) {
+    return null
+  }
+  val stream = ByteArrayOutputStream()
+  bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+  val imageBytes: ByteArray = stream.toByteArray()
+  return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+}

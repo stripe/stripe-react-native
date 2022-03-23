@@ -17,7 +17,7 @@ import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardFormView
 import com.stripe.android.view.CardInputListener
 
-class CardFormView(private val context: ThemedReactContext) : FrameLayout(context) {
+class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   private var cardForm: CardFormView = CardFormView(context, null, R.style.StripeCardFormView_Borderless)
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
@@ -30,7 +30,6 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
   init {
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusable = true
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusableInTouchMode = true
-    cardFormViewBinding.cardMultilineWidgetContainer.requestFocus()
 
     addView(cardForm)
     setListeners()
@@ -46,27 +45,28 @@ class CardFormView(private val context: ThemedReactContext) : FrameLayout(contex
     cardFormView.postalCodeContainer.visibility = visibility
   }
 
-  fun setPlaceHolders(value: ReadableMap) {
-    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
-
-    val numberPlaceholder = getValOr(value, "number", null)
-    val expirationPlaceholder = getValOr(value, "expiration", null)
-    val cvcPlaceholder = getValOr(value, "cvc", null)
-    val postalCodePlaceholder = getValOr(value, "postalCode", null)
-
-    numberPlaceholder?.let {
-//      multilineWidgetBinding.tlCardNumber.hint = it
-    }
-    expirationPlaceholder?.let {
-      multilineWidgetBinding.tlExpiry.hint = it
-    }
-    cvcPlaceholder?.let {
-      multilineWidgetBinding.tlCvc.hint = it
-    }
-    postalCodePlaceholder?.let {
-      cardFormView.postalCodeContainer.hint = it
-    }
-  }
+  // TODO: uncomment when ios-sdk allows for this
+  //  fun setPlaceHolders(value: ReadableMap) {
+  //    val cardFormView = StripeCardFormViewBinding.bind(cardForm)
+  //
+  //    val numberPlaceholder = getValOr(value, "number", null)
+  //    val expirationPlaceholder = getValOr(value, "expiration", null)
+  //    val cvcPlaceholder = getValOr(value, "cvc", null)
+  //    val postalCodePlaceholder = getValOr(value, "postalCode", null)
+  //
+  //    numberPlaceholder?.let {
+  ////      multilineWidgetBinding.tlCardNumber.hint = it
+  //    }
+  //    expirationPlaceholder?.let {
+  //      multilineWidgetBinding.tlExpiry.hint = it
+  //    }
+  //    cvcPlaceholder?.let {
+  //      multilineWidgetBinding.tlCvc.hint = it
+  //    }
+  //    postalCodePlaceholder?.let {
+  //      cardFormView.postalCodeContainer.hint = it
+  //    }
+  //  }
 
   fun setAutofocus(value: Boolean) {
     if (value) {

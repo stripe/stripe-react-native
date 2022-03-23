@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.common.MapBuilder
-import com.facebook.react.uimanager.ReactStylesDiffMap
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
@@ -28,28 +27,32 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
+  @SuppressWarnings("unused")
   fun setDangerouslyGetFullCardDetails(view: CardFormView, dangerouslyGetFullCardDetails: Boolean = false) {
-    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails);
+    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
   }
 
   @ReactProp(name = "postalCodeEnabled")
+  @SuppressWarnings("unused")
   fun setPostalCodeEnabled(view: CardFormView, postalCodeEnabled: Boolean = false) {
-    view.setPostalCodeEnabled(postalCodeEnabled);
+    view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
   // @ReactProp(name = "placeholder")
   // fun setPlaceHolders(view: CardFormView, placeholder: ReadableMap) {
-  //   view.setPlaceHolders(placeholder);
+  //   view.setPlaceHolders(placeholder)
   // }
 
   @ReactProp(name = "autofocus")
+  @SuppressWarnings("unused")
   fun setAutofocus(view: CardFormView, autofocus: Boolean = false) {
-    view.setAutofocus(autofocus);
+    view.setAutofocus(autofocus)
   }
 
   @ReactProp(name = "cardStyle")
+  @SuppressWarnings("unused")
   fun setCardStyle(view: CardFormView, cardStyle: ReadableMap) {
-    view.setCardStyle(cardStyle);
+    view.setCardStyle(cardStyle)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFormView {

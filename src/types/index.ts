@@ -91,7 +91,7 @@ export type ConfirmPaymentResult =
       error: StripeError<ConfirmPaymentError>;
     };
 
-export type HandleCardActionResult =
+export type HandleNextActionResult =
   | {
       paymentIntent: PaymentIntent;
       error?: undefined;
@@ -171,10 +171,14 @@ export type ApplePayResult =
 
 export interface InitStripeParams {
   publishableKey: string;
-  stripeAccountId?: string;
-  threeDSecureParams?: ThreeDSecureConfigurationParams;
   merchantIdentifier?: string;
+  threeDSecureParams?: ThreeDSecureConfigurationParams;
+  stripeAccountId?: string;
   urlScheme?: string;
+  setReturnUrlSchemeOnAndroid?: boolean;
+  /**
+   * @deprecated Use setReturnUrlSchemeOnAndroid instead
+   */
   setUrlSchemeOnAndroid?: boolean;
 }
 
