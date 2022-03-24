@@ -26,10 +26,13 @@ import {
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
   CreateTokenParams,
+  VerifyMicrodepositsParams,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
+const PAYMENT_INTENT = 'payment';
+const SETUP_INTENT = 'setup';
 
 export const createPaymentMethod = async (
   data: PaymentMethodCreateParams.Params,
@@ -337,6 +340,58 @@ export const createTokenForCVCUpdate = async (
 export const handleURLCallback = async (url: string): Promise<boolean> => {
   const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
   return stripeHandled;
+};
+
+export const verifyMicrodepositsForPayment = async (
+  clientSecret: string,
+  params: VerifyMicrodepositsParams
+): Promise<ConfirmPaymentResult> => {
+  try {
+    const { paymentIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
+      PAYMENT_INTENT,
+      clientSecret,
+      params
+    )) as ConfirmPaymentResult;
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent!,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const verifyMicrodepositsForSetup = async (
+  clientSecret: string,
+  params: VerifyMicrodepositsParams
+): Promise<ConfirmSetupIntentResult> => {
+  try {
+    const { setupIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
+      SETUP_INTENT,
+      clientSecret,
+      params
+    )) as ConfirmSetupIntentResult;
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
+    };
+  } catch (error) {
+    return {
+      error: createError(error),
+    };
+  }
 };
 
 export const initPaymentSheet = async (

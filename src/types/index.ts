@@ -233,6 +233,8 @@ export type CreateTokenCardParams = {
 
 export type BankAcccountHolderType = 'Company' | 'Individual';
 
+export type BankAcccountType = 'Checking' | 'Savings';
+
 export type CreateTokenBankAccountParams = {
   type: 'BankAccount';
   accountHolderName?: string;
@@ -242,3 +244,13 @@ export type CreateTokenBankAccountParams = {
   currency: string;
   routingNumber?: string;
 };
+
+export type VerifyMicrodepositsParams =
+  | {
+      amounts: number[];
+      descriptorCode?: undefined;
+    }
+  | {
+      amounts?: undefined;
+      descriptorCode: string;
+    };

@@ -23,6 +23,7 @@ import type {
   GooglePay,
   OpenApplePaySetupResult,
   CreateTokenParams,
+  VerifyMicrodepositsParams,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -77,6 +78,11 @@ type NativeStripeSdkType = {
     params: GooglePay.CreatePaymentMethodParams
   ): Promise<CreateGooglePayPaymentMethodResult>;
   openApplePaySetup(): Promise<OpenApplePaySetupResult>;
+  verifyMicrodeposits(
+    type: 'payment' | 'setup',
+    clientSecret: string,
+    params: VerifyMicrodepositsParams
+  ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
 };
 
 const { StripeSdk } = NativeModules;

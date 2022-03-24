@@ -779,6 +779,80 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
+    @objc(verifyMicrodeposits:clientSecret:params:resolver:rejecter:)
+    func verifyMicrodeposits(
+        intentType: String,
+        clientSecret: String,
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let amounts = params["amounts"] as? NSArray
+        let descriptorCode = params["descriptorCode"] as? String
+        
+        if (amounts != nil && descriptorCode != nil || amounts == nil && descriptorCode == nil) {
+            resolve(Errors.createError("Failed", "You must provide either amounts OR descriptorCode, not both."))
+            return
+        }
+        
+        if let amounts = amounts {
+            if (amounts.count != 2) {
+                resolve(Errors.createError("Failed", "Expected 2 integers in the amounts array, but received " + String(amounts.count)))
+                return
+            }
+            switch intentType {
+            case "payment":
+                STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
+                    clientSecret: clientSecret,
+                    firstAmount: amounts[0] as! Int,
+                    secondAmount: amounts[1] as! Int,
+                    completion: onCompletePaymentVerification
+                )
+            case "setup":
+                STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
+                    clientSecret: clientSecret,
+                    firstAmount: amounts[0] as! Int,
+                    secondAmount: amounts[1] as! Int,
+                    completion: onCompleteSetupVerification
+                )
+            default:
+                resolve(Errors.createError("Failed", "Received unexpected intent type: " + intentType))
+            }
+        } else if let descriptorCode = descriptorCode {
+            switch intentType {
+            case "payment":
+                STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
+                    clientSecret: clientSecret,
+                    descriptorCode: descriptorCode,
+                    completion: onCompletePaymentVerification
+                )
+            case "setup":
+                STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
+                    clientSecret: clientSecret,
+                    descriptorCode: descriptorCode,
+                    completion: onCompleteSetupVerification
+                )
+            default:
+                resolve(Errors.createError("Failed", "Received unexpected intent type: " + intentType))
+            }
+        }
+        
+        func onCompletePaymentVerification(intent: STPPaymentIntent?, error: Error?) {
+            if (error != nil) {
+                resolve(Errors.createError("Failed", error as NSError?))
+            } else {
+                resolve(Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent:intent!)))
+            }
+        }
+        func onCompleteSetupVerification(intent: STPSetupIntent?, error: Error?) {
+            if (error != nil) {
+                resolve(Errors.createError("Failed", error as NSError?))
+            } else {
+                resolve(Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent:intent!)))
+            }
+        }
+    }
+    
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Canceled.rawValue, "FPX Payment has been canceled"))
     }

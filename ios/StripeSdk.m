@@ -107,5 +107,13 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 
+RCT_EXTERN_METHOD(
+                  verifyMicrodeposits:(NSString *)intentType
+                  clientSecret:(NSString *)clientSecret
+                  params:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
 
 @end
