@@ -413,7 +413,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       expYear = cardParamsMap["exp_year"] as Int,
       cvc = cardParamsMap["cvc"] as String,
       address = mapToAddress(address, cardAddress),
-      name = getValOr(params, "name", null)
+      name = getValOr(params, "name", null),
+      currency = getValOr(params, "currency", null),
     )
 
     CoroutineScope(Dispatchers.IO).launch {

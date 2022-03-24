@@ -603,7 +603,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error as NSError?))
             }
         }
     }
@@ -626,12 +626,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
         cardSourceParams.address = Mappers.mapToAddress(address: address)
         cardSourceParams.name = params["name"] as? String
+        cardSourceParams.currency = params["currency"] as? String
 
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {
-                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error?.localizedDescription))
+                resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, error as NSError?))
             }
         }
     }
