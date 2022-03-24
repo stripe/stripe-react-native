@@ -228,6 +228,7 @@ export type CreateTokenCardParams = {
   type: 'Card';
   address?: Card.Address;
   name?: string;
+  currency?: string;
 };
 
 export type BankAcccountHolderType = 'Company' | 'Individual';

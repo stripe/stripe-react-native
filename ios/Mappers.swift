@@ -90,7 +90,7 @@ class Mappers {
             "last4": card?.last4 ?? NSNull(),
             "funding": mapFromFunding(card?.funding) ?? NSNull(),
             "name": card?.name ?? NSNull(),
-            "address": mapFromAddress(address: card?.address)
+            "address": mapFromAddress(address: card?.address),
         ]
         return cardMap
     }

@@ -14,7 +14,7 @@ export default function CreateTokenScreen() {
   const _createToken = async (type: 'Card' | 'BankAccount') => {
     const { error, token } = await createToken(
       type === 'Card'
-        ? { type: 'Card' }
+        ? { type: 'Card', name: 'David Wallace', currency: 'eur' }
         : {
             type: 'BankAccount',
             accountNumber: '000123456789',
