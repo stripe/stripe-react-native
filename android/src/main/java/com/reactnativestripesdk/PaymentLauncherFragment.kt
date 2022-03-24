@@ -70,16 +70,8 @@ class PaymentLauncherFragment(
             promise.resolve(paymentIntent)
           }
           StripeIntent.Status.RequiresAction -> {
-            if (isPaymentIntentNextActionVoucherBased(result.nextActionType)) {
-              val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
-              promise.resolve(paymentIntent)
-            } else {
-              (result.lastPaymentError)?.let {
-                promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
-              } ?: run {
-                promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
-              }
-            }
+            val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
+            promise.resolve(paymentIntent)
           }
           StripeIntent.Status.RequiresPaymentMethod -> {
             val error = result.lastPaymentError
@@ -100,16 +92,6 @@ class PaymentLauncherFragment(
         }
       }
     })
-  }
-
-  /// Check paymentIntent.nextAction is voucher-based payment method.
-  /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.
-  /// Currently only OXXO payment is voucher-based.
-  private fun isPaymentIntentNextActionVoucherBased(nextAction: StripeIntent.NextActionType?): Boolean {
-    nextAction?.let {
-      return it == StripeIntent.NextActionType.DisplayOxxoDetails
-    }
-    return false
   }
 }
 
