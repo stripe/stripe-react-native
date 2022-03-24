@@ -76,11 +76,11 @@ class Errors {
     class func createError (_ code: String, _ error: NSError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
-            "message": error?.userInfo["com.stripe.lib:ErrorMessageKey"] ?? error?.userInfo["NSLocalizedDescription"] ?? NSNull(),
-            "localizedMessage": error?.userInfo["NSLocalizedDescription"] ?? NSNull(),
-            "declineCode": error?.userInfo["com.stripe.lib:DeclineCodeKey"] ?? NSNull(),
-            "stripeErrorCode": error?.userInfo["com.stripe.lib:StripeErrorCodeKey"] ?? NSNull(),
-            "type": error?.userInfo["com.stripe.lib:StripeErrorTypeKey"] ?? NSNull(),
+            "message": error?.userInfo[STPError.errorMessageKey] ?? NSNull(),
+            "localizedMessage": error?.localizedDescription ?? NSNull(),
+            "declineCode": error?.userInfo[STPError.stripeDeclineCodeKey] ?? NSNull(),
+            "stripeErrorCode": error?.userInfo[STPError.stripeErrorCodeKey] ?? NSNull(),
+            "type": error?.userInfo[STPError.stripeErrorTypeKey] ?? NSNull(),
         ]
         
         return ["error": value]

@@ -280,6 +280,7 @@ class Mappers {
         case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.klarna: return "Klarna"
+        case STPPaymentMethodType.USBankAccount: return "USBankAccount"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -307,6 +308,7 @@ class Mappers {
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             case "Klarna": return STPPaymentMethodType.klarna
             case "WeChatPay": return STPPaymentMethodType.weChatPay
+            case "USBankAccount": return STPPaymentMethodType.USBankAccount
             default: return STPPaymentMethodType.unknown
             }
         }
@@ -372,7 +374,8 @@ class Mappers {
             "amount": paymentIntent.amount,
             "lastPaymentError": NSNull(),
             "shipping": NSNull(),
-            "canceledAt": NSNull()
+            "canceledAt": NSNull(),
+            "nextAction": mapNextAction(nextAction: paymentIntent.nextAction) ?? NSNull(),
         ]
 
         if let lastPaymentError = paymentIntent.lastPaymentError {
@@ -396,6 +399,55 @@ class Mappers {
         }
 
         return intent;
+    }
+
+    class func mapNextAction(nextAction: STPIntentAction?) -> NSDictionary? {
+        if let it = nextAction {
+            switch it.type {
+            case .verifyWithMicrodeposits:
+                return [
+                    "type": "verifyWithMicrodeposits",
+                    "redirectUrl": it.verifyWithMicrodeposits?.hostedVerificationURL.absoluteString ?? NSNull(),
+                    "microdepositType": it.verifyWithMicrodeposits?.microdepositType.description ?? NSNull(),
+                    "arrivalDate": it.verifyWithMicrodeposits?.arrivalDate.timeIntervalSince1970.description ?? NSNull(),
+                ]
+            case .redirectToURL:
+                return [
+                    "type": "urlRedirect",
+                    "redirectUrl": it.redirectToURL?.url.absoluteString ?? NSNull()
+                ]
+            case .weChatPayRedirectToApp:
+                return [
+                    "type": "weChatRedirect",
+                    "redirectUrl": it.weChatPayRedirectToApp?.nativeURL?.absoluteString ?? NSNull()
+                ]
+            case .alipayHandleRedirect:
+                return [
+                    "type": "alipayRedirect",
+                    "redirectUrl": it.alipayHandleRedirect?.url.absoluteString ?? NSNull(),
+                    "nativeRedirectUrl": it.alipayHandleRedirect?.nativeURL?.absoluteString ?? NSNull(),
+                ]
+            case .OXXODisplayDetails:
+                return [
+                    "type": "oxxoVoucher",
+                    "expiration": it.oxxoDisplayDetails?.expiresAfter.timeIntervalSince1970 ?? NSNull(),
+                    "voucherURL": it.oxxoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+                    "voucherNumber": it.oxxoDisplayDetails?.number ?? NSNull(),
+                ]
+// TODO: Not supported on Android
+//            case .boletoDisplayDetails:
+//                return [
+//                    "type": "boletoVoucher",
+//                    "expiration": it.boletoDisplayDetails?.expiresAt.timeIntervalSince1970.description ?? NSNull(),
+//                    "voucherURL": it.boletoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+//                    "voucherNumber": it.boletoDisplayDetails?.number ?? NSNull(),
+//                ]
+            default: // .useStripeSDK, .BLIKAuthorize, .unknown
+                return nil
+            }
+        } else {
+            return nil
+        }
     }
 
     class func mapFromPaymentIntentLastPaymentErrorType(_ errorType: STPPaymentIntentLastPaymentErrorType?) -> String? {
@@ -537,6 +589,17 @@ class Mappers {
             "fingerprint": paymentMethod.auBECSDebit?.fingerprint ?? NSNull(),
             "last4": paymentMethod.auBECSDebit?.last4 ?? NSNull()
         ]
+        let USBankAccount: NSDictionary = [
+            "routingNumber": paymentMethod.usBankAccount?.routingNumber ?? NSNull(),
+            "accountHolderType": paymentMethod.usBankAccount?.accountHolderType ?? NSNull(),
+            "accountType": paymentMethod.usBankAccount?.accountType ?? NSNull(),
+            "last4": paymentMethod.usBankAccount?.last4 ?? NSNull(),
+            "bankName": paymentMethod.usBankAccount?.bankName ?? NSNull(),
+            "linkedAccount": paymentMethod.usBankAccount?.linkedAccount ?? NSNull(),
+            "fingerprint": paymentMethod.usBankAccount?.fingerprint ?? NSNull(),
+            "preferredNetworks": paymentMethod.usBankAccount?.networks.preferred ?? NSNull(),
+            "supportedNetworks": paymentMethod.usBankAccount?.networks.supported ?? NSNull(),
+        ]
         let method: NSDictionary = [
             "id": paymentMethod.stripeId,
             "type": Mappers.mapPaymentMethodType(type: paymentMethod.type),
@@ -560,6 +623,7 @@ class Mappers {
             "Upi": [
                 "vpa": paymentMethod.upi?.vpa
             ],
+            "USBankAccount": USBankAccount
         ]
         return method
     }
@@ -617,7 +681,8 @@ class Mappers {
             "usage": mapFromSetupIntentUsage(usage: setupIntent.usage),
             "paymentMethodId": setupIntent.paymentMethodID ?? NSNull(),
             "created": NSNull(),
-            "lastSetupError": NSNull()
+            "lastSetupError": NSNull(),
+            "nextAction": mapNextAction(nextAction: setupIntent.nextAction) ?? NSNull(),
         ]
 
 
@@ -839,7 +904,7 @@ class Mappers {
         }
         return nil
     }
-    
+
     class func mapFromCardValidationState(state: STPCardValidationState?) -> String {
         if let state = state {
             switch state {
@@ -850,5 +915,37 @@ class Mappers {
             }
         }
         return "Unknown"
+    }
+
+    class func mapToUSBankAccountHolderType(type: String?) -> STPPaymentMethodUSBankAccountHolderType {
+        switch type {
+            case "Company": return STPPaymentMethodUSBankAccountHolderType.company
+            case "Individual": return STPPaymentMethodUSBankAccountHolderType.individual
+            default: return STPPaymentMethodUSBankAccountHolderType.individual
+        }
+    }
+
+    class func mapFromUSBankAccountHolderType(type: STPPaymentMethodUSBankAccountHolderType) -> String {
+        switch type {
+            case STPPaymentMethodUSBankAccountHolderType.company: return "Company"
+            case STPPaymentMethodUSBankAccountHolderType.individual: return "Individual"
+            case STPPaymentMethodUSBankAccountHolderType.unknown: return "Unknown"
+        }
+    }
+
+    class func mapToUSBankAccountType(type: String?) -> STPPaymentMethodUSBankAccountType {
+        switch type {
+            case "Savings": return STPPaymentMethodUSBankAccountType.savings
+            case "Checking": return STPPaymentMethodUSBankAccountType.checking
+            default: return STPPaymentMethodUSBankAccountType.checking
+        }
+    }
+
+    class func mapFromUSBankAccountType(type: STPPaymentMethodUSBankAccountType) -> String {
+        switch type {
+            case STPPaymentMethodUSBankAccountType.savings: return "Savings"
+            case STPPaymentMethodUSBankAccountType.checking: return "Checking"
+            case STPPaymentMethodUSBankAccountType.unknown: return "Unknown"
+        }
     }
 }
