@@ -1,4 +1,5 @@
 import type { Nullable, StripeError } from '.';
+import type { NextAction } from './NextAction';
 import type { PaymentMethod } from './PaymentMethods';
 
 export interface PaymentIntent {
@@ -17,6 +18,7 @@ export interface PaymentIntent {
   confirmationMethod: 'Automatic' | 'Manual';
   lastPaymentError: Nullable<PaymentIntents.LastPaymentError>;
   shipping: Nullable<PaymentIntents.ShippingDetails>;
+  nextAction: NextAction | null;
 }
 
 export namespace PaymentIntents {
