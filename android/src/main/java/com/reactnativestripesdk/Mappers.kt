@@ -199,6 +199,7 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
     return null
   }
 
+  bankAccountMap.putString("id", bankAccount.id)
   bankAccountMap.putString("bankName", bankAccount.bankName)
   bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
   bankAccountMap.putString("accountHolderType", mapFromBankAccountType(bankAccount.accountHolderType))
@@ -235,6 +236,7 @@ internal fun mapFromCard(card: Card?): WritableMap? {
     cardMap.putNull("expYear")
   }
 
+  cardMap.putString("id", card.id)
   cardMap.putString("last4", card.last4)
   cardMap.putString("funding", card.funding?.name)
   cardMap.putString("name", card.name)

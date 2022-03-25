@@ -1,5 +1,6 @@
 # CHANGELOG
 
+- [#863](https://github.com/stripe/stripe-react-native/pull/863) Feat: add card ID and bankAccount ID to token response
 - [#862](https://github.com/stripe/stripe-react-native/pull/862) Feat: Add support for setting a card's `currency` when creating a Token
 - [#854](https://github.com/stripe/stripe-react-native/pull/854) Chore: Upgrade `stripe-ios` to 21.13.0. Upgrade `stripe-android` to 19.3.0.
 - [#845](https://github.com/stripe/stripe-react-native/pull/845) Feat: Added support for `placeholderColor`, `textErrorColor `, `borderColor`, `borderRadius`, and `borderWidth` for `AuBECSDebitForm` on iOS
