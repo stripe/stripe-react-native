@@ -1,35 +1,9 @@
 import Stripe
 
-enum ConfirmPaymentErrorType: String {
-    case Failed, Canceled, Unknown
-}
-
-enum ApplePayErrorType: String {
-    case Failed, Canceled, Unknown
-}
-
-enum NextPaymentActionErrorType: String {
-    case Failed, Canceled, Unknown
-}
-
-enum ConfirmSetupIntentErrorType: String {
-    case Failed, Canceled, Unknown
-}
-
-enum RetrievePaymentIntentErrorType: String {
-    case Unknown
-}
-
-enum RetrieveSetupIntentErrorType: String {
-    case Unknown
-}
-
-enum PaymentSheetErrorType: String {
-    case Failed, Canceled
-}
-
-enum CreateTokenErrorType: String {
-    case Failed
+enum ErrorType {
+    static let Failed = "Failed"
+    static let Canceled = "Canceled"
+    static let Unknown = "Unknown"
 }
 
 class Errors {
