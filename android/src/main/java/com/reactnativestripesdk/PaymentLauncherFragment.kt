@@ -70,8 +70,16 @@ class PaymentLauncherFragment(
             promise.resolve(paymentIntent)
           }
           StripeIntent.Status.RequiresAction -> {
-            val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
-            promise.resolve(paymentIntent)
+            if (isNextActionSuccessState(result.nextActionType)) {
+              val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
+              promise.resolve(paymentIntent)
+            } else {
+              (result.lastPaymentError)?.let {
+                promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
+              } ?: run {
+                promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
+              }
+            }
           }
           StripeIntent.Status.RequiresPaymentMethod -> {
             val error = result.lastPaymentError
@@ -92,6 +100,23 @@ class PaymentLauncherFragment(
         }
       }
     })
+  }
+
+  /**
+   * Check if paymentIntent.nextAction is out-of-band, such as voucher-based or waiting
+   * on customer verification. If it is, then being in this state is considered "successful".
+   */
+  private fun isNextActionSuccessState(nextAction: StripeIntent.NextActionType?): Boolean {
+    return when (nextAction) {
+      StripeIntent.NextActionType.DisplayOxxoDetails,
+      StripeIntent.NextActionType.VerifyWithMicrodeposits -> true
+      StripeIntent.NextActionType.RedirectToUrl,
+      StripeIntent.NextActionType.UseStripeSdk,
+      StripeIntent.NextActionType.AlipayRedirect,
+      StripeIntent.NextActionType.BlikAuthorize,
+      StripeIntent.NextActionType.WeChatPayRedirect,
+      null -> false
+    }
   }
 }
 
