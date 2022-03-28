@@ -165,7 +165,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
-              title="ACH set up"
+              title="ACH setup"
               onPress={() => {
                 navigation.navigate('ACHSetupScreen');
               }}

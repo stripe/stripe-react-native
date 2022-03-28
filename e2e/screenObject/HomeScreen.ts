@@ -35,6 +35,8 @@ const SCREENS = <const>[
   'BECS Direct Debit payment',
   'BECS Direct Debit set up',
   'WeChat Pay',
+  'ACH payment',
+  'ACH setup',
 ];
 
 class HomeScreen {

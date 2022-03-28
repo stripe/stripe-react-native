@@ -215,4 +215,32 @@ describe('Common payment scenarios', () => {
     });
     expect(alert.getText()).toEqual('Success');
   });
+
+  it('ACH Payment', function () {
+    this.retries(1);
+
+    homeScreen.goTo('Bank Debits');
+    homeScreen.goTo('ACH payment');
+
+    BasicPaymentScreen.pay({
+      email: 'test@stripe.com',
+      buttonText: 'Pay',
+    });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+  });
+
+  it('ACH Setup', function () {
+    this.retries(1);
+
+    homeScreen.goTo('Bank Debits');
+    homeScreen.goTo('ACH setup');
+
+    BasicPaymentScreen.pay({
+      email: 'test@stripe.com',
+      buttonText: 'Pay',
+    });
+
+    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+  });
 });
