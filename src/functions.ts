@@ -6,6 +6,8 @@ import {
   ApplePayError,
   ApplePayResult,
   ConfirmPaymentResult,
+  ConfirmPaymentError,
+  ConfirmSetupIntentError,
   ConfirmPaymentSheetPaymentResult,
   ConfirmSetupIntent,
   ConfirmSetupIntentResult,
@@ -346,6 +348,15 @@ export const verifyMicrodepositsForPayment = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<ConfirmPaymentResult> => {
+  if (isAndroid) {
+    return {
+      error: createError({
+        code: ConfirmPaymentError.Failed,
+        message:
+          'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
+      }),
+    };
+  }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       PAYMENT_INTENT,
@@ -372,6 +383,15 @@ export const verifyMicrodepositsForSetup = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<ConfirmSetupIntentResult> => {
+  if (isAndroid) {
+    return {
+      error: createError({
+        code: ConfirmSetupIntentError.Failed,
+        message:
+          'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
+      }),
+    };
+  }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       SETUP_INTENT,

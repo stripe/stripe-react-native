@@ -129,11 +129,13 @@ export default function ACHSetupScreen() {
           />
           <TextInput
             placeholder="Name"
+            defaultValue="David Wallace"
             onChange={(value) => setName(value.nativeEvent.text)}
             style={styles.input}
           />
           <TextInput
             placeholder="Account number"
+            defaultValue="000123456789"
             onChange={(value) =>
               setAccountNumber(value.nativeEvent.text.toLowerCase())
             }
@@ -141,6 +143,7 @@ export default function ACHSetupScreen() {
           />
           <TextInput
             placeholder="Routing number"
+            defaultValue="110000000"
             onChange={(value) =>
               setRoutingNumber(value.nativeEvent.text.toLowerCase())
             }
