@@ -236,9 +236,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     val url = getValOr(appInfo, "url", "")
     Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
-
-    // DELETE BEFORE MERGING (ONCE IT IS PUBLIC)
-    stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId, betas = setOf(StripeApiBeta.USBankAccount))
+    stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 

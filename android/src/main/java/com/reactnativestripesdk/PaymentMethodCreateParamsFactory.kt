@@ -30,7 +30,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
         PaymentMethod.Type.Klarna -> createKlarnaPaymentConfirmParams()
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -50,7 +49,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Bancontact -> createBancontactPaymentSetupParams()
         PaymentMethod.Type.SepaDebit -> createSepaPaymentSetupParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentSetupParams()
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentSetupParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -425,19 +423,6 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountPaymentSetupParams(): ConfirmSetupIntentParams {
-    if (billingDetailsParams?.name.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
-    }
-
-    return ConfirmSetupIntentParams
-      .create(
-        paymentMethodCreateParams = createUSBankAccountParams(params),
-        clientSecret = clientSecret,
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
   private fun createKlarnaPaymentConfirmParams(): ConfirmPaymentIntentParams {
     if (billingDetailsParams == null ||
         billingDetailsParams.address?.country.isNullOrBlank() ||
@@ -454,45 +439,6 @@ class PaymentMethodCreateParamsFactory(
         clientSecret = clientSecret,
       )
   }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    if (billingDetailsParams?.name.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
-    }
-
-    return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
-      paymentMethodCreateParams = createUSBankAccountParams(params),
-      clientSecret,
-      setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
-    )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountParams(params: ReadableMap): PaymentMethodCreateParams {
-    val accountNumber = getValOr(params, "accountNumber", null)
-    val routingNumber = getValOr(params, "routingNumber", null)
-
-    if (accountNumber.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the bank account number")
-    } else if (routingNumber.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the bank routing number")
-    }
-
-    val usBankAccount = USBankAccount(
-      accountNumber,
-      routingNumber,
-      mapToUSBankAccountType(getValOr(params, "accountType", null)),
-      mapToUSBankAccountHolderType(getValOr(params, "accountHolderType", null))
-    )
-
-    return PaymentMethodCreateParams.create(
-      usBankAccount: usBankAccount,
-      billingDetails: billingDetailsParams,
-      metadata: null
-    )
-  }
-
 }
 
 class PaymentMethodCreateParamsException(message: String) : Exception(message)
