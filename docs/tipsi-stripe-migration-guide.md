@@ -481,7 +481,7 @@ const { error: presentError } = await presentGooglePay({
 });
 ```
 
-As against to `tipsi-stripe`, `stripe-react-native` provide separate API for GooglePay, please refer to the [documentation](https://github.com/stripe/stripe-react-native/blob/master/docs/GooglePay.md) for more details.
+As against to `tipsi-stripe`, `stripe-react-native` provide separate API for GooglePay, please refer to the [documentation](https://stripe.com/docs/google-pay?platform=react-native) for more details.
 
 ## Create a token
 

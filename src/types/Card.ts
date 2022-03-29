@@ -38,6 +38,7 @@ export namespace Card {
   }
 
   export interface Params {
+    id: string;
     country: string;
     brand: Card.Brand;
     currency?: string;
