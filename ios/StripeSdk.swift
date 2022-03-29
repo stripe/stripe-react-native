@@ -672,24 +672,33 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
     
-    @objc(collectUSBankAccount:clientSecret:params:resolver:rejecter:)
-    func collectUSBankAccount(
+    @objc(collectBankAccount:clientSecret:params:resolver:rejecter:)
+    func collectBankAccount(
         intentType: String,
         clientSecret: NSString,
         params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        let name = params["name"] as? String
+        let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
+        if (type == nil || type != STPPaymentMethodType.USBankAccount) {
+            resolve(Errors.createError(ErrorType.Failed, "collectBankAccount currently only accepts the USBankAccount payment method type."))
+            return
+        }
         
-        if (name == nil || (name ?? "").isEmpty) {
+        guard let billingDetails = params["billingDetails"] as? [String: Any?], let name = billingDetails["name"] as? String else {
+            resolve(Errors.createError(ErrorType.Canceled, "You must provide a name when collecting US bank account details."))
+            return
+        }
+        
+        if (name.isEmpty) {
             resolve(Errors.createError(ErrorType.Canceled, "You must provide a name when collecting US bank account details."))
             return
         }
         
         let collectParams = STPCollectBankAccountParams.collectUSBankAccountParams(
-            with: name!,
-            email: params["email"] as? String
+            with: name,
+            email: billingDetails["email"] as? String
         )
         
         switch intentType {

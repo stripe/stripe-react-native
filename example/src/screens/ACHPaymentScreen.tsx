@@ -5,7 +5,7 @@ import {
   useConfirmPayment,
   verifyMicrodepositsForPayment,
   VerifyMicrodepositsParams,
-  collectUSBankAccountForPayment,
+  collectBankAccountForPayment,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -86,11 +86,14 @@ export default function ACHPaymentScreen() {
 
     setSecret(clientSecret);
 
-    const { paymentIntent, error } = await collectUSBankAccountForPayment(
+    const { paymentIntent, error } = await collectBankAccountForPayment(
       clientSecret,
       {
-        name,
-        email,
+        type: 'USBankAccount',
+        billingDetails: {
+          name,
+          email,
+        },
       }
     );
 

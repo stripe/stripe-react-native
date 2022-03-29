@@ -24,7 +24,7 @@ import type {
   OpenApplePaySetupResult,
   CreateTokenParams,
   VerifyMicrodepositsParams,
-  CollectUSBankAccountParams,
+  CollectBankAccountParams,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -50,8 +50,8 @@ import {
   createGooglePayPaymentMethod,
   presentGooglePay,
   openApplePaySetup,
-  collectUSBankAccountForPayment,
-  collectUSBankAccountForSetup,
+  collectBankAccountForPayment,
+  collectBankAccountForSetup,
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
 } from '../functions';
@@ -235,22 +235,22 @@ export function useStripe() {
       return openApplePaySetup();
     }, []);
 
-  const _collectUSBankAccountForPayment = useCallback(
+  const _collectBankAccountForPayment = useCallback(
     async (
       clientSecret: string,
-      params: CollectUSBankAccountParams
+      params: CollectBankAccountParams
     ): Promise<ConfirmPaymentResult> => {
-      return collectUSBankAccountForPayment(clientSecret, params);
+      return collectBankAccountForPayment(clientSecret, params);
     },
     []
   );
 
-  const _collectUSBankAccountForSetup = useCallback(
+  const _collectBankAccountForSetup = useCallback(
     async (
       clientSecret: string,
-      params: CollectUSBankAccountParams
+      params: CollectBankAccountParams
     ): Promise<ConfirmSetupIntentResult> => {
-      return collectUSBankAccountForSetup(clientSecret, params);
+      return collectBankAccountForSetup(clientSecret, params);
     },
     []
   );
@@ -298,8 +298,8 @@ export function useStripe() {
     presentGooglePay: _presentGooglePay,
     createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
     openApplePaySetup: _openApplePaySetup,
-    collectUSBankAccountForPayment: _collectUSBankAccountForPayment,
-    collectUSBankAccountForSetup: _collectUSBankAccountForSetup,
+    collectBankAccountForPayment: _collectBankAccountForPayment,
+    collectBankAccountForSetup: _collectBankAccountForSetup,
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
   };

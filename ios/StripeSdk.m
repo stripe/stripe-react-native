@@ -115,7 +115,7 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 RCT_EXTERN_METHOD(
-                  collectUSBankAccount:(NSString *)intentType
+                  collectBankAccount:(NSString *)intentType
                   clientSecret:(NSString *)clientSecret
                   params:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve

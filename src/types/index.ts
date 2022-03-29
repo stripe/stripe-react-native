@@ -13,7 +13,10 @@ import type {
   StripeError,
 } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
-import type { PaymentMethod } from './PaymentMethods';
+import type {
+  PaymentMethod,
+  PaymentMethodCreateParams,
+} from './PaymentMethods';
 import type { PaymentSheet } from './PaymentSheet';
 import type { SetupIntent } from './SetupIntent';
 import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
@@ -255,4 +258,10 @@ export type VerifyMicrodepositsParams =
       descriptorCode: string;
     };
 
-export type CollectUSBankAccountParams = { name: string; email?: string };
+export type CollectBankAccountParams =
+  PaymentMethodCreateParams.USBankAccountParams & {
+    billingDetails: {
+      name: string;
+      email?: string;
+    };
+  };

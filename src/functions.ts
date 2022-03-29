@@ -29,7 +29,7 @@ import {
   OpenApplePaySetupResult,
   CreateTokenParams,
   VerifyMicrodepositsParams,
-  CollectUSBankAccountParams,
+  CollectBankAccountParams,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -555,26 +555,25 @@ export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
   }
 };
 
-export const collectUSBankAccountForPayment = async (
+export const collectBankAccountForPayment = async (
   clientSecret: string,
-  params: CollectUSBankAccountParams
+  params: CollectBankAccountParams
 ): Promise<ConfirmPaymentResult> => {
   if (isAndroid) {
     return {
       error: createError({
         code: ConfirmPaymentError.Failed,
         message:
-          'collectUSBankAccountForPayment is only supported on iOS on this version of @stripe/stripe-react-native.',
+          'collectBankAccountForPayment is only supported on iOS on this version of @stripe/stripe-react-native.',
       }),
     };
   }
   try {
-    const { paymentIntent, error } =
-      (await NativeStripeSdk.collectUSBankAccount(
-        PAYMENT_INTENT,
-        clientSecret,
-        params
-      )) as ConfirmPaymentResult;
+    const { paymentIntent, error } = (await NativeStripeSdk.collectBankAccount(
+      PAYMENT_INTENT,
+      clientSecret,
+      params
+    )) as ConfirmPaymentResult;
 
     if (error) {
       return {
@@ -591,21 +590,21 @@ export const collectUSBankAccountForPayment = async (
   }
 };
 
-export const collectUSBankAccountForSetup = async (
+export const collectBankAccountForSetup = async (
   clientSecret: string,
-  params: CollectUSBankAccountParams
+  params: CollectBankAccountParams
 ): Promise<ConfirmSetupIntentResult> => {
   if (isAndroid) {
     return {
       error: createError({
         code: ConfirmSetupIntentError.Failed,
         message:
-          'collectUSBankAccountForSetup is only supported on iOS on this version of @stripe/stripe-react-native.',
+          'collectBankAccountForSetup is only supported on iOS on this version of @stripe/stripe-react-native.',
       }),
     };
   }
   try {
-    const { setupIntent, error } = (await NativeStripeSdk.collectUSBankAccount(
+    const { setupIntent, error } = (await NativeStripeSdk.collectBankAccount(
       SETUP_INTENT,
       clientSecret,
       params
