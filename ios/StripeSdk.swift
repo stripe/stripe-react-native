@@ -692,9 +692,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             email: params["email"] as? String
         )
         
-            switch intentType {
-            case "payment":
-                DispatchQueue.main.async {
+        switch intentType {
+        case "payment":
+            DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
                     params: collectParams,
@@ -716,9 +716,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
                 }
-                }
-            case "setup":
-                DispatchQueue.main.async {
+            }
+        case "setup":
+            DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForSetup(
                     clientSecret: clientSecret as String,
                     params: collectParams,
@@ -740,10 +740,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
                 }
-                }
-            default:
-                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
             }
+        default:
+            resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
+        }
         
     }
 
