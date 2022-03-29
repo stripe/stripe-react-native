@@ -254,3 +254,5 @@ export type VerifyMicrodepositsParams =
       amounts?: undefined;
       descriptorCode: string;
     };
+
+export type CollectUSBankAccountParams = { name: string; email?: string };

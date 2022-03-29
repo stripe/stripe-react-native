@@ -23,6 +23,8 @@ import type {
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
   CreateTokenParams,
+  VerifyMicrodepositsParams,
+  CollectUSBankAccountParams,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -48,6 +50,10 @@ import {
   createGooglePayPaymentMethod,
   presentGooglePay,
   openApplePaySetup,
+  collectUSBankAccountForPayment,
+  collectUSBankAccountForSetup,
+  verifyMicrodepositsForPayment,
+  verifyMicrodepositsForSetup,
 } from '../functions';
 
 /**
@@ -229,6 +235,46 @@ export function useStripe() {
       return openApplePaySetup();
     }, []);
 
+  const _collectUSBankAccountForPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: CollectUSBankAccountParams
+    ): Promise<ConfirmPaymentResult> => {
+      return collectUSBankAccountForPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _collectUSBankAccountForSetup = useCallback(
+    async (
+      clientSecret: string,
+      params: CollectUSBankAccountParams
+    ): Promise<ConfirmSetupIntentResult> => {
+      return collectUSBankAccountForSetup(clientSecret, params);
+    },
+    []
+  );
+
+  const _verifyMicrodepositsForPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: VerifyMicrodepositsParams
+    ): Promise<ConfirmPaymentResult> => {
+      return verifyMicrodepositsForPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _verifyMicrodepositsForSetup = useCallback(
+    async (
+      clientSecret: string,
+      params: VerifyMicrodepositsParams
+    ): Promise<ConfirmSetupIntentResult> => {
+      return verifyMicrodepositsForSetup(clientSecret, params);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -252,5 +298,9 @@ export function useStripe() {
     presentGooglePay: _presentGooglePay,
     createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
     openApplePaySetup: _openApplePaySetup,
+    collectUSBankAccountForPayment: _collectUSBankAccountForPayment,
+    collectUSBankAccountForSetup: _collectUSBankAccountForSetup,
+    verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
+    verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
   };
 }

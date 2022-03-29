@@ -150,16 +150,9 @@ export namespace PaymentMethodCreateParams {
     formDetails: AuBECSDebitFormComponent.FormDetails;
   }
 
+  /** Before using this payment method type, ensure you have already collected the account information for this intent with `collectUSBankAccount`. */
   export type USBankAccountParams = {
     type: 'USBankAccount';
-    billingDetails: Pick<Required<BillingDetails>, 'name'> & BillingDetails;
-    accountNumber: string;
-    routingNumber: string;
-    /** Defaults to Individual */
-    accountHolderType?: BankAcccountHolderType;
-    /** Defaults to Checking */
-    accountType?: BankAcccountType;
-    setupFutureUsage?: PaymentIntents.FutureUsage;
   };
 }
 
