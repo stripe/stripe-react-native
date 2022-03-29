@@ -597,8 +597,8 @@ class Mappers {
             "bankName": paymentMethod.usBankAccount?.bankName ?? NSNull(),
             "linkedAccount": paymentMethod.usBankAccount?.linkedAccount ?? NSNull(),
             "fingerprint": paymentMethod.usBankAccount?.fingerprint ?? NSNull(),
-            "preferredNetworks": paymentMethod.usBankAccount?.networks.preferred ?? NSNull(),
-            "supportedNetworks": paymentMethod.usBankAccount?.networks.supported ?? NSNull(),
+            "preferredNetworks": paymentMethod.usBankAccount?.networks?.preferred ?? NSNull(),
+            "supportedNetworks": paymentMethod.usBankAccount?.networks?.supported ?? NSNull(),
         ]
         let method: NSDictionary = [
             "id": paymentMethod.stripeId,

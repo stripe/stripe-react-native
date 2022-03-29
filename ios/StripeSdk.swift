@@ -277,12 +277,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
             return
         }
-        guard paymentMethodParams != nil else {
-            resolve(Errors.createError(ErrorType.Unknown, "Unhandled error occured"))
-            return
-        }
         
-        let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+        let setupIntentParams: STPSetupIntentConfirmParams = {
+            switch paymentMethodType {
+            case .USBankAccount:
+                return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
+            default:
+                return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+            }
+        }()
+        
         setupIntentParams.paymentMethodParams = paymentMethodParams
         
         if let urlScheme = urlScheme {
@@ -667,6 +671,78 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
+    
+    @objc(collectUSBankAccount:clientSecret:params:resolver:rejecter:)
+    func collectUSBankAccount(
+        intentType: String,
+        clientSecret: NSString,
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let name = params["name"] as? String
+        
+        if (name == nil || (name ?? "").isEmpty) {
+            resolve(Errors.createError(ErrorType.Canceled, "You must provide a name when collecting US bank account details."))
+            return
+        }
+        
+        let collectParams = STPCollectBankAccountParams.collectUSBankAccountParams(
+            with: name!,
+            email: params["email"] as? String
+        )
+        
+        DispatchQueue.main.async {
+            switch intentType {
+            case "payment":
+                STPBankAccountCollector().collectBankAccountForPayment(
+                    clientSecret: clientSecret as String,
+                    params: collectParams,
+                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                ) { intent, error in
+                    if (error != nil) {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+                        return
+                    }
+                    
+                    if let intent = intent {
+                        if (intent.status == .requiresPaymentMethod) {
+                            resolve(Errors.createError(ErrorType.Canceled, "Bank account collection was canceled."))
+                        }
+                        resolve(
+                            Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: intent))
+                        )
+                    } else {
+                        resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
+                    }
+                }
+            case "setup":
+                STPBankAccountCollector().collectBankAccountForSetup(
+                    clientSecret: clientSecret as String,
+                    params: collectParams,
+                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                ) { intent, error in
+                    if (error != nil) {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+                        return
+                    }
+                    
+                    if let intent = intent {
+                        if (intent.status == .requiresPaymentMethod) {
+                            resolve(Errors.createError(ErrorType.Canceled, "Bank account collection was canceled."))
+                        }
+                        resolve(
+                            Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: intent))
+                        )
+                    } else {
+                        resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
+                    }
+                }
+            default:
+                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
+            }
+        }
+    }
 
     @objc(confirmPayment:data:options:resolver:rejecter:)
     func confirmPayment(
@@ -678,26 +754,35 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     ) -> Void {
         self.confirmPaymentResolver = resolve
         self.confirmPaymentClientSecret = paymentIntentClientSecret
-                
-        let paymentMethodId = params["paymentMethodId"] as? String
-        let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
-        if let setupFutureUsage = params["setupFutureUsage"] as? String {
-            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
-        }
-                
+        
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
             resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType"))
             return
         }
         
-        if (paymentMethodType == STPPaymentMethodType.FPX) {
+        if (paymentMethodType == .FPX) {
             let testOfflineBank = params["testOfflineBank"] as? Bool
             if (testOfflineBank == false || testOfflineBank == nil) {
                 payWithFPX(paymentIntentClientSecret)
                 return
             }
         }
+
+        let paymentIntentParams: STPPaymentIntentParams = {
+            switch paymentMethodType {
+            case .USBankAccount:
+                return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret, paymentMethodType: .USBankAccount)
+            default:
+                return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
+            }
+        }()
+                
+        let paymentMethodId = params["paymentMethodId"] as? String
+        if let setupFutureUsage = params["setupFutureUsage"] as? String {
+            paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
+        }
+            
         if paymentMethodId != nil {
             paymentIntentParams.paymentMethodId = paymentMethodId
         } else {
@@ -710,10 +795,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
             } catch  {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-                return
-            }
-            guard paymentMethodParams != nil else {
-                resolve(Errors.createError(ErrorType.Unknown, "Unhandled error occured"))
                 return
             }
             paymentIntentParams.paymentMethodParams = paymentMethodParams
