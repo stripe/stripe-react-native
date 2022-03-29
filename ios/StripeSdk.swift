@@ -692,16 +692,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             email: params["email"] as? String
         )
         
-        DispatchQueue.main.async {
             switch intentType {
             case "payment":
+                DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
                     params: collectParams,
                     from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
                 ) { intent, error in
-                    if (error != nil) {
-                        resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+                    if let error = error {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
                         return
                     }
                     
@@ -716,14 +716,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
                 }
+                }
             case "setup":
+                DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForSetup(
                     clientSecret: clientSecret as String,
                     params: collectParams,
                     from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
                 ) { intent, error in
-                    if (error != nil) {
-                        resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+                    if let error = error {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
                         return
                     }
                     
@@ -738,10 +740,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
                 }
+                }
             default:
                 resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
             }
-        }
+        
     }
 
     @objc(confirmPayment:data:options:resolver:rejecter:)
