@@ -16,3 +16,13 @@ export function getTextInputByPlaceholder(placeholder: string) {
     ? $(`//android.widget.EditText[@text="${placeholder}"]`)
     : $(`~${placeholder}`);
 }
+
+export function clickButtonContainingText(text: string) {
+  const button = driver.isAndroid
+    ? $(
+        `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${text}"))`
+      )
+    : $(`~${text}`);
+  expect(button).toBeDisplayed();
+  button.click();
+}

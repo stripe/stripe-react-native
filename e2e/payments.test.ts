@@ -1,5 +1,9 @@
 /* eslint-disable no-undef */
-import { getElementByText, getTextInputByPlaceholder } from './helpers';
+import {
+  getElementByText,
+  getTextInputByPlaceholder,
+  clickButtonContainingText,
+} from './helpers';
 import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
@@ -217,30 +221,60 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Payment', function () {
+    if (driver.isAndroid) return;
+
     this.retries(1);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH payment');
-
-    BasicPaymentScreen.pay({
-      email: 'test@stripe.com',
-      buttonText: 'Pay',
-    });
-
     $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+
+    clickButtonContainingText('Collect bank account');
+
+    BasicPaymentScreen.authorizeACH();
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('RequiresConfirmation');
+    driver.dismissAlert();
+
+    clickButtonContainingText('Confirm');
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('Awaiting verification');
+    driver.dismissAlert();
+
+    getElementByText('Verify microdeposit').click();
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('Processing');
   });
 
   it('ACH Setup', function () {
+    if (driver.isAndroid) return;
+
     this.retries(1);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH setup');
-
-    BasicPaymentScreen.pay({
-      email: 'test@stripe.com',
-      buttonText: 'Pay',
-    });
-
     $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+
+    clickButtonContainingText('Collect bank account');
+
+    BasicPaymentScreen.authorizeACH();
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('RequiresConfirmation');
+    driver.dismissAlert();
+
+    clickButtonContainingText('Confirm');
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('Awaiting verification');
+    driver.dismissAlert();
+
+    getElementByText('Verify microdeposit').click();
+    driver.pause(3000);
+
+    expect(driver.getAlertText()).toContain('Succeeded');
   });
 });

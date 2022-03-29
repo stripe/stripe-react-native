@@ -71,6 +71,48 @@ class BasicPaymentScreen {
     });
     expect(alert.getText()).toEqual(status);
   }
+
+  authorizeACH() {
+    driver.pause(5000);
+    const webviewContexts = getAllWebviewContexts();
+    for (const context of webviewContexts) {
+      try {
+        driver.switchContext(context);
+        let button = $(`button*=Manually verify instead`);
+        if (button.isDisplayed()) {
+          button.click();
+          driver.pause(1000);
+
+          button = $(`//input[@name='confirmAccountNumber']`);
+          button.click();
+          button.sendKeys(['000123456789\n']);
+
+          button = $(`//input[@name='routingNumber']`);
+          button.click();
+          button.click();
+          button.sendKeys(['110000000\n']);
+
+          button = $(`//input[@name='accountNumber']`);
+          button.click();
+          button.click();
+          button.sendKeys(['000123456789\n']);
+
+          button = $(`button*=Continue`);
+          button.click();
+          button.click();
+
+          button = $(`button*=Done`);
+          button.click();
+          break;
+        }
+      } catch (e) {
+        console.log(
+          `Unable to switch to ${context} context. This context may no longer exist.`
+        );
+      }
+    }
+    driver.switchContext(getNativeContext());
+  }
 }
 
 export function getAllWebviewContexts(): string[] {
