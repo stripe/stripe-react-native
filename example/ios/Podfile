@@ -1,4 +1,4 @@
-platform :ios, '11.0'
+platform :ios, '12.0'
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
@@ -11,11 +11,6 @@ target 'StripeSdkExample' do
     hermes_enabled: false
   )
   pod 'stripe-react-native', path: '../..'
-  # BEGIN REMOVE
-  pod 'Stripe', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
-  pod 'StripeUICore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
-  pod 'StripeCore', :git => 'https://github.com/stripe-ios/stripe-ios.git', :branch => 'private'
-  # END REMOVE
 
   # Enables Flipper.
   # Note that if you have use_frameworks! enabled, Flipper will not work and
