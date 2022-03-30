@@ -21,7 +21,7 @@ exports.config = {
   bail: 0,
   baseUrl: 'http://localhost',
   waitforTimeout: 8000,
-  connectionRetryTimeout: 500000,
+  connectionRetryTimeout: 200000,
   connectionRetryCount: 3,
   services: ['appium'],
   framework: 'mocha',
@@ -43,6 +43,9 @@ exports.config = {
       automationName: 'XCUITest',
       nativeWebTap: true,
       showXcodeLog: true,
+      wdaStartupRetries: 4,
+      iosInstallPause: 8000,
+      wdaStartupRetryInterval: 20000,
     },
   ],
   afterTest: function (test, _context, { passed }) {
