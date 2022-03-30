@@ -31,7 +31,7 @@ exports.config = {
     timeout: 200000,
   },
   specFileRetries: 1,
-  specs: ['./e2e/*.test.ts'],
+  specs: ['./e2e/payments.test.ts'],
   capabilities: [
     {
       maxInstances: 1,

@@ -79,7 +79,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
