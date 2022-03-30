@@ -30,7 +30,7 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
-  specs: ['./e2e/payments.test.ts'],
+  specs: ['./e2e/*.test.ts'],
   capabilities: [
     {
       maxInstances: 1,
