@@ -21,7 +21,7 @@ exports.config = {
   bail: 0,
   baseUrl: 'http://localhost',
   waitforTimeout: 8000,
-  connectionRetryTimeout: 400000,
+  connectionRetryTimeout: 600000,
   connectionRetryCount: 3,
   services: ['appium'],
   framework: 'mocha',
