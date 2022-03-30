@@ -58,7 +58,7 @@
     "@wdio/mocha-framework": "^7.16.15",
     "@wdio/spec-reporter": "^7.16.14",
     "@wdio/sync": "^7.16.15",
-    "appium": "^1.22.1",
+    "appium": "^1.22.2",
     "appium-chromedriver": "4.26.2",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.11.0",

@@ -35,13 +35,14 @@ exports.config = {
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.22.1',
+      appiumVersion: '1.22.2',
       platformName: 'iOS',
       platformVersion: '15.2',
       deviceName: 'iPhone 13',
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
       nativeWebTap: true,
+      showXcodeLog: true,
     },
   ],
   afterTest: function (test, _context, { passed }) {
