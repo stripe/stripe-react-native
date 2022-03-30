@@ -6,7 +6,7 @@ exports.config = {
   runner: 'local',
   port: 4723,
   exclude: [],
-  maxInstances: 1,
+  maxInstances: 10,
   autoCompileOpts: {
     autoCompile: true,
     tsNodeOpts: {

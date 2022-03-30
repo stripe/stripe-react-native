@@ -3707,10 +3707,10 @@ appium-youiengine-driver@^1.2.8:
     source-map-support "^0.5.19"
     teen_process "^1.15.0"
 
-appium@^1.22.1:
-  version "1.22.2"
-  resolved "https://registry.yarnpkg.com/appium/-/appium-1.22.2.tgz#07e1c898689f6e3833e36c9c2523d3cc14c54680"
-  integrity sha512-ihIfMmLyCB8IWIvtrOcpR4Z8KX4ONcxvyqgrND49bdsYMo6xKP8AFYOb4wfuWOnJvTRdHXWYBGzR6EAoyC6Cxw==
+appium@^1.22.2:
+  version "1.22.3"
+  resolved "https://registry.yarnpkg.com/appium/-/appium-1.22.3.tgz#ab1cae92e1db67600c79c971dda4f218e26ddc5d"
+  integrity sha512-0/SkcOdC8h79Z5TgCeWbeGEbAQzLzwR3h2jYL5EI6zPIrbqZczGv7S8HgmFQPQ98La2wmf26dpPvL8Vw4r/WXw==
   dependencies:
     "@babel/runtime" "^7.6.0"
     appium-android-driver "^4.20.0"

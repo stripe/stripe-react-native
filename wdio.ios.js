@@ -6,7 +6,7 @@ exports.config = {
   runner: 'local',
   port: 4723,
   exclude: [],
-  maxInstances: 1,
+  maxInstances: 10,
   autoCompileOpts: {
     autoCompile: true,
     tsNodeOpts: {
@@ -21,7 +21,7 @@ exports.config = {
   bail: 0,
   baseUrl: 'http://localhost',
   waitforTimeout: 8000,
-  connectionRetryTimeout: 200000,
+  connectionRetryTimeout: 400000,
   connectionRetryCount: 3,
   services: ['appium'],
   framework: 'mocha',
@@ -35,12 +35,16 @@ exports.config = {
     {
       maxInstances: 1,
       browserName: '',
-      appiumVersion: '1.22.1',
-      platformName: 'ios',
-      deviceName: 'iPhone 12',
+      appiumVersion: '1.22.2',
+      platformName: 'iOS',
+      platformVersion: '15.2',
+      deviceName: 'iPhone 13',
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
       nativeWebTap: true,
+      wdaStartupRetries: 4,
+      iosInstallPause: 8000,
+      wdaStartupRetryInterval: 20000,
     },
   ],
   afterTest: function (test, _context, { passed }) {
