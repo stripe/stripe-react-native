@@ -42,9 +42,6 @@ exports.config = {
       app: 'example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator/StripeSdkExample.app',
       automationName: 'XCUITest',
       nativeWebTap: true,
-      wdaStartupRetries: 4,
-      iosInstallPause: 8000,
-      wdaStartupRetryInterval: 20000,
     },
   ],
   afterTest: function (test, _context, { passed }) {
