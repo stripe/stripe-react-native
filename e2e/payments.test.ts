@@ -223,11 +223,11 @@ describe('Common payment scenarios', () => {
   it('ACH Payment', function () {
     if (driver.isAndroid) return;
 
-    this.retries(1);
+    this.retries(3);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH payment');
-    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     clickButtonContainingText('Collect bank account');
 
@@ -252,11 +252,11 @@ describe('Common payment scenarios', () => {
   it('ACH Setup', function () {
     if (driver.isAndroid) return;
 
-    this.retries(1);
+    this.retries(3);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH setup');
-    $('~payment-screen').waitForDisplayed({ timeout: 20000 });
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     clickButtonContainingText('Collect bank account');
 
