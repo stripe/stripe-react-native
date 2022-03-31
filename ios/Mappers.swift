@@ -929,6 +929,14 @@ class Mappers {
         }
         return "Unknown"
     }
+    
+    class func mapToUSBankAccountHolderType(type: String?) -> STPPaymentMethodUSBankAccountHolderType {
+        switch type {
+            case "Company": return STPPaymentMethodUSBankAccountHolderType.company
+            case "Individual": return STPPaymentMethodUSBankAccountHolderType.individual
+            default: return STPPaymentMethodUSBankAccountHolderType.individual
+        }
+    }
 
     class func mapFromUSBankAccountType(type: STPPaymentMethodUSBankAccountType?) -> String {
         if let type = type {
@@ -939,5 +947,13 @@ class Mappers {
             }
         }
         return "Unknown"
+    }
+    
+    class func mapToUSBankAccountType(type: String?) -> STPPaymentMethodUSBankAccountType {
+        switch type {
+            case "Savings": return STPPaymentMethodUSBankAccountType.savings
+            case "Checking": return STPPaymentMethodUSBankAccountType.checking
+            default: return STPPaymentMethodUSBankAccountType.checking
+        }
     }
 }

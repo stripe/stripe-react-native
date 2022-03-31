@@ -268,27 +268,30 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType"))
             return
         }
-        var paymentMethodParams: STPPaymentMethodParams?
-        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
         
-        do {
-            paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
-        } catch  {
-            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-            return
-        }
-        
+        var err: NSDictionary? = nil
         let setupIntentParams: STPSetupIntentConfirmParams = {
-            switch paymentMethodType {
-            case .USBankAccount:
+            if (paymentMethodType == .USBankAccount && params["accountNumber"] == nil) { // Payment method is assumed to be already attached
                 return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
-            default:
-                return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+            } else {
+                let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
+                let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
+                do {
+                    let paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                    parameters.paymentMethodParams = paymentMethodParams
+                } catch  {
+                    err = Errors.createError(ErrorType.Failed, error as NSError?)
+                }
+                
+                return parameters
             }
         }()
         
-        setupIntentParams.paymentMethodParams = paymentMethodParams
-        
+        if (err != nil) {
+            resolve(err)
+            return
+        }
+                
         if let urlScheme = urlScheme {
             setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
@@ -780,46 +783,57 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return
             }
         }
-
+        
+        let (error, paymentIntentParams) = createPaymentIntentParams(paymentIntentClientSecret: paymentIntentClientSecret, paymentMethodType: paymentMethodType, params: params, options: options)
+        
+        if (error != nil) {
+            resolve(error)
+        } else {
+            STPPaymentHandler.shared().confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
+        }
+    }
+    
+    func createPaymentIntentParams(
+        paymentIntentClientSecret: String,
+        paymentMethodType: STPPaymentMethodType,
+        params: NSDictionary,
+        options: NSDictionary
+    ) -> (NSDictionary?, STPPaymentIntentParams) {
+        let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
+        var err: NSDictionary? = nil
+        
         let paymentIntentParams: STPPaymentIntentParams = {
-            switch paymentMethodType {
-            case .USBankAccount:
+            if (paymentMethodType == .USBankAccount && params["accountNumber"] == nil) { // Payment method is assumed to be already attached
                 return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret, paymentMethodType: .USBankAccount)
-            default:
-                return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
+            } else {
+                let paymentMethodId = params["paymentMethodId"] as? String
+                let parameters = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
+                
+                if paymentMethodId != nil {
+                    parameters.paymentMethodId = paymentMethodId
+                } else {
+                    do {
+                        let paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
+                        let paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
+                        parameters.paymentMethodParams = paymentMethodParams
+                        parameters.paymentMethodOptions = paymentMethodOptions
+                    } catch  {
+                        err = Errors.createError(ErrorType.Failed, error as NSError?)
+                    }
+                }
+                return parameters
             }
         }()
                 
-        let paymentMethodId = params["paymentMethodId"] as? String
         if let setupFutureUsage = params["setupFutureUsage"] as? String {
             paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
         }
-            
-        if paymentMethodId != nil {
-            paymentIntentParams.paymentMethodId = paymentMethodId
-        } else {
-            var paymentMethodParams: STPPaymentMethodParams?
-            var paymentMethodOptions: STPConfirmPaymentMethodOptions?
-            let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
-            
-            do {
-                paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
-                paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
-            } catch  {
-                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-                return
-            }
-            paymentIntentParams.paymentMethodParams = paymentMethodParams
-            paymentIntentParams.paymentMethodOptions = paymentMethodOptions
-            paymentIntentParams.shipping = Mappers.mapToShippingDetails(shippingDetails: params["shippingDetails"] as? NSDictionary)
-        }
-
-         if let urlScheme = urlScheme {
+        if let urlScheme = urlScheme {
             paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
+        paymentIntentParams.shipping = Mappers.mapToShippingDetails(shippingDetails: params["shippingDetails"] as? NSDictionary)
         
-        let paymentHandler = STPPaymentHandler.shared()
-        paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
+        return (err, paymentIntentParams)
     }
 
     @objc(retrievePaymentIntent:resolver:rejecter:)
