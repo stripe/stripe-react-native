@@ -66,6 +66,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
               StripeIntent.Status.RequiresAction -> {
                 confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), setupIntent.lastSetupError))
               }
+              StripeIntent.Status.RequiresPaymentMethod -> {
+                confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), setupIntent.lastSetupError))
+              }
               else -> {
                 val errorMessage = "unhandled error: ${setupIntent.status}"
                 confirmSetupIntentPromise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), errorMessage))
