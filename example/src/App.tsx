@@ -34,6 +34,8 @@ import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
+import ACHPaymentScreen from './screens/ACHPaymentScreen';
+import ACHSetupScreen from './screens/ACHSetupScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -69,6 +71,8 @@ export type RootStackParamList = {
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
   GooglePayScreen: undefined;
+  ACHPaymentScreen: undefined;
+  ACHSetupScreen: undefined;
 };
 
 declare global {
@@ -203,6 +207,8 @@ export default function App() {
             component={KlarnaPaymentScreen}
           />
           <Stack.Screen name="GooglePayScreen" component={GooglePayScreen} />
+          <Stack.Screen name="ACHPaymentScreen" component={ACHPaymentScreen} />
+          <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

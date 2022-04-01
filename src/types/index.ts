@@ -13,7 +13,10 @@ import type {
   StripeError,
 } from './Errors';
 import type { PaymentIntent } from './PaymentIntents';
-import type { PaymentMethod } from './PaymentMethods';
+import type {
+  PaymentMethod,
+  PaymentMethodCreateParams,
+} from './PaymentMethods';
 import type { PaymentSheet } from './PaymentSheet';
 import type { SetupIntent } from './SetupIntent';
 import type { ThreeDSecureConfigurationParams } from './ThreeDSecure';
@@ -233,6 +236,8 @@ export type CreateTokenCardParams = {
 
 export type BankAcccountHolderType = 'Company' | 'Individual';
 
+export type BankAcccountType = 'Checking' | 'Savings';
+
 export type CreateTokenBankAccountParams = {
   type: 'BankAccount';
   accountHolderName?: string;
@@ -242,3 +247,21 @@ export type CreateTokenBankAccountParams = {
   currency: string;
   routingNumber?: string;
 };
+
+export type VerifyMicrodepositsParams =
+  | {
+      amounts: number[];
+      descriptorCode?: undefined;
+    }
+  | {
+      amounts?: undefined;
+      descriptorCode: string;
+    };
+
+export type CollectBankAccountParams =
+  PaymentMethodCreateParams.USBankAccountParams & {
+    billingDetails: {
+      name: string;
+      email?: string;
+    };
+  };

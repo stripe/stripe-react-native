@@ -10,11 +10,12 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
 
-  s.platforms    = { ios: '11.0' }
+  s.platforms    = { ios: '12.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
 
   s.dependency 'React-Core'
-  s.dependency 'Stripe', '~> 21.13.0'
+  s.dependency 'Stripe', '~> 22.0.0'
+  s.dependency 'StripeConnections', '~> 22.0.0'
 end

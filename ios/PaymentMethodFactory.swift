@@ -47,6 +47,8 @@ class PaymentMethodFactory {
                 return try createAfterpayClearpayPaymentMethodParams()
             case STPPaymentMethodType.klarna:
                 return try createKlarnaPaymentMethodParams()
+            case STPPaymentMethodType.USBankAccount:
+                return try createUSBankAccountPaymentMethodParams()
 //            case STPPaymentMethodType.weChatPay:
 //                return try createWeChatPayPaymentMethodParams()
             default:
@@ -92,6 +94,8 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.weChatPay:
                 return try createWeChatPayPaymentMethodOptions()
+            case STPPaymentMethodType.USBankAccount:
+                return try createUSBankAccountPaymentMethodOptions()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -105,6 +109,16 @@ class PaymentMethodFactory {
 //        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: nil)
 //    }
 //
+
+    private func createUSBankAccountPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
+        let paymentOptions = STPConfirmPaymentMethodOptions()
+        if let usage = self.params?["setupFutureUsage"] as? String {
+            paymentOptions.usBankAccountOptions = STPConfirmUSBankAccountOptions(setupFutureUsage: Mappers.mapToPaymentIntentFutureUsage(usage: usage))
+        }
+
+        return paymentOptions
+    }
+
     private func createWeChatPayPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
         guard let appId = self.params?["appId"] as? String else {
             throw PaymentMethodError.weChatPayPaymentMissingParams
@@ -307,11 +321,33 @@ class PaymentMethodFactory {
 
     private func createKlarnaPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodKlarnaParams()
-        
+
         if let billingDetails = billingDetailsParams, billingDetails.address?.country != nil, billingDetails.email != nil {
             return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: nil)
         } else {
             throw PaymentMethodError.klarnaPaymentMissingParams
+        }
+    }
+    
+    private func createUSBankAccountPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodUSBankAccountParams()
+
+        guard let accountNumber = self.params?["accountNumber"] as? String else {
+            throw PaymentMethodError.usBankAccountPaymentMissingAccountNumber
+        }
+        guard let routingNumber = self.params?["routingNumber"] as? String else {
+            throw PaymentMethodError.usBankAccountPaymentMissingRoutingNumber
+        }
+
+        params.accountNumber = accountNumber
+        params.routingNumber = routingNumber
+        params.accountHolderType = Mappers.mapToUSBankAccountHolderType(type: self.params?["accountHolderType"] as? String)
+        params.accountType = Mappers.mapToUSBankAccountType(type: self.params?["accountType"] as? String)
+
+        if let billingDetails = billingDetailsParams, billingDetails.name != nil {
+            return STPPaymentMethodParams(usBankAccount: params, billingDetails: billingDetails, metadata: nil)
+        } else {
+            throw PaymentMethodError.usBankAccountPaymentMissingParams
         }
     }
 }
@@ -330,6 +366,9 @@ enum PaymentMethodError: Error {
     case afterpayClearpayPaymentMissingParams
     case klarnaPaymentMissingParams
     case weChatPayPaymentMissingParams
+    case usBankAccountPaymentMissingParams
+    case usBankAccountPaymentMissingAccountNumber
+    case usBankAccountPaymentMissingRoutingNumber
 }
 
 extension PaymentMethodError: LocalizedError {
@@ -361,6 +400,12 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide appId", comment: "Create payment error")
         case .klarnaPaymentMissingParams:
             return NSLocalizedString("Klarna requires that you provide the following billing details: email, country", comment: "Create payment error")
+        case .usBankAccountPaymentMissingParams:
+            return NSLocalizedString("When creating a US bank account payment method, you must provide the following billing details: name", comment: "Create payment error")
+        case .usBankAccountPaymentMissingAccountNumber:
+            return NSLocalizedString("When creating a US bank account payment method, you must provide the bank account number", comment: "Create payment error")
+        case .usBankAccountPaymentMissingRoutingNumber:
+            return NSLocalizedString("When creating a US bank account payment method, you must provide the bank routing number", comment: "Create payment error")
         }
     }
 }

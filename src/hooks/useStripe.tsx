@@ -23,6 +23,8 @@ import type {
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
   CreateTokenParams,
+  VerifyMicrodepositsParams,
+  CollectBankAccountParams,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -48,6 +50,10 @@ import {
   createGooglePayPaymentMethod,
   presentGooglePay,
   openApplePaySetup,
+  collectBankAccountForPayment,
+  collectBankAccountForSetup,
+  verifyMicrodepositsForPayment,
+  verifyMicrodepositsForSetup,
 } from '../functions';
 
 /**
@@ -229,6 +235,46 @@ export function useStripe() {
       return openApplePaySetup();
     }, []);
 
+  const _collectBankAccountForPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: CollectBankAccountParams
+    ): Promise<ConfirmPaymentResult> => {
+      return collectBankAccountForPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _collectBankAccountForSetup = useCallback(
+    async (
+      clientSecret: string,
+      params: CollectBankAccountParams
+    ): Promise<ConfirmSetupIntentResult> => {
+      return collectBankAccountForSetup(clientSecret, params);
+    },
+    []
+  );
+
+  const _verifyMicrodepositsForPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: VerifyMicrodepositsParams
+    ): Promise<ConfirmPaymentResult> => {
+      return verifyMicrodepositsForPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _verifyMicrodepositsForSetup = useCallback(
+    async (
+      clientSecret: string,
+      params: VerifyMicrodepositsParams
+    ): Promise<ConfirmSetupIntentResult> => {
+      return verifyMicrodepositsForSetup(clientSecret, params);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -252,5 +298,9 @@ export function useStripe() {
     presentGooglePay: _presentGooglePay,
     createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
     openApplePaySetup: _openApplePaySetup,
+    collectBankAccountForPayment: _collectBankAccountForPayment,
+    collectBankAccountForSetup: _collectBankAccountForSetup,
+    verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
+    verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
   };
 }

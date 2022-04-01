@@ -1,7 +1,7 @@
 import type { AuBECSDebitFormComponent } from './components/AuBECSDebitForm';
 import type { Card } from './Card';
 import type { PaymentIntents } from './PaymentIntents';
-
+import type { BankAcccountHolderType, BankAcccountType } from './index';
 export interface PaymentMethod {
   id: string;
   liveMode: boolean;
@@ -35,7 +35,8 @@ export namespace PaymentMethodCreateParams {
     | AfterpayClearpayParams
     | KlarnaParams
     // | WeChatPayParams
-    | BancontactParams;
+    | BancontactParams
+    | USBankAccountParams;
 
   export type BillingDetails = {
     email?: string;
@@ -148,6 +149,21 @@ export namespace PaymentMethodCreateParams {
     type: 'AuBecsDebit';
     formDetails: AuBECSDebitFormComponent.FormDetails;
   }
+
+  /** Before using this payment method type, ensure you have already collected the bank information
+   * for this intent with `collectBankAccountForPayment`. Otherwise, you will need to pass in the bank account
+   * details manually.*/
+  export type USBankAccountParams = {
+    type: 'USBankAccount';
+    billingDetails?: Pick<Required<BillingDetails>, 'name'> & BillingDetails;
+    accountNumber?: string;
+    routingNumber?: string;
+    /** Defaults to Individual */
+    accountHolderType?: BankAcccountHolderType;
+    /** Defaults to Checking */
+    accountType?: BankAcccountType;
+    setupFutureUsage?: PaymentIntents.FutureUsage;
+  };
 }
 
 export declare namespace PaymentMethods {
@@ -213,6 +229,18 @@ export declare namespace PaymentMethods {
     vpa?: string;
   }
 
+  export type USBankAccount = {
+    routingNumber?: string;
+    accountHolderType?: BankAcccountHolderType;
+    accountType?: BankAcccountType;
+    last4?: string;
+    bankName?: string;
+    linkedAccount?: string;
+    fingerprint?: string;
+    preferredNetwork?: string;
+    supportedNetworks?: string[];
+  };
+
   export type Types =
     | 'AfterpayClearpay'
     | 'Card'
@@ -231,5 +259,6 @@ export declare namespace PaymentMethods {
     | 'Oxxo'
     | 'Sofort'
     | 'Upi'
+    | 'USBankAccount'
     | 'Unknown';
 }

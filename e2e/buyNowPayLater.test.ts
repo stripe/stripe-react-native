@@ -14,10 +14,12 @@ describe('Payment scenarios with redirects', () => {
   });
 
   it('Afterpay/Clearpay payment scenario', function () {
-    this.retries(2);
+    this.retries(3);
 
     homeScreen.goTo('Buy now pay later');
     homeScreen.goTo('Afterpay and Clearpay');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
@@ -25,10 +27,12 @@ describe('Payment scenarios with redirects', () => {
   });
 
   it('Opens Klarna webview', function () {
-    this.retries(2);
+    this.retries(3);
 
     homeScreen.goTo('Buy now pay later');
     homeScreen.goTo('Klarna');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     driver.pause(10000);

@@ -79,7 +79,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -117,9 +117,7 @@ jobs:
       - name: Build iOS App
         run: |
           yarn run-example-ios
-          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app`
-          mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
-          cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
+          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app` && mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator && cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
           sleep 30
 
       - name: Run Tests

@@ -127,6 +127,12 @@ describe('Payment scenarios with redirects', () => {
   it('Sofort payment scenario', function () {
     this.retries(2);
     homeScreen.goTo('Bank redirects');
+    if (driver.isIOS) {
+      driver.execute('mobile: scroll', {
+        direction: 'down',
+      });
+    }
+
     homeScreen.goTo('Sofort');
 
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });

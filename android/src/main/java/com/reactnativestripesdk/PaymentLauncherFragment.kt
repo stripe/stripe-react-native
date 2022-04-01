@@ -70,7 +70,7 @@ class PaymentLauncherFragment(
             promise.resolve(paymentIntent)
           }
           StripeIntent.Status.RequiresAction -> {
-            if (isPaymentIntentNextActionVoucherBased(result.nextActionType)) {
+            if (isNextActionSuccessState(result.nextActionType)) {
               val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
               promise.resolve(paymentIntent)
             } else {
@@ -102,14 +102,21 @@ class PaymentLauncherFragment(
     })
   }
 
-  /// Check paymentIntent.nextAction is voucher-based payment method.
-  /// If it's voucher-based, the paymentIntent status stays in requiresAction until the voucher is paid or expired.
-  /// Currently only OXXO payment is voucher-based.
-  private fun isPaymentIntentNextActionVoucherBased(nextAction: StripeIntent.NextActionType?): Boolean {
-    nextAction?.let {
-      return it == StripeIntent.NextActionType.DisplayOxxoDetails
+  /**
+   * Check if paymentIntent.nextAction is out-of-band, such as voucher-based or waiting
+   * on customer verification. If it is, then being in this state is considered "successful".
+   */
+  private fun isNextActionSuccessState(nextAction: StripeIntent.NextActionType?): Boolean {
+    return when (nextAction) {
+      StripeIntent.NextActionType.DisplayOxxoDetails,
+      StripeIntent.NextActionType.VerifyWithMicrodeposits -> true
+      StripeIntent.NextActionType.RedirectToUrl,
+      StripeIntent.NextActionType.UseStripeSdk,
+      StripeIntent.NextActionType.AlipayRedirect,
+      StripeIntent.NextActionType.BlikAuthorize,
+      StripeIntent.NextActionType.WeChatPayRedirect,
+      null -> false
     }
-    return false
   }
 }
 

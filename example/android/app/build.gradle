@@ -211,7 +211,10 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     implementation 'com.google.android.material:material:1.4.0'
-    implementation 'com.stripe:stripe-wechatpay:17.1.0'
+
+    // WeChat is currently disabled in the mobile SDKs
+    // implementation 'com.stripe:stripe-wechatpay:17.1.0'
+
     implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.0'
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'

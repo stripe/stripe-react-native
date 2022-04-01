@@ -154,7 +154,7 @@ class PaymentMethodCreateParamsFactory(
       val sepaParams = PaymentMethodCreateParams.SepaDebit(iban)
       val createParams =
         PaymentMethodCreateParams.create(
-                     sepaDebit = sepaParams, 
+                     sepaDebit = sepaParams,
                      billingDetails = it
         )
 
