@@ -294,7 +294,7 @@ export const handleCardAction = async (
 
 export const confirmSetupIntent = async (
   paymentIntentClientSecret: string,
-  params: SetupIntent.Params,
+  params: SetupIntent.ConfirmParams,
   options: SetupIntent.ConfirmOptions = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {

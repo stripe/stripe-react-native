@@ -1,38 +1,38 @@
 # CHANGELOG
 
-- [THIS PR](link to PR) BREAKING CHANGE: Mostly fixes and changes to types, but some method's now accept slightly different parameters:
+- [#837](https://github.com/stripe/stripe-react-native/pull/837) BREAKING CHANGE: Mostly fixes and changes to types, but some method's now accept slightly different parameters:
   - `createPaymentMethod`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
   - `confirmPayment`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
-  - `Card.Token` is now `Token.Result`
-  - `Card.Brand` is now `Token.CardBrand`
-  - `Card.TokenType` is now `Token.Type`
-  - `Card.BankAccount` is now `Token.BankAccount`
-  - `Card.Params` is now `Token.Params`
-  - `CardFormView.Names` is now `CardFormView.FieldName`
-  - `CardFieldInput.Names` is now `CardFieldInput.FieldName`
-  - `ApplePayButtonComponent.Styles` is now `ApplePayButtonComponent.Style`
-  - `ApplePayButtonComponent.Types` is now `ApplePayButtonComponent.Type`
-  - `PaymentMethod` is now `PaymentMethod.Result`
-  - `PaymentIntent` is now `PaymentIntent.Result`
-  - `SetupIntent` is now `SetupIntent.Result`
-  - `Card.Token` is now `Token`
-  - `CreateTokenParams` is now `Token.CreateParams`
-  - `BankAcccountHolderType` is now `Token.BankAcccountHolderType`
-  - `ThreeDSecureConfigurationParams` is now `ThreeDSecure.ConfigurationParams`
-  - `PaymentMethodCreateParams.Params` is now `PaymentMethod.CreateParams`
-  - `PaymentMethodCreateParams.Options` is now `PaymentMethod.ConfirmOptions`
-  - `CreateTokenParams` is now `Token.CreateParams`
-  - `ConfirmSetupIntent.Params` is now `SetupIntent.ConfirmParams`
-  - `ConfirmSetupIntent.Options` is now `SetupIntent.ConfirmOptions`
-  - The `confirmPayment` now accepts the `PaymentMethod.ConfirmParams` (same type, just renamed).
-  - `BillingDetails` type is now exported directly, instead of under the `PaymentMethodCreateParams` object.
   - `BillingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
   - `ShippingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
-  - `presentGooglePy` now accepts `GooglePay.PresentParams`
-  - `GooglePay.PresentGooglePayParams` is now `GooglePay.PresentParams`
-  - `GooglePay.PresentGooglePayType` is now `GooglePay.PresentType`
-  - `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
-  - Removed `GooglePay.SetupIntentParams`
+  - (Typescript) `Card.Token` is now `Token.Result`
+  - (Typescript) `Card.Brand` is now `Token.CardBrand`
+  - (Typescript) `Card.TokenType` is now `Token.Type`
+  - (Typescript) `Card.BankAccount` is now `Token.BankAccount`
+  - (Typescript) `Card.Params` is now `Token.Params`
+  - (Typescript) `CardFormView.Names` is now `CardFormView.FieldName`
+  - (Typescript) `CardFieldInput.Names` is now `CardFieldInput.FieldName`
+  - (Typescript) `ApplePayButtonComponent.Styles` is now `ApplePayButtonComponent.Style`
+  - (Typescript) `ApplePayButtonComponent.Types` is now `ApplePayButtonComponent.Type`
+  - (Typescript) `PaymentMethod` is now `PaymentMethod.Result`
+  - (Typescript) `PaymentIntent` is now `PaymentIntent.Result`
+  - (Typescript) `SetupIntent` is now `SetupIntent.Result`
+  - (Typescript) Exports that were under the `Card` namespace are now under `Token`
+  - (Typescript) `CreateTokenParams` is now `Token.CreateParams`
+  - (Typescript) `BankAcccountHolderType` is now `Token.BankAcccountHolderType`
+  - (Typescript) `ThreeDSecureConfigurationParams` is now `ThreeDSecure.ConfigurationParams`
+  - (Typescript) `PaymentMethodCreateParams.Params` is now `PaymentMethod.CreateParams`
+  - (Typescript) `PaymentMethodCreateParams.Options` is now `PaymentMethod.ConfirmOptions`
+  - (Typescript) `CreateTokenParams` is now `Token.CreateParams`
+  - (Typescript) `ConfirmSetupIntent.Params` is now `SetupIntent.ConfirmParams`
+  - (Typescript) `ConfirmSetupIntent.Options` is now `SetupIntent.ConfirmOptions`
+  - (Typescript) `confirmPayment` now accepts the `PaymentMethod.ConfirmParams` (same type, just renamed).
+  - (Typescript) `BillingDetails` type is now exported directly, instead of under the `PaymentMethodCreateParams` object.
+  - (Typescript) `presentGooglePy` now accepts `GooglePay.PresentParams`
+  - (Typescript) `GooglePay.PresentGooglePayParams` is now `GooglePay.PresentParams`
+  - (Typescript) `GooglePay.PresentGooglePayType` is now `GooglePay.PresentType`
+  - (Typescript) `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
+  - (Typescript) Removed `GooglePay.SetupIntentParams`
 
 ## 0.6.0
 

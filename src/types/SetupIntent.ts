@@ -17,7 +17,7 @@ export interface Result {
   nextAction: NextAction | null;
 }
 
-export type Params =
+export type ConfirmParams =
   | CardParams
   | IdealParams
   | BancontactParams

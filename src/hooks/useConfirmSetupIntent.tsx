@@ -12,7 +12,7 @@ export function useConfirmSetupIntent() {
   const _confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: SetupIntent.Params,
+      data: SetupIntent.ConfirmParams,
       options: SetupIntent.ConfirmOptions = {}
     ) => {
       setLoading(true);

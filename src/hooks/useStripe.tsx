@@ -157,7 +157,7 @@ export function useStripe() {
   const _confirmSetupIntent = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: SetupIntent.Params,
+      data: SetupIntent.ConfirmParams,
       options: SetupIntent.ConfirmOptions = {}
     ): Promise<ConfirmSetupIntentResult> => {
       return confirmSetupIntent(paymentIntentClientSecret, data, options);
