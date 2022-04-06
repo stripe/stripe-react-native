@@ -1,4 +1,4 @@
-import type { CardFieldInput, Nullable } from '../types';
+import type { CardFieldInput } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -36,7 +36,7 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
   onBlur?(): void;
-  onFocus?(focusedField: Nullable<CardFieldInput.Names>): void;
+  onFocus?(focusedField: CardFieldInput.FieldName | null): void;
   testID?: string;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.

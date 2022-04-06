@@ -495,16 +495,18 @@ class Mappers {
         billing.phone = RCTConvert.nsString(billingDetails["phone"])
         billing.name = RCTConvert.nsString(billingDetails["name"])
 
-        let billingAddres = STPPaymentMethodAddress()
-
-        billingAddres.city = RCTConvert.nsString(billingDetails["addressCity"])
-        billingAddres.postalCode = RCTConvert.nsString(billingDetails["addressPostalCode"])
-        billingAddres.country = RCTConvert.nsString(billingDetails["addressCountry"])
-        billingAddres.line1 = RCTConvert.nsString(billingDetails["addressLine1"])
-        billingAddres.line2 = RCTConvert.nsString(billingDetails["addressLine2"])
-        billingAddres.state = RCTConvert.nsString(billingDetails["addressState"])
-
-        billing.address = billingAddres
+        let address = STPPaymentMethodAddress()
+        
+        if let addressMap = billingDetails["address"] as? NSDictionary {
+            address.city = RCTConvert.nsString(addressMap["city"])
+            address.postalCode = RCTConvert.nsString(addressMap["postalCode"])
+            address.country = RCTConvert.nsString(addressMap["country"])
+            address.line1 = RCTConvert.nsString(addressMap["line1"])
+            address.line2 = RCTConvert.nsString(addressMap["line2"])
+            address.state = RCTConvert.nsString(addressMap["state"])
+        }
+        
+        billing.address = address
 
         return billing
     }
@@ -513,15 +515,18 @@ class Mappers {
         guard let shippingDetails = shippingDetails else {
             return nil
         }
-        let shippingAddress = STPPaymentIntentShippingDetailsAddressParams(line1: shippingDetails["addressLine1"] as? String ?? "")
+        
+        let shippingAddress = STPPaymentIntentShippingDetailsAddressParams(line1: "")
 
-        shippingAddress.city = shippingDetails["addressCity"] as? String
-        shippingAddress.postalCode = shippingDetails["addressPostalCode"] as? String
-        shippingAddress.country = shippingDetails["addressCountry"] as? String
-        shippingAddress.line1 = shippingDetails["addressLine1"] as? String ?? ""
-        shippingAddress.line2 = shippingDetails["addressLine2"] as? String
-        shippingAddress.state = shippingDetails["addressState"] as? String
-
+        if let addressMap = shippingDetails["address"] as? NSDictionary {
+            shippingAddress.city = addressMap["city"] as? String
+            shippingAddress.postalCode = addressMap["postalCode"] as? String
+            shippingAddress.country = addressMap["country"] as? String
+            shippingAddress.line1 = addressMap["line1"] as? String ?? ""
+            shippingAddress.line2 = addressMap["line2"] as? String
+            shippingAddress.state = addressMap["state"] as? String
+        }
+        
         let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
 
         return shipping

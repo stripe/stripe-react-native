@@ -43,7 +43,7 @@ export interface Props extends AccessibilityProps {
   // TODO: will make it public when ios-sdk allows for this
   // placeholder: CardFormView.Placeholders;
   // onBlur?(): void;
-  // onFocus?(focusedField: Nullable<CardFormView.Names>): void;
+  // onFocus?(focusedField: CardFormView.FieldNames | null): void;
   onFormComplete?(card: CardFormView.Details): void;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onFormComplete` handler.

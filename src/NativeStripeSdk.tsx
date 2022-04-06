@@ -1,9 +1,9 @@
 import { NativeModules } from 'react-native';
 import type {
-  PaymentMethodCreateParams,
+  PaymentMethod,
   ApplePay,
   PaymentSheet,
-  ConfirmSetupIntent,
+  SetupIntent,
   InitialiseParams,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
@@ -22,24 +22,23 @@ import type {
   CreateGooglePayPaymentMethodResult,
   GooglePay,
   OpenApplePaySetupResult,
-  CreateTokenParams,
+  Token,
   VerifyMicrodepositsParams,
-  CollectBankAccountParams,
 } from './types';
 
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
   createPaymentMethod(
-    data: PaymentMethodCreateParams.Params,
-    options: PaymentMethodCreateParams.Options
+    params: PaymentMethod.CreateParams,
+    options: PaymentMethod.CreateOptions
   ): Promise<CreatePaymentMethodResult>;
   handleNextAction(
     paymentIntentClientSecret: string
   ): Promise<HandleNextActionResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
-    data: PaymentMethodCreateParams.Params,
-    options: PaymentMethodCreateParams.Options
+    params: PaymentMethod.ConfirmParams,
+    options: PaymentMethod.ConfirmOptions
   ): Promise<ConfirmPaymentResult>;
   isApplePaySupported(): Promise<boolean>;
   presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
@@ -53,8 +52,8 @@ type NativeStripeSdkType = {
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    data: ConfirmSetupIntent.Params,
-    options: ConfirmSetupIntent.Options
+    params: SetupIntent.ConfirmParams,
+    options: SetupIntent.ConfirmOptions
   ): Promise<ConfirmSetupIntentResult>;
   retrievePaymentIntent(
     clientSecret: string
@@ -67,13 +66,11 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
-  createToken(params: CreateTokenParams): Promise<CreateTokenResult>;
-  isGooglePaySupported(
-    params: GooglePay.IsGooglePaySupportedParams
-  ): Promise<boolean>;
+  createToken(params: Token.CreateParams): Promise<CreateTokenResult>;
+  isGooglePaySupported(params: GooglePay.IsSupportedParams): Promise<boolean>;
   initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
   presentGooglePay(
-    params: GooglePay.PresentGooglePayParams
+    params: GooglePay.PresentParams
   ): Promise<PayWithGooglePayResult>;
   createGooglePayPaymentMethod(
     params: GooglePay.CreatePaymentMethodParams
@@ -87,7 +84,7 @@ type NativeStripeSdkType = {
   collectBankAccount(
     type: 'payment' | 'setup',
     clientSecret: string,
-    params: CollectBankAccountParams
+    params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
 };
 

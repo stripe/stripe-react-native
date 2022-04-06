@@ -1,7 +1,4 @@
-import type {
-  CardFormView,
-  PaymentMethodCreateParams,
-} from '@stripe/stripe-react-native';
+import type { CardFormView, BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -48,14 +45,16 @@ export default function MultilineWebhookPaymentScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     // 2. Gather customer billing information (ex. email)
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
+      address: {
+        city: 'Houston',
+        country: 'US',
+        line1: '1459  Circle Drive',
+        line2: 'Texas',
+        postalCode: '77063',
+      },
     }; // mocked data for tests
 
     // 3. Confirm payment with card details

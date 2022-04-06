@@ -72,3 +72,15 @@ export const MissingRoutingNumber = {
   message:
     'You must provide a routing number for US bank accounts. This should be the ACH routing number.',
 };
+
+export enum VerifyMicrodepositsError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
+
+export enum CollectBankAccountError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}

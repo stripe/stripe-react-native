@@ -15,7 +15,7 @@ export function useGooglePay() {
   const [loading, setLoading] = useState(false);
 
   const _isGooglePaySupported = useCallback(
-    async (params?: GooglePay.IsGooglePaySupportedParams) => {
+    async (params?: GooglePay.IsSupportedParams) => {
       setLoading(true);
 
       const result = await isGooglePaySupported(params);
@@ -39,7 +39,7 @@ export function useGooglePay() {
   );
 
   const _presentGooglePay = useCallback(
-    async (params: GooglePay.PresentGooglePayParams) => {
+    async (params: GooglePay.PresentParams) => {
       setLoading(true);
 
       const result = await presentGooglePay(params);

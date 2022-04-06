@@ -1,5 +1,43 @@
 # CHANGELOG
 
+- [#837](https://github.com/stripe/stripe-react-native/pull/837) BREAKING CHANGE: Mostly fixes and changes to types, but some method's now accept slightly different parameters:
+  - Removed `setUrlSchemeOnAndroid` in favor of `setReturnUrlSchemeOnAndroid`. `setReturnUrlSchemeOnAndroid` functions exactly the same, this is just a rename.
+  - Removed `handleCardAction` in favor of `handleNextAction`. `handleNextAction` functions exactly the same, this is just a rename.
+  - `createPaymentMethod`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
+  - `confirmPayment`'s `billingDetails` and `shippingDetails` parameters no longer accept the `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, they accept an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state`.
+  - `BillingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
+  - `ShippingDetails` no longer includes `addressPostalCode`, `addressCity`, `addressCountry`, `addressLine1`, `addressLine2`, or `addressState` keys. Instead, it includes an `address` object containing: `city`, `country`, `line1`, `line2`, `postalCode`, `state` keys.
+  - `PaymentIntents` was renamed `PaymentIntent`. (If you were using `PaymentIntents.Status`, now you must change it to `PaymentIntent.Status`)
+  - `SetupIntents` was renamed `SetupIntent`. (If you were using `SetupIntents.Status`, now you must change it to `SetupIntent.Status`)
+  - (Typescript) `Card.Token` is now `Token.Result`
+  - (Typescript) `Card.Brand` is now `Token.CardBrand`
+  - (Typescript) `Card.TokenType` is now `Token.Type`
+  - (Typescript) `Card.BankAccount` is now `Token.BankAccount`
+  - (Typescript) `Card.Params` is now `Token.Params`
+  - (Typescript) `CardFormView.Names` is now `CardFormView.FieldName`
+  - (Typescript) `CardFieldInput.Names` is now `CardFieldInput.FieldName`
+  - (Typescript) `ApplePayButtonComponent.Styles` is now `ApplePayButtonComponent.Style`
+  - (Typescript) `ApplePayButtonComponent.Types` is now `ApplePayButtonComponent.Type`
+  - (Typescript) `PaymentMethod` is now `PaymentMethod.Result`
+  - (Typescript) `PaymentIntent` is now `PaymentIntent.Result`
+  - (Typescript) `SetupIntent` is now `SetupIntent.Result`
+  - (Typescript) Exports that were under the `Card` namespace are now under `Token`
+  - (Typescript) `CreateTokenParams` is now `Token.CreateParams`
+  - (Typescript) `BankAcccountHolderType` is now `Token.BankAcccountHolderType`
+  - (Typescript) `ThreeDSecureConfigurationParams` is now `ThreeDSecure.ConfigurationParams`
+  - (Typescript) `PaymentMethodCreateParams.Params` is now `PaymentMethod.CreateParams`
+  - (Typescript) `PaymentMethodCreateParams.Options` is now `PaymentMethod.ConfirmOptions`
+  - (Typescript) `CreateTokenParams` is now `Token.CreateParams`
+  - (Typescript) `ConfirmSetupIntent.Params` is now `SetupIntent.ConfirmParams`
+  - (Typescript) `ConfirmSetupIntent.Options` is now `SetupIntent.ConfirmOptions`
+  - (Typescript) `confirmPayment` now accepts the `PaymentIntent.ConfirmParams` (same type, just renamed).
+  - (Typescript) `BillingDetails` type is now exported directly, instead of under the `PaymentMethodCreateParams` object.
+  - (Typescript) `presentGooglePay` now accepts `GooglePay.PresentParams`
+  - (Typescript) `GooglePay.PresentGooglePayParams` is now `GooglePay.PresentParams`
+  - (Typescript) `GooglePay.PresentGooglePayType` is now `GooglePay.PresentType`
+  - (Typescript) `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
+  - (Typescript) Removed `GooglePay.SetupIntentParams`
+
 ## 0.6.0
 
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) BREAKING: This library now supports iOS 12 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 11, please continue to use `@stripe/stripe-react-native@0.5.0`.

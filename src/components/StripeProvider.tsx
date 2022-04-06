@@ -59,7 +59,6 @@ export function StripeProvider({
   stripeAccountId,
   urlScheme,
   setReturnUrlSchemeOnAndroid,
-  setUrlSchemeOnAndroid,
 }: Props) {
   useEffect(() => {
     if (!publishableKey) {
@@ -72,8 +71,7 @@ export function StripeProvider({
         stripeAccountId,
         threeDSecureParams,
         urlScheme,
-        setReturnUrlSchemeOnAndroid:
-          setReturnUrlSchemeOnAndroid || setUrlSchemeOnAndroid,
+        setReturnUrlSchemeOnAndroid,
       });
     } else {
       NativeStripeSdk.initialise({
@@ -92,7 +90,6 @@ export function StripeProvider({
     threeDSecureParams,
     urlScheme,
     setReturnUrlSchemeOnAndroid,
-    setUrlSchemeOnAndroid,
   ]);
 
   return <>{children}</>;

@@ -477,31 +477,19 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   if (billingDetails == null && cardAddress == null) {
     return null
   }
-  val addressBuilder = Address.Builder()
+  var address: Address? = null
   val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
 
   if (billingDetails != null) {
-    addressBuilder
-      .setPostalCode(getValOr(billingDetails, "addressPostalCode"))
-      .setCity(getValOr(billingDetails, "addressCity"))
-      .setCountry(getValOr(billingDetails, "addressCountry"))
-      .setLine1(getValOr(billingDetails, "addressLine1"))
-      .setLine2(getValOr(billingDetails, "addressLine2"))
-      .setState(getValOr(billingDetails, "addressState"))
+    address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
+
     paymentMethodBillingDetailsBuilder
       .setName(getValOr(billingDetails, "name"))
       .setPhone(getValOr(billingDetails, "phone"))
       .setEmail(getValOr(billingDetails, "email"))
   }
 
-  if (cardAddress?.postalCode?.isNotEmpty() == true) {
-    addressBuilder.setPostalCode(cardAddress.postalCode)
-  }
-  if (cardAddress?.country?.isNotEmpty() == true) {
-    addressBuilder.setCountry(cardAddress.country)
-  }
-
-  paymentMethodBillingDetailsBuilder.setAddress(addressBuilder.build())
+  paymentMethodBillingDetailsBuilder.setAddress(address ?: Address.Builder().build())
   return paymentMethodBillingDetailsBuilder.build()
 }
 
@@ -510,16 +498,12 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
     return null
   }
 
+  val address = mapToAddress(getMapOrNull(shippingDetails, "address"), null)
+    ?: Address.Builder().build()
+
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
-    address = Address.Builder()
-      .setLine1(getValOr(shippingDetails, "addressLine1"))
-      .setLine2(getValOr(shippingDetails, "addressLine2"))
-      .setCity(getValOr(shippingDetails, "addressCity"))
-      .setState(getValOr(shippingDetails, "addressState"))
-      .setCountry(getValOr(shippingDetails, "addressCountry"))
-      .setPostalCode(getValOr(shippingDetails, "addressPostalCode"))
-      .build()
+    address = address
   )
 }
 

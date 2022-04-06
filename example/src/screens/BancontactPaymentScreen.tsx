@@ -1,4 +1,4 @@
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import type { BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
@@ -40,7 +40,7 @@ export default function BancontactPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       name: 'John Doe',
       email: 'john@example.com',
     };

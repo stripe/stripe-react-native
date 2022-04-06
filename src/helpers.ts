@@ -1,12 +1,13 @@
+import type React from 'react';
 import type { StripeError } from './types';
-import { Platform, NativeModules } from 'react-native';
 
+import { Platform, NativeModules } from 'react-native';
 const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
 
 /**
  * Determines whether or not this library is being used inside of
  * an "Expo" project by identifying if Expo's native module
- * infrastructure (react-native-unimodules) is available.
+ * infrastructure (react-native-unimodules AKA expo-modules) is available.
  */
 export const shouldAttributeExpo = () => {
   try {

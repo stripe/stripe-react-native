@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import {
   useConfirmPayment,
-  PaymentIntents,
-  PaymentMethodCreateParams,
+  PaymentIntent,
+  BillingDetails,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -42,7 +42,7 @@ export default function SofortPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       name: 'John Doe',
       email: 'john@example.com',
     };
@@ -58,7 +58,7 @@ export default function SofortPaymentScreen() {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
-      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+      if (paymentIntent.status === PaymentIntent.Status.Processing) {
         Alert.alert('Processing', `The paymentIntent is processing`);
       } else {
         Alert.alert(

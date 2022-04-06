@@ -1,4 +1,7 @@
-import type { PaymentMethodCreateParams } from '@stripe/stripe-react-native';
+import type {
+  BillingDetails,
+  PaymentMethod,
+} from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
@@ -38,21 +41,25 @@ export default function AfterpayClearpayPaymentScreen() {
       return;
     }
 
-    const billingDetails: PaymentMethodCreateParams.BillingDetails = {
+    const billingDetails: BillingDetails = {
       email: 'email@stripe.com',
       phone: '+48888000888',
-      addressCity: 'Houston',
-      addressCountry: 'US',
-      addressLine1: '1459  Circle Drive',
-      addressLine2: 'Texas',
-      addressPostalCode: '77063',
+      address: {
+        city: 'Houston',
+        country: 'US',
+        line1: '1459  Circle Drive',
+        line2: 'Texas',
+        postalCode: '77063',
+      },
       name: 'John Doe',
     };
 
-    const shippingDetails: PaymentMethodCreateParams.ShippingDetails = {
-      addressLine1: '1459  Circle Drive',
-      addressCountry: 'US',
-      addressPostalCode: '77063',
+    const shippingDetails: PaymentMethod.ShippingDetails = {
+      address: {
+        country: 'US',
+        line1: '1459  Circle Drive',
+        postalCode: '77063',
+      },
       name: 'John Doe',
     };
 

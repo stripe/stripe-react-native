@@ -41,7 +41,9 @@ export default function KlarnaPaymentScreen() {
       type: 'Klarna',
       billingDetails: {
         email: 'stripe@test.com',
-        addressCountry: 'US',
+        address: {
+          country: 'US',
+        },
       },
     });
 

@@ -15,8 +15,8 @@ const ApplePayButtonNative =
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
-  type?: ApplePayButtonComponent.Types;
-  buttonStyle?: ApplePayButtonComponent.Styles;
+  type?: ApplePayButtonComponent.Type;
+  buttonStyle?: ApplePayButtonComponent.Style;
   borderRadius?: number;
   onPress(): void;
   testID?: string;
@@ -60,7 +60,7 @@ export function ApplePayButton({
   );
 }
 
-function mapButtonType(type: ApplePayButtonComponent.Types) {
+function mapButtonType(type: ApplePayButtonComponent.Type) {
   switch (type) {
     case 'plain':
       return 0;
@@ -99,7 +99,7 @@ function mapButtonType(type: ApplePayButtonComponent.Types) {
   }
 }
 
-function mapButtonStyle(type: ApplePayButtonComponent.Styles) {
+function mapButtonStyle(type: ApplePayButtonComponent.Style) {
   switch (type) {
     case 'white':
       return 0;

@@ -1,4 +1,4 @@
-import { createError, isAndroid, isiOS } from './helpers';
+import { isAndroid, isiOS, createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
@@ -6,10 +6,11 @@ import {
   ApplePayError,
   ApplePayResult,
   ConfirmPaymentResult,
-  ConfirmPaymentError,
-  ConfirmSetupIntentError,
+  VerifyMicrodepositsError,
+  CollectBankAccountError,
   ConfirmPaymentSheetPaymentResult,
-  ConfirmSetupIntent,
+  SetupIntent,
+  PaymentIntent,
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
@@ -17,7 +18,7 @@ import {
   GooglePayInitResult,
   HandleNextActionResult,
   InitPaymentSheetResult,
-  PaymentMethodCreateParams,
+  PaymentMethod,
   PaymentSheet,
   PayWithGooglePayResult,
   PresentPaymentSheetResult,
@@ -27,9 +28,12 @@ import {
   GooglePay,
   CreateGooglePayPaymentMethodResult,
   OpenApplePaySetupResult,
-  CreateTokenParams,
+  Token,
   VerifyMicrodepositsParams,
-  CollectBankAccountParams,
+  VerifyMicrodepositsForPaymentResult,
+  VerifyMicrodepositsForSetupResult,
+  CollectBankAccountForPaymentResult,
+  CollectBankAccountForSetupResult,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -38,12 +42,12 @@ const PAYMENT_INTENT = 'payment';
 const SETUP_INTENT = 'setup';
 
 export const createPaymentMethod = async (
-  data: PaymentMethodCreateParams.Params,
-  options: PaymentMethodCreateParams.Options = {}
+  params: PaymentMethod.CreateParams,
+  options: PaymentMethod.CreateOptions = {}
 ): Promise<CreatePaymentMethodResult> => {
   try {
     const { paymentMethod, error } = await NativeStripeSdk.createPaymentMethod(
-      data,
+      params,
       options
     );
     if (error) {
@@ -54,7 +58,7 @@ export const createPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -62,7 +66,7 @@ export const createPaymentMethod = async (
 };
 
 export const createToken = async (
-  params: CreateTokenParams
+  params: Token.CreateParams
 ): Promise<CreateTokenResult> => {
   if (
     params.type === 'BankAccount' &&
@@ -85,9 +89,9 @@ export const createToken = async (
     return {
       token: token!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -106,7 +110,7 @@ export const retrievePaymentIntent = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -128,7 +132,7 @@ export const retrieveSetupIntent = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -137,13 +141,13 @@ export const retrieveSetupIntent = async (
 
 export const confirmPayment = async (
   paymentIntentClientSecret: string,
-  data: PaymentMethodCreateParams.Params,
-  options: PaymentMethodCreateParams.Options = {}
+  params: PaymentIntent.ConfirmParams,
+  options: PaymentIntent.ConfirmOptions = {}
 ): Promise<ConfirmPaymentResult> => {
   try {
     const { paymentIntent, error } = await NativeStripeSdk.confirmPayment(
       paymentIntentClientSecret,
-      data,
+      params,
       options
     );
     if (error) {
@@ -154,7 +158,7 @@ export const confirmPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -170,10 +174,10 @@ export const presentApplePay = async (
 ): Promise<ApplePayResult> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
 
@@ -187,7 +191,7 @@ export const presentApplePay = async (
       };
     }
     return { paymentMethod: paymentMethod! };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error,
     };
@@ -203,10 +207,10 @@ export const updateApplePaySummaryItems = async (
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
 
@@ -217,9 +221,9 @@ export const updateApplePaySummaryItems = async (
     );
 
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -229,18 +233,18 @@ export const confirmApplePayPayment = async (
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
   if (!(await NativeStripeSdk.isApplePaySupported())) {
     return {
-      error: createError({
+      error: {
         code: ApplePayError.Canceled,
         message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      }),
+      },
     };
   }
   try {
     await NativeStripeSdk.confirmApplePayPayment(clientSecret);
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -260,32 +264,7 @@ export const handleNextAction = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
-    return {
-      error: createError(error),
-    };
-  }
-};
-
-/**
- * @deprecated This method is deprecated, you should use `handleNextAction` as a drop-in replacement instead.
- */
-export const handleCardAction = async (
-  paymentIntentClientSecret: string
-): Promise<HandleNextActionResult> => {
-  try {
-    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
-      paymentIntentClientSecret
-    );
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {
-      paymentIntent: paymentIntent!,
-    };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -294,13 +273,13 @@ export const handleCardAction = async (
 
 export const confirmSetupIntent = async (
   paymentIntentClientSecret: string,
-  data: ConfirmSetupIntent.Params,
-  options: ConfirmSetupIntent.Options = {}
+  params: SetupIntent.ConfirmParams,
+  options: SetupIntent.ConfirmOptions = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {
     const { setupIntent, error } = await NativeStripeSdk.confirmSetupIntent(
       paymentIntentClientSecret,
-      data,
+      params,
       options
     );
     if (error) {
@@ -311,9 +290,9 @@ export const confirmSetupIntent = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -333,9 +312,9 @@ export const createTokenForCVCUpdate = async (
     return {
       tokenId: tokenId!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -348,11 +327,11 @@ export const handleURLCallback = async (url: string): Promise<boolean> => {
 export const verifyMicrodepositsForPayment = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
-): Promise<ConfirmPaymentResult> => {
+): Promise<VerifyMicrodepositsForPaymentResult> => {
   if (isAndroid) {
     return {
       error: createError({
-        code: ConfirmPaymentError.Failed,
+        code: VerifyMicrodepositsError.Failed,
         message:
           'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
       }),
@@ -363,7 +342,7 @@ export const verifyMicrodepositsForPayment = async (
       PAYMENT_INTENT,
       clientSecret,
       params
-    )) as ConfirmPaymentResult;
+    )) as VerifyMicrodepositsForPaymentResult;
 
     if (error) {
       return {
@@ -373,7 +352,7 @@ export const verifyMicrodepositsForPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -383,11 +362,11 @@ export const verifyMicrodepositsForPayment = async (
 export const verifyMicrodepositsForSetup = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
-): Promise<ConfirmSetupIntentResult> => {
+): Promise<VerifyMicrodepositsForSetupResult> => {
   if (isAndroid) {
     return {
       error: createError({
-        code: ConfirmSetupIntentError.Failed,
+        code: VerifyMicrodepositsError.Failed,
         message:
           'verifyMicrodepositsForSetup is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
       }),
@@ -398,7 +377,7 @@ export const verifyMicrodepositsForSetup = async (
       SETUP_INTENT,
       clientSecret,
       params
-    )) as ConfirmSetupIntentResult;
+    )) as VerifyMicrodepositsForSetupResult;
 
     if (error) {
       return {
@@ -408,7 +387,7 @@ export const verifyMicrodepositsForSetup = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -430,9 +409,9 @@ export const initPaymentSheet = async (
     return {
       paymentOption,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -450,9 +429,9 @@ export const presentPaymentSheet =
       return {
         paymentOption: paymentOption,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
-        error: createError(error),
+        error,
       };
     }
   };
@@ -467,15 +446,15 @@ export const confirmPaymentSheetPayment =
         };
       }
       return {};
-    } catch (error) {
+    } catch (error: any) {
       return {
-        error: createError(error),
+        error,
       };
     }
   };
 
 export const isGooglePaySupported = async (
-  params?: GooglePay.IsGooglePaySupportedParams
+  params?: GooglePay.IsSupportedParams
 ): Promise<boolean> => {
   return (
     isAndroid && (await NativeStripeSdk.isGooglePaySupported(params ?? {}))
@@ -493,15 +472,15 @@ export const initGooglePay = async (
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const presentGooglePay = async (
-  params: GooglePay.SetupIntentParams
+  params: GooglePay.PresentParams
 ): Promise<PayWithGooglePayResult> => {
   try {
     const { error } = await NativeStripeSdk.presentGooglePay(params);
@@ -511,9 +490,9 @@ export const presentGooglePay = async (
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -532,9 +511,9 @@ export const createGooglePayPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
@@ -548,21 +527,21 @@ export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
       };
     }
     return {};
-  } catch (error) {
+  } catch (error: any) {
     return {
-      error: createError(error),
+      error,
     };
   }
 };
 
 export const collectBankAccountForPayment = async (
   clientSecret: string,
-  params: CollectBankAccountParams
-): Promise<ConfirmPaymentResult> => {
+  params: PaymentMethod.CollectBankAccountParams
+): Promise<CollectBankAccountForPaymentResult> => {
   if (isAndroid) {
     return {
       error: createError({
-        code: ConfirmPaymentError.Failed,
+        code: CollectBankAccountError.Failed,
         message:
           'collectBankAccountForPayment is only supported on iOS on this version of @stripe/stripe-react-native.',
       }),
@@ -573,7 +552,7 @@ export const collectBankAccountForPayment = async (
       PAYMENT_INTENT,
       clientSecret,
       params
-    )) as ConfirmPaymentResult;
+    )) as CollectBankAccountForPaymentResult;
 
     if (error) {
       return {
@@ -583,7 +562,7 @@ export const collectBankAccountForPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -592,12 +571,12 @@ export const collectBankAccountForPayment = async (
 
 export const collectBankAccountForSetup = async (
   clientSecret: string,
-  params: CollectBankAccountParams
-): Promise<ConfirmSetupIntentResult> => {
+  params: PaymentMethod.CollectBankAccountParams
+): Promise<CollectBankAccountForSetupResult> => {
   if (isAndroid) {
     return {
       error: createError({
-        code: ConfirmSetupIntentError.Failed,
+        code: CollectBankAccountError.Failed,
         message:
           'collectBankAccountForSetup is only supported on iOS on this version of @stripe/stripe-react-native.',
       }),
@@ -608,7 +587,7 @@ export const collectBankAccountForSetup = async (
       SETUP_INTENT,
       clientSecret,
       params
-    )) as ConfirmSetupIntentResult;
+    )) as CollectBankAccountForSetupResult;
 
     if (error) {
       return {
@@ -618,7 +597,7 @@ export const collectBankAccountForSetup = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };

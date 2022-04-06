@@ -139,7 +139,7 @@ app.post(
       return res.send({
         clientSecret: paymentIntent.client_secret,
       });
-    } catch (error) {
+    } catch (error: any) {
       return res.send({
         error: error.raw.message,
       });
@@ -316,7 +316,7 @@ app.post(
       }
 
       return res.sendStatus(400);
-    } catch (e) {
+    } catch (e: any) {
       // Handle "hard declines" e.g. insufficient funds, expired card, etc
       // See https://stripe.com/docs/declines/codes for more.
       return res.send({ error: e.message });
@@ -459,7 +459,7 @@ app.post('/charge-card-off-session', async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       publicKey: stripePublishableKey,
     });
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'authentication_required') {
       // Bring the customer back on-session to authenticate the purchase
       // You can do this by sending an email or app notification to let them know

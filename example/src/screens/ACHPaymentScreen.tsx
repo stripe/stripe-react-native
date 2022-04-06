@@ -1,4 +1,4 @@
-import { PaymentIntents } from '@stripe/stripe-react-native';
+import { PaymentIntent } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
@@ -49,18 +49,18 @@ export default function ACHPaymentScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentIntent) {
-      if (paymentIntent.status === PaymentIntents.Status.Processing) {
+      if (paymentIntent.status === PaymentIntent.Status.Processing) {
         Alert.alert(
           'Processing',
           `The debit has been successfully submitted and is now processing.`
         );
-      } else if (paymentIntent.status === PaymentIntents.Status.Succeeded) {
+      } else if (paymentIntent.status === PaymentIntent.Status.Succeeded) {
         Alert.alert(
           'Success',
           `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
         );
       } else if (
-        paymentIntent.status === PaymentIntents.Status.RequiresAction &&
+        paymentIntent.status === PaymentIntent.Status.RequiresAction &&
         paymentIntent?.nextAction?.type === 'verifyWithMicrodeposits'
       ) {
         setAwaitingVerification(true);
@@ -101,14 +101,14 @@ export default function ACHPaymentScreen() {
       console.log(error);
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (paymentIntent) {
-      if (paymentIntent.status === PaymentIntents.Status.RequiresConfirmation) {
+      if (paymentIntent.status === PaymentIntent.Status.RequiresConfirmation) {
         Alert.alert(
           'Payment status: RequiresConfirmation',
           "You may now press the 'Confirm' button."
         );
       } else {
         if (
-          paymentIntent.status === PaymentIntents.Status.RequiresAction &&
+          paymentIntent.status === PaymentIntent.Status.RequiresAction &&
           paymentIntent?.nextAction?.type === 'verifyWithMicrodeposits'
         ) {
           setAwaitingVerification(true);
