@@ -677,7 +677,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     @objc(collectBankAccount:clientSecret:params:resolver:rejecter:)
     func collectBankAccount(
-        intentType: String,
+        intentType: NSString,
         clientSecret: NSString,
         params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -754,7 +754,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             }
         default:
-            resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
+            resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + (intentType as String)))
         }
         
     }
@@ -888,8 +888,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     @objc(verifyMicrodeposits:clientSecret:params:resolver:rejecter:)
     func verifyMicrodeposits(
-        intentType: String,
-        clientSecret: String,
+        intentType: NSString,
+        clientSecret: NSString,
         params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
@@ -910,37 +910,37 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             switch intentType {
             case "payment":
                 STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
-                    clientSecret: clientSecret,
+                    clientSecret: clientSecret as String,
                     firstAmount: amounts[0] as! Int,
                     secondAmount: amounts[1] as! Int,
                     completion: onCompletePaymentVerification
                 )
             case "setup":
                 STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
-                    clientSecret: clientSecret,
+                    clientSecret: clientSecret as String,
                     firstAmount: amounts[0] as! Int,
                     secondAmount: amounts[1] as! Int,
                     completion: onCompleteSetupVerification
                 )
             default:
-                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
+                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + (intentType as String)))
             }
         } else if let descriptorCode = descriptorCode {
             switch intentType {
             case "payment":
                 STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
-                    clientSecret: clientSecret,
+                    clientSecret: clientSecret as String,
                     descriptorCode: descriptorCode,
                     completion: onCompletePaymentVerification
                 )
             case "setup":
                 STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
-                    clientSecret: clientSecret,
+                    clientSecret: clientSecret as String,
                     descriptorCode: descriptorCode,
                     completion: onCompleteSetupVerification
                 )
             default:
-                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + intentType))
+                resolve(Errors.createError(ErrorType.Failed, "Received unexpected intent type: " + (intentType as String)))
             }
         }
         
