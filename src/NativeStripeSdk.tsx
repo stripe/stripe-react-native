@@ -24,7 +24,6 @@ import type {
   OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
-  CollectBankAccountParams,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -85,7 +84,7 @@ type NativeStripeSdkType = {
   collectBankAccount(
     type: 'payment' | 'setup',
     clientSecret: string,
-    params: CollectBankAccountParams
+    params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
 };
 

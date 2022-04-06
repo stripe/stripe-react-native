@@ -10,6 +10,8 @@ import type {
   RetrievePaymentIntentError,
   RetrieveSetupIntentError,
   StripeError,
+  VerifyMicrodepositsError,
+  CollectBankAccountError,
 } from './Errors';
 import * as ApplePay from './ApplePay';
 import * as PaymentIntent from './PaymentIntent';
@@ -181,10 +183,6 @@ export interface InitStripeParams {
   merchantIdentifier?: string;
   urlScheme?: string;
   setReturnUrlSchemeOnAndroid?: boolean;
-  /**
-   * @deprecated Use setReturnUrlSchemeOnAndroid instead
-   */
-  setUrlSchemeOnAndroid?: boolean;
 }
 
 export interface InitialiseParams extends InitStripeParams {
@@ -235,10 +233,42 @@ export type VerifyMicrodepositsParams =
       descriptorCode: string;
     };
 
-export type CollectBankAccountParams = {
-  type: 'USBankAccount';
-  billingDetails: {
-    name: string;
-    email?: string;
-  };
-};
+export type VerifyMicrodepositsForPaymentResult =
+  | {
+      paymentIntent: PaymentIntent.Result;
+      error?: undefined;
+    }
+  | {
+      paymentIntent?: undefined;
+      error: StripeError<VerifyMicrodepositsError>;
+    };
+
+export type VerifyMicrodepositsForSetupResult =
+  | {
+      setupIntent: SetupIntent.Result;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
+      error: StripeError<VerifyMicrodepositsError>;
+    };
+
+export type CollectBankAccountForPaymentResult =
+  | {
+      paymentIntent: PaymentIntent.Result;
+      error?: undefined;
+    }
+  | {
+      paymentIntent?: undefined;
+      error: StripeError<CollectBankAccountError>;
+    };
+
+export type CollectBankAccountForSetupResult =
+  | {
+      setupIntent: SetupIntent.Result;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
+      error: StripeError<CollectBankAccountError>;
+    };

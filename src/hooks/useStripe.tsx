@@ -24,7 +24,10 @@ import type {
   OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
-  CollectBankAccountParams,
+  VerifyMicrodepositsForPaymentResult,
+  VerifyMicrodepositsForSetupResult,
+  CollectBankAccountForSetupResult,
+  CollectBankAccountForPaymentResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -238,8 +241,8 @@ export function useStripe() {
   const _collectBankAccountForPayment = useCallback(
     async (
       clientSecret: string,
-      params: CollectBankAccountParams
-    ): Promise<ConfirmPaymentResult> => {
+      params: PaymentMethod.CollectBankAccountParams
+    ): Promise<CollectBankAccountForPaymentResult> => {
       return collectBankAccountForPayment(clientSecret, params);
     },
     []
@@ -248,8 +251,8 @@ export function useStripe() {
   const _collectBankAccountForSetup = useCallback(
     async (
       clientSecret: string,
-      params: CollectBankAccountParams
-    ): Promise<ConfirmSetupIntentResult> => {
+      params: PaymentMethod.CollectBankAccountParams
+    ): Promise<CollectBankAccountForSetupResult> => {
       return collectBankAccountForSetup(clientSecret, params);
     },
     []
@@ -259,7 +262,7 @@ export function useStripe() {
     async (
       clientSecret: string,
       params: VerifyMicrodepositsParams
-    ): Promise<ConfirmPaymentResult> => {
+    ): Promise<VerifyMicrodepositsForPaymentResult> => {
       return verifyMicrodepositsForPayment(clientSecret, params);
     },
     []
@@ -269,7 +272,7 @@ export function useStripe() {
     async (
       clientSecret: string,
       params: VerifyMicrodepositsParams
-    ): Promise<ConfirmSetupIntentResult> => {
+    ): Promise<VerifyMicrodepositsForSetupResult> => {
       return verifyMicrodepositsForSetup(clientSecret, params);
     },
     []
@@ -281,7 +284,6 @@ export function useStripe() {
     confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
     handleNextAction: _handleNextAction,
-    handleCardAction: _handleNextAction,
     isApplePaySupported: isApplePaySupported,
     presentApplePay: _presentApplePay,
     confirmApplePayPayment: _confirmApplePayPayment,

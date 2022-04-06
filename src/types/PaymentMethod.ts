@@ -232,3 +232,11 @@ export type Type =
   | 'Upi'
   | 'USBankAccount'
   | 'Unknown';
+
+export type CollectBankAccountParams = {
+  type: 'USBankAccount';
+  billingDetails: {
+    name: string;
+    email?: string;
+  };
+};
