@@ -1,4 +1,4 @@
-import { SetupIntents } from '@stripe/stripe-react-native';
+import { SetupIntent } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
@@ -47,15 +47,15 @@ export default function ACHSetupScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (setupIntent) {
-      if (setupIntent.status === SetupIntents.Status.Processing) {
+      if (setupIntent.status === SetupIntent.Status.Processing) {
         Alert.alert(
           'Processing',
           `The setup has been successfully submitted and is now processing.`
         );
-      } else if (setupIntent.status === SetupIntents.Status.Succeeded) {
+      } else if (setupIntent.status === SetupIntent.Status.Succeeded) {
         Alert.alert('Success', `The setup was confirmed successfully!`);
       } else if (
-        setupIntent.status === SetupIntents.Status.RequiresAction &&
+        setupIntent.status === SetupIntent.Status.RequiresAction &&
         setupIntent?.nextAction?.type === 'verifyWithMicrodeposits'
       ) {
         setAwaitingVerification(true);
@@ -96,14 +96,14 @@ export default function ACHSetupScreen() {
       console.log(error);
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else if (setupIntent) {
-      if (setupIntent.status === SetupIntents.Status.RequiresConfirmation) {
+      if (setupIntent.status === SetupIntent.Status.RequiresConfirmation) {
         Alert.alert(
           'Setup status: RequiresConfirmation',
           "You may now press the 'Confirm' button."
         );
       } else {
         if (
-          setupIntent.status === SetupIntents.Status.RequiresAction &&
+          setupIntent.status === SetupIntent.Status.RequiresAction &&
           setupIntent?.nextAction?.type === 'verifyWithMicrodeposits'
         ) {
           setAwaitingVerification(true);

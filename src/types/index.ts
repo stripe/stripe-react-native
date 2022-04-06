@@ -225,31 +225,6 @@ export type OpenApplePaySetupResult =
       error: StripeError<ApplePayError>;
     };
 
-export type CreateTokenParams =
-  | CreateTokenCardParams
-  | CreateTokenBankAccountParams;
-
-export type CreateTokenCardParams = {
-  type: 'Card';
-  address?: Card.Address;
-  name?: string;
-  currency?: string;
-};
-
-export type BankAcccountHolderType = 'Company' | 'Individual';
-
-export type BankAcccountType = 'Checking' | 'Savings';
-
-export type CreateTokenBankAccountParams = {
-  type: 'BankAccount';
-  accountHolderName?: string;
-  accountHolderType?: BankAcccountHolderType;
-  accountNumber: string;
-  country: string;
-  currency: string;
-  routingNumber?: string;
-};
-
 export type VerifyMicrodepositsParams =
   | {
       amounts: number[];
@@ -260,10 +235,10 @@ export type VerifyMicrodepositsParams =
       descriptorCode: string;
     };
 
-export type CollectBankAccountParams =
-  PaymentMethodCreateParams.USBankAccountParams & {
-    billingDetails: {
-      name: string;
-      email?: string;
-    };
+export type CollectBankAccountParams = {
+  type: 'USBankAccount';
+  billingDetails: {
+    name: string;
+    email?: string;
   };
+};

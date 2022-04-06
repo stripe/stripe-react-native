@@ -1,6 +1,7 @@
 import type { StripeError } from '.';
 import type { Address } from './Common';
 import type { Result as PaymentMethodResult } from './PaymentMethod';
+import type { NextAction } from './NextAction';
 
 export interface Result {
   id: string;
@@ -18,6 +19,7 @@ export interface Result {
   confirmationMethod: 'Automatic' | 'Manual';
   lastPaymentError: LastPaymentError | null;
   shipping: ShippingDetails | null;
+  nextAction: NextAction | null;
 }
 
 export type LastPaymentError = StripeError<string> & {

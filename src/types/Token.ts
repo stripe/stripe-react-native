@@ -56,9 +56,12 @@ export type CreateCardTokenParams = {
   type: 'Card';
   address?: Address;
   name?: string;
+  currency?: string;
 };
 
 export type BankAcccountHolderType = 'Company' | 'Individual';
+
+export type BankAcccountType = 'Checking' | 'Savings';
 
 export type CreateBankAccountTokenParams = {
   type: 'BankAccount';

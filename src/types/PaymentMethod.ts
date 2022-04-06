@@ -1,5 +1,9 @@
 import type { FormDetails } from './components/AuBECSDebitFormComponent';
-import type { CardBrand } from './Token';
+import type {
+  CardBrand,
+  BankAcccountHolderType,
+  BankAcccountType,
+} from './Token';
 import type { FutureUsage } from './PaymentIntent';
 import type { Address, BillingDetails } from './Common';
 
@@ -35,7 +39,8 @@ export type CreateParams =
   | AfterpayClearpayParams
   | KlarnaParams
   // | WeChatPayParams
-  | BancontactParams;
+  | BancontactParams
+  | USBankAccountParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -134,6 +139,21 @@ export interface AuBecsDebitParams {
   formDetails: FormDetails;
 }
 
+/** Before using this payment method type, ensure you have already collected the bank information
+ * for this intent with `collectBankAccountForPayment`. Otherwise, you will need to pass in the bank account
+ * details manually.*/
+export type USBankAccountParams = {
+  type: 'USBankAccount';
+  billingDetails?: Pick<Required<BillingDetails>, 'name'> & BillingDetails;
+  accountNumber?: string;
+  routingNumber?: string;
+  /** Defaults to Individual */
+  accountHolderType?: BankAcccountHolderType;
+  /** Defaults to Checking */
+  accountType?: BankAcccountType;
+  setupFutureUsage?: FutureUsage;
+};
+
 export interface AuBecsDebitResult {
   fingerprint?: string;
   last4?: string;
@@ -180,6 +200,18 @@ export interface UpiResult {
   vpa?: string;
 }
 
+export type USBankAccountResult = {
+  routingNumber?: string;
+  accountHolderType?: BankAcccountHolderType;
+  accountType?: BankAcccountType;
+  last4?: string;
+  bankName?: string;
+  linkedAccount?: string;
+  fingerprint?: string;
+  preferredNetwork?: string;
+  supportedNetworks?: string[];
+};
+
 export type Type =
   | 'AfterpayClearpay'
   | 'Card'
@@ -198,4 +230,5 @@ export type Type =
   | 'Oxxo'
   | 'Sofort'
   | 'Upi'
+  | 'USBankAccount'
   | 'Unknown';

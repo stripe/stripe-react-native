@@ -1,4 +1,4 @@
-import { isAndroid, isiOS } from './helpers';
+import { isAndroid, isiOS, createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
@@ -260,7 +260,7 @@ export const handleNextAction = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -294,7 +294,7 @@ export const handleCardAction = async (
 
 export const confirmSetupIntent = async (
   paymentIntentClientSecret: string,
-  params: SetupIntent.ConfirmParams,
+  params: SetupIntent.Params,
   options: SetupIntent.ConfirmOptions = {}
 ): Promise<ConfirmSetupIntentResult> => {
   try {
@@ -373,7 +373,7 @@ export const verifyMicrodepositsForPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -408,7 +408,7 @@ export const verifyMicrodepositsForSetup = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -583,7 +583,7 @@ export const collectBankAccountForPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };
@@ -618,7 +618,7 @@ export const collectBankAccountForSetup = async (
     return {
       setupIntent: setupIntent!,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       error: createError(error),
     };

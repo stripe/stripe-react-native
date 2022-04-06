@@ -53,7 +53,7 @@ type NativeStripeSdkType = {
   ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
-    params: SetupIntent.ConfirmParams,
+    params: SetupIntent.Params,
     options: SetupIntent.ConfirmOptions
   ): Promise<ConfirmSetupIntentResult>;
   retrievePaymentIntent(

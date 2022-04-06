@@ -1,5 +1,5 @@
 import type { FormDetails } from './components/AuBECSDebitFormComponent';
-import type { Type } from './PaymentMethod';
+import type { Type, USBankAccountParams } from './PaymentMethod';
 import type { BillingDetails } from './Common';
 import type { LastPaymentError } from './PaymentIntent';
 import type { NextAction } from './NextAction';
@@ -24,7 +24,7 @@ export type Params =
   | SofortParams
   | AuBecsDebitParams
   | SepaParams
-  | PaymentMethodCreateParams.USBankAccountParams;
+  | USBankAccountParams;
 
 export interface ConfirmOptions {}
 
