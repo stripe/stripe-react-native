@@ -2,6 +2,7 @@ import type { StripeError } from '.';
 import type { Address } from './Common';
 import type { Result as PaymentMethodResult } from './PaymentMethod';
 import type { NextAction } from './NextAction';
+import type * as PaymentMethod from './PaymentMethod';
 
 export interface Result {
   id: string;
@@ -21,6 +22,10 @@ export interface Result {
   shipping: ShippingDetails | null;
   nextAction: NextAction | null;
 }
+
+export type ConfirmParams = PaymentMethod.CreateParams;
+
+export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
 export type LastPaymentError = StripeError<string> & {
   paymentMethod: PaymentMethodResult;

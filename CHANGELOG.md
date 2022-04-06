@@ -26,7 +26,7 @@
   - (Typescript) `CreateTokenParams` is now `Token.CreateParams`
   - (Typescript) `ConfirmSetupIntent.Params` is now `SetupIntent.ConfirmParams`
   - (Typescript) `ConfirmSetupIntent.Options` is now `SetupIntent.ConfirmOptions`
-  - (Typescript) `confirmPayment` now accepts the `PaymentMethod.ConfirmParams` (same type, just renamed).
+  - (Typescript) `confirmPayment` now accepts the `PaymentIntent.ConfirmParams` (same type, just renamed).
   - (Typescript) `BillingDetails` type is now exported directly, instead of under the `PaymentMethodCreateParams` object.
   - (Typescript) `presentGooglePay` now accepts `GooglePay.PresentParams`
   - (Typescript) `GooglePay.PresentGooglePayParams` is now `GooglePay.PresentParams`

@@ -10,6 +10,7 @@ import {
   ConfirmSetupIntentError,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
+  PaymentIntent,
   ConfirmSetupIntentResult,
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
@@ -137,8 +138,8 @@ export const retrieveSetupIntent = async (
 
 export const confirmPayment = async (
   paymentIntentClientSecret: string,
-  params: PaymentMethod.ConfirmParams,
-  options: PaymentMethod.ConfirmOptions = {}
+  params: PaymentIntent.ConfirmParams,
+  options: PaymentIntent.ConfirmOptions = {}
 ): Promise<ConfirmPaymentResult> => {
   try {
     const { paymentIntent, error } = await NativeStripeSdk.confirmPayment(
