@@ -435,6 +435,14 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   return map
 }
 
+internal fun mapFromMicrodepositType(type: MicrodepositType): String {
+  return when (type) {
+    MicrodepositType.AMOUNTS -> "amounts"
+    MicrodepositType.DESCRIPTOR_CODE -> "descriptorCode"
+    else -> "unknown"
+  }
+}
+
 internal fun mapNextAction(type: NextActionType?, data: NextActionData?): WritableNativeMap? {
   val nextActionMap = WritableNativeMap()
   when (type) {
@@ -444,14 +452,14 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
         nextActionMap.putString("redirectUrl", it.url.toString())
       }
     }
-     NextActionType.VerifyWithMicrodeposits -> {
-       (data as? NextActionData.VerifyWithMicrodeposits)?.let {
-         nextActionMap.putString("type", "verifyWithMicrodeposits")
-         nextActionMap.putString("arrivalDate", it.arrivalDate.toString())
-         nextActionMap.putString("redirectUrl", it.hostedVerificationUrl)
-         nextActionMap.putString("microdepositType", it.microdepositType.toString())
-       }
-     }
+    NextActionType.VerifyWithMicrodeposits -> {
+      (data as? NextActionData.VerifyWithMicrodeposits)?.let {
+        nextActionMap.putString("type", "verifyWithMicrodeposits")
+        nextActionMap.putString("arrivalDate", it.arrivalDate.toString())
+        nextActionMap.putString("redirectUrl", it.hostedVerificationUrl)
+        nextActionMap.putString("microdepositType", mapFromMicrodepositType(it.microdepositType))
+      }
+    }
     NextActionType.DisplayOxxoDetails -> {
       (data as? NextActionData.DisplayOxxoDetails)?.let {
         nextActionMap.putString("type", "oxxoVoucher")
@@ -518,14 +526,14 @@ internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Addr
     .setLine2(getValOr(addressMap, "line2"))
     .setState(getValOr(addressMap, "state"))
 
-    cardAddress?.let { ca ->
-      ca.postalCode?.let {
-        address.setPostalCode(it)
-      }
-      ca.country?.let {
-        address.setCountry(it)
-      }
+  cardAddress?.let { ca ->
+    ca.postalCode?.let {
+      address.setPostalCode(it)
     }
+    ca.country?.let {
+      address.setCountry(it)
+    }
+  }
 
   return address.build()
 }

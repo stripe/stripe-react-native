@@ -9,8 +9,7 @@ import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Promise
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.Stripe
-import com.stripe.android.model.PaymentIntent
-import com.stripe.android.model.StripeIntent
+import com.stripe.android.model.*
 import com.stripe.android.payments.paymentlauncher.PaymentLauncher
 import com.stripe.android.payments.paymentlauncher.PaymentResult
 
@@ -23,6 +22,7 @@ class PaymentLauncherFragment(
 
   var clientSecret: String? = null
   var promise: Promise? = null
+  var isPaymentIntent: Boolean = true
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -32,14 +32,38 @@ class PaymentLauncherFragment(
     }
   }
 
+  fun handleNextActionForPaymentIntent(clientSecret: String, promise: Promise) {
+    this.clientSecret = clientSecret
+    this.promise = promise
+    paymentLauncher.handleNextActionForPaymentIntent(clientSecret)
+  }
+
+  fun confirm(params: ConfirmPaymentIntentParams, clientSecret: String, promise: Promise) {
+    this.clientSecret = clientSecret
+    this.promise = promise
+    this.isPaymentIntent = true
+    paymentLauncher.confirm(params)
+  }
+
+  fun confirm(params: ConfirmSetupIntentParams, clientSecret: String, promise: Promise) {
+    this.clientSecret = clientSecret
+    this.promise = promise
+    this.isPaymentIntent = false
+    paymentLauncher.confirm(params)
+  }
+
   private fun createPaymentLauncher(): PaymentLauncher {
     return PaymentLauncher.create(this, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
           clientSecret?.let {
-            retrievePaymentIntent(it, stripeAccountId)
+            if (isPaymentIntent) retrievePaymentIntent(it, stripeAccountId)
+            else retrieveSetupIntent(it, stripeAccountId)
           } ?: run {
-            throw Exception("Client secret must be set before responding to payment results.")
+            promise?.resolve(
+              createError(ConfirmPaymentErrorType.Failed.toString(), "Client secret must be set before responding to payment results.")
+            )
+              ?: throw Exception("Client secret must be set before responding to payment results.")
           }
         }
         is PaymentResult.Canceled -> {
@@ -54,6 +78,46 @@ class PaymentLauncherFragment(
     }
   }
 
+  private fun retrieveSetupIntent(clientSecret: String, stripeAccountId: String?) {
+    val promise = promise ?: throw Exception("No promise is set to handle payment results.")
+    stripe.retrieveSetupIntent(clientSecret, stripeAccountId, object : ApiResultCallback<SetupIntent> {
+      override fun onError(e: Exception) {
+        promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
+      }
+
+      override fun onSuccess(result: SetupIntent) {
+        when (result.status) {
+          StripeIntent.Status.Succeeded,
+          StripeIntent.Status.Processing,
+          StripeIntent.Status.RequiresConfirmation,
+          StripeIntent.Status.RequiresCapture -> {
+            promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
+          }
+          StripeIntent.Status.RequiresAction -> {
+            if (isNextActionSuccessState(result.nextActionType)) {
+              promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
+            } else {
+              (result.lastSetupError)?.let {
+                promise.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), it))
+              } ?: run {
+                promise.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), "Setup has been canceled"))
+              }
+            }
+          }
+          StripeIntent.Status.RequiresPaymentMethod -> {
+            promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), result.lastSetupError))
+          }
+          StripeIntent.Status.Canceled -> {
+            promise.resolve(createError(ConfirmSetupIntentErrorType.Canceled.toString(), result.lastSetupError))
+          }
+          else -> {
+            promise.resolve(createError(ConfirmSetupIntentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
+          }
+        }
+      }
+    })
+  }
+
   private fun retrievePaymentIntent(clientSecret: String, stripeAccountId: String?) {
     val promise = promise ?: throw Exception("No promise is set to handle payment results.")
     stripe.retrievePaymentIntent(clientSecret, stripeAccountId, object : ApiResultCallback<PaymentIntent> {
@@ -65,14 +129,13 @@ class PaymentLauncherFragment(
         when (result.status) {
           StripeIntent.Status.Succeeded,
           StripeIntent.Status.Processing,
+          StripeIntent.Status.RequiresConfirmation,
           StripeIntent.Status.RequiresCapture -> {
-            val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
-            promise.resolve(paymentIntent)
+            promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
           }
           StripeIntent.Status.RequiresAction -> {
             if (isNextActionSuccessState(result.nextActionType)) {
-              val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
-              promise.resolve(paymentIntent)
+              promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
             } else {
               (result.lastPaymentError)?.let {
                 promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
@@ -82,20 +145,13 @@ class PaymentLauncherFragment(
             }
           }
           StripeIntent.Status.RequiresPaymentMethod -> {
-            val error = result.lastPaymentError
-            promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
-          }
-          StripeIntent.Status.RequiresConfirmation -> {
-            val paymentIntent = createResult("paymentIntent", mapFromPaymentIntentResult(result))
-            promise.resolve(paymentIntent)
+            promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.lastPaymentError))
           }
           StripeIntent.Status.Canceled -> {
-            val error = result.lastPaymentError
-            promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), error))
+            promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), result.lastPaymentError))
           }
           else -> {
-            val errorMessage = "unhandled error: ${result.status}"
-            promise.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), errorMessage))
+            promise.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
           }
         }
       }

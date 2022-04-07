@@ -156,8 +156,8 @@ class PaymentMethodCreateParamsFactory(
       val sepaParams = PaymentMethodCreateParams.SepaDebit(iban)
       val createParams =
         PaymentMethodCreateParams.create(
-                     sepaDebit = sepaParams,
-                     billingDetails = it
+          sepaDebit = sepaParams,
+          billingDetails = it
         )
 
       return ConfirmSetupIntentParams.create(
@@ -172,7 +172,7 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
     val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
-      ?: throw PaymentMethodCreateParamsException("Card details not complete")
+    ?: throw PaymentMethodCreateParamsException("Card details not complete")
 
     val paymentMethodCreateParams =
       PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
@@ -426,23 +426,29 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createUSBankAccountPaymentSetupParams(): ConfirmSetupIntentParams {
-    if (billingDetailsParams?.name.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
-    }
-
-    return ConfirmSetupIntentParams
-      .create(
+    params.getString("accountNumber")?.let {
+      if (billingDetailsParams?.name.isNullOrBlank()) {
+        throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
+      }
+      return ConfirmSetupIntentParams.create(
         paymentMethodCreateParams = createUSBankAccountParams(params),
         clientSecret = clientSecret,
       )
+    } ?: run {
+      // Payment method is assumed to be already attached through via collectBankAccountForSetup
+      return ConfirmSetupIntentParams.create(
+        clientSecret = clientSecret,
+        paymentMethodType = PaymentMethod.Type.USBankAccount
+      )
+    }
   }
 
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createKlarnaPaymentConfirmParams(): ConfirmPaymentIntentParams {
     if (billingDetailsParams == null ||
-        billingDetailsParams.address?.country.isNullOrBlank() ||
-        billingDetailsParams.email.isNullOrBlank()
+      billingDetailsParams.address?.country.isNullOrBlank() ||
+      billingDetailsParams.email.isNullOrBlank()
     ) {
       throw PaymentMethodCreateParamsException("Klarna requires that you provide the following billing details: email, country")
     }
@@ -458,15 +464,23 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createUSBankAccountPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    if (billingDetailsParams?.name.isNullOrBlank()) {
-      throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
-    }
+    params.getString("accountNumber")?.let {
+      if (billingDetailsParams?.name.isNullOrBlank()) {
+        throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
+      }
 
-    return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
-      paymentMethodCreateParams = createUSBankAccountParams(params),
-      clientSecret,
-      setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
-    )
+      return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = createUSBankAccountParams(params),
+        clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(params, "setupFutureUsage"))
+      )
+    } ?: run {
+      // Payment method is assumed to be already attached through via collectBankAccountForPayment
+      return ConfirmPaymentIntentParams.create(
+        clientSecret = clientSecret,
+        paymentMethodType = PaymentMethod.Type.USBankAccount
+      )
+    }
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
