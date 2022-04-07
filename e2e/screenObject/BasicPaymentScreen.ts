@@ -81,7 +81,7 @@ class BasicPaymentScreen {
         let button = $(`button*=Manually verify instead`);
         if (button.isDisplayed()) {
           button.click();
-          driver.pause(1000);
+          driver.pause(5000);
 
           button = $(`//input[@name='confirmAccountNumber']`);
           button.click();
@@ -100,6 +100,7 @@ class BasicPaymentScreen {
           button = $(`button*=Continue`);
           button.click();
           button.click();
+          driver.pause(5000);
 
           button = $(`button*=Done`);
           button.click();
