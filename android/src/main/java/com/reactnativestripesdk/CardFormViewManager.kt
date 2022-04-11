@@ -36,9 +36,9 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
-   @ReactProp(name = "placeholder")
-   fun setPlaceHolders(view: CardFormView, placeholder: ReadableMap) {
-     view.setPlaceHolders(placeholder);
+   @ReactProp(name = "placeholders")
+   fun setPlaceHolders(view: CardFormView, placeholders: ReadableMap) {
+     view.setPlaceHolders(placeholders);
    }
 
   @ReactProp(name = "autofocus")

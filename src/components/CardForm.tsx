@@ -41,7 +41,7 @@ export interface Props extends AccessibilityProps {
   // postalCodeEnabled?: boolean;
 
   /** Android only */
-  placeholder?: CardFormView.Placeholders;
+  placeholders?: CardFormView.Placeholders;
   // onBlur?(): void;
   // onFocus?(focusedField: CardFormView.FieldNames | null): void;
   onFormComplete?(card: CardFormView.Details): void;
@@ -80,7 +80,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       // postalCodeEnabled = true,
       // onFocus,
       // onBlur,
-      placeholder,
+      placeholders,
       ...props
     },
     ref
@@ -178,11 +178,11 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           // type: cardStyle?.type,
         }}
         // isUserInteractionEnabledValue={isUserInteractionEnabled}
-        placeholder={{
-          number: placeholder?.number,
-          expiration: placeholder?.expiration,
-          cvc: placeholder?.cvc,
-          postalCode: placeholder?.postalCode,
+        placeholders={{
+          number: placeholders?.number,
+          expiration: placeholders?.expiration,
+          cvc: placeholders?.cvc,
+          postalCode: placeholders?.postalCode,
         }}
         onFocusChange={onFocusHandler}
         // postalCodeEnabled={postalCodeEnabled}

@@ -43,7 +43,7 @@ export interface NativeProps {
   // isUserInteractionEnabledValue?: boolean;
   cardStyle?: Styles;
   /** Android only */
-  placeholder?: Placeholders;
+  placeholders?: Placeholders;
   // postalCodeEnabled: boolean;
   onFocusChange(
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>

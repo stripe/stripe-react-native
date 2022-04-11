@@ -87,7 +87,7 @@ export default function MultilineWebhookPaymentScreen() {
         style={styles.input}
       />
       <CardForm
-        placeholder={{
+        placeholders={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',
           cvc: 'CVC',
