@@ -27,7 +27,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
     var shippingContactUpdateHandler: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
     
-    static let MISSING_INIT_ERROR = Errors.createError(PaymentSheetErrorType.Failed.rawValue, "Stripe publishableKey has not been set. Make sure you have initialized Stripe in your app with the StripeProvider component or the initStripe method.")
+    static let MISSING_INIT_ERROR = Errors.createError(ErrorType.Failed.rawValue, "Stripe publishableKey has not been set. Make sure you have initialized Stripe in your app with the StripeProvider component or the initStripe method.")
     
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
