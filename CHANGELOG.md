@@ -1,6 +1,10 @@
 # CHANGELOG
 
+- [#849](https://github.com/stripe/stripe-react-native/pull/849) BREAKING CHANGE: Renamed `placeholder` prop on `<CardField />` and `<CardForm />` to `placeholders`.
+- [#849](https://github.com/stripe/stripe-react-native/pull/849) Feat: Added customized styling options to `<CardForm />` on Android.
+
 ## 0.7.0
+
 - [#894](https://github.com/stripe/stripe-react-native/pull/894) Fix: `<CardField />` `onBlur` callback will now be called appropriately on Android
 - [#846](https://github.com/stripe/stripe-react-native/pull/846) Fix: Avoid crashes when `currentActivity` is null
 - [#879](https://github.com/stripe/stripe-react-native/pull/879) Feat: Add support for ACHv2 payments on Android (already existed on iOS).
