@@ -25,6 +25,15 @@ export interface Styles {
   backgroundColor?: string;
   // disabledBackgroundColor?: string;
   // type?: 'borderless' | 'standard';
+  borderWidth?: number;
+  borderColor?: string;
+  borderRadius?: number;
+  textColor?: string;
+  fontSize?: number;
+  placeholderColor?: string;
+  cursorColor?: string;
+  textErrorColor?: string;
+  fontFamily?: string;
 }
 
 export interface Placeholders {
