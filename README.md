@@ -96,7 +96,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-Compatible with apps targeting iOS 11 or above.
+Compatible with apps targeting iOS 12 or above.
 
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
