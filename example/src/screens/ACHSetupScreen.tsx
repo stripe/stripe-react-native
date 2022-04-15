@@ -70,6 +70,51 @@ export default function ACHSetupScreen() {
     }
   };
 
+  const handleConfirmManualBankAccountParamsPress = async () => {
+    const { clientSecret, error: clientSecretError } =
+      await fetchSetupIntentClientSecret();
+
+    if (clientSecretError) {
+      Alert.alert(`Error`, clientSecretError);
+      return;
+    }
+
+    setSecret(clientSecret);
+
+    const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
+      type: 'USBankAccount',
+      accountNumber: '000123456789',
+      routingNumber: '110000000',
+      billingDetails: {
+        name: 'David Wallace',
+      },
+    });
+
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+    } else if (setupIntent) {
+      if (setupIntent.status === SetupIntent.Status.Processing) {
+        Alert.alert(
+          'Processing',
+          `The setup has been successfully submitted and is now processing.`
+        );
+      } else if (setupIntent.status === SetupIntent.Status.Succeeded) {
+        Alert.alert('Success', `The setup was confirmed successfully!`);
+      } else if (
+        setupIntent.status === SetupIntent.Status.RequiresAction &&
+        setupIntent?.nextAction?.type === 'verifyWithMicrodeposits'
+      ) {
+        setAwaitingVerification(true);
+        Alert.alert(
+          'Awaiting verification:',
+          'The setup must be verified. Please provide the verification input values below.'
+        );
+      } else {
+        Alert.alert('Setup status:', setupIntent.status);
+      }
+    }
+  };
+
   const handleCollectBankAccountPress = async () => {
     const { clientSecret, error: clientSecretError } =
       await fetchSetupIntentClientSecret();
@@ -159,9 +204,16 @@ export default function ACHSetupScreen() {
         <Button
           variant="primary"
           onPress={handleConfirmPress}
-          title="Confirm"
+          title="Confirm (must collect bank account first)"
           disabled={!canConfirm}
           accessibilityLabel="Confirm"
+          loading={loading}
+        />
+        <Button
+          variant="primary"
+          onPress={handleConfirmManualBankAccountParamsPress}
+          title="Confirm (pass bank account details directly)"
+          accessibilityLabel="Confirm-manual"
           loading={loading}
         />
       </View>
