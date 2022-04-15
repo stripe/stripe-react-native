@@ -44,8 +44,10 @@ export default function GrabPayPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'GrabPay',
-      billingDetails,
+      paymentMethodType: 'GrabPay',
+      paymentMethodData: {
+        billingDetails,
+      },
     });
 
     if (error) {

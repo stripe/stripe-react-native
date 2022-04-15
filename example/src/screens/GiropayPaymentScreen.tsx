@@ -43,8 +43,10 @@ export default function GiropayPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Giropay',
-      billingDetails,
+      paymentMethodType: 'Giropay',
+      paymentMethodData: {
+        billingDetails,
+      },
     });
 
     if (error) {

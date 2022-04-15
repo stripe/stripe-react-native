@@ -38,8 +38,10 @@ export default function BancontactSetupFuturePaymentScreen() {
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'Bancontact',
-      billingDetails,
+      paymentMethodType: 'Bancontact',
+      paymentMethodData: {
+        billingDetails,
+      },
     });
 
     if (error) {

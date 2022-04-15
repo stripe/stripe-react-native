@@ -196,9 +196,11 @@ function PaymentScreen() {
     const clientSecret = await fetchPaymentIntentClientSecret();
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'WeChatPay',
-      billingDetails,
-      appId: 'wx65907d6307c3827d',
+      paymentMethodType: 'WeChatPay',
+      paymentMethodData: {
+        billingDetails,
+        appId: 'wx65907d6307c3827d',
+      },
     });
 
     if (error) {

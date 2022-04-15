@@ -38,11 +38,13 @@ export default function KlarnaPaymentScreen() {
     }
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Klarna',
-      billingDetails: {
-        email: 'stripe@test.com',
-        address: {
-          country: 'US',
+      paymentMethodType: 'Klarna',
+      paymentMethodData: {
+        billingDetails: {
+          email: 'stripe@test.com',
+          address: {
+            country: 'US',
+          },
         },
       },
     });

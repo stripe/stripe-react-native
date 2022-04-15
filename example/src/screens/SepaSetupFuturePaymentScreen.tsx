@@ -37,9 +37,11 @@ export default function SepaSetupFuturePaymentScreen() {
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'SepaDebit',
-      billingDetails,
-      iban,
+      paymentMethodType: 'SepaDebit',
+      paymentMethodData: {
+        billingDetails,
+        iban,
+      },
     });
 
     if (error) {
