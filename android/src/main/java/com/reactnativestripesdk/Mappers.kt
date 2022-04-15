@@ -361,7 +361,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   usBankAccount.putArray("supportedNetworks", paymentMethod.usBankAccount?.networks?.supported as? ReadableArray)
 
   pm.putString("id", paymentMethod.id)
-  pm.putString("type", mapPaymentMethodType(paymentMethod.type))
+  pm.putString("paymentMethodType", mapPaymentMethodType(paymentMethod.type))
   pm.putBoolean("livemode", paymentMethod.liveMode)
   pm.putString("customerId", paymentMethod.customerId)
   pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
@@ -498,8 +498,10 @@ internal fun mapFromSetupIntentLastErrorType(errorType: SetupIntent.Error.Type?)
   }
 }
 
-fun getValOr(map: ReadableMap, key: String, default: String? = ""): String? {
-  return if (map.hasKey(key)) map.getString(key) else default
+fun getValOr(map: ReadableMap?, key: String, default: String? = ""): String? {
+  return map?.let {
+    if (it.hasKey(key)) it.getString(key) else default
+  } ?: default
 }
 
 internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Address? {
