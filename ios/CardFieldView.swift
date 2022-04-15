@@ -134,7 +134,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 "expiryMonth": textField.cardParams.expMonth ?? NSNull(),
                 "expiryYear": textField.cardParams.expYear ?? NSNull(),
                 "complete": textField.isValid,
-                "brand": Mappers.mapCardBrand(brand) ?? NSNull(),
+                "brand": Mappers.mapFromCardBrand(brand) ?? NSNull(),
                 "last4": textField.cardParams.last4 ?? "",
                 "validExpiryDate": Mappers.mapFromCardValidationState(state: validExpiryDate),
                 "validCVC": Mappers.mapFromCardValidationState(state: validCVC),

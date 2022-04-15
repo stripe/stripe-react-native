@@ -82,7 +82,7 @@ class Mappers {
             return nil
         }
         let cardMap: NSDictionary = [
-            "brand": mapCardBrand(card?.brand) ?? NSNull(),
+            "brand": mapFromCardBrand(card?.brand) ?? NSNull(),
             "country": card?.country ?? NSNull(),
             "currency": card?.currency ?? NSNull(),
             "expMonth": card?.expMonth ?? NSNull(),
@@ -550,7 +550,7 @@ class Mappers {
         return billing
     }
 
-    class func mapCardBrand(_ brand: STPCardBrand?) -> String? {
+    class func mapFromCardBrand(_ brand: STPCardBrand?) -> String? {
         if let brand = brand {
             switch brand {
             case STPCardBrand.visa: return "Visa"
@@ -566,13 +566,30 @@ class Mappers {
         }
         return nil
     }
+    
+    class func mapToCardBrand(_ brand: String?) -> STPCardBrand {
+        if let brand = brand {
+            switch brand {
+            case "Visa": return STPCardBrand.visa
+            case "AmericanExpress" : return STPCardBrand.amex
+            case "MasterCard": return STPCardBrand.mastercard
+            case "Discover": return STPCardBrand.discover
+            case "JCB": return STPCardBrand.JCB
+            case "DinersClub": return STPCardBrand.dinersClub
+            case "UnionPay": return STPCardBrand.unionPay
+            case "Unknown": return STPCardBrand.unknown
+            default: return STPCardBrand.unknown
+            }
+        }
+        return STPCardBrand.unknown
+    }
 
     class func mapFromPaymentMethod(_ paymentMethod: STPPaymentMethod?) -> NSDictionary? {
         guard let paymentMethod = paymentMethod else {
             return nil
         }
         let card: NSDictionary = [
-            "brand": Mappers.mapCardBrand(paymentMethod.card?.brand) ?? NSNull(),
+            "brand": Mappers.mapFromCardBrand(paymentMethod.card?.brand) ?? NSNull(),
             "country": paymentMethod.card?.country ?? NSNull(),
             "expYear": paymentMethod.card?.expYear ?? NSNull(),
             "expMonth": paymentMethod.card?.expMonth ?? NSNull(),
@@ -922,6 +939,15 @@ class Mappers {
             }
         }
         return "Unknown"
+    }
+
+    class func mapToPKAddPassButtonStyle(style: String?) -> PKAddPassButtonStyle {
+        if let style = style {
+            if (style == "onDarkBackground") {
+                return .blackOutline
+            }
+        }
+        return .black
     }
 
     class func mapFromUSBankAccountHolderType(type: STPPaymentMethodUSBankAccountHolderType?) -> String {
