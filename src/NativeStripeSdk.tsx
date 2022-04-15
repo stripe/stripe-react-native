@@ -77,12 +77,12 @@ type NativeStripeSdkType = {
   ): Promise<CreateGooglePayPaymentMethodResult>;
   openApplePaySetup(): Promise<OpenApplePaySetupResult>;
   verifyMicrodeposits(
-    type: 'payment' | 'setup',
+    isPaymentIntent: boolean,
     clientSecret: string,
     params: VerifyMicrodepositsParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
   collectBankAccount(
-    type: 'payment' | 'setup',
+    isPaymentIntent: boolean,
     clientSecret: string,
     params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
