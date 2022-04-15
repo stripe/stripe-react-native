@@ -13,6 +13,7 @@ import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.stripe.android.*
 import com.stripe.android.core.AppInfo
+import com.stripe.android.core.ApiVersion
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.model.*
@@ -188,6 +189,14 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
       }
     }
   }
+
+  override fun getConstants(): MutableMap<String, Any> =
+    hashMapOf(
+      "apiVersions" to hashMapOf(
+        "core" to ApiVersion.API_VERSION_CODE,
+        "issuing" to PushProvisioningProxy.getApiVersion(),
+      )
+    )
 
   @ReactMethod
   fun initialise(params: ReadableMap, promise: Promise) {
@@ -607,6 +616,19 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   }
 
   @ReactMethod
+  @SuppressWarnings("unused")
+  fun isCardInWallet(params: ReadableMap, promise: Promise) {
+    val last4 = getValOr(params, "cardLastFour", null) ?: run {
+      promise.resolve(createError("Failed", "You must provide cardLastFour"))
+      return
+    }
+    currentActivity?.let {
+      PushProvisioningProxy.isCardInWallet(it, last4, promise)
+    }
+  }
+
+  @ReactMethod
+  @SuppressWarnings("unused")
   fun collectBankAccount(isPaymentIntent: Boolean, clientSecret: String, params: ReadableMap, promise: Promise) {
     val paymentMethodType = mapToPaymentMethodType(getValOr(params, "type", null))
     if (paymentMethodType != PaymentMethod.Type.USBankAccount) {
