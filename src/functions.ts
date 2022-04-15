@@ -32,6 +32,7 @@ import {
   VerifyMicrodepositsForSetupResult,
   CollectBankAccountForPaymentResult,
   CollectBankAccountForSetupResult,
+  IsCardInWalletResult,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -563,3 +564,29 @@ export const collectBankAccountForSetup = async (
     };
   }
 };
+
+export const isCardInWallet = async (params: {
+  cardLastFour: string;
+}): Promise<IsCardInWalletResult> => {
+  try {
+    const { isInWallet, token, error } = await NativeStripeSdk.isCardInWallet(
+      params
+    );
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      isInWallet: isInWallet as boolean,
+      token: token,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const Constants = NativeStripeSdk.getConstants();

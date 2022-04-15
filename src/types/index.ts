@@ -272,3 +272,24 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
+
+export type GooglePayCardToken = {
+  id: string;
+  cardLastFour: string;
+  network: number;
+  serviceProvider: number;
+  issuer: string;
+  status: string;
+};
+
+export type IsCardInWalletResult =
+  | {
+      isInWallet: boolean;
+      token?: GooglePayCardToken;
+      error?: undefined;
+    }
+  | {
+      isInWallet?: undefined;
+      token?: undefined;
+      error: StripeError<GooglePayError>;
+    };
