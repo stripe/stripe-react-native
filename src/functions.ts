@@ -534,15 +534,6 @@ export const collectBankAccountForPayment = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForPaymentResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: CollectBankAccountError.Failed,
-  //       message:
-  //         'collectBankAccountForPayment is only supported on iOS on this version of @stripe/stripe-react-native.',
-  //     }),
-  //   };
-  // }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.collectBankAccount(
       true,
@@ -569,15 +560,6 @@ export const collectBankAccountForSetup = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForSetupResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: CollectBankAccountError.Failed,
-  //       message:
-  //         'collectBankAccountForSetup is only supported on iOS on this version of @stripe/stripe-react-native.',
-  //     }),
-  //   };
-  // }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.collectBankAccount(
       false,
