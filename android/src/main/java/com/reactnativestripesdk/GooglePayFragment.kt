@@ -87,9 +87,6 @@ class GooglePayFragment : Fragment() {
       readyCallback = ::onGooglePayLauncherReady,
       resultCallback = ::onGooglePayResult
     )
-
-    val intent = Intent(ON_GOOGLE_PAY_FRAGMENT_CREATED)
-    localBroadcastManager.sendBroadcast(intent)
   }
 
   fun presentForPaymentIntent(clientSecret: String) {
