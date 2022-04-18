@@ -936,6 +936,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
+        guard let apiClient = apiClient else {
+            resolve(StripeSdk.MISSING_INIT_ERROR)
+            return
+        }
+        
         let amounts = params["amounts"] as? NSArray
         let descriptorCode = params["descriptorCode"] as? String
         
@@ -950,14 +955,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return
             }
             if (isPaymentIntent) {
-                STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
+                apiClient.verifyPaymentIntentWithMicrodeposits(
                     clientSecret: clientSecret as String,
                     firstAmount: amounts[0] as! Int,
                     secondAmount: amounts[1] as! Int,
                     completion: onCompletePaymentVerification
                 )
             } else {
-                STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
+                apiClient.verifySetupIntentWithMicrodeposits(
                     clientSecret: clientSecret as String,
                     firstAmount: amounts[0] as! Int,
                     secondAmount: amounts[1] as! Int,
@@ -966,13 +971,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         } else if let descriptorCode = descriptorCode {
             if (isPaymentIntent) {
-                STPAPIClient.shared.verifyPaymentIntentWithMicrodeposits(
+                apiClient.verifyPaymentIntentWithMicrodeposits(
                     clientSecret: clientSecret as String,
                     descriptorCode: descriptorCode,
                     completion: onCompletePaymentVerification
                 )
             } else {
-                STPAPIClient.shared.verifySetupIntentWithMicrodeposits(
+                apiClient.verifySetupIntentWithMicrodeposits(
                     clientSecret: clientSecret as String,
                     descriptorCode: descriptorCode,
                     completion: onCompleteSetupVerification
