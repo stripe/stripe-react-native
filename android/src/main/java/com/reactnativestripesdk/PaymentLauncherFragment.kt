@@ -18,11 +18,10 @@ class PaymentLauncherFragment(
   private val publishableKey: String,
   private val stripeAccountId: String?,
 ) : Fragment() {
-  lateinit var paymentLauncher: PaymentLauncher
-
-  var clientSecret: String? = null
-  var promise: Promise? = null
-  var isPaymentIntent: Boolean = true
+  private lateinit var paymentLauncher: PaymentLauncher
+  private var clientSecret: String? = null
+  private var promise: Promise? = null
+  private var isPaymentIntent: Boolean = true
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {

@@ -189,7 +189,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun initialise(params: ReadableMap, promise: Promise) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
@@ -234,7 +233,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
     val activity = currentActivity as AppCompatActivity?
 
@@ -255,14 +253,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun presentPaymentSheet(promise: Promise) {
     this.presentPaymentSheetPromise = promise
     paymentSheetFragment?.present()
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun confirmPaymentSheetPayment(promise: Promise) {
     this.confirmPaymentSheetPaymentPromise = promise
     paymentSheetFragment?.confirmPayment()
@@ -306,7 +302,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun createPaymentMethod(data: ReadableMap, options: ReadableMap, promise: Promise) {
     val cardParams = (cardFieldView?.cardParams ?: cardFormView?.cardParams) ?: run {
       promise.resolve(createError("Failed", "Card details not complete"))
@@ -332,7 +327,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun createToken(params: ReadableMap, promise: Promise) {
     val type = getValOr(params, "type", null)
     if (type == null) {
@@ -413,7 +407,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun createTokenForCVCUpdate(cvc: String, promise: Promise) {
     stripe.createCvcUpdateToken(
       cvc,
@@ -433,7 +426,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun handleNextAction(paymentIntentClientSecret: String, promise: Promise) {
     paymentLauncherFragment.handleNextActionForPaymentIntent(
       paymentIntentClientSecret,
@@ -461,7 +453,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 //  }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun confirmPayment(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
@@ -506,7 +497,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
@@ -519,7 +509,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
@@ -532,7 +521,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun confirmSetupIntent(setupIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
     val paymentMethodType = getValOr(params, "type")?.let { mapToPaymentMethodType(it) } ?: run {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
@@ -557,7 +545,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
     val fragment = GooglePayPaymentMethodLauncherFragment(
       currentActivity as AppCompatActivity,
@@ -572,7 +559,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun initGooglePay(params: ReadableMap, promise: Promise) {
     val activity = currentActivity as AppCompatActivity
     val fragment = GooglePayFragment().also {
@@ -588,7 +574,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun presentGooglePay(params: ReadableMap, promise: Promise) {
     val clientSecret = getValOr(params, "clientSecret") ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
@@ -607,7 +592,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun createGooglePayPaymentMethod(params: ReadableMap, promise: Promise) {
     val currencyCode = getValOr(params, "currencyCode", null) ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
@@ -622,7 +606,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun collectBankAccount(isPaymentIntent: Boolean, clientSecret: String, params: ReadableMap, promise: Promise) {
     val paymentMethodType = mapToPaymentMethodType(getValOr(params, "type", null))
     if (paymentMethodType != PaymentMethod.Type.USBankAccount) {
@@ -658,7 +641,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun verifyMicrodeposits(isPaymentIntent: Boolean, clientSecret: String, params: ReadableMap, promise: Promise) {
     val amounts = params.getArray("amounts")
     val descriptorCode = params.getString("descriptorCode")
