@@ -144,7 +144,7 @@ export default function ACHSetupScreen() {
       if (setupIntent.status === SetupIntent.Status.RequiresConfirmation) {
         Alert.alert(
           'Setup status: RequiresConfirmation',
-          "You may now press the 'Confirm' button."
+          "You may now press the first 'Confirm' button."
         );
       } else {
         if (
@@ -204,7 +204,7 @@ export default function ACHSetupScreen() {
         <Button
           variant="primary"
           onPress={handleConfirmPress}
-          title="Confirm (must collect bank account first)"
+          title="Confirm"
           disabled={!canConfirm}
           accessibilityLabel="Confirm"
           loading={loading}

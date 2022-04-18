@@ -152,7 +152,7 @@ export default function ACHPaymentScreen() {
       if (paymentIntent.status === PaymentIntent.Status.RequiresConfirmation) {
         Alert.alert(
           'Payment status: RequiresConfirmation',
-          "You may now press the 'Confirm' button."
+          "You may now press the first 'Confirm' button."
         );
       } else {
         if (
@@ -212,7 +212,7 @@ export default function ACHPaymentScreen() {
         <Button
           variant="primary"
           onPress={handleConfirmPress}
-          title="Confirm (must collect bank account first)"
+          title="Confirm"
           disabled={!canConfirm}
           accessibilityLabel="Confirm"
           loading={loading}
