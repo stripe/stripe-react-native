@@ -106,6 +106,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.Upi -> "Upi"
     PaymentMethod.Type.WeChatPay -> "WeChatPay"
     PaymentMethod.Type.Klarna -> "Klarna"
+    PaymentMethod.Type.USBankAccount -> "USBankAccount"
     else -> "Unknown"
   }
 }
@@ -132,6 +133,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "Upi" -> PaymentMethod.Type.Upi
     "WeChatPay" -> PaymentMethod.Type.WeChatPay
     "Klarna" -> PaymentMethod.Type.Klarna
+    "USBankAccount" -> PaymentMethod.Type.USBankAccount
     else -> null
   }
 }
@@ -213,6 +215,38 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
   return bankAccountMap
 }
 
+internal fun mapToUSBankAccountHolderType(type: String?): PaymentMethod.USBankAccount.USBankAccountHolderType {
+  return when (type) {
+    "Company" -> PaymentMethod.USBankAccount.USBankAccountHolderType.COMPANY
+    "Individual" -> PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL
+    else -> PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL
+  }
+}
+
+internal fun mapFromUSBankAccountHolderType(type: PaymentMethod.USBankAccount.USBankAccountHolderType): String {
+  return when (type) {
+    PaymentMethod.USBankAccount.USBankAccountHolderType.COMPANY -> "Company"
+    PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL -> "Individual"
+    else -> "Unknown"
+  }
+}
+
+internal fun mapToUSBankAccountType(type: String?): PaymentMethod.USBankAccount.USBankAccountType {
+  return when (type) {
+    "Savings" -> PaymentMethod.USBankAccount.USBankAccountType.SAVINGS
+    "Checking" -> PaymentMethod.USBankAccount.USBankAccountType.CHECKING
+    else -> PaymentMethod.USBankAccount.USBankAccountType.CHECKING
+  }
+}
+
+internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAccountType): String {
+  return when (type) {
+    PaymentMethod.USBankAccount.USBankAccountType.CHECKING -> "Checking"
+    PaymentMethod.USBankAccount.USBankAccountType.SAVINGS -> "Savings"
+    else -> "Unknown"
+  }
+}
+
 internal fun mapFromCard(card: Card?): WritableMap? {
   val cardMap: WritableMap = WritableNativeMap()
 
@@ -279,6 +313,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   val ideal: WritableMap = WritableNativeMap()
   val fpx: WritableMap = WritableNativeMap()
   val upi: WritableMap = WritableNativeMap()
+  val usBankAccount: WritableMap = WritableNativeMap()
 
   card.putString("brand", mapCardBrand(paymentMethod.card?.brand))
   card.putString("country", paymentMethod.card?.country)
@@ -315,6 +350,28 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 
   upi.putString("vpa", paymentMethod.upi?.vpa)
 
+  // TODO: Remove reflection once USBankAccount is public payment method in stripe-android
+  try {
+    PaymentMethod::class.java.getDeclaredField("usBankAccount").let {
+      it.isAccessible = true
+      val bankAccountPM = it.get(paymentMethod) as PaymentMethod.USBankAccount
+      usBankAccount.putString("routingNumber", bankAccountPM.routingNumber)
+      usBankAccount.putString("accountHolderType", mapFromUSBankAccountHolderType(bankAccountPM.accountHolderType))
+      usBankAccount.putString("accountType", mapFromUSBankAccountType(bankAccountPM.accountType))
+      usBankAccount.putString("last4", bankAccountPM.last4)
+      usBankAccount.putString("bankName", bankAccountPM.bankName)
+      usBankAccount.putString("linkedAccount", bankAccountPM.linkedAccount)
+      usBankAccount.putString("fingerprint", bankAccountPM.fingerprint)
+      usBankAccount.putString("fingerprint", bankAccountPM.fingerprint)
+      usBankAccount.putString("preferredNetworks", bankAccountPM.networks?.preferred)
+      usBankAccount.putArray("supportedNetworks", bankAccountPM.networks?.supported as? ReadableArray)
+    }
+  } catch (e: java.lang.Exception) {
+    Log.w(
+      "StripeReactNative",
+      "Unable to find USBankAccount method:" + e.message)
+  }
+
   pm.putString("id", paymentMethod.id)
   pm.putString("type", mapPaymentMethodType(paymentMethod.type))
   pm.putBoolean("livemode", paymentMethod.liveMode)
@@ -328,6 +385,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   pm.putMap("Ideal", ideal)
   pm.putMap("Fpx", fpx)
   pm.putMap("Upi", upi)
+  pm.putMap("USBankAccount", usBankAccount)
 
   return pm
 }
@@ -377,6 +435,14 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   return map
 }
 
+internal fun mapFromMicrodepositType(type: MicrodepositType): String {
+  return when (type) {
+    MicrodepositType.AMOUNTS -> "amounts"
+    MicrodepositType.DESCRIPTOR_CODE -> "descriptorCode"
+    else -> "unknown"
+  }
+}
+
 internal fun mapNextAction(type: NextActionType?, data: NextActionData?): WritableNativeMap? {
   val nextActionMap = WritableNativeMap()
   when (type) {
@@ -386,15 +452,14 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
         nextActionMap.putString("redirectUrl", it.url.toString())
       }
     }
-    // TODO: This is currently private. Uncomment when ACHv2 is available on Android.
-    // NextActionType.VerifyWithMicrodeposits -> {
-    //   (data as? NextActionData.VerifyWithMicrodeposits)?.let {
-    //     nextActionMap.putString("type", "verifyWithMicrodeposits")
-    //     nextActionMap.putString("arrivalDate", it.arrivalDate.toString())
-    //     nextActionMap.putString("redirectUrl", it.hostedVerificationUrl)
-    //     nextActionMap.putString("microdepositType", it.microdepositType.toString())
-    //   }
-    // }
+    NextActionType.VerifyWithMicrodeposits -> {
+      (data as? NextActionData.VerifyWithMicrodeposits)?.let {
+        nextActionMap.putString("type", "verifyWithMicrodeposits")
+        nextActionMap.putString("arrivalDate", it.arrivalDate.toString())
+        nextActionMap.putString("redirectUrl", it.hostedVerificationUrl)
+        nextActionMap.putString("microdepositType", mapFromMicrodepositType(it.microdepositType))
+      }
+    }
     NextActionType.DisplayOxxoDetails -> {
       (data as? NextActionData.DisplayOxxoDetails)?.let {
         nextActionMap.putString("type", "oxxoVoucher")
@@ -461,14 +526,14 @@ internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Addr
     .setLine2(getValOr(addressMap, "line2"))
     .setState(getValOr(addressMap, "state"))
 
-    cardAddress?.let { ca ->
-      ca.postalCode?.let {
-        address.setPostalCode(it)
-      }
-      ca.country?.let {
-        address.setCountry(it)
-      }
+  cardAddress?.let { ca ->
+    ca.postalCode?.let {
+      address.setPostalCode(it)
     }
+    ca.country?.let {
+      address.setCountry(it)
+    }
+  }
 
   return address.build()
 }

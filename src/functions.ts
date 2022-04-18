@@ -6,8 +6,6 @@ import {
   ApplePayError,
   ApplePayResult,
   ConfirmPaymentResult,
-  VerifyMicrodepositsError,
-  CollectBankAccountError,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
   PaymentIntent,
@@ -38,8 +36,6 @@ import {
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
-const PAYMENT_INTENT = 'payment';
-const SETUP_INTENT = 'setup';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -328,18 +324,18 @@ export const verifyMicrodepositsForPayment = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForPaymentResult> => {
-  if (isAndroid) {
-    return {
-      error: createError({
-        code: VerifyMicrodepositsError.Failed,
-        message:
-          'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
-      }),
-    };
-  }
+  // if (isAndroid) {
+  //   return {
+  //     error: createError({
+  //       code: VerifyMicrodepositsError.Failed,
+  //       message:
+  //         'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
+  //     }),
+  //   };
+  // }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
-      PAYMENT_INTENT,
+      true,
       clientSecret,
       params
     )) as VerifyMicrodepositsForPaymentResult;
@@ -363,18 +359,18 @@ export const verifyMicrodepositsForSetup = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForSetupResult> => {
-  if (isAndroid) {
-    return {
-      error: createError({
-        code: VerifyMicrodepositsError.Failed,
-        message:
-          'verifyMicrodepositsForSetup is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
-      }),
-    };
-  }
+  // if (isAndroid) {
+  //   return {
+  //     error: createError({
+  //       code: VerifyMicrodepositsError.Failed,
+  //       message:
+  //         'verifyMicrodepositsForSetup is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
+  //     }),
+  //   };
+  // }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
-      SETUP_INTENT,
+      false,
       clientSecret,
       params
     )) as VerifyMicrodepositsForSetupResult;
@@ -538,18 +534,9 @@ export const collectBankAccountForPayment = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForPaymentResult> => {
-  if (isAndroid) {
-    return {
-      error: createError({
-        code: CollectBankAccountError.Failed,
-        message:
-          'collectBankAccountForPayment is only supported on iOS on this version of @stripe/stripe-react-native.',
-      }),
-    };
-  }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.collectBankAccount(
-      PAYMENT_INTENT,
+      true,
       clientSecret,
       params
     )) as CollectBankAccountForPaymentResult;
@@ -573,18 +560,9 @@ export const collectBankAccountForSetup = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForSetupResult> => {
-  if (isAndroid) {
-    return {
-      error: createError({
-        code: CollectBankAccountError.Failed,
-        message:
-          'collectBankAccountForSetup is only supported on iOS on this version of @stripe/stripe-react-native.',
-      }),
-    };
-  }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.collectBankAccount(
-      SETUP_INTENT,
+      false,
       clientSecret,
       params
     )) as CollectBankAccountForSetupResult;

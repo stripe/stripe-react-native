@@ -221,7 +221,7 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Payment', function () {
-    if (driver.isAndroid) return;
+    // if (driver.isAndroid) return;
 
     this.retries(3);
 
@@ -250,7 +250,7 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Setup', function () {
-    if (driver.isAndroid) return;
+    // if (driver.isAndroid) return;
 
     this.retries(3);
 
