@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.StripeIntent
@@ -16,7 +17,7 @@ import com.stripe.android.payments.bankaccount.CollectBankAccountLauncher
 import com.stripe.android.payments.bankaccount.navigation.CollectBankAccountResult
 
 class CollectBankAccountLauncherFragment(
-  private val activity: AppCompatActivity,
+  private val context: ReactApplicationContext,
   private val publishableKey: String,
   private val clientSecret: String,
   private val isPaymentIntent: Boolean,
@@ -77,7 +78,7 @@ class CollectBankAccountLauncherFragment(
           promise.resolve(createError(ErrorType.Failed.toString(), result.error))
         }
       }
-      activity.supportFragmentManager.beginTransaction().remove(this).commit()
+      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
     }
   }
 }

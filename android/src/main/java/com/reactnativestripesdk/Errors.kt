@@ -59,6 +59,16 @@ internal fun createError(code: String, message: String?): WritableMap {
   return mapError(code, message, message, null, null, null)
 }
 
+internal fun createMissingActivityError(): WritableMap {
+  return mapError(
+    "Failed",
+    "Activity doesn't exist yet. You can safely retry this method.",
+    null,
+    null,
+    null,
+    null)
+}
+
 internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
   return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.code, error?.code)
 }
