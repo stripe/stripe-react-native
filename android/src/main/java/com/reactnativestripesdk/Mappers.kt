@@ -223,7 +223,7 @@ internal fun mapToUSBankAccountHolderType(type: String?): PaymentMethod.USBankAc
   }
 }
 
-internal fun mapFromUSBankAccountHolderType(type: PaymentMethod.USBankAccount.USBankAccountHolderType): String {
+internal fun mapFromUSBankAccountHolderType(type: PaymentMethod.USBankAccount.USBankAccountHolderType?): String {
   return when (type) {
     PaymentMethod.USBankAccount.USBankAccountHolderType.COMPANY -> "Company"
     PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL -> "Individual"
@@ -239,7 +239,7 @@ internal fun mapToUSBankAccountType(type: String?): PaymentMethod.USBankAccount.
   }
 }
 
-internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAccountType): String {
+internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAccountType?): String {
   return when (type) {
     PaymentMethod.USBankAccount.USBankAccountType.CHECKING -> "Checking"
     PaymentMethod.USBankAccount.USBankAccountType.SAVINGS -> "Savings"
@@ -350,27 +350,15 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 
   upi.putString("vpa", paymentMethod.upi?.vpa)
 
-  // TODO: Remove reflection once USBankAccount is public payment method in stripe-android
-  try {
-    PaymentMethod::class.java.getDeclaredField("usBankAccount").let {
-      it.isAccessible = true
-      val bankAccountPM = it.get(paymentMethod) as PaymentMethod.USBankAccount
-      usBankAccount.putString("routingNumber", bankAccountPM.routingNumber)
-      usBankAccount.putString("accountHolderType", mapFromUSBankAccountHolderType(bankAccountPM.accountHolderType))
-      usBankAccount.putString("accountType", mapFromUSBankAccountType(bankAccountPM.accountType))
-      usBankAccount.putString("last4", bankAccountPM.last4)
-      usBankAccount.putString("bankName", bankAccountPM.bankName)
-      usBankAccount.putString("linkedAccount", bankAccountPM.linkedAccount)
-      usBankAccount.putString("fingerprint", bankAccountPM.fingerprint)
-      usBankAccount.putString("fingerprint", bankAccountPM.fingerprint)
-      usBankAccount.putString("preferredNetworks", bankAccountPM.networks?.preferred)
-      usBankAccount.putArray("supportedNetworks", bankAccountPM.networks?.supported as? ReadableArray)
-    }
-  } catch (e: java.lang.Exception) {
-    Log.w(
-      "StripeReactNative",
-      "Unable to find USBankAccount method:" + e.message)
-  }
+  usBankAccount.putString("routingNumber", paymentMethod.usBankAccount?.routingNumber)
+  usBankAccount.putString("accountType", mapFromUSBankAccountType(paymentMethod.usBankAccount?.accountType))
+  usBankAccount.putString("accountHolderType", mapFromUSBankAccountHolderType(paymentMethod.usBankAccount?.accountHolderType))
+  usBankAccount.putString("last4", paymentMethod.usBankAccount?.last4)
+  usBankAccount.putString("bankName", paymentMethod.usBankAccount?.bankName)
+  usBankAccount.putString("linkedAccount", paymentMethod.usBankAccount?.linkedAccount)
+  usBankAccount.putString("fingerprint", paymentMethod.usBankAccount?.fingerprint)
+  usBankAccount.putString("preferredNetworks", paymentMethod.usBankAccount?.networks?.preferred)
+  usBankAccount.putArray("supportedNetworks", paymentMethod.usBankAccount?.networks?.supported as? ReadableArray)
 
   pm.putString("id", paymentMethod.id)
   pm.putString("type", mapPaymentMethodType(paymentMethod.type))

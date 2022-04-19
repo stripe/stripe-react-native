@@ -324,15 +324,6 @@ export const verifyMicrodepositsForPayment = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForPaymentResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: VerifyMicrodepositsError.Failed,
-  //       message:
-  //         'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
-  //     }),
-  //   };
-  // }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       true,
@@ -359,15 +350,6 @@ export const verifyMicrodepositsForSetup = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForSetupResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: VerifyMicrodepositsError.Failed,
-  //       message:
-  //         'verifyMicrodepositsForSetup is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
-  //     }),
-  //   };
-  // }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       false,
