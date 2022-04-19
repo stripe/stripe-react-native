@@ -42,11 +42,16 @@ $current_version
 
 $commit_titles
 
+### Breaking changes
+
 ### New features
 
 ### Fixes
 
 ### Changed
+
+Please see the changelog for additional details: https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md
+
 
 EOF
 )"
@@ -61,7 +66,7 @@ create_github_release_fallback() {
   cat << EOF
 Remember to create a release on GitHub with a changelog notes:
 
-    https://github.com/stripe/stripe-js/releases/new
+    https://github.com/stripe/stripe-react-native/releases/new
 
 EOF
 }
