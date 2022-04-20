@@ -47,7 +47,7 @@ export default function GooglePayScreen() {
     });
 
     const card = await response.json();
-    console.log(card);
+
     setCardDetails(card);
 
     const { isInWallet, token, error } = await isCardInWallet({
