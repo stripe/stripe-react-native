@@ -306,7 +306,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
       return
     }
     val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
-    val paymentMethodData = getMapOrNull(params, "paymentMethodData")
+    val paymentMethodData = getMapOrNull(data, "paymentMethodData")
     val billingDetailsParams = mapToBillingDetails(getMapOrNull(paymentMethodData, "billingDetails"), cardAddress)
 
     val paymentMethodCreateParams = PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
