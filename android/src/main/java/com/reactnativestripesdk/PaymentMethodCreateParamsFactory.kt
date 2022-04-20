@@ -68,13 +68,12 @@ class PaymentMethodCreateParamsFactory(
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
     val createParams =
       PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
-    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = createParams,
         clientSecret = clientSecret,
-        setupFutureUsage = setupFutureUsage,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
       )
   }
 
@@ -87,6 +86,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
         )
     }
 
@@ -192,7 +192,6 @@ class PaymentMethodCreateParamsFactory(
     val country = getValOr(paymentMethodData, "country", null) ?: run {
       throw PaymentMethodCreateParamsException("You must provide bank account country")
     }
-    val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
 
     val params = PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Sofort(country = country),
@@ -203,7 +202,7 @@ class PaymentMethodCreateParamsFactory(
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
-        setupFutureUsage = setupFutureUsage,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
       )
   }
 
@@ -232,20 +231,20 @@ class PaymentMethodCreateParamsFactory(
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
       )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactPaymentConfirmParams(): ConfirmPaymentIntentParams {
     billingDetailsParams?.let {
-      val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage", null))
       val params = PaymentMethodCreateParams.createBancontact(it)
 
       return ConfirmPaymentIntentParams
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
-          setupFutureUsage = setupFutureUsage,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
         )
     }
 
@@ -275,6 +274,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
         )
     }
 
@@ -290,6 +290,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
         )
     }
 
@@ -305,6 +306,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
         )
     }
 
@@ -317,7 +319,7 @@ class PaymentMethodCreateParamsFactory(
       val iban = getValOr(paymentMethodData, "iban", null) ?: run {
         throw PaymentMethodCreateParamsException("You must provide IBAN")
       }
-      val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
+
       val params = PaymentMethodCreateParams.create(
         sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
         billingDetails = it
@@ -327,7 +329,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
-          setupFutureUsage = setupFutureUsage
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
         )
     }
 
@@ -345,6 +347,7 @@ class PaymentMethodCreateParamsFactory(
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
       )
   }
 
@@ -357,6 +360,7 @@ class PaymentMethodCreateParamsFactory(
         .createWithPaymentMethodCreateParams(
           paymentMethodCreateParams = params,
           clientSecret = clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
         )
     }
 
@@ -391,6 +395,7 @@ class PaymentMethodCreateParamsFactory(
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
       )
   }
 
@@ -461,6 +466,7 @@ class PaymentMethodCreateParamsFactory(
       .createWithPaymentMethodCreateParams(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
       )
   }
 
