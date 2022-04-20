@@ -616,7 +616,6 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun isCardInWallet(params: ReadableMap, promise: Promise) {
     val last4 = getValOr(params, "cardLastFour", null) ?: run {
       promise.resolve(createError("Failed", "You must provide cardLastFour"))
@@ -628,7 +627,6 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   }
 
   @ReactMethod
-  @SuppressWarnings("unused")
   fun collectBankAccount(isPaymentIntent: Boolean, clientSecret: String, params: ReadableMap, promise: Promise) {
     val paymentMethodType = mapToPaymentMethodType(getValOr(params, "type", null))
     if (paymentMethodType != PaymentMethod.Type.USBankAccount) {

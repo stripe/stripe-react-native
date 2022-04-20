@@ -47,7 +47,7 @@ export default function GooglePayScreen() {
     });
 
     const card = await response.json();
-
+    console.log(card);
     setCardDetails(card);
 
     const { isInWallet, token, error } = await isCardInWallet({
@@ -155,7 +155,7 @@ export default function GooglePayScreen() {
       },
       body: JSON.stringify({
         apiVersion: Constants.apiVersions.issuing,
-        issuingCardId: 'ic_1KnTM2F05jLespP6wNLZQ1mu',
+        issuingCardId: LIVE_CARD_ID,
       }),
     });
     const key = await response.json();
@@ -183,9 +183,9 @@ export default function GooglePayScreen() {
         <AddToWalletButton
           androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
           style={styles.payButton}
-          cardHolderName={cardDetails.cardholder.name}
+          cardHolderName={cardDetails?.cardholder?.name}
           cardDescription={'Added by Stripe'}
-          cardLastFour={cardDetails.last4}
+          cardLastFour={cardDetails?.last4}
           token={androidCardToken}
           ephemeralKey={ephemeralKey}
           onComplete={({ error }) => {

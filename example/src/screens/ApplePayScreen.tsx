@@ -188,9 +188,9 @@ export default function ApplePayScreen() {
               testEnv={true}
               style={styles.payButton}
               iOSButtonStyle="onLightBackground"
-              cardHolderName={cardDetails.cardholder.name}
+              cardHolderName={cardDetails?.cardholder?.name}
               cardDescription={'Added by Stripe'}
-              cardLastFour={cardDetails.last4}
+              cardLastFour={cardDetails?.last4}
               ephemeralKey={ephemeralKey}
               onComplete={({ error }) => {
                 Alert.alert(

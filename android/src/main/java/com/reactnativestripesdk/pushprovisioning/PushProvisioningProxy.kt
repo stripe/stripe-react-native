@@ -8,6 +8,7 @@ import com.facebook.react.bridge.*
 import com.google.android.gms.tapandpay.TapAndPay
 import com.google.android.gms.tapandpay.TapAndPayClient
 import com.google.android.gms.tapandpay.issuer.TokenInfo
+import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonView
 import com.stripe.android.pushProvisioning.PushProvisioningActivity
 import com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
 
@@ -30,11 +31,11 @@ object PushProvisioningProxy {
   }
 
   fun invoke(
-    context: ReactApplicationContext,
-    view: AddToWalletButtonView,
-    cardDescription: String,
-    ephemeralKey: String,
-    token: ReadableMap?
+          context: ReactApplicationContext,
+          view: AddToWalletButtonView,
+          cardDescription: String,
+          ephemeralKey: String,
+          token: ReadableMap?
   ) {
     try {
       Class.forName("com.stripe.android.pushProvisioning.PushProvisioningActivityStarter")

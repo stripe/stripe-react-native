@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.pushprovisioning
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -17,6 +17,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.reactnativestripesdk.PushProvisioningProxy
+import com.reactnativestripesdk.createError
 
 
 class AddToWalletButtonView(private val context: ThemedReactContext, private val requestManager: RequestManager) : AppCompatImageView(context) {
@@ -35,7 +37,12 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
     super.performClick()
     cardDescription?.let { cardDescription ->
       ephemeralKey?.let { ephemeralKey ->
-        PushProvisioningProxy.invoke(context.reactApplicationContext, this, cardDescription, ephemeralKey, token)
+        PushProvisioningProxy.invoke(
+          context.reactApplicationContext,
+          this,
+          cardDescription,
+          ephemeralKey,
+          token)
       } ?: {
         dispatchEvent(
           createError("Failed", "Missing parameters. `ephemeralKey` must be supplied in the props to <AddToWalletButton />")
