@@ -36,7 +36,6 @@ export default function ApplePayScreen() {
     });
 
     const card = await response.json();
-    console.log(card);
     setCardDetails(card);
 
     const { isInWallet, error } = await isCardInWallet({

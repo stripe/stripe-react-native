@@ -41,16 +41,6 @@ class AddToWalletButtonView: UIView {
     }
 
     override func didSetProps(_ changedProps: [String]!) {
-        if (!canAddPaymentPass()) {
-            onCompleteAction!(
-                Errors.createError(
-                    ErrorType.Failed,
-                    "This app cannot add cards to Apple Pay. For information on requesting the necessary entitlement, see the Card Issuers section at developer.apple.com/apple-pay/."
-                ) as? [AnyHashable : Any]
-            )
-            return
-        }
-
         if let addToWalletButton = addToWalletButton {
             addToWalletButton.removeFromSuperview()
         }
@@ -66,6 +56,16 @@ class AddToWalletButtonView: UIView {
     }
 
     @objc func beginPushProvisioning() {
+        if (!canAddPaymentPass()) {
+            onCompleteAction!(
+                Errors.createError(
+                    ErrorType.Failed,
+                    "This app cannot add cards to Apple Pay. For information on requesting the necessary entitlement, see the Card Issuers section at developer.apple.com/apple-pay/."
+                ) as? [AnyHashable : Any]
+            )
+            return
+        }
+        
         guard let cardHolderName = cardHolderName as String? else {
             onCompleteAction!(
                 Errors.createError(
