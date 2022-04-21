@@ -58,7 +58,7 @@ export default function GooglePayScreen() {
       Alert.alert(error.code, error.message);
     } else {
       setCardIsInWallet(isInWallet ?? false);
-      if (token) {
+      if (token && token.status === 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION') {
         setAndroidCardToken(token);
       }
     }

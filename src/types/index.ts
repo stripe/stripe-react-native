@@ -279,7 +279,13 @@ export type GooglePayCardToken = {
   network: number;
   serviceProvider: number;
   issuer: string;
-  status: string;
+  status:
+    | 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION'
+    | 'TOKEN_STATE_PENDING'
+    | 'TOKEN_STATE_SUSPENDED'
+    | 'TOKEN_STATE_ACTIVE'
+    | 'TOKEN_STATE_FELICA_PENDING_PROVISIONING'
+    | 'TOKEN_STATE_UNTOKENIZED';
 };
 
 export type IsCardInWalletResult =
