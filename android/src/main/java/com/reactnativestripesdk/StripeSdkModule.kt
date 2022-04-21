@@ -192,9 +192,9 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
   override fun getConstants(): MutableMap<String, Any> =
     hashMapOf(
-      "apiVersions" to hashMapOf(
-        "core" to ApiVersion.API_VERSION_CODE,
-        "issuing" to PushProvisioningProxy.getApiVersion(),
+      "API_VERSIONS" to hashMapOf(
+        "CORE" to ApiVersion.API_VERSION_CODE,
+        "ISSUING" to PushProvisioningProxy.getApiVersion(),
       )
     )
 
@@ -621,7 +621,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
       promise.resolve(createError("Failed", "You must provide cardLastFour"))
       return
     }
-    currentActivity?.let {
+    getCurrentActivityOrResolveWithError(promise)?.let {
       PushProvisioningProxy.isCardInWallet(it, last4, promise)
     }
   }

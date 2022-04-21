@@ -35,9 +35,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     
     @objc override func constantsToExport() -> [AnyHashable : Any] {
         return [
-            "apiVersions": [
-                "core": STPAPIClient.apiVersion,
-                "issuing": STPAPIClient.apiVersion,
+            "API_VERSIONS": [
+                "CORE": STPAPIClient.apiVersion,
+                "ISSUING": STPAPIClient.apiVersion,
             ]
         ]
     }

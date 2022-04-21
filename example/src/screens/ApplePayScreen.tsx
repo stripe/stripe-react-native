@@ -125,7 +125,7 @@ export default function ApplePayScreen() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        apiVersion: Constants.apiVersions.issuing,
+        apiVersion: Constants.API_VERSIONS.ISSUING,
         issuingCardId: TEST_CARD_ID,
       }),
     });

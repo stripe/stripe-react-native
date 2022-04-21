@@ -1,14 +1,8 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.pushprovisioning
 
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import com.stripe.android.pushProvisioning.PushProvisioningEphemeralKeyProvider
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.lang.Error
 
 
 class EphemeralKeyProvider(private val ephemeralKey: String) : PushProvisioningEphemeralKeyProvider {

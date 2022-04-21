@@ -87,7 +87,7 @@ type NativeStripeSdkType = {
     clientSecret: string,
     params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
-  getConstants(): { apiVersions: { core: string; issuing: string } };
+  getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
   isCardInWallet(params: {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;

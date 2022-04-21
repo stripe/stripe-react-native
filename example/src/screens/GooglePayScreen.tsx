@@ -154,7 +154,7 @@ export default function GooglePayScreen() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        apiVersion: Constants.apiVersions.issuing,
+        apiVersion: Constants.API_VERSIONS.ISSUING,
         issuingCardId: LIVE_CARD_ID,
       }),
     });

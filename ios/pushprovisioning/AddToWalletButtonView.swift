@@ -66,41 +66,41 @@ class AddToWalletButtonView: UIView {
     }
 
     @objc func beginPushProvisioning() {
-        if let cardHolderName = cardHolderName as String? {
-            if (cardHolderName.isEmpty) {
-                onCompleteAction!(
-                    Errors.createError(
-                        ErrorType.Failed,
-                        "`cardHolderName` is required, but the passed string was empty"
-                    ) as? [AnyHashable : Any]
-                )
-                return
-            }
-
-            let config = STPPushProvisioningContext.requestConfiguration(
-                withName: cardHolderName,
-                description: (cardDescription != nil) ? cardDescription! as String : nil,
-                last4: (cardLastFour != nil) ? cardLastFour! as String : nil,
-                brand: Mappers.mapToCardBrand(cardBrand as String?)
-            )
-            
-            // We can use STPFakeAddPaymentPassViewController ONLY IN TEST MODE. If STPFakeAddPaymentPassViewController is
-            // used with a live mode card, the flow will fail and show a 'Signing certificate was invalid' error.
-            let controller = {
-                return self.testEnv ? STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) : PKAddPaymentPassViewController(requestConfiguration: config, delegate: self)
-            }()
-            
-            let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
-            vc.present(controller!, animated: true, completion: nil)
-        } else {
+        guard let cardHolderName = cardHolderName as String? else {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
-                    "Missing parameters. `cardHolderName` and `cardBrand` must be supplied in the props to <AddToWalletButton />"
+                    "Missing parameters. `cardHolderName` must be supplied in the props to <AddToWalletButton />"
                 ) as? [AnyHashable : Any]
             )
             return
         }
+        
+        if (cardHolderName.isEmpty) {
+            onCompleteAction!(
+                Errors.createError(
+                    ErrorType.Failed,
+                    "`cardHolderName` is required, but the passed string was empty"
+                ) as? [AnyHashable : Any]
+            )
+            return
+        }
+
+        let config = STPPushProvisioningContext.requestConfiguration(
+            withName: cardHolderName,
+            description: cardDescription as String?,
+            last4: cardLastFour as String?,
+            brand: Mappers.mapToCardBrand(cardBrand as String?)
+        )
+        
+        // We can use STPFakeAddPaymentPassViewController ONLY IN TEST MODE. If STPFakeAddPaymentPassViewController is
+        // used with a live mode card, the flow will fail and show a 'Signing certificate was invalid' error.
+        let controller = {
+            return self.testEnv ? STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) : PKAddPaymentPassViewController(requestConfiguration: config, delegate: self)
+        }()
+        
+        let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+        vc.present(controller!, animated: true, completion: nil)
     }
 }
 

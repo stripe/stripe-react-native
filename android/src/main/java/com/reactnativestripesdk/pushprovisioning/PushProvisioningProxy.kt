@@ -9,6 +9,7 @@ import com.google.android.gms.tapandpay.TapAndPay
 import com.google.android.gms.tapandpay.TapAndPayClient
 import com.google.android.gms.tapandpay.issuer.TokenInfo
 import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonView
+import com.reactnativestripesdk.pushprovisioning.EphemeralKeyProvider
 import com.stripe.android.pushProvisioning.PushProvisioningActivity
 import com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
 
