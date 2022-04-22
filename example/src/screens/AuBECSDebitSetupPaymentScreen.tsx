@@ -37,8 +37,10 @@ export default function AuBECSDebitSetupPaymentScreen() {
     const clientSecret = await createSetupIntentOnBackend(formDetails.email);
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'AuBecsDebit',
-      formDetails,
+      paymentMethodType: 'AuBecsDebit',
+      paymentMethodData: {
+        formDetails,
+      },
     });
 
     if (error) {

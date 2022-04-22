@@ -38,7 +38,7 @@ export default function AlipayPaymentScreen() {
     }
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Alipay',
+      paymentMethodType: 'Alipay',
     });
 
     if (error) {

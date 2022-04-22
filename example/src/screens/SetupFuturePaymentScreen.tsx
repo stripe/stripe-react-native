@@ -83,8 +83,8 @@ export default function SetupFuturePaymentScreen() {
     const { error, setupIntent: setupIntentResult } = await confirmSetupIntent(
       clientSecret,
       {
-        type: 'Card',
-        billingDetails,
+        paymentMethodType: 'Card',
+        paymentMethodData: { billingDetails },
       }
     );
 
@@ -169,10 +169,12 @@ export default function SetupFuturePaymentScreen() {
       const { error } = await confirmPayment(
         retrievedPaymentIntent.clientSecret,
         {
-          type: 'Card',
-          billingDetails,
-          paymentMethodId:
-            retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+          paymentMethodType: 'Card',
+          paymentMethodData: {
+            billingDetails,
+            paymentMethodId:
+              retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id,
+          },
         }
       );
       if (error) {

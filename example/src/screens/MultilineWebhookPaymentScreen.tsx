@@ -59,11 +59,14 @@ export default function MultilineWebhookPaymentScreen() {
 
     // 3. Confirm payment with card details
     // The rest will be done automatically using webhooks
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Card',
-      billingDetails,
-      setupFutureUsage: saveCard ? 'OffSession' : undefined,
-    });
+    const { error, paymentIntent } = await confirmPayment(
+      clientSecret,
+      {
+        paymentMethodType: 'Card',
+        paymentMethodData: { billingDetails },
+      },
+      { setupFutureUsage: saveCard ? 'OffSession' : undefined }
+    );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);

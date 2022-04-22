@@ -43,7 +43,7 @@ export default function ACHPaymentScreen() {
 
   const handleConfirmPress = async () => {
     const { error, paymentIntent } = await confirmPayment(secret, {
-      type: 'USBankAccount',
+      paymentMethodType: 'USBankAccount',
     });
 
     if (error) {
@@ -87,11 +87,13 @@ export default function ACHPaymentScreen() {
     setSecret(clientSecret);
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'USBankAccount',
-      accountNumber: '000123456789',
-      routingNumber: '110000000',
-      billingDetails: {
-        name: 'David Wallace',
+      paymentMethodType: 'USBankAccount',
+      paymentMethodData: {
+        accountNumber: '000123456789',
+        routingNumber: '110000000',
+        billingDetails: {
+          name: 'David Wallace',
+        },
       },
     });
 
@@ -137,10 +139,12 @@ export default function ACHPaymentScreen() {
     const { paymentIntent, error } = await collectBankAccountForPayment(
       clientSecret,
       {
-        type: 'USBankAccount',
-        billingDetails: {
-          name,
-          email,
+        paymentMethodType: 'USBankAccount',
+        paymentMethodData: {
+          billingDetails: {
+            name,
+            email,
+          },
         },
       }
     );

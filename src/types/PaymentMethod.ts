@@ -12,7 +12,7 @@ export interface Result {
   liveMode: boolean;
   customerId: string;
   billingDetails: BillingDetails;
-  type: Type;
+  paymentMethodType: Type;
   AuBecsDebit: AuBecsDebitResult;
   BacsDebit: BacsDebitResult;
   Card: CardResult;
@@ -21,6 +21,7 @@ export interface Result {
   SepaDebit: SepaDebitResult;
   Sofort: SofortResult;
   Upi: UpiResult;
+  USBankAccount: USBankAccountResult;
 }
 
 export type CreateParams =
@@ -44,114 +45,150 @@ export type CreateParams =
 
 export type ConfirmParams = CreateParams;
 
-export type CreateOptions = {};
+export type CreateOptions = {
+  setupFutureUsage?: FutureUsage;
+};
 
 export type ConfirmOptions = CreateOptions;
 
 export type ShippingDetails = BillingDetails;
 
-interface BaseParams {
-  billingDetails?: BillingDetails;
-}
-
 export type CardParams =
-  | (BaseParams & {
-      type: 'Card';
-      token?: string;
-      setupFutureUsage?: FutureUsage;
-    })
-  | (BaseParams & {
-      type: 'Card';
-      paymentMethodId: string;
-      cvc?: string;
-    });
+  | {
+      paymentMethodType: 'Card';
+      paymentMethodData?: {
+        token?: string;
+        billingDetails?: BillingDetails;
+      };
+    }
+  | {
+      paymentMethodType: 'Card';
+      paymentMethodData: {
+        paymentMethodId: string;
+        cvc?: string;
+        billingDetails?: BillingDetails;
+      };
+    };
 
-export interface IdealParams extends BaseParams {
-  type: 'Ideal';
-  bankName?: string;
-  setupFutureUsage?: FutureUsage;
+export interface IdealParams {
+  paymentMethodType: 'Ideal';
+  paymentMethodData?: {
+    bankName?: string;
+    billingDetails?: BillingDetails;
+  };
 }
 
 export interface FPXParams {
-  type: 'Fpx';
-  testOfflineBank?: boolean;
+  paymentMethodType: 'Fpx';
+  paymentMethodData?: { testOfflineBank?: boolean };
 }
 
 export interface AlipayParams {
-  type: 'Alipay';
+  paymentMethodType: 'Alipay';
 }
 
-export interface OxxoParams extends Required<BaseParams> {
-  type: 'Oxxo';
+export interface OxxoParams {
+  paymentMethodType: 'Oxxo';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+  };
 }
 
-export interface SofortParams extends BaseParams {
-  type: 'Sofort';
-  country: string;
-  setupFutureUsage?: FutureUsage;
+export interface SofortParams {
+  paymentMethodType: 'Sofort';
+  paymentMethodData: {
+    country: string;
+    billingDetails: BillingDetails;
+  };
 }
-export interface GrabPayParams extends BaseParams {
-  type: 'GrabPay';
-}
-
-export interface BancontactParams extends Required<BaseParams> {
-  type: 'Bancontact';
-  setupFutureUsage?: FutureUsage;
-}
-
-export interface SepaParams extends Required<BaseParams> {
-  type: 'SepaDebit';
-  iban: string;
-  setupFutureUsage?: FutureUsage;
+export interface GrabPayParams {
+  paymentMethodType: 'GrabPay';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+  };
 }
 
-export interface GiropayParams extends Required<BaseParams> {
-  type: 'Giropay';
+export interface BancontactParams {
+  paymentMethodType: 'Bancontact';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+  };
 }
 
-export interface AfterpayClearpayParams extends Required<BaseParams> {
-  type: 'AfterpayClearpay';
-  shippingDetails: ShippingDetails;
+export interface SepaParams {
+  paymentMethodType: 'SepaDebit';
+  paymentMethodData: {
+    iban: string;
+    billingDetails: BillingDetails;
+  };
+}
+
+export interface GiropayParams {
+  paymentMethodType: 'Giropay';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+  };
+}
+
+export interface AfterpayClearpayParams {
+  paymentMethodType: 'AfterpayClearpay';
+  paymentMethodData: {
+    shippingDetails: ShippingDetails;
+    billingDetails: BillingDetails;
+  };
 }
 
 export type KlarnaParams = {
-  type: 'Klarna';
-  billingDetails: Pick<Required<BillingDetails>, 'email'> & {
-    address: Pick<Required<Address>, 'country'>;
-  } & BillingDetails;
+  paymentMethodType: 'Klarna';
+  paymentMethodData: {
+    billingDetails: Pick<Required<BillingDetails>, 'email'> & {
+      address: Pick<Required<Address>, 'country'>;
+    } & BillingDetails;
+  };
 };
 
-export interface EpsParams extends Required<BaseParams> {
-  type: 'Eps';
+export interface EpsParams {
+  paymentMethodType: 'Eps';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+  };
 }
 
-export interface P24Params extends Required<BaseParams> {
-  type: 'P24';
+export interface P24Params {
+  paymentMethodType: 'P24';
+  paymentMethodData: {
+    billingDetails: BillingDetails;
+  };
 }
 
-export interface WeChatPayParams extends BaseParams {
-  type: 'WeChatPay';
-  appId: string;
+export interface WeChatPayParams {
+  paymentMethodType: 'WeChatPay';
+  paymentMethodData: {
+    appId: string;
+    billingDetails?: BillingDetails;
+  };
 }
 
 export interface AuBecsDebitParams {
-  type: 'AuBecsDebit';
-  formDetails: FormDetails;
+  paymentMethodType: 'AuBecsDebit';
+  paymentMethodData: { formDetails: FormDetails };
 }
 
-/** Before using this payment method type, ensure you have already collected the bank information
- * for this intent with `collectBankAccountForPayment`. Otherwise, you will need to pass in the bank account
- * details manually.*/
+/**
+ * If paymentMethodData is null, it is assumed that the bank account details have already been attached
+ * via `collectBankAccountForPayment` or `collectBankAccountForSetup`.
+ */
 export type USBankAccountParams = {
-  type: 'USBankAccount';
-  billingDetails?: Pick<Required<BillingDetails>, 'name'> & BillingDetails;
-  accountNumber?: string;
-  routingNumber?: string;
-  /** Defaults to Individual */
-  accountHolderType?: BankAcccountHolderType;
-  /** Defaults to Checking */
-  accountType?: BankAcccountType;
-  setupFutureUsage?: FutureUsage;
+  paymentMethodType: 'USBankAccount';
+  paymentMethodData?: {
+    billingDetails: Pick<Required<BillingDetails>, 'name'> & BillingDetails;
+    accountNumber: string;
+    routingNumber: string;
+    /** Defaults to Individual */
+    accountHolderType?: BankAcccountHolderType;
+    /** Defaults to Checking */
+    accountType?: BankAcccountType;
+  };
 };
 
 export interface AuBecsDebitResult {
@@ -234,9 +271,11 @@ export type Type =
   | 'Unknown';
 
 export type CollectBankAccountParams = {
-  type: 'USBankAccount';
-  billingDetails: {
-    name: string;
-    email?: string;
+  paymentMethodType: 'USBankAccount';
+  paymentMethodData: {
+    billingDetails: {
+      name: string;
+      email?: string;
+    };
   };
 };

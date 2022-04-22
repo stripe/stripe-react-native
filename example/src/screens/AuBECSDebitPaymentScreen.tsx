@@ -40,8 +40,10 @@ export default function AuBECSDebitPaymentScreen() {
 
     const clientSecret = await fetchPaymentIntentClientSecret();
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'AuBecsDebit',
-      formDetails,
+      paymentMethodType: 'AuBecsDebit',
+      paymentMethodData: {
+        formDetails,
+      },
     });
 
     if (error) {

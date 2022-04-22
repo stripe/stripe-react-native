@@ -249,8 +249,10 @@ _after:_
 ```tsx
 // ...
 const { error, paymentIntent } = await confirmPayment('client_secret', {
-	type:  'Card',
-	billingDetails: {...},
+	paymentMethodType:  'Card',
+  paymentMethodData: {
+	  billingDetails: {...},
+  }
 });
 
 // ...

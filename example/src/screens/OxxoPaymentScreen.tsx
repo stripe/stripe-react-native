@@ -45,8 +45,8 @@ export default function OxxoPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Oxxo',
-      billingDetails,
+      paymentMethodType: 'Oxxo',
+      paymentMethodData: { billingDetails },
     });
 
     if (error) {
