@@ -10,9 +10,13 @@
 
 - This affects the first argument to `createPaymentMethod`, and the second argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`
 
-## 3, Moved `setupFutureUsage` to the `options` argument
+## 3. Moved `setupFutureUsage` to the `options` argument
 
 - This means you'll now pass `setupFutureUsage` to the second argument to `createPaymentMethod`, and the third argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`.
+
+## 4. Renamed `type` field to `paymentMethodType` on `PaymentMethod.Result`, `PaymentIntent.Result`, and `SetupIntent.Result`
+
+- These types are returned by the following methods: `createPaymentMethod`, `retrieveSetupIntent`, `confirmSetupIntent`, `confirmPayment`, `collectBankAccountForPayment`, `collectBankAccountForSetup`, `verifyMicrodepositsForPayment`, or `verifyMicrodepositsForSetup`.
 
 # Examples
 
