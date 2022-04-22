@@ -219,7 +219,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    paymentLauncherFragment = PaymentLauncherFragment(stripe, publishableKey, stripeAccountId)
+    paymentLauncherFragment = PaymentLauncherFragment(stripe!!, publishableKey, stripeAccountId)
     getCurrentActivityOrResolveWithError(promise)?.let {
       it.supportFragmentManager.beginTransaction()
         .add(paymentLauncherFragment, "payment_launcher_fragment")
