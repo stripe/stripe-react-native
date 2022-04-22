@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, and `confirmSetupIntent`. Please read [this migration guide](./docs/upgrading-from-v0.6.0.md) for details.
+- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
 
 ## 0.7.0
 

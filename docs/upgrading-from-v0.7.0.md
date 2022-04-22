@@ -1,10 +1,22 @@
-`@stripe/stripe-react-native` v0.7.0 brings a change to the parameters provided to the `createPaymentMethod`, `confirmPayment`, and `confirmSetupIntent` methods. Simply put, there are three changes:
+# Summary of changes
 
-1. Renamed the `type` field to `paymentMethodType`
-2. Moved all other payment method data to a nested object under the `paymentMethodData` key.
-3. Moved `setupFutureUsage` to the `options` argument (the second argument to `createPaymentMethod`, and the third argument to `confirmPayment` and `confirmSetupIntent`).
+`@stripe/stripe-react-native` v1.0.0 brings a change to the parameters provided to the `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup` methods. Simply put, there are three changes:
 
-Below are the old payment method type formats, followed by the new ones. This is the object you would pass as the first argument to `createPaymentMethod`, and the second argument to `confirmPayment` and `confirmSetupIntent`.
+## 1. Renamed the `type` field to `paymentMethodType`
+
+- This affects the first argument to `createPaymentMethod`, and the second argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`
+
+## 2. Moved all other payment method data to a nested object under the `paymentMethodData` key.
+
+- This affects the first argument to `createPaymentMethod`, and the second argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`
+
+## 3, Moved `setupFutureUsage` to the `options` argument
+
+- This means you'll now pass `setupFutureUsage` to the second argument to `createPaymentMethod`, and the third argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`.
+
+# Examples
+
+Below are the old payment method type formats, followed by the new ones. This represents the object you would pass as the first argument to `createPaymentMethod`, and the second argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`.
 
 ### Card
 
