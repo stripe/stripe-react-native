@@ -43,7 +43,7 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
           cardDescription,
           ephemeralKey,
           token)
-      } ?: {
+      } ?: run {
         dispatchEvent(
           createError("Failed", "Missing parameters. `ephemeralKey` must be supplied in the props to <AddToWalletButton />")
         )

@@ -39,11 +39,19 @@ object PushProvisioningProxy {
       description = cardDescription
       tokenRequiringTokenization = token
       createActivityEventListener(context, view)
-      DefaultPushProvisioningProxy().beginPushProvisioning(
-        context.currentActivity!!,
-        description,
-        EphemeralKeyProvider(ephemeralKey)
-      )
+      context.currentActivity?.let {
+        DefaultPushProvisioningProxy().beginPushProvisioning(
+          it,
+          description,
+          EphemeralKeyProvider(ephemeralKey)
+        )
+      } ?: run {
+        view.dispatchEvent(
+          createError(
+            "Failed",
+            "Activity doesn't exist yet. You can safely retry.")
+        )
+      }
     } catch (e: Exception) {
       Log.e(TAG, "PushProvisioning dependency not found")
     }
