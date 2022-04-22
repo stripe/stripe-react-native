@@ -67,7 +67,7 @@ object PushProvisioningProxy {
         super.onActivityResult(activity, requestCode, resultCode, data)
         if (requestCode == TapAndPayProxy.REQUEST_CODE_TOKENIZE) {
           view.dispatchEvent(
-            if (resultCode == RESULT_OK) null else mapError("Failed", "Failed to resolve yellow path.", null, null, null, null)
+            if (resultCode == RESULT_OK) null else mapError("Failed", "Failed to verify identity.", null, null, null, null)
           )
         } else if (requestCode == PushProvisioningActivityStarter.REQUEST_CODE) {
           if (resultCode == PushProvisioningActivity.RESULT_OK) {
