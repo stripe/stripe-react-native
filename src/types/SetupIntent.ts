@@ -18,7 +18,7 @@ export interface Result {
 
 export type ConfirmParams = PaymentMethod.CreateParams;
 
-export type ConfirmOptions = PaymentMethod.ConfirmOptions;
+export type ConfirmOptions = {};
 
 export type FutureUsage =
   | 'Unknown'

@@ -47,12 +47,17 @@ export default function IdealPaymentScreen() {
       email: 'john@example.com',
     };
 
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Ideal',
-      billingDetails,
-      bankName,
-      setupFutureUsage: saveIban ? 'OffSession' : undefined,
-    });
+    const { error, paymentIntent } = await confirmPayment(
+      clientSecret,
+      {
+        paymentMethodType: 'Ideal',
+        paymentMethodData: {
+          billingDetails,
+          bankName,
+        },
+      },
+      { setupFutureUsage: saveIban ? 'OffSession' : undefined }
+    );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);

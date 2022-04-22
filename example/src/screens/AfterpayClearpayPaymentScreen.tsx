@@ -64,9 +64,11 @@ export default function AfterpayClearpayPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'AfterpayClearpay',
-      billingDetails,
-      shippingDetails,
+      paymentMethodType: 'AfterpayClearpay',
+      paymentMethodData: {
+        billingDetails,
+        shippingDetails,
+      },
     });
 
     if (error) {

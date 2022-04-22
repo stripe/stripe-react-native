@@ -45,12 +45,14 @@ export default function SepaPaymentScreen() {
       email: email,
     };
 
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'SepaDebit',
-      billingDetails,
-      iban,
-      setupFutureUsage: saveIban ? 'OffSession' : undefined,
-    });
+    const { error, paymentIntent } = await confirmPayment(
+      clientSecret,
+      {
+        paymentMethodType: 'SepaDebit',
+        paymentMethodData: { billingDetails, iban },
+      },
+      { setupFutureUsage: saveIban ? 'OffSession' : undefined }
+    );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);

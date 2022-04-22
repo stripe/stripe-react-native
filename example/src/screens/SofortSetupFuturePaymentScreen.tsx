@@ -37,9 +37,11 @@ export default function SofortSetupFuturePaymentScreen() {
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'Sofort',
-      billingDetails,
-      country: 'DE',
+      paymentMethodType: 'Sofort',
+      paymentMethodData: {
+        billingDetails,
+        country: 'DE',
+      },
     });
 
     if (error) {

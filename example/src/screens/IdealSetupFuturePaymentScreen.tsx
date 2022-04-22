@@ -39,9 +39,11 @@ export default function IdealSetupFuturePaymentScreen() {
     };
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'Ideal',
-      billingDetails,
-      bankName,
+      paymentMethodType: 'Ideal',
+      paymentMethodData: {
+        billingDetails,
+        bankName,
+      },
     });
 
     if (error) {
