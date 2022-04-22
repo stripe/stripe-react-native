@@ -4,10 +4,10 @@ module.exports = {
     function ModifyPackageJsonImportForTranspilation() {
       return {
         visitor: {
-          ImportDeclaration(path, _state) {
-            const { node } = path;
-            if (node.source.value === '../../package.json') {
-              node.source.value = '../../../package.json';
+          ImportDeclaration(path) {
+            let importResource = path.node.source.value ?? '';
+            if (importResource.includes('../package.json')) {
+              importResource = '../' + importResource;
             }
           },
         },
