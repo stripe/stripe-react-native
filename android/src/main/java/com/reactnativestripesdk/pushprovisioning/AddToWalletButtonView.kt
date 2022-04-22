@@ -28,7 +28,7 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
 
-  private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+  private var eventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var loadedSource: GlideUrl? = null
   private var heightOverride: Int = 0
   private var widthOverride: Int = 0
@@ -142,7 +142,7 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
   }
 
   fun dispatchEvent(error: WritableMap?) {
-    mEventDispatcher?.dispatchEvent(
+    eventDispatcher?.dispatchEvent(
       AddToWalletCompleteEvent(
         id,
         error

@@ -37,7 +37,7 @@ object TapAndPayProxy {
                       token))
                   return@addOnCompleteListener
                 }
-              } catch (err: Exception) {
+              } catch (e: Exception) {
                 Log.e(TAG, "There was a problem finding the class com.google.android.gms.tapandpay.issuer.TokenInfo. Make sure you've included Google's TapAndPay dependency.")
               }
             }
@@ -109,25 +109,21 @@ object TapAndPayProxy {
   }
 
   private fun mapFromTokenState(status: Int): String {
-    return when (status) {
-      getTokenState("TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION") -> "TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION"
-      getTokenState("TOKEN_STATE_PENDING") -> "TOKEN_STATE_PENDING"
-      getTokenState("TOKEN_STATE_SUSPENDED") -> "TOKEN_STATE_SUSPENDED"
-      getTokenState("TOKEN_STATE_ACTIVE") -> "TOKEN_STATE_ACTIVE"
-      getTokenState("TOKEN_STATE_FELICA_PENDING_PROVISIONING") -> "TOKEN_STATE_FELICA_PENDING_PROVISIONING"
-      getTokenState("TOKEN_STATE_UNTOKENIZED") -> "TOKEN_STATE_UNTOKENIZED"
-      else -> "UNKNOWN"
-    }
-  }
-
-  private fun getTokenState(state: String): Int? {
     try {
       val tapAndPayClass = Class.forName("com.google.android.gms.tapandpay.TapAndPay")
-      return tapAndPayClass.getField(state) as Int
+      return when (status) {
+        tapAndPayClass.getField("TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION").get(tapAndPayClass) -> "TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION"
+        tapAndPayClass.getField("TOKEN_STATE_PENDING").get(tapAndPayClass) -> "TOKEN_STATE_PENDING"
+        tapAndPayClass.getField("TOKEN_STATE_SUSPENDED").get(tapAndPayClass) -> "TOKEN_STATE_SUSPENDED"
+        tapAndPayClass.getField("TOKEN_STATE_ACTIVE").get(tapAndPayClass) -> "TOKEN_STATE_ACTIVE"
+        tapAndPayClass.getField("TOKEN_STATE_FELICA_PENDING_PROVISIONING").get(tapAndPayClass) -> "TOKEN_STATE_FELICA_PENDING_PROVISIONING"
+        tapAndPayClass.getField("TOKEN_STATE_UNTOKENIZED").get(tapAndPayClass) -> "TOKEN_STATE_UNTOKENIZED"
+        else -> "UNKNOWN"
+      }
     } catch (e: Exception) {
       Log.e(TAG,
-            "There was a problem finding the class com.google.android.gms.tapandpay.TapAndPay.$state. Make sure you've included Google's TapAndPay dependency.")
-      return null
+            "There was a problem finding Google's TapAndPay dependency.")
+      return "UNKNOWN"
     }
   }
 }
