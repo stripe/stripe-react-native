@@ -125,8 +125,7 @@ extension AddToWalletButtonView: PKAddPaymentPassViewControllerDelegate {
                 "error": NSNull(),
             ] as [AnyHashable : Any])
         }
-        let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
-        vc.dismiss(animated: true, completion: nil)
+        controller.dismiss(animated: true, completion: nil)
     }
 }
 
