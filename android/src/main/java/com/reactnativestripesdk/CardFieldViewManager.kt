@@ -46,9 +46,9 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
     view.setCardStyle(cardStyle)
   }
 
-  @ReactProp(name = "placeholder")
-  fun setPlaceHolders(view: CardFieldView, placeholder: ReadableMap) {
-    view.setPlaceHolders(placeholder)
+  @ReactProp(name = "placeholders")
+  fun setPlaceHolders(view: CardFieldView, placeholders: ReadableMap) {
+    view.setPlaceHolders(placeholders)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {

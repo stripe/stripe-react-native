@@ -18,20 +18,20 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
-    @objc var placeholder: NSDictionary = NSDictionary() {
+    @objc var placeholders: NSDictionary = NSDictionary() {
         didSet {
-            if let numberPlaceholder = placeholder["number"] as? String {
+            if let numberPlaceholder = placeholders["number"] as? String {
                 cardField.numberPlaceholder = numberPlaceholder
             } else {
                 cardField.numberPlaceholder = "1234123412341234"
             }
-            if let expirationPlaceholder = placeholder["expiration"] as? String {
+            if let expirationPlaceholder = placeholders["expiration"] as? String {
                 cardField.expirationPlaceholder = expirationPlaceholder
             }
-            if let cvcPlaceholder = placeholder["cvc"] as? String {
+            if let cvcPlaceholder = placeholders["cvc"] as? String {
                 cardField.cvcPlaceholder = cvcPlaceholder
             }
-            if let postalCodePlaceholder = placeholder["postalCode"] as? String {
+            if let postalCodePlaceholder = placeholders["postalCode"] as? String {
                 cardField.postalCodePlaceholder = postalCodePlaceholder
             }
         }

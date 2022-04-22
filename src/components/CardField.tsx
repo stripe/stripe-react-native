@@ -32,7 +32,7 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   postalCodeEnabled?: boolean;
   cardStyle?: CardFieldInput.Styles;
-  placeholder?: CardFieldInput.Placeholders;
+  placeholders?: CardFieldInput.Placeholders;
   autofocus?: boolean;
   onCardChange?(card: CardFieldInput.Details): void;
   onBlur?(): void;
@@ -72,7 +72,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       onFocus,
       onBlur,
       cardStyle,
-      placeholder,
+      placeholders,
       postalCodeEnabled,
       ...props
     },
@@ -186,11 +186,11 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
           textErrorColor: cardStyle?.textErrorColor,
           fontFamily: cardStyle?.fontFamily,
         }}
-        placeholder={{
-          number: placeholder?.number,
-          expiration: placeholder?.expiration,
-          cvc: placeholder?.cvc,
-          postalCode: placeholder?.postalCode,
+        placeholders={{
+          number: placeholders?.number,
+          expiration: placeholders?.expiration,
+          cvc: placeholders?.cvc,
+          postalCode: placeholders?.postalCode,
         }}
         {...props}
       />
