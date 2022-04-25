@@ -30,6 +30,10 @@ export {
   GooglePayButton,
   Props as GooglePayButtonProps,
 } from './components/GooglePayButton';
+export {
+  AddToWalletButton,
+  Props as AddToWalletButtonProps,
+} from './components/AddToWalletButton';
 
 export * from './functions';
 

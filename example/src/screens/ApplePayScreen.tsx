@@ -4,11 +4,51 @@ import {
   ApplePayButton,
   useApplePay,
   ApplePay,
+  AddToWalletButton,
+  Constants,
+  isCardInWallet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import { useEffect } from 'react';
+
+const TEST_CARD_ID = 'ic_1KnngYF05jLespP6nGoB1oXn';
 
 export default function ApplePayScreen() {
+  const [ephemeralKey, setEphemeralKey] = useState({});
+  const [cardIsInWallet, setCardIsInWallet] = useState(false);
+  const [cardDetails, setCardDetails] = useState<any>(null);
+
+  useEffect(() => {
+    fetchEphemeralKey();
+    checkIfCardInWallet();
+  }, []);
+
+  const checkIfCardInWallet = async () => {
+    const response = await fetch(`${API_URL}/issuing-card-details`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: TEST_CARD_ID,
+      }),
+    });
+
+    const card = await response.json();
+    setCardDetails(card);
+
+    const { isInWallet, error } = await isCardInWallet({
+      cardLastFour: card.last4,
+    });
+
+    if (error) {
+      Alert.alert(error.code, error.message);
+    } else {
+      setCardIsInWallet(isInWallet ?? false);
+    }
+  };
+
   const shippingMethods: ApplePay.ShippingMethod[] = [
     {
       identifier: 'free',
@@ -77,6 +117,21 @@ export default function ApplePayScreen() {
     return clientSecret;
   };
 
+  const fetchEphemeralKey = async () => {
+    const response = await fetch(`${API_URL}/ephemeral-key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        apiVersion: Constants.API_VERSIONS.ISSUING,
+        issuingCardId: TEST_CARD_ID,
+      }),
+    });
+    const key = await response.json();
+    setEphemeralKey(key);
+  };
+
   const pay = async () => {
     const { error, paymentMethod } = await presentApplePay({
       cartItems: cart,
@@ -117,13 +172,36 @@ export default function ApplePayScreen() {
         <Text>{JSON.stringify(cart, null, 2)}</Text>
       </View>
       {isApplePaySupported && (
-        <ApplePayButton
-          onPress={pay}
-          type="plain"
-          buttonStyle="black"
-          borderRadius={4}
-          style={styles.payButton}
-        />
+        <View>
+          <ApplePayButton
+            onPress={pay}
+            type="plain"
+            buttonStyle="black"
+            borderRadius={4}
+            style={styles.payButton}
+          />
+
+          {!cardIsInWallet && (
+            <AddToWalletButton
+              androidAssetSource={{}}
+              testEnv={true}
+              style={styles.payButton}
+              iOSButtonStyle="onLightBackground"
+              cardHolderName={cardDetails?.cardholder?.name}
+              cardDescription={'Added by Stripe'}
+              cardLastFour={cardDetails?.last4}
+              ephemeralKey={ephemeralKey}
+              onComplete={({ error }) => {
+                Alert.alert(
+                  error ? error.code : 'Success',
+                  error
+                    ? error.message
+                    : 'Card was successfully added to the wallet.'
+                );
+              }}
+            />
+          )}
+        </View>
       )}
     </PaymentScreen>
   );
@@ -131,7 +209,7 @@ export default function ApplePayScreen() {
 
 const styles = StyleSheet.create({
   payButton: {
-    width: '50%',
+    width: '65%',
     height: 50,
     marginTop: 60,
     alignSelf: 'center',

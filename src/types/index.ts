@@ -272,3 +272,30 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
+
+export type GooglePayCardToken = {
+  id: string;
+  cardLastFour: string;
+  network: number;
+  serviceProvider: number;
+  issuer: string;
+  status:
+    | 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION'
+    | 'TOKEN_STATE_PENDING'
+    | 'TOKEN_STATE_SUSPENDED'
+    | 'TOKEN_STATE_ACTIVE'
+    | 'TOKEN_STATE_FELICA_PENDING_PROVISIONING'
+    | 'TOKEN_STATE_UNTOKENIZED';
+};
+
+export type IsCardInWalletResult =
+  | {
+      isInWallet: boolean;
+      token?: GooglePayCardToken;
+      error?: undefined;
+    }
+  | {
+      isInWallet?: undefined;
+      token?: undefined;
+      error: StripeError<GooglePayError>;
+    };

@@ -24,6 +24,7 @@ import type {
   OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
+  IsCardInWalletResult,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -86,6 +87,10 @@ type NativeStripeSdkType = {
     clientSecret: string,
     params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
+  getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
+  isCardInWallet(params: {
+    cardLastFour: string;
+  }): Promise<IsCardInWalletResult>;
 };
 
 const { StripeSdk } = NativeModules;

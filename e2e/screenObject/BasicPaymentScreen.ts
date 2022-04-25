@@ -104,6 +104,7 @@ class BasicPaymentScreen {
 
           button = $(`button*=Done`);
           button.click();
+          driver.pause(5000);
           break;
         }
       } catch (e) {

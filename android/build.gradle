@@ -131,6 +131,7 @@ def stripe_version = getExtOrDefault('stripeVersion')
 dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
+  implementation 'com.github.bumptech.glide:glide:4.12.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
   implementation "com.stripe:stripe-android:$stripe_version"
@@ -139,4 +140,10 @@ dependencies {
   implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+
+  // play-services-wallet is already included in stripe-android
+  compileOnly "com.google.android.gms:play-services-wallet:19.1.0"
+
+  // Users need to declare this dependency on their own, otherwise all methods are a no-op
+  compileOnly 'com.stripe:stripe-android-issuing-push-provisioning:1.1.0'
 }

@@ -554,6 +554,41 @@ app.post('/payment-sheet', async (_, res) => {
   });
 });
 
+app.post('/ephemeral-key', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: req.body.apiVersion,
+    typescript: true,
+  });
+
+  let key = await stripe.ephemeralKeys.create(
+    { issuing_card: req.body.issuingCardId },
+    { apiVersion: req.body.apiVersion }
+  );
+
+  return res.send(key);
+});
+
+app.post('/issuing-card-details', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  let card = await stripe.issuing.cards.retrieve(req.body.id);
+
+  if (!card) {
+    return res.send({
+      error: 'No card with that ID exists.',
+    });
+  }
+
+  return res.send(card);
+});
+
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)
 );

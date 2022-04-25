@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
-import { GooglePayButton, useGooglePay } from '@stripe/stripe-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  GooglePayButton,
+  useGooglePay,
+  AddToWalletButton,
+  Constants,
+  isCardInWallet,
+  GooglePayCardToken,
+} from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View, Image } from 'react-native';
+// @ts-ignore
+import AddToGooglePayPNG from '../assets/Add-to-Google-Pay-Button-dark-no-shadow.png';
+
+const LIVE_CARD_ID = 'ic_1KnTM2F05jLespP6wNLZQ1mu';
 
 export default function GooglePayScreen() {
   const {
@@ -13,6 +24,45 @@ export default function GooglePayScreen() {
     createGooglePayPaymentMethod,
   } = useGooglePay();
   const [initialized, setInitialized] = useState(false);
+  const [ephemeralKey, setEphemeralKey] = useState({});
+  const [cardIsInWallet, setCardIsInWallet] = useState(false);
+  const [cardDetails, setCardDetails] = useState<any>(null);
+  const [androidCardToken, setAndroidCardToken] =
+    useState<null | GooglePayCardToken>(null);
+
+  useEffect(() => {
+    fetchEphemeralKey();
+    checkIfCardInWallet();
+  }, []);
+
+  const checkIfCardInWallet = async () => {
+    const response = await fetch(`${API_URL}/issuing-card-details`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: LIVE_CARD_ID,
+      }),
+    });
+
+    const card = await response.json();
+
+    setCardDetails(card);
+
+    const { isInWallet, token, error } = await isCardInWallet({
+      cardLastFour: card.last4,
+    });
+
+    if (error) {
+      Alert.alert(error.code, error.message);
+    } else {
+      setCardIsInWallet(isInWallet ?? false);
+      if (token && token.status === 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION') {
+        setAndroidCardToken(token);
+      }
+    }
+  };
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -97,6 +147,21 @@ export default function GooglePayScreen() {
     setInitialized(true);
   };
 
+  const fetchEphemeralKey = async () => {
+    const response = await fetch(`${API_URL}/ephemeral-key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        apiVersion: Constants.API_VERSIONS.ISSUING,
+        issuingCardId: LIVE_CARD_ID,
+      }),
+    });
+    const key = await response.json();
+    setEphemeralKey(key);
+  };
+
   return (
     <PaymentScreen onInit={initialize}>
       <GooglePayButton
@@ -114,6 +179,25 @@ export default function GooglePayScreen() {
           onPress={createPaymentMethod}
         />
       </View>
+      {!cardIsInWallet && (
+        <AddToWalletButton
+          androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
+          style={styles.payButton}
+          cardHolderName={cardDetails?.cardholder?.name}
+          cardDescription={'Added by Stripe'}
+          cardLastFour={cardDetails?.last4}
+          token={androidCardToken}
+          ephemeralKey={ephemeralKey}
+          onComplete={({ error }) => {
+            Alert.alert(
+              error ? error.code : 'Success',
+              error
+                ? error.message
+                : 'Card was successfully added to the wallet.'
+            );
+          }}
+        />
+      )}
     </PaymentScreen>
   );
 }
@@ -123,6 +207,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   payButton: {
+    marginTop: 30,
     width: 152,
     height: 40,
   },
