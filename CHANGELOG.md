@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.8.0
 
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
