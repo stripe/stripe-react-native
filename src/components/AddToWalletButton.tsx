@@ -32,7 +32,7 @@ export interface Props extends AccessibilityProps {
   /** Details of the Issued Card you'd like added to the device's wallet */
   cardDetails: {
     /** The `primary_account_identifier` value from the issued card. */
-    primaryAccountIdentifier: string;
+    primaryAccountIdentifier: string | null;
     /** The card holder name (used only on iOS) */
     name: string;
     /** A user-facing description of the card. Required on Android.*/
