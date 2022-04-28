@@ -1,6 +1,6 @@
 # Summary of changes
 
-`@stripe/stripe-react-native` v1.0.0 brings a change to the parameters provided to the `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup` methods. Simply put, there are three changes:
+`@stripe/stripe-react-native` v0.8.0 brings a change to the parameters provided to the `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup` methods. Simply put, there are three changes:
 
 ## 1. Renamed the `type` field to `paymentMethodType`
 
