@@ -190,7 +190,7 @@ export default function ApplePayScreen() {
               cardDetails={{
                 name: cardDetails?.cardholder?.name,
                 primaryAccountIdentifier:
-                  cardDetails?.wallet?.primary_account_identifier,
+                  cardDetails?.wallets?.primary_account_identifier,
                 lastFour: cardDetails?.last4,
                 description: 'Added by Stripe',
               }}
