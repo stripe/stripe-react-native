@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
+
 ## 0.8.0
 
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
