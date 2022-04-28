@@ -504,24 +504,25 @@ fun getValOr(map: ReadableMap?, key: String, default: String? = ""): String? {
   } ?: default
 }
 
-internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Address? {
-  if (addressMap == null) {
-    return null
-  }
+internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Address {
   val address = Address.Builder()
-    .setPostalCode(getValOr(addressMap, "postalCode"))
-    .setCity(getValOr(addressMap, "city"))
-    .setCountry(getValOr(addressMap, "country"))
-    .setLine1(getValOr(addressMap, "line1"))
-    .setLine2(getValOr(addressMap, "line2"))
-    .setState(getValOr(addressMap, "state"))
 
-  cardAddress?.let { ca ->
-    ca.postalCode?.let {
-      address.setPostalCode(it)
+  addressMap?.let {
+    address
+      .setPostalCode(getValOr(it, "postalCode"))
+      .setCity(getValOr(it, "city"))
+      .setCountry(getValOr(it, "country"))
+      .setLine1(getValOr(it, "line1"))
+      .setLine2(getValOr(it, "line2"))
+      .setState(getValOr(it, "state"))
+  }
+
+  cardAddress?.let {
+    if (!it.postalCode.isNullOrEmpty()) {
+      address.setPostalCode(it.postalCode)
     }
-    ca.country?.let {
-      address.setCountry(it)
+    if (!it.country.isNullOrEmpty()) {
+      address.setCountry(it.country)
     }
   }
 
@@ -532,19 +533,17 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   if (billingDetails == null && cardAddress == null) {
     return null
   }
-  var address: Address? = null
+  val address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
   val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
 
   if (billingDetails != null) {
-    address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
-
     paymentMethodBillingDetailsBuilder
       .setName(getValOr(billingDetails, "name"))
       .setPhone(getValOr(billingDetails, "phone"))
       .setEmail(getValOr(billingDetails, "email"))
   }
 
-  paymentMethodBillingDetailsBuilder.setAddress(address ?: Address.Builder().build())
+  paymentMethodBillingDetailsBuilder.setAddress(address)
   return paymentMethodBillingDetailsBuilder.build()
 }
 
@@ -554,7 +553,6 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
   }
 
   val address = mapToAddress(getMapOrNull(shippingDetails, "address"), null)
-    ?: Address.Builder().build()
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
