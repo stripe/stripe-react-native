@@ -3,6 +3,7 @@
 ## Unreleased
 
 - [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
+- [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 
 ## 0.8.0
 
