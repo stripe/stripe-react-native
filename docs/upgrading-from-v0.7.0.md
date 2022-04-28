@@ -12,7 +12,7 @@
 
 ## 3. Moved `setupFutureUsage` to the `options` argument
 
-- This means you'll now pass `setupFutureUsage` to the second argument to `createPaymentMethod`, and the third argument to `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`.
+- This means you'll now pass `setupFutureUsage` to the third argument of `confirmPayment` and `confirmSetupIntent`, instead of the second argument.
 
 ## 4. Renamed `type` field to `paymentMethodType` on `PaymentMethod.Result`, `PaymentIntent.Result`, and `SetupIntent.Result`
 
