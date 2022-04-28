@@ -2,13 +2,13 @@
 
 ## Unreleased
 
-- [#913](https://github.com/stripe/stripe-react-native/pull/913) chore: Updated `stripe-ios` from 22.0.0 to 22.2.0.
-- [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `AddToWalletButton` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
+- [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `<AddToWalletButton />` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
   - `primaryAccountIdentifier`: The `wallet.primary_account_identifier` value from the issued card.
   - `name`: The card holder name (previously `cardHolderName`).
   - `description`: A user-facing description of the card (previously `cardDescription`).
   - `lastFour`: Last 4 digits of the card, optional (previously `cardLastFour`).
   - `brand`: The card brand, optional (previously `cardBrand`).
+- [#913](https://github.com/stripe/stripe-react-native/pull/913) chore: Updated `stripe-ios` from 22.0.0 to 22.2.0.
 
 ## 0.8.0
 
