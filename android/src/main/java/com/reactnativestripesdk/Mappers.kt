@@ -317,7 +317,6 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 
   card.putString("brand", mapCardBrand(paymentMethod.card?.brand))
   card.putString("country", paymentMethod.card?.country)
-
   paymentMethod.card?.expiryYear?.let {
     card.putInt("expYear", it)
   }
@@ -326,6 +325,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   }
   card.putString("funding", paymentMethod.card?.funding)
   card.putString("last4", paymentMethod.card?.last4)
+  card.putString("fingerprint", paymentMethod.card?.fingerprint)
 
   sepaDebit.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
   sepaDebit.putString("country", paymentMethod.sepaDebit?.country)
