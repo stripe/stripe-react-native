@@ -221,7 +221,7 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Payment', function () {
-    this.retries(3);
+    this.retries(2);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH payment');
@@ -230,7 +230,6 @@ describe('Common payment scenarios', () => {
     clickButtonContainingText('Collect bank account');
 
     BasicPaymentScreen.authorizeACH();
-    driver.pause(3000);
 
     let alert = getElementByText('RequiresConfirmation');
     alert.waitForDisplayed({
@@ -258,7 +257,7 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Setup', function () {
-    this.retries(3);
+    this.retries(2);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH setup');
@@ -267,7 +266,6 @@ describe('Common payment scenarios', () => {
     clickButtonContainingText('Collect bank account');
 
     BasicPaymentScreen.authorizeACH();
-    driver.pause(3000);
 
     let alert = getElementByText('RequiresConfirmation');
     alert.waitForDisplayed({
