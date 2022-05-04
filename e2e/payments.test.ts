@@ -221,7 +221,7 @@ describe('Common payment scenarios', () => {
   });
 
   it('ACH Payment', function () {
-    this.retries(3);
+    this.retries(2);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH payment');
@@ -230,25 +230,34 @@ describe('Common payment scenarios', () => {
     clickButtonContainingText('Collect bank account');
 
     BasicPaymentScreen.authorizeACH();
-    driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('RequiresConfirmation');
-    driver.dismissAlert();
+    let alert = getElementByText('Requires Confirmation');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
 
     clickButtonContainingText('Confirm');
     driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('Awaiting verification');
-    driver.dismissAlert();
+    alert = getElementByText('Awaiting verification');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
 
     getElementByText('Verify microdeposit').click();
     driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('Processing');
+    alert = getElementByText('Processing');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
   });
 
   it('ACH Setup', function () {
-    this.retries(3);
+    this.retries(2);
 
     homeScreen.goTo('Bank Debits');
     homeScreen.goTo('ACH setup');
@@ -257,20 +266,29 @@ describe('Common payment scenarios', () => {
     clickButtonContainingText('Collect bank account');
 
     BasicPaymentScreen.authorizeACH();
-    driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('RequiresConfirmation');
-    driver.dismissAlert();
+    let alert = getElementByText('Requires Confirmation');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
 
     clickButtonContainingText('Confirm');
     driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('Awaiting verification');
-    driver.dismissAlert();
+    alert = getElementByText('Awaiting verification');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
 
     getElementByText('Verify microdeposit').click();
     driver.pause(3000);
 
-    expect(driver.getAlertText()).toContain('Succeeded');
+    alert = getElementByText('Succeeded');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    alert.dismissAlert();
   });
 });

@@ -60,7 +60,7 @@ export default function ACHSetupScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The setup must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -108,7 +108,7 @@ export default function ACHSetupScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The setup must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -147,7 +147,7 @@ export default function ACHSetupScreen() {
     } else if (setupIntent) {
       if (setupIntent.status === SetupIntent.Status.RequiresConfirmation) {
         Alert.alert(
-          'Setup status: RequiresConfirmation',
+          'Requires Confirmation',
           "You may now press the first 'Confirm' button."
         );
       } else {

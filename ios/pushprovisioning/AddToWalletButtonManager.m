@@ -12,10 +12,7 @@
 @interface RCT_EXTERN_MODULE(AddToWalletButtonManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(testEnv, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(iOSButtonStyle, NSString)
-RCT_EXPORT_VIEW_PROPERTY(cardHolderName, NSString)
-RCT_EXPORT_VIEW_PROPERTY(cardDescription, NSString)
-RCT_EXPORT_VIEW_PROPERTY(cardLastFour, NSString)
-RCT_EXPORT_VIEW_PROPERTY(cardBrand, NSString)
+RCT_EXPORT_VIEW_PROPERTY(cardDetails, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(ephemeralKey, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(onCompleteAction, RCTDirectEventBlock)
 @end

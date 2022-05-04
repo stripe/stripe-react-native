@@ -38,14 +38,9 @@ class AddToWalletButtonManager(applicationContext: ReactApplicationContext) : Si
     view.setSourceMap(source)
   }
 
-  @ReactProp(name = "cardDescription")
-  fun cardDescription(view: AddToWalletButtonView, cardDescription: String) {
-    view.setCardDescription(cardDescription)
-  }
-
-  @ReactProp(name = "cardLastFour")
-  fun cardLastFour(view: AddToWalletButtonView, last4: String) {
-    view.setCardLastFour(last4)
+  @ReactProp(name = "cardDetails")
+  fun cardDetails(view: AddToWalletButtonView, cardDetails: ReadableMap) {
+    view.setCardDetails(cardDetails)
   }
 
   @ReactProp(name = "ephemeralKey")

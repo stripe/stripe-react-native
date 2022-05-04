@@ -81,21 +81,24 @@ class BasicPaymentScreen {
         let button = $(`button*=Manually verify instead`);
         if (button.isDisplayed()) {
           button.click();
-          driver.pause(5000);
+          driver.pause(2000);
 
           button = $(`//input[@name='confirmAccountNumber']`);
           button.click();
           button.sendKeys(['000123456789\n']);
+          driver.pause(2000);
 
           button = $(`//input[@name='routingNumber']`);
           button.click();
           button.click();
           button.sendKeys(['110000000\n']);
+          driver.pause(2000);
 
           button = $(`//input[@name='accountNumber']`);
           button.click();
           button.click();
           button.sendKeys(['000123456789\n']);
+          driver.pause(2000);
 
           button = $(`button*=Continue`);
           button.click();
@@ -104,7 +107,6 @@ class BasicPaymentScreen {
 
           button = $(`button*=Done`);
           button.click();
-          driver.pause(5000);
           break;
         }
       } catch (e) {
@@ -114,6 +116,7 @@ class BasicPaymentScreen {
       }
     }
     driver.switchContext(getNativeContext());
+    driver.pause(5000);
   }
 }
 

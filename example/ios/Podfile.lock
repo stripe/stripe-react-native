@@ -287,27 +287,27 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
-  - Stripe (22.0.0):
-    - Stripe/Stripe3DS2 (= 22.0.0)
-    - StripeApplePay (= 22.0.0)
-    - StripeCore (= 22.0.0)
-    - StripeUICore (= 22.0.0)
+  - Stripe (22.2.0):
+    - Stripe/Stripe3DS2 (= 22.2.0)
+    - StripeApplePay (= 22.2.0)
+    - StripeCore (= 22.2.0)
+    - StripeUICore (= 22.2.0)
   - stripe-react-native (0.8.0):
     - React-Core
-    - Stripe (~> 22.0.0)
-    - StripeConnections (~> 22.0.0)
-  - Stripe/Stripe3DS2 (22.0.0):
-    - StripeApplePay (= 22.0.0)
-    - StripeCore (= 22.0.0)
-    - StripeUICore (= 22.0.0)
-  - StripeApplePay (22.0.0):
-    - StripeCore (= 22.0.0)
-  - StripeConnections (22.0.0):
-    - StripeCore (= 22.0.0)
-    - StripeUICore (= 22.0.0)
-  - StripeCore (22.0.0)
-  - StripeUICore (22.0.0):
-    - StripeCore (= 22.0.0)
+    - Stripe (~> 22.2.0)
+    - StripeFinancialConnections (~> 22.2.0)
+  - Stripe/Stripe3DS2 (22.2.0):
+    - StripeApplePay (= 22.2.0)
+    - StripeCore (= 22.2.0)
+    - StripeUICore (= 22.2.0)
+  - StripeApplePay (22.2.0):
+    - StripeCore (= 22.2.0)
+  - StripeCore (22.2.0)
+  - StripeFinancialConnections (22.2.0):
+    - StripeCore (= 22.2.0)
+    - StripeUICore (= 22.2.0)
+  - StripeUICore (22.2.0):
+    - StripeCore (= 22.2.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -355,8 +355,8 @@ SPEC REPOS:
     - fmt
     - Stripe
     - StripeApplePay
-    - StripeConnections
     - StripeCore
+    - StripeFinancialConnections
     - StripeUICore
 
 EXTERNAL SOURCES:

@@ -183,9 +183,13 @@ export default function GooglePayScreen() {
         <AddToWalletButton
           androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
           style={styles.payButton}
-          cardHolderName={cardDetails?.cardholder?.name}
-          cardDescription={'Added by Stripe'}
-          cardLastFour={cardDetails?.last4}
+          cardDetails={{
+            name: cardDetails?.cardholder?.name,
+            primaryAccountIdentifier:
+              cardDetails?.wallet?.primary_account_identifier,
+            lastFour: cardDetails?.last4,
+            description: 'Added by Stripe',
+          }}
           token={androidCardToken}
           ephemeralKey={ephemeralKey}
           onComplete={({ error }) => {

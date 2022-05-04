@@ -65,7 +65,7 @@ export default function ACHPaymentScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The payment must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -116,7 +116,7 @@ export default function ACHPaymentScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The payment must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -155,7 +155,7 @@ export default function ACHPaymentScreen() {
     } else if (paymentIntent) {
       if (paymentIntent.status === PaymentIntent.Status.RequiresConfirmation) {
         Alert.alert(
-          'Payment status: RequiresConfirmation',
+          'Requires Confirmation',
           "You may now press the first 'Confirm' button."
         );
       } else {

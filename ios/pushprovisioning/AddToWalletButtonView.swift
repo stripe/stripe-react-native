@@ -15,10 +15,7 @@ class AddToWalletButtonView: UIView {
 
     @objc var testEnv: Bool = false
     @objc var iOSButtonStyle: NSString?
-    @objc var cardHolderName: NSString?
-    @objc var cardDescription: NSString?
-    @objc var cardLastFour: NSString?
-    @objc var cardBrand: NSString?
+    @objc var cardDetails: NSDictionary?
     @objc var ephemeralKey: NSDictionary?
     @objc var onCompleteAction: RCTDirectEventBlock?
 
@@ -65,22 +62,22 @@ class AddToWalletButtonView: UIView {
             )
             return
         }
-        
-        guard let cardHolderName = cardHolderName as String? else {
+
+        guard let cardHolderName = cardDetails?["name"] as? String else {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
-                    "Missing parameters. `cardHolderName` must be supplied in the props to <AddToWalletButton />"
+                    "Missing parameters. `cardDetails.name` must be supplied in the props to <AddToWalletButton />"
                 ) as? [AnyHashable : Any]
             )
             return
         }
-        
+
         if (cardHolderName.isEmpty) {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
-                    "`cardHolderName` is required, but the passed string was empty"
+                    "`cardDetails.name` is required, but the passed string was empty"
                 ) as? [AnyHashable : Any]
             )
             return
@@ -88,17 +85,18 @@ class AddToWalletButtonView: UIView {
 
         let config = STPPushProvisioningContext.requestConfiguration(
             withName: cardHolderName,
-            description: cardDescription as String?,
-            last4: cardLastFour as String?,
-            brand: Mappers.mapToCardBrand(cardBrand as String?)
+            description: cardDetails?["description"] as? String,
+            last4: cardDetails?["lastFour"] as? String,
+            brand: Mappers.mapToCardBrand(cardDetails?["brand"] as? String),
+            primaryAccountIdentifier: cardDetails?["primaryAccountIdentifier"] as? String
         )
-        
+
         // We can use STPFakeAddPaymentPassViewController ONLY IN TEST MODE. If STPFakeAddPaymentPassViewController is
         // used with a live mode card, the flow will fail and show a 'Signing certificate was invalid' error.
         let controller = {
             return self.testEnv ? STPFakeAddPaymentPassViewController(requestConfiguration: config, delegate: self) : PKAddPaymentPassViewController(requestConfiguration: config, delegate: self)
         }()
-        
+
         let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
         vc.present(controller!, animated: true, completion: nil)
     }

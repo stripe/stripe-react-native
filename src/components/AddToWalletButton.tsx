@@ -29,14 +29,19 @@ export interface Props extends AccessibilityProps {
   testID?: string;
   /** Only set to `false` when shipping through TestFlight || App Store */
   testEnv?: boolean;
-  /** Sets the card holder name (used only on iOS) */
-  cardHolderName: string;
-  /** Last 4 digits of the card. Required on Android. */
-  cardLastFour: string;
-  /** Sets the card holder name (used only on iOS) */
-  cardDescription?: string;
-  /** Optional, only used on iOS */
-  cardBrand?: Token.CardBrand;
+  /** Details of the Issued Card you'd like added to the device's wallet */
+  cardDetails: {
+    /** The `primary_account_identifier` value from the issued card. */
+    primaryAccountIdentifier: string | null;
+    /** The card holder name (used only on iOS) */
+    name: string;
+    /** A user-facing description of the card. Required on Android.*/
+    description: string;
+    /** Last 4 digits of the card, only used on iOS */
+    lastFour?: string;
+    /** Optional, only used on iOS */
+    brand?: Token.CardBrand;
+  };
   // Optional, only for Android and only for cards that are in the "yellow path" (as defined by Google- https://developers.google.com/pay/issuers/apis/push-provisioning/android/wallet-operations#resolving_yellow_path). Obtain this value via the `isCardInWallet` method.
   token?: GooglePayCardToken | null;
   /** Used by stripe to securely obtain card info of the card being provisioned. */
@@ -54,9 +59,11 @@ export interface Props extends AccessibilityProps {
  *    testEnv={true}
  *    style={styles.myButtonStyle}
  *    iOSButtonStyle="onLightBackground"
- *    cardHolderName="David Wallace"
- *    cardLastFour="4242"
- *    cardBrand="Visa"
+ *    cardDetails={{
+ *      primaryAccountIdentifier: "V-123",
+ *      name: "David Wallace",
+ *      lastFour: "4242",
+ *    }}
  *    ephemeralKey={myEphemeralKey} // This object is retrieved from your server. See https://stripe.com/docs/issuing/cards/digital-wallets?platform=react-native#update-your-backend
  *    onComplete={(error) => {
  *      Alert.alert(

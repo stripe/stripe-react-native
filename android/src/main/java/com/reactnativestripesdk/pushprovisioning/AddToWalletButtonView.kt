@@ -22,8 +22,7 @@ import com.reactnativestripesdk.createError
 
 
 class AddToWalletButtonView(private val context: ThemedReactContext, private val requestManager: RequestManager) : AppCompatImageView(context) {
-  private var cardDescription: String? = null
-  private var cardLastFour: String? = null
+  private var cardDetails: ReadableMap? = null
   private var ephemeralKey: String? = null
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
@@ -35,7 +34,8 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
 
   override fun performClick(): Boolean {
     super.performClick()
-    cardDescription?.let { cardDescription ->
+
+    cardDetails?.getString("description")?.let { cardDescription ->
       ephemeralKey?.let { ephemeralKey ->
         PushProvisioningProxy.invoke(
           context.reactApplicationContext,
@@ -50,7 +50,7 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
       }
     } ?: run {
       dispatchEvent(
-        createError("Failed", "Missing parameters. `cardDescription` must be supplied in the props to <AddToWalletButton />")
+        createError("Failed", "Missing parameters. `cardDetails.cardDescription` must be supplied in the props to <AddToWalletButton />")
       )
     }
     return true
@@ -125,12 +125,8 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
     sourceMap = map
   }
 
-  fun setCardDescription(description: String) {
-    cardDescription = description
-  }
-
-  fun setCardLastFour(last4: String) {
-    cardLastFour = last4
+  fun setCardDetails(detailsMap: ReadableMap) {
+    cardDetails = detailsMap
   }
 
   fun setEphemeralKey(map: ReadableMap) {
