@@ -231,7 +231,7 @@ describe('Common payment scenarios', () => {
 
     BasicPaymentScreen.authorizeACH();
 
-    let alert = getElementByText('RequiresConfirmation');
+    let alert = getElementByText('Requires Confirmation');
     alert.waitForDisplayed({
       timeout: 20000,
     });
@@ -267,7 +267,7 @@ describe('Common payment scenarios', () => {
 
     BasicPaymentScreen.authorizeACH();
 
-    let alert = getElementByText('RequiresConfirmation');
+    let alert = getElementByText('Requires Confirmation');
     alert.waitForDisplayed({
       timeout: 20000,
     });
