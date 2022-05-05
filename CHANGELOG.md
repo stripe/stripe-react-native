@@ -11,6 +11,7 @@
 - [#913](https://github.com/stripe/stripe-react-native/pull/913) chore: Updated `stripe-ios` from 22.0.0 to 22.2.0.
 - [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
 - [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
+- [#925](https://github.com/stripe/stripe-react-native/pull/925) Feat: `us_bank_account` payment method is now available in the payment sheet on iOS. (& Updated `stripe-ios` from 22.2.0 to 22.3.0)
 
 ## 0.8.0
 

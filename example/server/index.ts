@@ -545,6 +545,7 @@ app.post('/payment-sheet', async (_, res) => {
       // 'eps',
       // 'afterpay_clearpay',
       // 'klarna',
+      // 'us_bank_account',
     ],
   });
   return res.json({
