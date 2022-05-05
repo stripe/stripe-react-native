@@ -7,7 +7,7 @@ module.exports = {
           ImportDeclaration(path) {
             let importResource = path.node.source.value ?? '';
             if (importResource.includes('../package.json')) {
-              importResource = '../' + importResource;
+              path.node.source.value = '../' + importResource;
             }
           },
         },
