@@ -22,7 +22,6 @@ export interface Result {
   Sofort: SofortResult;
   Upi: UpiResult;
   USBankAccount: USBankAccountResult;
-  PayPal: PayPalResult;
 }
 
 export type CreateParams =
@@ -256,10 +255,6 @@ export type USBankAccountResult = {
   fingerprint?: string;
   preferredNetwork?: string;
   supportedNetworks?: string[];
-};
-
-export type PayPalResult = {
-  // FINISH
 };
 
 export type Type =
