@@ -32,6 +32,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams()
         PaymentMethod.Type.Klarna -> createKlarnaPaymentConfirmParams()
         PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentConfirmParams()
+        PaymentMethod.Type.PayPal -> createPayPalPaymentConfirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -52,6 +53,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.SepaDebit -> createSepaPaymentSetupParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentSetupParams()
         PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentSetupParams()
+        PaymentMethod.Type.PayPal -> createPayPalPaymentSetupParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -450,6 +452,13 @@ class PaymentMethodCreateParamsFactory(
     }
   }
 
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createPayPalPaymentSetupParams(): ConfirmSetupIntentParams {
+    return ConfirmSetupIntentParams.create(
+      clientSecret = clientSecret,
+      paymentMethodType = PaymentMethod.Type.PayPal
+    )
+  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createKlarnaPaymentConfirmParams(): ConfirmPaymentIntentParams {
@@ -490,6 +499,14 @@ class PaymentMethodCreateParamsFactory(
         paymentMethodType = PaymentMethod.Type.USBankAccount
       )
     }
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createPayPalPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
+      paymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(null),
+      clientSecret = clientSecret,
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)

@@ -107,6 +107,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.WeChatPay -> "WeChatPay"
     PaymentMethod.Type.Klarna -> "Klarna"
     PaymentMethod.Type.USBankAccount -> "USBankAccount"
+    PaymentMethod.Type.PayPal -> "PayPal"
     else -> "Unknown"
   }
 }
@@ -134,6 +135,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "WeChatPay" -> PaymentMethod.Type.WeChatPay
     "Klarna" -> PaymentMethod.Type.Klarna
     "USBankAccount" -> PaymentMethod.Type.USBankAccount
+    "PayPal" -> PaymentMethod.Type.PayPal
     else -> null
   }
 }
