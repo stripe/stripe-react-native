@@ -38,7 +38,7 @@ export default function FPXPaymentScreen() {
     }
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Fpx',
+      paymentMethodType: 'Fpx',
     });
 
     if (error) {

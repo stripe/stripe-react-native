@@ -25,6 +25,15 @@ export interface Styles {
   backgroundColor?: string;
   // disabledBackgroundColor?: string;
   // type?: 'borderless' | 'standard';
+  borderWidth?: number;
+  borderColor?: string;
+  borderRadius?: number;
+  textColor?: string;
+  fontSize?: number;
+  placeholderColor?: string;
+  cursorColor?: string;
+  textErrorColor?: string;
+  fontFamily?: string;
 }
 
 export interface Placeholders {
@@ -42,7 +51,8 @@ export interface NativeProps {
   autofocus?: boolean;
   // isUserInteractionEnabledValue?: boolean;
   cardStyle?: Styles;
-  // placeholder: Placeholders;
+  /** Android only */
+  placeholders?: Placeholders;
   // postalCodeEnabled: boolean;
   onFocusChange(
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>

@@ -43,8 +43,10 @@ export default function EPSPaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Eps',
-      billingDetails,
+      paymentMethodType: 'Eps',
+      paymentMethodData: {
+        billingDetails,
+      },
     });
 
     if (error) {

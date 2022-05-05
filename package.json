@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -102,7 +102,9 @@
     ],
     "rules": {
       "no-shadow": "off",
-      "@typescript-eslint/no-shadow": ["error"],
+      "@typescript-eslint/no-shadow": [
+        "error"
+      ],
       "prettier/prettier": [
         "error",
         {

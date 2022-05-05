@@ -27,33 +27,28 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
-  @SuppressWarnings("unused")
   fun setDangerouslyGetFullCardDetails(view: CardFieldView, dangerouslyGetFullCardDetails: Boolean = false) {
     view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
   }
 
   @ReactProp(name = "postalCodeEnabled")
-  @SuppressWarnings("unused")
   fun setPostalCodeEnabled(view: CardFieldView, postalCodeEnabled: Boolean = true) {
     view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
   @ReactProp(name = "autofocus")
-  @SuppressWarnings("unused")
   fun setAutofocus(view: CardFieldView, autofocus: Boolean = false) {
     view.setAutofocus(autofocus)
   }
 
   @ReactProp(name = "cardStyle")
-  @SuppressWarnings("unused")
   fun setCardStyle(view: CardFieldView, cardStyle: ReadableMap) {
     view.setCardStyle(cardStyle)
   }
 
-  @ReactProp(name = "placeholder")
-  @SuppressWarnings("unused")
-  fun setPlaceHolders(view: CardFieldView, placeholder: ReadableMap) {
-    view.setPlaceHolders(placeholder)
+  @ReactProp(name = "placeholders")
+  fun setPlaceHolders(view: CardFieldView, placeholders: ReadableMap) {
+    view.setPlaceHolders(placeholders)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {

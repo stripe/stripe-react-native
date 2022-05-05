@@ -41,7 +41,7 @@ export default function ACHSetupScreen() {
 
   const handleConfirmPress = async () => {
     const { error, setupIntent } = await confirmSetupIntent(secret, {
-      type: 'USBankAccount',
+      paymentMethodType: 'USBankAccount',
     });
 
     if (error) {
@@ -60,7 +60,7 @@ export default function ACHSetupScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The setup must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -82,11 +82,13 @@ export default function ACHSetupScreen() {
     setSecret(clientSecret);
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      type: 'USBankAccount',
-      accountNumber: '000123456789',
-      routingNumber: '110000000',
-      billingDetails: {
-        name: 'David Wallace',
+      paymentMethodType: 'USBankAccount',
+      paymentMethodData: {
+        accountNumber: '000123456789',
+        routingNumber: '110000000',
+        billingDetails: {
+          name: 'David Wallace',
+        },
       },
     });
 
@@ -106,7 +108,7 @@ export default function ACHSetupScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The setup must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -129,10 +131,12 @@ export default function ACHSetupScreen() {
     const { setupIntent, error } = await collectBankAccountForSetup(
       clientSecret,
       {
-        type: 'USBankAccount',
-        billingDetails: {
-          name,
-          email,
+        paymentMethodType: 'USBankAccount',
+        paymentMethodData: {
+          billingDetails: {
+            name,
+            email,
+          },
         },
       }
     );
@@ -143,7 +147,7 @@ export default function ACHSetupScreen() {
     } else if (setupIntent) {
       if (setupIntent.status === SetupIntent.Status.RequiresConfirmation) {
         Alert.alert(
-          'Setup status: RequiresConfirmation',
+          'Requires Confirmation',
           "You may now press the first 'Confirm' button."
         );
       } else {

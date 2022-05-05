@@ -47,12 +47,17 @@ export default function SofortPaymentScreen() {
       email: 'john@example.com',
     };
 
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Sofort',
-      billingDetails,
-      country: 'DE',
-      setupFutureUsage: saveIban ? 'OffSession' : undefined,
-    });
+    const { error, paymentIntent } = await confirmPayment(
+      clientSecret,
+      {
+        paymentMethodType: 'Sofort',
+        paymentMethodData: {
+          billingDetails,
+          country: 'DE',
+        },
+      },
+      { setupFutureUsage: saveIban ? 'OffSession' : undefined }
+    );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);

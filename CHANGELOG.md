@@ -1,9 +1,33 @@
 # CHANGELOG
 
+## Unreleased
+
+- [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `<AddToWalletButton />` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
+  - `primaryAccountIdentifier`: The `wallet.primary_account_identifier` value from the issued card.
+  - `name`: The card holder name (previously `cardHolderName`).
+  - `description`: A user-facing description of the card (previously `cardDescription`).
+  - `lastFour`: Last 4 digits of the card, optional (previously `cardLastFour`).
+  - `brand`: The card brand, optional (previously `cardBrand`).
+- [#913](https://github.com/stripe/stripe-react-native/pull/913) chore: Updated `stripe-ios` from 22.0.0 to 22.2.0.
+- [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
+- [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 - [#851](https://github.com/stripe/stripe-react-native/pull/851) Fix: set cardbrand tint color for CardField
-- [#851](https://github.com/stripe/stripe-react-native/pull/851) Fix: set cardbrand tint color for CardField
+
+## 0.8.0
+
+- [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
+- [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
+- [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
+  - Renamed `type` field to `paymentMethodType` on `PaymentMethod.Result`, `PaymentIntent.Result`, and `SetupIntent.Result` (result of `createPaymentMethod`, `retrieveSetupIntent`, `confirmSetupIntent`, `confirmPayment`, `collectBankAccountForPayment`, `collectBankAccountForSetup`, `verifyMicrodepositsForPayment`, and `verifyMicrodepositsForSetup`).
+- [#849](https://github.com/stripe/stripe-react-native/pull/849) BREAKING CHANGE: Renamed `placeholder` prop on `<CardField />` and `<CardForm />` to `placeholders`.
+- [#849](https://github.com/stripe/stripe-react-native/pull/849) Feat: Added customized styling options to `<CardForm />` on Android.
+
+## 0.7.0
+
+- [#894](https://github.com/stripe/stripe-react-native/pull/894) Fix: `<CardField />` `onBlur` callback will now be called appropriately on Android
+- [#846](https://github.com/stripe/stripe-react-native/pull/846) Fix: Avoid crashes when `currentActivity` is null
 - [#879](https://github.com/stripe/stripe-react-native/pull/879) Feat: Add support for ACHv2 payments on Android (already existed on iOS).
-- [#879](https://github.com/stripe/stripe-react-native/pull/879) Chore: Upgraded `stripe-android` from v19.3.+ to v20.0.+
+- [#879](https://github.com/stripe/stripe-react-native/pull/879) Chore: Upgraded `stripe-android` from v19.3.+ to v20.1.+
 - [#837](https://github.com/stripe/stripe-react-native/pull/837) BREAKING CHANGE: Mostly fixes and changes to types, but some method's now accept slightly different parameters:
   - Removed `setUrlSchemeOnAndroid` in favor of `setReturnUrlSchemeOnAndroid`. `setReturnUrlSchemeOnAndroid` functions exactly the same, this is just a rename.
   - Removed `handleCardAction` in favor of `handleNextAction`. `handleNextAction` functions exactly the same, this is just a rename.

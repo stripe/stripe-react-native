@@ -43,7 +43,7 @@ export default function ACHPaymentScreen() {
 
   const handleConfirmPress = async () => {
     const { error, paymentIntent } = await confirmPayment(secret, {
-      type: 'USBankAccount',
+      paymentMethodType: 'USBankAccount',
     });
 
     if (error) {
@@ -65,7 +65,7 @@ export default function ACHPaymentScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The payment must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -87,11 +87,13 @@ export default function ACHPaymentScreen() {
     setSecret(clientSecret);
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'USBankAccount',
-      accountNumber: '000123456789',
-      routingNumber: '110000000',
-      billingDetails: {
-        name: 'David Wallace',
+      paymentMethodType: 'USBankAccount',
+      paymentMethodData: {
+        accountNumber: '000123456789',
+        routingNumber: '110000000',
+        billingDetails: {
+          name: 'David Wallace',
+        },
       },
     });
 
@@ -114,7 +116,7 @@ export default function ACHPaymentScreen() {
       ) {
         setAwaitingVerification(true);
         Alert.alert(
-          'Awaiting verification:',
+          'Awaiting verification',
           'The payment must be verified. Please provide the verification input values below.'
         );
       } else {
@@ -137,10 +139,12 @@ export default function ACHPaymentScreen() {
     const { paymentIntent, error } = await collectBankAccountForPayment(
       clientSecret,
       {
-        type: 'USBankAccount',
-        billingDetails: {
-          name,
-          email,
+        paymentMethodType: 'USBankAccount',
+        paymentMethodData: {
+          billingDetails: {
+            name,
+            email,
+          },
         },
       }
     );
@@ -151,7 +155,7 @@ export default function ACHPaymentScreen() {
     } else if (paymentIntent) {
       if (paymentIntent.status === PaymentIntent.Status.RequiresConfirmation) {
         Alert.alert(
-          'Payment status: RequiresConfirmation',
+          'Requires Confirmation',
           "You may now press the first 'Confirm' button."
         );
       } else {

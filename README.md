@@ -7,7 +7,7 @@ The Stripe React Native SDK allows you to build delightful payment experiences i
 
 ## Getting started
 
-Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](#run-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
+Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](./CONTRIBUTING.md#running-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
 
 > Updating to a newer version of the SDK? See our [changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md).
 
@@ -129,7 +129,7 @@ export default function PaymentScreen() {
   return (
     <CardField
       postalCodeEnabled={true}
-      placeholder={{
+      placeholders={{
         number: '4242 4242 4242 4242',
       }}
       cardStyle={{

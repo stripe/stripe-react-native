@@ -43,8 +43,8 @@ export default function P24PaymentScreen() {
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'P24',
-      billingDetails,
+      paymentMethodType: 'P24',
+      paymentMethodData: { billingDetails },
     });
 
     if (error) {

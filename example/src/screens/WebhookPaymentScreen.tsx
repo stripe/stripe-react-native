@@ -53,11 +53,18 @@ export default function WebhookPaymentScreen() {
 
     // 3. Confirm payment with card details
     // The rest will be done automatically using webhooks
-    const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      type: 'Card',
-      billingDetails,
-      setupFutureUsage: saveCard ? 'OffSession' : undefined,
-    });
+    const { error, paymentIntent } = await confirmPayment(
+      clientSecret,
+      {
+        paymentMethodType: 'Card',
+        paymentMethodData: {
+          billingDetails,
+        },
+      },
+      {
+        setupFutureUsage: saveCard ? 'OffSession' : undefined,
+      }
+    );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -83,7 +90,7 @@ export default function WebhookPaymentScreen() {
       <CardField
         postalCodeEnabled={false}
         autofocus
-        placeholder={{
+        placeholders={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',
           cvc: 'CVC',
@@ -143,6 +150,6 @@ const inputStyles: CardFieldInput.Styles = {
   borderColor: '#000000',
   borderRadius: 8,
   fontSize: 14,
-  placeholderColor: '#999999',
+  placeholderColor: '#A020F0',
   textColor: '#0000ff',
 };

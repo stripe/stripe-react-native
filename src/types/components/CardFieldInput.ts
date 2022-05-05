@@ -63,7 +63,7 @@ export interface NativeProps {
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>
   ): void;
   cardStyle?: Styles;
-  placeholder?: Placeholders;
+  placeholders?: Placeholders;
 }
 
 export interface Methods {

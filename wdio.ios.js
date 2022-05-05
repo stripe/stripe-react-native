@@ -30,6 +30,7 @@ exports.config = {
     ui: 'bdd',
     timeout: 200000,
   },
+  specFileRetries: 1,
   specs: ['./e2e/*.test.ts'],
   capabilities: [
     {

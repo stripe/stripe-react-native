@@ -32,6 +32,7 @@ import {
   VerifyMicrodepositsForSetupResult,
   CollectBankAccountForPaymentResult,
   CollectBankAccountForSetupResult,
+  IsCardInWalletResult,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -324,15 +325,6 @@ export const verifyMicrodepositsForPayment = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForPaymentResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: VerifyMicrodepositsError.Failed,
-  //       message:
-  //         'verifyMicrodepositsForPayment is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with paymentIntent.nextAction.redirectUrl',
-  //     }),
-  //   };
-  // }
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       true,
@@ -359,15 +351,6 @@ export const verifyMicrodepositsForSetup = async (
   clientSecret: string,
   params: VerifyMicrodepositsParams
 ): Promise<VerifyMicrodepositsForSetupResult> => {
-  // if (isAndroid) {
-  //   return {
-  //     error: createError({
-  //       code: VerifyMicrodepositsError.Failed,
-  //       message:
-  //         'verifyMicrodepositsForSetup is only supported on iOS on this version of @stripe/stripe-react-native. Please verify with setupIntent.nextAction.redirectUrl',
-  //     }),
-  //   };
-  // }
   try {
     const { setupIntent, error } = (await NativeStripeSdk.verifyMicrodeposits(
       false,
@@ -581,3 +564,29 @@ export const collectBankAccountForSetup = async (
     };
   }
 };
+
+export const isCardInWallet = async (params: {
+  cardLastFour: string;
+}): Promise<IsCardInWalletResult> => {
+  try {
+    const { isInWallet, token, error } = await NativeStripeSdk.isCardInWallet(
+      params
+    );
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      isInWallet: isInWallet as boolean,
+      token: token,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const Constants = NativeStripeSdk.getConstants();

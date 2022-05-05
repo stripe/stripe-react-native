@@ -25,12 +25,13 @@ import java.lang.Exception
 
 class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget = CardInputWidget(context)
-  private var cardInputWidgetBinding = CardInputWidgetBinding.bind(mCardWidget)
+  private val cardInputWidgetBinding = CardInputWidgetBinding.bind(mCardWidget)
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "", "validNumber" to "Unknown", "validCVC" to "Unknown", "validExpiryDate" to "Unknown")
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
+  private var currentFocusedField: String? = null
 
   init {
     cardInputWidgetBinding.container.isFocusable = true
@@ -68,6 +69,11 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     if (mCardWidget.postalCodeEnabled) {
       cardInputWidgetBinding.postalCodeEditText.setText("")
     }
+  }
+
+  private fun onChangeFocus() {
+    mEventDispatcher?.dispatchEvent(
+      CardFocusEvent(id, currentFocusedField))
   }
 
   fun setCardStyle(value: ReadableMap) {
@@ -194,7 +200,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     return cardDetails
   }
 
-  fun onValidCardChange() {
+  private fun onValidCardChange() {
     mCardWidget.paymentMethodCard?.let {
       cardParams = it
       cardAddress = Address.Builder()
@@ -221,6 +227,23 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   private fun setListeners() {
+    cardInputWidgetBinding.cardNumberEditText.setOnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.CardNumber.name else null
+      onChangeFocus()
+    }
+    cardInputWidgetBinding.expiryDateEditText.setOnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.ExpiryDate.name else null
+      onChangeFocus()
+    }
+    cardInputWidgetBinding.cvcEditText.setOnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.Cvc.name else null
+      onChangeFocus()
+    }
+    cardInputWidgetBinding.postalCodeEditText.setOnFocusChangeListener { _, hasFocus ->
+      currentFocusedField = if (hasFocus) CardInputListener.FocusField.PostalCode.name else null
+      onChangeFocus()
+    }
+
     mCardWidget.setCardValidCallback { isValid, invalidFields ->
       cardDetails["validNumber"] = if (invalidFields.contains(CardValidCallback.Fields.Number)) "Invalid" else "Valid"
       cardDetails["validCVC"] = if (invalidFields.contains(CardValidCallback.Fields.Cvc)) "Invalid" else "Valid"
@@ -238,13 +261,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
       override fun onExpirationComplete() {}
       override fun onCvcComplete() {}
       override fun onPostalCodeComplete() {}
-
-      override fun onFocusChange(focusField: CardInputListener.FocusField) {
-        if (mEventDispatcher != null) {
-          mEventDispatcher?.dispatchEvent(
-            CardFocusEvent(id, focusField.name))
-        }
-      }
+      override fun onFocusChange(focusField: CardInputListener.FocusField) {}
     })
 
     mCardWidget.setExpiryDateTextWatcher(object : TextWatcher {
