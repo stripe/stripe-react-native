@@ -22,6 +22,7 @@ export interface Result {
   Sofort: SofortResult;
   Upi: UpiResult;
   USBankAccount: USBankAccountResult;
+  PayPal: PayPalResult;
 }
 
 export type CreateParams =
@@ -41,7 +42,8 @@ export type CreateParams =
   | KlarnaParams
   // | WeChatPayParams
   | BancontactParams
-  | USBankAccountParams;
+  | USBankAccountParams
+  | PayPalParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -191,6 +193,13 @@ export type USBankAccountParams = {
   };
 };
 
+export type PayPalParams = {
+  paymentMethodType: 'PayPal';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+  };
+};
+
 export interface AuBecsDebitResult {
   fingerprint?: string;
   last4?: string;
@@ -249,6 +258,10 @@ export type USBankAccountResult = {
   supportedNetworks?: string[];
 };
 
+export type PayPalResult = {
+  // FINISH
+};
+
 export type Type =
   | 'AfterpayClearpay'
   | 'Card'
@@ -268,6 +281,7 @@ export type Type =
   | 'Sofort'
   | 'Upi'
   | 'USBankAccount'
+  | 'PayPal'
   | 'Unknown';
 
 export type CollectBankAccountParams = {
