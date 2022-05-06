@@ -15,6 +15,7 @@
 
 ## 0.8.0
 
+- **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
 - [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
