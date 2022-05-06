@@ -227,7 +227,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     getCurrentActivityOrResolveWithError(promise)?.let {
       it.supportFragmentManager.beginTransaction()
         .add(paymentLauncherFragment, "payment_launcher_fragment")
-        .commit()
+        .commitAllowingStateLoss()
 
       val localBroadcastManager = LocalBroadcastManager.getInstance(reactApplicationContext)
       localBroadcastManager.registerReceiver(mPaymentSheetReceiver, IntentFilter(ON_PAYMENT_RESULT_ACTION))
@@ -254,7 +254,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
       }
       activity.supportFragmentManager.beginTransaction()
         .add(paymentSheetFragment!!, "payment_sheet_launch_fragment")
-        .commit()
+        .commitAllowingStateLoss()
     }
   }
 
@@ -564,7 +564,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     getCurrentActivityOrResolveWithError(promise)?.let {
       it.supportFragmentManager.beginTransaction()
         .add(fragment, "google_pay_support_fragment")
-        .commit()
+        .commitAllowingStateLoss()
     }
   }
 
@@ -580,7 +580,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
 
       it.supportFragmentManager.beginTransaction()
         .add(googlePayFragment!!, "google_pay_launch_fragment")
-        .commit()
+        .commitAllowingStateLoss()
     }
   }
 
@@ -660,7 +660,7 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
     getCurrentActivityOrResolveWithError(promise)?.let {
       it.supportFragmentManager.beginTransaction()
         .add(fragment, "collect_bank_account_launcher_fragment")
-        .commit()
+        .commitAllowingStateLoss()
     }
   }
 
