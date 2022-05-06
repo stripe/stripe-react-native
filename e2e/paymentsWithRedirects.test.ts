@@ -161,7 +161,7 @@ describe('Payment scenarios with redirects', () => {
 
   it('OXXO payment scenario', function () {
     this.retries(2);
-    homeScreen.goTo('Vouchers');
+    homeScreen.goTo('Misc payment methods');
     homeScreen.goTo('OXXO');
 
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });

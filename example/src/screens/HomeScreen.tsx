@@ -287,13 +287,21 @@ export default function HomeScreen() {
         </>
       </Collapse>
 
-      <Collapse title="Vouchers">
+      <Collapse title="Misc payment methods">
         <>
           <View style={styles.buttonContainer}>
             <Button
               title="OXXO"
               onPress={() => {
                 navigation.navigate('OxxoPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="PayPal"
+              onPress={() => {
+                navigation.navigate('PayPalScreen');
               }}
             />
           </View>
