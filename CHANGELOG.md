@@ -13,6 +13,7 @@
 - [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 - [#925](https://github.com/stripe/stripe-react-native/pull/925) Feat: `us_bank_account` payment method is now available in the payment sheet on iOS. (& Updated `stripe-ios` from 22.2.0 to 22.3.0)
 - [#932](https://github.com/stripe/stripe-react-native/pull/932) fix: manually forward activity results to paymentLauncherFragment
+- [#933](https://github.com/stripe/stripe-react-native/pull/933) fix: address "Can not perform this action after onSaveInstanceState" crashes on Android
 
 ## 0.8.0
 
