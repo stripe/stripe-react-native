@@ -172,8 +172,16 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
+    val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
     val token = getValOr(paymentMethodData, "token", null)
     val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
+
+    if (paymentMethodId != null) {
+      return ConfirmSetupIntentParams.create(
+        paymentMethodId,
+        clientSecret
+      )
+    }
 
     val paymentMethodCreateParams =
       if (token != null)
