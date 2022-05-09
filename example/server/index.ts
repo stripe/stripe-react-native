@@ -343,7 +343,11 @@ app.post('/create-setup-intent', async (req, res) => {
     payment_method_data: { type: 'paypal' },
     mandate_data: {
       customer_acceptance: {
-        type: 'offline',
+        type: 'online',
+        online: {
+          ip_address: '',
+          user_agent: '',
+        },
       },
     },
     confirm: true,
@@ -352,7 +356,7 @@ app.post('/create-setup-intent', async (req, res) => {
   //@ts-ignore
   const setupIntent = await stripe.setupIntents.create({
     ...{ customer: customer.id, payment_method_types },
-    ...(payment_method_types?.includes('paypal') ? {} : payPalIntentPayload),
+    ...(payment_method_types?.includes('paypal') ? payPalIntentPayload : {}),
   });
 
   // Send publishable key and SetupIntent details to client
