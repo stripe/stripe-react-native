@@ -54,8 +54,11 @@ class StripeSdkModule(private val reactContext: ReactApplicationContext) : React
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
+        // BEGIN - Necessary on older versions of React Native (~0.64 and below)
         paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
         googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        paymentLauncherFragment.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        // END
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
           if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
