@@ -41,7 +41,8 @@ export type CreateParams =
   | KlarnaParams
   // | WeChatPayParams
   | BancontactParams
-  | USBankAccountParams;
+  | USBankAccountParams
+  | PayPalParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -191,6 +192,13 @@ export type USBankAccountParams = {
   };
 };
 
+export type PayPalParams = {
+  paymentMethodType: 'PayPal';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+  };
+};
+
 export interface AuBecsDebitResult {
   fingerprint?: string;
   last4?: string;
@@ -268,6 +276,7 @@ export type Type =
   | 'Sofort'
   | 'Upi'
   | 'USBankAccount'
+  | 'PayPal'
   | 'Unknown';
 
 export type CollectBankAccountParams = {

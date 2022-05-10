@@ -9,6 +9,7 @@
   - `lastFour`: Last 4 digits of the card, optional (previously `cardLastFour`).
   - `brand`: The card brand, optional (previously `cardBrand`).
 - [#925](https://github.com/stripe/stripe-react-native/pull/925) Feat: `us_bank_account` payment method is now available in the payment sheet on iOS. (& Updated `stripe-ios` from 22.2.0 to 22.3.0)
+- [#929](https://github.com/stripe/stripe-react-native/pull/929) Feat: added PayPal support (not currently supported for SetupIntents)
 - [#928](https://github.com/stripe/stripe-react-native/pull/928) feat: expose 'cvc' when `dangerouslyGetCardDetails` is set to true
 - [#931](https://github.com/stripe/stripe-react-native/pull/931) feat: add token & paymentMethodId handling to confirmPayment for Cards
 - [#932](https://github.com/stripe/stripe-react-native/pull/932) fix: manually forward activity results to paymentLauncherFragment

@@ -336,9 +336,27 @@ app.post('/create-setup-intent', async (req, res) => {
     typescript: true,
   });
   const customer = await stripe.customers.create({ email });
+
+  const payPalIntentPayload = {
+    return_url: 'https://example.com/setup/complete',
+    payment_method_options: { paypal: { currency: 'eur' } },
+    payment_method_data: { type: 'paypal' },
+    mandate_data: {
+      customer_acceptance: {
+        type: 'online',
+        online: {
+          ip_address: '',
+          user_agent: '',
+        },
+      },
+    },
+    confirm: true,
+  };
+
+  //@ts-ignore
   const setupIntent = await stripe.setupIntents.create({
-    customer: customer.id,
-    payment_method_types,
+    ...{ customer: customer.id, payment_method_types },
+    ...(payment_method_types?.includes('paypal') ? payPalIntentPayload : {}),
   });
 
   // Send publishable key and SetupIntent details to client
