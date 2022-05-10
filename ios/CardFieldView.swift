@@ -145,6 +145,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
             if (dangerouslyGetFullCardDetails) {
                 cardData["number"] = textField.cardParams.number ?? ""
+                cardData["cvc"] = textField.cardParams.cvc ?? ""
             }
             onCardChange!(cardData as [AnyHashable : Any])
         }

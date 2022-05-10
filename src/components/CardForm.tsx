@@ -101,8 +101,9 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           postalCode: card.postalCode,
         };
 
-        if (card.hasOwnProperty('number')) {
+        if (card.hasOwnProperty('number') || card.hasOwnProperty('cvc')) {
           data.number = card.number || '';
+          data.cvc = card.cvc || '';
           if (__DEV__ && onFormComplete && card.complete) {
             console.warn(
               `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
