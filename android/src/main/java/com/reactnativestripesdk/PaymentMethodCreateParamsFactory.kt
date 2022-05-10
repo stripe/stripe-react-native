@@ -172,14 +172,31 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentSetupParams(): ConfirmSetupIntentParams {
+    val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
+    val token = getValOr(paymentMethodData, "token", null)
     val cardParams = cardFieldView?.cardParams ?: cardFormView?.cardParams
-    ?: throw PaymentMethodCreateParamsException("Card details not complete")
+
+    if (paymentMethodId != null) {
+      return ConfirmSetupIntentParams.create(
+        paymentMethodId,
+        clientSecret
+      )
+    }
 
     val paymentMethodCreateParams =
-      PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
+      if (token != null)
+        PaymentMethodCreateParams.create(PaymentMethodCreateParams.Card.create(token), billingDetailsParams)
+      else if (cardParams != null)
+        PaymentMethodCreateParams.create(cardParams, billingDetailsParams)
+      else
+        null
 
-    return ConfirmSetupIntentParams
-      .create(paymentMethodCreateParams, clientSecret)
+    if (paymentMethodCreateParams != null) {
+      return ConfirmSetupIntentParams
+        .create(paymentMethodCreateParams, clientSecret)
+    } else {
+      throw PaymentMethodCreateParamsException("Card details not complete")
+    }
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
