@@ -35,7 +35,7 @@ export default function PaymentResultScreen({ route }: Props) {
 
   useEffect(() => {
     const { url } = route.params;
-    const paymentIntentClientSecret = /payment_intent_client_secret=(.*)&/.exec(
+    const paymentIntentClientSecret = /payment_intent_client_secret=[^&]*/.exec(
       url
     );
 
