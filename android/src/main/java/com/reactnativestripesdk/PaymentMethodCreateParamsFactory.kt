@@ -454,10 +454,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalPaymentSetupParams(): ConfirmSetupIntentParams {
-    return ConfirmSetupIntentParams.create(
-      clientSecret = clientSecret,
-      paymentMethodType = PaymentMethod.Type.PayPal
-    )
+    throw PaymentMethodCreateParamsException("PayPal is not yet supported through SetupIntents.")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)

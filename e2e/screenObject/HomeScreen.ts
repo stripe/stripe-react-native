@@ -23,7 +23,7 @@ const SCREENS = <const>[
   'Buy now pay later',
   'Afterpay and Clearpay',
   'Klarna',
-  'Misc payment methods',
+  'Vouchers',
   'Wallets',
   'Alipay',
   'Apple Pay',

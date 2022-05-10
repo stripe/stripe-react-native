@@ -275,8 +275,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let paymentMethodData = params["paymentMethodData"] as? NSDictionary
         let type = Mappers.mapToPaymentMethodType(type: params["paymentMethodType"] as? String)
         guard let paymentMethodType = type else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType"))
+            resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType."))
             return
+        }
+        
+        if (paymentMethodType == .payPal) {
+            resolve(Errors.createError(ErrorType.Failed, "PayPal is not yet supported through SetupIntents."))
         }
         
         var err: NSDictionary? = nil

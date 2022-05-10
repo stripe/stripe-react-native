@@ -16,7 +16,24 @@ export interface Result {
   nextAction: NextAction | null;
 }
 
-export type ConfirmParams = PaymentMethod.CreateParams;
+export type ConfirmParams =
+  | PaymentMethod.CardParams
+  | PaymentMethod.IdealParams
+  | PaymentMethod.OxxoParams
+  | PaymentMethod.P24Params
+  | PaymentMethod.AlipayParams
+  | PaymentMethod.GiropayParams
+  | PaymentMethod.SepaParams
+  | PaymentMethod.EpsParams
+  | PaymentMethod.AuBecsDebitParams
+  | PaymentMethod.SofortParams
+  | PaymentMethod.GrabPayParams
+  | PaymentMethod.FPXParams
+  | PaymentMethod.AfterpayClearpayParams
+  | PaymentMethod.KlarnaParams
+  | PaymentMethod.BancontactParams
+  | PaymentMethod.USBankAccountParams;
+// TODO: Change the above back to PaymentMethod.CreateParams when PayPal is supported through SetupIntents
 
 export type ConfirmOptions = {};
 
