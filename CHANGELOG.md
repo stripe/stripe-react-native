@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.9.0
 
 - [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `<AddToWalletButton />` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
   - `primaryAccountIdentifier`: The `wallet.primary_account_identifier` value from the issued card.
