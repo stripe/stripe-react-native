@@ -149,7 +149,7 @@ describe('Common payment scenarios', () => {
     cardField.setExpiryDate('12/22');
     cardField.setCvcNumber('123');
 
-    getElementByText('Save').click();
+    getElementByText('Save via card input form').click();
     const alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,

@@ -13,9 +13,11 @@
 - [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 - [#925](https://github.com/stripe/stripe-react-native/pull/925) Feat: `us_bank_account` payment method is now available in the payment sheet on iOS. (& Updated `stripe-ios` from 22.2.0 to 22.3.0)
 - [#929](https://github.com/stripe/stripe-react-native/pull/929) Feat: added PayPal support (not currently supported for SetupIntents)
+- [#932](https://github.com/stripe/stripe-react-native/pull/932) fix: manually forward activity results to paymentLauncherFragment
 
 ## 0.8.0
 
+- **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
 - [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.
