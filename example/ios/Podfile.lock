@@ -307,20 +307,20 @@ PODS:
     - StripeUICore (= 22.3.0)
   - stripe-react-native (0.10.0):
     - React-Core
-    - Stripe (~> 22.3.0)
-    - StripeFinancialConnections (~> 22.3.0)
-  - Stripe/Stripe3DS2 (22.3.0):
-    - StripeApplePay (= 22.3.0)
-    - StripeCore (= 22.3.0)
-    - StripeUICore (= 22.3.0)
-  - StripeApplePay (22.3.0):
-    - StripeCore (= 22.3.0)
-  - StripeCore (22.3.0)
-  - StripeFinancialConnections (22.3.0):
-    - StripeCore (= 22.3.0)
-    - StripeUICore (= 22.3.0)
-  - StripeUICore (22.3.0):
-    - StripeCore (= 22.3.0)
+    - Stripe
+    - StripeFinancialConnections
+  - Stripe/Stripe3DS2 (22.2.0):
+    - StripeApplePay (= 22.2.0)
+    - StripeCore (= 22.2.0)
+    - StripeUICore (= 22.2.0)
+  - StripeApplePay (22.2.0):
+    - StripeCore (= 22.2.0)
+  - StripeCore (22.2.0)
+  - StripeFinancialConnections (22.2.0):
+    - StripeCore (= 22.2.0)
+    - StripeUICore (= 22.2.0)
+  - StripeUICore (22.2.0):
+    - StripeCore (= 22.2.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -361,17 +361,17 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe-ios/stripe-ios.git`, branch `payment_sheet_appearance_beta_1`)
   - stripe-react-native (from `../..`)
+  - StripeCore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `payment_sheet_appearance_beta_1`)
+  - StripeFinancialConnections (from `https://github.com/stripe-ios/stripe-ios.git`, branch `payment_sheet_appearance_beta_1`)
+  - StripeUICore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `payment_sheet_appearance_beta_1`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - fmt
-    - Stripe
     - StripeApplePay
-    - StripeCore
-    - StripeFinancialConnections
-    - StripeUICore
 
 EXTERNAL SOURCES:
   boost:
@@ -444,10 +444,36 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: payment_sheet_appearance_beta_1
+    :git: https://github.com/stripe-ios/stripe-ios.git
   stripe-react-native:
     :path: "../.."
+  StripeCore:
+    :branch: payment_sheet_appearance_beta_1
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeFinancialConnections:
+    :branch: payment_sheet_appearance_beta_1
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :branch: payment_sheet_appearance_beta_1
+    :git: https://github.com/stripe-ios/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 54b78a22d7d30558f304176e16e4d08be3cdcc57
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeCore:
+    :commit: 54b78a22d7d30558f304176e16e4d08be3cdcc57
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeFinancialConnections:
+    :commit: 54b78a22d7d30558f304176e16e4d08be3cdcc57
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :commit: 54b78a22d7d30558f304176e16e4d08be3cdcc57
+    :git: https://github.com/stripe-ios/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
@@ -494,6 +520,6 @@ SPEC CHECKSUMS:
   StripeUICore: 5e5abb79e87b86b54919ed7c9d14446254d012a0
   Yoga: 17cd9a50243093b547c1e539c749928dd68152da
 
-PODFILE CHECKSUM: 2b2730473ab6452e4c93ce1623a884518e1a27fe
+PODFILE CHECKSUM: 8c5e32e56ecfce89624d608f6ea9e29a89387ae5
 
 COCOAPODS: 1.11.3

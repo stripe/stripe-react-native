@@ -19,6 +19,10 @@ target 'StripeSdkExample' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  pod 'Stripe', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'payment_sheet_appearance_beta_1'
+  pod 'StripeUICore', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'payment_sheet_appearance_beta_1'
+  pod 'StripeCore', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'payment_sheet_appearance_beta_1'
+  pod 'StripeFinancialConnections', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'payment_sheet_appearance_beta_1'
   pod 'stripe-react-native', path: '../..'
 
   # Enables Flipper.
