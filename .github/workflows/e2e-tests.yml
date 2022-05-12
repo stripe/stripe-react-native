@@ -36,6 +36,12 @@ jobs:
 
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
+        
+      - name: Setup Java environment
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
 
       - name: Gradle cache
         uses: actions/cache@v2
