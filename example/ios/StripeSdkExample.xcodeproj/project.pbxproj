@@ -13,6 +13,7 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		20F357B024636CDF00C146DC /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F357AF24636CDF00C146DC /* File.swift */; };
 		FCD4117D281095E3001354AA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = FCD4117C281095E3001354AA /* AppDelegate.mm */; };
+		7F8239C14D914EB59933E76B /* Macondo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		BCEA90A70F4BEAD7E9FA28B2 /* libPods-StripeSdkExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StripeSdkExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FCD4117C281095E3001354AA /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = StripeSdkExample/AppDelegate.mm; sourceTree = "<group>"; };
+		A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */ = {isa = PBXFileReference; name = "Macondo-Regular.ttf"; path = "../src/assets/fonts/Macondo-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				1CFFDEF7170271C97B8B7E5A /* Pods */,
 				20F357AD24636CDE00C146DC /* StripeSdkExample-Bridging-Header.h */,
+				E8A47E7C361443EE90D2C981 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -110,6 +113,15 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
+		};
+		E8A47E7C361443EE90D2C981 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -176,6 +188,7 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				7F8239C14D914EB59933E76B /* Macondo-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
