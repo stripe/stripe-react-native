@@ -61,6 +61,12 @@ class PaymentSheetFragment(
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
+    val appearance = try {
+      buildPaymentSheetAppearance(arguments?.getBundle("appearance"))
+    } catch (error: PaymentSheetAppearanceException) {
+      promise.resolve(createError(ErrorType.Failed.toString(), error))
+      return
+    }
 
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
       if (paymentOption != null) {
@@ -133,7 +139,8 @@ class PaymentSheetFragment(
         environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode,
         currencyCode = currencyCode
-      ) else null
+      ) else null,
+      appearance = appearance
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
