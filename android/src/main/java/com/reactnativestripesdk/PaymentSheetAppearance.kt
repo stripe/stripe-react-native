@@ -5,9 +5,14 @@ import android.os.Bundle
 import com.stripe.android.paymentsheet.PaymentSheet
 
 fun PaymentSheetFragment.buildPaymentSheetAppearance(userParams: Bundle?): PaymentSheet.Appearance {
+  val colorParams = userParams?.getBundle("colors")
+  val lightColorParams = colorParams?.getBundle("light") ?: colorParams
+  val darkColorParams = colorParams?.getBundle("dark") ?: colorParams
+
   return PaymentSheet.Appearance(
     typography = buildTypography(userParams?.getBundle("font")),
-    colorsLight = buildColors(userParams?.getBundle("colors")),
+    colorsLight = buildColors(lightColorParams, PaymentSheet.Colors.defaultLight),
+    colorsDark = buildColors(darkColorParams, PaymentSheet.Colors.defaultDark),
     shapes = buildShapes(userParams?.getBundle("shapes")),
     primaryButton = buildPrimaryButton(userParams?.getBundle("primaryButton"))
   )
@@ -21,30 +26,33 @@ private fun PaymentSheetFragment.buildTypography(fontParams: Bundle?): PaymentSh
 }
 
 private fun colorFromHexOrDefault(hexString: String?, default: Int): Int {
-  return hexString?.let {
-    Color.parseColor(it.replace("#", ""))
+  return hexString?.trim()?.let {
+    Color.parseColor(
+      if (!it.contains("#")) "#$it"
+      else it
+    )
   } ?: run {
     default
   }
 }
 
-private fun buildColors(colorParams: Bundle?): PaymentSheet.Colors {
+private fun buildColors(colorParams: Bundle?, default: PaymentSheet.Colors): PaymentSheet.Colors {
   if (colorParams == null) {
-    return PaymentSheet.Colors.defaultLight
+    return default
   }
 
-  return PaymentSheet.Colors.defaultLight.copy(
-    primary = colorFromHexOrDefault(colorParams.getString("primary"), PaymentSheet.Colors.defaultLight.primary),
-    surface = colorFromHexOrDefault(colorParams.getString("background"), PaymentSheet.Colors.defaultLight.surface),
-    component = colorFromHexOrDefault(colorParams.getString("componentBackground"), PaymentSheet.Colors.defaultLight.component),
-    componentBorder = colorFromHexOrDefault(colorParams.getString("componentBorder"), PaymentSheet.Colors.defaultLight.componentBorder),
-    componentDivider = colorFromHexOrDefault(colorParams.getString("componentDivider"), PaymentSheet.Colors.defaultLight.componentDivider),
-    onComponent = colorFromHexOrDefault(colorParams.getString("componentText"), PaymentSheet.Colors.defaultLight.onComponent),
-    onSurface = colorFromHexOrDefault(colorParams.getString("text"), PaymentSheet.Colors.defaultLight.onSurface),
-    subtitle = colorFromHexOrDefault(colorParams.getString("textSecondary"), PaymentSheet.Colors.defaultLight.subtitle),
-    placeholderText = colorFromHexOrDefault(colorParams.getString("componentPlaceholderText"), PaymentSheet.Colors.defaultLight.placeholderText),
-    appBarIcon = colorFromHexOrDefault(colorParams.getString("icon"), PaymentSheet.Colors.defaultLight.appBarIcon),
-    error = colorFromHexOrDefault(colorParams.getString("danger"), PaymentSheet.Colors.defaultLight.error),
+  return default.copy(
+    primary = colorFromHexOrDefault(colorParams.getString("primary"), default.primary),
+    surface = colorFromHexOrDefault(colorParams.getString("background"), default.surface),
+    component = colorFromHexOrDefault(colorParams.getString("componentBackground"), default.component),
+    componentBorder = colorFromHexOrDefault(colorParams.getString("componentBorder"), default.componentBorder),
+    componentDivider = colorFromHexOrDefault(colorParams.getString("componentDivider"), default.componentDivider),
+    onComponent = colorFromHexOrDefault(colorParams.getString("componentText"), default.onComponent),
+    onSurface = colorFromHexOrDefault(colorParams.getString("text"), default.onSurface),
+    subtitle = colorFromHexOrDefault(colorParams.getString("textSecondary"), default.subtitle),
+    placeholderText = colorFromHexOrDefault(colorParams.getString("componentPlaceholderText"), default.placeholderText),
+    appBarIcon = colorFromHexOrDefault(colorParams.getString("icon"), default.appBarIcon),
+    error = colorFromHexOrDefault(colorParams.getString("danger"), default.error),
   )
 }
 
@@ -61,19 +69,14 @@ private fun PaymentSheetFragment.buildPrimaryButton(params: Bundle?): PaymentShe
   }
 
   val fontParams = params.getBundle("font") ?: Bundle.EMPTY
-  val colorParams = params.getBundle("colors") ?: Bundle.EMPTY
   val shapeParams = params.getBundle("shapes") ?: Bundle.EMPTY
+  val colorParams = params.getBundle("colors") ?: Bundle.EMPTY
+  val lightColorParams = colorParams.getBundle("light") ?: colorParams
+  val darkColorParams = colorParams.getBundle("dark") ?: colorParams
 
   return PaymentSheet.PrimaryButton(
-    colorsLight = PaymentSheet.PrimaryButtonColors(
-      background = colorParams.getString("background")?.let {
-        Color.parseColor(it.replace("#", ""))
-      } ?: run {
-        null
-      },
-      onBackground = colorFromHexOrDefault(colorParams.getString("text"), PaymentSheet.PrimaryButtonColors.defaultLight.onBackground),
-      border = colorFromHexOrDefault(colorParams.getString("componentBorder"), PaymentSheet.PrimaryButtonColors.defaultLight.border),
-    ),
+    colorsLight = buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight),
+    colorsDark = buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark),
     shape = PaymentSheet.PrimaryButtonShape(
       cornerRadiusDp = getFloatOrNull(shapeParams, "borderRadius"),
       borderStrokeWidthDp = getFloatOrNull(shapeParams, "borderWidth"),
@@ -81,6 +84,21 @@ private fun PaymentSheetFragment.buildPrimaryButton(params: Bundle?): PaymentShe
     typography = PaymentSheet.PrimaryButtonTypography(
       fontResId = getFontResId(fontParams, "name", null)
     )
+  )
+}
+
+private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.PrimaryButtonColors): PaymentSheet.PrimaryButtonColors {
+  return PaymentSheet.PrimaryButtonColors(
+    background = colorParams.getString("background")?.trim()?.let {
+      Color.parseColor(
+        if (!it.contains("#")) "#$it"
+        else it
+      )
+    } ?: run {
+      null
+    },
+    onBackground = colorFromHexOrDefault(colorParams.getString("text"), default.onBackground),
+    border = colorFromHexOrDefault(colorParams.getString("componentBorder"), default.border),
   )
 }
 
