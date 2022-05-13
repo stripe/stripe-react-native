@@ -1,5 +1,5 @@
 import PassKit
-import Stripe
+@_spi(STP) import Stripe
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
@@ -75,6 +75,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         var configuration = PaymentSheet.Configuration()
         self.paymentSheetFlowController = nil
+        
+        if let appearanceParams = params["appearance"] as? NSDictionary {
+            do {
+                configuration.appearance = try buildPaymentSheetAppearance(userParams: appearanceParams)
+            } catch {
+                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+                return
+            }
+        }
         
         if  params["applePay"] as? Bool == true {
             if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
