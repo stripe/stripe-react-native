@@ -9,6 +9,7 @@ import {
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import { Platform } from 'react-native';
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -86,10 +87,74 @@ export default function PaymentsUICompleteScreen() {
       style: 'automatic',
       googlePay: true,
       testEnv: true,
-      primaryButtonColor: '#635BFF', // Blurple
       returnURL: 'stripe-example://stripe-redirect',
       defaultBillingDetails: billingDetails,
       allowsDelayedPaymentMethods: true,
+      appearance: {
+        font: {
+          scale: 2,
+          name:
+            Platform.OS === 'android' ? 'macondoregular' : 'Macondo-Regular',
+        },
+        colors: {
+          light: {
+            primary: '#ff0000',
+            background: '#00ff00',
+            componentBackground: '#8000ff',
+            componentBorder: '#d6de00',
+            componentDivider: '#62ff08',
+            text: '#ff7b00',
+            textSecondary: '#5181fc',
+            componentText: '#f7a900',
+            componentPlaceholderText: '#f7a900',
+            icon: '#f700b9',
+            danger: '#f700b9',
+          },
+          dark: {
+            primary: '#00ff00',
+            background: '#ff0000',
+            componentBackground: '#ff0080',
+            componentBorder: '#62ff08',
+            componentDivider: '#d6de00',
+            text: '#5181fc',
+            textSecondary: '#ff7b00',
+            componentText: '#00ffff',
+            componentPlaceholderText: '#00ffff',
+            icon: '#f0f0f0',
+            danger: '#0f0f0f',
+          },
+        },
+        shapes: {
+          borderRadius: 10,
+          borderWidth: 5,
+          shadow: {
+            opacity: 1,
+            color: '#000000',
+            offset: { x: -10, y: 5 },
+            borderRadius: 1,
+          },
+        },
+        primaryButton: {
+          // font: {
+          //   name: 'some-missing-font',
+          // },
+          colors: {
+            background: '#000000',
+            text: '#ffffff',
+            componentBorder: '#ff00ff',
+          },
+          shapes: {
+            borderRadius: 10,
+            borderWidth: 2,
+            shadow: {
+              opacity: 1,
+              color: '#000000',
+              offset: { x: 10, y: -5 },
+              borderRadius: 1,
+            },
+          },
+        },
+      },
     });
     if (!error) {
       setPaymentSheetEnabled(true);
