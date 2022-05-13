@@ -21,7 +21,7 @@ fun PaymentSheetFragment.buildPaymentSheetAppearance(userParams: Bundle?): Payme
 private fun PaymentSheetFragment.buildTypography(fontParams: Bundle?): PaymentSheet.Typography {
   return PaymentSheet.Typography.default.copy(
     sizeScaleFactor = getFloatOr(fontParams, "scale", PaymentSheet.Typography.default.sizeScaleFactor),
-    fontResId = getFontResId(fontParams, "name", PaymentSheet.Typography.default.fontResId)
+    fontResId = getFontResId(fontParams, "family", PaymentSheet.Typography.default.fontResId)
   )
 }
 
@@ -52,7 +52,7 @@ private fun buildColors(colorParams: Bundle?, default: PaymentSheet.Colors): Pay
     subtitle = colorFromHexOrDefault(colorParams.getString("textSecondary"), default.subtitle),
     placeholderText = colorFromHexOrDefault(colorParams.getString("componentPlaceholderText"), default.placeholderText),
     appBarIcon = colorFromHexOrDefault(colorParams.getString("icon"), default.appBarIcon),
-    error = colorFromHexOrDefault(colorParams.getString("danger"), default.error),
+    error = colorFromHexOrDefault(colorParams.getString("error"), default.error),
   )
 }
 
@@ -82,7 +82,7 @@ private fun PaymentSheetFragment.buildPrimaryButton(params: Bundle?): PaymentShe
       borderStrokeWidthDp = getFloatOrNull(shapeParams, "borderWidth"),
     ),
     typography = PaymentSheet.PrimaryButtonTypography(
-      fontResId = getFontResId(fontParams, "name", null)
+      fontResId = getFontResId(fontParams, "family", null)
     )
   )
 }

@@ -32,7 +32,7 @@ extension StripeSdk {
     
     private func buildFont(params: NSDictionary) throws -> Stripe.PaymentSheet.Appearance.Font {
         var font = Stripe.PaymentSheet.Appearance.Font()
-        if let fontName = params["name"] as? String {
+        if let fontName = params["family"] as? String {
             guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
                 throw PaymentSheetAppearanceError.missingFont(fontName)
             }
@@ -63,7 +63,7 @@ extension StripeSdk {
         colors.componentText = StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentText
         colors.componentPlaceholderText = StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentPlaceholderText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentPlaceholderText
         colors.icon = StripeSdk.buildUserInterfaceStyleAwareColor(key: "icon", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.icon
-        colors.danger = StripeSdk.buildUserInterfaceStyleAwareColor(key: "danger", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger
+        colors.danger = StripeSdk.buildUserInterfaceStyleAwareColor(key: "error", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger
         
         return colors
     }
@@ -92,7 +92,7 @@ extension StripeSdk {
     private func buildPrimaryButton(params: NSDictionary) throws -> PaymentSheet.Appearance.PrimaryButton {
         var primaryButton = PaymentSheet.Appearance.PrimaryButton()
         
-        if let fontName = (params["font"] as? NSDictionary)?["name"] as? String {
+        if let fontName = (params["font"] as? NSDictionary)?["family"] as? String {
             guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
                 throw PaymentSheetAppearanceError.missingFont(fontName)
             }

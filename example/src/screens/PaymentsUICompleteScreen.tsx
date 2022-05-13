@@ -93,7 +93,7 @@ export default function PaymentsUICompleteScreen() {
       appearance: {
         font: {
           scale: 2,
-          name:
+          family:
             Platform.OS === 'android' ? 'macondoregular' : 'Macondo-Regular',
         },
         colors: {
@@ -108,7 +108,7 @@ export default function PaymentsUICompleteScreen() {
             componentText: '#f7a900',
             componentPlaceholderText: '#f7a900',
             icon: '#f700b9',
-            danger: '#f700b9',
+            error: '#f700b9',
           },
           dark: {
             primary: '#00ff00',
@@ -121,7 +121,7 @@ export default function PaymentsUICompleteScreen() {
             componentText: '#00ffff',
             componentPlaceholderText: '#00ffff',
             icon: '#f0f0f0',
-            danger: '#0f0f0f',
+            error: '#0f0f0f',
           },
         },
         shapes: {

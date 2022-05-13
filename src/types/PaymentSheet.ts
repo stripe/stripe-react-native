@@ -50,7 +50,11 @@ type GooglePayParams =
 export type AppearanceParams = {
   appearance: {
     font: {
-      name: string;
+      /**
+       * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
+       * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+       */
+      family: string;
       scale: number;
     };
     colors:
@@ -59,11 +63,16 @@ export type AppearanceParams = {
     shapes: {
       borderRadius: number;
       borderWidth: number;
+      // iOS Only
       shadow: ShadowConfig;
     };
     primaryButton: {
       font: {
-        name: string;
+        /**
+         * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
+         * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+         */
+        family: string;
       };
       colors:
         | PrimaryButtonColorConfig
@@ -71,6 +80,7 @@ export type AppearanceParams = {
       shapes: {
         borderRadius: number;
         borderWidth: number;
+        // iOS Only
         shadow: ShadowConfig;
       };
     };
@@ -90,12 +100,12 @@ type GlobalColorConfig = {
   componentBackground: string;
   componentBorder: string;
   componentDivider: string;
-  text: string;
-  textSecondary: string;
+  text: string; // maybe headerText
+  textSecondary: string; // maybe labelText
   componentText: string;
   componentPlaceholderText: string;
   icon: string;
-  danger: string;
+  error: string;
 };
 
 type PrimaryButtonColorConfig = {
