@@ -50,7 +50,10 @@ export interface Card {
   name?: string;
 }
 
-export type CreateParams = CreateCardTokenParams | CreateBankAccountTokenParams;
+export type CreateParams =
+  | CreateCardTokenParams
+  | CreateBankAccountTokenParams
+  | { type: 'PII'; pii: string };
 
 export type CreateCardTokenParams = {
   type: 'Card';

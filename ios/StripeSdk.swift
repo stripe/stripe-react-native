@@ -602,6 +602,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             createTokenFromBankAccount(params: params, resolver: resolve, rejecter: reject)
         case "Card":
             createTokenFromCard(params: params, resolver: resolve, rejecter: reject)
+        case "PII":
+            createTokenFromPii(params: params, resolver: resolve, rejecter: reject)
         default:
             resolve(Errors.createError(ErrorType.Failed, type + " type is not supported yet"))
         }
@@ -629,6 +631,25 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         
         STPAPIClient.shared.createToken(withBankAccount: bankAccountParams) { token, error in
+            if let token = token {
+                resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
+            } else {
+                resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+            }
+        }
+    }
+    
+    func createTokenFromPii(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard let piiString = params["pii"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "pii parameter is required"))
+            return
+        }
+        
+        STPAPIClient.shared.createToken(withPersonalIDNumber: piiString) { token, error in
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {

@@ -11,19 +11,13 @@ import PaymentScreen from '../components/PaymentScreen';
 export default function CreateTokenScreen() {
   const { createToken } = useStripe();
 
-  const _createToken = async (type: 'Card' | 'BankAccount') => {
-    const { error, token } = await createToken(
-      type === 'Card'
-        ? { type: 'Card', name: 'David Wallace', currency: 'eur' }
-        : {
-            type: 'BankAccount',
-            accountNumber: '000123456789',
-            routingNumber: '110000000', // Routing number is REQUIRED for US bank accounts
-            country: 'US',
-            currency: 'usd',
-          }
-    );
+  const _createToken = async (type: 'Card' | 'BankAccount' | 'PII') => {
+    const { error, token } = await createToken({
+      type: 'PII',
+      pii: '000000000',
+    });
 
+    console.log({ token });
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log(`Error: ${JSON.stringify(error)}`);
@@ -37,6 +31,13 @@ export default function CreateTokenScreen() {
 
   return (
     <PaymentScreen>
+      <Button
+        variant="primary"
+        onPress={() => _createToken('PII')}
+        title="Create a token from PII"
+        accessibilityLabel="Create a token from PII"
+      />
+      <Text style={styles.or}>OR</Text>
       <Button
         variant="primary"
         onPress={() => _createToken('BankAccount')}

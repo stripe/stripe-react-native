@@ -138,7 +138,7 @@ class Mappers {
     class func mapFromTokenType(_ type: STPTokenType?) -> String? {
         if let type = type {
             switch type {
-            case STPTokenType.PII: return "Pii"
+            case STPTokenType.PII: return "PII"
             case STPTokenType.account: return "Account"
             case STPTokenType.bankAccount: return "BankAccount"
             case STPTokenType.card: return "Card"
@@ -157,7 +157,6 @@ class Mappers {
             "card": mapFromCard(token.card) ?? NSNull(),
             "livemode": token.livemode,
             "type": mapFromTokenType(token.type) ?? NSNull(),
-
         ]
 
         return tokenMap
