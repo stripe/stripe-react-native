@@ -69,7 +69,6 @@ export default function PaymentsUICustomScreen() {
         style: 'automatic',
         googlePay: true,
         testEnv: true,
-        primaryButtonColor: '#635BFF', // Blurple
         returnURL: 'stripe-example://stripe-redirect',
         defaultBillingDetails: billingDetails,
       });

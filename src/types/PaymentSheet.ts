@@ -9,7 +9,6 @@ export type SetupParams = ClientSecretParams &
     merchantDisplayName?: string;
     style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
     returnURL?: string;
-    primaryButtonColor?: string;
     defaultBillingDetails?: BillingDetails;
     allowsDelayedPaymentMethods?: boolean;
   } & RecursivePartial<AppearanceParams>;

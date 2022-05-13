@@ -103,11 +103,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             configuration.returnURL = returnURL
         }
         
-        if let buttonColorHexStr = params["primaryButtonColor"] as? String {
-            let primaryButtonColor = UIColor(hexString: buttonColorHexStr)
-            configuration.primaryButtonColor = primaryButtonColor
-        }
-        
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
