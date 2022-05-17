@@ -1,9 +1,23 @@
 # CHANGELOG
 
+## Unreleased
+
+### Breaking changes
+
+### New features
+
+### Fixes
+
 ## 0.6.1
 
-- [#924](https://github.com/stripe/stripe-react-native/pull/924) fix: correctly overwrite `package.json` import via babel
-- [#936](https://github.com/stripe/stripe-react-native/pull/936) fix: upgrade expo config plugins
+### Breaking changes
+
+### New features
+
+### Fixes
+
+- fix: correctly overwrite `package.json` import via babel. [#924](https://github.com/stripe/stripe-react-native/pull/924)
+- fix: upgrade expo config plugins. [#936](https://github.com/stripe/stripe-react-native/pull/936)
 
 ## 0.6.0
 
