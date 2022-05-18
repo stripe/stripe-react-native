@@ -6,9 +6,9 @@
 
 ### New features
 
-- Card scanning is available in payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/943)
+- Card scanning is available in payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/944)
   - To enable this, you will need to add `implementation 'com.stripe:stripecardscan:20.3.+'` to your `dependencies {}` block in `android/app/build.gradle`.
-- `us_bank_account` payment method is now available in the payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/943)
+- `us_bank_account` payment method is now available in the payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/944)
 
 ### Fixes
 
