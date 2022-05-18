@@ -11,7 +11,7 @@ export type SetupParams = ClientSecretParams &
     returnURL?: string;
     defaultBillingDetails?: BillingDetails;
     allowsDelayedPaymentMethods?: boolean;
-  } & RecursivePartial<AppearanceParams>;
+  } & { appearance?: AppearanceParams };
 
 type ClientSecretParams =
   | {
@@ -47,71 +47,65 @@ type GooglePayParams =
       testEnv?: boolean;
     };
 
-export type AppearanceParams = {
-  appearance: {
-    font: {
-      /**
-       * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
-       * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
-       */
-      family: string;
-      scale: number;
-    };
+export type AppearanceParams = RecursivePartial<{
+  font: FontConfig;
+  colors:
+    | GlobalColorConfig
+    | { light: GlobalColorConfig; dark: GlobalColorConfig };
+  shapes: {
+    borderRadius: number;
+    borderWidth: number;
+    // iOS Only
+    shadow: ShadowConfig;
+  };
+  primaryButton: {
+    font: Pick<FontConfig, 'family'>;
     colors:
-      | GlobalColorConfig
-      | { light: GlobalColorConfig; dark: GlobalColorConfig };
+      | PrimaryButtonColorConfig
+      | { light: PrimaryButtonColorConfig; dark: PrimaryButtonColorConfig };
     shapes: {
       borderRadius: number;
       borderWidth: number;
       // iOS Only
       shadow: ShadowConfig;
     };
-    primaryButton: {
-      font: {
-        /**
-         * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
-         * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
-         */
-        family: string;
-      };
-      colors:
-        | PrimaryButtonColorConfig
-        | { light: PrimaryButtonColorConfig; dark: PrimaryButtonColorConfig };
-      shapes: {
-        borderRadius: number;
-        borderWidth: number;
-        // iOS Only
-        shadow: ShadowConfig;
-      };
-    };
   };
+}>;
+
+export type FontConfig = {
+  /**
+   * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
+   * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+   */
+  family: string;
+  scale: number;
 };
 
-type ShadowConfig = {
+export type ShadowConfig = {
   color: string;
   opacity: number;
   offset: { x: number; y: number };
-  borderRadius: number;
+  radius: number;
 };
 
-type GlobalColorConfig = {
+export type GlobalColorConfig = {
   primary: string;
   background: string;
   componentBackground: string;
   componentBorder: string;
   componentDivider: string;
-  text: string; // maybe headerText
-  textSecondary: string; // maybe labelText
-  componentText: string;
-  componentPlaceholderText: string;
+  headerText: string;
+  labelText: string;
+  inputText: string;
+  placeholderText: string;
   icon: string;
   error: string;
 };
 
-type PrimaryButtonColorConfig = {
+export type PrimaryButtonColorConfig = {
   background: string;
   text: string;
-  componentBorder: string;
+  border: string;
 };
 
 type RecursivePartial<T> = {

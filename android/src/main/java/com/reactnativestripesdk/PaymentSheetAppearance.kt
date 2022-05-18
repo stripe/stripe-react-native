@@ -47,10 +47,10 @@ private fun buildColors(colorParams: Bundle?, default: PaymentSheet.Colors): Pay
     component = colorFromHexOrDefault(colorParams.getString("componentBackground"), default.component),
     componentBorder = colorFromHexOrDefault(colorParams.getString("componentBorder"), default.componentBorder),
     componentDivider = colorFromHexOrDefault(colorParams.getString("componentDivider"), default.componentDivider),
-    onComponent = colorFromHexOrDefault(colorParams.getString("componentText"), default.onComponent),
-    onSurface = colorFromHexOrDefault(colorParams.getString("text"), default.onSurface),
-    subtitle = colorFromHexOrDefault(colorParams.getString("textSecondary"), default.subtitle),
-    placeholderText = colorFromHexOrDefault(colorParams.getString("componentPlaceholderText"), default.placeholderText),
+    onComponent = colorFromHexOrDefault(colorParams.getString("inputText"), default.onComponent),
+    onSurface = colorFromHexOrDefault(colorParams.getString("headerText"), default.onSurface),
+    subtitle = colorFromHexOrDefault(colorParams.getString("labelText"), default.subtitle),
+    placeholderText = colorFromHexOrDefault(colorParams.getString("placeholderText"), default.placeholderText),
     appBarIcon = colorFromHexOrDefault(colorParams.getString("icon"), default.appBarIcon),
     error = colorFromHexOrDefault(colorParams.getString("error"), default.error),
   )
@@ -98,7 +98,7 @@ private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.
       null
     },
     onBackground = colorFromHexOrDefault(colorParams.getString("text"), default.onBackground),
-    border = colorFromHexOrDefault(colorParams.getString("componentBorder"), default.border),
+    border = colorFromHexOrDefault(colorParams.getString("border"), default.border),
   )
 }
 
