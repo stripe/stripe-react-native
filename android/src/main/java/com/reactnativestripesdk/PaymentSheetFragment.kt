@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
@@ -35,7 +34,6 @@ class PaymentSheetFragment(
   private var paymentIntentClientSecret: String? = null
   private var setupIntentClientSecret: String? = null
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
-  private lateinit var localBroadcastManager: LocalBroadcastManager
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
 
@@ -44,7 +42,6 @@ class PaymentSheetFragment(
     container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View {
-    localBroadcastManager = LocalBroadcastManager.getInstance(requireContext())
     return FrameLayout(requireActivity()).also {
       it.visibility = View.GONE
     }
