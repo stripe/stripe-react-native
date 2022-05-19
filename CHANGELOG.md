@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## Unreleased
+
+### Breaking changes
+
+### New features
+
+### Fixes
+
+## 0.6.1
+
+### Breaking changes
+
+### New features
+
+### Fixes
+
+- fix: correctly overwrite `package.json` import via babel. [#924](https://github.com/stripe/stripe-react-native/pull/924)
+- fix: upgrade expo config plugins. [#936](https://github.com/stripe/stripe-react-native/pull/936)
+
 ## 0.6.0
 
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) BREAKING: This library now supports iOS 12 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 11, please continue to use `@stripe/stripe-react-native@0.5.0`.
