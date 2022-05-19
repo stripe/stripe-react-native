@@ -110,36 +110,36 @@ export type ShadowConfig = {
 };
 
 export type GlobalColorConfig = {
-  /** A primary color used throughout your PaymentSheet. */
+  /** A primary color used throughout your PaymentSheet, represented as a hex string. */
   primary: string;
-  /** The color used for the background of your PaymentSheet. */
+  /** The color used for the background of your PaymentSheet, represented as a hex string. */
   background: string;
-  /** The color used for the background of inputs, tabs, and other components in your PaymentSheet. */
+  /** The color used for the background of inputs, tabs, and other components in your PaymentSheet, represented as a hex string. */
   componentBackground: string;
-  /** The color used for the external border of inputs, tabs, and other components in your PaymentSheet. */
+  /** The color used for the external border of inputs, tabs, and other components in your PaymentSheet, represented as a hex string. */
   componentBorder: string;
-  /** The color used for the internal border (meaning the border is shared with another component) of inputs, tabs, and other components in your PaymentSheet. */
+  /** The color used for the internal border (meaning the border is shared with another component) of inputs, tabs, and other components in your PaymentSheet, represented as a hex string. */
   componentDivider: string;
-  /** The color of the header text in your PaymentSheet. */
+  /** The color of the header text in your PaymentSheet, represented as a hex string. */
   headerText: string;
-  /** The color of the label text of input fields. */
+  /** The color of the label text of input fields, represented as a hex string. */
   labelText: string;
-  /** The color of the input text in your PaymentSheet, such as the user's card number or zip code. */
+  /** The color of the input text in your PaymentSheet, such as the user's card number or zip code, represented as a hex string. */
   inputText: string;
-  /** The color of the placeholder text of input fields. */
+  /** The color of the placeholder text of input fields, represented as a hex string. */
   placeholderText: string;
-  /** The color used for icons in your Payment Sheet, such as the close or back icons. */
+  /** The color used for icons in your Payment Sheet, such as the close or back icons, represented as a hex string. */
   icon: string;
-  /** The color used to indicate errors or destructive actions in your Payment Sheet */
+  /** The color used to indicate errors or destructive actions in your Payment Sheet, represented as a hex string. */
   error: string;
 };
 
 export type PrimaryButtonColorConfig = {
-  /** The background color used for the primary button in your PaymentSheet */
+  /** The background color used for the primary button in your PaymentSheet, represented as a hex string. */
   background: string;
-  /** The color of the text for the primary button in your PaymentSheet */
+  /** The color of the text for the primary button in your PaymentSheet, represented as a hex string. */
   text: string;
-  /** The border color used for the primary button in your PaymentSheet */
+  /** The border color used for the primary button in your PaymentSheet, represented as a hex string. */
   border: string;
 };
 
