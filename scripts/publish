@@ -22,36 +22,32 @@ create_github_release() {
     return
   fi
 
-  # Get the last two releases. For example, `("v1.3.1" "v1.3.2")`
-  local versions=($(git tag --sort version:refname | grep '^v' | tail -n 2))
+  local release_notes
+  local changelog
+  local is_collecting=0
 
-  # If we didn't find exactly two previous version versions, give up
-  if [ ${#versions[@]} -ne 2 ]; then
-    create_github_release_fallback
-    return
-  fi
+  while IFS= read -r line; do
+    if [[ $line == \#\#[[:space:]]*[[:digit:]]* ]]; then
+      if [ $is_collecting == 0 ] ; then
+        # Reached the entry for the version that is to be published
+        is_collecting=1
+        local current_version="${line#* }"
+      else
+        # Reached the next version entry, we're done.
+        break
+      fi
+    elif [ $is_collecting == 1 ] ; then
+      changelog+="${line}
+"
+    fi
+  done < CHANGELOG.md
 
-  local previous_version="${versions[0]}"
-  local current_version="${versions[1]}"
-  local commit_titles=$(git log --pretty=format:"- %s" "$previous_version".."$current_version"^)
-  local release_notes="$(cat << EOF
+  release_notes="$(cat << EOF
 $current_version
 
-<!-- Please group the following commits into one of the sections below. -->
-<!-- Remove empty sections when done. -->
+$changelog
 
-$commit_titles
-
-### Breaking changes
-
-### New features
-
-### Fixes
-
-### Changed
-
-Please see the changelog for additional details: https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md
-
+Please [see the changelog](https://github.com/stripe/stripe-react-native/blob/master/CHANGELOG.md) for additional details.
 
 EOF
 )"
