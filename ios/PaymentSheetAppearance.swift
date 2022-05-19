@@ -77,7 +77,7 @@ extension StripeSdk {
         if let opacity = params["opacity"] as? CGFloat {
             shadow.opacity = opacity
         }
-        if let radius = params["radius"] as? CGFloat {
+        if let radius = params["borderRadius"] as? CGFloat {
             shadow.radius = radius
         }
         if let offsetParams = params["offset"] as? NSDictionary {

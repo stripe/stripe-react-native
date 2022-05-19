@@ -41,7 +41,7 @@ const appearance: PaymentSheet.AppearanceParams = {
       opacity: 1,
       color: '#000000',
       offset: { x: -10, y: 5 },
-      radius: 1,
+      borderRadius: 1,
     },
   },
   primaryButton: {
@@ -58,7 +58,7 @@ const appearance: PaymentSheet.AppearanceParams = {
         opacity: 1,
         color: '#000000',
         offset: { x: 10, y: -5 },
-        radius: 1,
+        borderRadius: 1,
       },
     },
   },
