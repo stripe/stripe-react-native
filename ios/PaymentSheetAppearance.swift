@@ -58,9 +58,9 @@ extension StripeSdk {
         colors.componentBackground = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentBackground", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentBackground
         colors.componentBorder = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentBorder", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentBorder
         colors.componentDivider = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentDivider", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentDivider
-        colors.text = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "headerText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.text
-        colors.textSecondary = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "labelText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.textSecondary
-        colors.componentText = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "inputText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentText
+        colors.text = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "primaryText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.text
+        colors.textSecondary = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "secondaryText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.textSecondary
+        colors.componentText = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "componentText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentText
         colors.componentPlaceholderText = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "placeholderText", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentPlaceholderText
         colors.icon = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "icon", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.icon
         colors.danger = try StripeSdk.buildUserInterfaceStyleAwareColor(key: "error", lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger

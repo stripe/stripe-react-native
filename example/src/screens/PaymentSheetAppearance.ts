@@ -3,32 +3,32 @@ import type { PaymentSheet } from '@stripe/stripe-react-native';
 
 const appearance: PaymentSheet.AppearanceParams = {
   font: {
-    scale: 2,
+    scale: 1.1,
     family: Platform.OS === 'android' ? 'macondoregular' : 'Macondo-Regular',
   },
   colors: {
     light: {
-      primary: '#ff0000',
+      primary: '#ff000099',
       background: '#00ff00',
       componentBackground: '#8000ff',
       componentBorder: '#d6de00',
       componentDivider: '#62ff08',
-      headerText: '#ff7b00',
-      labelText: '#5181fc',
-      inputText: '#f7a900',
+      primaryText: '#ff7b00',
+      secondaryText: '#5181fc',
+      componentText: '#f7a900',
       placeholderText: '#f7a900',
       icon: '#f700b9',
       error: '#f700b9',
     },
     dark: {
-      primary: '#00ff00',
+      primary: '#00ff0099',
       background: '#ff0000',
       componentBackground: '#ff0080',
       componentBorder: '#62ff08',
       componentDivider: '#d6de00',
-      headerText: '#5181fc',
-      labelText: '#ff7b00',
-      inputText: '#00ffff',
+      primaryText: '#5181fc',
+      secondaryText: '#ff7b00',
+      componentText: '#00ffff',
       placeholderText: '#00ffff',
       icon: '#f0f0f0',
       error: '#0f0f0f',
@@ -45,7 +45,6 @@ const appearance: PaymentSheet.AppearanceParams = {
     },
   },
   primaryButton: {
-    font: { family: 'someotherfont' },
     colors: {
       background: '#000000',
       text: '#ffffff',

@@ -157,15 +157,15 @@ export type GlobalColorConfig = {
   /** The color of the header text in your PaymentSheet, represented as a hex string with format #RRGGBBAA.
    * @default The System label color on iOS, and "#000000" (light) / "#ffffff" (dark) on Android.
    */
-  headerText: string;
+  primaryText: string;
   /** The color of the label text of input fields, represented as a hex string with format #RRGGBBAA.
    * @default The System seconday label color on iOS, and "#000000" (light) / "#ffffff" (dark) on Android.
    */
-  labelText: string;
-  /** The color of the input text in your PaymentSheet, such as the user's card number or zip code, represented as a hex string with format #RRGGBBAA.
+  secondaryText: string;
+  /** The color of the input text in your PaymentSheet components, such as the user's card number or zip code, represented as a hex string with format #RRGGBBAA.
    * @default "#000000"
    */
-  inputText: string;
+  componentText: string;
   /** The color of the placeholder text of input fields, represented as a hex string with format #RRGGBBAA.
    * @default The System label color on iOS, and "#00000099" (light) / "#ffffff99" (dark) on Android.
    */
