@@ -223,11 +223,26 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         createTokenFromCard(params, promise)
       }
       "PII" -> {
-        createTokenFromCard(params, promise)
+        createTokenFromPii(params, promise)
       }
       else -> {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$type type is not supported yet"))
       }
+    }
+  }
+
+  private fun createTokenFromPii(params: ReadableMap, promise: Promise) {
+    getValOr(params, "PII", null)?.let {
+      CoroutineScope(Dispatchers.IO).launch {
+        runCatching {
+          val token = stripe.createPiiToken(it, null, stripeAccountId)
+          promise.resolve(createResult("token", mapFromToken(token)))
+        }.onFailure {
+          promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
+        }
+      }
+    } ?: run {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Pii is required"))
     }
   }
 

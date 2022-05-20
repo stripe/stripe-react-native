@@ -644,7 +644,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard let piiString = params["pii"] as? String else {
+        guard let piiString = params["PII"] as? String else {
             resolve(Errors.createError(ErrorType.Failed, "pii parameter is required"))
             return
         }

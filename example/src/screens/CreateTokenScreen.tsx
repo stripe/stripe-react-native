@@ -11,10 +11,10 @@ import PaymentScreen from '../components/PaymentScreen';
 export default function CreateTokenScreen() {
   const { createToken } = useStripe();
 
-  const _createToken = async (type: 'Card' | 'BankAccount' | 'PII') => {
+  const _createToken = async () => {
     const { error, token } = await createToken({
       type: 'PII',
-      pii: '000000000',
+      PII: '000000000',
     });
 
     console.log({ token });
@@ -33,14 +33,14 @@ export default function CreateTokenScreen() {
     <PaymentScreen>
       <Button
         variant="primary"
-        onPress={() => _createToken('PII')}
+        onPress={() => _createToken()}
         title="Create a token from PII"
         accessibilityLabel="Create a token from PII"
       />
       <Text style={styles.or}>OR</Text>
       <Button
         variant="primary"
-        onPress={() => _createToken('BankAccount')}
+        onPress={() => _createToken()}
         title="Create a token from a bank account"
         accessibilityLabel="Create a token from a bank account"
       />
@@ -52,7 +52,7 @@ export default function CreateTokenScreen() {
       />
       <Button
         variant="primary"
-        onPress={() => _createToken('Card')}
+        onPress={() => _createToken()}
         title="Create a token from a card"
         accessibilityLabel="Create a token from a card"
       />

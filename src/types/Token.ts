@@ -53,7 +53,7 @@ export interface Card {
 export type CreateParams =
   | CreateCardTokenParams
   | CreateBankAccountTokenParams
-  | { type: 'PII'; pii: string };
+  | { type: 'PII'; PII: string };
 
 export type CreateCardTokenParams = {
   type: 'Card';
