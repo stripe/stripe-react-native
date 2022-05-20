@@ -153,9 +153,9 @@ extension PaymentSheetAppearanceError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .missingFont(let string):
-            return NSLocalizedString("Failed to find font: \(string)", comment: "Failed to set font")
+            return NSLocalizedString("Failed to set Payment Sheet font. Unable to find font: \(string)", comment: "Failed to set font")
         case .missingAppearanceMode:
-            return NSLocalizedString("Failed to set Payment Sheet colors. When providing 'colors.light' or 'colors.dark', you must provide both.", comment: "Failed to set font")
+            return NSLocalizedString("Failed to set Payment Sheet colors. When providing 'colors.light' or 'colors.dark', you must provide both.", comment: "Failed to set colors")
         }
     }
 }

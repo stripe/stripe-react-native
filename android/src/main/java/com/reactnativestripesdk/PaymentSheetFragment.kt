@@ -63,7 +63,7 @@ class PaymentSheetFragment(
     val appearance = try {
       buildPaymentSheetAppearance(arguments?.getBundle("appearance"))
     } catch (error: PaymentSheetAppearanceException) {
-      promise.resolve(createError(ErrorType.Failed.toString(), error))
+      initPromise.resolve(createError(ErrorType.Failed.toString(), error))
       return
     }
 
