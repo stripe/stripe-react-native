@@ -26,11 +26,14 @@ private fun PaymentSheetFragment.buildTypography(fontParams: Bundle?): PaymentSh
 }
 
 private fun colorFromHexOrDefault(hexString: String?, default: Int): Int {
-  return hexString?.trim()?.let {
-    Color.parseColor(
-      if (!it.contains("#")) "#$it"
-      else it
-    )
+  return hexString?.trim()?.replace("#","")?.let {
+    val hexStringWithAlpha =
+      when (it.length) {
+        6 -> "ff$it" // Default to no transparency
+        8 -> "${it.slice(6..7)}${it.slice(0 until 6)}"
+        else -> throw PaymentSheetAppearanceException("Expected hex string of length either 6 or 8, but received: ${it}")
+      }
+    Color.parseColor("#$hexStringWithAlpha")
   } ?: run {
     default
   }
@@ -89,11 +92,14 @@ private fun PaymentSheetFragment.buildPrimaryButton(params: Bundle?): PaymentShe
 
 private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.PrimaryButtonColors): PaymentSheet.PrimaryButtonColors {
   return PaymentSheet.PrimaryButtonColors(
-    background = colorParams.getString("background")?.trim()?.let {
-      Color.parseColor(
-        if (!it.contains("#")) "#$it"
-        else it
-      )
+    background = colorParams.getString("background")?.trim()?.replace("#","")?.let {
+      val hexStringWithAlpha =
+        when (it.length) {
+          6 -> "ff$it" // Default to no transparency
+          8 -> "${it.slice(6..7)}${it.slice(0 until 6)}"
+          else -> throw PaymentSheetAppearanceException("Expected hex string of length either 6 or 8, but received: ${it}")
+        }
+      Color.parseColor("#$hexStringWithAlpha")
     } ?: run {
       null
     },
