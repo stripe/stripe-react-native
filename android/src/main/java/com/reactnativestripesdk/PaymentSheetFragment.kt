@@ -1,7 +1,6 @@
 package com.reactnativestripesdk
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -12,29 +11,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.paymentsheet.PaymentOptionCallback
 import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import java.io.ByteArrayOutputStream
 
-class PaymentSheetFragment : Fragment() {
+class PaymentSheetFragment(
+  private val context: ReactApplicationContext,
+  private val initPromise: Promise
+) : Fragment() {
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
   private var setupIntentClientSecret: String? = null
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
-  private lateinit var localBroadcastManager: LocalBroadcastManager
+  private var confirmPromise: Promise? = null
+  private var presentPromise: Promise? = null
 
   override fun onCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View {
-    localBroadcastManager = LocalBroadcastManager.getInstance(requireContext())
     return FrameLayout(requireActivity()).also {
       it.visibility = View.GONE
     }
@@ -56,23 +63,39 @@ class PaymentSheetFragment : Fragment() {
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
 
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
-      val intent = Intent(ON_PAYMENT_OPTION_ACTION)
-
       if (paymentOption != null) {
         val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
         val imageString = getBase64FromBitmap(bitmap)
-
-        intent.putExtra("label", paymentOption.label)
-        intent.putExtra("image", imageString)
+        val option: WritableMap = WritableNativeMap()
+        option.putString("label", paymentOption.label)
+        option.putString("image", imageString)
+        presentPromise?.resolve(createResult("paymentOption", option))
       }
-      localBroadcastManager.sendBroadcast(intent)
+      presentPromise?.resolve(WritableNativeMap())
     }
 
     val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
-      val intent = Intent(ON_PAYMENT_RESULT_ACTION)
-
-      intent.putExtra("paymentResult", paymentResult)
-      localBroadcastManager.sendBroadcast(intent)
+      when (paymentResult) {
+        is PaymentSheetResult.Canceled -> {
+          val message = "The payment has been canceled"
+          confirmPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
+            ?: run {
+              presentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
+            }
+        }
+        is PaymentSheetResult.Failed -> {
+          confirmPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
+            ?: run {
+              presentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
+            }
+        }
+        is PaymentSheetResult.Completed -> {
+          confirmPromise?.resolve(WritableNativeMap()) ?: run {
+            presentPromise?.resolve(WritableNativeMap())
+          }
+        }
+      }
+      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
     }
 
     var primaryButtonColor: ColorStateList? = null
@@ -118,12 +141,12 @@ class PaymentSheetFragment : Fragment() {
       configureFlowController()
     } else {
       paymentSheet = PaymentSheet(this, paymentResultCallback)
-      val intent = Intent(ON_INIT_PAYMENT_SHEET)
-      localBroadcastManager.sendBroadcast(intent)
+      initPromise.resolve(WritableNativeMap())
     }
   }
 
-  fun present() {
+  fun present(promise: Promise) {
+    this.presentPromise = promise
     if(paymentSheet != null) {
       if (!paymentIntentClientSecret.isNullOrEmpty()) {
         paymentSheet?.presentWithPaymentIntent(paymentIntentClientSecret!!, paymentSheetConfiguration)
@@ -135,23 +158,24 @@ class PaymentSheetFragment : Fragment() {
     }
   }
 
-  fun confirmPayment() {
+  fun confirmPayment(promise: Promise) {
+    this.confirmPromise = promise
     flowController?.confirm()
   }
 
   private fun configureFlowController() {
     val onFlowControllerConfigure = PaymentSheet.FlowController.ConfigCallback { _, _ ->
-      val paymentOption = flowController?.getPaymentOption()
-      val intent = Intent(ON_CONFIGURE_FLOW_CONTROLLER)
-
-      paymentOption?.let {
+      val result = flowController?.getPaymentOption()?.let {
         val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
         val imageString = getBase64FromBitmap(bitmap)
-
-        intent.putExtra("label", it.label)
-        intent.putExtra("image", imageString)
+        val option: WritableMap = WritableNativeMap()
+        option.putString("label", it.label)
+        option.putString("image", imageString)
+        createResult("paymentOption", option)
+      } ?: run {
+        WritableNativeMap()
       }
-      localBroadcastManager.sendBroadcast(intent)
+      initPromise.resolve(result)
     }
 
     if (!paymentIntentClientSecret.isNullOrEmpty()) {
