@@ -16,16 +16,11 @@ ARGS:
 EOF
 }
 
-encodeString() {
+percentEncodeString() {
   jq -rn --arg x "$1" '$x|@uri'
 }
 
 create_github_release() {
-  if which hub | grep -q "not found"; then
-    create_github_release_fallback
-    return
-  fi
-
   local release_notes
   local changelog
   local is_collecting=0
@@ -56,46 +51,52 @@ Please [see the changelog](https://github.com/stripe/stripe-react-native/blob/ma
 EOF
 )"
 
-  echo "Creating GitHub release"
-  echo ""
-  echo -n "    "
-  hub release create -em "$release_notes" "$current_version"
+  if which hub | grep -q "not found"; then
+    create_github_release_fallback "$release_notes"
+  else
+    echo "Creating GitHub release"
+    echo ""
+    echo -n "    "
+    hub release create -em "$release_notes" "$current_version"
+  fi
+
+  send_release_email "$current_version" "$release_notes"
 }
 
 create_github_release_fallback() {
-  cat << EOF
-Remember to create a release on GitHub with a changelog notes:
+  local release_notes=$1
 
-    https://github.com/stripe/stripe-react-native/releases/new
+  cat << EOF
+Remember to create a release on GitHub at https://github.com/stripe/stripe-react-native/releases/new with the following notes:
+
+$release_notes
 
 EOF
 }
 
 send_release_email() {
+  local current_version=$1
+  local release_notes=$2
+
   echo "
-Send an email to mobile-sdk-updates@stripe.com with the following information:
+Sending an email to mobile-sdk-updates@stripe.com with the following information:
 
-  Subject: [React Native SDK] v$current_version
+Subject:
+[React Native SDK] v$current_version
 
-  Body:
-
-  $release_notes
+Body:
+$release_notes
 "
 
   echo "
-Attempting to automatically draft and open the email to send...if the browser doesn't open, cmnd+click the following link:
+Attempting to automatically draft and open the email to send...if the browser doesn't launch, open the following link:
 "
-  sleep 2
-  open "
-mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(encodeString "$current_version")&body=$(encodeString "$release_notes")
-"
-  echo "
-mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(encodeString "$current_version")&body=$(encodeString "$release_notes")
+  open "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$current_version")&body=$(percentEncodeString "$release_notes")"
+  echo "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$current_version")&body=$(percentEncodeString "$release_notes")
 "
 
   while true ; do
-    read -r -n 1 -p "Once you've sent the email, press any key to continue
-"
+    read -r -n 1 -p "Once you've sent the email, press any key to continue..."
     if [ $? = 0 ] ; then
     exit ;
     fi
@@ -173,5 +174,3 @@ echo "Publish successful!"
 echo ""
 
 create_github_release
-
-send_release_email
