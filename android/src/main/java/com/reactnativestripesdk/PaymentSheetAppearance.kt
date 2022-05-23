@@ -25,11 +25,14 @@ private fun PaymentSheetFragment.buildTypography(fontParams: Bundle?): PaymentSh
   )
 }
 
+@Throws(PaymentSheetAppearanceException::class)
 private fun colorFromHexOrDefault(hexString: String?, default: Int): Int {
   return hexString?.trim()?.replace("#","")?.let {
-    Color.parseColor("#$it")
+    if (it.length == 6 || it.length == 8) {
+      return Color.parseColor("#$it")
+    } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
   } ?: run {
-    default
+    return default
   }
 }
 
@@ -84,10 +87,13 @@ private fun PaymentSheetFragment.buildPrimaryButton(params: Bundle?): PaymentShe
   )
 }
 
+@Throws(PaymentSheetAppearanceException::class)
 private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.PrimaryButtonColors): PaymentSheet.PrimaryButtonColors {
   return PaymentSheet.PrimaryButtonColors(
     background = colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND)?.trim()?.replace("#", "")?.let {
-      Color.parseColor("#$it")
+      if (it.length == 6 || it.length == 8) {
+        Color.parseColor("#$it")
+      } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
     } ?: run {
       null
     },
