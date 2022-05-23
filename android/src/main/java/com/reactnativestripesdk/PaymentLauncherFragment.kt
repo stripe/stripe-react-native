@@ -70,7 +70,7 @@ class PaymentLauncherFragment(
             ?: throw Exception("No promise is set to handle payment results.")
         }
         is PaymentResult.Failed -> {
-          promise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable.localizedMessage))
+          promise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable))
             ?: throw Exception("No promise is set to handle payment results.")
         }
       }

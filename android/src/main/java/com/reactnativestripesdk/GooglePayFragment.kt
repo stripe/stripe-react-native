@@ -111,7 +111,7 @@ class GooglePayFragment(private val initPromise: Promise) : Fragment() {
       presentPromise = promise
       launcher.presentForPaymentIntent(clientSecret)
     }.onFailure {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it.localizedMessage))
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it))
     }
   }
 
@@ -124,7 +124,7 @@ class GooglePayFragment(private val initPromise: Promise) : Fragment() {
       presentPromise = promise
       launcher.presentForSetupIntent(clientSecret, currencyCode)
     }.onFailure {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it.localizedMessage))
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it))
     }
   }
 
@@ -141,7 +141,7 @@ class GooglePayFragment(private val initPromise: Promise) : Fragment() {
         amount = amount
       )
     }.onFailure {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it.localizedMessage))
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), it))
     }
   }
 
