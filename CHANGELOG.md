@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- Removed support for `primaryButtonColor` field on `initPaymentSheet()`. Please use the new `appearance` field instead. [#940](https://github.com/stripe/stripe-react-native/pull/940)
+- Removed support for `primaryButtonColor` field on `initPaymentSheet()`. Please use the new `appearance.primaryButton.colors.background` field instead. [#940](https://github.com/stripe/stripe-react-native/pull/940)
 
 ### New features
 
