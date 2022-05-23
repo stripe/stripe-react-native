@@ -305,7 +305,7 @@ PODS:
     - StripeApplePay (= 22.3.0)
     - StripeCore (= 22.3.0)
     - StripeUICore (= 22.3.0)
-  - stripe-react-native (0.9.0):
+  - stripe-react-native (0.10.0):
     - React-Core
     - Stripe (~> 22.3.0)
     - StripeFinancialConnections (~> 22.3.0)
@@ -487,7 +487,7 @@ SPEC CHECKSUMS:
   RNCPicker: abc646b53a3d28ccfa3232c927a0ca52e0cf024d
   RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   Stripe: b2426ce648aa240a812b6749c09d3839111a9cbb
-  stripe-react-native: 54605b2a26408dd45a25e93f4b7bc268d2cb2d85
+  stripe-react-native: b96949583aa3a10954510230b97747fa6c453718
   StripeApplePay: 0b0b744805d36940fd58d0a928c54beb04f1136c
   StripeCore: 88a3b50b3237b8e1661e48905f2813dedf200540
   StripeFinancialConnections: d817bcfea7c6c9728dc6801afff813ff77828c65
