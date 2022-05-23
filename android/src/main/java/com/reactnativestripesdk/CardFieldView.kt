@@ -20,6 +20,7 @@ import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.CardValidCallback
+import com.stripe.android.view.StripeEditText
 
 class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget = CardInputWidget(context)
@@ -228,9 +229,18 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     }
 
     mCardWidget.setCardValidCallback { isValid, invalidFields ->
-      cardDetails["validNumber"] = if (invalidFields.contains(CardValidCallback.Fields.Number)) "Invalid" else "Valid"
-      cardDetails["validCVC"] = if (invalidFields.contains(CardValidCallback.Fields.Cvc)) "Invalid" else "Valid"
-      cardDetails["validExpiryDate"] = if (invalidFields.contains(CardValidCallback.Fields.Expiry)) "Invalid" else "Valid"
+      fun getCardValidationState(field: CardValidCallback.Fields, editTextField: StripeEditText): String {
+        if (invalidFields.contains(field)) {
+          return if (editTextField.shouldShowError) "Invalid"
+          else "Incomplete"
+        }
+        return "Valid"
+      }
+
+      cardDetails["validNumber"] = getCardValidationState(CardValidCallback.Fields.Number, cardInputWidgetBinding.cardNumberEditText)
+      cardDetails["validCVC"] = getCardValidationState(CardValidCallback.Fields.Cvc, cardInputWidgetBinding.cvcEditText)
+      cardDetails["validExpiryDate"] = getCardValidationState(CardValidCallback.Fields.Expiry, cardInputWidgetBinding.expiryDateEditText)
+
       if (isValid) {
         onValidCardChange()
       } else {
