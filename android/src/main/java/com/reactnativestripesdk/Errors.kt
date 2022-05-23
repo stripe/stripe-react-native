@@ -96,5 +96,16 @@ internal fun createError(code: String, error: Exception): WritableMap {
 }
 
 internal fun createError(code: String, error: Throwable): WritableMap {
-  return mapError(code, error.message, error.localizedMessage, null, null, null)
+  (error as? Exception)?.let {
+    return createError(
+      code,
+      it)
+  }
+  return mapError(
+    code,
+    error.message,
+    error.localizedMessage,
+    null,
+    null,
+    null)
 }
