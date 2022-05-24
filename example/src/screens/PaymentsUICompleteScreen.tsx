@@ -9,6 +9,7 @@ import {
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import appearance from './PaymentSheetAppearance';
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -86,10 +87,10 @@ export default function PaymentsUICompleteScreen() {
       style: 'automatic',
       googlePay: true,
       testEnv: true,
-      primaryButtonColor: '#635BFF', // Blurple
       returnURL: 'stripe-example://stripe-redirect',
       defaultBillingDetails: billingDetails,
       allowsDelayedPaymentMethods: true,
+      appearance,
     });
     if (!error) {
       setPaymentSheetEnabled(true);

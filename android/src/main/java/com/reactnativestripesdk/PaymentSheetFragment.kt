@@ -57,10 +57,15 @@ class PaymentSheetFragment(
     val googlePayEnabled = arguments?.getBoolean("googlePay")
     val testEnv = arguments?.getBoolean("testEnv")
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
-    val primaryButtonColorHexStr = arguments?.getString("primaryButtonColor").orEmpty()
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
+    val appearance = try {
+      buildPaymentSheetAppearance(arguments?.getBundle("appearance"))
+    } catch (error: PaymentSheetAppearanceException) {
+      initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+      return
+    }
 
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
       if (paymentOption != null) {
@@ -98,11 +103,6 @@ class PaymentSheetFragment(
       (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
     }
 
-    var primaryButtonColor: ColorStateList? = null
-    if (primaryButtonColorHexStr.isNotEmpty()) {
-      primaryButtonColor = ColorStateList.valueOf(Color.parseColor(primaryButtonColorHexStr))
-    }
-
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     if (billingDetailsBundle != null) {
       val addressBundle = billingDetailsBundle.getBundle("address")
@@ -123,7 +123,6 @@ class PaymentSheetFragment(
     paymentSheetConfiguration = PaymentSheet.Configuration(
       merchantDisplayName = merchantDisplayName,
       allowsDelayedPaymentMethods = allowsDelayedPaymentMethods ?: false,
-      primaryButtonColor = primaryButtonColor,
       defaultBillingDetails=defaultBillingDetails,
       customer = if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) PaymentSheet.CustomerConfiguration(
         id = customerId,
@@ -133,7 +132,8 @@ class PaymentSheetFragment(
         environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode,
         currencyCode = currencyCode
-      ) else null
+      ) else null,
+      appearance = appearance
     )
 
     if (arguments?.getBoolean("customFlow") == true) {

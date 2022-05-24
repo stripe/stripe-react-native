@@ -12,6 +12,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		20F357B024636CDF00C146DC /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F357AF24636CDF00C146DC /* File.swift */; };
+		7F8239C14D914EB59933E76B /* Macondo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */; };
 		FCD4117D281095E3001354AA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = FCD4117C281095E3001354AA /* AppDelegate.mm */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 		247B76C1256C47BD0086EA47 /* StripeSdkExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StripeSdkExample.entitlements; path = StripeSdkExample/StripeSdkExample.entitlements; sourceTree = "<group>"; };
 		4D7192F03A36A017E887435B /* Pods-StripeSdkExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StripeSdkExample.release.xcconfig"; path = "Target Support Files/Pods-StripeSdkExample/Pods-StripeSdkExample.release.xcconfig"; sourceTree = "<group>"; };
 		871719007ECC5EAD276C345C /* Pods-StripeSdkExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StripeSdkExample.debug.xcconfig"; path = "Target Support Files/Pods-StripeSdkExample/Pods-StripeSdkExample.debug.xcconfig"; sourceTree = "<group>"; };
+		A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Macondo-Regular.ttf"; path = "../src/assets/fonts/Macondo-Regular.ttf"; sourceTree = "<group>"; };
 		BCEA90A70F4BEAD7E9FA28B2 /* libPods-StripeSdkExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StripeSdkExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FCD4117C281095E3001354AA /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = StripeSdkExample/AppDelegate.mm; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				1CFFDEF7170271C97B8B7E5A /* Pods */,
 				20F357AD24636CDE00C146DC /* StripeSdkExample-Bridging-Header.h */,
+				E8A47E7C361443EE90D2C981 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -109,6 +112,15 @@
 				13B07F961A680F5B00A75B9A /* StripeSdkExample.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E8A47E7C361443EE90D2C981 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A9E86F3B4D81411588469621 /* Macondo-Regular.ttf */,
+			);
+			name = Resources;
+			path = "";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -176,6 +188,7 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				7F8239C14D914EB59933E76B /* Macondo-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
