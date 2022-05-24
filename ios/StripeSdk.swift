@@ -1,5 +1,5 @@
 import PassKit
-@_spi(STP) import Stripe
+import Stripe
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {

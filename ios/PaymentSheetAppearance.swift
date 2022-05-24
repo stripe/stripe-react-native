@@ -4,7 +4,7 @@
 //
 //  Created by Charles Cruzan on 5/11/22.
 //
-@_spi(STP) import Stripe
+import Stripe
 
 extension StripeSdk {
     func buildPaymentSheetAppearance(userParams: NSDictionary) throws -> PaymentSheet.Appearance {
