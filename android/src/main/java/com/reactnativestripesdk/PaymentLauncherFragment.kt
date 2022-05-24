@@ -5,8 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.Stripe
 import com.stripe.android.model.*
@@ -14,74 +16,142 @@ import com.stripe.android.payments.paymentlauncher.PaymentLauncher
 import com.stripe.android.payments.paymentlauncher.PaymentResult
 
 class PaymentLauncherFragment(
+  private val context: ReactApplicationContext,
   private val stripe: Stripe,
   private val publishableKey: String,
   private val stripeAccountId: String?,
+  private val promise: Promise,
+  private val paymentIntentClientSecret: String? = null,
+  private val confirmPaymentParams: ConfirmPaymentIntentParams? = null,
+  private val setupIntentClientSecret: String? = null,
+  private val confirmSetupParams: ConfirmSetupIntentParams? = null,
+  private val handleNextActionClientSecret: String? = null,
 ) : Fragment() {
   private lateinit var paymentLauncher: PaymentLauncher
-  private var clientSecret: String? = null
-  private var promise: Promise? = null
-  private var isPaymentIntent: Boolean = true
+
+  companion object {
+    fun forPayment(context: ReactApplicationContext,
+                   stripe: Stripe,
+                   publishableKey: String,
+                   stripeAccountId: String?,
+                   promise: Promise,
+                   paymentIntentClientSecret: String,
+                   confirmPaymentParams: ConfirmPaymentIntentParams) {
+      val paymentLauncherFragment = PaymentLauncherFragment(
+        context,
+        stripe,
+        publishableKey,
+        stripeAccountId,
+        promise,
+        paymentIntentClientSecret = paymentIntentClientSecret,
+        confirmPaymentParams = confirmPaymentParams
+      )
+      addFragment(paymentLauncherFragment, context, promise)
+    }
+
+    fun forSetup(context: ReactApplicationContext,
+                 stripe: Stripe,
+                 publishableKey: String,
+                 stripeAccountId: String?,
+                 promise: Promise,
+                 setupIntentClientSecret: String,
+                 confirmSetupParams: ConfirmSetupIntentParams) {
+      val paymentLauncherFragment = PaymentLauncherFragment(
+        context,
+        stripe,
+        publishableKey,
+        stripeAccountId,
+        promise,
+        setupIntentClientSecret = setupIntentClientSecret,
+        confirmSetupParams = confirmSetupParams
+      )
+      addFragment(paymentLauncherFragment, context, promise)
+    }
+
+    fun forNextAction(context: ReactApplicationContext,
+                      stripe: Stripe,
+                      publishableKey: String,
+                      stripeAccountId: String?,
+                      promise: Promise,
+                      handleNextActionClientSecret: String) {
+      val paymentLauncherFragment = PaymentLauncherFragment(
+        context,
+        stripe,
+        publishableKey,
+        stripeAccountId,
+        promise,
+        handleNextActionClientSecret = handleNextActionClientSecret,
+      )
+      addFragment(paymentLauncherFragment, context, promise)
+    }
+
+    private fun addFragment(fragment: PaymentLauncherFragment, context: ReactApplicationContext, promise: Promise) {
+      (context.currentActivity as? AppCompatActivity)?.let {
+        try {
+          it.supportFragmentManager.beginTransaction()
+            .add(fragment, "payment_launcher_fragment")
+            .commit()
+        } catch (error: IllegalStateException) {
+          promise.resolve(createError(ErrorType.Failed.toString(), error.message))
+        }
+      } ?: run {
+        promise.resolve(createMissingActivityError())
+      }
+    }
+  }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
     paymentLauncher = createPaymentLauncher()
+    if (paymentIntentClientSecret != null && confirmPaymentParams != null) {
+      paymentLauncher.confirm(confirmPaymentParams)
+    } else if (setupIntentClientSecret != null && confirmSetupParams != null) {
+      paymentLauncher.confirm(confirmSetupParams)
+    } else if (handleNextActionClientSecret != null) {
+      paymentLauncher.handleNextActionForPaymentIntent(handleNextActionClientSecret)
+    } else {
+      throw Error("TODO")
+    }
     return FrameLayout(requireActivity()).also {
       it.visibility = View.GONE
     }
-  }
-
-  fun handleNextActionForPaymentIntent(clientSecret: String, promise: Promise) {
-    this.clientSecret = clientSecret
-    this.promise = promise
-    paymentLauncher.handleNextActionForPaymentIntent(clientSecret)
-  }
-
-  fun confirm(params: ConfirmPaymentIntentParams, clientSecret: String, promise: Promise) {
-    this.clientSecret = clientSecret
-    this.promise = promise
-    this.isPaymentIntent = true
-    paymentLauncher.confirm(params)
-  }
-
-  fun confirm(params: ConfirmSetupIntentParams, clientSecret: String, promise: Promise) {
-    this.clientSecret = clientSecret
-    this.promise = promise
-    this.isPaymentIntent = false
-    paymentLauncher.confirm(params)
   }
 
   private fun createPaymentLauncher(): PaymentLauncher {
     return PaymentLauncher.create(this, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
-          clientSecret?.let {
-            if (isPaymentIntent) retrievePaymentIntent(it, stripeAccountId)
-            else retrieveSetupIntent(it, stripeAccountId)
-          } ?: run {
-            promise?.resolve(
-              createError(ConfirmPaymentErrorType.Failed.toString(), "Client secret must be set before responding to payment results.")
-            )
-              ?: throw Exception("Client secret must be set before responding to payment results.")
+          if (paymentIntentClientSecret != null) {
+            retrievePaymentIntent(paymentIntentClientSecret, stripeAccountId)
+          } else if (handleNextActionClientSecret != null) {
+            retrievePaymentIntent(handleNextActionClientSecret, stripeAccountId)
+          } else if (setupIntentClientSecret != null) {
+            retrieveSetupIntent(setupIntentClientSecret, stripeAccountId)
+          } else {
+            throw Error("TODO")
           }
         }
         is PaymentResult.Canceled -> {
-          promise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
-            ?: throw Exception("No promise is set to handle payment results.")
+          promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
+          cleanup()
         }
         is PaymentResult.Failed -> {
-          promise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable))
-            ?: throw Exception("No promise is set to handle payment results.")
+          promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable))
+          cleanup()
         }
       }
     }
   }
 
+  private fun cleanup() {
+    (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+  }
+
   private fun retrieveSetupIntent(clientSecret: String, stripeAccountId: String?) {
-    val promise = promise ?: throw Exception("No promise is set to handle payment results.")
     stripe.retrieveSetupIntent(clientSecret, stripeAccountId, object : ApiResultCallback<SetupIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
+        cleanup()
       }
 
       override fun onSuccess(result: SetupIntent) {
@@ -113,15 +183,16 @@ class PaymentLauncherFragment(
             promise.resolve(createError(ConfirmSetupIntentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
           }
         }
+        cleanup()
       }
     })
   }
 
   private fun retrievePaymentIntent(clientSecret: String, stripeAccountId: String?) {
-    val promise = promise ?: throw Exception("No promise is set to handle payment results.")
     stripe.retrievePaymentIntent(clientSecret, stripeAccountId, object : ApiResultCallback<PaymentIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
+        cleanup()
       }
 
       override fun onSuccess(result: PaymentIntent) {
@@ -153,6 +224,7 @@ class PaymentLauncherFragment(
             promise.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
           }
         }
+        cleanup()
       }
     })
   }
