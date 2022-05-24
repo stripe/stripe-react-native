@@ -96,7 +96,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-Compatible with apps targeting iOS 12 or above.
+The Stripe React Native SDK requires Xcode 13.2.1 or later and is compatible with apps targeting iOS 12 or above. For iOS 11 support, please use [`@stripe/stripe-react-native@0.5.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.5.0).
 
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
