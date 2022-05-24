@@ -103,10 +103,10 @@ export type ShadowConfig = {
    * @default {x: 0, y: 2}
    */
   offset: { x: number; y: number };
-  /** The border radius of the shadow.
+  /** The blur radius of the shadow.
    * @default 4
    */
-  borderRadius: number;
+  blurRadius: number;
 };
 
 export type GlobalColorConfig = {
