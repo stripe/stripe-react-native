@@ -43,6 +43,81 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
+  private fun createIDEALParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAlipayParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createSofortParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createBancontactParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createSepaParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createOXXOParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createGiropayParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createEPSParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createGrabPayParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createP24Params(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createFpxParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAfterpayClearpayParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAuBecsDebitParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createKlarnaParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createPayPalParams(): PaymentMethodCreateParams {
+
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
   fun createConfirmParams(paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
     try {
       return when (paymentMethodType) {
