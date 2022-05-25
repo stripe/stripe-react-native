@@ -33,6 +33,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private var paymentSheetFragment: PaymentSheetFragment? = null
   private var googlePayFragment: GooglePayFragment? = null
+  private var paymentLauncherFragment: PaymentLauncherFragment? = null
 
   private var confirmPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
@@ -43,6 +44,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         // BEGIN - Necessary on older versions of React Native (~0.64 and below)
         paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
         googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        paymentLauncherFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
         // END
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
@@ -152,7 +154,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     when (result) {
       is AddPaymentMethodActivityStarter.Result.Success -> {
         if (confirmPaymentClientSecret != null && confirmPromise != null) {
-          PaymentLauncherFragment.forPayment(
+          paymentLauncherFragment = PaymentLauncherFragment.forPayment(
             context = reactApplicationContext,
             stripe,
             publishableKey,
@@ -306,7 +308,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun handleNextAction(paymentIntentClientSecret: String, promise: Promise) {
-    PaymentLauncherFragment.forNextAction(
+    paymentLauncherFragment = PaymentLauncherFragment.forNextAction(
       context = reactApplicationContext,
       stripe,
       publishableKey,
@@ -370,7 +372,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         confirmParams.returnUrl = mapToReturnURL(urlScheme)
       }
       confirmParams.shipping = mapToShippingDetails(getMapOrNull(paymentMethodData, "shippingDetails"))
-      PaymentLauncherFragment.forPayment(
+      paymentLauncherFragment = PaymentLauncherFragment.forPayment(
         context = reactApplicationContext,
         stripe,
         publishableKey,
@@ -422,7 +424,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       urlScheme?.let {
         confirmParams.returnUrl = mapToReturnURL(urlScheme)
       }
-      PaymentLauncherFragment.forSetup(
+      paymentLauncherFragment = PaymentLauncherFragment.forSetup(
         context = reactApplicationContext,
         stripe,
         publishableKey,
