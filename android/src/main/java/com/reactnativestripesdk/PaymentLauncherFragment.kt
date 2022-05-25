@@ -15,21 +15,30 @@ import com.stripe.android.model.*
 import com.stripe.android.payments.paymentlauncher.PaymentLauncher
 import com.stripe.android.payments.paymentlauncher.PaymentResult
 
+/**
+ * Instances of this class should only be initialized with the companion's helper methods.
+ */
 class PaymentLauncherFragment(
   private val context: ReactApplicationContext,
   private val stripe: Stripe,
   private val publishableKey: String,
   private val stripeAccountId: String?,
   private val promise: Promise,
+  // Used when confirming a payment intent
   private val paymentIntentClientSecret: String? = null,
   private val confirmPaymentParams: ConfirmPaymentIntentParams? = null,
+  // Used when confirming a setup intent
   private val setupIntentClientSecret: String? = null,
   private val confirmSetupParams: ConfirmSetupIntentParams? = null,
+  // Used when handling the next action on a payment intent
   private val handleNextActionClientSecret: String? = null,
 ) : Fragment() {
   private lateinit var paymentLauncher: PaymentLauncher
 
   companion object {
+    /**
+     * Helper-constructor used for confirming payment intents
+     */
     fun forPayment(context: ReactApplicationContext,
                    stripe: Stripe,
                    publishableKey: String,
@@ -50,6 +59,9 @@ class PaymentLauncherFragment(
       return paymentLauncherFragment
     }
 
+    /**
+     * Helper-constructor used for confirming setup intents
+     */
     fun forSetup(context: ReactApplicationContext,
                  stripe: Stripe,
                  publishableKey: String,
@@ -70,6 +82,9 @@ class PaymentLauncherFragment(
       return paymentLauncherFragment
     }
 
+    /**
+     * Helper-constructor used for handling the next action on a payment intent
+     */
     fun forNextAction(context: ReactApplicationContext,
                       stripe: Stripe,
                       publishableKey: String,
@@ -113,7 +128,7 @@ class PaymentLauncherFragment(
     } else if (handleNextActionClientSecret != null) {
       paymentLauncher.handleNextActionForPaymentIntent(handleNextActionClientSecret)
     } else {
-      throw Error("TODO")
+      throw Exception("Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).")
     }
     return FrameLayout(requireActivity()).also {
       it.visibility = View.GONE
@@ -131,7 +146,7 @@ class PaymentLauncherFragment(
           } else if (setupIntentClientSecret != null) {
             retrieveSetupIntent(setupIntentClientSecret, stripeAccountId)
           } else {
-            throw Error("TODO")
+            throw Exception("Failed to create Payment Launcher. No client secret provided.")
           }
         }
         is PaymentResult.Canceled -> {
