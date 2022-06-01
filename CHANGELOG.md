@@ -14,6 +14,7 @@
 - Fixed `appearance.shapes.shadow.offset` and `appearance.primaryButton.shapes.shadow.offset` not applying the y-coordinate in the correct direction. [#962](https://github.com/stripe/stripe-react-native/pull/962)
 - Fixed a bug where `handleNextAction` wouldn't resolve on Android when using 3DS2. [#966](https://github.com/stripe/stripe-react-native/pull/966)
 - Fixed a bug where the wrong CVC icon was show in the `CardForm` component on Android. [#966](https://github.com/stripe/stripe-react-native/pull/966)
+- The card brand tint color is now correctly set in the `CardField` component on Android via the `cardStyle.textColor` prop. [#851](https://github.com/stripe/stripe-react-native/pull/851)
 
 ## 0.11.0
 
