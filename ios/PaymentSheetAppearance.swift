@@ -77,12 +77,12 @@ extension StripeSdk {
         if let opacity = params[PaymentSheetAppearanceKeys.OPACITY] as? CGFloat {
             shadow.opacity = opacity
         }
-        if let radius = params[PaymentSheetAppearanceKeys.BORDER_RADIUS] as? CGFloat {
+        if let radius = params[PaymentSheetAppearanceKeys.BLUR_RADIUS] as? CGFloat {
             shadow.radius = radius
         }
         if let offsetParams = params[PaymentSheetAppearanceKeys.OFFSET] as? NSDictionary {
             if let x = offsetParams[PaymentSheetAppearanceKeys.X] as? CGFloat, let y = offsetParams[PaymentSheetAppearanceKeys.Y] as? CGFloat {
-                shadow.offset = CGSize(width: x, height:y)
+                shadow.offset = CGSize(width: x, height:-y)
             }
         }
 
@@ -199,6 +199,7 @@ private struct PaymentSheetAppearanceKeys {
     static let SHADOW_COLOR = "color"
     static let OPACITY = "opacity"
     static let OFFSET = "offset"
+    static let BLUR_RADIUS = "blurRadius"
     static let X = "x"
     static let Y = "y"
     

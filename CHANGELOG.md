@@ -4,11 +4,14 @@
 
 ### Breaking changes
 
+- Renamed `appearance.shapes.shadow.borderRadius` to `appearance.shapes.shadow.blurRadius`, and `appearance.primaryButton.shapes.shadow.borderRadius` to `appearance.primaryButton.shapes.shadow.blurRadius`. [#962](https://github.com/stripe/stripe-react-native/pull/962)
+
 ### New features
 
 ### Fixes
 
 - Fixed cases where Android apps would crash with the error: `Unable to instantiate fragment com.reactnativestripesdk.PaymentLauncherFragment`. [#965](https://github.com/stripe/stripe-react-native/pull/965)
+- Fixed `appearance.shapes.shadow.offset` and `appearance.primaryButton.shapes.shadow.offset` not applying the y-coordinate in the correct direction. [#962](https://github.com/stripe/stripe-react-native/pull/962)
 
 ## 0.11.0
 
