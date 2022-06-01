@@ -52,6 +52,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
 
             if (dangerouslyGetFullCardDetails) {
                 cardData["number"] = cardForm?.cardParams?.card?.number ?? ""
+                cardData["cvc"] = cardForm?.cardParams?.card?.cvc ?? ""
             }
             if (complete) {
                 self.cardParams = cardForm?.cardParams?.card

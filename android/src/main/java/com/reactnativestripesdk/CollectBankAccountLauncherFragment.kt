@@ -78,7 +78,7 @@ class CollectBankAccountLauncherFragment(
           promise.resolve(createError(ErrorType.Failed.toString(), result.error))
         }
       }
-      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
+      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
     }
   }
 }

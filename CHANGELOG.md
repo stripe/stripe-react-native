@@ -2,19 +2,66 @@
 
 ## Unreleased
 
+### Breaking changes
+
+- Renamed `appearance.shapes.shadow.borderRadius` to `appearance.shapes.shadow.blurRadius`, and `appearance.primaryButton.shapes.shadow.borderRadius` to `appearance.primaryButton.shapes.shadow.blurRadius`. [#962](https://github.com/stripe/stripe-react-native/pull/962)
+
+### New features
+
+### Fixes
+
+- Fixed cases where Android apps would crash with the error: `Unable to instantiate fragment com.reactnativestripesdk.PaymentLauncherFragment`. [#965](https://github.com/stripe/stripe-react-native/pull/965)
+- Fixed `appearance.shapes.shadow.offset` and `appearance.primaryButton.shapes.shadow.offset` not applying the y-coordinate in the correct direction. [#962](https://github.com/stripe/stripe-react-native/pull/962)
+
+## 0.11.0
+
+### Breaking changes
+
+- Removed support for `primaryButtonColor` field on `initPaymentSheet()`. Please use the new `appearance.primaryButton.colors.background` field instead. [#940](https://github.com/stripe/stripe-react-native/pull/940)
+
+### New features
+
+- You can now customize the appearance of your Payment Sheet via the `appearance` field on `initPaymentSheet()`. [#940](https://github.com/stripe/stripe-react-native/pull/940)
+- Added Affirm and AU BECS Direct Debit support to Payment Sheet. [#940](https://github.com/stripe/stripe-react-native/pull/940)
+
+### Fixes
+
+- Improved error messages on Android for failed `confirmPayment` and `confirmSetupIntent` calls, and any Google Pay related methods. [#957](https://github.com/stripe/stripe-react-native/pull/957)
+- Made Android card validation state consistent with iOS in the `CardField` `onCardChange` callback. [#958](https://github.com/stripe/stripe-react-native/pull/958)
+
+## 0.10.0
+
+### Breaking changes
+
+### New features
+
+- Card scanning is available in payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/944)
+  - To enable this, you will need to add `implementation 'com.stripe:stripecardscan:20.3.+'` to your `dependencies {}` block in `android/app/build.gradle`.
+- `us_bank_account` payment method is now available in the payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/944)
+
+### Fixes
+
+## 0.9.0
+
 - [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `<AddToWalletButton />` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
   - `primaryAccountIdentifier`: The `wallet.primary_account_identifier` value from the issued card.
   - `name`: The card holder name (previously `cardHolderName`).
   - `description`: A user-facing description of the card (previously `cardDescription`).
   - `lastFour`: Last 4 digits of the card, optional (previously `cardLastFour`).
   - `brand`: The card brand, optional (previously `cardBrand`).
-- [#913](https://github.com/stripe/stripe-react-native/pull/913) chore: Updated `stripe-ios` from 22.0.0 to 22.2.0.
+- [#925](https://github.com/stripe/stripe-react-native/pull/925) Feat: `us_bank_account` payment method is now available in the payment sheet on iOS. (& Updated `stripe-ios` from 22.2.0 to 22.3.0)
+- [#929](https://github.com/stripe/stripe-react-native/pull/929) Feat: added PayPal support (not currently supported for SetupIntents)
+- [#928](https://github.com/stripe/stripe-react-native/pull/928) feat: expose 'cvc' when `dangerouslyGetCardDetails` is set to true
+- [#931](https://github.com/stripe/stripe-react-native/pull/931) feat: add token & paymentMethodId handling to confirmPayment for Cards
+- [#932](https://github.com/stripe/stripe-react-native/pull/932) fix: manually forward activity results to paymentLauncherFragment
+- [#933](https://github.com/stripe/stripe-react-native/pull/933) fix: address "Can not perform this action after onSaveInstanceState" crashes on Android
 - [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
 - [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 - [#851](https://github.com/stripe/stripe-react-native/pull/851) Fix: set cardbrand tint color for CardField
 
 ## 0.8.0
 
+- **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
 - [#889](https://github.com/stripe/stripe-react-native/pull/889) Feat: add support for push provisioning (adding cards to native wallets)
 - [#890](https://github.com/stripe/stripe-react-native/pull/890) BREAKING CHANGE: Changed parameters for: `createPaymentMethod`, `confirmPayment`, `confirmSetupIntent`, `collectBankAccountForPayment`, and `collectBankAccountForSetup`. Please read [this migration guide](./docs/upgrading-from-v0.7.0.md) for details.

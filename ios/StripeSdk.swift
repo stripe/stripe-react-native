@@ -76,6 +76,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         var configuration = PaymentSheet.Configuration()
         self.paymentSheetFlowController = nil
         
+        if let appearanceParams = params["appearance"] as? NSDictionary {
+            do {
+                configuration.appearance = try buildPaymentSheetAppearance(userParams: appearanceParams)
+            } catch {
+                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+                return
+            }
+        }
+        
         if  params["applePay"] as? Bool == true {
             if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
                 configuration.applePay = .init(merchantId: merchantIdentifier,
@@ -92,11 +101,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         
         if let returnURL = params["returnURL"] as? String {
             configuration.returnURL = returnURL
-        }
-        
-        if let buttonColorHexStr = params["primaryButtonColor"] as? String {
-            let primaryButtonColor = UIColor(hexString: buttonColorHexStr)
-            configuration.primaryButtonColor = primaryButtonColor
         }
         
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
@@ -275,8 +279,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let paymentMethodData = params["paymentMethodData"] as? NSDictionary
         let type = Mappers.mapToPaymentMethodType(type: params["paymentMethodType"] as? String)
         guard let paymentMethodType = type else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType"))
+            resolve(Errors.createError(ErrorType.Failed, "You must provide paymentMethodType."))
             return
+        }
+        
+        if (paymentMethodType == .payPal) {
+            resolve(Errors.createError(ErrorType.Failed, "PayPal is not yet supported through SetupIntents."))
         }
         
         var err: NSDictionary? = nil

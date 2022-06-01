@@ -83,27 +83,28 @@ class BasicPaymentScreen {
           button.click();
           driver.pause(2000);
 
-          button = $(`//input[@name='confirmAccountNumber']`);
+          button = $(`span=Confirm account number`);
           button.click();
-          button.sendKeys(['000123456789\n']);
+          button.sendKeys(['000123456789']);
           driver.pause(2000);
 
-          button = $(`//input[@name='routingNumber']`);
+          button = $(`span=Account number`);
           button.click();
-          button.click();
-          button.sendKeys(['110000000\n']);
+          button.pressKeyCode;
+          button.sendKeys(['000123456789']);
           driver.pause(2000);
 
-          button = $(`//input[@name='accountNumber']`);
+          button = $(`span=Routing number`);
           button.click();
-          button.click();
-          button.sendKeys(['000123456789\n']);
+          button.sendKeys(['110000000']);
           driver.pause(2000);
+
+          button = $(`span=Account number`);
+          button.click();
 
           button = $(`button*=Continue`);
           button.click();
-          button.click();
-          driver.pause(5000);
+          driver.pause(2000);
 
           button = $(`button*=Done`);
           button.click();

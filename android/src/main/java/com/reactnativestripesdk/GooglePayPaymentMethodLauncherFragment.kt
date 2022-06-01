@@ -37,7 +37,7 @@ class GooglePayPaymentMethodLauncherFragment(
       ),
       readyCallback = {
         promise.resolve(it)
-        (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commit()
+        (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
       },
       resultCallback = {}
     )
