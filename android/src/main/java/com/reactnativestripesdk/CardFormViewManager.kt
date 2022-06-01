@@ -38,7 +38,7 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
 
    @ReactProp(name = "placeholders")
    fun setPlaceHolders(view: CardFormView, placeholders: ReadableMap) {
-     view.setPlaceHolders(placeholders);
+     view.setPlaceHolders(placeholders)
    }
 
   @ReactProp(name = "autofocus")
