@@ -42,6 +42,8 @@ export interface Props extends AccessibilityProps {
 
   /** Android only */
   placeholders?: CardFormView.Placeholders;
+  /** Android only */
+  defaultValues?: CardFormView.DefaultValues;
   // onBlur?(): void;
   // onFocus?(focusedField: CardFormView.FieldNames | null): void;
   onFormComplete?(card: CardFormView.Details): void;
@@ -81,6 +83,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       // onFocus,
       // onBlur,
       placeholders,
+      defaultValues,
       ...props
     },
     ref
@@ -184,6 +187,9 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           expiration: placeholders?.expiration,
           cvc: placeholders?.cvc,
           postalCode: placeholders?.postalCode,
+        }}
+        defaultValues={{
+          ...(defaultValues ?? {}),
         }}
         onFocusChange={onFocusHandler}
         // postalCodeEnabled={postalCodeEnabled}

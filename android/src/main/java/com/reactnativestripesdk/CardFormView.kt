@@ -14,6 +14,7 @@ import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.stripe.android.core.model.CountryCode
 import com.stripe.android.databinding.CardMultilineWidgetBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
 import com.stripe.android.model.Address
@@ -46,6 +47,19 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
 
     cardFormViewBinding.cardMultilineWidget.postalCodeRequired = false
     cardFormViewBinding.postalCodeContainer.visibility = visibility
+  }
+
+  fun setDefaultValues(defaults: ReadableMap) {
+    val defaultLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      if (context.resources.configuration.locales.isEmpty) "US"
+      else context.resources.configuration.locales[0].country
+    } else {
+      context.resources.configuration.locale.country
+    }
+    val countryCode =  defaults.getString("countryCode") ?: defaultLocale
+
+    cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(countryCode))
+    cardFormViewBinding.countryLayout.updateUiForCountryEntered(CountryCode(countryCode))
   }
 
   fun setPlaceHolders(value: ReadableMap) {
