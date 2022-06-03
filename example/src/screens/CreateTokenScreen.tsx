@@ -31,8 +31,8 @@ export default function CreateTokenScreen() {
       <Button
         variant="primary"
         onPress={() => _createToken('PII')}
-        title="Create a token from PII"
-        accessibilityLabel="Create a token from PII"
+        title="Create a PII token"
+        accessibilityLabel="Create a PII token"
       />
       <Text style={styles.or}>OR</Text>
       <Button
