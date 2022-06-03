@@ -103,6 +103,9 @@ export default function MultilineWebhookPaymentScreen() {
           console.log(cardDetails);
           setComplete(cardDetails.complete);
         }}
+        defaultValues={{
+          countryCode: 'US',
+        }}
       />
       <View style={styles.row}>
         <Switch

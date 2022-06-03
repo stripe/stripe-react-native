@@ -10,8 +10,6 @@
 
 ### Fixes
 
-- `CardForm`'s country input on Android will now match the behavior of iOS- defaulting to the current locale of the device (user setting). [#974](https://github.com/stripe/stripe-react-native/pull/974)
-
 ## 0.12.0
 
 ### Breaking changes

@@ -50,16 +50,10 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   fun setDefaultValues(defaults: ReadableMap) {
-    val defaultLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      if (context.resources.configuration.locales.isEmpty) "US"
-      else context.resources.configuration.locales[0].country
-    } else {
-      context.resources.configuration.locale.country
+    defaults.getString("countryCode")?.let {
+      cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(it))
+      cardFormViewBinding.countryLayout.updateUiForCountryEntered(CountryCode(it))
     }
-    val countryCode =  defaults.getString("countryCode") ?: defaultLocale
-
-    cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(countryCode))
-    cardFormViewBinding.countryLayout.updateUiForCountryEntered(CountryCode(countryCode))
   }
 
   fun setPlaceHolders(value: ReadableMap) {
