@@ -406,7 +406,7 @@ export const presentPaymentSheet =
         };
       }
       return {
-        paymentOption: paymentOption,
+        paymentOption: paymentOption!,
       };
     } catch (error: any) {
       return {
