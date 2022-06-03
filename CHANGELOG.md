@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### New features
+
+- Added option to create a PII token (represents the details of personally identifiable information) to the `createToken` method. [#976](https://github.com/stripe/stripe-react-native/pull/976)
+
+### Fixes
+
 ## 0.12.0
 
 ### Breaking changes
