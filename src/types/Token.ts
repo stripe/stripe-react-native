@@ -16,7 +16,7 @@ export type Type =
   | 'Card'
   | 'CvcUpdate'
   | 'Person'
-  | 'Pii';
+  | 'PII';
 
 export interface Result {
   id: string;
@@ -53,7 +53,7 @@ export interface Card {
 export type CreateParams =
   | CreateCardTokenParams
   | CreateBankAccountTokenParams
-  | { type: 'PII'; PII: string };
+  | CreatePiiTokenParams;
 
 export type CreateCardTokenParams = {
   type: 'Card';
@@ -74,4 +74,9 @@ export type CreateBankAccountTokenParams = {
   country: string;
   currency: string;
   routingNumber?: string;
+};
+
+export type CreatePiiTokenParams = {
+  type: 'PII';
+  personalId: string;
 };

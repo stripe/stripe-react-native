@@ -1,3 +1,4 @@
+import type { Token } from '@stripe/stripe-react-native';
 import {
   CardField,
   CardFieldInput,
@@ -11,13 +12,9 @@ import PaymentScreen from '../components/PaymentScreen';
 export default function CreateTokenScreen() {
   const { createToken } = useStripe();
 
-  const _createToken = async () => {
-    const { error, token } = await createToken({
-      type: 'PII',
-      PII: '000000000',
-    });
+  const _createToken = async (type: Token.Type) => {
+    const { error, token } = await createToken(buildTestTokenParams(type));
 
-    console.log({ token });
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log(`Error: ${JSON.stringify(error)}`);
@@ -33,14 +30,14 @@ export default function CreateTokenScreen() {
     <PaymentScreen>
       <Button
         variant="primary"
-        onPress={() => _createToken()}
+        onPress={() => _createToken('PII')}
         title="Create a token from PII"
         accessibilityLabel="Create a token from PII"
       />
       <Text style={styles.or}>OR</Text>
       <Button
         variant="primary"
-        onPress={() => _createToken()}
+        onPress={() => _createToken('BankAccount')}
         title="Create a token from a bank account"
         accessibilityLabel="Create a token from a bank account"
       />
@@ -52,12 +49,38 @@ export default function CreateTokenScreen() {
       />
       <Button
         variant="primary"
-        onPress={() => _createToken()}
+        onPress={() => _createToken('Card')}
         title="Create a token from a card"
         accessibilityLabel="Create a token from a card"
       />
     </PaymentScreen>
   );
+}
+
+function buildTestTokenParams(type: Token.Type): Token.CreateParams {
+  switch (type) {
+    case 'PII':
+      return {
+        type: 'PII',
+        personalId: '000000000',
+      };
+    case 'Card':
+      return {
+        type: 'Card',
+        name: 'David Wallace',
+        currency: 'eur',
+      };
+    case 'BankAccount':
+      return {
+        type: 'BankAccount',
+        accountNumber: '000123456789',
+        routingNumber: '110000000', // Routing number is REQUIRED for US bank accounts
+        country: 'US',
+        currency: 'usd',
+      };
+    default:
+      throw new Error(`Unsupported token type`);
+  }
 }
 
 const styles = StyleSheet.create({

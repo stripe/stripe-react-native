@@ -644,12 +644,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard let piiString = params["PII"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "pii parameter is required"))
+        guard let personalId = params["personalId"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "personalId parameter is required"))
             return
         }
         
-        STPAPIClient.shared.createToken(withPersonalIDNumber: piiString) { token, error in
+        STPAPIClient.shared.createToken(withPersonalIDNumber: personalId) { token, error in
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {

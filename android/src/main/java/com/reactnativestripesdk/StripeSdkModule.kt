@@ -232,7 +232,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   private fun createTokenFromPii(params: ReadableMap, promise: Promise) {
-    getValOr(params, "PII", null)?.let {
+    getValOr(params, "personalId", null)?.let {
       CoroutineScope(Dispatchers.IO).launch {
         runCatching {
           val token = stripe.createPiiToken(it, null, stripeAccountId)
@@ -242,7 +242,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
       }
     } ?: run {
-      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Pii is required"))
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "personalId parameter is required"))
     }
   }
 
