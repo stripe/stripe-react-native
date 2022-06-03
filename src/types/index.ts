@@ -140,11 +140,7 @@ export type InitPaymentSheetResult =
 
 export type PresentPaymentSheetResult =
   | {
-      paymentOption?: undefined;
-      error?: undefined;
-    }
-  | {
-      paymentOption?: PaymentSheet.PaymentOption;
+      paymentOption: PaymentSheet.PaymentOption;
       error?: undefined;
     }
   | {
