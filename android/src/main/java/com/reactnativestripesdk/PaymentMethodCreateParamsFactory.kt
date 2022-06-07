@@ -103,7 +103,11 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGiropayParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      return PaymentMethodCreateParams.createGiropay(it)
+    }
 
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -400,18 +404,14 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGiropayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    billingDetailsParams?.let {
-      val params = PaymentMethodCreateParams.createGiropay(it)
+    val params = createGiropayParams()
 
-      return ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = params,
-          clientSecret = clientSecret,
-          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-        )
-    }
-
-    throw PaymentMethodCreateParamsException("You must provide billing details")
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
+      )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
