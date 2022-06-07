@@ -112,7 +112,11 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      return PaymentMethodCreateParams.createEps(it)
+    }
 
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -388,18 +392,14 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    billingDetailsParams?.let {
-      val params = PaymentMethodCreateParams.createEps(it)
+    val params = createEPSParams()
 
-      return ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = params,
-          clientSecret = clientSecret,
-          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-        )
-    }
-
-    throw PaymentMethodCreateParamsException("You must provide billing details")
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
+      )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
