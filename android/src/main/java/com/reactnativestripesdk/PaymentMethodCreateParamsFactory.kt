@@ -190,7 +190,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalParams(): PaymentMethodCreateParams {
-
+    return PaymentMethodCreateParams.createPayPal(null)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -568,8 +568,10 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalPaymentConfirmParams(): ConfirmPaymentIntentParams {
+    val params = createPayPalParams()
+
     return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
-      paymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(null),
+      paymentMethodCreateParams = params,
       clientSecret = clientSecret,
     )
   }
