@@ -136,7 +136,10 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createFpxParams(): PaymentMethodCreateParams {
-
+    val bank = getBooleanOrFalse(paymentMethodData, "testOfflineBank").let { "test_offline_bank" }
+    return PaymentMethodCreateParams.create(
+      PaymentMethodCreateParams.Fpx(bank)
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -428,10 +431,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createFpxPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val bank = getBooleanOrFalse(paymentMethodData, "testOfflineBank").let { "test_offline_bank" }
-    val params = PaymentMethodCreateParams.create(
-      PaymentMethodCreateParams.Fpx(bank)
-    )
+    val params = createFpxParams()
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
