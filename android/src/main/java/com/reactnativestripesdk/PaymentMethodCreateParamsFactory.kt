@@ -178,7 +178,14 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createKlarnaParams(): PaymentMethodCreateParams {
+    if (billingDetailsParams == null ||
+      billingDetailsParams.address?.country.isNullOrBlank() ||
+      billingDetailsParams.email.isNullOrBlank()
+    ) {
+      throw PaymentMethodCreateParamsException("Klarna requires that you provide the following billing details: email, country")
+    }
 
+    return PaymentMethodCreateParams.createKlarna(billingDetailsParams)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -527,14 +534,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createKlarnaPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    if (billingDetailsParams == null ||
-      billingDetailsParams.address?.country.isNullOrBlank() ||
-      billingDetailsParams.email.isNullOrBlank()
-    ) {
-      throw PaymentMethodCreateParamsException("Klarna requires that you provide the following billing details: email, country")
-    }
-
-    val params = PaymentMethodCreateParams.createKlarna(billingDetailsParams)
+    val params = createKlarnaParams()
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
