@@ -94,7 +94,11 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createOXXOParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      return PaymentMethodCreateParams.createOxxo(it)
+    }
 
+    throw PaymentMethodCreateParamsException("You must provide billing details")
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -368,18 +372,14 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createOXXOPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    billingDetailsParams?.let {
-      val params = PaymentMethodCreateParams.createOxxo(it)
+    val params = createOXXOParams()
 
-      return ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = params,
-          clientSecret = clientSecret,
-          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-        )
-    }
-
-    throw PaymentMethodCreateParamsException("You must provide billing details")
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
+      )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
