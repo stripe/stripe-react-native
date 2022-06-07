@@ -121,7 +121,8 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGrabPayParams(): PaymentMethodCreateParams {
-
+    val billingDetails = billingDetailsParams ?: PaymentMethod.BillingDetails()
+    return PaymentMethodCreateParams.createGrabPay(billingDetails)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -345,8 +346,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGrabPayPaymentConfirmParams(): ConfirmPaymentIntentParams {
-    val billingDetails = billingDetailsParams ?: PaymentMethod.BillingDetails()
-    val params = PaymentMethodCreateParams.createGrabPay(billingDetails)
+    val params = createGrabPayParams()
 
     return ConfirmPaymentIntentParams
       .createWithPaymentMethodCreateParams(
