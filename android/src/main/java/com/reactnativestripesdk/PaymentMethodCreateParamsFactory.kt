@@ -31,7 +31,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayParams()
         PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitParams()
         PaymentMethod.Type.Klarna -> createKlarnaParams()
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountParams()
+        PaymentMethod.Type.USBankAccount -> createUSBankAccountParams(paymentMethodData)
         PaymentMethod.Type.PayPal -> createPayPalParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
@@ -577,7 +577,7 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountParams(params: ReadableMap): PaymentMethodCreateParams {
+  private fun createUSBankAccountParams(params: ReadableMap?): PaymentMethodCreateParams {
     val accountNumber = getValOr(params, "accountNumber", null)
     val routingNumber = getValOr(params, "routingNumber", null)
 
