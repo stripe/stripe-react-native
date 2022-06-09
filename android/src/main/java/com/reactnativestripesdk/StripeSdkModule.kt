@@ -390,7 +390,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val factory = PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
 
     try {
-      val confirmParams = factory.createConfirmParams(paymentIntentClientSecret, paymentMethodType) as ConfirmPaymentIntentParams
+      val confirmParams = factory.createParams(paymentIntentClientSecret, paymentMethodType, isPaymentIntent = true) as ConfirmPaymentIntentParams
       urlScheme?.let {
         confirmParams.returnUrl = mapToReturnURL(urlScheme)
       }
@@ -443,7 +443,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val factory = PaymentMethodCreateParamsFactory(getMapOrNull(params, "paymentMethodData"), options, cardFieldView, cardFormView)
 
     try {
-      val confirmParams = factory.createSetupParams(setupIntentClientSecret, paymentMethodType) as ConfirmSetupIntentParams
+      val confirmParams = factory.createParams(setupIntentClientSecret, paymentMethodType, isPaymentIntent = false) as ConfirmSetupIntentParams
       urlScheme?.let {
         confirmParams.returnUrl = mapToReturnURL(urlScheme)
       }

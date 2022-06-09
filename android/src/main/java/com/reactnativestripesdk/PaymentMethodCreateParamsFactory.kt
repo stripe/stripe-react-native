@@ -193,26 +193,43 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createConfirmParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmStripeIntentParams {
+  fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, true)
-        PaymentMethod.Type.Ideal -> createIDEALStripeIntentParams(clientSecret, true)
-        PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Sofort -> createSofortPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Bancontact -> createBancontactPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.SepaDebit -> createSepaPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Oxxo -> createOXXOPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Giropay -> createGiropayPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Eps -> createEPSPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.GrabPay -> createGrabPayPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.P24 -> createP24PaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Fpx -> createFpxPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.AfterpayClearpay -> createAfterpayClearpayPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.Klarna -> createKlarnaPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentConfirmParams(clientSecret)
-        PaymentMethod.Type.PayPal -> createPayPalPaymentConfirmParams(clientSecret)
+        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
+        PaymentMethod.Type.USBankAccount -> createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
+        PaymentMethod.Type.PayPal -> createPayPalStripeIntentParams(clientSecret, isPaymentIntent)
+
+        PaymentMethod.Type.Ideal,
+        PaymentMethod.Type.Alipay,
+        PaymentMethod.Type.Sofort,
+        PaymentMethod.Type.Bancontact,
+        PaymentMethod.Type.SepaDebit,
+        PaymentMethod.Type.Oxxo,
+        PaymentMethod.Type.Giropay,
+        PaymentMethod.Type.Eps,
+        PaymentMethod.Type.GrabPay,
+        PaymentMethod.Type.P24,
+        PaymentMethod.Type.Fpx,
+        PaymentMethod.Type.AfterpayClearpay,
+        PaymentMethod.Type.AuBecsDebit,
+        PaymentMethod.Type.Klarna -> {
+          val params = createPaymentMethodParams(paymentMethodType)
+
+          return if (isPaymentIntent) {
+            ConfirmPaymentIntentParams
+              .createWithPaymentMethodCreateParams(
+                paymentMethodCreateParams = params,
+                clientSecret = clientSecret,
+                setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
+              )
+          } else {
+            ConfirmSetupIntentParams.create(
+              paymentMethodCreateParams = params,
+              clientSecret = clientSecret,
+            )
+          }
+        }
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -221,58 +238,6 @@ class PaymentMethodCreateParamsFactory(
       throw error
     }
   }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  fun createSetupParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmStripeIntentParams {
-    try {
-      return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, false)
-        PaymentMethod.Type.Ideal -> createIDEALStripeIntentParams(clientSecret, false)
-        PaymentMethod.Type.Sofort -> createSofortPaymentSetupParams(clientSecret)
-        PaymentMethod.Type.Bancontact -> createBancontactPaymentSetupParams(clientSecret)
-        PaymentMethod.Type.SepaDebit -> createSepaPaymentSetupParams(clientSecret)
-        PaymentMethod.Type.AuBecsDebit -> createAuBecsDebitPaymentSetupParams(clientSecret)
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountPaymentSetupParams(clientSecret)
-        PaymentMethod.Type.PayPal -> createPayPalPaymentSetupParams()
-        else -> {
-          throw Exception("This paymentMethodType is not supported yet")
-        }
-      }
-    } catch (error: PaymentMethodCreateParamsException) {
-      throw error
-    }
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createIDEALStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
-    val createParams = createIDEALParams()
-
-    return if (isPaymentIntent) {
-      ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams = createParams,
-          clientSecret = clientSecret,
-          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-        )
-    } else {
-      return ConfirmSetupIntentParams.create(
-        paymentMethodCreateParams = createParams,
-        clientSecret = clientSecret,
-      )
-    }
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createP24PaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createP24Params()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-      )
- }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardPaymentMethodParams(): PaymentMethodCreateParams {
@@ -333,232 +298,46 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createSepaPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
-    val params = createSepaParams()
-
-    return ConfirmSetupIntentParams.create(
-      paymentMethodCreateParams = params,
-      clientSecret = clientSecret
-    )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAlipayPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(createAlipayParams(), clientSecret)
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createSofortPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createSofortParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createSofortPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
-    val params = createSofortParams()
-
-    return ConfirmSetupIntentParams.create(
-      paymentMethodCreateParams = params,
-      clientSecret = clientSecret,
-    )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createGrabPayPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createGrabPayParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createBancontactPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createBancontactParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-      )
-  }
-
-  private fun createBancontactPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
-    val params = createBancontactParams()
-
-    return ConfirmSetupIntentParams
-      .create(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createOXXOPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createOXXOParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createEPSPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createEPSParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createGiropayPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createGiropayParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createSepaPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createSepaParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createFpxPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createFpxParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAfterpayClearpayPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createAfterpayClearpayParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAuBecsDebitPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createAuBecsDebitParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAuBecsDebitPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
-    val params = createAuBecsDebitParams()
-
-    return ConfirmSetupIntentParams
-      .create(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
+  private fun createUSBankAccountStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     // If payment method data is supplied, assume they are passing in the bank details manually
     paymentMethodData?.let {
       if (billingDetailsParams?.name.isNullOrBlank()) {
         throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
       }
-      return ConfirmSetupIntentParams.create(
-        paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData),
-        clientSecret = clientSecret,
-      )
-    } ?: run {
-      // Payment method is assumed to be already attached through via collectBankAccount
-      return ConfirmSetupIntentParams.create(
-        clientSecret = clientSecret,
-        paymentMethodType = PaymentMethod.Type.USBankAccount
-      )
-    }
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalPaymentSetupParams(): ConfirmSetupIntentParams {
-    throw PaymentMethodCreateParamsException("PayPal is not yet supported through SetupIntents.")
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createKlarnaPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    val params = createKlarnaParams()
-
-    return ConfirmPaymentIntentParams
-      .createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = params,
-        clientSecret = clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
-    // If payment method data is supplied, assume they are passing in the bank details manually
-    paymentMethodData?.let {
-      if (billingDetailsParams?.name.isNullOrBlank()) {
-        throw PaymentMethodCreateParamsException("When creating a US bank account payment method, you must provide the following billing details: name")
+      return if (isPaymentIntent) {
+        ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
+          paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData),
+          clientSecret,
+          setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
+        )
+      } else {
+        ConfirmSetupIntentParams.create(
+          paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData),
+          clientSecret = clientSecret,
+        )
       }
-
-      return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
-        paymentMethodCreateParams = createUSBankAccountParams(paymentMethodData),
-        clientSecret,
-        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
-      )
     } ?: run {
       // Payment method is assumed to be already attached through via collectBankAccount
-      return ConfirmPaymentIntentParams.create(
-        clientSecret = clientSecret,
-        paymentMethodType = PaymentMethod.Type.USBankAccount
-      )
+      return if (isPaymentIntent) {
+        ConfirmPaymentIntentParams.create(
+          clientSecret = clientSecret,
+          paymentMethodType = PaymentMethod.Type.USBankAccount
+        )
+      } else {
+        ConfirmSetupIntentParams.create(
+          clientSecret = clientSecret,
+          paymentMethodType = PaymentMethod.Type.USBankAccount
+        )
+      }
     }
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
+  private fun createPayPalStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+    if (!isPaymentIntent) {
+      throw PaymentMethodCreateParamsException("PayPal is not yet supported through SetupIntents.")
+    }
+
     val params = createPayPalParams()
 
     return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
