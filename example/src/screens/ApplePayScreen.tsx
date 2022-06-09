@@ -6,7 +6,7 @@ import {
   ApplePay,
   AddToWalletButton,
   Constants,
-  isCardInWallet,
+  canAddCardToWallet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -16,7 +16,7 @@ const TEST_CARD_ID = 'ic_1KnngYF05jLespP6nGoB1oXn';
 
 export default function ApplePayScreen() {
   const [ephemeralKey, setEphemeralKey] = useState({});
-  const [cardIsInWallet, setCardIsInWallet] = useState(false);
+  const [showAddToWalletButton, setShowAddToWalletButton] = useState(true);
   const [cardDetails, setCardDetails] = useState<any>(null);
 
   useEffect(() => {
@@ -38,14 +38,19 @@ export default function ApplePayScreen() {
     const card = await response.json();
     setCardDetails(card);
 
-    const { isInWallet, error } = await isCardInWallet({
+    const { canAddCard, details, error } = await canAddCardToWallet({
+      primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
+      testEnv: true,
     });
 
     if (error) {
       Alert.alert(error.code, error.message);
     } else {
-      setCardIsInWallet(isInWallet ?? false);
+      setShowAddToWalletButton(canAddCard ?? false);
+      if (details?.status) {
+        console.log(`Card status for native wallet: ${details.status}`);
+      }
     }
   };
 
@@ -181,7 +186,7 @@ export default function ApplePayScreen() {
             style={styles.payButton}
           />
 
-          {!cardIsInWallet && (
+          {showAddToWalletButton && (
             <AddToWalletButton
               androidAssetSource={{}}
               testEnv={true}
