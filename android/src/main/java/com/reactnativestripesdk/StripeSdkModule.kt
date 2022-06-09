@@ -7,15 +7,17 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.stripe.android.*
-import com.stripe.android.core.AppInfo
 import com.stripe.android.core.ApiVersion
+import com.stripe.android.core.AppInfo
 import com.stripe.android.model.*
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -526,13 +528,46 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun canAddCardToWallet(params: ReadableMap, promise: Promise) {
+    val last4 = getValOr(params, "cardLastFour", null) ?: run {
+      promise.resolve(createError("Failed", "You must provide cardLastFour"))
+      return
+    }
+
+    if (!PushProvisioningProxy.isNFCEnabled(reactApplicationContext)) {
+      promise.resolve(createCanAddCardResult(false, "UNSUPPORTED_DEVICE"))
+      return
+    }
+
+    getCurrentActivityOrResolveWithError(promise)?.let {
+      PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
+        if (error != null) {
+          promise.resolve(createCanAddCardResult(false, "MISSING_CONFIGURATION", null))
+        } else {
+          val status = if (isCardInWallet) "CARD_ALREADY_EXISTS" else null
+          promise.resolve(createCanAddCardResult(!isCardInWallet, status, token))
+        }
+      }
+    }
+  }
+
+  @ReactMethod
   fun isCardInWallet(params: ReadableMap, promise: Promise) {
     val last4 = getValOr(params, "cardLastFour", null) ?: run {
       promise.resolve(createError("Failed", "You must provide cardLastFour"))
       return
     }
     getCurrentActivityOrResolveWithError(promise)?.let {
-      PushProvisioningProxy.isCardInWallet(it, last4, promise)
+      PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
+        if (error != null) {
+          promise.resolve(error)
+        } else {
+          val result = WritableNativeMap()
+          result.putBoolean("isInWallet", isCardInWallet)
+          result.putMap("token", token)
+          promise.resolve(result)
+        }
+      }
     }
   }
 

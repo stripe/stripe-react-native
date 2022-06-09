@@ -1,13 +1,16 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.pushprovisioning
 
 import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.nfc.NfcAdapter
 import android.util.Log
-import com.facebook.react.bridge.*
-import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonView
-import com.reactnativestripesdk.pushprovisioning.EphemeralKeyProvider
-import com.reactnativestripesdk.pushprovisioning.TapAndPayProxy
+import com.facebook.react.bridge.BaseActivityEventListener
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableMap
+import com.reactnativestripesdk.createError
+import com.reactnativestripesdk.mapError
 import com.stripe.android.pushProvisioning.PushProvisioningActivity
 import com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
 
@@ -24,6 +27,15 @@ object PushProvisioningProxy {
     } catch (e: Exception) {
       Log.e(TAG, "PushProvisioning dependency not found")
       ""
+    }
+  }
+
+  fun isNFCEnabled(context: ReactApplicationContext): Boolean {
+    return if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC)) {
+      val adapter = NfcAdapter.getDefaultAdapter(context)
+      adapter.isEnabled
+    } else {
+      false
     }
   }
 
@@ -57,8 +69,8 @@ object PushProvisioningProxy {
     }
   }
 
-  fun isCardInWallet(activity: Activity, cardLastFour: String, promise: Promise) {
-    TapAndPayProxy.invoke(activity, cardLastFour, promise)
+  fun isCardInWallet(activity: Activity, cardLastFour: String, callback: TokenCheckHandler) {
+    TapAndPayProxy.findExistingToken(activity, cardLastFour, callback)
   }
 
   private fun createActivityEventListener(context: ReactApplicationContext, view: AddToWalletButtonView) {
