@@ -15,7 +15,7 @@ class PaymentMethodCreateParamsFactory(
   fun createPaymentMethodParams(paymentMethodType: PaymentMethod.Type): PaymentMethodCreateParams {
     try {
       return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardParams()
+        PaymentMethod.Type.Card -> createCardPaymentMethodParams()
         PaymentMethod.Type.Ideal -> createIDEALParams()
         PaymentMethod.Type.Alipay -> createAlipayParams()
         PaymentMethod.Type.Sofort -> createSofortParams()
@@ -193,10 +193,10 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createConfirmParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmPaymentIntentParams {
+  fun createConfirmParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardPaymentConfirmParams(clientSecret)
+        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, true)
         PaymentMethod.Type.Ideal -> createIDEALPaymentConfirmParams(clientSecret)
         PaymentMethod.Type.Alipay -> createAlipayPaymentConfirmParams(clientSecret)
         PaymentMethod.Type.Sofort -> createSofortPaymentConfirmParams(clientSecret)
@@ -223,10 +223,10 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createSetupParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmSetupIntentParams {
+  fun createSetupParams(clientSecret: String, paymentMethodType: PaymentMethod.Type): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
-        PaymentMethod.Type.Card -> createCardPaymentSetupParams(clientSecret)
+        PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, false)
         PaymentMethod.Type.Ideal -> createIDEALPaymentSetupParams(clientSecret)
         PaymentMethod.Type.Sofort -> createSofortPaymentSetupParams(clientSecret)
         PaymentMethod.Type.Bancontact -> createBancontactPaymentSetupParams(clientSecret)
@@ -268,7 +268,7 @@ class PaymentMethodCreateParamsFactory(
  }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createCardParams(): PaymentMethodCreateParams {
+  private fun createCardPaymentMethodParams(): PaymentMethodCreateParams {
     val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
     val token = getValOr(paymentMethodData, "token", null)
 
@@ -287,9 +287,9 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createCardPaymentConfirmParams(clientSecret: String): ConfirmPaymentIntentParams {
+  private fun createCardStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
-    val paymentMethodCreateParams = createCardParams()
+    val paymentMethodCreateParams = createCardPaymentMethodParams()
 
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
 
@@ -298,18 +298,29 @@ class PaymentMethodCreateParamsFactory(
       val paymentMethodOptionParams =
         if (cvc != null) PaymentMethodOptionsParams.Card(cvc) else null
 
-      return ConfirmPaymentIntentParams.createWithPaymentMethodId(
-        paymentMethodId,
-        paymentMethodOptions = paymentMethodOptionParams,
-        clientSecret = clientSecret,
-        setupFutureUsage = setupFutureUsage,
-      )
+      return (
+        if (isPaymentIntent)
+          ConfirmPaymentIntentParams.createWithPaymentMethodId(
+            paymentMethodId,
+            paymentMethodOptions = paymentMethodOptionParams,
+            clientSecret = clientSecret,
+            setupFutureUsage = setupFutureUsage)
+        else
+          ConfirmSetupIntentParams.create(
+            paymentMethodId,
+            clientSecret)
+        )
     } else {
-      return ConfirmPaymentIntentParams
-        .createWithPaymentMethodCreateParams(
-          paymentMethodCreateParams,
-          clientSecret,
-          setupFutureUsage = setupFutureUsage,
+      return (
+        if (isPaymentIntent)
+          ConfirmPaymentIntentParams
+            .createWithPaymentMethodCreateParams(
+              paymentMethodCreateParams,
+              clientSecret,
+              setupFutureUsage = setupFutureUsage)
+        else
+          ConfirmSetupIntentParams
+            .create(paymentMethodCreateParams, clientSecret)
         )
     }
   }
@@ -332,22 +343,6 @@ class PaymentMethodCreateParamsFactory(
       paymentMethodCreateParams = params,
       clientSecret = clientSecret
     )
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createCardPaymentSetupParams(clientSecret: String): ConfirmSetupIntentParams {
-    val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
-    val paymentMethodCreateParams = createCardParams()
-
-    if (paymentMethodId != null) {
-      return ConfirmSetupIntentParams.create(
-        paymentMethodId,
-        clientSecret
-      )
-    }
-
-    return ConfirmSetupIntentParams
-      .create(paymentMethodCreateParams, clientSecret)
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
