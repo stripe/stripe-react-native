@@ -28,6 +28,8 @@ import type {
   VerifyMicrodepositsForSetupResult,
   CollectBankAccountForSetupResult,
   CollectBankAccountForPaymentResult,
+  CanAddCardToWalletParams,
+  CanAddCardToWalletResult,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -57,6 +59,7 @@ import {
   collectBankAccountForSetup,
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
+  canAddCardToWallet,
 } from '../functions';
 
 /**
@@ -278,6 +281,15 @@ export function useStripe() {
     []
   );
 
+  const _canAddCardToWallet = useCallback(
+    async (
+      params: CanAddCardToWalletParams
+    ): Promise<CanAddCardToWalletResult> => {
+      return canAddCardToWallet(params);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -304,5 +316,6 @@ export function useStripe() {
     collectBankAccountForSetup: _collectBankAccountForSetup,
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
+    canAddCardToWallet: _canAddCardToWallet,
   };
 }
