@@ -51,6 +51,11 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     view.setCardStyle(cardStyle)
   }
 
+  @ReactProp(name = "defaultValues")
+  fun setDefaultValues(view: CardFormView, defaults: ReadableMap) {
+    view.setDefaultValues(defaults)
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): CardFormView {
     val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFormView(reactContext)

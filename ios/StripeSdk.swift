@@ -204,7 +204,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         resolve([])
                         self.paymentSheetFlowController = nil
                     case .canceled:
-                        resolve(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
+                        resolve(Errors.createError(ErrorType.Canceled, "The payment flow has been canceled"))
                     case .failed(let error):
                         resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
                     }
@@ -232,7 +232,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                         ]
                         resolve(Mappers.createResult("paymentOption", option))
                     } else {
-                        resolve(Mappers.createResult("paymentOption", nil))
+                        resolve(Errors.createError(ErrorType.Canceled, "The payment option selection flow has been canceled"))
                     }
                 }
             } else if let paymentSheet = self.paymentSheet {

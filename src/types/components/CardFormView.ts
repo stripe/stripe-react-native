@@ -44,6 +44,11 @@ export interface Placeholders {
   postalCode?: string;
 }
 
+export type DefaultValues = {
+  /** The 2-letter country code for the country selected by default on Android. If this is null, it is set by the device's configured region in the Settings app. */
+  countryCode?: string;
+};
+
 /**
  * @ignore
  */
@@ -54,6 +59,8 @@ export interface NativeProps {
   cardStyle?: Styles;
   /** Android only */
   placeholders?: Placeholders;
+  /** Android only */
+  defaultValues?: DefaultValues;
   // postalCodeEnabled: boolean;
   onFocusChange(
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>
