@@ -222,7 +222,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       "Card" -> {
         createTokenFromCard(params, promise)
       }
-      "PII" -> {
+      "Pii" -> {
         createTokenFromPii(params, promise)
       }
       else -> {

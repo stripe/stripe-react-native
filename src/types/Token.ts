@@ -16,7 +16,7 @@ export type Type =
   | 'Card'
   | 'CvcUpdate'
   | 'Person'
-  | 'PII';
+  | 'Pii';
 
 export interface Result {
   id: string;
@@ -80,7 +80,7 @@ export type CreateBankAccountTokenParams = {
 
 /** Creates a single-use token that represents the details of personally identifiable information (PII). See https://stripe.com/docs/api/tokens/create_pii */
 export type CreatePiiTokenParams = {
-  type: 'PII';
+  type: 'Pii';
   /** The user's personal ID number */
   personalId: string;
 };

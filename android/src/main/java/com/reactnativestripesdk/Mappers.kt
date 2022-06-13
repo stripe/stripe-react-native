@@ -166,7 +166,7 @@ internal fun mapTokenType(type: Token.Type): String {
     Token.Type.Card -> "Card"
     Token.Type.CvcUpdate -> "CvcUpdate"
     Token.Type.Person -> "Person"
-    Token.Type.Pii -> "PII"
+    Token.Type.Pii -> "Pii"
     else -> "Unknown"
   }
 }

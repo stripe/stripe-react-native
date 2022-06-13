@@ -138,7 +138,7 @@ class Mappers {
     class func mapFromTokenType(_ type: STPTokenType?) -> String? {
         if let type = type {
             switch type {
-            case STPTokenType.PII: return "PII"
+            case STPTokenType.PII: return "Pii"
             case STPTokenType.account: return "Account"
             case STPTokenType.bankAccount: return "BankAccount"
             case STPTokenType.card: return "Card"
@@ -497,7 +497,7 @@ class Mappers {
         billing.name = RCTConvert.nsString(billingDetails["name"])
 
         let address = STPPaymentMethodAddress()
-        
+
         if let addressMap = billingDetails["address"] as? NSDictionary {
             address.city = RCTConvert.nsString(addressMap["city"])
             address.postalCode = RCTConvert.nsString(addressMap["postalCode"])
@@ -506,7 +506,7 @@ class Mappers {
             address.line2 = RCTConvert.nsString(addressMap["line2"])
             address.state = RCTConvert.nsString(addressMap["state"])
         }
-        
+
         billing.address = address
 
         return billing
@@ -516,7 +516,7 @@ class Mappers {
         guard let shippingDetails = shippingDetails else {
             return nil
         }
-        
+
         let shippingAddress = STPPaymentIntentShippingDetailsAddressParams(line1: "")
 
         if let addressMap = shippingDetails["address"] as? NSDictionary {
@@ -527,7 +527,7 @@ class Mappers {
             shippingAddress.line2 = addressMap["line2"] as? String
             shippingAddress.state = addressMap["state"] as? String
         }
-        
+
         let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
 
         return shipping
@@ -567,7 +567,7 @@ class Mappers {
         }
         return nil
     }
-    
+
     class func mapToCardBrand(_ brand: String?) -> STPCardBrand {
         if let brand = brand {
             switch brand {
@@ -961,7 +961,7 @@ class Mappers {
         }
         return "Unknown"
     }
-    
+
     class func mapToUSBankAccountHolderType(type: String?) -> STPPaymentMethodUSBankAccountHolderType {
         switch type {
             case "Company": return STPPaymentMethodUSBankAccountHolderType.company
@@ -980,7 +980,7 @@ class Mappers {
         }
         return "Unknown"
     }
-    
+
     class func mapToUSBankAccountType(type: String?) -> STPPaymentMethodUSBankAccountType {
         switch type {
             case "Savings": return STPPaymentMethodUSBankAccountType.savings

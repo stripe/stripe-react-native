@@ -30,7 +30,7 @@ export default function CreateTokenScreen() {
     <PaymentScreen>
       <Button
         variant="primary"
-        onPress={() => _createToken('PII')}
+        onPress={() => _createToken('Pii')}
         title="Create a PII token"
         accessibilityLabel="Create a PII token"
       />
@@ -59,9 +59,9 @@ export default function CreateTokenScreen() {
 
 function buildTestTokenParams(type: Token.Type): Token.CreateParams {
   switch (type) {
-    case 'PII':
+    case 'Pii':
       return {
-        type: 'PII',
+        type: 'Pii',
         personalId: '000000000',
       };
     case 'Card':
