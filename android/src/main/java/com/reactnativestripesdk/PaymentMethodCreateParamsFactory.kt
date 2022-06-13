@@ -261,8 +261,6 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCardStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
-    val paymentMethodCreateParams = createCardPaymentMethodParams()
-
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
 
     if (paymentMethodId != null) {
@@ -283,6 +281,7 @@ class PaymentMethodCreateParamsFactory(
             clientSecret)
         )
     } else {
+      val paymentMethodCreateParams = createCardPaymentMethodParams()
       return (
         if (isPaymentIntent)
           ConfirmPaymentIntentParams
