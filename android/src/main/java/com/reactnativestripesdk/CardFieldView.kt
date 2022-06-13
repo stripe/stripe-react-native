@@ -33,6 +33,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
+  private var isCardValid = false
 
   init {
     cardInputWidgetBinding.container.isFocusable = true
@@ -224,7 +225,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
 
   private fun sendCardDetailsEvent() {
     mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, cardParams != null, dangerouslyGetFullCardDetails))
+      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails))
   }
 
   private fun setListeners() {
@@ -246,6 +247,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     }
 
     mCardWidget.setCardValidCallback { isValid, invalidFields ->
+      isCardValid = isValid
       fun getCardValidationState(field: CardValidCallback.Fields, editTextField: StripeEditText): String {
         if (invalidFields.contains(field)) {
           return if (editTextField.shouldShowError) "Invalid"
@@ -263,6 +265,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
       } else {
         cardParams = null
         cardAddress = null
+        sendCardDetailsEvent()
       }
     }
 
@@ -284,8 +287,6 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
         if (splitText.size == 2) {
           cardDetails["expiryYear"] = var1.toString().split("/")[1].toIntOrNull()
         }
-
-        sendCardDetailsEvent()
       }
     })
 
@@ -294,7 +295,6 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
       override fun afterTextChanged(p0: Editable?) {}
       override fun onTextChanged(var1: CharSequence?, var2: Int, var3: Int, var4: Int) {
         cardDetails["postalCode"] = var1.toString()
-        sendCardDetailsEvent()
       }
     })
 
@@ -305,7 +305,6 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
         if (dangerouslyGetFullCardDetails) {
           cardDetails["number"] = var1.toString().replace(" ", "")
         }
-        sendCardDetailsEvent()
       }
     })
 
@@ -316,7 +315,6 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
         if (dangerouslyGetFullCardDetails) {
           cardDetails["cvc"] = var1.toString()
         }
-        sendCardDetailsEvent()
       }
     })
   }
