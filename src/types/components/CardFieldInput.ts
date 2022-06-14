@@ -59,6 +59,7 @@ export interface NativeProps {
   value?: Partial<Details>;
   postalCodeEnabled?: boolean;
   autofocus?: boolean;
+  countryCode: string | null;
   onCardChange(event: NativeSyntheticEvent<Details>): void;
   onFocusChange(
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>

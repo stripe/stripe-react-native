@@ -8,6 +8,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.FrameLayout
+import androidx.core.os.LocaleListCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
@@ -201,14 +202,9 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   fun setCountryCode(countryCode: String?) {
-    val defaultLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-      if (context.resources.configuration.locales.isEmpty) "US"
-      else context.resources.configuration.locales[0].country
-    } else {
-      context.resources.configuration.locale.country
-    }
-
-    val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(CountryCode.create(value = countryCode ?: defaultLocale))
+    val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(
+      CountryCode.create(value = countryCode ?: LocaleListCompat.getAdjustedDefault()[0].country)
+    )
     mCardWidget.postalCodeRequired = doesCountryUsePostalCode
     mCardWidget.postalCodeEnabled = doesCountryUsePostalCode
   }
