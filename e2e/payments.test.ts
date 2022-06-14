@@ -201,8 +201,16 @@ describe('Common payment scenarios', () => {
 
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
-    getElementByText('Create a token from a bank account').click();
+    getElementByText('Create a PII token').click();
     let alert = getElementByText('Success');
+    alert.waitForDisplayed({
+      timeout: 20000,
+    });
+    expect(alert.getText()).toEqual('Success');
+    alert.dismissAlert();
+
+    getElementByText('Create a token from a bank account').click();
+    alert = getElementByText('Success');
     alert.waitForDisplayed({
       timeout: 20000,
     });
