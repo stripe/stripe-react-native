@@ -1,3 +1,4 @@
+import type { Token } from '@stripe/stripe-react-native';
 import {
   CardField,
   CardFieldInput,
@@ -11,18 +12,8 @@ import PaymentScreen from '../components/PaymentScreen';
 export default function CreateTokenScreen() {
   const { createToken } = useStripe();
 
-  const _createToken = async (type: 'Card' | 'BankAccount') => {
-    const { error, token } = await createToken(
-      type === 'Card'
-        ? { type: 'Card', name: 'David Wallace', currency: 'eur' }
-        : {
-            type: 'BankAccount',
-            accountNumber: '000123456789',
-            routingNumber: '110000000', // Routing number is REQUIRED for US bank accounts
-            country: 'US',
-            currency: 'usd',
-          }
-    );
+  const _createToken = async (type: Token.Type) => {
+    const { error, token } = await createToken(buildTestTokenParams(type));
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -37,6 +28,13 @@ export default function CreateTokenScreen() {
 
   return (
     <PaymentScreen>
+      <Button
+        variant="primary"
+        onPress={() => _createToken('Pii')}
+        title="Create a PII token"
+        accessibilityLabel="Create a PII token"
+      />
+      <Text style={styles.or}>OR</Text>
       <Button
         variant="primary"
         onPress={() => _createToken('BankAccount')}
@@ -57,6 +55,32 @@ export default function CreateTokenScreen() {
       />
     </PaymentScreen>
   );
+}
+
+function buildTestTokenParams(type: Token.Type): Token.CreateParams {
+  switch (type) {
+    case 'Pii':
+      return {
+        type: 'Pii',
+        personalId: '000000000',
+      };
+    case 'Card':
+      return {
+        type: 'Card',
+        name: 'David Wallace',
+        currency: 'eur',
+      };
+    case 'BankAccount':
+      return {
+        type: 'BankAccount',
+        accountNumber: '000123456789',
+        routingNumber: '110000000', // Routing number is REQUIRED for US bank accounts
+        country: 'US',
+        currency: 'usd',
+      };
+    default:
+      throw new Error(`Unsupported token type`);
+  }
 }
 
 const styles = StyleSheet.create({
