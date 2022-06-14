@@ -721,7 +721,7 @@ class Mappers {
         if let lastSetupError = setupIntent.lastSetupError {
             let setupError: NSMutableDictionary = [
                 "code": lastSetupError.code ?? NSNull(),
-                "message": lastSetupError.description,
+                "message": lastSetupError.message ?? NSNull(),
                 "type": mapFromSetupIntentLastPaymentErrorType(lastSetupError.type) ?? NSNull(),
                 "declineCode": lastSetupError.declineCode ?? NSNull(),
                 "paymentMethod": mapFromPaymentMethod(lastSetupError.paymentMethod) ?? NSNull()
