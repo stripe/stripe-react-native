@@ -8,7 +8,7 @@
 
 ### Fixes
 
-- Never show postal code input in `CardField` if `postalCodeEnabled=false` (regardless of `countryCode`).
+- Never show postal code input in `CardField` if `postalCodeEnabled=false` (regardless of `countryCode`). [#996](https://github.com/stripe/stripe-react-native/pull/996)
 
 ## 0.13.0
 
