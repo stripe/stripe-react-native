@@ -402,14 +402,13 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
 
   paymentIntent.lastPaymentError?.let {
     val paymentError: WritableMap = WritableNativeMap()
-
-    paymentIntent.lastPaymentError?.paymentMethod?.let { paymentMethod ->
-      paymentError.putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
-    }
-
     paymentError.putString("code", it.code)
     paymentError.putString("message", it.message)
     paymentError.putString("type", mapFromPaymentIntentLastErrorType(it.type))
+    paymentError.putString("declineCode", it.declineCode)
+    paymentIntent.lastPaymentError?.paymentMethod?.let { paymentMethod ->
+      paymentError.putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+    }
 
     map.putMap("lastPaymentError", paymentError)
   }
@@ -775,11 +774,10 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
     setupError.putString("code", it.code)
     setupError.putString("message", it.message)
     setupError.putString("type", mapFromSetupIntentLastErrorType(it.type))
-
+    setupError.putString("declineCode", it.declineCode)
     setupIntent.lastSetupError?.paymentMethod?.let { paymentMethod ->
       setupError.putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
     }
-
     map.putMap("lastSetupError", setupError)
   }
 

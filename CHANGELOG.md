@@ -12,6 +12,7 @@
 ### Fixes
 
 - Resolve with an Error (of type `Canceled`) if no payment option is selected in the Payment Sheet custom flow (i.e., the `x` button is clicked to close the Payment Sheet). [#975](https://github.com/stripe/stripe-react-native/pull/975)
+- Make `SetupIntent.lastSetupError` and `PaymentIntent.lastPaymentError` object shape consistent on iOS and Android.[#990](https://github.com/stripe/stripe-react-native/pull/990)
 
 ## 0.12.0
 
