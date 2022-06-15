@@ -201,12 +201,17 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     mCardWidget.postalCodeEnabled = isEnabled
   }
 
+  /**
+   * We can reliable assume that setPostalCodeEnabled is called before
+   * setCountryCode because of the order of the props in CardField.tsx
+   */
   fun setCountryCode(countryCode: String?) {
-    val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(
-      CountryCode.create(value = countryCode ?: LocaleListCompat.getAdjustedDefault()[0].country)
-    )
-    mCardWidget.postalCodeRequired = doesCountryUsePostalCode
-    mCardWidget.postalCodeEnabled = doesCountryUsePostalCode
+    if (mCardWidget.postalCodeEnabled) {
+      val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(
+        CountryCode.create(value = countryCode ?: LocaleListCompat.getAdjustedDefault()[0].country)
+      )
+      mCardWidget.postalCodeRequired = doesCountryUsePostalCode
+    }
   }
 
   fun getValue(): MutableMap<String, Any?> {

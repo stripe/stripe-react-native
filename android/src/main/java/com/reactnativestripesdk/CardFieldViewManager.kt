@@ -46,14 +46,14 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
     view.setCardStyle(cardStyle)
   }
 
+  @ReactProp(name = "countryCode")
+  fun setCountryCode(view: CardFieldView, countryCode: String?) {
+    view.setCountryCode(countryCode)
+  }
+
   @ReactProp(name = "placeholders")
   fun setPlaceHolders(view: CardFieldView, placeholders: ReadableMap) {
     view.setPlaceHolders(placeholders)
-  }
-
-  @ReactProp(name = "countryCode")
-  fun setPlaceHolders(view: CardFieldView, countryCode: String?) {
-    view.setCountryCode(countryCode)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {

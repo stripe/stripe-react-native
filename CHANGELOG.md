@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+### Fixes
+
+- Never show postal code input in `CardField` if `postalCodeEnabled=false` (regardless of `countryCode`).
+
 ## 0.13.0
 
 ### Breaking changes
