@@ -18,6 +18,12 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc var countryCode: String? {
+        didSet {
+            cardField.countryCode = countryCode
+        }
+    }
+    
     @objc var placeholders: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholders["number"] as? String {

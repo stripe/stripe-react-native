@@ -30,7 +30,10 @@ const CardFieldNative =
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
+  /** Controls if a postal code entry field can be displayed to the user. Defaults to false. If true, the type of code entry shown is controlled by the set countryCode prop. Some country codes may result in no postal code entry being shown if those countries do not commonly use postal codes. If false, no postal code entry will ever be displayed. */
   postalCodeEnabled?: boolean;
+  /** Controls the postal code entry shown (if the postalCodeEnabled prop is set to true). Defaults to the device's default locale. */
+  countryCode?: string;
   cardStyle?: CardFieldInput.Styles;
   placeholders?: CardFieldInput.Placeholders;
   autofocus?: boolean;
@@ -74,6 +77,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       cardStyle,
       placeholders,
       postalCodeEnabled,
+      countryCode,
       ...props
     },
     ref
@@ -175,6 +179,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
         onCardChange={onCardChangeHandler}
         onFocusChange={onFocusHandler}
         postalCodeEnabled={postalCodeEnabled ?? true}
+        countryCode={countryCode ?? null}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           borderColor: cardStyle?.borderColor,

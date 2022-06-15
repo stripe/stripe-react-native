@@ -51,6 +51,11 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
     view.setPlaceHolders(placeholders)
   }
 
+  @ReactProp(name = "countryCode")
+  fun setPlaceHolders(view: CardFieldView, countryCode: String?) {
+    view.setCountryCode(countryCode)
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {
     val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFieldView(reactContext)
