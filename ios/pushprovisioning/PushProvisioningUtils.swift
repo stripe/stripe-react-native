@@ -13,24 +13,24 @@ class PushProvisioningUtils {
         last4: String,
         primaryAccountIdentifier: String,
         testEnv: Bool
-    ) -> (canAddCard: Bool, details: NSDictionary) {
+    ) -> (canAddCard: Bool, status: AddCardToWalletStatus?) {
         if (!PKAddPassesViewController.canAddPasses()) {
-            return (false, ["details": ["status": "UNSUPPORTED_DEVICE"]])
+            return (false, AddCardToWalletStatus.UNSUPPORTED_DEVICE)
         }
         
-        let details : NSMutableDictionary = [:]
+        var status : AddCardToWalletStatus? = nil
         var canAddCard = PushProvisioningUtils.canAddPaymentPass(
             primaryAccountIdentifier: primaryAccountIdentifier,
             isTestMode: testEnv)
         
         if (!canAddCard) {
-            details["status"] = "MISSING_CONFIGURATION"
+            status = AddCardToWalletStatus.MISSING_CONFIGURATION
         } else if (PushProvisioningUtils.passExistsWith(last4: last4)) {
             canAddCard = false
-            details["status"] = "CARD_ALREADY_EXISTS"
+            status = AddCardToWalletStatus.CARD_ALREADY_EXISTS
         }
 
-        return (canAddCard, details)
+        return (canAddCard, status)
     }
     
     class func canAddPaymentPass(primaryAccountIdentifier: String, isTestMode: Bool) -> Bool {
@@ -54,5 +54,11 @@ class PushProvisioningUtils {
             }
         }()
         return existingPass != nil
+    }
+    
+    enum AddCardToWalletStatus: String {
+        case UNSUPPORTED_DEVICE
+        case MISSING_CONFIGURATION
+        case CARD_ALREADY_EXISTS
     }
 }

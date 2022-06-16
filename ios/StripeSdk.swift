@@ -1006,12 +1006,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
             return
         }
-        let (canAddCard, details) = PushProvisioningUtils.canAddCardToWallet(last4: last4,
+        let (canAddCard, status) = PushProvisioningUtils.canAddCardToWallet(last4: last4,
                                                  primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
                                                  testEnv: params["testEnv"] as? Bool ?? false)
         resolve([
             "canAddCard": canAddCard,
-            "details": details,
+            "details": ["status": status?.rawValue],
         ])
     }
     
