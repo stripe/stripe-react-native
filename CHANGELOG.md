@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.1
+
 ### Breaking changes
 
 ### New features
