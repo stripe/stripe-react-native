@@ -8,7 +8,7 @@
 import Foundation
 import Stripe
 
-class PushProvisioningUtils {
+internal class PushProvisioningUtils {
     class func canAddCardToWallet(
         last4: String,
         primaryAccountIdentifier: String,

@@ -51,6 +51,16 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "87501B78F65E77E2C04C7D908C29DA28"
+               BuildableName = "stripe-react-native-Unit-Tests.xctest"
+               BlueprintName = "stripe-react-native-Unit-Tests"
+               ReferencedContainer = "container:Pods/Pods.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
