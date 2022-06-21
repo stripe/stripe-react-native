@@ -44,6 +44,8 @@ jobs:
       - name: Install Dependencies
         run: yarn bootstrap
 
+      - name: debug
+        run: xcodebuild -list
+
       - name: Run Tests
-        run: |
-          yarn test:unit:ios
+        run: yarn test:unit:ios
