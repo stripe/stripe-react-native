@@ -33,7 +33,7 @@ object TapAndPayProxy {
     }
   }
 
-  private fun isTokenInWallet(token: Any, newLastFour: String): Boolean {
+  internal fun isTokenInWallet(token: Any, newLastFour: String): Boolean {
     return try {
       val getFpanLastFourMethod = Class.forName("com.google.android.gms.tapandpay.issuer.TokenInfo").getMethod("getFpanLastFour")
       val existingFpanLastFour = getFpanLastFourMethod.invoke(token) as String
