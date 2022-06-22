@@ -33,7 +33,8 @@
     "run-example-android": "cd example;ENVFILE=.env.ci react-native run-android --variant=release",
     "test:e2e:ios": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js ios",
     "test:e2e:android": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js android",
-    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests"
+    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests",
+    "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest"
   },
   "keywords": [
     "react-native",
