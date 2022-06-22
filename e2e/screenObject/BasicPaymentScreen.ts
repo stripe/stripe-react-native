@@ -39,7 +39,7 @@ class BasicPaymentScreen {
     driver.pause(5000);
   }
 
-  authorize({ elementType = 'button', pause = 5000 } = {}) {
+  authorize({ pause = 5000 } = {}) {
     driver.pause(pause);
 
     // We can have multiple webview contexts, so we return all of them and then try going through each one.
@@ -49,9 +49,9 @@ class BasicPaymentScreen {
     for (const context of webviewContexts) {
       try {
         driver.switchContext(context);
-        const button = $(`${elementType}*=Authorize`);
-        if (button.isDisplayed()) {
-          button.click();
+
+        const success = clickAuthorizeButton();
+        if (success) {
           driver.pause(1000);
           break;
         }
@@ -157,6 +157,18 @@ function getNativeContext(): string {
   }
 
   return nativeContext;
+}
+
+function clickAuthorizeButton(): boolean {
+  return ['button', 'a'].some((elementType: string) => {
+    const element = $(`${elementType}*=Authorize`);
+    if (element.isDisplayed()) {
+      element.click();
+      return true;
+    } else {
+      return false;
+    }
+  });
 }
 
 export default new BasicPaymentScreen();
