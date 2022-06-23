@@ -30,7 +30,7 @@ create_github_release() {
       if [ $is_collecting == 0 ] ; then
         # Reached the entry for the version that is to be published
         is_collecting=1
-        local current_version="${line#* }"
+        local version_and_date="${line#* }"
       else
         # Reached the next version entry, we're done.
         break
@@ -42,7 +42,7 @@ create_github_release() {
   done < CHANGELOG.md
 
   release_notes="$(cat << EOF
-$current_version
+$version_and_date
 
 $changelog
 
@@ -57,10 +57,10 @@ EOF
     echo "Creating GitHub release"
     echo ""
     echo -n "    "
-    hub release create -em "$release_notes" "$current_version"
+    hub release create -em "$release_notes" "$(echo "$version_and_date" | cut -d '-' -f 1)"
   fi
 
-  send_release_email "$current_version" "$release_notes"
+  send_release_email "$version_and_date" "$release_notes"
 }
 
 create_github_release_fallback() {
@@ -75,14 +75,14 @@ EOF
 }
 
 send_release_email() {
-  local current_version=$1
+  local version_and_date=$1
   local release_notes=$2
 
   echo "
 Sending an email to mobile-sdk-updates@stripe.com with the following information:
 
 Subject:
-[React Native SDK] v$current_version
+[React Native SDK] v$version_and_date
 
 Body:
 $release_notes
@@ -91,8 +91,8 @@ $release_notes
   echo "
 Attempting to automatically draft and open the email to send...if the browser doesn't launch, open the following link:
 "
-  open "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$current_version")&body=$(percentEncodeString "$release_notes")"
-  echo "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$current_version")&body=$(percentEncodeString "$release_notes")
+  open "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$version_and_date")&body=$(percentEncodeString "$release_notes")"
+  echo "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$version_and_date")&body=$(percentEncodeString "$release_notes")
 "
 
   while true ; do
