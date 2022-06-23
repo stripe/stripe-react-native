@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.13.1
+## 0.13.1 - 2022-06-16
 
 ### Breaking changes
 
@@ -12,7 +12,7 @@
 
 - Never show postal code input in `CardField` if `postalCodeEnabled=false` (regardless of `countryCode`). [#996](https://github.com/stripe/stripe-react-native/pull/996)
 
-## 0.13.0
+## 0.13.0 - 2022-06-15
 
 ### Breaking changes
 
@@ -28,7 +28,7 @@
 - Fixed an issue on Android where the `complete` field in the `onCardChange` callback would incorrectly be set to `true` even if the postal code wasn't filled out. [#989](https://github.com/stripe/stripe-react-native/pull/989)
 - Make `SetupIntent.lastSetupError` and `PaymentIntent.lastPaymentError` object shape consistent on iOS and Android.[#990](https://github.com/stripe/stripe-react-native/pull/990)
 
-## 0.12.0
+## 0.12.0 - 2022-06-02
 
 ### Breaking changes
 
@@ -44,7 +44,7 @@
 - Fixed a bug where the wrong CVC icon was show in the `CardForm` component on Android. [#966](https://github.com/stripe/stripe-react-native/pull/966)
 - The card brand tint color is now correctly set in the `CardField` component on Android via the `cardStyle.textColor` prop. [#851](https://github.com/stripe/stripe-react-native/pull/851)
 
-## 0.11.0
+## 0.11.0 - 2022-05-24
 
 ### Breaking changes
 
@@ -60,7 +60,7 @@
 - Improved error messages on Android for failed `confirmPayment` and `confirmSetupIntent` calls, and any Google Pay related methods. [#957](https://github.com/stripe/stripe-react-native/pull/957)
 - Made Android card validation state consistent with iOS in the `CardField` `onCardChange` callback. [#958](https://github.com/stripe/stripe-react-native/pull/958)
 
-## 0.10.0
+## 0.10.0 - 2022-05-19
 
 ### Breaking changes
 
@@ -72,7 +72,7 @@
 
 ### Fixes
 
-## 0.9.0
+## 0.9.0 - 2022-05-10
 
 - [#913](https://github.com/stripe/stripe-react-native/pull/913) BREAKING CHANGE: Changed props for the `<AddToWalletButton />` component. Instead of passing `cardHolderName`, `cardLastFour`, `cardDescription`, and `cardBrand` directly as props, you will instead pass a `cardDetails` prop, which is an object containing the following fields:
   - `primaryAccountIdentifier`: The `wallet.primary_account_identifier` value from the issued card.
@@ -89,7 +89,7 @@
 - [#914](https://github.com/stripe/stripe-react-native/pull/914) fix: add `fingerprint` to Card result object on Android (already present on iOS)
 - [#912](https://github.com/stripe/stripe-react-native/pull/912) fix: allow for providing zip code straight from `CardField` component on Android
 
-## 0.8.0
+## 0.8.0 - 2022-04-27
 
 - **Breaking: This version requires you use `react-native@0.64.0` or above**
 - [#902](https://github.com/stripe/stripe-react-native/pull/902) fix: create custom babel plugin for package.json imports in src/
@@ -99,7 +99,7 @@
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) BREAKING CHANGE: Renamed `placeholder` prop on `<CardField />` and `<CardForm />` to `placeholders`.
 - [#849](https://github.com/stripe/stripe-react-native/pull/849) Feat: Added customized styling options to `<CardForm />` on Android.
 
-## 0.7.0
+## 0.7.0 - 2022-04-19
 
 - [#894](https://github.com/stripe/stripe-react-native/pull/894) Fix: `<CardField />` `onBlur` callback will now be called appropriately on Android
 - [#846](https://github.com/stripe/stripe-react-native/pull/846) Fix: Avoid crashes when `currentActivity` is null
@@ -143,21 +143,21 @@
   - (Typescript) `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
   - (Typescript) Removed `GooglePay.SetupIntentParams`
 
-## 0.6.0
+## 0.6.0 - 2022-04-01
 
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) BREAKING: This library now supports iOS 12 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 11, please continue to use `@stripe/stripe-react-native@0.5.0`.
   - To upgrade your iOS deployment target to 12.0, you can either do so in Xcode under your `Build Settings`, or by modifying `IPHONEOS_DEPLOYMENT_TARGET` in your `project.pbxproj` directly. You will also need to update your Podfile to target `:ios, '12.0'`.
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) Feat: Add support for ACHv2 payments **on iOS only**.
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) Chore: Upgrade `stripe-ios` to 22.0.0.
 
-## 0.5.0
+## 0.5.0 - 2022-03-29
 
 - [#863](https://github.com/stripe/stripe-react-native/pull/863) Feat: add card ID and bankAccount ID to token response
 - [#862](https://github.com/stripe/stripe-react-native/pull/862) Feat: Add support for setting a card's `currency` when creating a Token
 - [#854](https://github.com/stripe/stripe-react-native/pull/854) Chore: Upgrade `stripe-ios` to 21.13.0. Upgrade `stripe-android` to 19.3.0.
 - [#845](https://github.com/stripe/stripe-react-native/pull/845) Feat: Added support for `placeholderColor`, `textErrorColor `, `borderColor`, `borderRadius`, and `borderWidth` for `AuBECSDebitForm` on iOS
 
-## 0.4.0
+## 0.4.0 - 2022-03-10
 
 - [#821](https://github.com/stripe/stripe-react-native/pull/821) Feat: Add support for Klarna
 - [#630](https://github.com/stripe/stripe-react-native/pull/630) Fix: card field focus jumps back to the card number field on Android
