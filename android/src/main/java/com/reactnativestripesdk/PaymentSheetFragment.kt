@@ -102,9 +102,10 @@ class PaymentSheetFragment(
           confirmPromise?.resolve(WritableNativeMap()) ?: run {
             presentPromise?.resolve(WritableNativeMap())
           }
+          // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
+          (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
         }
       }
-      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
     }
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
