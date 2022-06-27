@@ -10,6 +10,7 @@
 
 - Fix build errors on Xcode 14 beta 1 by upgrading `stripe-ios` to `~>22.5.1`. [#1011](https://github.com/stripe/stripe-react-native/pull/1011)
 - Fixed an issue on Android where the `brand` field in `CardField`'s `onCardChange` callback wouldn't be set unless the card details were fully complete. [#1012](https://github.com/stripe/stripe-react-native/pull/1012)
+- Fixed an issue where Payment Sheet would cause crashes on Android if `merchantDisplayName` wasn't provided. [#1015](https://github.com/stripe/stripe-react-native/pull/1015)
 
 ## 0.13.1 - 2022-06-16
 
