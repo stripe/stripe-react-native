@@ -3,10 +3,11 @@ import type { BillingDetails } from './Common';
 export type SetupParams = ClientSecretParams &
   GooglePayParams &
   ApplePayParams & {
+    /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
+    merchantDisplayName: string;
     customerId?: string;
     customerEphemeralKeySecret?: string;
     customFlow?: boolean;
-    merchantDisplayName?: string;
     style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
     returnURL?: string;
     defaultBillingDetails?: BillingDetails;
