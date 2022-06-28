@@ -1,4 +1,5 @@
 import type { BillingDetails } from './Common';
+import type { CartSummaryItem } from './ApplePay';
 
 export type SetupParams = ClientSecretParams &
   GooglePayParams &
@@ -14,7 +15,7 @@ export type SetupParams = ClientSecretParams &
     allowsDelayedPaymentMethods?: boolean;
   } & { appearance?: AppearanceParams };
 
-type ClientSecretParams =
+export type ClientSecretParams =
   | {
       paymentIntentClientSecret: string;
       setupIntentClientSecret?: undefined;
@@ -24,17 +25,18 @@ type ClientSecretParams =
       paymentIntentClientSecret?: undefined;
     };
 
-type ApplePayParams =
-  | {
-      applePay?: true;
-      merchantCountryCode: string;
-    }
-  | {
-      applePay?: false;
-      merchantCountryCode?: string;
-    };
+export type ApplePayParams = {
+  /** Whether or not to enable Apple Pay for this Payment Sheet. */
+  applePay?: boolean;
+  /** Required if `applePay: true`. The two-letter ISO 3166 code of the country of your business, e.g. "US"  */
+  merchantCountryCode?: string;
+  /**
+   * An array of CartSummaryItem item objects that summarize the amount of the payment. If you're using a SetupIntent
+   * for a recurring payment, you should set this to display the amount you intend to charge. */
+  paymentSummaryItems?: CartSummaryItem[];
+};
 
-type GooglePayParams =
+export type GooglePayParams =
   | {
       googlePay?: true;
       merchantCountryCode: string;
