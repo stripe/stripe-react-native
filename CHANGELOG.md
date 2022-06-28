@@ -6,6 +6,8 @@
 
 ### New features
 
+- Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
+
 ### Fixes
 
 - Fix build errors on Xcode 14 beta 1 by upgrading `stripe-ios` to `~>22.5.1`. [#1011](https://github.com/stripe/stripe-react-native/pull/1011)
