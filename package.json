@@ -28,7 +28,7 @@
     "pods": "cd example && npx pod-install --quiet",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
-    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none",
+    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",
     "run-example-ios": "cd example;ENVFILE=.env.ci react-native run-ios --configuration Release --simulator \"iPhone 13 (15.2)\"",
     "run-example-android": "cd example;ENVFILE=.env.ci react-native run-android --variant=release",
     "test:e2e:ios": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js ios",
