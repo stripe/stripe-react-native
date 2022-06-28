@@ -86,11 +86,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
 
         if  params["applePay"] as? Bool == true {
-            if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
-                configuration.applePay = .init(merchantId: merchantIdentifier,
-                                               merchantCountryCode: merchantCountryCode)
-            } else {
-                resolve(Errors.createError(ErrorType.Failed, "Either merchantIdentifier or merchantCountryCode is missing"))
+            do {
+                configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
+                    merchantIdentifier: self.merchantIdentifier,
+                    merchantCountryCode: params["merchantCountryCode"] as? String ?? nil,
+                    paymentSummaryItems: params["paymentSummaryItems"] as? [[String : Any]] ?? nil
+                )
+            } catch  {
+                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
                 return
             }
         }
@@ -344,17 +347,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
             return
         }
-        var paymentSummaryItems: [PKPaymentSummaryItem] = []
-        if let items = summaryItems as? [[String : Any]] {
-            for item in items {
-                let label = item["label"] as? String ?? ""
-                let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
-                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
-                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
-            }
+        
+        var paymentSummaryItems : [PKPaymentSummaryItem] = []
+        do {
+            paymentSummaryItems = try ApplePayUtils.buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
         }
+        
         var shippingAddressErrors: [Error] = []
-
         for item in errorAddressFields {
             let field = item["field"] as! String
             let message = item["message"] as? String ?? field + " error"
@@ -513,18 +515,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
         paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
 
-        var paymentSummaryItems: [PKPaymentSummaryItem] = []
-
-        if let items = summaryItems as? [[String : Any]] {
-            for item in items {
-                let label = item["label"] as? String ?? ""
-                let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
-                let type = Mappers.mapToPaymentSummaryItemType(type: item["type"] as? String)
-                paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
-            }
+        do {
+            paymentRequest.paymentSummaryItems = try ApplePayUtils
+                .buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
+        } catch  {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
         }
 
-        paymentRequest.paymentSummaryItems = paymentSummaryItems
         if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
             DispatchQueue.main.async {
                 applePayContext.presentApplePay(completion: nil)
