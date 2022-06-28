@@ -95,7 +95,7 @@ In order to do that, edit .npmrc accordinly to https://raw.githubusercontent.com
 e.g. when you have `71.0.3578` chrome version installed you must specify `2.46` version of chrome-driver.
 
 1. run `yarn run-example-ios` / `yarn run-example-android` to build and open example app.
-2. run `yarn test:ios` / `yarn test:android` to run e2e tests.
+2. run `yarn test:e2e:ios` / `yarn test:e2e:android` to run e2e tests.
 
 ### Scripts
 

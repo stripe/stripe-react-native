@@ -34,6 +34,7 @@ android {
     versionCode 1
     versionName "1.0"
     vectorDrawables.useSupportLibrary = true
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }
 
   buildTypes {
@@ -146,4 +147,14 @@ dependencies {
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
   compileOnly 'com.stripe:stripe-android-issuing-push-provisioning:1.1.0'
+
+  androidTestImplementation "junit:junit:4.13"
+  androidTestImplementation "androidx.test:core:1.4.0"
+  androidTestImplementation 'androidx.test:runner:1.1.0'
+  androidTestImplementation "org.mockito:mockito-core:3.+"
+}
+
+configurations {
+    // We want to include all of our compileOnly libraries in our tests
+    androidTestImplementation.extendsFrom compileOnly
 }

@@ -17,7 +17,6 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
-import com.reactnativestripesdk.PushProvisioningProxy
 import com.reactnativestripesdk.createError
 
 

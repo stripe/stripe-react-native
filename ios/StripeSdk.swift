@@ -995,7 +995,26 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-
+    
+    @objc(canAddCardToWallet:resolver:rejecter:)
+    func canAddCardToWallet(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard let last4 = params["cardLastFour"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
+            return
+        }
+        let (canAddCard, status) = PushProvisioningUtils.canAddCardToWallet(last4: last4,
+                                                 primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
+                                                 testEnv: params["testEnv"] as? Bool ?? false)
+        resolve([
+            "canAddCard": canAddCard,
+            "details": ["status": status?.rawValue],
+        ])
+    }
+    
     @objc(isCardInWallet:resolver:rejecter:)
     func isCardInWallet(
         params: NSDictionary,
@@ -1006,15 +1025,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
             return
         }
-
-        let existingPass: PKPass? = {
-            if #available(iOS 13.4, *) {
-                return PKPassLibrary().passes(of: PKPassType.secureElement).first(where: {$0.secureElementPass?.primaryAccountNumberSuffix == last4})
-            } else {
-                return PKPassLibrary().passes(of: PKPassType.payment).first(where: {$0.paymentPass?.primaryAccountNumberSuffix == last4})
-            }
-        }()
-        resolve(["isInWallet": existingPass != nil])
+        resolve(["isInWallet": PushProvisioningUtils.passExistsWith(last4: last4)])
     }
 
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

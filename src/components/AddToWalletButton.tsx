@@ -27,7 +27,7 @@ export interface Props extends AccessibilityProps {
   /** The image asset to use as the Google Pay button. Downloadable from https://developers.google.com/pay/issuers/apis/push-provisioning/android/downloads/flutter/googlepay_flutter_buttons.zip */
   androidAssetSource: ImageSourcePropType;
   testID?: string;
-  /** Only set to `false` when shipping through TestFlight || App Store */
+  /** iOS only. Set this to `true` until shipping through TestFlight || App Store. If true, you must be using live cards, and have the proper iOS entitlement set up. See https://stripe.com/docs/issuing/cards/digital-wallets?platform=react-native#requesting-access-for-ios */
   testEnv?: boolean;
   /** Details of the Issued Card you'd like added to the device's wallet */
   cardDetails: {

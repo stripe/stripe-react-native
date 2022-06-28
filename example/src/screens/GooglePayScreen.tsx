@@ -4,7 +4,7 @@ import {
   useGooglePay,
   AddToWalletButton,
   Constants,
-  isCardInWallet,
+  canAddCardToWallet,
   GooglePayCardToken,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
@@ -25,7 +25,7 @@ export default function GooglePayScreen() {
   } = useGooglePay();
   const [initialized, setInitialized] = useState(false);
   const [ephemeralKey, setEphemeralKey] = useState({});
-  const [cardIsInWallet, setCardIsInWallet] = useState(false);
+  const [showAddToWalletButton, setShowAddToWalletButton] = useState(true);
   const [cardDetails, setCardDetails] = useState<any>(null);
   const [androidCardToken, setAndroidCardToken] =
     useState<null | GooglePayCardToken>(null);
@@ -50,16 +50,22 @@ export default function GooglePayScreen() {
 
     setCardDetails(card);
 
-    const { isInWallet, token, error } = await isCardInWallet({
+    const { canAddCard, details, error } = await canAddCardToWallet({
+      primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
     });
 
     if (error) {
       Alert.alert(error.code, error.message);
     } else {
-      setCardIsInWallet(isInWallet ?? false);
-      if (token && token.status === 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION') {
-        setAndroidCardToken(token);
+      setShowAddToWalletButton(canAddCard ?? false);
+      if (details?.status) {
+        console.log(`Card status for native wallet: ${details.status}`);
+      }
+      if (
+        details?.token?.status === 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION'
+      ) {
+        setAndroidCardToken(details.token);
       }
     }
   };
@@ -179,7 +185,7 @@ export default function GooglePayScreen() {
           onPress={createPaymentMethod}
         />
       </View>
-      {!cardIsInWallet && (
+      {showAddToWalletButton && (
         <AddToWalletButton
           androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
           style={styles.payButton}

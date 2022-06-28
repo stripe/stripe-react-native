@@ -33,6 +33,8 @@ import {
   CollectBankAccountForPaymentResult,
   CollectBankAccountForSetupResult,
   IsCardInWalletResult,
+  CanAddCardToWalletParams,
+  CanAddCardToWalletResult,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -557,6 +559,29 @@ export const collectBankAccountForSetup = async (
     }
     return {
       setupIntent: setupIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const canAddCardToWallet = async (
+  params: CanAddCardToWalletParams
+): Promise<CanAddCardToWalletResult> => {
+  try {
+    const { canAddCard, details, error } =
+      await NativeStripeSdk.canAddCardToWallet(params);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      canAddCard: canAddCard as boolean,
+      details: details,
     };
   } catch (error: any) {
     return {
