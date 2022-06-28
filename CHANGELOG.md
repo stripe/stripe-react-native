@@ -6,9 +6,14 @@
 
 ### Breaking changes
 
+- In `ApplePay.CartSummaryItem`, renamed `type` to `isPending`- (if you had `type: 'pending'`, replace it with `isPending: true`. if `type: 'final'`, just remove it)
+- In `ApplePay.CartSummaryItem`, added a **new** `type` field (different from the one above). This field is now required, and in all cases before this version, should be set to `type: 'Immediate'` (support for types `Deferred` and `Recurring` wasn't available until this release).
+
 ### New features
 
 - Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
+- Added support for iOS 15 `paymentSummaryItems`: `PKDeferredPaymentSummaryItem` and `PKRecurringPaymentSummaryItem`.
+- You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet.
 
 ### Fixes
 
