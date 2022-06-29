@@ -10,49 +10,43 @@ import Stripe
 
 class ApplePayUtils {
     
+    @available(iOS 15.0, *)
     internal class func createDeferredPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
         let label = item["label"] as? String ?? ""
         let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
         
-        if #available(iOS 15.0, *) {
-            let deferredItem = PKDeferredPaymentSummaryItem(
-                label: label,
-                amount: amount
-            )
-            guard let date = item["deferredDate"] as? Double else {
-                throw ApplePayUtilsError.missingParameter(label, "deferredDate")
-            }
-            deferredItem.deferredDate = Date(timeIntervalSince1970: date)
-            return deferredItem
-        } else {
-            return createImmediatePaymentSummaryItem(item: item)
+        let deferredItem = PKDeferredPaymentSummaryItem(
+            label: label,
+            amount: amount
+        )
+        guard let date = item["deferredDate"] as? Double else {
+            throw ApplePayUtilsError.missingParameter(label, "deferredDate")
         }
+        deferredItem.deferredDate = Date(timeIntervalSince1970: date)
+        return deferredItem
     }
     
+    @available(iOS 15.0, *)
     internal class func createRecurringPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
         let label = item["label"] as? String ?? ""
         let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
         
-        if #available(iOS 15.0, *) {
-            let recurringItem = PKRecurringPaymentSummaryItem(
-                label: label,
-                amount: amount
-            )
-            guard let intervalCount = item["intervalCount"] as? Int else {
-                throw ApplePayUtilsError.missingParameter(label, "intervalCount")
-            }
-            recurringItem.intervalCount = intervalCount
-            recurringItem.intervalUnit = try mapToIntervalUnit(intervalString: item["intervalUnit"] as? String)
-            if let startDate = item["startDate"] as? Double {
-                recurringItem.startDate = Date(timeIntervalSince1970: startDate)
-            }
-            if let endDate = item["endDate"] as? Double {
-                recurringItem.endDate = Date(timeIntervalSince1970: endDate)
-            }
-            return recurringItem
-        } else {
-            return createImmediatePaymentSummaryItem(item: item)
+        let recurringItem = PKRecurringPaymentSummaryItem(
+            label: label,
+            amount: amount
+        )
+        guard let intervalCount = item["intervalCount"] as? Int else {
+            throw ApplePayUtilsError.missingParameter(label, "intervalCount")
         }
+        recurringItem.intervalCount = intervalCount
+        recurringItem.intervalUnit = try mapToIntervalUnit(intervalString: item["intervalUnit"] as? String)
+        if let startDate = item["startDate"] as? Double {
+            recurringItem.startDate = Date(timeIntervalSince1970: startDate)
+        }
+        if let endDate = item["endDate"] as? Double {
+            recurringItem.endDate = Date(timeIntervalSince1970: endDate)
+        }
+        return recurringItem
     }
     
     internal class func mapToIntervalUnit(intervalString: String?) throws -> NSCalendar.Unit {
@@ -99,9 +93,17 @@ class ApplePayUtils {
     internal class func buildPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
         switch item["paymentType"] as? String {
         case "Deferred":
-            return try createDeferredPaymentSummaryItem(item: item)
+            if #available(iOS 15.0, *) {
+                return try createDeferredPaymentSummaryItem(item: item)
+            } else {
+                return createImmediatePaymentSummaryItem(item: item)
+            }
         case "Recurring":
-            return try createRecurringPaymentSummaryItem(item: item)
+            if #available(iOS 15.0, *) {
+                return try createRecurringPaymentSummaryItem(item: item)
+            } else {
+                return createImmediatePaymentSummaryItem(item: item)
+            }
         case "Immediate":
             return createImmediatePaymentSummaryItem(item: item)
         default:

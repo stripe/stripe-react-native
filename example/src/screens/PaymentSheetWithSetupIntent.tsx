@@ -58,7 +58,6 @@ export default function PaymentSheetWithSetupIntent() {
 
     const startDate = Math.floor(Date.now() / 1000);
     const endDate = Math.floor((Date.now() + 60 * 60 * 24 * 365 * 1000) / 1000);
-    console.log(setupIntent);
     const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
