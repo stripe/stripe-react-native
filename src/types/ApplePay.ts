@@ -57,7 +57,7 @@ export type CartSummaryItem =
 
 export type CartSummaryItemType = 'Deferred' | 'Immediate' | 'Recurring';
 
-/** Use this type for a payment that occurs in the future, such as a pre-order. */
+/** Use this type for a payment that occurs in the future, such as a pre-order. Only available on iOS 15 and up, otherwise falls back to ImmediateCartSummaryItem. */
 export type DeferredCartSummaryItem = {
   paymentType: 'Deferred';
   /** The unix timestamp of the date, in the future, of the payment. Measured in seconds. */
@@ -75,7 +75,7 @@ export type ImmediateCartSummaryItem = {
   amount: string;
 };
 
-/** Use this type for payments that occur more than once, such as a subscription. */
+/** Use this type for payments that occur more than once, such as a subscription. Only available on iOS 15 and up, otherwise falls back to ImmediateCartSummaryItem.*/
 export type RecurringCartSummaryItem = {
   paymentType: 'Recurring';
   /** The amount of time – in calendar units such as day, month, or year – that represents a fraction of the total payment interval. For example, if you set the intervalUnit to 'month' and intervalCount to 3, then the payment interval is three months.*/
