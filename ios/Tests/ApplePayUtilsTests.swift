@@ -95,7 +95,7 @@ class ApplePayUtilsTests: XCTestCase {
     func test_createRecurringPaymentSummaryItem_withUnexpectedIntervalUnit_fails() throws {
         XCTAssertThrowsError(
             try ApplePayUtils.createRecurringPaymentSummaryItem(item: [
-                "type":"Recurring",
+                "paymentType":"Recurring",
                 "intervalUnit": "decade",
                 "intervalCount": 1,
             ] as [String : Any])
@@ -107,7 +107,7 @@ class ApplePayUtilsTests: XCTestCase {
         
         XCTAssertThrowsError(
             try ApplePayUtils.createRecurringPaymentSummaryItem(item: [
-                "type":"Recurring",
+                "paymentType":"Recurring",
                 "intervalCount": 1,
             ] as [String : Any])
         ) { error in
@@ -148,7 +148,7 @@ class ApplePayUtilsTests: XCTestCase {
     func test_buildPaymentSummaryItems_unexpectedType_fails() throws {
         XCTAssertThrowsError(
             try ApplePayUtils.buildPaymentSummaryItems(items: [[
-                "type":"wrong type",
+                "paymentType":"wrong type",
             ]] as [[String : Any]])
         ) { error in
             XCTAssertEqual(
@@ -158,7 +158,7 @@ class ApplePayUtilsTests: XCTestCase {
         
         XCTAssertThrowsError(
             try ApplePayUtils.buildPaymentSummaryItems(items: [[
-                "type":"",
+                "paymentType":"",
             ]] as [[String : Any]])
         ) { error in
             XCTAssertEqual(
@@ -182,13 +182,13 @@ class ApplePayUtilsTests: XCTestCase {
         static let MERCHANT_ID = "merchant.com.id"
         static let COUNTRY_CODE = "US"
         static let DEFERRED_CART_ITEM_DICTIONARY = [
-            "type":"Deferred",
+            "paymentType":"Deferred",
             "deferredDate": 123456789 as NSNumber,
             "label": "deferred label",
             "amount": "1.00"
         ] as [String : Any]
         static let RECURRING_CART_ITEM_DICTIONARY = [
-            "type":"Recurring",
+            "paymentType":"Recurring",
             "intervalUnit": "minute",
             "intervalCount": 2,
             "startDate": 123456789 as NSNumber,
@@ -197,7 +197,7 @@ class ApplePayUtilsTests: XCTestCase {
             "amount": "1.00"
         ] as [String : Any]
         static let IMMEDIATE_CART_ITEM_DICTIONARY = [
-            "type":"Immediate",
+            "paymentType":"Immediate",
             "isPending": true,
             "label": "immediate label",
             "amount": "2.00"
@@ -206,7 +206,7 @@ class ApplePayUtilsTests: XCTestCase {
             DEFERRED_CART_ITEM_DICTIONARY, IMMEDIATE_CART_ITEM_DICTIONARY, RECURRING_CART_ITEM_DICTIONARY
         ]
         static let IMMEDIATE_CART_ITEM_DICTIONARY_NOT_PENDING = [
-            "type":"Immediate",
+            "paymentType":"Immediate",
             "label": "immediate label",
             "amount": "2.00"
         ] as [String : Any]

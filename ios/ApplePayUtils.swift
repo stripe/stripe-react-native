@@ -88,23 +88,25 @@ class ApplePayUtils {
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
         if let items = items {
             for item in items {
-                let paymentSummaryItem: PKPaymentSummaryItem = try {
-                    switch item["type"] as? String {
-                    case "Deferred":
-                        return try createDeferredPaymentSummaryItem(item: item)
-                    case "Recurring":
-                        return try createRecurringPaymentSummaryItem(item: item)
-                    case "Immediate":
-                        return createImmediatePaymentSummaryItem(item: item)
-                    default:
-                        throw ApplePayUtilsError.invalidCartSummaryItemType(item["type"] as? String ?? "null")
-                    }
-                }()
+                let paymentSummaryItem = try buildPaymentSummaryItem(item: item)
                 paymentSummaryItems.append(paymentSummaryItem)
             }
         }
         
         return paymentSummaryItems
+    }
+    
+    internal class func buildPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
+        switch item["paymentType"] as? String {
+        case "Deferred":
+            return try createDeferredPaymentSummaryItem(item: item)
+        case "Recurring":
+            return try createRecurringPaymentSummaryItem(item: item)
+        case "Immediate":
+            return createImmediatePaymentSummaryItem(item: item)
+        default:
+            throw ApplePayUtilsError.invalidCartSummaryItemType(item["paymentType"] as? String ?? "null")
+        }
     }
     
     public class func buildPaymentSheetApplePayConfig(

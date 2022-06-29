@@ -18,7 +18,7 @@ export type AddressFields =
 export interface ShippingMethod {
   label: string;
   amount: string;
-  type?: CartSummaryItemType;
+  isPending?: boolean;
   identifier: string;
   detail?: string;
 }
@@ -59,7 +59,7 @@ export type CartSummaryItemType = 'Deferred' | 'Immediate' | 'Recurring';
 
 /** Use this type for a payment that occurs in the future, such as a pre-order. */
 export type DeferredCartSummaryItem = {
-  type: 'Deferred';
+  paymentType: 'Deferred';
   /** The unix timestamp of the date, in the future, of the payment. Measured in seconds. */
   deferredDate: number;
   label: string;
@@ -68,7 +68,7 @@ export type DeferredCartSummaryItem = {
 
 /** Use this type for payments that will occur immediately. */
 export type ImmediateCartSummaryItem = {
-  type: 'Immediate';
+  paymentType: 'Immediate';
   /** When creating items for estimates or charges whose final value is not yet known, set this to true. */
   isPending?: boolean;
   label: string;
@@ -77,7 +77,7 @@ export type ImmediateCartSummaryItem = {
 
 /** Use this type for payments that occur more than once, such as a subscription. */
 export type RecurringCartSummaryItem = {
-  type: 'Recurring';
+  paymentType: 'Recurring';
   /** The amount of time – in calendar units such as day, month, or year – that represents a fraction of the total payment interval. For example, if you set the intervalUnit to 'month' and intervalCount to 3, then the payment interval is three months.*/
   intervalUnit: 'minute' | 'hour' | 'day' | 'month' | 'year';
   /** The number of interval units that make up the total payment interval. For example, if you set the intervalUnit to 'month' and intervalCount to 3, then the payment interval is three months.*/

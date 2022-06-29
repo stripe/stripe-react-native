@@ -73,7 +73,7 @@ export default function PaymentSheetWithSetupIntent() {
       allowsDelayedPaymentMethods: true,
       paymentSummaryItems: [
         {
-          type: 'Recurring',
+          paymentType: 'Recurring',
           label: 'This is a subscription',
           amount: '10.00',
           intervalCount: 1,
