@@ -16,17 +16,6 @@ class Mappers {
         }
     }
 
-    class func mapToPaymentSummaryItemType(type: String?) -> PKPaymentSummaryItemType {
-        if let type = type {
-            switch type {
-            case "pending": return PKPaymentSummaryItemType.pending
-            case "final": return PKPaymentSummaryItemType.final
-            default: return PKPaymentSummaryItemType.final
-            }
-        }
-        return PKPaymentSummaryItemType.final
-    }
-
     class func mapFromBankAccountHolderType(_ type: STPBankAccountHolderType?) -> String? {
         if let type = type {
             switch type {
@@ -171,8 +160,12 @@ class Mappers {
                 let amount = NSDecimalNumber(string: method["amount"] as? String ?? "")
                 let identifier = method["identifier"] as! String
                 let detail = method["detail"] as? String ?? ""
-                let type = Mappers.mapToPaymentSummaryItemType(type: method["type"] as? String)
-                let pm = PKShippingMethod.init(label: label, amount: amount, type: type)
+                let pm = PKShippingMethod.init(
+                    label: label,
+                    amount: amount,
+                    type: method["isPending"] as? Bool ?? false
+                        ? PKPaymentSummaryItemType.pending : PKPaymentSummaryItemType.final
+                )
                 pm.identifier = identifier
                 pm.detail = detail
                 shippingMethodsList.append(pm)

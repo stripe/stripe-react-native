@@ -6,14 +6,15 @@
 
 ### Breaking changes
 
-- In `ApplePay.CartSummaryItem`, renamed `type` to `isPending`- (if you had `type: 'pending'`, replace it with `isPending: true`. if `type: 'final'`, just remove it)
-- In `ApplePay.CartSummaryItem`, added a **new** `type` field (different from the one above). This field is now required, and in all cases before this version, should be set to `type: 'Immediate'` (support for types `Deferred` and `Recurring` wasn't available until this release).
+- In `ApplePay.CartSummaryItem`, renamed `type` to `isPending`- (if you had `type: 'pending'`, replace it with `isPending: true`. if `type: 'final'`, either remove it or set `isPending: false`). [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
+  - The same change was made to `ApplePay.ShippingMethod`: renamed `type` to `isPending`.
+- In `ApplePay.CartSummaryItem`, added a **new** `paymentType` field. This field is **required**, and in all pre-existing cases where you created a `CartSummaryItem`, should be set to `paymentType: 'Immediate'` (support for types `Deferred` and `Recurring` wasn't available until this release). [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
 
 ### New features
 
 - Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
 - Added support for iOS 15 `paymentSummaryItems`: `PKDeferredPaymentSummaryItem` and `PKRecurringPaymentSummaryItem`.
-- You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet.
+- You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet. [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
 
 ### Fixes
 
