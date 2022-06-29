@@ -10,7 +10,7 @@ import Stripe
 
 class ApplePayUtils {
     
-    private class func createDeferredPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
+    internal class func createDeferredPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
         let label = item["label"] as? String ?? ""
         let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
         
@@ -29,7 +29,7 @@ class ApplePayUtils {
         }
     }
     
-    private class func createRecurringPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
+    internal class func createRecurringPaymentSummaryItem(item: [String : Any]) throws -> PKPaymentSummaryItem {
         let label = item["label"] as? String ?? ""
         let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
         
@@ -55,7 +55,7 @@ class ApplePayUtils {
         }
     }
     
-    private class func mapToIntervalUnit(intervalString: String?) throws -> NSCalendar.Unit {
+    internal class func mapToIntervalUnit(intervalString: String?) throws -> NSCalendar.Unit {
         switch intervalString {
         case "minute":
             return NSCalendar.Unit.minute
@@ -72,7 +72,7 @@ class ApplePayUtils {
         }
     }
     
-    private class func createImmediatePaymentSummaryItem(item: [String : Any]) -> PKPaymentSummaryItem {
+    internal class func createImmediatePaymentSummaryItem(item: [String : Any]) -> PKPaymentSummaryItem {
         let label = item["label"] as? String ?? ""
         let amount = NSDecimalNumber(string: item["amount"] as? String ?? "")
         
@@ -95,9 +95,9 @@ class ApplePayUtils {
                     case "Recurring":
                         return try createRecurringPaymentSummaryItem(item: item)
                     case "Immediate":
-                        fallthrough
-                    default:
                         return createImmediatePaymentSummaryItem(item: item)
+                    default:
+                        throw ApplePayUtilsError.invalidCartSummaryItemType(item["type"] as? String ?? "null")
                     }
                 }()
                 paymentSummaryItems.append(paymentSummaryItem)
@@ -129,7 +129,8 @@ class ApplePayUtils {
     }
 }
 
-enum ApplePayUtilsError : Error {
+enum ApplePayUtilsError : Error, Equatable {
+    case invalidCartSummaryItemType(String)
     case missingParameter(String, String)
     case invalidTimeInterval(String)
     case missingMerchantId
@@ -139,6 +140,8 @@ enum ApplePayUtilsError : Error {
 extension ApplePayUtilsError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .invalidCartSummaryItemType(let type):
+            return "Failed to ceate Apple Pay summary item. Expected `type` to be one of 'Immediate', 'Recurring', or 'Deferred', but received: \(type)"
         case .missingParameter(let label, let parameter):
             return "Failed to create Apple Pay summary item with label: \(label). The \(parameter) item parameter is required, but none was provided."
         case .invalidTimeInterval(let providedInterval):
