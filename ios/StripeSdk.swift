@@ -89,8 +89,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             do {
                 configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
                     merchantIdentifier: self.merchantIdentifier,
-                    merchantCountryCode: params["merchantCountryCode"] as? String ?? nil,
-                    paymentSummaryItems: params["paymentSummaryItems"] as? [[String : Any]] ?? nil
+                    merchantCountryCode: params["merchantCountryCode"] as? String,
+                    paymentSummaryItems: params["paymentSummaryItems"] as? [[String : Any]]
                 )
             } catch  {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
