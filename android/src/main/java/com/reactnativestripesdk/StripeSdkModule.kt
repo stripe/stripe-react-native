@@ -118,6 +118,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      paymentSheetFragment?.let {
+        // If a payment sheet was already initialized, we want to remove its fragment first
+        activity.supportFragmentManager.beginTransaction().remove(it).commitAllowingStateLoss()
+      }
       paymentSheetFragment = PaymentSheetFragment(reactApplicationContext, promise).also {
         val bundle = toBundleObject(params)
         it.arguments = bundle
