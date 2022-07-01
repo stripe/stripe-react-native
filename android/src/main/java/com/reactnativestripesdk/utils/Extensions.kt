@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.utils
 
 import android.content.Context
 import android.view.View

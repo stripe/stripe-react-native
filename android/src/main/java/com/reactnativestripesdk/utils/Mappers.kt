@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.utils
 
 import android.os.Bundle
 import android.util.Log

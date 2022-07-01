@@ -9,8 +9,8 @@ import android.util.Log
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
-import com.reactnativestripesdk.createError
-import com.reactnativestripesdk.mapError
+import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.mapError
 import com.stripe.android.pushProvisioning.PushProvisioningActivity
 import com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
 

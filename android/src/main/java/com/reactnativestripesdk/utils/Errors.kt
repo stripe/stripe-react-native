@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.utils
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap

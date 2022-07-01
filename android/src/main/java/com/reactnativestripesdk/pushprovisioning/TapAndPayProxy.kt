@@ -5,7 +5,7 @@ import android.util.Log
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.reactnativestripesdk.createError
+import com.reactnativestripesdk.utils.createError
 import com.google.android.gms.tasks.Task
 
 typealias TokenCheckHandler = (isCardInWallet: Boolean, token: WritableMap?, error: WritableMap?) -> Unit

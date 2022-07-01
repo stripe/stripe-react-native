@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
+import com.reactnativestripesdk.utils.*
+import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.createMissingActivityError
 import com.stripe.android.*
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
