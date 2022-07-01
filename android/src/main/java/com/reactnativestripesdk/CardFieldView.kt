@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.FrameLayout
@@ -208,11 +209,9 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
    */
   fun setCountryCode(countryString: String?) {
     if (mCardWidget.postalCodeEnabled) {
-      val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(
-        CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0].country)
-      )
-      mCardWidget.postalCodeRequired = doesCountryUsePostalCode
-      setPostalCodeFilter()
+      val countryCode = CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0].country)
+      mCardWidget.postalCodeRequired = CountryUtils.doesCountryUsePostalCode(countryCode)
+      setPostalCodeFilter(countryCode)
     }
   }
 
@@ -338,11 +337,24 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     })
   }
 
-  private fun setPostalCodeFilter() {
+  private fun setPostalCodeFilter(countryCode: CountryCode) {
     cardInputWidgetBinding.postalCodeEditText.filters = arrayOf(
       *cardInputWidgetBinding.postalCodeEditText.filters,
-      PostalCodeUtilities.createPostalCodeInputFilter()
+      createPostalCodeInputFilter(countryCode)
     )
+  }
+
+  private fun createPostalCodeInputFilter(countryCode: CountryCode): InputFilter {
+    return InputFilter { charSequence, start, end, _, _, _ ->
+      for (i in start until end) {
+        if (countryCode == CountryCode.US && !PostalCodeUtilities.isValidUsPostalCodeCharacter(charSequence[i])) {
+          return@InputFilter ""
+        } else if (!PostalCodeUtilities.isValidGlobalPostalCodeCharacter(charSequence[i])) {
+          return@InputFilter ""
+        }
+      }
+      return@InputFilter null
+    }
   }
 
   override fun requestLayout() {
