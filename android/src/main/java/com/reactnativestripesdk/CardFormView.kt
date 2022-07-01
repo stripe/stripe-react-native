@@ -14,6 +14,8 @@ import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.reactnativestripesdk.utils.*
+import com.reactnativestripesdk.utils.mapCardBrand
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.databinding.CardMultilineWidgetBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
@@ -38,6 +40,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
 
     addView(cardForm)
     setListeners()
+    setPostalCodeFilter()
 
     viewTreeObserver.addOnGlobalLayoutListener { requestLayout() }
   }
@@ -252,6 +255,13 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       currentFocusedField = if (hasFocus) CardInputListener.FocusField.PostalCode.toString() else  null
       onChangeFocus()
     }
+  }
+
+  private fun setPostalCodeFilter() {
+    multilineWidgetBinding.etPostalCode.filters = arrayOf(
+      *multilineWidgetBinding.etPostalCode.filters,
+      PostalCodeUtilities.createPostalCodeInputFilter()
+    )
   }
 
   override fun requestLayout() {

@@ -16,6 +16,8 @@ import com.facebook.react.uimanager.events.EventDispatcher
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.reactnativestripesdk.utils.*
+import com.reactnativestripesdk.utils.mapCardBrand
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.core.model.CountryUtils
 import com.stripe.android.databinding.CardInputWidgetBinding
@@ -25,7 +27,6 @@ import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.CardValidCallback
 import com.stripe.android.view.StripeEditText
-import java.lang.Exception
 
 class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget = CardInputWidget(context)
@@ -205,12 +206,13 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
    * We can reliable assume that setPostalCodeEnabled is called before
    * setCountryCode because of the order of the props in CardField.tsx
    */
-  fun setCountryCode(countryCode: String?) {
+  fun setCountryCode(countryString: String?) {
     if (mCardWidget.postalCodeEnabled) {
       val doesCountryUsePostalCode = CountryUtils.doesCountryUsePostalCode(
-        CountryCode.create(value = countryCode ?: LocaleListCompat.getAdjustedDefault()[0].country)
+        CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0].country)
       )
       mCardWidget.postalCodeRequired = doesCountryUsePostalCode
+      setPostalCodeFilter()
     }
   }
 
@@ -334,6 +336,13 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
         }
       }
     })
+  }
+
+  private fun setPostalCodeFilter() {
+    cardInputWidgetBinding.postalCodeEditText.filters = arrayOf(
+      *cardInputWidgetBinding.postalCodeEditText.filters,
+      PostalCodeUtilities.createPostalCodeInputFilter()
+    )
   }
 
   override fun requestLayout() {
