@@ -124,6 +124,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.Klarna -> "Klarna"
     PaymentMethod.Type.USBankAccount -> "USBankAccount"
     PaymentMethod.Type.PayPal -> "PayPal"
+    PaymentMethod.Type.Affirm -> "Affirm"
     else -> "Unknown"
   }
 }
@@ -152,6 +153,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "Klarna" -> PaymentMethod.Type.Klarna
     "USBankAccount" -> PaymentMethod.Type.USBankAccount
     "PayPal" -> PaymentMethod.Type.PayPal
+    "Affirm" -> PaymentMethod.Type.Affirm
     else -> null
   }
 }

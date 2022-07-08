@@ -276,6 +276,7 @@ class Mappers {
         case STPPaymentMethodType.klarna: return "Klarna"
         case STPPaymentMethodType.USBankAccount: return "USBankAccount"
         case STPPaymentMethodType.payPal: return "PayPal"
+        case STPPaymentMethodType.affirm: return "Affirm"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -305,6 +306,7 @@ class Mappers {
             case "WeChatPay": return STPPaymentMethodType.weChatPay
             case "USBankAccount": return STPPaymentMethodType.USBankAccount
             case "PayPal": return STPPaymentMethodType.payPal
+            case "Affirm": return STPPaymentMethodType.affirm
             default: return STPPaymentMethodType.unknown
             }
         }
