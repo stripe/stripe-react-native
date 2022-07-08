@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-## 0.14.0 - 2022-06-30
-
 ### Breaking changes
 
 - [#1020](https://github.com/stripe/stripe-react-native/pull/1020) Changed some of fields for the `params` object that is supplied to `initPaymentSheet(params)`:
@@ -18,9 +16,18 @@
 
 ### New features
 
-- Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
 - Added support for iOS 15 `paymentSummaryItems`: `PKDeferredPaymentSummaryItem` and `PKRecurringPaymentSummaryItem`.
 - You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet by providing `applePay.paymentSummaryItems` to the `initPaymentSheet` method. [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
+
+### Fixes
+
+## 0.14.0 - 2022-06-30
+
+### Breaking changes
+
+### New features
+
+- Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
 
 ### Fixes
 
