@@ -196,20 +196,24 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
     val paymentMethodData = getMapOrNull(data, "paymentMethodData")
     val factory = PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
+    try {
+      val paymentMethodCreateParams = factory.createPaymentMethodParams(paymentMethodType)
+      stripe.createPaymentMethod(
+        paymentMethodCreateParams,
+        callback = object : ApiResultCallback<PaymentMethod> {
+          override fun onError(e: Exception) {
+            promise.resolve(createError("Failed", e))
+          }
 
-    val paymentMethodCreateParams = factory.createPaymentMethodParams(paymentMethodType)
-    stripe.createPaymentMethod(
-      paymentMethodCreateParams,
-      callback = object : ApiResultCallback<PaymentMethod> {
-        override fun onError(e: Exception) {
-          promise.resolve(createError("Failed", e))
+          override fun onSuccess(result: PaymentMethod) {
+            val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
+            promise.resolve(createResult("paymentMethod", paymentMethodMap))
+          }
         }
-
-        override fun onSuccess(result: PaymentMethod) {
-          val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
-          promise.resolve(createResult("paymentMethod", paymentMethodMap))
-        }
-      })
+      )
+    } catch (error: PaymentMethodCreateParamsException) {
+      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
+    }
   }
 
   @ReactMethod
