@@ -55,10 +55,7 @@ class PaymentSheetFragment(
     }
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
-    val countryCode = arguments?.getString("merchantCountryCode").orEmpty()
-    val currencyCode = arguments?.getString("currencyCode").orEmpty()
-    val googlePayEnabled = arguments?.getBoolean("googlePay")
-    val testEnv = arguments?.getBoolean("testEnv")
+    val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
@@ -133,11 +130,7 @@ class PaymentSheetFragment(
         id = customerId,
         ephemeralKeySecret = customerEphemeralKeySecret
       ) else null,
-      googlePay = if (googlePayEnabled == true) PaymentSheet.GooglePayConfiguration(
-        environment = if (testEnv == true) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
-        countryCode = countryCode,
-        currencyCode = currencyCode
-      ) else null,
+      googlePay = googlePayConfig,
       appearance = appearance
     )
 
@@ -194,6 +187,24 @@ class PaymentSheetFragment(
         setupIntentClientSecret = setupIntentClientSecret!!,
         configuration = paymentSheetConfiguration,
         callback = onFlowControllerConfigure
+      )
+    }
+  }
+
+  companion object {
+    internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
+      if (params == null) {
+        return null
+      }
+
+      val countryCode = params.getString("merchantCountryCode").orEmpty()
+      val currencyCode = params.getString("currencyCode").orEmpty()
+      val testEnv = params.getBoolean("testEnv")
+
+      return PaymentSheet.GooglePayConfiguration(
+        environment = if (testEnv) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
+        countryCode = countryCode,
+        currencyCode = currencyCode
       )
     }
   }

@@ -573,6 +573,53 @@ app.post('/payment-sheet', async (_, res) => {
   });
 });
 
+app.post('/payment-sheet-subscription', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  const customers = await stripe.customers.list();
+
+  // Here, we're getting latest customer only for example purposes.
+  const customer = customers.data[0];
+
+  if (!customer) {
+    return res.send({
+      error: 'You have no customer created',
+    });
+  }
+
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    { customer: customer.id },
+    { apiVersion: '2020-08-27' }
+  );
+  const subscription = await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
+    trial_period_days: 3,
+  });
+
+  if (typeof subscription.pending_setup_intent === 'string') {
+    const setupIntent = await stripe.setupIntents.retrieve(
+      subscription.pending_setup_intent
+    );
+
+    return res.json({
+      setupIntent: setupIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+    });
+  } else {
+    throw new Error(
+      'Expected response type string, but received: ' +
+        typeof subscription.pending_setup_intent
+    );
+  }
+});
+
 app.post('/ephemeral-key', async (req, res) => {
   const { secret_key } = getKeys();
 

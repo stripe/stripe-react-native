@@ -1,33 +1,28 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
-import {
-  useStripe,
-  BillingDetails,
-  Address,
-  PaymentSheetError,
-} from '@stripe/stripe-react-native';
+import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import appearance from './PaymentSheetAppearance';
 
-export default function PaymentsUICompleteScreen() {
+export default function PaymentSheetWithSetupIntent() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
 
   const fetchPaymentSheetParams = async () => {
-    const response = await fetch(`${API_URL}/payment-sheet`, {
+    const response = await fetch(`${API_URL}/payment-sheet-subscription`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    const { paymentIntent, ephemeralKey, customer } = await response.json();
-    setClientSecret(paymentIntent);
+    const { setupIntent, ephemeralKey, customer } = await response.json();
+    setClientSecret(setupIntent);
+
     return {
-      paymentIntent,
+      setupIntent,
       ephemeralKey,
       customer,
     };
@@ -58,40 +53,37 @@ export default function PaymentsUICompleteScreen() {
   };
 
   const initialisePaymentSheet = async () => {
-    const { paymentIntent, ephemeralKey, customer } =
+    const { setupIntent, ephemeralKey, customer } =
       await fetchPaymentSheetParams();
 
-    const address: Address = {
-      city: 'San Francisco',
-      country: 'AT',
-      line1: '510 Townsend St.',
-      line2: '123 Street',
-      postalCode: '94102',
-      state: 'California',
-    };
-    const billingDetails: BillingDetails = {
-      name: 'Jane Doe',
-      email: 'foo@bar.com',
-      phone: '555-555-555',
-      address: address,
-    };
-
+    const startDate = Math.floor(Date.now() / 1000);
+    const endDate = Math.floor((Date.now() + 60 * 60 * 24 * 365 * 1000) / 1000);
     const { error } = await initPaymentSheet({
       customerId: customer,
       customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
-      customFlow: false,
+      setupIntentClientSecret: setupIntent,
       merchantDisplayName: 'Example Inc.',
-      applePay: { merchantCountryCode: 'US' },
+      applePay: {
+        merchantCountryCode: 'US',
+        paymentSummaryItems: [
+          {
+            paymentType: 'Recurring',
+            label: 'This is a subscription',
+            amount: '10.00',
+            intervalCount: 1,
+            intervalUnit: 'month',
+            startDate: startDate,
+            endDate: endDate,
+          },
+        ],
+      },
       style: 'automatic',
       googlePay: {
         merchantCountryCode: 'US',
         testEnv: true,
       },
       returnURL: 'stripe-example://stripe-redirect',
-      defaultBillingDetails: billingDetails,
       allowsDelayedPaymentMethods: true,
-      appearance,
     });
     if (!error) {
       setPaymentSheetEnabled(true);
@@ -116,7 +108,7 @@ export default function PaymentsUICompleteScreen() {
         variant="primary"
         loading={loading}
         disabled={!paymentSheetEnabled}
-        title="Checkout"
+        title="Setup a subscription"
         onPress={openPaymentSheet}
       />
     </PaymentScreen>

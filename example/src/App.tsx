@@ -10,6 +10,7 @@ import { StatusBar } from 'react-native';
 import { colors } from './colors';
 import CreateTokenScreen from './screens/CreateTokenScreen';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
+import PaymentSheetWithSetupIntent from './screens/PaymentSheetWithSetupIntent';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
@@ -48,6 +49,7 @@ export type RootStackParamList = {
   ApplePayScreen: undefined;
   SetupFuturePaymentScreen: undefined;
   PaymentsUICompleteScreen: undefined;
+  PaymentSheetWithSetupIntent: undefined;
   PaymentsUICustomScreen: undefined;
   CVCReCollectionScreen: undefined;
   IdealPaymentScreen: undefined;
@@ -136,6 +138,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentsUICompleteScreen"
             component={PaymentsUICompleteScreen}
+          />
+          <Stack.Screen
+            name="PaymentSheetWithSetupIntent"
+            component={PaymentSheetWithSetupIntent}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"

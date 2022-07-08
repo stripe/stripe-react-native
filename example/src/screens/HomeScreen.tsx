@@ -59,6 +59,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI for Subscription"
+              onPress={() => {
+                navigation.navigate('PaymentSheetWithSetupIntent');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Prebuilt UI (multi-step)"
               onPress={() => {
                 navigation.navigate('PaymentsUICustomScreen');

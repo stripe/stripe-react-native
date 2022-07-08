@@ -75,9 +75,19 @@ export default function ApplePayScreen() {
     },
   ];
   const [cart, setCart] = useState<ApplePay.CartSummaryItem[]>([
-    { label: 'Subtotal', amount: '12.75', type: 'final' },
-    { label: 'Shipping', amount: '0.00', type: 'pending' },
-    { label: 'Total', amount: '12.75', type: 'pending' }, // Last item in array needs to reflect the total.
+    { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
+    {
+      label: 'Shipping',
+      amount: '0.00',
+      isPending: true,
+      paymentType: 'Immediate',
+    },
+    {
+      label: 'Total',
+      amount: '12.75',
+      isPending: true,
+      paymentType: 'Immediate',
+    }, // Last item in array needs to reflect the total.
   ]);
 
   const { presentApplePay, confirmApplePayPayment, isApplePaySupported } =
@@ -85,14 +95,19 @@ export default function ApplePayScreen() {
       onShippingMethodSelected: (shippingMethod, handler) => {
         console.log('shippingMethod', shippingMethod);
         // Update cart summary based on selected shipping method.
-        const updatedCart = [
+        const updatedCart: ApplePay.CartSummaryItem[] = [
           cart[0],
-          { label: shippingMethod.label, amount: shippingMethod.amount },
+          {
+            label: shippingMethod.label,
+            amount: shippingMethod.amount,
+            paymentType: 'Immediate',
+          },
           {
             label: 'Total',
             amount: (
               parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
             ).toFixed(2),
+            paymentType: 'Immediate',
           },
         ];
         setCart(updatedCart);

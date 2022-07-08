@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Breaking changes
+
+- [#1020](https://github.com/stripe/stripe-react-native/pull/1020) Changed some of fields for the `params` object that is supplied to `initPaymentSheet(params)`:
+  - **Changed the `applePay` field**. Previously this field accepted a boolean, now it accepts an object of type `ApplePayParams`, which includes the `merchantCountryCode` field, and a new `paymentSummaryItems` field (see "New features" below).
+  - **Changed the `googlePay` field**. Previously this field accepted a boolean, now it accepts an object of type `GooglePayParams`, which includes the `merchantCountryCode`, `currencyCode`, and `testEnv` fields.
+  - Since the `merchantCountryCode` field now lives under the `applePay` and `googlePay` objects, it has been removed from the base `params` object.
+  - Similarly, since the `currencyCode` and `testEnv` fields now live under the `googlePay` object, they have been removed from the base `params` object .
+- [#1020](https://github.com/stripe/stripe-react-native/pull/1020) In `ApplePay.CartSummaryItem`:
+  - Renamed `type` to `isPending`- (if you had `type: 'pending'`, replace it with `isPending: true`. if `type: 'final'`, either remove it or set `isPending: false`).
+    - The same change was made to `ApplePay.ShippingMethod`: renamed `type` to `isPending`.
+  - Added a **new** `paymentType` field. This field is **required**, and in all pre-existing cases where you created a `CartSummaryItem`, should be set to `paymentType: 'Immediate'` (support for types `Deferred` and `Recurring` wasn't available until this release).
+
+### New features
+
+- Added support for iOS 15 `paymentSummaryItems`: `PKDeferredPaymentSummaryItem` and `PKRecurringPaymentSummaryItem`.
+- You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet by providing `applePay.paymentSummaryItems` to the `initPaymentSheet` method. [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
+
+### Fixes
+
 ## 0.14.0 - 2022-06-30
 
 ### Breaking changes
