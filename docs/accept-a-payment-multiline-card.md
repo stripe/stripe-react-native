@@ -85,7 +85,7 @@ function PaymentScreen() {
       },
       body: JSON.stringify({
         currency: 'usd',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
       }),
     });
     const { clientSecret } = await response.json();

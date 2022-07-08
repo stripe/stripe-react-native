@@ -32,7 +32,7 @@ export default function ACHPaymentScreen() {
       body: JSON.stringify({
         email: email,
         currency: 'usd',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['us_bank_account'],
       }),
     });

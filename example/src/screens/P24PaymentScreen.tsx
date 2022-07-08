@@ -20,7 +20,7 @@ export default function P24PaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'pln',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['p24'],
       }),
     });

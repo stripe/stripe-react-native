@@ -23,7 +23,7 @@ export default function IdealPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'eur',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         request_three_d_secure: 'any',
         payment_method_types: ['ideal'],
       }),

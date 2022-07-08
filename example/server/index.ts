@@ -32,15 +32,20 @@ app.use(
 );
 
 // tslint:disable-next-line: interface-name
-interface Order {
-  items: object[];
-}
+const itemIdToPrice: { [id: string]: number } = {
+  'id-1': 1400,
+  'id-2': 2000,
+  'id-3': 3000,
+  'id-4': 4000,
+  'id-5': 5000,
+};
 
-const calculateOrderAmount = (_order?: Order): number => {
-  // Replace this constant with a calculation of the order's amount.
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client.
-  return 1400;
+const calculateOrderAmount = (itemIds: string[] = ['id-1']): number => {
+  const total = itemIds
+    .map((id) => itemIdToPrice[id])
+    .reduce((prev, curr) => prev + curr, 0);
+
+  return total;
 };
 
 function getKeys(payment_method?: string) {
@@ -97,7 +102,7 @@ app.post(
       client = 'ios',
     }: {
       email: string;
-      items: Order;
+      items: string[];
       currency: string;
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
@@ -159,7 +164,7 @@ app.post(
       request_three_d_secure,
       email,
     }: {
-      items: Order;
+      items: string[];
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
       email: string;
@@ -235,7 +240,7 @@ app.post(
       paymentMethodId?: string;
       paymentIntentId?: string;
       cvcToken?: string;
-      items: Order;
+      items: string[];
       currency: string;
       useStripeSdk: boolean;
       email?: string;
