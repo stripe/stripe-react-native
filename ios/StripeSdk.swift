@@ -85,12 +85,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
 
-        if  params["applePay"] as? Bool == true {
+        if let applePayParams = params["applePay"] as? NSDictionary {
             do {
                 configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
                     merchantIdentifier: self.merchantIdentifier,
-                    merchantCountryCode: params["merchantCountryCode"] as? String,
-                    paymentSummaryItems: params["paymentSummaryItems"] as? [[String : Any]]
+                    merchantCountryCode: applePayParams["merchantCountryCode"] as? String,
+                    paymentSummaryItems: applePayParams["paymentSummaryItems"] as? [[String : Any]]
                 )
             } catch  {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))

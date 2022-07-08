@@ -63,24 +63,27 @@ export default function PaymentSheetWithSetupIntent() {
       customerEphemeralKeySecret: ephemeralKey,
       setupIntentClientSecret: setupIntent,
       merchantDisplayName: 'Example Inc.',
-      applePay: true,
-      merchantCountryCode: 'US',
+      applePay: {
+        merchantCountryCode: 'US',
+        paymentSummaryItems: [
+          {
+            paymentType: 'Recurring',
+            label: 'This is a subscription',
+            amount: '10.00',
+            intervalCount: 1,
+            intervalUnit: 'month',
+            startDate: startDate,
+            endDate: endDate,
+          },
+        ],
+      },
       style: 'automatic',
-      googlePay: true,
-      testEnv: true,
+      googlePay: {
+        merchantCountryCode: 'US',
+        testEnv: true,
+      },
       returnURL: 'stripe-example://stripe-redirect',
       allowsDelayedPaymentMethods: true,
-      paymentSummaryItems: [
-        {
-          paymentType: 'Recurring',
-          label: 'This is a subscription',
-          amount: '10.00',
-          intervalCount: 1,
-          intervalUnit: 'month',
-          startDate: startDate,
-          endDate: endDate,
-        },
-      ],
     });
     if (!error) {
       setPaymentSheetEnabled(true);
