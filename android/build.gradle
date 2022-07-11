@@ -153,8 +153,3 @@ dependencies {
   androidTestImplementation 'androidx.test:runner:1.1.0'
   androidTestImplementation "org.mockito:mockito-core:3.+"
 }
-
-configurations {
-    // We want to include all of our compileOnly libraries in our tests
-    androidTestImplementation.extendsFrom compileOnly
-}
