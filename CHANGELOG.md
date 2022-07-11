@@ -22,6 +22,7 @@
 ### Fixes
 
 - Fixed behavior of `CardField` and `CardForm` on Android to match that on iOS; postal code input no longer accepts characters that are never present in postal codes (anything besides 0-9, a-z, A-Z, hyphens, and whitespace). [#1027](https://github.com/stripe/stripe-react-native/pull/1027).
+- Fixed an issue on older version of React Native where calling `collectBankAccountForSetup` or `collectBankAccountForPayment` and getting a `Canceled` result could cause a crash. [#1037](https://github.com/stripe/stripe-react-native/pull/1037)
 
 ## 0.14.0 - 2022-06-30
 
