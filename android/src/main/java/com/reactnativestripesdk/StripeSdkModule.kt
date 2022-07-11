@@ -570,10 +570,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
     getCurrentActivityOrResolveWithError(promise)?.let {
       PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
-        val result = error ?: run {
+        val result: WritableMap = error ?: run {
           val map = WritableNativeMap()
           map.putBoolean("isInWallet", isCardInWallet)
           map.putMap("token", token)
+          map
         }
         promise.resolve(result)
       }
@@ -640,7 +641,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
       }
     }
-    
+
     val setupCallback = object : ApiResultCallback<SetupIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ErrorType.Failed.toString(), e))
