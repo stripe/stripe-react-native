@@ -148,15 +148,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError(ErrorType.Failed, error as NSError))
             case .success(let paymentSheetFlowController):
                 self.paymentSheetFlowController = paymentSheetFlowController
+                var result: NSDictionary? = nil
                 if let paymentOption = stripeSdk?.paymentSheetFlowController?.paymentOption {
-                    let option: NSDictionary = [
+                    result = [
                         "label": paymentOption.label,
                         "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
                     ]
-                    resolve(Mappers.createResult("paymentOption", option))
-                } else {
-                    resolve(Mappers.createResult("paymentOption", nil))
                 }
+                resolve(Mappers.createResult("paymentOption", result))
             }
         }
 
@@ -288,6 +287,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
         if (paymentMethodType == .payPal) {
             resolve(Errors.createError(ErrorType.Failed, "PayPal is not yet supported through SetupIntents."))
+            return
         }
 
         var err: NSDictionary? = nil
@@ -570,12 +570,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
                 if let createError = error {
                     resolve(Errors.createError(ErrorType.Failed, createError.localizedDescription))
-                    return
-                }
-
-                if let paymentMethod = paymentMethod {
-                    let method = Mappers.mapFromPaymentMethod(paymentMethod)
-                    resolve(Mappers.createResult("paymentMethod", method))
+                } else {
+                    resolve(
+                        Mappers.createResult("paymentMethod", Mappers.mapFromPaymentMethod(paymentMethod))
+                    )
                 }
             }
         } else {
@@ -761,10 +759,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                     if let intent = intent {
                         if (intent.status == .requiresPaymentMethod) {
                             resolve(Errors.createError(ErrorType.Canceled, "Bank account collection was canceled."))
+                        } else {
+                            resolve(
+                                Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: intent))
+                            )
                         }
-                        resolve(
-                            Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: intent))
-                        )
                     } else {
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
@@ -785,10 +784,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                     if let intent = intent {
                         if (intent.status == .requiresPaymentMethod) {
                             resolve(Errors.createError(ErrorType.Canceled, "Bank account collection was canceled."))
+                        } else {
+                            resolve(
+                                Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: intent))
+                            )
                         }
-                        resolve(
-                            Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: intent))
-                        )
                     } else {
                         resolve(Errors.createError(ErrorType.Unknown, "There was unexpected error while collecting bank account information."))
                     }
@@ -889,7 +889,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 } else {
                     resolve(Errors.createError(ErrorType.Unknown, error?.localizedDescription))
                 }
-
                 return
             }
 
@@ -914,7 +913,6 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 } else {
                     resolve(Errors.createError(ErrorType.Unknown, error?.localizedDescription))
                 }
-
                 return
             }
 
