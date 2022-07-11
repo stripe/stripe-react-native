@@ -2,3 +2,7 @@ lib/typescript/example
 **/__tests__
 **/__fixtures__
 **/__mocks__
+
+/android/src/androidTest/
+/android/src/test/
+/android/build/
