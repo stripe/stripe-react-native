@@ -347,9 +347,9 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private fun createPostalCodeInputFilter(countryCode: CountryCode): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       for (i in start until end) {
-        if (countryCode == CountryCode.US && !PostalCodeUtilities.isValidUsPostalCodeCharacter(charSequence[i])) {
-          return@InputFilter ""
-        } else if (!PostalCodeUtilities.isValidGlobalPostalCodeCharacter(charSequence[i])) {
+        val isValidCharacter = (countryCode == CountryCode.US && PostalCodeUtilities.isValidUsPostalCodeCharacter(charSequence[i])) ||
+          (countryCode != CountryCode.US && PostalCodeUtilities.isValidGlobalPostalCodeCharacter(charSequence[i]))
+        if (!isValidCharacter) {
           return@InputFilter ""
         }
       }

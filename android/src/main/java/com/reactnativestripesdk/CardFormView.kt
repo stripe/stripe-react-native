@@ -272,6 +272,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
   private fun createPostalCodeInputFilter(): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       if (cardFormViewBinding.countryLayout.getSelectedCountryCode() == CountryCode.US) {
+        // Rely on CardFormView's built-in US postal code filter
         return@InputFilter null
       }
 
