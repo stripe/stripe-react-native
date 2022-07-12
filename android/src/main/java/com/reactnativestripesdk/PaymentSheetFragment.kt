@@ -71,37 +71,29 @@ class PaymentSheetFragment(
     }
 
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
-      if (paymentOption != null) {
-        val bitmap = getBitmapFromVectorDrawable(context, paymentOption.drawableResourceId)
+      val result = paymentOption?.let {
+        val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
         val imageString = getBase64FromBitmap(bitmap)
         val option: WritableMap = WritableNativeMap()
-        option.putString("label", paymentOption.label)
+        option.putString("label", it.label)
         option.putString("image", imageString)
-        presentPromise?.resolve(createResult("paymentOption", option))
-      } else {
-        presentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled"))
+        createResult("paymentOption", option)
+      } ?: run {
+        createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled")
       }
+      presentPromise?.resolve(result)
     }
 
     val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
       when (paymentResult) {
         is PaymentSheetResult.Canceled -> {
-          val message = "The payment flow has been canceled"
-          confirmPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
-            ?: run {
-              presentPromise?.resolve(createError(PaymentSheetErrorType.Canceled.toString(), message))
-            }
+          resolvePaymentResult(createError(PaymentSheetErrorType.Canceled.toString(), "The payment flow has been canceled"))
         }
         is PaymentSheetResult.Failed -> {
-          confirmPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
-            ?: run {
-              presentPromise?.resolve(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
-            }
+          resolvePaymentResult(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
         }
         is PaymentSheetResult.Completed -> {
-          confirmPromise?.resolve(WritableNativeMap()) ?: run {
-            presentPromise?.resolve(WritableNativeMap())
-          }
+          resolvePaymentResult(WritableNativeMap())
           // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
           (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
         }
@@ -191,6 +183,15 @@ class PaymentSheetFragment(
         configuration = paymentSheetConfiguration,
         callback = onFlowControllerConfigure
       )
+    }
+  }
+
+  private fun resolvePaymentResult(map: WritableMap) {
+    confirmPromise?.let {
+      it.resolve(map)
+      confirmPromise = null
+    } ?: run {
+      presentPromise?.resolve(map)
     }
   }
 

@@ -177,7 +177,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           )
         } else {
           Log.e("StripeReactNative", "FPX payment failed. Promise and/or client secret is not set.")
-          confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "FPX payment failed."))
+          confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "FPX payment failed. Client secret is not set."))
         }
       }
       is AddPaymentMethodActivityStarter.Result.Failure -> {
@@ -551,12 +551,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     getCurrentActivityOrResolveWithError(promise)?.let {
       PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
-        if (error != null) {
-          promise.resolve(createCanAddCardResult(false, "MISSING_CONFIGURATION", null))
-        } else {
+        val result = error?.let {
+          createCanAddCardResult(false, "MISSING_CONFIGURATION", null)
+        } ?: run {
           val status = if (isCardInWallet) "CARD_ALREADY_EXISTS" else null
-          promise.resolve(createCanAddCardResult(!isCardInWallet, status, token))
+          createCanAddCardResult(!isCardInWallet, status, token)
         }
+        promise.resolve(result)
       }
     }
   }
@@ -569,14 +570,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
     getCurrentActivityOrResolveWithError(promise)?.let {
       PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
-        if (error != null) {
-          promise.resolve(error)
-        } else {
-          val result = WritableNativeMap()
-          result.putBoolean("isInWallet", isCardInWallet)
-          result.putMap("token", token)
-          promise.resolve(result)
+        val result: WritableMap = error ?: run {
+          val map = WritableNativeMap()
+          map.putBoolean("isInWallet", isCardInWallet)
+          map.putMap("token", token)
+          map
         }
+        promise.resolve(result)
       }
     }
   }
@@ -641,6 +641,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
       }
     }
+
     val setupCallback = object : ApiResultCallback<SetupIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ErrorType.Failed.toString(), e))
