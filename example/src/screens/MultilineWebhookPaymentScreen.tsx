@@ -31,7 +31,7 @@ export default function MultilineWebhookPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'usd',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         // request_three_d_secure: 'any',
       }),
     });

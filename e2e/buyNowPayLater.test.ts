@@ -26,6 +26,19 @@ describe('Payment scenarios with redirects', () => {
     BasicPaymentScreen.checkStatus();
   });
 
+  it('Affirm payment scenario', function () {
+    this.retries(3);
+
+    homeScreen.goTo('Buy now pay later');
+    homeScreen.goTo('Affirm');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
+
+    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    BasicPaymentScreen.authorize({ pause: 10000 });
+    BasicPaymentScreen.checkStatus();
+  });
+
   it('Opens Klarna webview', function () {
     this.retries(3);
 

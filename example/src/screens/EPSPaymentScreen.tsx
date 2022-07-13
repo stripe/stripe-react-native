@@ -20,7 +20,7 @@ export default function EPSPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'eur',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['eps'],
       }),
     });

@@ -36,6 +36,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Klarna -> createKlarnaParams()
         PaymentMethod.Type.USBankAccount -> createUSBankAccountParams(paymentMethodData)
         PaymentMethod.Type.PayPal -> createPayPalParams()
+        PaymentMethod.Type.Affirm -> createAffirmParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -197,12 +198,18 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAffirmParams(): PaymentMethodCreateParams {
+    return PaymentMethodCreateParams.createAffirm(billingDetailsParams)
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
   fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.USBankAccount -> createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.PayPal -> createPayPalStripeIntentParams(clientSecret, isPaymentIntent)
+        PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
 
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
@@ -344,6 +351,22 @@ class PaymentMethodCreateParamsFactory(
       paymentMethodCreateParams = params,
       clientSecret = clientSecret,
     )
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAffirmStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+    if (!isPaymentIntent) {
+      throw PaymentMethodCreateParamsException("Affirm is not yet supported through SetupIntents.")
+    }
+
+    val params = createAffirmParams()
+
+    return ConfirmPaymentIntentParams
+      .createWithPaymentMethodCreateParams(
+        paymentMethodCreateParams = params,
+        clientSecret = clientSecret,
+        setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
+      )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)

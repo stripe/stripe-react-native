@@ -292,6 +292,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Affirm"
+              onPress={() => {
+                navigation.navigate('AffirmScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 

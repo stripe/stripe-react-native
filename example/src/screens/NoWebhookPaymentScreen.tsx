@@ -16,7 +16,7 @@ export default function NoWebhookPaymentScreen() {
           useStripeSdk: boolean;
           paymentMethodId: string;
           currency: string;
-          items: { id: string }[];
+          items: string[];
         }
       | { paymentIntentId: string }
   ) => {
@@ -81,7 +81,7 @@ export default function NoWebhookPaymentScreen() {
       useStripeSdk: true,
       paymentMethodId: paymentMethod.id,
       currency: 'usd', // mocked data
-      items: [{ id: 'id' }],
+      items: ['id-1'],
     });
 
     const {
