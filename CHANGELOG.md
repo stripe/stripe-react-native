@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+### Fixes
+
+- Reduced the size of the `@stripe/stripe-react-native` by preventing unnecessary files from being published. [#1043](https://github.com/stripe/stripe-react-native/pull/1043)
+
 ## 0.15.0 - 2022-07-14
 
 ### Breaking changes
