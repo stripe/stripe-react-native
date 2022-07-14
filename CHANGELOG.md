@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.0 - 2022-07-14
+
 ### Breaking changes
 
 - [#1020](https://github.com/stripe/stripe-react-native/pull/1020) Changed some of fields for the `params` object that is supplied to `initPaymentSheet(params)`:
