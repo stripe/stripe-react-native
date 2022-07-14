@@ -698,6 +698,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
+  @ReactMethod
+  fun presentFinancialConnectionsSheet(clientSecret: String, promise: Promise) {
+    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, publishableKey, promise, reactApplicationContext)
+  }
+
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
    * provided will be resolved with an error message instructing the user to retry the method.

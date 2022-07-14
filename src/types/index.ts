@@ -25,6 +25,7 @@ import * as AuBECSDebitFormComponent from './components/AuBECSDebitFormComponent
 import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
+import * as FinancialConnections from './FinancialConnections';
 
 export {
   ApplePay,
@@ -39,6 +40,7 @@ export {
   CardFieldInput,
   CardFormView,
   Token,
+  FinancialConnections,
 };
 
 export * from './Errors';

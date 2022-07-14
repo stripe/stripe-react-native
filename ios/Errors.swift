@@ -1,4 +1,5 @@
 import Stripe
+@_spi(STP) import StripeCore
 
 enum ErrorType {
     static let Failed = "Failed"
@@ -83,6 +84,14 @@ class Errors {
         ]
         
         return ["error": value]
+    }
+    
+    class func createError(_ code: String, _ error: Error) -> NSDictionary {
+        if let stripeError = error as? StripeError {
+            return createError(code, NSError.stp_error(from: stripeError))
+        }
+        
+        return createError(code, error as NSError)
     }
 }
 

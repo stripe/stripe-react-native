@@ -35,6 +35,7 @@ import {
   IsCardInWalletResult,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
+  FinancialConnections,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -606,6 +607,29 @@ export const isCardInWallet = async (params: {
     return {
       isInWallet: isInWallet as boolean,
       token: token,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+export const presentFinancialConnectionsSheet = async (
+  clientSecret: string,
+  _params: {} = {}
+): Promise<FinancialConnections.SheetResult> => {
+  try {
+    const { session, error } =
+      await NativeStripeSdk.presentFinancialConnectionsSheet(clientSecret);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      session: session!,
     };
   } catch (error: any) {
     return {

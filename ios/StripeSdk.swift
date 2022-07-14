@@ -1,5 +1,6 @@
 import PassKit
 import Stripe
+import StripeFinancialConnections
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
@@ -1023,7 +1024,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         resolve(["isInWallet": PushProvisioningUtils.passExistsWith(last4: last4)])
     }
-
+    
+    @objc(presentFinancialConnectionsSheet:resolver:rejecter:)
+    func presentFinancialConnectionsSheet(
+        clientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        FinancialConnections.presentSheet(withClientSecret: clientSecret, resolve: resolve)
+    }
+    
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
     }

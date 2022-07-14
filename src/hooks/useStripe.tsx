@@ -30,6 +30,7 @@ import type {
   CollectBankAccountForPaymentResult,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
+  FinancialConnections,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -60,6 +61,7 @@ import {
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
   canAddCardToWallet,
+  presentFinancialConnectionsSheet,
 } from '../functions';
 
 /**
@@ -290,6 +292,16 @@ export function useStripe() {
     []
   );
 
+  const _presentFinancialConnectionsSheet = useCallback(
+    async (
+      clientSecret: string,
+      _params: {} = {}
+    ): Promise<FinancialConnections.SheetResult> => {
+      return presentFinancialConnectionsSheet(clientSecret);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -317,5 +329,6 @@ export function useStripe() {
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
     canAddCardToWallet: _canAddCardToWallet,
+    presentFinancialConnectionsSheet: _presentFinancialConnectionsSheet,
   };
 }

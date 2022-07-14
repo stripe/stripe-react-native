@@ -217,12 +217,11 @@ internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String {
 }
 
 internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
-  val bankAccountMap: WritableMap = WritableNativeMap()
-
   if (bankAccount == null) {
     return null
   }
 
+  val bankAccountMap: WritableMap = WritableNativeMap()
   bankAccountMap.putString("id", bankAccount.id)
   bankAccountMap.putString("bankName", bankAccount.bankName)
   bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
@@ -231,6 +230,8 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
   bankAccountMap.putString("country", bankAccount.countryCode)
   bankAccountMap.putString("routingNumber", bankAccount.routingNumber)
   bankAccountMap.putString("status", mapFromBankAccountStatus(bankAccount.status))
+  bankAccountMap.putString("fingerprint", bankAccount.fingerprint)
+  bankAccountMap.putString("last4", bankAccount.last4)
 
   return bankAccountMap
 }
