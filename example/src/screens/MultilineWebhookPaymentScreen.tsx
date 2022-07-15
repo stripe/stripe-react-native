@@ -105,6 +105,11 @@ export default function MultilineWebhookPaymentScreen() {
         }}
         defaultValues={{
           countryCode: 'US',
+          number: '4242424242424242',
+          postalCode: '98989',
+          expiryMonth: '01',
+          expiryYear: '24',
+          cvc: '123',
         }}
       />
       <View style={styles.row}>

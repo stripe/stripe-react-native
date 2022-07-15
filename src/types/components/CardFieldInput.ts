@@ -73,3 +73,16 @@ export interface Methods {
   blur(): void;
   clear(): void;
 }
+
+export type DefaultCardValues = {
+  /** The month of expiry of the card. This should be a 1 or 2 digit string, e.g. "2" or "12". */
+  expiryMonth?: string;
+  /** The year of expiry of the card. This should be a 2 or 4 digit string, e.g. "25" or "2025". */
+  expiryYear?: string;
+  /** The postal code associated with the card. */
+  postalCode?: string;
+  /** The 16-digit card number (can be just a portion of it). */
+  number?: string;
+  /** The 3-digit cvc of the card. */
+  cvc?: string;
+};

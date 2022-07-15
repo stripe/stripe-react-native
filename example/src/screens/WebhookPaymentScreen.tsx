@@ -104,6 +104,14 @@ export default function WebhookPaymentScreen() {
         }}
         cardStyle={inputStyles}
         style={styles.cardField}
+        countryCode="US"
+        defaultValues={{
+          number: '4242424242424242',
+          postalCode: '98989',
+          expiryMonth: '01',
+          expiryYear: '24',
+          cvc: '123',
+        }}
       />
       <View style={styles.row}>
         <Switch
