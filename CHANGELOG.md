@@ -9,6 +9,8 @@
 ### New features
 
 - `confirmPayment` can now be called with _just_ a client secret (e.g. `await confirmPayment("payment-intent-id")`), in other words the payment method can be excluded. If the payment method is excluded, it is assumed by the SDK that you have attached the payment method on the server-side during payment intent creation. [#1084](https://github.com/stripe/stripe-react-native/pull/1084)
+- Added `defaultValues` prop to `CardField`. You can now programmatically set the card number, CVC, expiry date, and postal code. [#1044](https://github.com/stripe/stripe-react-native/pull/1044)
+- Expanded `CardForm`'s `defaultValues` prop. You can now programmatically set the card number, CVC, expiry date, and postal code. [#1044](https://github.com/stripe/stripe-react-native/pull/1044)
 
 ### Fixes
 
