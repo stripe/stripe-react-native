@@ -54,6 +54,11 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
 
   fun setDefaultValues(defaults: ReadableMap) {
     setCountry(defaults.getString("countryCode"))
+    cardFormViewBinding.postalCode.setText(defaults.getString("postalCode"))
+    cardFormViewBinding.cardMultilineWidget.cvcEditText.setText(defaults.getString("cvc"))
+    cardFormViewBinding.cardMultilineWidget.cardNumberEditText.setText(defaults.getString("number"))
+    val expiryDate = defaults.getString("expiryMonth")?.plus("/").plus(defaults.getString("expiryYear"))
+    cardFormViewBinding.cardMultilineWidget.expiryDateEditText.setText(expiryDate)
   }
 
   private fun setCountry(countryString: String?) {

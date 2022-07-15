@@ -175,6 +175,14 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     }
   }
 
+  fun setDefaultValues(defaults: ReadableMap) {
+    cardInputWidgetBinding.cvcEditText.setText(defaults.getString("cvc"))
+    cardInputWidgetBinding.cardNumberEditText.setText(defaults.getString("number"))
+    cardInputWidgetBinding.postalCodeEditText.setText(defaults.getString("postalCode"))
+    val expiryDate = defaults.getString("expiryMonth")?.plus("/").plus(defaults.getString("expiryYear"))
+    cardInputWidgetBinding.expiryDateEditText.setText(expiryDate)
+  }
+
   fun setPlaceHolders(value: ReadableMap) {
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
