@@ -313,13 +313,13 @@ internal fun mapFromCard(card: Card?): WritableMap? {
 
 internal fun mapFromToken(token: Token): WritableMap {
   val tokenMap: WritableMap = WritableNativeMap()
-
   tokenMap.putString("id", token.id)
   tokenMap.putString("created", token.created.time.toString())
   tokenMap.putString("type", mapTokenType(token.type))
   tokenMap.putBoolean("livemode", token.livemode)
   tokenMap.putMap("bankAccount", mapFromBankAccount(token.bankAccount))
   tokenMap.putMap("card", mapFromCard(token.card))
+  tokenMap.putBoolean("used", token.used)
 
   return tokenMap
 }

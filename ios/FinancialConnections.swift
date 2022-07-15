@@ -38,9 +38,11 @@ class FinancialConnections {
         let tokenResult: NSDictionary = [
             "bankAccount": FinancialConnections.mapFromBankAccount(bankAccount: token?.bankAccount) ?? NSNull(),
             "livemode": token?.livemode ?? NSNull(),
-            "clientIp": token?.clientIp ?? NSNull(),
             "id": token?.id ?? NSNull(),
             "used": token?.used ?? NSNull(),
+            "type": Mappers.mapFromTokenType(STPTokenType.bankAccount) ?? NSNull(),
+            "created": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
+            "card": NSNull()
         ]
         
         let sessionResult: NSDictionary = [
@@ -64,16 +66,14 @@ class FinancialConnections {
         return [
             "id": bankAccount.id,
             "accountHolderName": bankAccount.accountHolderName ?? NSNull(),
-            "allowsDebits": bankAccount.allowsDebits ?? NSNull(), // TODO: iOS Only
+            "accountHolderType": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
             "bankName": bankAccount.bankName ?? NSNull(),
             "country": bankAccount.country,
             "currency": bankAccount.currency,
-            "debitAgreementShownAndAccepted": bankAccount.debitAgreementShownAndAccepted ?? NSNull(), // TODO: iOS Only
-            "debitAgreementType": bankAccount.debitAgreementType ?? NSNull(), // TODO: iOS Only
             "fingerprint": bankAccount.fingerprint ?? NSNull(),
             "last4": bankAccount.last4,
             "routingNumber": bankAccount.routingNumber ?? NSNull(),
-            "status": Mappers.mapFromBankAccountStatus(status),
+            "status": bankAccount.status.prefix(1).uppercased() + bankAccount.status.lowercased().dropFirst(), // stripe-ios returns a string, not STPBankAccountStatus
         ]
     }
     
@@ -84,8 +84,8 @@ class FinancialConnections {
         
         for account in accounts.data {
             result.append([
-                "livemode": account.livemode,
                 "id": account.id,
+                "livemode": account.livemode,
                 "displayName": account.displayName ?? NSNull(),
                 "status": account.status.rawValue,
                 "institutionName": account.institutionName,
@@ -113,9 +113,9 @@ class FinancialConnections {
         return [
             "asOf": balance.asOf,
             "type": balance.type.rawValue,
-            // TODO: Protected by internal on iOS only
-//          "cash": balance.cash?.available, Protected by internal
-//          "credit": balance.credit?.used, Protected by internal
+//             TODO: Protected by internal on iOS only. PR is out to fix
+            "cash": NSNull(),   // balance.cash?.available
+            "credit": NSNull(), // balance.credit?.used
             "current": balance.current,
         ]
     }

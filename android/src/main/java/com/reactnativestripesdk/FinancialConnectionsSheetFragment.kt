@@ -123,10 +123,6 @@ class FinancialConnectionsSheetFragment : Fragment() {
       map.putString("subcategory", account.subcategory.value)
       map.putArray("permissions", (account.permissions?.map { permission -> permission.value })?.toReadableArray())
       map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> type.value }).toReadableArray())
-      // TODO Android only :
-      account.ownership
-      account.ownershipRefresh
-      // end TODO
       results.pushMap(map)
     }
     return results
