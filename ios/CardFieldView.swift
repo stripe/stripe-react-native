@@ -24,6 +24,13 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc var defaultValues: NSDictionary? {
+        didSet {
+            cardField.cardParams = Mappers.mapToCardParams(defaultValues)
+            cardField.postalCode = defaultValues?["postalCode"] as? String
+        }
+    }
+    
     @objc var placeholders: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholders["number"] as? String {
