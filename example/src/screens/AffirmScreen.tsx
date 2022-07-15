@@ -52,7 +52,6 @@ export default function AffirmScreen() {
       name: 'John Doe',
     };
 
-    console.log('hi');
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       paymentMethodType: 'Affirm',
       paymentMethodData: {
