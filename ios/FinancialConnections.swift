@@ -37,9 +37,9 @@ class FinancialConnections {
     ) -> NSDictionary {
         let tokenResult: NSDictionary = [
             "bankAccount": FinancialConnections.mapFromBankAccount(bankAccount: token?.bankAccount) ?? NSNull(),
-            "livemode": token?.livemode ?? NSNull(),
+            "livemode": token?.livemode ?? false,
             "id": token?.id ?? NSNull(),
-            "used": token?.used ?? NSNull(),
+            "used": token?.used ?? false,
             "type": Mappers.mapFromTokenType(STPTokenType.bankAccount) ?? NSNull(),
             "created": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
             "card": NSNull()

@@ -35,8 +35,15 @@ export interface BankAccount {
   currency: string;
   country: string;
   routingNumber: string;
-  status: 'Errored' | 'New' | 'Validated' | 'VerificationFailed' | 'Verified';
+  status: BankAccountStatus;
 }
+
+export type BankAccountStatus =
+  | 'Errored'
+  | 'New'
+  | 'Validated'
+  | 'VerificationFailed'
+  | 'Verified';
 
 export interface Card {
   country: string;
