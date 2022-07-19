@@ -33,11 +33,11 @@ export interface Props extends AccessibilityProps {
   autofocus?: boolean;
   testID?: string;
 
-  /** All styles except backgroundColor are Android only */
+  /** All styles except backgroundColor, cursorColor, borderColor, and borderRadius are Android only */
   cardStyle?: CardFormView.Styles;
   // isUserInteractionEnabled?: boolean;
 
-  // TODO: will make it public when android-sdk allows for this
+  // TODO: will make it public when iOS SDK allows for this
   // postalCodeEnabled?: boolean;
 
   /** Android only */
