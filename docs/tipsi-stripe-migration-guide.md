@@ -194,7 +194,7 @@ _after_:
 ```tsx
 // ...
 const { paymentMethod, error } = await createPaymentMethod({
-  type: 'Card',
+  paymentMethodType: 'Card',
   billingDetails: {
     email: 'email@stripe.com',
   }, // optional
