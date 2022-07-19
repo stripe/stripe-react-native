@@ -195,6 +195,11 @@ _after_:
 // ...
 const { paymentMethod, error } = await createPaymentMethod({
   paymentMethodType: 'Card',
+  paymentMethodData: {
+    billingDetails: {
+      email: 'email@stripe.com',
+    }, // optional
+  },
   billingDetails: {
     email: 'email@stripe.com',
   }, // optional
