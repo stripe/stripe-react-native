@@ -29,13 +29,22 @@ export interface Result {
 }
 
 export interface BankAccount {
-  bankName: string;
-  accountHolderName: string;
-  accountHolderType: BankAcccountHolderType;
-  currency: string;
-  country: string;
-  routingNumber: string;
-  status: BankAccountStatus;
+  /** A unique ID for this bank account. */
+  id: string;
+  /** The name of the associated bank. */
+  bankName: string | null;
+  /** The name of the person or business that owns the bank account. This field is required when attaching the bank account to a Customer object. */
+  accountHolderName: string | null;
+  /** The type of entity that holds the account. */
+  accountHolderType: BankAcccountHolderType | null;
+  /** The currency the bank account is in. This must be a country/currency pairing that Stripe supports. */
+  currency: string | null;
+  /** The country in which the bank account is located. */
+  country: string | null;
+  routingNumber: string | null;
+  status: BankAccountStatus | null;
+  fingerprint: string | null;
+  last4: string | null;
 }
 
 export type BankAccountStatus =

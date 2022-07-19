@@ -2,27 +2,24 @@ import { useState } from 'react';
 import { useStripe } from './useStripe';
 
 /**
- * TODO
+ * React hook for accessing functions on the Financial Connections sheet.
+ *
+ * Retuns the `collectBankAccountToken` function, and a `loading` boolean that you can use
+ * to display loading state (like showing a spinner).
  */
 export function useFinancialConnectionsSheet() {
   const [loading, setLoading] = useState(false);
-  const { presentFinancialConnectionsSheet } = useStripe();
+  const { collectBankAccountToken } = useStripe();
 
-  const _presentFinancialConnectionsSheet = async (
-    clientSecret: string,
-    _params: {} = {}
-  ) => {
+  const _collectBankAccountToken = async (clientSecret: string) => {
     setLoading(true);
-    const result = await presentFinancialConnectionsSheet(
-      clientSecret,
-      _params
-    );
+    const result = await collectBankAccountToken(clientSecret);
     setLoading(false);
     return result;
   };
 
   return {
-    presentFinancialConnectionsSheet: _presentFinancialConnectionsSheet,
+    collectBankAccountToken: _collectBankAccountToken,
     loading,
   };
 }

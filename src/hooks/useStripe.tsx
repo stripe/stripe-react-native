@@ -61,7 +61,7 @@ import {
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
   canAddCardToWallet,
-  presentFinancialConnectionsSheet,
+  collectBankAccountToken,
 } from '../functions';
 
 /**
@@ -292,12 +292,9 @@ export function useStripe() {
     []
   );
 
-  const _presentFinancialConnectionsSheet = useCallback(
-    async (
-      clientSecret: string,
-      _params: {} = {}
-    ): Promise<FinancialConnections.SheetResult> => {
-      return presentFinancialConnectionsSheet(clientSecret);
+  const _collectBankAccountToken = useCallback(
+    async (clientSecret: string): Promise<FinancialConnections.SheetResult> => {
+      return collectBankAccountToken(clientSecret);
     },
     []
   );
@@ -329,6 +326,6 @@ export function useStripe() {
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
     canAddCardToWallet: _canAddCardToWallet,
-    presentFinancialConnectionsSheet: _presentFinancialConnectionsSheet,
+    collectBankAccountToken: _collectBankAccountToken,
   };
 }

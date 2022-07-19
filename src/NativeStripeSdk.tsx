@@ -97,7 +97,7 @@ type NativeStripeSdkType = {
   isCardInWallet(params: {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;
-  presentFinancialConnectionsSheet(
+  collectBankAccountToken(
     clientSecret: string
   ): Promise<FinancialConnections.SheetResult>;
 };

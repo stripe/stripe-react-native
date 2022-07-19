@@ -5,10 +5,9 @@ import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
-export default function PayPalScreen() {
+export default function CollectBankAccountScreen() {
   const [clientSecret, setClientSecret] = React.useState('');
-  const { loading, presentFinancialConnectionsSheet } =
-    useFinancialConnectionsSheet();
+  const { loading, collectBankAccountToken } = useFinancialConnectionsSheet();
 
   React.useEffect(() => {
     fetchPaymentIntentClientSecret();
@@ -20,10 +19,6 @@ export default function PayPalScreen() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        currency: 'eur',
-        payment_method_types: ['paypal'],
-      }),
     });
     const { clientSecret: secret, error } = await response.json();
     if (error) {
@@ -34,18 +29,22 @@ export default function PayPalScreen() {
   };
 
   const handleCollectPress = async () => {
-    const { session, error } = await presentFinancialConnectionsSheet(
+    const { session, token, error } = await collectBankAccountToken(
       clientSecret
     );
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
       console.log('Payment confirmation error', error);
-    } else if (session) {
+    } else {
       Alert.alert('Success');
       console.log(
         'Successfully obtained session: ',
         JSON.stringify(session, null, 2)
+      );
+      console.log(
+        'Successfully obtained token: ',
+        JSON.stringify(token, null, 2)
       );
     }
   };

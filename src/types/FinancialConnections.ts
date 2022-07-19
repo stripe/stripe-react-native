@@ -1,41 +1,47 @@
-import type {
-  Type,
-  Card,
-  BankAcccountHolderType,
-  BankAccountStatus,
-} from './Token';
+import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
 export type SheetResult =
   | {
+      /** The updated Financial Connections Session object. */
       session: Session;
+      /** The Stripe token object associated with the bank account. */
+      token: BankAccountToken;
       error?: undefined;
     }
   | {
       session?: undefined;
+      token?: undefined;
       error: StripeError<FinancialConnectionsSheetError>;
     };
 
 export type Session = {
+  /** A unique ID for this session. */
   id: string;
+  /** The client secret for this session. */
   clientSecret: string;
+  /** Has the value true if the object exists in live mode or the value false if the object exists in test mode. */
   livemode: boolean;
-  bankAccountToken: BankAccountToken;
+  /** The accounts that were collected as part of this Session. */
   accounts: Array<Account>;
 };
 
 export type BankAccountToken = {
+  /** Bank account details. */
   bankAccount: BankAccount | null;
+  /** Has the value true if the object exists in live mode or the value false if the object exists in test mode. */
   livemode: boolean;
+  /** A unique ID for this token. */
   id: string | null;
   used: boolean;
-  type: Type | null;
+  type: 'BankAccount';
   created: number | null;
-  card: Card | null;
 };
 
 export type Account = {
+  /** A unique ID for this Financial Connections Account. */
   id: string;
+  /** Has the value true if the object exists in live mode or the value false if the object exists in test mode. */
   livemode: boolean;
   displayName: string | null;
   status: 'active' | 'inactive' | 'disconnected';
@@ -46,6 +52,7 @@ export type Account = {
   balanceRefresh: BalanceRefresh | null;
   category: 'cash' | 'credit' | 'investment' | 'other';
   subcategory: Subcategory;
+  /** Permissions requested for accounts collected during this session. */
   permissions: Array<Permission> | null;
   supportedPaymentMethodTypes: 'us_bank_account' | 'link';
 };
@@ -64,19 +71,6 @@ export type Permission =
   | 'payment_method'
   | 'transactions'
   | 'account_numbers';
-
-export type BankAccount = {
-  id: string;
-  accountHolderName: string | null;
-  accountHolderType: BankAcccountHolderType | null;
-  bankName: string | null;
-  country: string;
-  currency: string;
-  fingerprint: string | null;
-  last4: string;
-  routingNumber: string | null;
-  status: BankAccountStatus;
-};
 
 export type Balance = {
   asOf: number;

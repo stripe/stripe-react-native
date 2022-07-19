@@ -1025,8 +1025,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolve(["isInWallet": PushProvisioningUtils.passExistsWith(last4: last4)])
     }
     
-    @objc(presentFinancialConnectionsSheet:resolver:rejecter:)
-    func presentFinancialConnectionsSheet(
+    @objc(collectBankAccountToken:resolver:rejecter:)
+    func collectBankAccountToken(
         clientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock

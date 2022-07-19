@@ -132,7 +132,7 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 RCT_EXTERN_METHOD(
-                  presentFinancialConnectionsSheet:(NSString *)clientSecret
+                  collectBankAccountToken:(NSString *)clientSecret
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

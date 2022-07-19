@@ -42,18 +42,16 @@ class FinancialConnections {
             "used": token?.used ?? false,
             "type": Mappers.mapFromTokenType(STPTokenType.bankAccount) ?? NSNull(),
             "created": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
-            "card": NSNull()
         ]
         
         let sessionResult: NSDictionary = [
             "id": session.id,
             "clientSecret": session.clientSecret,
             "livemode": session.livemode,
-            "bankAccountToken": tokenResult,
             "accounts": FinancialConnections.mapFromAccountsList(accounts: session.accounts)
         ]
 
-        return [ "session": sessionResult ]
+        return [ "session": sessionResult , "token": tokenResult,]
     }
     
     internal static func mapFromBankAccount(
@@ -62,17 +60,17 @@ class FinancialConnections {
         guard let bankAccount = bankAccount else {
             return nil
         }
-
+        // return Mappers.mapFromBankAccount(bankAccount) Cannot use this since it expects an STPBankAccount
         return [
             "id": bankAccount.id,
+            "bankName": bankAccount.bankName ?? NSNull(),
             "accountHolderName": bankAccount.accountHolderName ?? NSNull(),
             "accountHolderType": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
-            "bankName": bankAccount.bankName ?? NSNull(),
-            "country": bankAccount.country,
             "currency": bankAccount.currency,
+            "country": bankAccount.country,
+            "routingNumber": bankAccount.routingNumber ?? NSNull(),
             "fingerprint": bankAccount.fingerprint ?? NSNull(),
             "last4": bankAccount.last4,
-            "routingNumber": bankAccount.routingNumber ?? NSNull(),
             "status": bankAccount.status.prefix(1).uppercased() + bankAccount.status.lowercased().dropFirst(), // stripe-ios returns a string, not STPBankAccountStatus
         ]
     }

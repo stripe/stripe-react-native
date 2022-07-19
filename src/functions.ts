@@ -568,6 +568,35 @@ export const collectBankAccountForSetup = async (
   }
 };
 
+/**
+ * Use collectBankAccountToken in the [Add a Financial Connections Account to a US Custom Connect](https://stripe.com/docs/financial-connections/connect-payouts) account flow.
+ * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account for payouts.
+ * @param clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @returns A promise that resolves to an object containing either `session` and `token` fields, or an error field.
+ */
+export const collectBankAccountToken = async (
+  clientSecret: string
+): Promise<FinancialConnections.SheetResult> => {
+  try {
+    const { session, token, error } =
+      await NativeStripeSdk.collectBankAccountToken(clientSecret);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      session: session!,
+      token: token!,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
 export const canAddCardToWallet = async (
   params: CanAddCardToWalletParams
 ): Promise<CanAddCardToWalletResult> => {
@@ -607,29 +636,6 @@ export const isCardInWallet = async (params: {
     return {
       isInWallet: isInWallet as boolean,
       token: token,
-    };
-  } catch (error: any) {
-    return {
-      error: createError(error),
-    };
-  }
-};
-
-export const presentFinancialConnectionsSheet = async (
-  clientSecret: string,
-  _params: {} = {}
-): Promise<FinancialConnections.SheetResult> => {
-  try {
-    const { session, error } =
-      await NativeStripeSdk.presentFinancialConnectionsSheet(clientSecret);
-
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {
-      session: session!,
     };
   } catch (error: any) {
     return {

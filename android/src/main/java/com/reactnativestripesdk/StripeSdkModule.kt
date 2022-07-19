@@ -699,7 +699,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun presentFinancialConnectionsSheet(clientSecret: String, promise: Promise) {
+  fun collectBankAccountToken(clientSecret: String, promise: Promise) {
     FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, publishableKey, promise, reactApplicationContext)
   }
 

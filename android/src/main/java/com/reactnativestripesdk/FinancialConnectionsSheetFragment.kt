@@ -58,7 +58,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
       }
       is FinancialConnectionsSheetForTokenResult.Completed -> {
         promise.resolve(
-          createResult("session", mapFromResult(result))
+          mapFromResult(result)
         )
         (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
       }
@@ -97,13 +97,20 @@ class FinancialConnectionsSheetFragment : Fragment() {
   }
 
   private fun mapFromResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
-    val map = WritableNativeMap()
-    map.putString("id", result.financialConnectionsSession.id)
-    map.putString("clientSecret", result.financialConnectionsSession.clientSecret)
-    map.putBoolean("livemode", result.financialConnectionsSession.livemode)
-    map.putMap("bankAccountToken", mapFromToken(result.token))
-    map.putArray("accounts", mapFromAccountsList(result.financialConnectionsSession.accounts))
-    return map
+    val session = WritableNativeMap()
+    session.putString("id", result.financialConnectionsSession.id)
+    session.putString("clientSecret", result.financialConnectionsSession.clientSecret)
+    session.putBoolean("livemode", result.financialConnectionsSession.livemode)
+    session.putArray("accounts", mapFromAccountsList(result.financialConnectionsSession.accounts))
+
+    return WritableNativeMap().also {
+      it.putMap("session", session)
+      val token = mapFromToken(result.token).also { token ->
+        // We don't want to include the "card" property since we know this is a bank account token
+        (token as? Map<*, *>)?.minus("card")
+      }
+      it.putMap("token", token)
+    }
   }
 
   private fun mapFromAccountsList(accounts: FinancialConnectionsAccountList): ReadableArray {
