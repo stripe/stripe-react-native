@@ -4,11 +4,11 @@
 
 ### Breaking changes
 
-- The `<GooglePayButton />` component no longer automatically uses the dark version when the device is in Dark Mode. Instead, you should detect Dark Mode in your app and use the `<GooglePayButton />` `type` prop appropriately (according to [Google's guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines)).
+- The `<GooglePayButton />` component no longer automatically uses the dark version when the device is in Dark Mode. Instead, you should detect Dark Mode in your app and use the `<GooglePayButton />` `type` prop appropriately (according to [Google's guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines)). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
 
 ### New features
 
-- Added support for `pay_dark` and `standard_dark` to the `<GooglePayButton />` component's `type` prop. This allows you to display the [dark Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines).
+- Added support for `pay_dark` and `standard_dark` to the `<GooglePayButton />` component's `type` prop. This allows you to display the [dark Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
 - Added support for `borderColor`, `borderRadius`, and `cursorColor` to `CardForm`'s `cardStyle` prop on iOS (already exists on Android). [#1048](https://github.com/stripe/stripe-react-native/pull/1048)
 
 ### Fixes
