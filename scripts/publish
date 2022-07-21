@@ -54,10 +54,11 @@ EOF
   if which hub | grep -q "not found"; then
     create_github_release_fallback "$release_notes"
   else
-    echo "Creating GitHub release"
+    local current_version=${version_and_date% -*}
+    echo "Creating GitHub release for tag: v$current_version"
     echo ""
     echo -n "    "
-    hub release create -em "$release_notes" "$(echo "$version_and_date" | cut -d '-' -f 1)"
+    hub release create -em "$release_notes" "v$current_version"
   fi
 
   send_release_email "$version_and_date" "$release_notes"
