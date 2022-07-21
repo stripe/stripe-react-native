@@ -4,9 +4,9 @@
     android:focusable="true"
     android:layout_width="match_parent"
     android:layout_height="48sp"
-    android:background="@drawable/googlepay_button_no_shadow_background"
-    android:paddingTop="2sp"
-    android:contentDescription="@string/googlepay_button_content_description">
+    android:background="@drawable/googlepay_button_background_dark"
+    android:padding="2sp"
+    android:contentDescription="@string/pay_with_googlepay_button_content_description">
     <LinearLayout
         android:duplicateParentState="true"
         android:layout_width="match_parent"
@@ -20,12 +20,12 @@
             android:layout_height="0dp"
             android:scaleType="fitCenter"
             android:duplicateParentState="true"
-            android:src="@drawable/googlepay_button_content"/>
+            android:src="@drawable/pay_with_googlepay_button_content_dark"/>
     </LinearLayout>
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:duplicateParentState="true"
-        android:src="@drawable/googlepay_button_overlay"/>
+        android:src="@drawable/googlepay_button_overlay_dark"/>
 </RelativeLayout>
