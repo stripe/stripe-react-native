@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- The `<GooglePayButton />` component no longer automatically uses the dark version when the device is in Dark Mode. Instead, you should detect Dark Mode in your app and use the `<GooglePayButton />` `type` prop appropriately (according to [Google's guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines)). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
+- The `<GooglePayButton />` component no longer overrides the `type` to use the dark mode version when the device is in Dark Mode. If you set the `type` value, it will always be respected. If you don't set the `type` value, it will match the system's theme (`standard_shadow` when in Light Mode, and `standard_dark` when in Dark Mode). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
 
 ### New features
 
