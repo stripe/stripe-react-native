@@ -83,7 +83,11 @@ class CollectBankAccountLauncherFragment(
           promise.resolve(createError(ErrorType.Failed.toString(), result.error))
         }
       }
-      (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+      removeFragment(context)
     }
+  }
+
+  companion object {
+    const val TAG = "collect_bank_account_launcher_fragment"
   }
 }

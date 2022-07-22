@@ -121,17 +121,14 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun initPaymentSheet(params: ReadableMap, promise: Promise) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      paymentSheetFragment?.let {
-        // If a payment sheet was already initialized, we want to remove its fragment first
-        activity.supportFragmentManager.beginTransaction().remove(it).commitAllowingStateLoss()
-      }
+      paymentSheetFragment?.removeFragment(reactApplicationContext)
       paymentSheetFragment = PaymentSheetFragment(reactApplicationContext, promise).also {
         val bundle = toBundleObject(params)
         it.arguments = bundle
       }
       try {
         activity.supportFragmentManager.beginTransaction()
-          .add(paymentSheetFragment!!, "payment_sheet_launch_fragment")
+          .add(paymentSheetFragment!!, PaymentSheetFragment.TAG)
           .commit()
       } catch (error: IllegalStateException) {
         promise.resolve(createError(ErrorType.Failed.toString(), error.message))
@@ -480,7 +477,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     getCurrentActivityOrResolveWithError(promise)?.let {
       try {
         it.supportFragmentManager.beginTransaction()
-          .add(fragment, "google_pay_support_fragment")
+          .add(fragment, GooglePayPaymentMethodLauncherFragment.TAG)
           .commit()
       } catch (error: IllegalStateException) {
         promise.resolve(createError(ErrorType.Failed.toString(), error.message))
@@ -498,7 +495,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     getCurrentActivityOrResolveWithError(promise)?.let {
       try {
         it.supportFragmentManager.beginTransaction()
-          .add(googlePayFragment!!, "google_pay_launch_fragment")
+          .add(googlePayFragment!!, GooglePayFragment.TAG)
           .commit()
       } catch (error: IllegalStateException) {
         promise.resolve(createError(ErrorType.Failed.toString(), error.message))
@@ -614,7 +611,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     getCurrentActivityOrResolveWithError(promise)?.let {
       try {
         it.supportFragmentManager.beginTransaction()
-          .add(fragment, "collect_bank_account_launcher_fragment")
+          .add(fragment, CollectBankAccountLauncherFragment.TAG)
           .commit()
       } catch (error: IllegalStateException) {
         promise.resolve(createError(ErrorType.Failed.toString(), error.message))
