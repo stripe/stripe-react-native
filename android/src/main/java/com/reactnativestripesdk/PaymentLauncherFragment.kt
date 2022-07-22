@@ -110,7 +110,7 @@ class PaymentLauncherFragment(
       (context.currentActivity as? AppCompatActivity)?.let {
         try {
           it.supportFragmentManager.beginTransaction()
-            .add(fragment, "payment_launcher_fragment")
+            .add(fragment, TAG)
             .commit()
         } catch (error: IllegalStateException) {
           promise.resolve(createError(ErrorType.Failed.toString(), error.message))
@@ -119,6 +119,8 @@ class PaymentLauncherFragment(
         promise.resolve(createMissingActivityError())
       }
     }
+
+    const val TAG = "payment_launcher_fragment"
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -154,25 +156,21 @@ class PaymentLauncherFragment(
         }
         is PaymentResult.Canceled -> {
           promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
-          cleanup()
+          removeFragment(context)
         }
         is PaymentResult.Failed -> {
           promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable))
-          cleanup()
+          removeFragment(context)
         }
       }
     }
-  }
-
-  private fun cleanup() {
-    (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
   }
 
   private fun retrieveSetupIntent(clientSecret: String, stripeAccountId: String?) {
     stripe.retrieveSetupIntent(clientSecret, stripeAccountId, object : ApiResultCallback<SetupIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
-        cleanup()
+        removeFragment(context)
       }
 
       override fun onSuccess(result: SetupIntent) {
@@ -204,7 +202,7 @@ class PaymentLauncherFragment(
             promise.resolve(createError(ConfirmSetupIntentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
           }
         }
-        cleanup()
+        removeFragment(context)
       }
     })
   }
@@ -213,7 +211,7 @@ class PaymentLauncherFragment(
     stripe.retrievePaymentIntent(clientSecret, stripeAccountId, object : ApiResultCallback<PaymentIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
-        cleanup()
+        removeFragment(context)
       }
 
       override fun onSuccess(result: PaymentIntent) {
@@ -245,7 +243,7 @@ class PaymentLauncherFragment(
             promise.resolve(createError(ConfirmPaymentErrorType.Unknown.toString(), "unhandled error: ${result.status}"))
           }
         }
-        cleanup()
+        removeFragment(context)
       }
     })
   }

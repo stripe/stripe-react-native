@@ -95,7 +95,7 @@ class PaymentSheetFragment(
         is PaymentSheetResult.Completed -> {
           resolvePaymentResult(WritableNativeMap())
           // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
-          (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+          removeFragment(context)
         }
       }
     }
@@ -196,6 +196,8 @@ class PaymentSheetFragment(
   }
 
   companion object {
+    const val TAG = "payment_sheet_launch_fragment"
+
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null) {
         return null
