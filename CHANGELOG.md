@@ -9,6 +9,7 @@
 ### Fixes
 
 - Fixed an issue where Android apps could crash with the error `IllegalStateException: Cannot remove Fragment attached to a different FragmentManager`. [#1054](https://github.com/stripe/stripe-react-native/pull/1054)
+- Bumped Gradle from 4.2.2 to 7.1.1. [#1058](https://github.com/stripe/stripe-react-native/pull/1058)
 
 ## 0.16.0 - 2022-07-22
 
