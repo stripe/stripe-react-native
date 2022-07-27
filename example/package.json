@@ -15,8 +15,8 @@
     "@react-native-picker/picker": "^2.4.1",
     "@react-navigation/native": "^6.0.10",
     "@react-navigation/native-stack": "^6.6.1",
-    "react": "17.0.2",
-    "react-native": "0.68.1",
+    "react": "18.0.0",
+    "react-native": "0.69.2",
     "react-native-config": "^1.4.5",
     "react-native-safe-area-context": "^4.2.4",
     "react-native-screens": "^3.13.1"
@@ -31,12 +31,12 @@
     "@types/node": "^14.14.7",
     "@types/react": "^17.0.38",
     "@types/react-native": "^0.66.15",
-    "@types/react-test-renderer": "^17.0.1",
     "babel-plugin-module-resolver": "^4.0.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "metro-react-native-babel-preset": "^0.67.0",
+    "metro-react-native-babel-preset": "^0.70.3",
     "path": "^0.12.7",
+    "react-test-renderer": "18.0.0",
     "stripe": "^8.161.0",
     "typescript": "^4.5.5"
   }
