@@ -6,6 +6,7 @@ export interface Result {
   id: string;
   clientSecret: string;
   lastSetupError: LastPaymentError | null;
+  /** The UNIX timestamp (in milliseconds) of the date this Setup Intent was created. */
   created: string | null;
   livemode: boolean;
   paymentMethodId: string | null;

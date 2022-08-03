@@ -88,7 +88,7 @@ class FinancialConnections {
                 "status": account.status.rawValue,
                 "institutionName": account.institutionName,
                 "last4": account.last4 ?? NSNull(),
-                "created": account.created,
+                "created": account.created * 1000,
                 "balance": FinancialConnections.mapFromAccountBalance(balance: account.balance) ?? NSNull(),
                 "balanceRefresh": FinancialConnections.mapFromAccountBalanceRefresh(balanceRefresh: account.balanceRefresh) ?? NSNull(),
                 "category": account.category.rawValue,
@@ -109,11 +109,11 @@ class FinancialConnections {
         }
     
         return [
-            "asOf": balance.asOf,
+            "asOf": balance.asOf * 1000,
             "type": balance.type.rawValue,
 //             TODO: Protected by internal on iOS only. PR is out to fix
-            "cash": NSNull(),   // balance.cash?.available
-            "credit": NSNull(), // balance.credit?.used
+            "cash": ["available": NSNull()],   // balance.cash?.available
+            "credit": ["used": NSNull()], // balance.credit?.used
             "current": balance.current,
         ]
     }
@@ -127,7 +127,7 @@ class FinancialConnections {
     
         return [
             "status": balanceRefresh.status.rawValue,
-            "lastAttemptedAt": balanceRefresh.lastAttemptedAt,
+            "lastAttemptedAt": balanceRefresh.lastAttemptedAt * 1000,
         ]
     }
 }

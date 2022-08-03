@@ -123,7 +123,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
       map.putString("status", account.status.value)
       map.putString("institutionName", account.institutionName)
       map.putString("last4", account.last4)
-      map.putInt("created", account.created)
+      map.putInt("created", account.created * 1000)
       map.putMap("balance", mapFromAccountBalance(account.balance))
       map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
       map.putString("category", account.category.value)
@@ -140,11 +140,17 @@ class FinancialConnectionsSheetFragment : Fragment() {
       return null
     }
     val map = WritableNativeMap()
-    map.putInt("asOf", balance.asOf)
+    map.putInt("asOf", balance.asOf * 1000)
     map.putString("type", balance.type.value)
     map.putMap("current", balance.current as ReadableMap)
-    map.putMap("cash", balance.cash?.available as ReadableMap)
-    map.putMap("credit", balance.credit?.used as ReadableMap)
+    WritableNativeMap().also {
+      it.putMap("available", balance.cash?.available as ReadableMap)
+      map.putMap("cash", it)
+    }
+    WritableNativeMap().also {
+      it.putMap("used", balance.credit?.used as ReadableMap)
+      map.putMap("credit", it)
+    }
     return map
   }
 
@@ -154,7 +160,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
     val map = WritableNativeMap()
     map.putString("status", balanceRefresh.status?.name) // TODO check if this is the correct or if we need raw value
-    map.putInt("lastAttemptedAt", balanceRefresh.lastAttemptedAt)
+    map.putInt("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000)
     return map
   }
 }

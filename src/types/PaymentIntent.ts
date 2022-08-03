@@ -7,6 +7,7 @@ import type * as PaymentMethod from './PaymentMethod';
 export interface Result {
   id: string;
   amount: number;
+  /** The UNIX timestamp (in milliseconds) of the date this PaymentIntent was created. */
   created: string;
   currency: string;
   status: Status;
