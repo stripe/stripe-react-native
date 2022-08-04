@@ -138,76 +138,76 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
   }
 
-  private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
-    return WritableNativeMap().also {
-      it.putMap("session", mapFromSession(result.financialConnectionsSession))
-      it.putMap("token", mapFromToken(result.token))
-    }
-  }
-
-  private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
-    val session = WritableNativeMap()
-    session.putString("id", financialConnectionsSession.id)
-    session.putString("clientSecret", financialConnectionsSession.clientSecret)
-    session.putBoolean("livemode", financialConnectionsSession.livemode)
-    session.putArray("accounts", mapFromAccountsList(financialConnectionsSession.accounts))
-    return WritableNativeMap().also {
-      it.putMap("session", session)
-    }
-  }
-
-  private fun mapFromAccountsList(accounts: FinancialConnectionsAccountList): ReadableArray {
-    val results: WritableArray = Arguments.createArray()
-    for (account in accounts.data) {
-      val map = WritableNativeMap()
-      map.putString("id", account.id)
-      map.putBoolean("livemode", account.livemode)
-      map.putString("displayName", account.displayName)
-      map.putString("status", mapFromStatus(account.status))
-      map.putString("institutionName", account.institutionName)
-      map.putString("last4", account.last4)
-      map.putDouble("created", account.created * 1000.0)
-      map.putMap("balance", mapFromAccountBalance(account.balance))
-      map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
-      map.putString("category", mapFromCategory(account.category))
-      map.putString("subcategory", mapFromSubcategory(account.subcategory))
-      map.putArray("permissions", (account.permissions?.map { permission -> mapFromPermission(permission) })?.toReadableArray())
-      map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> mapFromSupportedPaymentMethodTypes(type) }).toReadableArray())
-      results.pushMap(map)
-    }
-    return results
-  }
-
-  private fun mapFromAccountBalance(balance: Balance?): WritableMap? {
-    if (balance == null) {
-      return null
-    }
-    val map = WritableNativeMap()
-    map.putDouble("asOf", balance.asOf * 1000.0)
-    map.putString("type", mapFromBalanceType(balance.type))
-    map.putMap("current", balance.current as ReadableMap)
-    WritableNativeMap().also {
-      it.putMap("available", balance.cash?.available as ReadableMap)
-      map.putMap("cash", it)
-    }
-    WritableNativeMap().also {
-      it.putMap("used", balance.credit?.used as ReadableMap)
-      map.putMap("credit", it)
-    }
-    return map
-  }
-
-  private fun mapFromAccountBalanceRefresh(balanceRefresh: BalanceRefresh?): WritableMap? {
-    if (balanceRefresh == null) {
-      return null
-    }
-    val map = WritableNativeMap()
-    map.putString("status", mapFromBalanceRefreshStatus(balanceRefresh.status))
-    map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000.0)
-    return map
-  }
-
   companion object {
+    private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
+      return WritableNativeMap().also {
+        it.putMap("session", mapFromSession(result.financialConnectionsSession))
+        it.putMap("token", mapFromToken(result.token))
+      }
+    }
+
+    private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
+      val session = WritableNativeMap()
+      session.putString("id", financialConnectionsSession.id)
+      session.putString("clientSecret", financialConnectionsSession.clientSecret)
+      session.putBoolean("livemode", financialConnectionsSession.livemode)
+      session.putArray("accounts", mapFromAccountsList(financialConnectionsSession.accounts))
+      return WritableNativeMap().also {
+        it.putMap("session", session)
+      }
+    }
+
+    private fun mapFromAccountsList(accounts: FinancialConnectionsAccountList): ReadableArray {
+      val results: WritableArray = Arguments.createArray()
+      for (account in accounts.data) {
+        val map = WritableNativeMap()
+        map.putString("id", account.id)
+        map.putBoolean("livemode", account.livemode)
+        map.putString("displayName", account.displayName)
+        map.putString("status", mapFromStatus(account.status))
+        map.putString("institutionName", account.institutionName)
+        map.putString("last4", account.last4)
+        map.putDouble("created", account.created * 1000.0)
+        map.putMap("balance", mapFromAccountBalance(account.balance))
+        map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
+        map.putString("category", mapFromCategory(account.category))
+        map.putString("subcategory", mapFromSubcategory(account.subcategory))
+        map.putArray("permissions", (account.permissions?.map { permission -> mapFromPermission(permission) })?.toReadableArray())
+        map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> mapFromSupportedPaymentMethodTypes(type) }).toReadableArray())
+        results.pushMap(map)
+      }
+      return results
+    }
+
+    private fun mapFromAccountBalance(balance: Balance?): WritableMap? {
+      if (balance == null) {
+        return null
+      }
+      val map = WritableNativeMap()
+      map.putDouble("asOf", balance.asOf * 1000.0)
+      map.putString("type", mapFromBalanceType(balance.type))
+      map.putMap("current", balance.current as ReadableMap)
+      WritableNativeMap().also {
+        it.putMap("available", balance.cash?.available as ReadableMap)
+        map.putMap("cash", it)
+      }
+      WritableNativeMap().also {
+        it.putMap("used", balance.credit?.used as ReadableMap)
+        map.putMap("credit", it)
+      }
+      return map
+    }
+
+    private fun mapFromAccountBalanceRefresh(balanceRefresh: BalanceRefresh?): WritableMap? {
+      if (balanceRefresh == null) {
+        return null
+      }
+      val map = WritableNativeMap()
+      map.putString("status", mapFromBalanceRefreshStatus(balanceRefresh.status))
+      map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000.0)
+      return map
+    }
+
     private fun mapFromStatus(status: FinancialConnectionsAccount.Status): String {
       return when (status) {
         FinancialConnectionsAccount.Status.ACTIVE -> "active"
@@ -274,8 +274,6 @@ class FinancialConnectionsSheetFragment : Fragment() {
         null -> "null"
       }
     }
-
-
   }
 }
 
