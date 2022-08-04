@@ -17,10 +17,7 @@ import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResultCallback
-import com.stripe.android.financialconnections.model.Balance
-import com.stripe.android.financialconnections.model.BalanceRefresh
-import com.stripe.android.financialconnections.model.FinancialConnectionsAccountList
-import com.stripe.android.financialconnections.model.FinancialConnectionsSession
+import com.stripe.android.financialconnections.model.*
 
 class FinancialConnectionsSheetFragment : Fragment() {
   enum class Mode {
@@ -144,11 +141,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
   private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
     return WritableNativeMap().also {
       it.putMap("session", mapFromSession(result.financialConnectionsSession))
-      val token = mapFromToken(result.token).also { token ->
-        // We don't want to include the "card" property since we know this is a bank account token
-        (token as? Map<*, *>)?.minus("card")
-      }
-      it.putMap("token", token)
+      it.putMap("token", mapFromToken(result.token))
     }
   }
 
@@ -170,16 +163,16 @@ class FinancialConnectionsSheetFragment : Fragment() {
       map.putString("id", account.id)
       map.putBoolean("livemode", account.livemode)
       map.putString("displayName", account.displayName)
-      map.putString("status", account.status.value)
+      map.putString("status", mapFromStatus(account.status))
       map.putString("institutionName", account.institutionName)
       map.putString("last4", account.last4)
       map.putDouble("created", account.created * 1000.0)
       map.putMap("balance", mapFromAccountBalance(account.balance))
       map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
-      map.putString("category", account.category.value)
-      map.putString("subcategory", account.subcategory.value)
-      map.putArray("permissions", (account.permissions?.map { permission -> permission.value })?.toReadableArray())
-      map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> type.value }).toReadableArray())
+      map.putString("category", mapFromCategory(account.category))
+      map.putString("subcategory", mapFromSubcategory(account.subcategory))
+      map.putArray("permissions", (account.permissions?.map { permission -> mapFromPermission(permission) })?.toReadableArray())
+      map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> mapFromSupportedPaymentMethodTypes(type) }).toReadableArray())
       results.pushMap(map)
     }
     return results
@@ -191,7 +184,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
     val map = WritableNativeMap()
     map.putDouble("asOf", balance.asOf * 1000.0)
-    map.putString("type", balance.type.value)
+    map.putString("type", mapFromBalanceType(balance.type))
     map.putMap("current", balance.current as ReadableMap)
     WritableNativeMap().also {
       it.putMap("available", balance.cash?.available as ReadableMap)
@@ -209,9 +202,80 @@ class FinancialConnectionsSheetFragment : Fragment() {
       return null
     }
     val map = WritableNativeMap()
-    map.putString("status", balanceRefresh.status?.name) // TODO check if this is the correct or if we need raw value
+    map.putString("status", mapFromBalanceRefreshStatus(balanceRefresh.status))
     map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000.0)
     return map
+  }
+
+  companion object {
+    private fun mapFromStatus(status: FinancialConnectionsAccount.Status): String {
+      return when (status) {
+        FinancialConnectionsAccount.Status.ACTIVE -> "active"
+        FinancialConnectionsAccount.Status.DISCONNECTED -> "disconnected"
+        FinancialConnectionsAccount.Status.INACTIVE -> "inactive"
+        FinancialConnectionsAccount.Status.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromCategory(category: FinancialConnectionsAccount.Category): String {
+      return when (category) {
+        FinancialConnectionsAccount.Category.CASH -> "cash"
+        FinancialConnectionsAccount.Category.CREDIT -> "credit"
+        FinancialConnectionsAccount.Category.INVESTMENT -> "investment"
+        FinancialConnectionsAccount.Category.OTHER -> "other"
+        FinancialConnectionsAccount.Category.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromSubcategory(subcategory: FinancialConnectionsAccount.Subcategory): String {
+      return when (subcategory) {
+        FinancialConnectionsAccount.Subcategory.CHECKING -> "checking"
+        FinancialConnectionsAccount.Subcategory.CREDIT_CARD -> "creditCard"
+        FinancialConnectionsAccount.Subcategory.LINE_OF_CREDIT -> "lineOfCredit"
+        FinancialConnectionsAccount.Subcategory.MORTGAGE -> "mortgage"
+        FinancialConnectionsAccount.Subcategory.OTHER -> "other"
+        FinancialConnectionsAccount.Subcategory.SAVINGS -> "savings"
+        FinancialConnectionsAccount.Subcategory.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromPermission(permission: FinancialConnectionsAccount.Permissions): String {
+      return when (permission) {
+        FinancialConnectionsAccount.Permissions.PAYMENT_METHOD -> "paymentMethod"
+        FinancialConnectionsAccount.Permissions.BALANCES -> "balances"
+        FinancialConnectionsAccount.Permissions.OWNERSHIP -> "ownership"
+        FinancialConnectionsAccount.Permissions.TRANSACTIONS -> "transactions"
+        FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String {
+      return when (type) {
+        FinancialConnectionsAccount.SupportedPaymentMethodTypes.US_BANK_ACCOUNT -> "usBankAccount"
+        FinancialConnectionsAccount.SupportedPaymentMethodTypes.LINK -> "link"
+        FinancialConnectionsAccount.SupportedPaymentMethodTypes.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromBalanceType(type: Balance.Type): String {
+      return when (type) {
+        Balance.Type.CASH -> "cash"
+        Balance.Type.CREDIT -> "credit"
+        Balance.Type.UNKNOWN -> "unparsable"
+      }
+    }
+
+    private fun mapFromBalanceRefreshStatus(status: BalanceRefresh.BalanceRefreshStatus?): String {
+      return when (status) {
+        BalanceRefresh.BalanceRefreshStatus.SUCCEEDED -> "succeeded"
+        BalanceRefresh.BalanceRefreshStatus.FAILED -> "failed"
+        BalanceRefresh.BalanceRefreshStatus.PENDING -> "pending"
+        BalanceRefresh.BalanceRefreshStatus.UNKNOWN -> "unparsable"
+        null -> "null"
+      }
+    }
+
+
   }
 }
 

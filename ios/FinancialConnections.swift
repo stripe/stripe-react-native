@@ -21,7 +21,7 @@ class FinancialConnections {
               completion: { result in
                   switch result {
                   case .completed(session: let session):
-                      resolve([ "session": FinancialConnections.mapFromSessionResult(session) ])
+                      resolve([ "session": mapFromSessionResult(session) ])
                   case .canceled:
                       resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
                   case .failed(let error):
@@ -43,8 +43,8 @@ class FinancialConnections {
                   case .completed(result: let result):
                       resolve(
                         [
-                            "session": FinancialConnections.mapFromSessionResult(result.session),
-                            "token"  : FinancialConnections.mapFromTokenResult(result.token)
+                            "session": mapFromSessionResult(result.session),
+                            "token"  : mapFromTokenResult(result.token)
                         ]
                       )
                   case .canceled:
@@ -63,7 +63,7 @@ class FinancialConnections {
             "id": session.id,
             "clientSecret": session.clientSecret,
             "livemode": session.livemode,
-            "accounts": FinancialConnections.mapFromAccountsList(accounts: session.accounts)
+            "accounts": mapFromAccountsList(accounts: session.accounts)
         ]
     }
     
@@ -71,7 +71,7 @@ class FinancialConnections {
         _ token: StripeAPI.BankAccountToken?
     ) -> NSDictionary {
         return [
-            "bankAccount": FinancialConnections.mapFromBankAccount(bankAccount: token?.bankAccount) ?? NSNull(),
+            "bankAccount": mapFromBankAccount(bankAccount: token?.bankAccount) ?? NSNull(),
             "livemode": token?.livemode ?? false,
             "id": token?.id ?? NSNull(),
             "used": token?.used ?? false,
@@ -111,22 +111,22 @@ class FinancialConnections {
                 "id": account.id,
                 "livemode": account.livemode,
                 "displayName": account.displayName ?? NSNull(),
-                "status": account.status.rawValue,
+                "status": mapFromStatus(account.status),
                 "institutionName": account.institutionName,
                 "last4": account.last4 ?? NSNull(),
                 "created": account.created * 1000,
-                "balance": FinancialConnections.mapFromAccountBalance(balance: account.balance) ?? NSNull(),
-                "balanceRefresh": FinancialConnections.mapFromAccountBalanceRefresh(balanceRefresh: account.balanceRefresh) ?? NSNull(),
-                "category": account.category.rawValue,
-                "subcategory": account.subcategory.rawValue,
-                "permissions": account.permissions?.map { $0.rawValue } ?? NSNull(),
-                "supportedPaymentMethodTypes": account.supportedPaymentMethodTypes.map { $0.rawValue },
+                "balance": mapFromAccountBalance(balance: account.balance) ?? NSNull(),
+                "balanceRefresh": mapFromAccountBalanceRefresh(balanceRefresh: account.balanceRefresh) ?? NSNull(),
+                "category": mapFromCategory(account.category),
+                "subcategory": mapFromSubcategory(account.subcategory),
+                "permissions": account.permissions?.map { mapFromPermission($0) } ?? NSNull(),
+                "supportedPaymentMethodTypes": account.supportedPaymentMethodTypes.map { mapFromSupportedPaymentMethodTypes($0) },
             ])
         }
         
         return result
     }
-    
+
     internal static func mapFromAccountBalance(
         balance: StripeAPI.FinancialConnectionsAccount.Balance?
     ) -> NSDictionary? {
@@ -136,7 +136,7 @@ class FinancialConnections {
     
         return [
             "asOf": balance.asOf * 1000,
-            "type": balance.type.rawValue,
+            "type": mapFromBalanceType(balance.type),
 //             TODO: Protected by internal on iOS only. PR is out to fix
             "cash": ["available": NSNull()],   // balance.cash?.available
             "credit": ["used": NSNull()], // balance.credit?.used
@@ -152,8 +152,107 @@ class FinancialConnections {
         }
     
         return [
-            "status": balanceRefresh.status.rawValue,
+            "status": mapFromBalanceRefreshStatus(balanceRefresh.status),
             "lastAttemptedAt": balanceRefresh.lastAttemptedAt * 1000,
         ]
+    }
+    
+    internal static func mapFromStatus( _ status: StripeAPI.FinancialConnectionsAccount.Status) -> String {
+        switch status {
+        case .active:
+            return "active"
+        case .inactive:
+            return "inactive"
+        case .disconnected:
+            return "disconnected"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromCategory( _ category: StripeAPI.FinancialConnectionsAccount.Category) -> String {
+        switch category {
+        case .cash:
+            return "cash"
+        case .credit:
+            return "credit"
+        case .investment:
+            return "investment"
+        case .other:
+            return "other"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromSubcategory( _ subcategory: StripeAPI.FinancialConnectionsAccount.Subcategory) -> String {
+        switch subcategory {
+        case .savings:
+            return "savings"
+        case .mortgage:
+            return "mortgage"
+        case .checking:
+            return "checking"
+        case .creditCard:
+            return "creditCard"
+        case .lineOfCredit:
+            return "lineOfCredit"
+        case .other:
+            return "other"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromPermission( _ permission: StripeAPI.FinancialConnectionsAccount.Permissions) -> String {
+        switch permission {
+        case .transactions:
+            return "transactions"
+        case .ownership:
+            return "ownership"
+        case .paymentMethod:
+            return "paymentMethod"
+        case .accountNumbers:
+            return "accountNumbers"
+        case .balances:
+            return "balances"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromSupportedPaymentMethodTypes( _ type: StripeAPI.FinancialConnectionsAccount.SupportedPaymentMethodTypes) -> String {
+        switch type {
+        case .usBankAccount:
+            return "usBankAccount"
+        case .link:
+            return "link"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromBalanceType( _ type: StripeAPI.FinancialConnectionsAccount.Balance.ModelType) -> String {
+        switch type {
+        case .cash:
+            return "cash"
+        case .credit:
+            return "credit"
+        case .unparsable:
+            return "unparsable"
+        }
+    }
+    
+    internal static func mapFromBalanceRefreshStatus( _ status: StripeAPI.FinancialConnectionsAccount.BalanceRefresh.Status) -> String {
+        switch status {
+        case .succeeded:
+            return "succeeded"
+        case .pending:
+            return "pending"
+        case .failed:
+            return "failed"
+        case .unparsable:
+            return "unparsable"
+        }
     }
 }
