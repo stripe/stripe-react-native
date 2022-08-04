@@ -75,7 +75,7 @@ export default function CollectBankAccountScreen() {
       <Button
         variant="primary"
         onPress={handleCollectTokenPress}
-        title="Collect"
+        title="Collect token"
         accessibilityLabel="Collect token"
         loading={loading}
         disabled={!clientSecret}
@@ -83,7 +83,7 @@ export default function CollectBankAccountScreen() {
       <Button
         variant="primary"
         onPress={handleCollectSessionPress}
-        title="Collect"
+        title="Collect session"
         accessibilityLabel="Collect session"
         loading={loading}
         disabled={!clientSecret}
