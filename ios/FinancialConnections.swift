@@ -11,17 +11,17 @@ import Stripe
 
 class FinancialConnections {
     
-    internal static func presentSheet(
+    internal static func present(
         withClientSecret: String,
         resolve: @escaping RCTPromiseResolveBlock
     ) -> Void {
         DispatchQueue.main.async {
-            FinancialConnectionsSheet(financialConnectionsSessionClientSecret: withClientSecret).presentForToken(
+            FinancialConnectionsSheet(financialConnectionsSessionClientSecret: withClientSecret).present(
               from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
               completion: { result in
                   switch result {
-                  case .completed(result: let result):
-                      resolve(FinancialConnections.buildResult(session: result.session, token: result.token))
+                  case .completed(session: let session):
+                      resolve([ "session": FinancialConnections.mapFromSessionResult(session) ])
                   case .canceled:
                       resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
                   case .failed(let error):
@@ -31,11 +31,46 @@ class FinancialConnections {
         }
     }
     
-    internal static func buildResult(
-        session: StripeAPI.FinancialConnectionsSession,
-        token: StripeAPI.BankAccountToken?
+    internal static func presentForToken(
+        withClientSecret: String,
+        resolve: @escaping RCTPromiseResolveBlock
+    ) -> Void {
+        DispatchQueue.main.async {
+            FinancialConnectionsSheet(financialConnectionsSessionClientSecret: withClientSecret).presentForToken(
+              from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+              completion: { result in
+                  switch result {
+                  case .completed(result: let result):
+                      resolve(
+                        [
+                            "session": FinancialConnections.mapFromSessionResult(result.session),
+                            "token"  : FinancialConnections.mapFromTokenResult(result.token)
+                        ]
+                      )
+                  case .canceled:
+                      resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
+                  case .failed(let error):
+                      resolve(Errors.createError(ErrorType.Failed, error))
+                  }
+            })
+        }
+    }
+    
+    internal static func mapFromSessionResult(
+        _ session: StripeAPI.FinancialConnectionsSession
     ) -> NSDictionary {
-        let tokenResult: NSDictionary = [
+        return [
+            "id": session.id,
+            "clientSecret": session.clientSecret,
+            "livemode": session.livemode,
+            "accounts": FinancialConnections.mapFromAccountsList(accounts: session.accounts)
+        ]
+    }
+    
+    internal static func mapFromTokenResult(
+        _ token: StripeAPI.BankAccountToken?
+    ) -> NSDictionary {
+        return [
             "bankAccount": FinancialConnections.mapFromBankAccount(bankAccount: token?.bankAccount) ?? NSNull(),
             "livemode": token?.livemode ?? false,
             "id": token?.id ?? NSNull(),
@@ -43,15 +78,6 @@ class FinancialConnections {
             "type": Mappers.mapFromTokenType(STPTokenType.bankAccount) ?? NSNull(),
             "created": NSNull(), // Doesn't exist on StripeAPI.BankAccountToken
         ]
-        
-        let sessionResult: NSDictionary = [
-            "id": session.id,
-            "clientSecret": session.clientSecret,
-            "livemode": session.livemode,
-            "accounts": FinancialConnections.mapFromAccountsList(accounts: session.accounts)
-        ]
-
-        return [ "session": sessionResult , "token": tokenResult,]
     }
     
     internal static func mapFromBankAccount(

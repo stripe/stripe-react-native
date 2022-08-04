@@ -15,15 +15,23 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromToken
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
+import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
+import com.stripe.android.financialconnections.FinancialConnectionsSheetResultCallback
 import com.stripe.android.financialconnections.model.Balance
 import com.stripe.android.financialconnections.model.BalanceRefresh
 import com.stripe.android.financialconnections.model.FinancialConnectionsAccountList
+import com.stripe.android.financialconnections.model.FinancialConnectionsSession
 
 class FinancialConnectionsSheetFragment : Fragment() {
+  enum class Mode {
+    ForToken, ForSession
+  }
+
   private lateinit var promise: Promise
   private lateinit var context: ReactApplicationContext
   private lateinit var clientSecret: String
   private lateinit var publishableKey: String
+  private lateinit var mode: Mode
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -33,15 +41,30 @@ class FinancialConnectionsSheetFragment : Fragment() {
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    FinancialConnectionsSheet.createForBankAccountToken(
-      this,
-      ::onFinancialConnectionsSheetForTokenResult
-    ).present(
-      configuration = FinancialConnectionsSheet.Configuration(
-        financialConnectionsSessionClientSecret = clientSecret,
-        publishableKey = publishableKey
-      )
-    )
+    when (mode) {
+      Mode.ForToken -> {
+        FinancialConnectionsSheet.createForBankAccountToken(
+          this,
+          ::onFinancialConnectionsSheetForTokenResult
+        ).present(
+          configuration = FinancialConnectionsSheet.Configuration(
+            financialConnectionsSessionClientSecret = clientSecret,
+            publishableKey = publishableKey
+          )
+        )
+      }
+      Mode.ForSession -> {
+        FinancialConnectionsSheet.create(
+          this,
+          ::onFinancialConnectionsSheetForDataResult
+        ).present(
+          configuration = FinancialConnectionsSheet.Configuration(
+            financialConnectionsSessionClientSecret = clientSecret,
+            publishableKey = publishableKey
+          )
+        )
+      }
+    }
   }
 
   private fun onFinancialConnectionsSheetForTokenResult(result: FinancialConnectionsSheetForTokenResult) {
@@ -57,19 +80,41 @@ class FinancialConnectionsSheetFragment : Fragment() {
         )
       }
       is FinancialConnectionsSheetForTokenResult.Completed -> {
+        promise.resolve(createTokenResult(result))
+        (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+      }
+    }
+  }
+
+  private fun onFinancialConnectionsSheetForDataResult(result: FinancialConnectionsSheetResult) {
+    when(result) {
+      is FinancialConnectionsSheetResult.Canceled -> {
         promise.resolve(
-          mapFromResult(result)
+          createError(ErrorType.Canceled.toString(), "The flow has been canceled")
+        )
+      }
+      is FinancialConnectionsSheetResult.Failed -> {
+        promise.resolve(
+          createError(ErrorType.Failed.toString(), result.error)
+        )
+      }
+      is FinancialConnectionsSheetResult.Completed -> {
+        promise.resolve(
+            WritableNativeMap().also {
+              it.putMap("session", mapFromSession(result.financialConnectionsSession))
+            }
         )
         (context.currentActivity as? AppCompatActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
       }
     }
   }
 
-  fun presentFinancialConnectionsSheet(clientSecret: String, publishableKey: String, promise: Promise, context: ReactApplicationContext) {
+  fun presentFinancialConnectionsSheet(clientSecret: String, mode: Mode, publishableKey: String, promise: Promise, context: ReactApplicationContext) {
     this.promise = promise
     this.context = context
     this.clientSecret = clientSecret
     this.publishableKey = publishableKey
+    this.mode = mode
 
     (context.currentActivity as? AppCompatActivity)?.let {
       attemptToCleanupPreviousFragment(it)
@@ -96,20 +141,25 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
   }
 
-  private fun mapFromResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
-    val session = WritableNativeMap()
-    session.putString("id", result.financialConnectionsSession.id)
-    session.putString("clientSecret", result.financialConnectionsSession.clientSecret)
-    session.putBoolean("livemode", result.financialConnectionsSession.livemode)
-    session.putArray("accounts", mapFromAccountsList(result.financialConnectionsSession.accounts))
-
+  private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
     return WritableNativeMap().also {
-      it.putMap("session", session)
+      it.putMap("session", mapFromSession(result.financialConnectionsSession))
       val token = mapFromToken(result.token).also { token ->
         // We don't want to include the "card" property since we know this is a bank account token
         (token as? Map<*, *>)?.minus("card")
       }
       it.putMap("token", token)
+    }
+  }
+
+  private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
+    val session = WritableNativeMap()
+    session.putString("id", financialConnectionsSession.id)
+    session.putString("clientSecret", financialConnectionsSession.clientSecret)
+    session.putBoolean("livemode", financialConnectionsSession.livemode)
+    session.putArray("accounts", mapFromAccountsList(financialConnectionsSession.accounts))
+    return WritableNativeMap().also {
+      it.putMap("session", session)
     }
   }
 

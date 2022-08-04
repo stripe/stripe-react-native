@@ -62,6 +62,7 @@ import {
   verifyMicrodepositsForSetup,
   canAddCardToWallet,
   collectBankAccountToken,
+  collectFinancialConnectionsAccounts,
 } from '../functions';
 
 /**
@@ -293,8 +294,17 @@ export function useStripe() {
   );
 
   const _collectBankAccountToken = useCallback(
-    async (clientSecret: string): Promise<FinancialConnections.SheetResult> => {
+    async (clientSecret: string): Promise<FinancialConnections.TokenResult> => {
       return collectBankAccountToken(clientSecret);
+    },
+    []
+  );
+
+  const _collectFinancialConnectionsAccounts = useCallback(
+    async (
+      clientSecret: string
+    ): Promise<FinancialConnections.SessionResult> => {
+      return collectFinancialConnectionsAccounts(clientSecret);
     },
     []
   );
@@ -327,5 +337,6 @@ export function useStripe() {
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
     canAddCardToWallet: _canAddCardToWallet,
     collectBankAccountToken: _collectBankAccountToken,
+    collectFinancialConnectionsAccounts: _collectFinancialConnectionsAccounts,
   };
 }

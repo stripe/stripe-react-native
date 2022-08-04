@@ -700,7 +700,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun collectBankAccountToken(clientSecret: String, promise: Promise) {
-    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, publishableKey, promise, reactApplicationContext)
+    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, promise, reactApplicationContext)
+  }
+
+  @ReactMethod
+  fun collectFinancialConnectionsAccounts(clientSecret: String, promise: Promise) {
+    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, promise, reactApplicationContext)
   }
 
   /**

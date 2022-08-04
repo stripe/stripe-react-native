@@ -99,7 +99,10 @@ type NativeStripeSdkType = {
   }): Promise<IsCardInWalletResult>;
   collectBankAccountToken(
     clientSecret: string
-  ): Promise<FinancialConnections.SheetResult>;
+  ): Promise<FinancialConnections.TokenResult>;
+  collectFinancialConnectionsAccounts(
+    clientSecret: string
+  ): Promise<FinancialConnections.SessionResult>;
 };
 
 const { StripeSdk } = NativeModules;

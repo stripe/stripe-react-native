@@ -1031,7 +1031,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        FinancialConnections.presentSheet(withClientSecret: clientSecret, resolve: resolve)
+        FinancialConnections.presentForToken(withClientSecret: clientSecret, resolve: resolve)
+    }
+    
+    @objc(collectFinancialConnectionsAccounts:resolver:rejecter:)
+    func collectFinancialConnectionsAccounts(
+        clientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        FinancialConnections.present(withClientSecret: clientSecret, resolve: resolve)
     }
     
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

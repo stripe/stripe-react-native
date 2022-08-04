@@ -7,7 +7,11 @@ import { API_URL } from '../Config';
 
 export default function CollectBankAccountScreen() {
   const [clientSecret, setClientSecret] = React.useState('');
-  const { loading, collectBankAccountToken } = useFinancialConnectionsSheet();
+  const {
+    loading,
+    collectBankAccountToken,
+    collectFinancialConnectionsAccounts,
+  } = useFinancialConnectionsSheet();
 
   React.useEffect(() => {
     fetchPaymentIntentClientSecret();
@@ -28,7 +32,7 @@ export default function CollectBankAccountScreen() {
     }
   };
 
-  const handleCollectPress = async () => {
+  const handleCollectTokenPress = async () => {
     const { session, token, error } = await collectBankAccountToken(
       clientSecret
     );
@@ -49,13 +53,38 @@ export default function CollectBankAccountScreen() {
     }
   };
 
+  const handleCollectSessionPress = async () => {
+    const { session, error } = await collectFinancialConnectionsAccounts(
+      clientSecret
+    );
+
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('Payment confirmation error', error);
+    } else {
+      Alert.alert('Success');
+      console.log(
+        'Successfully obtained session: ',
+        JSON.stringify(session, null, 2)
+      );
+    }
+  };
+
   return (
     <PaymentScreen>
       <Button
         variant="primary"
-        onPress={handleCollectPress}
+        onPress={handleCollectTokenPress}
         title="Collect"
-        accessibilityLabel="Collect"
+        accessibilityLabel="Collect token"
+        loading={loading}
+        disabled={!clientSecret}
+      />
+      <Button
+        variant="primary"
+        onPress={handleCollectSessionPress}
+        title="Collect"
+        accessibilityLabel="Collect session"
         loading={loading}
         disabled={!clientSecret}
       />

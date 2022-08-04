@@ -20,6 +20,7 @@ export type Type =
 
 export interface Result {
   id: string;
+  /** The UNIX timestamp (in milliseconds) of the date this token was created. */
   created: string;
   type: Type;
   used: boolean;

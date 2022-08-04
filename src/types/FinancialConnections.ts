@@ -1,7 +1,18 @@
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
-export type SheetResult =
+export type SessionResult =
+  | {
+      /** The updated Financial Connections Session object. */
+      session: Session;
+      error?: undefined;
+    }
+  | {
+      session?: undefined;
+      error: StripeError<FinancialConnectionsSheetError>;
+    };
+
+export type TokenResult =
   | {
       /** The updated Financial Connections Session object. */
       session: Session;
