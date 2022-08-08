@@ -41,11 +41,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var googlePayFragment: GooglePayFragment? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
+  private var financialConnectionsSheetFragment: FinancialConnectionsSheetFragment? = null
   private var allFragments : Array<Fragment?> = arrayOf(
     paymentSheetFragment,
     googlePayFragment,
     paymentLauncherFragment,
-    collectBankAccountLauncherFragment
+    collectBankAccountLauncherFragment,
+    financialConnectionsSheetFragment
   )
 
   private var confirmPromise: Promise? = null
@@ -700,12 +702,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun collectBankAccountToken(clientSecret: String, promise: Promise) {
-    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, promise, reactApplicationContext)
+    financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
+      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, promise, reactApplicationContext)
+    }
   }
 
   @ReactMethod
   fun collectFinancialConnectionsAccounts(clientSecret: String, promise: Promise) {
-    FinancialConnectionsSheetFragment().presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, promise, reactApplicationContext)
+    financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
+      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, promise, reactApplicationContext)
+    }
   }
 
   /**
