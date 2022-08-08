@@ -364,7 +364,7 @@ PODS:
     - React-Core
   - RNCPicker (2.4.1):
     - React-Core
-  - RNScreens (3.13.1):
+  - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
   - SocketRocket (0.6.0)
@@ -612,7 +612,7 @@ SPEC CHECKSUMS:
   ReactCommon: a9414b91f0d19de002b55d9f4f6cb176d6dd8452
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: abc646b53a3d28ccfa3232c927a0ca52e0cf024d
-  RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
+  RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Stripe: 2b2decd03146e08a350960966d41f3028c2eac29
   stripe-react-native: 3bf9f714854607ac7e26f911bc204c0f21c96f9f

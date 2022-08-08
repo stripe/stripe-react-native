@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Parcelable
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
@@ -39,6 +40,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var paymentSheetFragment: PaymentSheetFragment? = null
   private var googlePayFragment: GooglePayFragment? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
+  private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
+  private var allFragments : Array<Fragment?> = arrayOf(
+    paymentSheetFragment,
+    googlePayFragment,
+    paymentLauncherFragment,
+    collectBankAccountLauncherFragment
+  )
 
   private var confirmPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
@@ -46,11 +54,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
-        // BEGIN - Necessary on older versions of React Native (~0.64 and below)
-        paymentSheetFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
-        googlePayFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
-        paymentLauncherFragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
-        // END
+        dispatchActivityResultsToFragments(requestCode, resultCode, data)
         try {
           val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
           if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
@@ -65,6 +69,13 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   init {
     reactContext.addActivityEventListener(mActivityEventListener)
+  }
+
+  // Necessary on older versions of React Native (~0.65 and below)
+  private fun dispatchActivityResultsToFragments(requestCode: Int, resultCode: Int, data: Intent?) {
+    for (fragment in allFragments) {
+      fragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+    }
   }
 
   private fun configure3dSecure(params: ReadableMap) {
@@ -600,7 +611,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       billingDetails.getString("email")
     )
 
-    val fragment = CollectBankAccountLauncherFragment(
+    collectBankAccountLauncherFragment = CollectBankAccountLauncherFragment(
       reactApplicationContext,
       publishableKey,
       clientSecret,
@@ -611,7 +622,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     getCurrentActivityOrResolveWithError(promise)?.let {
       try {
         it.supportFragmentManager.beginTransaction()
-          .add(fragment, CollectBankAccountLauncherFragment.TAG)
+          .add(collectBankAccountLauncherFragment!!, "collect_bank_account_launcher_fragment")
           .commit()
       } catch (error: IllegalStateException) {
         promise.resolve(createError(ErrorType.Failed.toString(), error.message))
