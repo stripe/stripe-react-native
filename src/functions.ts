@@ -140,7 +140,7 @@ export const retrieveSetupIntent = async (
 
 export const confirmPayment = async (
   paymentIntentClientSecret: string,
-  params: PaymentIntent.ConfirmParams,
+  params?: PaymentIntent.ConfirmParams,
   options: PaymentIntent.ConfirmOptions = {}
 ): Promise<ConfirmPaymentResult> => {
   try {
