@@ -152,9 +152,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
       session.putString("clientSecret", financialConnectionsSession.clientSecret)
       session.putBoolean("livemode", financialConnectionsSession.livemode)
       session.putArray("accounts", mapFromAccountsList(financialConnectionsSession.accounts))
-      return WritableNativeMap().also {
-        it.putMap("session", session)
-      }
+      return session
     }
 
     private fun mapFromAccountsList(accounts: FinancialConnectionsAccountList): ReadableArray {
