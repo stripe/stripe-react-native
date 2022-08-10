@@ -376,6 +376,18 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <Collapse title="Financial Connections">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Collect Bank Account"
+              onPress={() => {
+                navigation.navigate('CollectBankAccountScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
     </ScrollView>
   );
 }

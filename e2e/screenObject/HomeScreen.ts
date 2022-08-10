@@ -38,6 +38,8 @@ const SCREENS = <const>[
   'ACH payment',
   'ACH setup',
   'Affirm',
+  'Collect Bank Account',
+  'Financial Connections',
 ];
 
 class HomeScreen {

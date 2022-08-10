@@ -35,6 +35,7 @@ import {
   IsCardInWalletResult,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
+  FinancialConnections,
 } from './types';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
@@ -559,6 +560,63 @@ export const collectBankAccountForSetup = async (
     }
     return {
       setupIntent: setupIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+/**
+ * Use collectBankAccountToken in the [Add a Financial Connections Account to a US Custom Connect](https://stripe.com/docs/financial-connections/connect-payouts) account flow.
+ * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account for payouts.
+ * @param clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @returns A promise that resolves to an object containing either `session` and `token` fields, or an error field.
+ */
+export const collectBankAccountToken = async (
+  clientSecret: string
+): Promise<FinancialConnections.TokenResult> => {
+  try {
+    const { session, token, error } =
+      await NativeStripeSdk.collectBankAccountToken(clientSecret);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      session: session!,
+      token: token!,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+/**
+ * Use collectFinancialConnectionsAccounts in the [Collect an account to build data-powered products](https://stripe.com/docs/financial-connections/other-data-powered-products) flow.
+ * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account.
+ * @param clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @returns A promise that resolves to an object containing either a `session` field, or an error field.
+ */
+export const collectFinancialConnectionsAccounts = async (
+  clientSecret: string
+): Promise<FinancialConnections.SessionResult> => {
+  try {
+    const { session, error } =
+      await NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret);
+
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      session: session!,
     };
   } catch (error: any) {
     return {

@@ -39,6 +39,7 @@ import ACHPaymentScreen from './screens/ACHPaymentScreen';
 import ACHSetupScreen from './screens/ACHSetupScreen';
 import PayPalScreen from './screens/PayPalScreen';
 import AffirmScreen from './screens/AffirmScreen';
+import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -79,6 +80,7 @@ export type RootStackParamList = {
   ACHSetupScreen: undefined;
   PayPalScreen: undefined;
   AffirmScreen: undefined;
+  CollectBankAccountScreen: undefined;
 };
 
 declare global {
@@ -221,6 +223,10 @@ export default function App() {
           <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
           <Stack.Screen name="PayPalScreen" component={PayPalScreen} />
           <Stack.Screen name="AffirmScreen" component={AffirmScreen} />
+          <Stack.Screen
+            name="CollectBankAccountScreen"
+            component={CollectBankAccountScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

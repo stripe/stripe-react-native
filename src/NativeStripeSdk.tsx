@@ -27,6 +27,7 @@ import type {
   IsCardInWalletResult,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
+  FinancialConnections,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -96,6 +97,12 @@ type NativeStripeSdkType = {
   isCardInWallet(params: {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;
+  collectBankAccountToken(
+    clientSecret: string
+  ): Promise<FinancialConnections.TokenResult>;
+  collectFinancialConnectionsAccounts(
+    clientSecret: string
+  ): Promise<FinancialConnections.SessionResult>;
 };
 
 const { StripeSdk } = NativeModules;

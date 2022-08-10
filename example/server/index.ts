@@ -660,6 +660,32 @@ app.post('/issuing-card-details', async (req, res) => {
   return res.send(card);
 });
 
+app.post('/financial-connections-sheet', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  const account = await stripe.accounts.create({
+    country: 'US',
+    type: 'custom',
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
+
+  const session = await stripe.financialConnections.sessions.create({
+    account_holder: { type: 'account', account: account.id },
+    filters: { countries: ['US'] },
+    permissions: ['ownership', 'payment_method'],
+  });
+
+  return res.send({ clientSecret: session.client_secret });
+});
+
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)
 );

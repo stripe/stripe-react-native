@@ -30,6 +30,7 @@ import type {
   CollectBankAccountForPaymentResult,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
+  FinancialConnections,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -60,6 +61,8 @@ import {
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
   canAddCardToWallet,
+  collectBankAccountToken,
+  collectFinancialConnectionsAccounts,
 } from '../functions';
 
 /**
@@ -290,6 +293,22 @@ export function useStripe() {
     []
   );
 
+  const _collectBankAccountToken = useCallback(
+    async (clientSecret: string): Promise<FinancialConnections.TokenResult> => {
+      return collectBankAccountToken(clientSecret);
+    },
+    []
+  );
+
+  const _collectFinancialConnectionsAccounts = useCallback(
+    async (
+      clientSecret: string
+    ): Promise<FinancialConnections.SessionResult> => {
+      return collectFinancialConnectionsAccounts(clientSecret);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -317,5 +336,7 @@ export function useStripe() {
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
     canAddCardToWallet: _canAddCardToWallet,
+    collectBankAccountToken: _collectBankAccountToken,
+    collectFinancialConnectionsAccounts: _collectFinancialConnectionsAccounts,
   };
 }
