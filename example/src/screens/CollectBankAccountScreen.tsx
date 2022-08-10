@@ -14,10 +14,10 @@ export default function CollectBankAccountScreen() {
   } = useFinancialConnectionsSheet();
 
   React.useEffect(() => {
-    fetchPaymentIntentClientSecret();
+    fetchClientSecret();
   }, []);
 
-  const fetchPaymentIntentClientSecret = async () => {
+  const fetchClientSecret = async () => {
     const response = await fetch(`${API_URL}/financial-connections-sheet`, {
       method: 'POST',
       headers: {
@@ -39,7 +39,7 @@ export default function CollectBankAccountScreen() {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('Payment confirmation error', error);
+      console.log(error);
     } else {
       Alert.alert('Success');
       console.log(
@@ -60,7 +60,7 @@ export default function CollectBankAccountScreen() {
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
-      console.log('Payment confirmation error', error);
+      console.log(error);
     } else {
       Alert.alert('Success');
       console.log(
