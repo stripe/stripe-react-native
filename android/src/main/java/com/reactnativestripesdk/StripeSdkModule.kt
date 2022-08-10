@@ -702,6 +702,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun collectBankAccountToken(clientSecret: String, promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
     financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, promise, reactApplicationContext)
     }
@@ -709,6 +713,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun collectFinancialConnectionsAccounts(clientSecret: String, promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
     financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, promise, reactApplicationContext)
     }

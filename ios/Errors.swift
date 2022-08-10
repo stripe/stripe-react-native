@@ -93,5 +93,7 @@ class Errors {
         
         return createError(code, error as NSError)
     }
+    
+    static let MISSING_INIT_ERROR = Errors.createError(ErrorType.Failed, "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
 }
 

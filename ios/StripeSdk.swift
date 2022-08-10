@@ -1031,6 +1031,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
+        if (STPAPIClient.shared.publishableKey == nil) {
+            resolve(Errors.MISSING_INIT_ERROR)
+            return
+        }
         FinancialConnections.presentForToken(withClientSecret: clientSecret, resolve: resolve)
     }
     
@@ -1040,6 +1044,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
+        if (STPAPIClient.shared.publishableKey == nil) {
+            resolve(Errors.MISSING_INIT_ERROR)
+            return
+        }
         FinancialConnections.present(withClientSecret: clientSecret, resolve: resolve)
     }
     
