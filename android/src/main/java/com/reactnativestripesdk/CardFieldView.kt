@@ -209,7 +209,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
    */
   fun setCountryCode(countryString: String?) {
     if (mCardWidget.postalCodeEnabled) {
-      val countryCode = CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0].country)
+      val countryCode = CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0]?.country ?: "US")
       mCardWidget.postalCodeRequired = CountryUtils.doesCountryUsePostalCode(countryCode)
       setPostalCodeFilter(countryCode)
     }
