@@ -203,14 +203,13 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+  fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type?, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.USBankAccount -> createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.PayPal -> createPayPalStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
-
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
         PaymentMethod.Type.Sofort,
@@ -241,6 +240,7 @@ class PaymentMethodCreateParamsFactory(
             )
           }
         }
+        null -> ConfirmPaymentIntentParams.create(clientSecret)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }

@@ -1,6 +1,7 @@
 import { NativeModules } from 'react-native';
 import type {
   PaymentMethod,
+  PaymentIntent,
   ApplePay,
   PaymentSheet,
   SetupIntent,
@@ -41,8 +42,8 @@ type NativeStripeSdkType = {
   ): Promise<HandleNextActionResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
-    params: PaymentMethod.ConfirmParams,
-    options: PaymentMethod.ConfirmOptions
+    params?: PaymentIntent.ConfirmParams,
+    options?: PaymentIntent.ConfirmOptions
   ): Promise<ConfirmPaymentResult>;
   isApplePaySupported(): Promise<boolean>;
   presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;

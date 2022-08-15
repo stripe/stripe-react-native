@@ -378,12 +378,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 //  }
 
   @ReactMethod
-  fun confirmPayment(paymentIntentClientSecret: String, params: ReadableMap, options: ReadableMap, promise: Promise) {
+  fun confirmPayment(paymentIntentClientSecret: String, params: ReadableMap?, options: ReadableMap, promise: Promise) {
     val paymentMethodData = getMapOrNull(params, "paymentMethodData")
-    val paymentMethodType = getValOr(params, "paymentMethodType")?.let { mapToPaymentMethodType(it) } ?: run {
-      promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
-      return
-    }
+    val paymentMethodType = if (params != null)
+      mapToPaymentMethodType(params.getString("paymentMethodType")) ?: run {
+        promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "You must provide paymentMethodType"))
+        return
+      }
+    else
+      null // Expect that payment method was attached on the server
 
     val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
 

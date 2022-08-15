@@ -1,5 +1,6 @@
 import type {
   PaymentMethod,
+  PaymentIntent,
   ApplePay,
   PaymentSheet,
   CreatePaymentMethodResult,
@@ -117,8 +118,8 @@ export function useStripe() {
   const _confirmPayment = useCallback(
     async (
       paymentIntentClientSecret: string,
-      data: PaymentMethod.ConfirmParams,
-      options: PaymentMethod.ConfirmOptions = {}
+      data?: PaymentIntent.ConfirmParams,
+      options: PaymentIntent.ConfirmOptions = {}
     ): Promise<ConfirmPaymentResult> => {
       return confirmPayment(paymentIntentClientSecret, data, options);
     },

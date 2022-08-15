@@ -51,7 +51,7 @@ class Errors {
     class func createError (_ code: String, _ error: NSError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
-            "message": error?.userInfo[STPError.errorMessageKey] ?? NSNull(),
+            "message": error?.userInfo[STPError.errorMessageKey] ?? error?.localizedDescription ?? NSNull(),
             "localizedMessage": error?.localizedDescription ?? NSNull(),
             "declineCode": error?.userInfo[STPError.stripeDeclineCodeKey] ?? NSNull(),
             "stripeErrorCode": error?.userInfo[STPError.stripeErrorCodeKey] ?? NSNull(),

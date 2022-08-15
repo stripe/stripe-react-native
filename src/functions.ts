@@ -139,9 +139,17 @@ export const retrieveSetupIntent = async (
   }
 };
 
+/**
+ * Confirm and, if necessary, authenticate a PaymentIntent.
+ *
+ * @param paymentIntentClientSecret The client_secret of the associated [PaymentIntent](https://stripe.com/docs/api/payment_intents).
+ * @param params An optional object that contains data related to the payment method used to confirm this payment. If no object is provided (undefined), then it is assumed that the payment method has already been [attached  to the Payment Intent](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-payment_method).
+ * @param options An optional object that contains options for this payment method.
+ * @returns A promise that resolves to an object containing either a `paymentIntent` field, or an `error` field.
+ */
 export const confirmPayment = async (
   paymentIntentClientSecret: string,
-  params: PaymentIntent.ConfirmParams,
+  params?: PaymentIntent.ConfirmParams,
   options: PaymentIntent.ConfirmOptions = {}
 ): Promise<ConfirmPaymentResult> => {
   try {
