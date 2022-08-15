@@ -146,7 +146,7 @@ export function getAllWebviewContexts(): string[] {
   });
 }
 
-function getNativeContext(): string {
+export function getNativeContext(): string {
   const allContexts = driver.getContexts();
 
   const nativeContext = allContexts.find((contextName) =>

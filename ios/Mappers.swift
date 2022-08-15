@@ -50,18 +50,21 @@ class Mappers {
     }
 
     class func mapFromBankAccount(_ bankAccount: STPBankAccount?) -> NSDictionary? {
-        if (bankAccount == nil) {
+        guard let bankAccount = bankAccount else {
             return nil
         }
+        
         let result: NSDictionary = [
-            "id": bankAccount?.stripeID ?? NSNull(),
-            "bankName": bankAccount?.bankName ?? NSNull(),
-            "accountHolderName": bankAccount?.accountHolderName ?? NSNull(),
-            "accountHolderType": mapFromBankAccountHolderType(bankAccount?.accountHolderType) ?? NSNull(),
-            "country": bankAccount?.country ?? NSNull(),
-            "currency": bankAccount?.currency ?? NSNull(),
-            "routingNumber": bankAccount?.routingNumber ?? NSNull(),
-            "status": mapFromBankAccountStatus(bankAccount?.status) ?? NSNull(),
+            "id": bankAccount.stripeID,
+            "bankName": bankAccount.bankName ?? NSNull(),
+            "accountHolderName": bankAccount.accountHolderName ?? NSNull(),
+            "accountHolderType": mapFromBankAccountHolderType(bankAccount.accountHolderType) ?? NSNull(),
+            "country": bankAccount.country ?? NSNull(),
+            "currency": bankAccount.currency ?? NSNull(),
+            "routingNumber": bankAccount.routingNumber ?? NSNull(),
+            "status": mapFromBankAccountStatus(bankAccount.status) ?? NSNull(),
+            "fingerprint": bankAccount.fingerprint ?? NSNull(),
+            "last4": bankAccount.last4 ?? NSNull()
         ]
         return result
     }
