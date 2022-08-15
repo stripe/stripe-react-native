@@ -4,6 +4,8 @@
 
 ### Breaking changes
 
+- Your `compileSdkVersion` (in `android/build.gradle`) now must be at least `32`. Changing your `compileSdkVersion` does not change runtime behavior.
+
 ### New features
 
 - `confirmPayment` can now be called with _just_ a client secret (e.g. `await confirmPayment("payment-intent-id")`), in other words the payment method can be excluded. If the payment method is excluded, it is assumed by the SDK that you have attached the payment method on the server-side during payment intent creation. [#1084](https://github.com/stripe/stripe-react-native/pull/1084)
