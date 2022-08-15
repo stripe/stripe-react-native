@@ -19,7 +19,7 @@ export default function KlarnaPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'usd',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['klarna'],
       }),
     });

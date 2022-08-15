@@ -350,30 +350,6 @@ After
 }
 ```
 
-### WeChatPay
-
-Before:
-
-```js
-{
-  type: 'WeChatPay',
-  appId: string,
-  billingDetails: BillingDetails,
-}
-```
-
-After
-
-```js
-{
-  paymentMethodType: 'WeChatPay',
-  paymentMethodData: {
-    appId: string,
-    billingDetails: BillingDetails,
-  }
-}
-```
-
 ### AuBecsDebit
 
 Before:

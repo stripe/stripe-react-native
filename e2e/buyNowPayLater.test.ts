@@ -22,7 +22,20 @@ describe('Payment scenarios with redirects', () => {
     $('~payment-screen').waitForDisplayed({ timeout: 30000 });
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
-    BasicPaymentScreen.authorize({ elementType: 'a', pause: 10000 });
+    BasicPaymentScreen.authorize({ pause: 10000 });
+    BasicPaymentScreen.checkStatus();
+  });
+
+  it('Affirm payment scenario', function () {
+    this.retries(3);
+
+    homeScreen.goTo('Buy now pay later');
+    homeScreen.goTo('Affirm');
+
+    $('~payment-screen').waitForDisplayed({ timeout: 30000 });
+
+    BasicPaymentScreen.pay({ email: 'test@stripe.com' });
+    BasicPaymentScreen.authorize({ pause: 10000 });
     BasicPaymentScreen.checkStatus();
   });
 

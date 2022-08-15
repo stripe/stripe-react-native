@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
-        
+
       - name: Setup Java environment
         uses: actions/setup-java@v3
         with:
@@ -67,7 +67,7 @@ jobs:
             sleep 15
             adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
             adb shell am set-debug-app --persistent com.android.chrome
-            yarn test:android
+            yarn test:e2e:android
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1
@@ -128,7 +128,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          yarn test:ios
+          yarn test:e2e:ios
 
       - name: Upload Screenshoots
         uses: actions/upload-artifact@v1

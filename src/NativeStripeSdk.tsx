@@ -25,6 +25,9 @@ import type {
   Token,
   VerifyMicrodepositsParams,
   IsCardInWalletResult,
+  CanAddCardToWalletParams,
+  CanAddCardToWalletResult,
+  FinancialConnections,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -88,9 +91,18 @@ type NativeStripeSdkType = {
     params: PaymentMethod.CollectBankAccountParams
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
   getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
+  canAddCardToWallet(
+    params: CanAddCardToWalletParams
+  ): Promise<CanAddCardToWalletResult>;
   isCardInWallet(params: {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;
+  collectBankAccountToken(
+    clientSecret: string
+  ): Promise<FinancialConnections.TokenResult>;
+  collectFinancialConnectionsAccounts(
+    clientSecret: string
+  ): Promise<FinancialConnections.SessionResult>;
 };
 
 const { StripeSdk } = NativeModules;

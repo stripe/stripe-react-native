@@ -25,6 +25,7 @@ import * as AuBECSDebitFormComponent from './components/AuBECSDebitFormComponent
 import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
+import * as FinancialConnections from './FinancialConnections';
 
 export {
   ApplePay,
@@ -39,6 +40,7 @@ export {
   CardFieldInput,
   CardFormView,
   Token,
+  FinancialConnections,
 };
 
 export * from './Errors';
@@ -293,5 +295,32 @@ export type IsCardInWalletResult =
   | {
       isInWallet?: undefined;
       token?: undefined;
+      error: StripeError<GooglePayError>;
+    };
+
+export type CanAddCardToWalletParams = {
+  /** The `primary_account_identifier` value from the issued card. Can be an empty string. */
+  primaryAccountIdentifier: string | null;
+  /** Last 4 digits of the card number. */
+  cardLastFour: string;
+  /** iOS only. Set this to `true` until shipping through TestFlight || App Store. If true, you must be using live cards, and have the proper iOS entitlement set up. See https://stripe.com/docs/issuing/cards/digital-wallets?platform=react-native#requesting-access-for-ios */
+  testEnv?: boolean;
+};
+
+export type CanAddCardToWalletResult =
+  | {
+      canAddCard: boolean;
+      details?: {
+        token?: GooglePayCardToken;
+        status?:
+          | 'MISSING_CONFIGURATION'
+          | 'UNSUPPORTED_DEVICE'
+          | 'CARD_ALREADY_EXISTS';
+      };
+      error?: undefined;
+    }
+  | {
+      canAddCard?: undefined;
+      details?: undefined;
       error: StripeError<GooglePayError>;
     };

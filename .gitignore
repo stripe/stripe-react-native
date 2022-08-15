@@ -36,6 +36,9 @@ project.xcworkspace
 local.properties
 android.iml
 *.hprof
+android/build/
+android/build/reports
+example/android/app/build/reports
 
 # Cocoapods
 #

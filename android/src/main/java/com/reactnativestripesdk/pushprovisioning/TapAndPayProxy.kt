@@ -2,54 +2,68 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.app.Activity
 import android.util.Log
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.reactnativestripesdk.createError
+import com.reactnativestripesdk.utils.createError
 import com.google.android.gms.tasks.Task
+
+typealias TokenCheckHandler = (isCardInWallet: Boolean, token: WritableMap?, error: WritableMap?) -> Unit
 
 object TapAndPayProxy {
   private const val TAG = "StripeTapAndPay"
   private var tapAndPayClient: Any? = null
   const val REQUEST_CODE_TOKENIZE = 90909
 
-  fun invoke(activity: Activity, newCardLastFour: String, promise: Promise) {
-    try {
+  private fun getTapandPayTokens(activity: Activity): Task<List<Any>>? {
+    return try {
       val tapAndPayClass = Class.forName("com.google.android.gms.tapandpay.TapAndPay")
-      val getClientMethod = tapAndPayClass.getMethod("getClient", Activity::class.java)
+      val getClientMethod = tapAndPayClass.getMethod(
+        "getClient",
+        Activity::class.java)
+      val client = getClientMethod.invoke(null, activity)
 
-      tapAndPayClient = getClientMethod.invoke(null, activity).also {
-        val tapAndPayClientClass = Class.forName("com.google.android.gms.tapandpay.TapAndPayClient")
-        val listTokensMethod = tapAndPayClientClass.getMethod("listTokens")
+      val tapAndPayClientClass = Class.forName("com.google.android.gms.tapandpay.TapAndPayClient")
+      val listTokensMethod = tapAndPayClientClass.getMethod("listTokens")
 
-        val tokens = listTokensMethod.invoke(it) as Task<List<Any>>
-        tokens.addOnCompleteListener { task ->
-          if (task.isSuccessful) {
-            for (token in task.result) {
-              try {
-                val getFpanLastFourMethod = Class.forName("com.google.android.gms.tapandpay.issuer.TokenInfo").getMethod("getFpanLastFour")
-                val existingFpanLastFour = getFpanLastFourMethod.invoke(token) as String
-                if (existingFpanLastFour == newCardLastFour) {
-                  promise.resolve(
-                    createResult(
-                      true,
-                      token))
-                  return@addOnCompleteListener
-                }
-              } catch (e: Exception) {
-                Log.e(TAG, "There was a problem finding the class com.google.android.gms.tapandpay.issuer.TokenInfo. Make sure you've included Google's TapAndPay dependency.")
-              }
-            }
-          } else {
-            Log.e(TAG, "Unable to fetch existing tokens from Google TapAndPay.")
-          }
-          promise.resolve(createResult(false))
-        }
-      }
+      listTokensMethod.invoke(client) as Task<List<Any>>
     } catch (e: Exception) {
       Log.e(TAG, "Google TapAndPay dependency not found")
-      promise.resolve(createError("Failed", "Google TapAndPay dependency not found."))
+      null
+    }
+  }
+
+  internal fun isTokenInWallet(token: Any, newLastFour: String): Boolean {
+    return try {
+      val getFpanLastFourMethod = Class.forName("com.google.android.gms.tapandpay.issuer.TokenInfo").getMethod("getFpanLastFour")
+      val existingFpanLastFour = getFpanLastFourMethod.invoke(token) as String
+      existingFpanLastFour == newLastFour
+    } catch (e: Exception) {
+      Log.e(TAG, "There was a problem finding the class com.google.android.gms.tapandpay.issuer.TokenInfo. Make sure you've included Google's TapAndPay dependency.")
+      false
+    }
+  }
+
+
+  fun findExistingToken(activity: Activity, newCardLastFour: String, callback: TokenCheckHandler) {
+    val tokens = getTapandPayTokens(activity)
+    if (tokens == null) {
+      callback(false, null, createError("Failed", "Google TapAndPay dependency not found."))
+      return
+    }
+
+    tokens.addOnCompleteListener { task ->
+      if (task.isSuccessful) {
+        for (token in task.result) {
+          if (isTokenInWallet(token, newCardLastFour)) {
+            callback(true,  mapFromTokenInfo(token), null)
+            return@addOnCompleteListener
+          }
+        }
+      } else {
+        Log.e(TAG, "Unable to fetch existing tokens from Google TapAndPay.")
+      }
+      callback(false, null, null)
     }
   }
 
@@ -67,13 +81,6 @@ object TapAndPayProxy {
     } catch (e: Exception) {
       Log.e(TAG, "Google TapAndPay dependency not found.")
     }
-  }
-
-  private fun createResult(cardIsInWallet: Boolean, token: Any? = null): WritableMap {
-    val result = WritableNativeMap()
-    result.putBoolean("isInWallet", cardIsInWallet)
-    result.putMap("token", mapFromTokenInfo(token))
-    return result
   }
 
   private fun mapFromTokenInfo(token: Any?): WritableMap? {

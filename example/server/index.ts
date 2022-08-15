@@ -32,15 +32,20 @@ app.use(
 );
 
 // tslint:disable-next-line: interface-name
-interface Order {
-  items: object[];
-}
+const itemIdToPrice: { [id: string]: number } = {
+  'id-1': 1400,
+  'id-2': 2000,
+  'id-3': 3000,
+  'id-4': 4000,
+  'id-5': 5000,
+};
 
-const calculateOrderAmount = (_order?: Order): number => {
-  // Replace this constant with a calculation of the order's amount.
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client.
-  return 1400;
+const calculateOrderAmount = (itemIds: string[] = ['id-1']): number => {
+  const total = itemIds
+    .map((id) => itemIdToPrice[id])
+    .reduce((prev, curr) => prev + curr, 0);
+
+  return total;
 };
 
 function getKeys(payment_method?: string) {
@@ -97,7 +102,7 @@ app.post(
       client = 'ios',
     }: {
       email: string;
-      items: Order;
+      items: string[];
       currency: string;
       payment_method_types: string[];
       request_three_d_secure: 'any' | 'automatic';
@@ -159,7 +164,7 @@ app.post(
       request_three_d_secure,
       email,
     }: {
-      items: Order;
+      items: string[];
       currency: string;
       request_three_d_secure: 'any' | 'automatic';
       email: string;
@@ -235,7 +240,7 @@ app.post(
       paymentMethodId?: string;
       paymentIntentId?: string;
       cvcToken?: string;
-      items: Order;
+      items: string[];
       currency: string;
       useStripeSdk: boolean;
       email?: string;
@@ -573,6 +578,53 @@ app.post('/payment-sheet', async (_, res) => {
   });
 });
 
+app.post('/payment-sheet-subscription', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  const customers = await stripe.customers.list();
+
+  // Here, we're getting latest customer only for example purposes.
+  const customer = customers.data[0];
+
+  if (!customer) {
+    return res.send({
+      error: 'You have no customer created',
+    });
+  }
+
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    { customer: customer.id },
+    { apiVersion: '2020-08-27' }
+  );
+  const subscription = await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
+    trial_period_days: 3,
+  });
+
+  if (typeof subscription.pending_setup_intent === 'string') {
+    const setupIntent = await stripe.setupIntents.retrieve(
+      subscription.pending_setup_intent
+    );
+
+    return res.json({
+      setupIntent: setupIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+    });
+  } else {
+    throw new Error(
+      'Expected response type string, but received: ' +
+        typeof subscription.pending_setup_intent
+    );
+  }
+});
+
 app.post('/ephemeral-key', async (req, res) => {
   const { secret_key } = getKeys();
 
@@ -606,6 +658,32 @@ app.post('/issuing-card-details', async (req, res) => {
   }
 
   return res.send(card);
+});
+
+app.post('/financial-connections-sheet', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2020-08-27',
+    typescript: true,
+  });
+
+  const account = await stripe.accounts.create({
+    country: 'US',
+    type: 'custom',
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
+
+  const session = await stripe.financialConnections.sessions.create({
+    account_holder: { type: 'account', account: account.id },
+    filters: { countries: ['US'] },
+    permissions: ['ownership', 'payment_method'],
+  });
+
+  return res.send({ clientSecret: session.client_secret });
 });
 
 app.listen(4242, (): void =>

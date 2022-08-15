@@ -37,6 +37,9 @@ const SCREENS = <const>[
   'WeChat Pay',
   'ACH payment',
   'ACH setup',
+  'Affirm',
+  'Collect Bank Account',
+  'Financial Connections',
 ];
 
 class HomeScreen {

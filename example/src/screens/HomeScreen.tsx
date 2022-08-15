@@ -59,6 +59,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI for Subscription"
+              onPress={() => {
+                navigation.navigate('PaymentSheetWithSetupIntent');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Prebuilt UI (multi-step)"
               onPress={() => {
                 navigation.navigate('PaymentsUICustomScreen');
@@ -284,6 +292,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Affirm"
+              onPress={() => {
+                navigation.navigate('AffirmScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
@@ -355,6 +371,18 @@ export default function HomeScreen() {
               onPress={() => {
                 // navigation.navigate('WeChatPaymentScreen');
                 Alert.alert('WeChat Pay is not yet supported.');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
+      <Collapse title="Financial Connections">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Collect Bank Account"
+              onPress={() => {
+                navigation.navigate('CollectBankAccountScreen');
               }}
             />
           </View>

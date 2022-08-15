@@ -20,7 +20,7 @@ export default function GiropayPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'eur',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['giropay'],
       }),
     });

@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.graphics.Color
 import android.os.Bundle
+import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentsheet.PaymentSheet
 
 fun PaymentSheetFragment.buildPaymentSheetAppearance(userParams: Bundle?): PaymentSheet.Appearance {

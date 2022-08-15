@@ -8,6 +8,10 @@ import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableNativeMap
+import com.reactnativestripesdk.utils.GooglePayErrorType
+import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
@@ -199,5 +203,9 @@ class GooglePayFragment(private val initPromise: Promise) : Fragment() {
       format = format,
       isPhoneNumberRequired = isPhoneNumberRequired
     )
+  }
+
+  companion object {
+    const val TAG = "google_pay_launch_fragment"
   }
 }

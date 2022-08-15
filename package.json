@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.13.1",
+  "version": "0.17.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -8,31 +8,23 @@
   "types": "lib/typescript/src/index.d.ts",
   "react-native": "src/index",
   "source": "src/index",
-  "files": [
-    "src",
-    "lib",
-    "android",
-    "ios",
-    "cpp",
-    "app.plugin.js",
-    "stripe-react-native.podspec",
-    "jest"
-  ],
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-pattern example/android/stripe-android",
+    "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
     "prepare": "bob build",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
-    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none",
+    "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",
     "run-example-ios": "cd example;ENVFILE=.env.ci react-native run-ios --configuration Release --simulator \"iPhone 13 (15.2)\"",
     "run-example-android": "cd example;ENVFILE=.env.ci react-native run-android --variant=release",
-    "test:ios": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js ios",
-    "test:android": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js android"
+    "test:e2e:ios": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js ios",
+    "test:e2e:android": "mkdir -p .tmp/screenshots && node ./run-appium-tests.js android",
+    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests",
+    "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest"
   },
   "keywords": [
     "react-native",
@@ -58,19 +50,19 @@
     "@wdio/mocha-framework": "^7.16.15",
     "@wdio/spec-reporter": "^7.16.14",
     "@wdio/sync": "^7.16.15",
-    "appium": "^1.22.2",
+    "appium": "^1.22.3",
     "appium-chromedriver": "4.26.2",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
     "expect-webdriverio": "^2.0.1",
-    "husky": "^4.2.5",
+    "husky": "^8.0.0",
     "jest": "^26.6.3",
-    "metro-react-native-babel-preset": "^0.67.0",
+    "metro-react-native-babel-preset": "^0.70.3",
     "mocha": "^8.3.2",
     "prettier": "^2.0.5",
-    "react": "17.0.2",
-    "react-native": "0.68.1",
+    "react": "18.0.0",
+    "react-native": "0.69.2",
     "ts-node": "^9.1.1",
     "typedoc": "^0.22.12",
     "typescript": "~4.4.4",
@@ -88,11 +80,6 @@
       "<rootDir>/lib/",
       "<rootDir>/e2e"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint && yarn typescript"
-    }
   },
   "eslintConfig": {
     "extends": [
@@ -153,6 +140,9 @@
     ]
   },
   "dependencies": {
-    "@expo/config-plugins": "^4.1.4"
+    "@expo/config-plugins": "^4.1.5"
+  },
+  "resolutions": {
+    "simple-plist": "1.3.1"
   }
 }

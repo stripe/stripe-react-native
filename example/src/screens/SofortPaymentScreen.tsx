@@ -24,7 +24,7 @@ export default function SofortPaymentScreen() {
       body: JSON.stringify({
         email,
         currency: 'eur',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['sofort'],
       }),
     });

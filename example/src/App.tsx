@@ -10,6 +10,7 @@ import { StatusBar } from 'react-native';
 import { colors } from './colors';
 import CreateTokenScreen from './screens/CreateTokenScreen';
 import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
+import PaymentSheetWithSetupIntent from './screens/PaymentSheetWithSetupIntent';
 import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
 import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
@@ -37,6 +38,8 @@ import GooglePayScreen from './screens/GooglePayScreen';
 import ACHPaymentScreen from './screens/ACHPaymentScreen';
 import ACHSetupScreen from './screens/ACHSetupScreen';
 import PayPalScreen from './screens/PayPalScreen';
+import AffirmScreen from './screens/AffirmScreen';
+import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -48,6 +51,7 @@ export type RootStackParamList = {
   ApplePayScreen: undefined;
   SetupFuturePaymentScreen: undefined;
   PaymentsUICompleteScreen: undefined;
+  PaymentSheetWithSetupIntent: undefined;
   PaymentsUICustomScreen: undefined;
   CVCReCollectionScreen: undefined;
   IdealPaymentScreen: undefined;
@@ -75,6 +79,8 @@ export type RootStackParamList = {
   ACHPaymentScreen: undefined;
   ACHSetupScreen: undefined;
   PayPalScreen: undefined;
+  AffirmScreen: undefined;
+  CollectBankAccountScreen: undefined;
 };
 
 declare global {
@@ -136,6 +142,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentsUICompleteScreen"
             component={PaymentsUICompleteScreen}
+          />
+          <Stack.Screen
+            name="PaymentSheetWithSetupIntent"
+            component={PaymentSheetWithSetupIntent}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"
@@ -212,6 +222,11 @@ export default function App() {
           <Stack.Screen name="ACHPaymentScreen" component={ACHPaymentScreen} />
           <Stack.Screen name="ACHSetupScreen" component={ACHSetupScreen} />
           <Stack.Screen name="PayPalScreen" component={PayPalScreen} />
+          <Stack.Screen name="AffirmScreen" component={AffirmScreen} />
+          <Stack.Screen
+            name="CollectBankAccountScreen"
+            component={CollectBankAccountScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

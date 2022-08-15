@@ -24,7 +24,7 @@ export default function AuBECSDebitPaymentScreen() {
       body: JSON.stringify({
         email: formDetails?.email,
         currency: 'aud',
-        items: [{ id: 'id' }],
+        items: ['id-1'],
         payment_method_types: ['au_becs_debit'],
       }),
     });

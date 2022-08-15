@@ -64,11 +64,11 @@ export default function PaymentsUICustomScreen() {
         paymentIntentClientSecret: paymentIntent,
         customFlow: true,
         merchantDisplayName: 'Example Inc.',
-        applePay: true,
-        merchantCountryCode: 'US',
+        applePay: {
+          merchantCountryCode: 'US',
+        },
         style: 'automatic',
-        googlePay: true,
-        testEnv: true,
+        googlePay: { merchantCountryCode: 'US', testEnv: true },
         returnURL: 'stripe-example://stripe-redirect',
         defaultBillingDetails: billingDetails,
       });

@@ -1,20 +1,24 @@
 import type { BillingDetails } from './Common';
+import type { CartSummaryItem } from './ApplePay';
 
-export type SetupParams = ClientSecretParams &
-  GooglePayParams &
-  ApplePayParams & {
-    /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
-    merchantDisplayName: string;
-    customerId?: string;
-    customerEphemeralKeySecret?: string;
-    customFlow?: boolean;
-    style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
-    returnURL?: string;
-    defaultBillingDetails?: BillingDetails;
-    allowsDelayedPaymentMethods?: boolean;
-  } & { appearance?: AppearanceParams };
+export type SetupParams = ClientSecretParams & {
+  /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
+  merchantDisplayName: string;
+  customerId?: string;
+  customerEphemeralKeySecret?: string;
+  customFlow?: boolean;
+  /** iOS only. Enable Apple Pay in the Payment Sheet by passing an ApplePayParams object.  */
+  applePay?: ApplePayParams;
+  /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
+  googlePay?: GooglePayParams;
+  style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+  returnURL?: string;
+  defaultBillingDetails?: BillingDetails;
+  allowsDelayedPaymentMethods?: boolean;
+  appearance?: AppearanceParams;
+};
 
-type ClientSecretParams =
+export type ClientSecretParams =
   | {
       paymentIntentClientSecret: string;
       setupIntentClientSecret?: undefined;
@@ -24,29 +28,23 @@ type ClientSecretParams =
       paymentIntentClientSecret?: undefined;
     };
 
-type ApplePayParams =
-  | {
-      applePay?: true;
-      merchantCountryCode: string;
-    }
-  | {
-      applePay?: false;
-      merchantCountryCode?: string;
-    };
+export type ApplePayParams = {
+  /** The two-letter ISO 3166 code of the country of your business, e.g. "US"  */
+  merchantCountryCode: string;
+  /**
+   * An array of CartSummaryItem item objects that summarize the amount of the payment. If you're using a SetupIntent
+   * for a recurring payment, you should set this to display the amount you intend to charge. */
+  paymentSummaryItems?: CartSummaryItem[];
+};
 
-type GooglePayParams =
-  | {
-      googlePay?: true;
-      merchantCountryCode: string;
-      currencyCode?: string;
-      testEnv?: boolean;
-    }
-  | {
-      googlePay?: false;
-      merchantCountryCode?: string;
-      currencyCode?: string;
-      testEnv?: boolean;
-    };
+export type GooglePayParams = {
+  /** The two-letter ISO 3166 code of the country of your business, e.g. "US"  */
+  merchantCountryCode: string;
+  /** The three-letter ISO 4217 alphabetic currency code, e.g. "USD" or "EUR". Required in order to support Google Pay when processing a Setup Intent. */
+  currencyCode?: string;
+  /** Whether or not to use the Google Pay test environment.  Set to `true` until you have applied for and been granted access to the Production environment. */
+  testEnv?: boolean;
+};
 
 /**
  * Used to customize the appearance of your PaymentSheet

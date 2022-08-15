@@ -42,7 +42,8 @@ export type CreateParams =
   // | WeChatPayParams
   | BancontactParams
   | USBankAccountParams
-  | PayPalParams;
+  | PayPalParams
+  | AffirmParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -174,6 +175,15 @@ export interface AuBecsDebitParams {
   paymentMethodType: 'AuBecsDebit';
   paymentMethodData: { formDetails: FormDetails };
 }
+
+export type AffirmParams = {
+  paymentMethodType: 'Affirm';
+  paymentMethodData?: {
+    /** Affirm requires that shipping is present for the payment to succeed because it significantly helps with loan approval rates. Shipping details can either be provided here or via the Payment Intent- https://stripe.com/docs/api/payment_intents/create#create_payment_intent-shipping. */
+    shippingDetails?: ShippingDetails;
+    billingDetails?: BillingDetails;
+  };
+};
 
 /**
  * If paymentMethodData is null, it is assumed that the bank account details have already been attached

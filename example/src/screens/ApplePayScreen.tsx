@@ -6,7 +6,7 @@ import {
   ApplePay,
   AddToWalletButton,
   Constants,
-  isCardInWallet,
+  canAddCardToWallet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -16,7 +16,7 @@ const TEST_CARD_ID = 'ic_1KnngYF05jLespP6nGoB1oXn';
 
 export default function ApplePayScreen() {
   const [ephemeralKey, setEphemeralKey] = useState({});
-  const [cardIsInWallet, setCardIsInWallet] = useState(false);
+  const [showAddToWalletButton, setShowAddToWalletButton] = useState(true);
   const [cardDetails, setCardDetails] = useState<any>(null);
 
   useEffect(() => {
@@ -38,14 +38,19 @@ export default function ApplePayScreen() {
     const card = await response.json();
     setCardDetails(card);
 
-    const { isInWallet, error } = await isCardInWallet({
+    const { canAddCard, details, error } = await canAddCardToWallet({
+      primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
+      testEnv: true,
     });
 
     if (error) {
       Alert.alert(error.code, error.message);
     } else {
-      setCardIsInWallet(isInWallet ?? false);
+      setShowAddToWalletButton(canAddCard ?? false);
+      if (details?.status) {
+        console.log(`Card status for native wallet: ${details.status}`);
+      }
     }
   };
 
@@ -70,9 +75,19 @@ export default function ApplePayScreen() {
     },
   ];
   const [cart, setCart] = useState<ApplePay.CartSummaryItem[]>([
-    { label: 'Subtotal', amount: '12.75', type: 'final' },
-    { label: 'Shipping', amount: '0.00', type: 'pending' },
-    { label: 'Total', amount: '12.75', type: 'pending' }, // Last item in array needs to reflect the total.
+    { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
+    {
+      label: 'Shipping',
+      amount: '0.00',
+      isPending: true,
+      paymentType: 'Immediate',
+    },
+    {
+      label: 'Total',
+      amount: '12.75',
+      isPending: true,
+      paymentType: 'Immediate',
+    }, // Last item in array needs to reflect the total.
   ]);
 
   const { presentApplePay, confirmApplePayPayment, isApplePaySupported } =
@@ -80,14 +95,19 @@ export default function ApplePayScreen() {
       onShippingMethodSelected: (shippingMethod, handler) => {
         console.log('shippingMethod', shippingMethod);
         // Update cart summary based on selected shipping method.
-        const updatedCart = [
+        const updatedCart: ApplePay.CartSummaryItem[] = [
           cart[0],
-          { label: shippingMethod.label, amount: shippingMethod.amount },
+          {
+            label: shippingMethod.label,
+            amount: shippingMethod.amount,
+            paymentType: 'Immediate',
+          },
           {
             label: 'Total',
             amount: (
               parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
             ).toFixed(2),
+            paymentType: 'Immediate',
           },
         ];
         setCart(updatedCart);
@@ -181,7 +201,7 @@ export default function ApplePayScreen() {
             style={styles.payButton}
           />
 
-          {!cardIsInWallet && (
+          {showAddToWalletButton && (
             <AddToWalletButton
               androidAssetSource={{}}
               testEnv={true}
