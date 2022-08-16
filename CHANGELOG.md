@@ -9,8 +9,11 @@
 ### New features
 
 - `confirmPayment` can now be called with _just_ a client secret (e.g. `await confirmPayment("payment-intent-id")`), in other words the payment method can be excluded. If the payment method is excluded, it is assumed by the SDK that you have attached the payment method on the server-side during payment intent creation. [#1084](https://github.com/stripe/stripe-react-native/pull/1084)
+- Payment Sheet now supports Link on iOS. [#1086](https://github.com/stripe/stripe-react-native/pull/1086).
 
 ### Fixes
+
+- Fixed a bug on Android where `collectBankAccountForPayment`, `collectBankAccountForSetup`, `collectBankAccountToken`, and `collectFinancialConnectionsAccounts` wouldn't work with Stripe Connect accounts. [#1086](https://github.com/stripe/stripe-react-native/pull/1086).
 
 ## 0.17.0 - 2022-08-11
 
