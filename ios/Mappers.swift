@@ -986,4 +986,17 @@ class Mappers {
             default: return STPPaymentMethodUSBankAccountType.checking
         }
     }
+    
+    class func mapToCardParams(_ input: NSDictionary?) -> STPPaymentMethodCardParams {
+        let params = STPPaymentMethodCardParams()
+        params.cvc = input?["cvc"] as? String
+        params.number = input?["number"] as? String
+        if let month = input?["expiryMonth"] as? String {
+            params.expMonth = NSNumber(value: Int(month) ?? 0)
+        }
+        if let year = input?["expiryYear"] as? String {
+            params.expYear = NSNumber(value: Int(year) ?? 0)
+        }
+        return params
+    }
 }

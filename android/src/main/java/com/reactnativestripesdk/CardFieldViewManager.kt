@@ -56,6 +56,12 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
     view.setPlaceHolders(placeholders)
   }
 
+  @ReactProp(name = "defaultValues")
+  fun setDefaultValues(view: CardFieldView, defaults: ReadableMap) {
+    view.setDefaultValues(defaults)
+  }
+
+
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {
     val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFieldView(reactContext)

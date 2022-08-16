@@ -5,6 +5,7 @@
 @interface RCT_EXTERN_MODULE(CardFieldManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(postalCodeEnabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(countryCode, NSString)
+RCT_EXPORT_VIEW_PROPERTY(defaultValues, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(onCardChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onFocusChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(cardStyle, NSDictionary)

@@ -11,7 +11,8 @@ class CardFormView: UIView, STPCardFormViewDelegate {
     @objc var onFormComplete: RCTDirectEventBlock?
     @objc var autofocus: Bool = false
     @objc var isUserInteractionEnabledValue: Bool = true
-    
+    @objc var defaultValues: NSDictionary?
+
     override func didSetProps(_ changedProps: [String]!) {
         if let cardForm = self.cardForm {
             cardForm.removeFromSuperview()
@@ -29,6 +30,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         self.cardForm = _cardForm
         self.addSubview(_cardForm)
         setStyles()
+        setDefaultValues()
     }
     
     @objc var cardStyle: NSDictionary = NSDictionary() {
@@ -36,7 +38,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
            setStyles()
         }
     }
-
+    
     func cardFormView(_ form: STPCardFormView, didChangeToStateComplete complete: Bool) {
         if onFormComplete != nil {
             let brand = STPCardValidator.brand(forNumber: cardForm?.cardParams?.card?.number ?? "")
@@ -98,6 +100,20 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         // if let disabledBackgroundColor = cardStyle["disabledBackgroundColor"] as? String {
         //     cardForm?.disabledBackgroundColor = UIColor(hexString: disabledBackgroundColor)
         // }
+    }
+    
+    func setDefaultValues() {
+        guard let cardForm = cardForm else { return }
+        
+        let card = Mappers.mapToCardParams(defaultValues)
+        
+        let address = STPPaymentMethodAddress()
+        address.postalCode = defaultValues?["postalCode"] as? String
+        
+        let billingDetails = STPPaymentMethodBillingDetails()
+        billingDetails.address = address
+        
+        cardForm.cardParams = STPPaymentMethodParams.init(card: card, billingDetails: billingDetails, metadata: nil)
     }
     
     override init(frame: CGRect) {

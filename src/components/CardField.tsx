@@ -34,6 +34,8 @@ export interface Props extends AccessibilityProps {
   postalCodeEnabled?: boolean;
   /** Controls the postal code entry shown (if the postalCodeEnabled prop is set to true). Defaults to the device's default locale. */
   countryCode?: string;
+  /** Default values which will auto-fill the CardField component. This can be especially useful for testing purposes. */
+  defaultValues?: CardFieldInput.DefaultCardValues;
   cardStyle?: CardFieldInput.Styles;
   placeholders?: CardFieldInput.Placeholders;
   autofocus?: boolean;
