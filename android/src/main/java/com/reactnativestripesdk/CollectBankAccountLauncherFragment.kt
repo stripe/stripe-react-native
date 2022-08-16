@@ -24,6 +24,7 @@ import com.stripe.android.payments.bankaccount.navigation.CollectBankAccountResu
 class CollectBankAccountLauncherFragment(
   private val context: ReactApplicationContext,
   private val publishableKey: String,
+  private val stripeAccountId: String?,
   private val clientSecret: String,
   private val isPaymentIntent: Boolean,
   private val collectParams:  CollectBankAccountConfiguration.USBankAccount,
@@ -48,12 +49,14 @@ class CollectBankAccountLauncherFragment(
     if (isPaymentIntent) {
       collectBankAccountLauncher.presentWithPaymentIntent(
         publishableKey,
+        stripeAccountId,
         clientSecret,
         collectParams
       )
     } else {
       collectBankAccountLauncher.presentWithSetupIntent(
         publishableKey,
+        stripeAccountId,
         clientSecret,
         collectParams
       )

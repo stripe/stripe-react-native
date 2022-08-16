@@ -11,12 +11,10 @@ import com.facebook.react.bridge.*
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
-import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromToken
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
-import com.stripe.android.financialconnections.FinancialConnectionsSheetResultCallback
 import com.stripe.android.financialconnections.model.*
 
 class FinancialConnectionsSheetFragment : Fragment() {
@@ -26,8 +24,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
 
   private lateinit var promise: Promise
   private lateinit var context: ReactApplicationContext
-  private lateinit var clientSecret: String
-  private lateinit var publishableKey: String
+  private lateinit var configuration: FinancialConnectionsSheet.Configuration
   private lateinit var mode: Mode
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -44,10 +41,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
           this,
           ::onFinancialConnectionsSheetForTokenResult
         ).present(
-          configuration = FinancialConnectionsSheet.Configuration(
-            financialConnectionsSessionClientSecret = clientSecret,
-            publishableKey = publishableKey
-          )
+          configuration = configuration
         )
       }
       Mode.ForSession -> {
@@ -55,10 +49,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
           this,
           ::onFinancialConnectionsSheetForDataResult
         ).present(
-          configuration = FinancialConnectionsSheet.Configuration(
-            financialConnectionsSessionClientSecret = clientSecret,
-            publishableKey = publishableKey
-          )
+          configuration = configuration
         )
       }
     }
@@ -106,12 +97,15 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
   }
 
-  fun presentFinancialConnectionsSheet(clientSecret: String, mode: Mode, publishableKey: String, promise: Promise, context: ReactApplicationContext) {
+  fun presentFinancialConnectionsSheet(clientSecret: String, mode: Mode, publishableKey: String, stripeAccountId: String?, promise: Promise, context: ReactApplicationContext) {
     this.promise = promise
     this.context = context
-    this.clientSecret = clientSecret
-    this.publishableKey = publishableKey
     this.mode = mode
+    this.configuration = FinancialConnectionsSheet.Configuration(
+      financialConnectionsSessionClientSecret = clientSecret,
+      publishableKey = publishableKey,
+      stripeAccountId = stripeAccountId,
+    )
 
     (context.currentActivity as? AppCompatActivity)?.let {
       attemptToCleanupPreviousFragment(it)
