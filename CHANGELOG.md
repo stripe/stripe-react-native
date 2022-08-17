@@ -16,6 +16,7 @@
 ### Fixes
 
 - Fixed a bug on Android where `collectBankAccountForPayment`, `collectBankAccountForSetup`, `collectBankAccountToken`, and `collectFinancialConnectionsAccounts` wouldn't work with Stripe Connect accounts. [#1086](https://github.com/stripe/stripe-react-native/pull/1086).
+- Upgraded `stripe-ios` to 22.7.+ and `stripe-android` to 20.9.+.
 
 ## 0.17.0 - 2022-08-11
 
