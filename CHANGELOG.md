@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.0 - 2022-08-17
+
 ### Breaking changes
 
 - Your `compileSdkVersion` (in `android/build.gradle`) now must be at least `32`. Changing your `compileSdkVersion` does not change runtime behavior.
