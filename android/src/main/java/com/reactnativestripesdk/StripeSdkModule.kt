@@ -619,6 +619,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     collectBankAccountLauncherFragment = CollectBankAccountLauncherFragment(
       reactApplicationContext,
       publishableKey,
+      stripeAccountId,
       clientSecret,
       isPaymentIntent,
       collectParams,
@@ -710,7 +711,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
     financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
-      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, promise, reactApplicationContext)
+      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
   }
 
@@ -721,7 +722,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
     financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
-      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, promise, reactApplicationContext)
+      it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
   }
 
