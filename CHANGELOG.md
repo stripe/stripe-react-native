@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+## Fixes
+
+- Fixed an issue where some promises on Android would never resolve when using React Native 0.65.x or under. [#1089](https://github.com/stripe/stripe-react-native/pull/1089).
+
 ## 0.18.0 - 2022-08-17
 
 ### Breaking changes
