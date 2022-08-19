@@ -113,7 +113,8 @@ function App() {
   return (
     <StripeProvider
       publishableKey={publishableKey}
-      merchantIdentifier="merchant.identifier"
+      merchantIdentifier="merchant.identifier" // required for Apple Pay
+      urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
     >
       <PaymentScreen />
     </StripeProvider>
@@ -176,7 +177,8 @@ function App() {
   return (
     <StripeProvider
       publishableKey={publishableKey}
-      merchantIdentifier="merchant.identifier"
+      merchantIdentifier="merchant.identifier" // required for Apple Pay
+      urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
     >
       // Your app code here
     </StripeProvider>
@@ -196,6 +198,7 @@ function App() {
     initStripe({
       publishableKey: publishableKey,
       merchantIdentifier: 'merchant.identifier',
+      urlScheme="your-url-scheme",
     });
   }, []);
 }
