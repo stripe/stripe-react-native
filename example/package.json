@@ -7,8 +7,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "build:server": "babel server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files --delete-dir-on-start",
-    "start:server": "yarn build:server && node ./dist"
+    "build:server": "babel --watch server --out-dir dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
+    "start:server": "yarn build:server & nodemon ./dist"
   },
   "dependencies": {
     "@react-native-masked-view/masked-view": "^0.2.6",
@@ -35,6 +35,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "metro-react-native-babel-preset": "^0.70.3",
+    "nodemon": "^2.0.19",
     "path": "^0.12.7",
     "react-test-renderer": "18.0.0",
     "stripe": "^9.0.0",
