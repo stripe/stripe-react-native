@@ -19,9 +19,11 @@ export default function HomeScreen() {
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
-      if (url && url.includes('safepay')) {
-        await handleURLCallback(url);
-        navigation.navigate('PaymentResultScreen', { url });
+      if (url) {
+        const stripeHandled = await handleURLCallback(url);
+        if (stripeHandled) {
+          navigation.navigate('PaymentResultScreen', { url });
+        }
       }
     },
     [navigation, handleURLCallback]
