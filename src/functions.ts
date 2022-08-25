@@ -37,6 +37,7 @@ import {
   CanAddCardToWalletResult,
   FinancialConnections,
 } from './types';
+import { Platform } from 'react-native';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -142,9 +143,9 @@ export const retrieveSetupIntent = async (
 /**
  * Confirm and, if necessary, authenticate a PaymentIntent.
  *
- * @param paymentIntentClientSecret The client_secret of the associated [PaymentIntent](https://stripe.com/docs/api/payment_intents).
- * @param params An optional object that contains data related to the payment method used to confirm this payment. If no object is provided (undefined), then it is assumed that the payment method has already been [attached  to the Payment Intent](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-payment_method).
- * @param options An optional object that contains options for this payment method.
+ * @param {string} paymentIntentClientSecret The client_secret of the associated [PaymentIntent](https://stripe.com/docs/api/payment_intents).
+ * @param {object=} params An optional object that contains data related to the payment method used to confirm this payment. If no object is provided (undefined), then it is assumed that the payment method has already been [attached  to the Payment Intent](https://stripe.com/docs/api/payment_intents/create#create_payment_intent-payment_method).
+ * @param {object=} options An optional object that contains options for this payment method.
  * @returns A promise that resolves to an object containing either a `paymentIntent` field, or an `error` field.
  */
 export const confirmPayment = async (
@@ -257,13 +258,24 @@ export const confirmApplePayPayment = async (
   }
 };
 
+/** Handles any nextAction required to authenticate the PaymentIntent.
+ * Call this method if you are using manual confirmation. See https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=custom
+ *
+ * @param {string} paymentIntentClientSecret The client secret associated with the PaymentIntent.
+ * @param {string=} returnURL An optional return URL so the Stripe SDK can redirect back to your app after authentication. This should match the `return_url` you specified during PaymentIntent confirmation.
+ * */
 export const handleNextAction = async (
-  paymentIntentClientSecret: string
+  paymentIntentClientSecret: string,
+  returnURL?: string
 ): Promise<HandleNextActionResult> => {
   try {
-    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
-      paymentIntentClientSecret
-    );
+    const { paymentIntent, error } =
+      Platform.OS === 'ios'
+        ? await NativeStripeSdk.handleNextAction(
+            paymentIntentClientSecret,
+            returnURL ?? null
+          )
+        : await NativeStripeSdk.handleNextAction(paymentIntentClientSecret);
     if (error) {
       return {
         error,
@@ -579,7 +591,7 @@ export const collectBankAccountForSetup = async (
 /**
  * Use collectBankAccountToken in the [Add a Financial Connections Account to a US Custom Connect](https://stripe.com/docs/financial-connections/connect-payouts) account flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account for payouts.
- * @param clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
  * @returns A promise that resolves to an object containing either `session` and `token` fields, or an error field.
  */
 export const collectBankAccountToken = async (
@@ -608,7 +620,7 @@ export const collectBankAccountToken = async (
 /**
  * Use collectFinancialConnectionsAccounts in the [Collect an account to build data-powered products](https://stripe.com/docs/financial-connections/other-data-powered-products) flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account.
- * @param clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
  * @returns A promise that resolves to an object containing either a `session` field, or an error field.
  */
 export const collectFinancialConnectionsAccounts = async (

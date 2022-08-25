@@ -104,7 +104,8 @@ export default function NoWebhookPaymentScreen() {
     if (clientSecret && requiresAction) {
       // 4. if payment requires action calling handleNextAction
       const { error: nextActionError, paymentIntent } = await handleNextAction(
-        clientSecret
+        clientSecret,
+        'stripe-example://stripe-redirect'
       );
 
       if (nextActionError) {

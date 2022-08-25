@@ -294,6 +294,7 @@ app.post(
           },
           use_stripe_sdk: useStripeSdk,
           customer: customers.data[0].id,
+          return_url: 'stripe-example://stripe-redirect',
         };
         const intent = await stripe.paymentIntents.create(params);
         return res.send(generateResponse(intent));
@@ -308,6 +309,7 @@ app.post(
           // If a mobile client passes `useStripeSdk`, set `use_stripe_sdk=true`
           // to take advantage of new authentication features in mobile SDKs.
           use_stripe_sdk: useStripeSdk,
+          return_url: 'stripe-example://stripe-redirect',
         };
         const intent = await stripe.paymentIntents.create(params);
         // After create, if the PaymentIntent's status is succeeded, fulfill the order.
