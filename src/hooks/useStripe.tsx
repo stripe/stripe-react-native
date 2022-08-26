@@ -157,9 +157,10 @@ export function useStripe() {
 
   const _handleNextAction = useCallback(
     async (
-      paymentIntentClientSecret: string
+      paymentIntentClientSecret: string,
+      returnURL?: string
     ): Promise<HandleNextActionResult> => {
-      return handleNextAction(paymentIntentClientSecret);
+      return handleNextAction(paymentIntentClientSecret, returnURL);
     },
     []
   );

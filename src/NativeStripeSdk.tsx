@@ -38,7 +38,8 @@ type NativeStripeSdkType = {
     options: PaymentMethod.CreateOptions
   ): Promise<CreatePaymentMethodResult>;
   handleNextAction(
-    paymentIntentClientSecret: string
+    paymentIntentClientSecret: string,
+    returnURL?: string | null
   ): Promise<HandleNextActionResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
