@@ -11,6 +11,7 @@
 ## Fixes
 
 - Fixed an issue where the error resolved on iOS wasn't the root error. [#1105](https://github.com/stripe/stripe-react-native/pull/1105)
+- Fix Expo Config Plugin support on SDK 46. [#1111](https://github.com/stripe/stripe-react-native/pull/1111)
 
 ## 0.18.1 - 2022-08-19
 
