@@ -1,3 +1,7 @@
+def isNewArchitectureEnabled() {
+    return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+}
+
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
   def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeSdk_kotlinVersion']
@@ -18,6 +22,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 //apply plugin: 'kotlin-android-extensions'
 
+if (isNewArchitectureEnabled()) {
+    apply plugin: 'com.facebook.react'
+}
+
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['StripeSdk_' + name]
 }
@@ -35,6 +43,17 @@ android {
     versionName "1.0"
     vectorDrawables.useSupportLibrary = true
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    buildConfigField("boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString())
+  }
+
+  sourceSets {
+      main {
+          if (isNewArchitectureEnabled()) {
+              java.srcDirs += ['src/newarch']
+          } else {
+              java.srcDirs += ['src/oldarch']
+          }
+      }
   }
 
   buildTypes {
