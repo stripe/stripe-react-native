@@ -198,7 +198,7 @@ function App() {
     initStripe({
       publishableKey: publishableKey,
       merchantIdentifier: 'merchant.identifier',
-      urlScheme="your-url-scheme",
+      urlScheme: "your-url-scheme",
     });
   }, []);
 }
