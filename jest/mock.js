@@ -50,6 +50,7 @@ const mockFunctions = {
   initGooglePay: jest.fn(async () => ({
     error: null,
   })),
+  isGooglePaySupported: jest.fn(async() => true),
   presentGooglePay: jest.fn(async () => ({
     error: null,
   })),
@@ -79,6 +80,7 @@ const mockHooks = {
   })),
   useGooglePay: jest.fn(() => ({
     loading: false,
+    isGooglePaySupported: true,
     initGooglePay: jest.fn(async () => ({
       ...mockFunctions.initGooglePay(),
     })),
