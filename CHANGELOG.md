@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- To comply with Google's [new branding guidelines for the Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines), the `<GooglePayButton />` component's `type` prop now only accepts `standard` or `pay` (`pay_shadow`, `pay_dark`, `standard_shadow`, and `standard_dark` were all removed). It defaults to `standard`.
+- To comply with Google's [new branding guidelines for the Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines), the `<GooglePayButton />` component's `type` prop now only accepts `standard` or `pay` (`pay_shadow`, `pay_dark`, `standard_shadow`, and `standard_dark` were all removed). It defaults to `standard`. [#1135](https://github.com/stripe/stripe-react-native/pull/1135)
 
 ### New features
 
@@ -14,7 +14,7 @@
 
 - Fixed an issue where the error resolved on iOS wasn't the root error. [#1105](https://github.com/stripe/stripe-react-native/pull/1105)
 - Fix Expo Config Plugin support on SDK 46. [#1111](https://github.com/stripe/stripe-react-native/pull/1111)
-- Updated `stripe-ios` from 22.7.+ to 22.8.+. Updated `stripe-android` from 20.9.+ to 20.12.+. This updates the Google Pay button to match the new brand guidelines.
+- Updated `stripe-ios` from 22.7.+ to 22.8.+. Updated `stripe-android` from 20.9.+ to 20.12.+. This updates the Google Pay button to match the new brand guidelines. [#1135](https://github.com/stripe/stripe-react-native/pull/1135)
 
 ## 0.18.1 - 2022-08-19
 
