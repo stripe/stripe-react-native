@@ -76,7 +76,6 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
       val scale = sourceMap?.getDouble("scale") ?: 1.0
 
       requestManager
-        .asDrawable()
         .load(sourceToLoad)
         .addListener(object : RequestListener<Drawable> {
           override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
