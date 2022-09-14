@@ -15,13 +15,7 @@ const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
  */
 export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
-  type?:
-    | 'pay'
-    | 'pay_shadow'
-    | 'standard'
-    | 'standard_shadow'
-    | 'pay_dark'
-    | 'standard_dark';
+  type?: 'pay' | 'standard';
   onPress(): void;
   disabled?: boolean;
   testID?: string;
