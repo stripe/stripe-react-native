@@ -188,7 +188,7 @@ export default function GooglePayScreen() {
       {showAddToWalletButton && (
         <AddToWalletButton
           androidAssetSource={Image.resolveAssetSource(AddToGooglePayPNG)}
-          style={styles.payButton}
+          style={styles.addToWalletButton}
           cardDetails={{
             name: cardDetails?.cardholder?.name,
             primaryAccountIdentifier:
@@ -218,11 +218,16 @@ const styles = StyleSheet.create({
   },
   payButton: {
     marginTop: 30,
-    width: 152,
-    height: 40,
+    width: 182,
+    height: 48,
   },
   standardButton: {
     width: 90,
     height: 40,
+  },
+  addToWalletButton: {
+    marginTop: 30,
+    width: 190,
+    height: 60,
   },
 });
