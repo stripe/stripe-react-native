@@ -40,6 +40,18 @@ const mockFunctions = {
     error: null,
   })),
   handleURLCallback: jest.fn(async () => true),
+  verifyMicrodepositsForPayment: jest.fn(async () => ({
+    paymentIntent: {},
+    error: null,
+  })),
+  verifyMicrodepositsForSetup: jest.fn(async () => ({
+    setupIntent: {},
+    error: null,
+  })),
+  initPaymentSheet: jest.fn(async () => ({
+    paymentOption: {},
+    error: null,
+  })),
   presentPaymentSheet: jest.fn(async () => ({
     paymentOption: {},
     error: null,
@@ -50,18 +62,42 @@ const mockFunctions = {
   initGooglePay: jest.fn(async () => ({
     error: null,
   })),
+  isGooglePaySupported: jest.fn(async () => true),
   presentGooglePay: jest.fn(async () => ({
     error: null,
   })),
-  createGooglePayPayment: jest.fn(async () => ({
+  createGooglePayPaymentMethod: jest.fn(async () => ({
     paymentMethod: {},
     error: null,
   })),
   openApplePaySetup: jest.fn(async () => ({
     error: null,
   })),
-  initPaymentSheet: jest.fn(async () => ({
-    paymentOption: {},
+  collectBankAccountForPayment: jest.fn(async () => ({
+    paymentIntent: {},
+    error: null,
+  })),
+  collectBankAccountForSetup: jest.fn(async () => ({
+    setupIntent: {},
+    error: null,
+  })),
+  collectBankAccountToken: jest.fn(async () => ({
+    session: {},
+    token: {},
+    error: null,
+  })),
+  collectFinancialConnectionsAccounts: jest.fn(async () => ({
+    session: {},
+    error: null,
+  })),
+  canAddCardToWallet: jest.fn(async () => ({
+    canAddCard: true,
+    details: null,
+    error: null,
+  })),
+  isCardInWallet: jest.fn(async () => ({
+    isInWallet: false,
+    token: {},
     error: null,
   })),
 };
@@ -82,6 +118,7 @@ const mockHooks = {
     initGooglePay: jest.fn(async () => ({
       ...mockFunctions.initGooglePay(),
     })),
+    isGooglePaySupported: jest.fn(async () => true),
     presentGooglePay: jest.fn(async () => ({
       ...mockFunctions.presentGooglePay(),
     })),
@@ -114,15 +151,27 @@ const mockHooks = {
       ...mockFunctions.confirmPaymentSheetPayment(),
     })),
   })),
+  useFinancialConnectionsSheet: jest.fn(() => ({
+    loading: false,
+    collectBankAccountToken: jest.fn(async () => ({
+      ...mockFunctions.collectBankAccountToken(),
+    })),
+    collectFinancialConnectionsAccounts: jest.fn(async () => ({
+      ...mockFunctions.collectFinancialConnectionsAccounts(),
+    })),
+  })),
 };
 
 module.exports = {
   ...mockFunctions,
   ...mockHooks,
+  StripeContainer: () => 'StripeContainer',
   StripeProvider: () => 'StripeProvider',
   CardField: () => 'CardField',
+  CardForm: () => 'CardForm',
   ApplePayButton: () => 'ApplePayButton',
   AuBECSDebitForm: () => 'AuBECSDebitForm',
   GooglePayButton: () => 'GooglePayButton',
+  AddToWalletButton: () => 'AddToWalletButton',
   useStripe: jest.fn(() => mockHooks),
 };
