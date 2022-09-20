@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 
 const mockFunctions = {
+  initStripe: jest.fn(async () => ({})),
   createPaymentMethod: jest.fn(async () => ({
     paymentMethod: {},
     error: null,
