@@ -18,17 +18,17 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         // TODO: Add error handling for PKPayment via callback
         STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
             if let error = error {
-                self.presentNativePayForPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
             } else {
                 STPAPIClient.shared.createToken(with: payment) { token, error in
                     if let error = error {
-                        self.presentNativePayForPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                        self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                     } else {
                         var promiseResult = ["paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? [:]]
                         if let token = token {
                             promiseResult["token"] = Mappers.mapFromToken(token: token)
                         }
-                        self.presentNativePayForPaymentMethodResolver?(promiseResult)
+                        self.createNativePayPaymentMethodResolver?(promiseResult)
                     }
                 }
             }
@@ -40,7 +40,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         _ controller: PKPaymentAuthorizationViewController
     ) {
         if (applePaymentMethodFlowCanBeCanceled) {
-            self.presentNativePayForPaymentMethodResolver?(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
+            self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
             applePaymentMethodFlowCanBeCanceled = false
         }
         _ = maybeDismissApplePay()

@@ -108,7 +108,7 @@ type NativeStripeSdkType = {
   resetPaymentSheetCustomer(): Promise<null>;
   // Native Pay
   isNativePaySupported(something?: any): Promise<boolean>;
-  presentNativePayForPaymentMethod(something: any): Promise<any>;
+  createNativePayPaymentMethod(something: any): Promise<any>;
   dismissApplePay(): Promise<boolean>;
 };
 

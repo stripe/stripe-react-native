@@ -24,7 +24,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     
     var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
-    var presentNativePayForPaymentMethodResolver: RCTPromiseResolveBlock? = nil
+    var createNativePayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
     var applePaymentMethodFlowCanBeCanceled = false
     
     var confirmPaymentClientSecret: String? = nil
@@ -482,8 +482,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(StripeAPI.deviceSupportsApplePay())
     }
     
-    @objc(presentNativePayForPaymentMethod:resolver:rejecter:)
-    func presentNativePayForPaymentMethod(params: NSDictionary,
+    @objc(createNativePayPaymentMethod:resolver:rejecter:)
+    func createNativePayPaymentMethod(params: NSDictionary,
                                           resolver resolve: @escaping RCTPromiseResolveBlock,
                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let applePayPatams = params["applePay"] as? NSDictionary else {
@@ -497,7 +497,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
         
         applePaymentMethodFlowCanBeCanceled = true
-        presentNativePayForPaymentMethodResolver = resolve
+        createNativePayPaymentMethodResolver = resolve
         applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)
         applePaymentAuthorizationController?.delegate = self
         DispatchQueue.main.async {

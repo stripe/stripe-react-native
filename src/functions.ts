@@ -715,6 +715,10 @@ export const Constants = NativeStripeSdk.getConstants();
 
 // BEGIN - NATIVE PAY
 
+/**
+ * Check if the relevant native wallet (Apple Pay on iOS, Google Pay on Android) is supported.
+ * @returns A boolean indicating whether or not the native wallet is supported.
+ */
 export const isNativePaySupported = async (params?: {
   googlePay?: GooglePay.IsSupportedParams;
 }): Promise<boolean> => {
@@ -743,7 +747,8 @@ export const isNativePaySupported = async (params?: {
 //   }
 // };
 
-/** Dismiss the Apple Pay sheet if it is open. Only supported on iOS (the Google Pay sheet cannot be closed programmatically).
+/**
+ * Dismiss the Apple Pay sheet if it is open. iOS only.
  * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
  */
 export const dismissApplePay = async (): Promise<boolean> => {
@@ -755,7 +760,12 @@ export const dismissApplePay = async (): Promise<boolean> => {
   }
 };
 
-export const presentNativePayForPaymentMethod = async (
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
+ * @param {PresentForPaymentMethodParameters} An object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
+ */
+export const createNativePayPaymentMethod = async (
   params: PresentForPaymentMethodParameters
 ): Promise<PresentForPaymentMethodResult> => {
   if (!(await NativeStripeSdk.isNativePaySupported(params))) {
@@ -769,7 +779,7 @@ export const presentNativePayForPaymentMethod = async (
 
   try {
     const { error, paymentMethod, token } =
-      await NativeStripeSdk.presentNativePayForPaymentMethod(params);
+      await NativeStripeSdk.createNativePayPaymentMethod(params);
     if (error) {
       return {
         error,
