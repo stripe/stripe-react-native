@@ -106,6 +106,10 @@ type NativeStripeSdkType = {
     clientSecret: string
   ): Promise<FinancialConnections.SessionResult>;
   resetPaymentSheetCustomer(): Promise<null>;
+  // Native Pay
+  isNativePaySupported(something?: any): Promise<boolean>;
+  presentNativePayForPaymentMethod(something: any): Promise<any>;
+  dismissApplePay(): Promise<boolean>;
 };
 
 const { StripeSdk } = NativeModules;

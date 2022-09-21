@@ -38,6 +38,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private var confirmPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
+  private var presentNativePayForPaymentMethodPromise: Promise? = null
 
   private var paymentSheetFragment: PaymentSheetFragment? = null
   private var googlePayFragment: GooglePayFragment? = null
@@ -59,14 +60,24 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
-        dispatchActivityResultsToFragments(requestCode, resultCode, data)
-        try {
-          val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-          if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
-            onFpxPaymentMethodResult(result)
+        when (requestCode) {
+          GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
+            presentNativePayForPaymentMethodPromise?.let {
+              GooglePayRequestHelper.handleGooglePaymentMethodResult(resultCode, data, stripe, it)
+              presentNativePayForPaymentMethodPromise = null
+            } ?: run { Log.d("StripeReactNative", "No promise was found, Google Pay result went unhandled,") }
           }
-        } catch (e: java.lang.Exception) {
-          Log.d("Error", e.localizedMessage ?: e.toString())
+          else -> {
+            dispatchActivityResultsToFragments(requestCode, resultCode, data)
+            try {
+              val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+              if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+                onFpxPaymentMethodResult(result)
+              }
+            } catch (e: java.lang.Exception) {
+              Log.d("StripeReactNative", e.localizedMessage ?: e.toString())
+            }
+          }
         }
       }
     }
@@ -496,6 +507,26 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun isNativePaySupported(params: ReadableMap?, promise: Promise) {
+    val fragment = GooglePayPaymentMethodLauncherFragment(
+      reactApplicationContext,
+      getBooleanOrFalse(params, "testEnv"),
+      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
+      promise
+    )
+
+    getCurrentActivityOrResolveWithError(promise)?.let {
+      try {
+        it.supportFragmentManager.beginTransaction()
+          .add(fragment, GooglePayPaymentMethodLauncherFragment.TAG)
+          .commit()
+      } catch (error: IllegalStateException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
+      }
+    }
+  }
+
+  @ReactMethod
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
     val fragment = GooglePayPaymentMethodLauncherFragment(
       reactApplicationContext,
@@ -562,6 +593,23 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
     googlePayFragment?.createPaymentMethod(currencyCode, amount, promise)
+  }
+
+  @ReactMethod
+  fun presentNativePayForPaymentMethod(params: ReadableMap, promise: Promise) {
+    val googlePayParams: ReadableMap = params.getMap("googlePay") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "You must provide the `googlePay` parameter."))
+      return
+    }
+    presentNativePayForPaymentMethodPromise = promise
+    getCurrentActivityOrResolveWithError(promise)?.let {
+      val request = GooglePayRequestHelper.createPaymentRequest(
+        it,
+        GooglePayJsonFactory(reactApplicationContext),
+        googlePayParams
+      )
+      GooglePayRequestHelper.createPaymentMethod(request, it)
+    }
   }
 
   @ReactMethod

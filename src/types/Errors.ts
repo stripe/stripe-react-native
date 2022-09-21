@@ -89,3 +89,9 @@ export const enum AddressSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
 }
+
+export enum NativePayError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}

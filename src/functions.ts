@@ -5,6 +5,7 @@ import {
   ApplePay,
   ApplePayError,
   ApplePayResult,
+  NativePayError,
   ConfirmPaymentResult,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
@@ -38,9 +39,18 @@ import {
   FinancialConnections,
 } from './types';
 import { Platform } from 'react-native';
+// TODO: move to types.ts
+import type {
+  PresentForPaymentMethodParameters,
+  PresentForPaymentMethodResult,
+} from './types/NativePay';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
+
+const NATIVE_PAY_NOT_SUPPORTED_MESSAGE = `${
+  Platform.OS === 'ios' ? 'Apple' : 'Google'
+} pay is not supported on this device`;
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -702,3 +712,84 @@ export const isCardInWallet = async (params: {
 };
 
 export const Constants = NativeStripeSdk.getConstants();
+
+// BEGIN - NATIVE PAY
+
+export const isNativePaySupported = async (params?: {
+  googlePay?: GooglePay.IsSupportedParams;
+}): Promise<boolean> => {
+  return await NativeStripeSdk.isNativePaySupported(params ?? {});
+};
+
+// export const presentNativePayForSetup = async (clientSecret: string) => {
+//   if (!(await NativeStripeSdk.isNativePaySupported())) {
+//     return {
+//       error: {
+//         code: ConfirmPaymentError.Failed,
+//         message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
+//       },
+//     };
+//   }
+// };
+
+// export const presentNativePayForPayment = async (clientSecret: string) => {
+//   if (!(await NativeStripeSdk.isNativePaySupported())) {
+//     return {
+//       error: {
+//         code: ConfirmPaymentError.Failed,
+//         message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
+//       },
+//     };
+//   }
+// };
+
+/** Dismiss the Apple Pay sheet if it is open. Only supported on iOS (the Google Pay sheet cannot be closed programmatically).
+ * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
+ */
+export const dismissApplePay = async (): Promise<boolean> => {
+  try {
+    const didDismiss = await NativeStripeSdk.dismissApplePay();
+    return didDismiss;
+  } catch (error: any) {
+    return false;
+  }
+};
+
+export const presentNativePayForPaymentMethod = async (
+  params: PresentForPaymentMethodParameters
+): Promise<PresentForPaymentMethodResult> => {
+  if (!(await NativeStripeSdk.isNativePaySupported(params))) {
+    return {
+      error: {
+        code: NativePayError.Failed,
+        message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
+      },
+    };
+  }
+
+  try {
+    const { error, paymentMethod, token } =
+      await NativeStripeSdk.presentNativePayForPaymentMethod(params);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentMethod: paymentMethod!,
+      token: token!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+export const onApplePayShippingMethodSelected = async () => {};
+
+export const onApplePayShippingContactSelected = async () => {};
+
+export const onApplePayCouponCodeEntered = async () => {};
+
+// END - NATIVE PAY
