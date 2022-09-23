@@ -65,6 +65,16 @@ export type PresentForPaymentMethodParameters = {
     requiredBillingContactFields?: Array<ContactFieldsType>;
     /** An array of shipping method objects that describe the supported shipping methods. */
     shippingMethods?: Array<ShippingMethod>;
+    /** Set this value to true to display the coupon code field, or pass the 'couponCode' field to autofill with a coupon code. Defaults to false. */
+    supportsCouponCode?: boolean;
+    /** Set this value to autofill with a coupon code. */
+    couponCode?: string;
+    /** Set the payment capabilities you support. If set, 3DS is required. */
+    merchantCapabilities?: Array<ApplePayMerchantCapability>;
+    /** An optional value that indicates how to ship purchased items. Defaults to 'Shipping'.*/
+    shippingType?: ApplePayShippingType;
+    /** A list of two-letter ISO 3166 country codes for limiting payment to cards from specific countries or regions. */
+    supportedCountries?: Array<string>;
   };
 };
 
@@ -73,6 +83,24 @@ export const enum BillingAddressFormat {
   Full = 'FULL',
   /** Collect name, country code, and postal code (default). */
   Min = 'MIN',
+}
+
+export const enum ApplePayMerchantCapability {
+  /** Required. This value must be supplied. */
+  Supports3DS = 'supports3DS',
+  /** Optional. If present, only transactions that are categorized as credit cards are allowed. */
+  SupportsCredit = 'supportsCredit',
+  /** Optional. If present, only transactions that are categorized as debit cards are allowed. */
+  SupportsDebit = 'supportsDebit',
+}
+
+/** A type that indicates how to ship purchased items. */
+export const enum ApplePayShippingType {
+  /** Default. */
+  Shipping = 'shipping',
+  Delivery = 'delivery',
+  StorePickup = 'storePickup',
+  ServicePickup = 'servicePickup',
 }
 
 export type PresentForPaymentMethodResult =

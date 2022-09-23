@@ -789,6 +789,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   /**
+   * We need the following in order to avoid some annoying console.warns() from our Apple Pay event listeners. Otherwise,
+   * we'd have to put our users through some annoying (if Platform.OS...) logic & null-handling logic.
+   */
+  @ReactMethod
+  fun addListener(eventName: String) {}
+  @ReactMethod
+  fun removeListeners(count: Int) {}
+
+  /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
    * provided will be resolved with an error message instructing the user to retry the method.
    */

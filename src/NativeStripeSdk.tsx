@@ -110,6 +110,11 @@ type NativeStripeSdkType = {
   isNativePaySupported(something?: any): Promise<boolean>;
   createNativePayPaymentMethod(something: any): Promise<any>;
   dismissApplePay(): Promise<boolean>;
+  updateApplePaySheet(
+    summaryItems: Array<ApplePay.CartSummaryItem>,
+    shippingMethods: Array<ApplePay.ShippingMethod>,
+    errors: Array<ApplePay.ApplePaySheetError>
+  ): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

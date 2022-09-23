@@ -38,7 +38,12 @@ import {
   CanAddCardToWalletResult,
   FinancialConnections,
 } from './types';
-import { Platform } from 'react-native';
+import {
+  Platform,
+  NativeEventEmitter,
+  NativeModules,
+  EmitterSubscription,
+} from 'react-native';
 // TODO: move to types.ts
 import type {
   PresentForPaymentMethodParameters,
@@ -748,10 +753,13 @@ export const isNativePaySupported = async (params?: {
 // };
 
 /**
- * Dismiss the Apple Pay sheet if it is open. iOS only.
+ * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
  * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
  */
 export const dismissApplePay = async (): Promise<boolean> => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
   try {
     const didDismiss = await NativeStripeSdk.dismissApplePay();
     return didDismiss;
@@ -762,7 +770,7 @@ export const dismissApplePay = async (): Promise<boolean> => {
 
 /**
  * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
- * @param {PresentForPaymentMethodParameters} An object describing the Apple Pay and Google Pay configurations.
+ * @param {PresentForPaymentMethodParameters} params an object describing the Apple Pay and Google Pay configurations.
  * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
  */
 export const createNativePayPaymentMethod = async (
@@ -796,10 +804,81 @@ export const createNativePayPaymentMethod = async (
   }
 };
 
-export const onApplePayShippingMethodSelected = async () => {};
+/**
+ * Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
+ * @param summaryItems An array of payment summary items to display in the Apple Pay sheet.
+ * @param shippingMethods An array of shipping methods to display in the Apple Pay sheet.
+ * @param errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
+ *
+ * @returns An object with an optional 'error' field, which is only populated if something went wrong.
+ */
+export const updateApplePaySheet = async (
+  summaryItems: Array<ApplePay.CartSummaryItem>,
+  shippingMethods: Array<ApplePay.ShippingMethod>,
+  errors: Array<ApplePay.ApplePaySheetError>
+): Promise<{
+  error?: StripeError<NativePayError>;
+}> => {
+  if (Platform.OS !== 'ios') {
+    return {};
+  }
 
-export const onApplePayShippingContactSelected = async () => {};
+  try {
+    await NativeStripeSdk.updateApplePaySheet(
+      summaryItems,
+      shippingMethods,
+      errors
+    );
 
-export const onApplePayCouponCodeEntered = async () => {};
+    return {};
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+let _emitter: NativeEventEmitter | null;
+
+function _getEmitter(): NativeEventEmitter {
+  if (!_emitter) {
+    _emitter = new NativeEventEmitter(NativeModules.StripeSdk);
+  }
+  return _emitter;
+}
+
+/**
+ * Adds a listener that gets called whenever the user selects a shipping method in the Apple Pay sheet.
+ * Your listener is passed one parameter: an `event` object with a `shippingMethod` field. You can
+ * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
+ */
+export const addOnApplePayShippingMethodSelectedListener = (
+  listener: (event: { shippingMethod: ApplePay.ShippingMethod }) => void
+): EmitterSubscription => {
+  return _getEmitter().addListener('onDidSetShippingMethod', listener);
+};
+
+/**
+ * Adds a listener that gets called whenever the user selects a shipping contact in the Apple Pay sheet.
+ * Your listener is passed one parameter: an `event` object with a `shippingContact` field. You can
+ * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
+ */
+export const addOnApplePayShippingContactSelectedListener = (
+  listener: (event: { shippingContact: ApplePay.ShippingContact }) => void
+): EmitterSubscription => {
+  return _getEmitter().addListener('onDidSetShippingContact', listener);
+};
+
+/**
+ * Adds a listener that gets called whenever the user inputs a coupon code in the Apple Pay sheet.
+ * Your listener is passed one parameter: an `event` object with a `couponCode` field. You MUST
+ * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+ * Apple Pay sheet will hang and the payment flow will automatically cancel.
+ */
+export const addOnApplePayCouponCodeEnteredListener = (
+  listener: (event: { couponCode: string }) => void
+): EmitterSubscription => {
+  return _getEmitter().addListener('onDidSetCouponCode', listener);
+};
 
 // END - NATIVE PAY

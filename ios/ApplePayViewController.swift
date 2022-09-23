@@ -15,7 +15,6 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
     ) {
         applePaymentMethodFlowCanBeCanceled = false
-        // TODO: Add error handling for PKPayment via callback
         STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
             if let error = error {
                 self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
@@ -63,7 +62,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         handler completion: @escaping (PKPaymentRequestCouponCodeUpdate) -> Void
     ) {
         self.couponCodeUpdateHandler = completion
-        sendEvent(withName: "onDidSetCouponCode", body: ["couponCode": couponCode]) // TODO: add support for this event
+        sendEvent(withName: "onDidSetCouponCode", body: ["couponCode": couponCode])
     }
     
     func paymentAuthorizationViewController(

@@ -35,7 +35,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     lazy var couponCodeUpdateHandler: ((PKPaymentRequestCouponCodeUpdate) -> Void)? = nil
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact"]
+        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -371,16 +371,59 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
     }
 
-    @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
-    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc(updateApplePaySheet:shippingMethods:errors:resolver:rejecter:)
+    func updateApplePaySheet(summaryItems: NSArray,
+                             shippingMethods: NSArray,
+                             errors: [NSDictionary],
+                             resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock)
+    {
         let couponUpdateHandlerIsNil: Bool = {
-            if #available(iOS 15.0, *), couponCodeUpdateHandler == nil {
+            if #available(iOS 15.0, *), self.couponCodeUpdateHandler == nil {
                 return true
             }
             return false
         }()
         
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil && couponUpdateHandlerIsNil) {
+            resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod, onDidSetShippingContact, or onDidSetCouponCode events emitted"))
+            return
+        }
+        
+        var paymentSummaryItems : [PKPaymentSummaryItem] = []
+        do {
+            paymentSummaryItems = try ApplePayUtils.buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+        
+        let shippingMethods = ApplePayUtils.buildShippingMethods(items: shippingMethods as? [[String : Any]])
+        var shippingAddressErrors: [Error] = []
+        var couponCodeErrors: [Error] = []
+        
+        do {
+            (shippingAddressErrors, couponCodeErrors) = try ApplePayUtils.buildApplePayErrors(errorItems: errors)
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+        
+
+        shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: shippingMethods))
+        if #available(iOS 15.0, *) {
+            couponCodeUpdateHandler?(PKPaymentRequestCouponCodeUpdate.init(errors: couponCodeErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: shippingMethods))
+            self.couponCodeUpdateHandler = nil
+        }
+        self.shippingMethodUpdateHandler = nil
+        self.shippingContactUpdateHandler = nil
+        resolve([])
+    }
+    
+    @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
+    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
             resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
             return
         }
@@ -401,11 +444,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
 
         shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
-        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: [])) // TODO: add shipping method
-        if #available(iOS 15.0, *) {
-            couponCodeUpdateHandler?(PKPaymentRequestCouponCodeUpdate.init(errors: [], paymentSummaryItems: paymentSummaryItems, shippingMethods: [])) // TODO: add shipping method and error handling
-            self.couponCodeUpdateHandler = nil
-        }
+        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
         self.shippingMethodUpdateHandler = nil
         self.shippingContactUpdateHandler = nil
         resolve([])
