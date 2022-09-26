@@ -162,6 +162,7 @@ const inputStyles: CardFormView.Styles = {
   borderRadius: 10,
   cursorColor: '#000000',
   fontSize: 16,
+  fontFamily: 'Macondo-Regular',
   placeholderColor: '#A020F0',
   textErrorColor: '#ff0000',
 };

@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.views.text.ReactTypefaceUtils
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
@@ -124,7 +125,8 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     }
     fontFamily?.let {
       for (editTextBinding in bindings) {
-        editTextBinding.typeface = Typeface.create(it, Typeface.NORMAL)
+        // Load custom font from assets, and fallback to default system font
+        editTextBinding.typeface = ReactTypefaceUtils.applyStyles(null, -1, -1, it.takeIf { it.isNotEmpty() }, context.assets)
       }
     }
     cursorColor?.let {

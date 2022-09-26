@@ -12,6 +12,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.views.text.ReactTypefaceUtils
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
@@ -134,6 +135,12 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       cardFormViewBinding.cardMultilineWidget.expiryDateEditText,
       cardFormViewBinding.postalCode
     )
+    val inputLayoutBindings = setOf(
+      cardFormViewBinding.cardMultilineWidget.cardNumberTextInputLayout,
+      cardFormViewBinding.cardMultilineWidget.cvcInputLayout,
+      cardFormViewBinding.cardMultilineWidget.expiryTextInputLayout,
+      cardFormViewBinding.postalCodeContainer,
+    )
 
     textColor?.let {
       for (binding in editTextBindings) {
@@ -159,9 +166,17 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       }
     }
     fontFamily?.let {
+      // Load custom font from assets, and fallback to default system font
+      val typeface = ReactTypefaceUtils.applyStyles(null, -1, -1, it.takeIf { it.isNotEmpty() }, context.assets)
       for (binding in editTextBindings) {
-        binding.typeface = Typeface.create(it, Typeface.NORMAL)
+        binding.typeface = typeface
       }
+      for (binding in inputLayoutBindings) {
+        binding.typeface = typeface
+      }
+      cardFormViewBinding.countryLayout.typeface = typeface
+      cardFormViewBinding.countryLayout.countryAutocomplete.typeface = typeface
+      cardFormViewBinding.errors.typeface = typeface
     }
     cursorColor?.let {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
