@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+## Fixes
+
+- Fixed an issue on iOS where `confirmSetupIntent` would throw an error if the `Card` payment method was provided with the `paymentMethodId` parameter. [#1151](https://github.com/stripe/stripe-react-native/pull/1151)
+
 ## 0.19.0 - 2022-09-16
 
 ### Breaking changes
