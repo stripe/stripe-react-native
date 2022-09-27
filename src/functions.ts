@@ -37,6 +37,7 @@ import {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  NativePay,
 } from './types';
 import {
   Platform,
@@ -44,18 +45,9 @@ import {
   NativeModules,
   EmitterSubscription,
 } from 'react-native';
-// TODO: move to types.ts
-import type {
-  PresentForPaymentMethodParameters,
-  PresentForPaymentMethodResult,
-} from './types/NativePay';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
-
-const NATIVE_PAY_NOT_SUPPORTED_MESSAGE = `${
-  Platform.OS === 'ios' ? 'Apple' : 'Google'
-} pay is not supported on this device`;
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -730,27 +722,67 @@ export const isNativePaySupported = async (params?: {
   return await NativeStripeSdk.isNativePaySupported(params ?? {});
 };
 
-// export const presentNativePayForSetup = async (clientSecret: string) => {
-//   if (!(await NativeStripeSdk.isNativePaySupported())) {
-//     return {
-//       error: {
-//         code: ConfirmPaymentError.Failed,
-//         message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
-//       },
-//     };
-//   }
-// };
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [SetupIntent](https://stripe.com/docs/api/setup_intents).
+ * @param clientSecret The client secret of the SetupIntent.
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `setupIntent` and `paymentMethod` fields.
+ */
+export const confirmNativePaySetupIntent = async (
+  clientSecret: string,
+  params: NativePay.ConfirmParams
+): Promise<NativePay.ConfirmSetupIntentResult> => {
+  try {
+    const { error, setupIntent } = (await NativeStripeSdk.confirmNativePay(
+      clientSecret,
+      params,
+      false
+    )) as NativePay.ConfirmSetupIntentResult;
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
 
-// export const presentNativePayForPayment = async (clientSecret: string) => {
-//   if (!(await NativeStripeSdk.isNativePaySupported())) {
-//     return {
-//       error: {
-//         code: ConfirmPaymentError.Failed,
-//         message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
-//       },
-//     };
-//   }
-// };
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [PaymentIntent](https://stripe.com/docs/api/payment_intents).
+ * @param clientSecret The client secret of the PaymentIntent.
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentIntent` and `paymentMethod` fields.
+ */
+export const confirmNativePayPayment = async (
+  clientSecret: string,
+  params: NativePay.ConfirmParams
+): Promise<NativePay.ConfirmPaymentResult> => {
+  try {
+    const { error, paymentIntent } = (await NativeStripeSdk.confirmNativePay(
+      clientSecret,
+      params,
+      true
+    )) as NativePay.ConfirmPaymentResult;
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
 
 /**
  * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
@@ -770,21 +802,12 @@ export const dismissApplePay = async (): Promise<boolean> => {
 
 /**
  * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
- * @param {PresentForPaymentMethodParameters} params an object describing the Apple Pay and Google Pay configurations.
+ * @param params an object describing the Apple Pay and Google Pay configurations.
  * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
  */
 export const createNativePayPaymentMethod = async (
-  params: PresentForPaymentMethodParameters
-): Promise<PresentForPaymentMethodResult> => {
-  if (!(await NativeStripeSdk.isNativePaySupported(params))) {
-    return {
-      error: {
-        code: NativePayError.Failed,
-        message: NATIVE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
-    };
-  }
-
+  params: NativePay.PaymentMethodParams
+): Promise<NativePay.PaymentMethodResult> => {
   try {
     const { error, paymentMethod, token } =
       await NativeStripeSdk.createNativePayPaymentMethod(params);

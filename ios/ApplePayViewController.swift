@@ -23,9 +23,9 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                     if let error = error {
                         self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                     } else {
-                        var promiseResult = ["paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? [:]]
+                        var promiseResult = ["paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]]
                         if let token = token {
-                            promiseResult["token"] = Mappers.mapFromToken(token: token)
+                            promiseResult["token"] = Mappers.mapFromToken(token: token.splitApplePayAddressByNewline())
                         }
                         self.createNativePayPaymentMethodResolver?(promiseResult)
                     }
@@ -107,19 +107,14 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         paymentInformation: PKPayment,
         completion: @escaping STPIntentClientSecretCompletionBlock
     ) {
-        self.applePayCompletionCallback = completion
-        
-        let address = paymentMethod.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
-        if (address?.indices.contains(0) == true) {
-            paymentMethod.billingDetails?.address?.line1 = String(address?[0] ?? "")
+        if let clientSecret = self.confirmApplePayPaymentClientSecret {
+            completion(clientSecret, nil)
+        } else {
+            self.applePayCompletionCallback = completion
+            let method = Mappers.mapFromPaymentMethod(paymentMethod.splitApplePayAddressByNewline())
+            self.deprecatedApplePayRequestResolver?(Mappers.createResult("paymentMethod", method))
+            self.deprecatedApplePayRequestRejecter = nil
         }
-        if (address?.indices.contains(1) == true) {
-            paymentMethod.billingDetails?.address?.line2 = String(address?[1] ?? "")
-        }
-        
-        let method = Mappers.mapFromPaymentMethod(paymentMethod)
-        self.applePayRequestResolver?(Mappers.createResult("paymentMethod", method))
-        self.applePayRequestRejecter = nil
     }
     
     func applePayContext(
@@ -129,31 +124,106 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
     ) {
         switch status {
         case .success:
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
-            confirmApplePayPaymentResolver?([])
+            if let resolve = self.confirmApplePayResolver {
+                if let clientSecret = self.confirmApplePayPaymentClientSecret {
+                    STPAPIClient.shared.retrievePaymentIntent(withClientSecret: clientSecret) { (paymentIntent, error) in
+                        guard error == nil else {
+                            if let lastPaymentError = paymentIntent?.lastPaymentError {
+                                resolve(Errors.createError(ErrorType.Unknown, lastPaymentError))
+                            } else {
+                                resolve(Errors.createError(ErrorType.Unknown, error as NSError?))
+                            }
+                            return
+                        }
+
+                        if let paymentIntent = paymentIntent {
+                            resolve(Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)))
+                        } else {
+                            resolve(Mappers.createResult("paymentIntent", nil))
+                        }
+                    }
+                } else if let clientSecret = self.confirmApplePaySetupClientSecret {
+                    STPAPIClient.shared.retrieveSetupIntent(withClientSecret: clientSecret) { (setupIntent, error) in
+                        guard error == nil else {
+                            if let lastSetupError = setupIntent?.lastSetupError {
+                                resolve(Errors.createError(ErrorType.Unknown, lastSetupError))
+                            } else {
+                                resolve(Errors.createError(ErrorType.Unknown, error?.localizedDescription))
+                            }
+                            return
+                        }
+
+                        if let setupIntent = setupIntent {
+                            resolve(Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: setupIntent)))
+                        } else {
+                            resolve(Mappers.createResult("setupIntent", nil))
+                        }
+                    }
+                }
+                
+            } else {
+                deprecatedConfirmApplePayPaymentResolver?([])
+            }
             break
         case .error:
-            let message = "Payment not completed"
-            applePayCompletionRejecter?(ErrorType.Failed, message, nil)
-            applePayRequestRejecter?(ErrorType.Failed, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
+            if let resolve = self.confirmApplePayResolver {
+                resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+            } else {
+                let message = "Payment not completed"
+                deprecatedApplePayCompletionRejecter?(ErrorType.Failed, message, nil)
+                deprecatedApplePayRequestRejecter?(ErrorType.Failed, message, nil)
+            }
             break
         case .userCancellation:
             let message = "The payment has been canceled"
-            applePayCompletionRejecter?(ErrorType.Canceled, message, nil)
-            applePayRequestRejecter?(ErrorType.Canceled, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
+            if let resolve = self.confirmApplePayResolver {
+                resolve(Errors.createError(ErrorType.Canceled, message))
+            } else {
+                deprecatedApplePayCompletionRejecter?(ErrorType.Canceled, message, nil)
+                deprecatedApplePayRequestRejecter?(ErrorType.Canceled, message, nil)
+            }
             break
         @unknown default:
-            let message = "Payment not completed"
-            applePayCompletionRejecter?(ErrorType.Unknown, message, nil)
-            applePayRequestRejecter?(ErrorType.Unknown, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
+            if let resolve = self.confirmApplePayResolver {
+                resolve(Errors.createError(ErrorType.Unknown, error as NSError?))
+            } else {
+                let message = "Payment not completed"
+                deprecatedApplePayCompletionRejecter?(ErrorType.Unknown, message, nil)
+                deprecatedApplePayRequestRejecter?(ErrorType.Unknown, message, nil)
+            }
+            break
         }
+        confirmApplePayResolver = nil
+        confirmApplePayPaymentClientSecret = nil
+        confirmApplePaySetupClientSecret = nil
+        deprecatedApplePayCompletionRejecter = nil
+        deprecatedApplePayRequestRejecter = nil
     }
     
+}
+
+extension STPPaymentMethod {
+    func splitApplePayAddressByNewline() -> STPPaymentMethod {
+        let address = self.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
+        if (address?.indices.contains(0) == true) {
+            self.billingDetails?.address?.line1 = String(address?[0] ?? "")
+        }
+        if (address?.indices.contains(1) == true) {
+            self.billingDetails?.address?.line2 = String(address?[1] ?? "")
+        }
+        return self
+    }
+}
+
+extension STPToken {
+    func splitApplePayAddressByNewline() -> STPToken {
+        let address = self.card?.address?.line1?.split(whereSeparator: \.isNewline)
+        if (address?.indices.contains(0) == true) {
+            self.card?.address?.line1 = String(address?[0] ?? "")
+        }
+        if (address?.indices.contains(1) == true) {
+            self.card?.address?.line2 = String(address?[1] ?? "")
+        }
+        return self
+    }
 }

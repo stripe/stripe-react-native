@@ -3,6 +3,7 @@ import type {
   PaymentMethod,
   PaymentIntent,
   ApplePay,
+  NativePay,
   PaymentSheet,
   SetupIntent,
   InitialiseParams,
@@ -107,14 +108,25 @@ type NativeStripeSdkType = {
   ): Promise<FinancialConnections.SessionResult>;
   resetPaymentSheetCustomer(): Promise<null>;
   // Native Pay
-  isNativePaySupported(something?: any): Promise<boolean>;
-  createNativePayPaymentMethod(something: any): Promise<any>;
+  isNativePaySupported(params: {
+    googlePay?: GooglePay.IsSupportedParams;
+  }): Promise<boolean>;
+  createNativePayPaymentMethod(
+    params: NativePay.PaymentMethodParams
+  ): Promise<NativePay.PaymentMethodResult>;
   dismissApplePay(): Promise<boolean>;
   updateApplePaySheet(
     summaryItems: Array<ApplePay.CartSummaryItem>,
     shippingMethods: Array<ApplePay.ShippingMethod>,
     errors: Array<ApplePay.ApplePaySheetError>
   ): Promise<void>;
+  confirmNativePay(
+    clientSecret: string,
+    params: NativePay.ConfirmParams,
+    isPaymentIntent: boolean
+  ): Promise<
+    NativePay.ConfirmPaymentResult | NativePay.ConfirmSetupIntentResult
+  >;
 };
 
 const { StripeSdk } = NativeModules;

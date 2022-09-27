@@ -29,8 +29,12 @@ class ApplePayUtils {
         }
 
         guard let summaryItems = params["cartItems"] as? NSArray else {
-            return (Errors.createError(ErrorType.Failed, "You must provide the items for purchase"), nil)
+            return (Errors.createError(ErrorType.Failed, "`cartItems` cannot be null."), nil)
         }
+        if (summaryItems.count == 0) {
+            return (Errors.createError(ErrorType.Failed, "`cartItems` cannot be empty."), nil)
+        }
+        
         guard let countryCode = ((params.object(forKey: "merchantCountryCode") != nil) ? params["merchantCountryCode"] : params["country"]) as? String else {
             return (Errors.createError(ErrorType.Failed, "You must provide the country"), nil)
         }

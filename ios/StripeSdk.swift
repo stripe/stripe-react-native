@@ -18,10 +18,14 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
 
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
-    var applePayRequestResolver: RCTPromiseResolveBlock? = nil
-    var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
-    var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
-    var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    var deprecatedApplePayRequestResolver: RCTPromiseResolveBlock? = nil
+    var deprecatedApplePayRequestRejecter: RCTPromiseRejectBlock? = nil
+    var deprecatedApplePayCompletionRejecter: RCTPromiseRejectBlock? = nil
+    var deprecatedConfirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    
+    var confirmApplePayResolver: RCTPromiseResolveBlock? = nil
+    var confirmApplePayPaymentClientSecret: String? = nil
+    var confirmApplePaySetupClientSecret: String? = nil
     
     var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
     var createNativePayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
@@ -463,8 +467,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
 
     @objc(confirmApplePayPayment:resolver:rejecter:)
     func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.applePayCompletionRejecter = reject
-        self.confirmApplePayPaymentResolver = resolve
+        self.deprecatedApplePayCompletionRejecter = reject
+        self.deprecatedConfirmApplePayPaymentResolver = resolve
         self.applePayCompletionCallback?(clientSecret, nil)
     }
 
@@ -496,8 +500,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     func presentApplePay(params: NSDictionary,
                          resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.applePayRequestResolver = resolve
-        self.applePayRequestRejecter = reject
+        self.deprecatedApplePayRequestResolver = resolve
+        self.deprecatedApplePayRequestRejecter = reject
         
         let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: params)
         guard let paymentRequest = paymentRequest else {
@@ -549,11 +553,46 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
             
     }
+    
     @objc(dismissApplePay:rejecter:)
     func dismissApplePay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let didDismiss = maybeDismissApplePay()
         resolve(didDismiss)
     }
+    
+    @objc(confirmNativePay:params:isPaymentIntent:resolver:rejecter:)
+    func confirmNativePay(
+        clientSecret: String?,
+        params: NSDictionary,
+        isPaymentIntent: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard let applePayPatams = params["applePay"] as? NSDictionary else {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
+            return
+        }
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayPatams)
+        guard let paymentRequest = paymentRequest else {
+            resolve(error)
+            return
+        }
+
+        self.confirmApplePayResolver = resolve
+        if (isPaymentIntent) {
+            self.confirmApplePayPaymentClientSecret = clientSecret
+        } else {
+            self.confirmApplePaySetupClientSecret = clientSecret
+        }
+        if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
+            DispatchQueue.main.async {
+                applePayContext.presentApplePay(completion: nil)
+            }
+        } else {
+            resolve(Errors.createError(ErrorType.Failed, "Payment not completed"))
+        }
+    }
+    
     func configure3dSecure(_ params: NSDictionary) {
         let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
         let uiCustomization = Mappers.mapUICustomization(params)
