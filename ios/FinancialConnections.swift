@@ -137,9 +137,8 @@ class FinancialConnections {
         return [
             "asOf": balance.asOf * 1000,
             "type": mapFromBalanceType(balance.type),
-//             TODO: Protected by internal on iOS only. PR is out to fix
-            "cash": ["available": NSNull()],   // balance.cash?.available
-            "credit": ["used": NSNull()], // balance.credit?.used
+            "cash": ["available": balance.cash?.available],
+            "credit": ["used": balance.credit?.used],
             "current": balance.current,
         ]
     }
