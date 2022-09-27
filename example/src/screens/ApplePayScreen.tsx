@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   ApplePayButton,
-  useApplePay,
   ApplePay,
+  NativePay,
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
+  createNativePayPaymentMethod,
+  addOnApplePayCouponCodeEnteredListener,
+  addOnApplePayShippingContactSelectedListener,
+  addOnApplePayShippingMethodSelectedListener,
+  updateApplePaySheet,
+  isNativePaySupported,
+  confirmNativePayPayment,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -18,11 +25,77 @@ export default function ApplePayScreen() {
   const [ephemeralKey, setEphemeralKey] = useState({});
   const [showAddToWalletButton, setShowAddToWalletButton] = useState(true);
   const [cardDetails, setCardDetails] = useState<any>(null);
+  const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [clientSecret, setClientSecret] = useState<String | null>(null);
 
   useEffect(() => {
     fetchEphemeralKey();
     checkIfCardInWallet();
-  }, []);
+    checkIfApplePayIsSupported();
+    fetchPaymentIntentClientSecret();
+
+    const couponListener = addOnApplePayCouponCodeEnteredListener((event) => {
+      console.log(JSON.stringify(event, null, 2));
+      if (event.couponCode === 'stripe') {
+        setCart([
+          { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
+          { label: 'Discount', amount: '2.75', paymentType: 'Immediate' },
+          {
+            label: 'Shipping',
+            amount: '0.00',
+            isPending: false,
+            paymentType: 'Immediate',
+          },
+          {
+            label: 'Total',
+            amount: '10.75',
+            isPending: false,
+            paymentType: 'Immediate',
+          },
+        ]);
+        updateApplePaySheet(
+          cart,
+          [
+            {
+              identifier: 'free-express',
+              detail: 'Ships within 24 hours',
+              label: 'FREE Express Shipping',
+              amount: '0.00',
+            },
+          ],
+          []
+        );
+      } else {
+        updateApplePaySheet(cart, shippingMethods, [
+          {
+            errorType: ApplePay.ApplePaySheetErrorType.InvalidCouponCode,
+            message: 'Invalid coupon code. Test coupon code is: "stripe"',
+          },
+        ]);
+      }
+    });
+    const shippingContactListener =
+      addOnApplePayShippingContactSelectedListener((event) => {
+        console.log(JSON.stringify(event, null, 2));
+        updateApplePaySheet(cart, shippingMethods, []);
+      });
+    const shippingMethodListener = addOnApplePayShippingMethodSelectedListener(
+      (event) => {
+        console.log(JSON.stringify(event, null, 2));
+        updateApplePaySheet(cart, shippingMethods, []);
+      }
+    );
+
+    return function cleanup() {
+      couponListener.remove();
+      shippingContactListener.remove();
+      shippingMethodListener.remove();
+    };
+  });
+
+  const checkIfApplePayIsSupported = async () => {
+    setIsApplePaySupported(await isNativePaySupported());
+  };
 
   const checkIfCardInWallet = async () => {
     const response = await fetch(`${API_URL}/issuing-card-details`, {
@@ -79,46 +152,16 @@ export default function ApplePayScreen() {
     {
       label: 'Shipping',
       amount: '0.00',
-      isPending: true,
+      isPending: false,
       paymentType: 'Immediate',
     },
     {
       label: 'Total',
       amount: '12.75',
-      isPending: true,
+      isPending: false,
       paymentType: 'Immediate',
     }, // Last item in array needs to reflect the total.
   ]);
-
-  const { presentApplePay, confirmApplePayPayment, isApplePaySupported } =
-    useApplePay({
-      onShippingMethodSelected: (shippingMethod, handler) => {
-        console.log('shippingMethod', shippingMethod);
-        // Update cart summary based on selected shipping method.
-        const updatedCart: ApplePay.CartSummaryItem[] = [
-          cart[0],
-          {
-            label: shippingMethod.label,
-            amount: shippingMethod.amount,
-            paymentType: 'Immediate',
-          },
-          {
-            label: 'Total',
-            amount: (
-              parseFloat(cart[0].amount) + parseFloat(shippingMethod.amount)
-            ).toFixed(2),
-            paymentType: 'Immediate',
-          },
-        ];
-        setCart(updatedCart);
-        handler(updatedCart);
-      },
-      onShippingContactSelected: (shippingContact, handler) => {
-        console.log('shippingContact', shippingContact);
-        // Make modifications to cart here e.g. adding tax.
-        handler(cart);
-      },
-    });
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -128,13 +171,15 @@ export default function ApplePayScreen() {
       },
       body: JSON.stringify({
         currency: 'usd',
-        items: cart,
+        items: ['id-4', 'id-5'],
         force3dSecure: true,
       }),
     });
-    const { clientSecret } = await response.json();
-
-    return clientSecret;
+    const result = await response.json();
+    if (!result.clientSecret) {
+      Alert.alert('Error fetching client secret.', result.error);
+    }
+    setClientSecret(result.clientSecret);
   };
 
   const fetchEphemeralKey = async () => {
@@ -153,36 +198,68 @@ export default function ApplePayScreen() {
   };
 
   const pay = async () => {
-    const { error, paymentMethod } = await presentApplePay({
-      cartItems: cart,
-      country: 'US',
-      currency: 'USD',
-      shippingMethods,
-      requiredShippingAddressFields: [
-        'emailAddress',
-        'phoneNumber',
-        'postalAddress',
-        'name',
-      ],
-      requiredBillingContactFields: ['phoneNumber', 'name'],
-      jcbEnabled: true,
-    });
-
-    if (error) {
-      Alert.alert(error.code, error.message);
-    } else {
-      console.log(JSON.stringify(paymentMethod, null, 2));
-      const clientSecret = await fetchPaymentIntentClientSecret();
-
-      const { error: confirmApplePayError } = await confirmApplePayPayment(
-        clientSecret
-      );
-
-      if (confirmApplePayError) {
-        Alert.alert(confirmApplePayError.code, confirmApplePayError.message);
-      } else {
-        Alert.alert('Success', 'The payment was confirmed successfully!');
+    if (!clientSecret) {
+      Alert.alert('No client secret is set.');
+      return;
+    }
+    const { paymentIntent, error } = await confirmNativePayPayment(
+      clientSecret as string,
+      {
+        applePay: {
+          cartItems: cart,
+          merchantCountryCode: 'US',
+          currencyCode: 'USD',
+          shippingMethods,
+          requiredShippingAddressFields: [
+            'emailAddress',
+            'phoneNumber',
+            'postalAddress',
+            'name',
+          ],
+          requiredBillingContactFields: ['postalAddress'],
+          shippingType: NativePay.ApplePayShippingType.StorePickup,
+          additionalEnabledNetworks: ['JCB'],
+        },
       }
+    );
+    if (error) {
+      Alert.alert('Failure', error.localizedMessage);
+    } else {
+      Alert.alert('Success', 'Check the logs for payment intent details.');
+      console.log(JSON.stringify(paymentIntent, null, 2));
+      setClientSecret(null);
+    }
+  };
+
+  const createPaymentMethod = async () => {
+    const { paymentMethod, token, error } = await createNativePayPaymentMethod({
+      applePay: {
+        cartItems: cart,
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        shippingMethods,
+        requiredShippingAddressFields: [
+          'emailAddress',
+          'phoneNumber',
+          'postalAddress',
+          'name',
+        ],
+        requiredBillingContactFields: ['postalAddress'],
+        supportsCouponCode: true,
+        couponCode: '123',
+        shippingType: NativePay.ApplePayShippingType.StorePickup,
+        additionalEnabledNetworks: ['JCB'],
+      },
+    });
+    if (error) {
+      Alert.alert('Failure', error.localizedMessage);
+    } else {
+      Alert.alert(
+        'Success',
+        'Check the logs for payment method and token details.'
+      );
+      console.log(JSON.stringify(paymentMethod, null, 2));
+      console.log(JSON.stringify(token, null, 2));
     }
   };
 
@@ -191,7 +268,7 @@ export default function ApplePayScreen() {
       <View>
         <Text>{JSON.stringify(cart, null, 2)}</Text>
       </View>
-      {isApplePaySupported && (
+      {isApplePaySupported ? (
         <View>
           <ApplePayButton
             onPress={pay}
@@ -199,6 +276,14 @@ export default function ApplePayScreen() {
             buttonStyle="black"
             borderRadius={4}
             style={styles.payButton}
+          />
+
+          <ApplePayButton
+            onPress={createPaymentMethod}
+            type="setUp"
+            buttonStyle="automatic"
+            borderRadius={4}
+            style={styles.createPaymentMethodButton}
           />
 
           {showAddToWalletButton && (
@@ -226,6 +311,8 @@ export default function ApplePayScreen() {
             />
           )}
         </View>
+      ) : (
+        <Text>Apple Pay is not supported. </Text>
       )}
     </PaymentScreen>
   );
@@ -235,7 +322,13 @@ const styles = StyleSheet.create({
   payButton: {
     width: '65%',
     height: 50,
-    marginTop: 60,
+    marginTop: 40,
+    alignSelf: 'center',
+  },
+  createPaymentMethodButton: {
+    width: '65%',
+    height: 50,
+    marginTop: 40,
     alignSelf: 'center',
   },
 });
