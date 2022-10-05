@@ -1044,7 +1044,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
             return
         }
-        resolve(["isInWallet": PushProvisioningUtils.passExistsWith(last4: last4)])
+        resolve(["isInWallet": PushProvisioningUtils.getPassLocation(last4: last4) != .NONE])
     }
     
     @objc(collectBankAccountToken:resolver:rejecter:)

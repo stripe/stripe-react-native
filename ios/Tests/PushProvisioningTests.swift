@@ -42,8 +42,8 @@ class PushProvisioningTests: XCTestCase {
     
     func testCheckIfPassExists() throws {
         XCTAssertEqual(
-            PushProvisioningUtils.passExistsWith(last4: "4242"),
-            false
+            PushProvisioningUtils.getPassLocation(last4: "4242"),
+            .NONE
         )
     }
 }
