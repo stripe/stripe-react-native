@@ -31,7 +31,7 @@ internal class PushProvisioningUtils {
                 canAddCard = false
                 status = AddCardToWalletStatus.CARD_ALREADY_EXISTS
             case .PAIRED_DEVICE:
-                canAddCard = false
+                canAddCard = true
                 status = AddCardToWalletStatus.CARD_EXISTS_ON_PAIRED_DEVICE
             case .NONE:
                break

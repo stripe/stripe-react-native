@@ -9,6 +9,7 @@
 ## Fixes
 
 - Fixed an issue on iOS where `confirmSetupIntent` would throw an error if the `Card` payment method was provided with the `paymentMethodId` parameter. [#1151](https://github.com/stripe/stripe-react-native/pull/1151)
+- Fixed an issue on iOS where `canAddCardToWallet` would return `false` if the card had already been provisioned on a paired device like an Apple Watch, but had not yet been provisioned on the current device. [#1162](https://github.com/stripe/stripe-react-native/pull/1162)
 
 ## 0.19.0 - 2022-09-16
 
