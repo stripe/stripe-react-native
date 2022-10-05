@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:clickable="true"
+    android:focusable="true"
+    android:layout_width="match_parent"
+    android:minWidth="267dp"
+    android:layout_height="48dp"
+    android:background="@drawable/googlepay_button_background_shape"
+    android:contentDescription="@string/buy_with_googlepay_button_content_description">
+    <ImageView
+                	android:contentDescription="@string/text_content_description"
+        	android:paddingHorizontal="24dp"
+        	android:paddingVertical="11dp"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:duplicateParentState="true"
+        android:src="@drawable/buy_with_googlepay_button_content"/>
+</FrameLayout>

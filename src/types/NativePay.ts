@@ -9,20 +9,6 @@ import type {
   ShippingMethod,
 } from './ApplePay';
 
-export type PaymentMethodParams = {
-  /** Defines Google Pay behavior. Android only. */
-  googlePay?: GooglePayBaseParams & GooglePayPaymentMethodParams;
-  /** Defines Apple Pay behavior. iOS only. */
-  applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
-};
-
-export type ConfirmParams = {
-  /** Defines Google Pay behavior. Android only. */
-  googlePay?: GooglePayBaseParams;
-  /** Defines Apple Pay behavior. iOS only. */
-  applePay?: ApplePayBaseParams;
-};
-
 export type ApplePayBaseParams = {
   /** ISO 3166-1 alpha-2 country code where the transaction is processed. */
   merchantCountryCode: string;
@@ -52,6 +38,24 @@ export type ApplePayPaymentMethodParams = {
   /** Set this value to autofill with a coupon code. If provided, you must implement `addOnApplePayCouponCodeEnteredListener` and call `updateApplePaySheet` from there. */
   couponCode?: string;
 };
+
+export const enum ApplePayMerchantCapability {
+  /** Required. This value must be supplied. */
+  Supports3DS = 'supports3DS',
+  /** Optional. If present, only transactions that are categorized as credit cards are allowed. */
+  SupportsCredit = 'supportsCredit',
+  /** Optional. If present, only transactions that are categorized as debit cards are allowed. */
+  SupportsDebit = 'supportsDebit',
+}
+
+/** A type that indicates how to ship purchased items. */
+export const enum ApplePayShippingType {
+  /** Default. */
+  Shipping = 'shipping',
+  Delivery = 'delivery',
+  StorePickup = 'storePickup',
+  ServicePickup = 'servicePickup',
+}
 
 export type GooglePayBaseParams = {
   /**
@@ -106,22 +110,71 @@ export const enum BillingAddressFormat {
   Min = 'MIN',
 }
 
-export const enum ApplePayMerchantCapability {
-  /** Required. This value must be supplied. */
-  Supports3DS = 'supports3DS',
-  /** Optional. If present, only transactions that are categorized as credit cards are allowed. */
-  SupportsCredit = 'supportsCredit',
-  /** Optional. If present, only transactions that are categorized as debit cards are allowed. */
-  SupportsDebit = 'supportsDebit',
+export type PaymentMethodParams = {
+  /** Defines Google Pay behavior. Android only. */
+  googlePay?: GooglePayBaseParams & GooglePayPaymentMethodParams;
+  /** Defines Apple Pay behavior. iOS only. */
+  applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
+};
+
+export type ConfirmParams = {
+  /** Defines Google Pay behavior. Android only. */
+  googlePay?: GooglePayBaseParams;
+  /** Defines Apple Pay behavior. iOS only. */
+  applePay?: ApplePayBaseParams;
+};
+
+export const enum ButtonType {
+  /** Default. A button with the Apple Pay or Google Pay logo only, useful when an additional call to action isn't needed. */
+  Plain = 0,
+  /** A button useful for product purchases. */
+  Buy = 1,
+  /** A button useful for booking trips, flights, or other experiences. */
+  Book = 6,
+  /** A button useful for purchase experiences that include other payment buttons that start with “Check out”. */
+  Checkout = 5,
+  /** A button used by approved nonprofit organization that lets people make donations. */
+  Donate = 4,
+  /** A button useful for placing orders for such as like meals or flowers. */
+  Order = 11,
+  /** A button useful for purchasing a subscription such as a gym membership or meal-kit delivery service. */
+  Subscribe = 7,
+  /** iOS only. A button useful for prompting the user to set up a card. */
+  SetUp = 2,
+  /** iOS only. A button useful for paying bills or invoices. */
+  InStore = 3,
+  /** iOS only. A button useful for adding money to a card, account, or payment system.*/
+  Reload = 8,
+  /** iOS only. A button useful for adding money to a card, account, or payment system. */
+  AddMoney = 9,
+  /** iOS only. A button useful for adding money to a card, account, or payment system. */
+  TopUp = 10,
+  /** iOS only. A button useful for renting items such as cars or scooters. */
+  Rent = 12,
+  /** iOS only. A button useful supporting people give money to projects, causes, organizations, and other entities.*/
+  Support = 13,
+  /** iOS only. A button useful to help people contribute money to projects, causes, organizations, and other entities. */
+  Contribute = 14,
+  /** iOS only. A button useful useful for letting people tip for goods or services. */
+  Tip = 15,
+  /** iOS only. A button useful for general purchases. */
+  Continue = 16,
+  /** Android only. A button useful for general payments. */
+  Pay = 1000,
+  /** Android only. A plain white button with the Google Pay logo. Use when you show Google Pay as a payment option in your payment flows. */
+  GooglePayMark = 1001,
 }
 
-/** A type that indicates how to ship purchased items. */
-export const enum ApplePayShippingType {
-  /** Default. */
-  Shipping = 'shipping',
-  Delivery = 'delivery',
-  StorePickup = 'storePickup',
-  ServicePickup = 'servicePickup',
+/** iOS only. */
+export const enum ButtonStyle {
+  /** A white button with black lettering. */
+  White = 0,
+  /** A white button with black lettering and a black outline. */
+  WhiteOutline = 1,
+  /** A black button with white lettering. */
+  Black = 2,
+  /** Default. A button that automatically changes its appearance when the user switches between Light Mode and Dark Mode. */
+  Automatic = 3,
 }
 
 export type PaymentMethodResult =

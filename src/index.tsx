@@ -39,6 +39,11 @@ export {
   AddressSheet,
   Props as AddressSheetProps,
 } from './components/AddressSheet';
+export {
+  NativePayButton,
+  Props as NativePayButtonProps,
+} from './components/NativePayButton';
+
 export * from './functions';
 
 export * from './types/index';
