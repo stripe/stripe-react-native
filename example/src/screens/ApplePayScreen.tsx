@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
-  ApplePayButton,
   ApplePay,
   NativePay,
   AddToWalletButton,
@@ -14,6 +13,7 @@ import {
   updateApplePaySheet,
   isNativePaySupported,
   confirmNativePayPayment,
+  NativePayButton,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -33,7 +33,9 @@ export default function ApplePayScreen() {
     checkIfCardInWallet();
     checkIfApplePayIsSupported();
     fetchPaymentIntentClientSecret();
+  }, []);
 
+  useEffect(() => {
     const couponListener = addOnApplePayCouponCodeEnteredListener((event) => {
       console.log(JSON.stringify(event, null, 2));
       if (event.couponCode === 'stripe') {
@@ -223,7 +225,7 @@ export default function ApplePayScreen() {
       }
     );
     if (error) {
-      Alert.alert('Failure', error.localizedMessage);
+      Alert.alert(error.code, error.localizedMessage);
     } else {
       Alert.alert('Success', 'Check the logs for payment intent details.');
       console.log(JSON.stringify(paymentIntent, null, 2));
@@ -252,7 +254,7 @@ export default function ApplePayScreen() {
       },
     });
     if (error) {
-      Alert.alert('Failure', error.localizedMessage);
+      Alert.alert(error.code, error.localizedMessage);
     } else {
       Alert.alert(
         'Success',
@@ -268,52 +270,51 @@ export default function ApplePayScreen() {
       <View>
         <Text>{JSON.stringify(cart, null, 2)}</Text>
       </View>
-      {isApplePaySupported ? (
-        <View>
-          <ApplePayButton
-            onPress={pay}
-            type="plain"
-            buttonStyle="black"
-            borderRadius={4}
+
+      <View>
+        <NativePayButton
+          onPress={pay}
+          type={NativePay.ButtonType.Plain}
+          appearance={NativePay.ButtonStyle.White}
+          borderRadius={4}
+          disabled={!isApplePaySupported}
+          style={styles.payButton}
+        />
+
+        <NativePayButton
+          onPress={createPaymentMethod}
+          type={NativePay.ButtonType.Continue}
+          appearance={NativePay.ButtonStyle.WhiteOutline}
+          borderRadius={4}
+          disabled={!isApplePaySupported}
+          style={styles.createPaymentMethodButton}
+        />
+
+        {showAddToWalletButton && (
+          <AddToWalletButton
+            androidAssetSource={{}}
+            testEnv={true}
             style={styles.payButton}
+            iOSButtonStyle="onLightBackground"
+            cardDetails={{
+              name: cardDetails?.cardholder?.name,
+              primaryAccountIdentifier:
+                cardDetails?.wallets?.primary_account_identifier,
+              lastFour: cardDetails?.last4,
+              description: 'Added by Stripe',
+            }}
+            ephemeralKey={ephemeralKey}
+            onComplete={({ error }) => {
+              Alert.alert(
+                error ? error.code : 'Success',
+                error
+                  ? error.message
+                  : 'Card was successfully added to the wallet.'
+              );
+            }}
           />
-
-          <ApplePayButton
-            onPress={createPaymentMethod}
-            type="setUp"
-            buttonStyle="automatic"
-            borderRadius={4}
-            style={styles.createPaymentMethodButton}
-          />
-
-          {showAddToWalletButton && (
-            <AddToWalletButton
-              androidAssetSource={{}}
-              testEnv={true}
-              style={styles.payButton}
-              iOSButtonStyle="onLightBackground"
-              cardDetails={{
-                name: cardDetails?.cardholder?.name,
-                primaryAccountIdentifier:
-                  cardDetails?.wallets?.primary_account_identifier,
-                lastFour: cardDetails?.last4,
-                description: 'Added by Stripe',
-              }}
-              ephemeralKey={ephemeralKey}
-              onComplete={({ error }) => {
-                Alert.alert(
-                  error ? error.code : 'Success',
-                  error
-                    ? error.message
-                    : 'Card was successfully added to the wallet.'
-                );
-              }}
-            />
-          )}
-        </View>
-      ) : (
-        <Text>Apple Pay is not supported. </Text>
-      )}
+        )}
+      </View>
     </PaymentScreen>
   );
 }

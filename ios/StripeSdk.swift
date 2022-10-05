@@ -36,7 +36,11 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
     var shippingContactUpdateHandler: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
     @available(iOS 15.0, *)
-    lazy var couponCodeUpdateHandler: ((PKPaymentRequestCouponCodeUpdate) -> Void)? = nil
+    var couponCodeUpdateHandler: ((PKPaymentRequestCouponCodeUpdate) -> Void)? {
+        get { _couponCodeUpdateHandler as? ((PKPaymentRequestCouponCodeUpdate) -> Void) }
+        set { _couponCodeUpdateHandler = newValue }
+    }
+    private var _couponCodeUpdateHandler: Any? = nil
     
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]

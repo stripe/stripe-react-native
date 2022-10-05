@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  GooglePayButton,
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
@@ -9,6 +8,7 @@ import {
   GooglePayCardToken,
   isNativePaySupported,
   NativePay,
+  NativePayButton,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -30,11 +30,11 @@ export default function GooglePayScreen() {
   useEffect(() => {
     fetchEphemeralKey();
     checkIfCardInWallet();
-    checkIfApplePayIsSupported();
+    checkIfGooglePayIsSupported();
     fetchPaymentIntentClientSecret();
   }, []);
 
-  const checkIfApplePayIsSupported = async () => {
+  const checkIfGooglePayIsSupported = async () => {
     setIsGooglePaySupported(await isNativePaySupported());
   };
 
@@ -171,18 +171,18 @@ export default function GooglePayScreen() {
 
   return (
     <PaymentScreen>
-      <GooglePayButton
+      <NativePayButton
         disabled={!isGooglePaySupported || !clientSecret}
         style={styles.payButton}
-        type="pay"
+        type={NativePay.ButtonType.Pay}
         onPress={pay}
       />
 
       <View style={styles.row}>
-        <GooglePayButton
-          disabled={!isGooglePaySupported}
+        <NativePayButton
+          disabled={!false}
           style={styles.standardButton}
-          type="standard"
+          type={NativePay.ButtonType.GooglePayMark}
           onPress={createPaymentMethod}
         />
       </View>
@@ -218,13 +218,12 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   payButton: {
-    marginTop: 30,
-    width: 182,
+    width: 202,
     height: 48,
   },
   standardButton: {
-    width: 90,
-    height: 40,
+    width: 112,
+    height: 48,
   },
   addToWalletButton: {
     marginTop: 30,

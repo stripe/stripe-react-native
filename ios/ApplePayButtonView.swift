@@ -9,6 +9,7 @@ class ApplePayButtonView: UIView {
     @objc var type: NSNumber?
     @objc var buttonStyle: NSNumber?
     @objc var borderRadius: NSNumber?
+    @objc var disabled = false
     
     @objc func handleApplePayButtonTapped() {
         if onPressAction != nil {
@@ -28,6 +29,7 @@ class ApplePayButtonView: UIView {
         }
         
         if let applePayButton = self.applePayButton {
+            applePayButton.isEnabled = !disabled
             applePayButton.addTarget(self, action: #selector(handleApplePayButtonTapped), for: .touchUpInside)
             self.addSubview(applePayButton)
         }

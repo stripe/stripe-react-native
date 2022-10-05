@@ -60,7 +60,7 @@ export function NativePayButton({
   return (
     <TouchableOpacity
       disabled={disabled}
-      activeOpacity={1}
+      activeOpacity={disabled ? 0.3 : 1}
       onPress={onPress}
       style={disabled ? styles.disabled : styles.notDisabled}
     >
@@ -69,6 +69,7 @@ export function NativePayButton({
           type={type}
           buttonStyle={appearance}
           borderRadius={borderRadius}
+          disabled={disabled}
           {...props}
         />
       ) : (
