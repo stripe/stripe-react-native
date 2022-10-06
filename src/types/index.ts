@@ -316,7 +316,7 @@ export type CanAddCardToWalletResult =
           | 'MISSING_CONFIGURATION'
           | 'UNSUPPORTED_DEVICE'
           | 'CARD_ALREADY_EXISTS'
-          | 'CARD_EXISTS_ON_PAIRED_DEVICE';
+          | 'CARD_EXISTS_ON_SOME_DEVICES';
       };
       error?: undefined;
     }
