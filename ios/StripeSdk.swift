@@ -1116,13 +1116,16 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
             return
         }
-        let (canAddCard, status) = PushProvisioningUtils.canAddCardToWallet(last4: last4,
-                                                 primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
-                                                 testEnv: params["testEnv"] as? Bool ?? false)
-        resolve([
-            "canAddCard": canAddCard,
-            "details": ["status": status?.rawValue],
-        ])
+        PushProvisioningUtils.canAddCardToWallet(
+            last4: last4,
+            primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
+            testEnv: params["testEnv"] as? Bool ?? false)
+        { canAddCard, status in
+            resolve([
+                "canAddCard": canAddCard,
+                "details": ["status": status?.rawValue],
+            ])
+        }
     }
 
     @objc(isCardInWallet:resolver:rejecter:)
@@ -1135,7 +1138,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
             return
         }
-        resolve(["isInWallet": PushProvisioningUtils.getPassLocation(last4: last4) != .NONE])
+        resolve(["isInWallet": PushProvisioningUtils.getPassLocation(last4: last4) != nil])
     }
 
     @objc(collectBankAccountToken:resolver:rejecter:)

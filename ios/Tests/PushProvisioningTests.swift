@@ -11,19 +11,21 @@ import XCTest
 
 class PushProvisioningTests: XCTestCase {
     func testCanAddCardToWalletInTestMode() throws {
-        let (canAddCard, status) = PushProvisioningUtils.canAddCardToWallet(last4: "4242",
+        PushProvisioningUtils.canAddCardToWallet(last4: "4242",
                                                  primaryAccountIdentifier: "",
-                                                 testEnv: true)
-        XCTAssertEqual(canAddCard, true)
-        XCTAssertEqual(status, nil)
+                                                                            testEnv: true) { canAddCard, status in
+            XCTAssertEqual(canAddCard, true)
+            XCTAssertEqual(status, nil)
+        }
     }
 
     func testCanAddCardToWalletInLiveMode() throws {
-        let (canAddCard, status) = PushProvisioningUtils.canAddCardToWallet(last4: "4242",
+        PushProvisioningUtils.canAddCardToWallet(last4: "4242",
                                                  primaryAccountIdentifier: "",
-                                                 testEnv: false)
-        XCTAssertEqual(canAddCard, false)
-        XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.MISSING_CONFIGURATION)
+                                                                            testEnv: false) { canAddCard, status in
+            XCTAssertEqual(canAddCard, false)
+            XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.MISSING_CONFIGURATION)
+        }
     }
     
     func testCanAddPaymentPassInTestMode() throws {
@@ -43,7 +45,7 @@ class PushProvisioningTests: XCTestCase {
     func testCheckIfPassExists() throws {
         XCTAssertEqual(
             PushProvisioningUtils.getPassLocation(last4: "4242"),
-            .NONE
+            nil
         )
     }
 }
