@@ -5,6 +5,7 @@ import {
   BillingDetails,
   Address,
   PaymentSheetError,
+  AddressSheet,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -15,6 +16,7 @@ export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [addressSheetVisible, setAddressSheetVisible] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
 
   const fetchPaymentSheetParams = async () => {
@@ -113,11 +115,40 @@ export default function PaymentsUICompleteScreen() {
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
       <Button
+        variant="default"
+        loading={loading}
+        disabled={!paymentSheetEnabled}
+        title="Add shipping"
+        onPress={() => setAddressSheetVisible(true)}
+      />
+      <Button
         variant="primary"
         loading={loading}
         disabled={!paymentSheetEnabled}
         title="Checkout"
         onPress={openPaymentSheet}
+      />
+      <AddressSheet
+        visible={addressSheetVisible}
+        onSubmit={() => {
+          console.log('submit');
+        }}
+        onCancel={() => {
+          console.log('cancel');
+        }}
+        presentationStyle={'popover'}
+        animationStyle={'flip'}
+        appearance={{}}
+        defaultValues={{}}
+        additionalFields={{
+          phoneNumber: 'required',
+          checkboxLabel: 'custom label',
+        }}
+        allowedCountries={[]}
+        autocompleteCountries={[]}
+        primaryButtonTitle={'use this address'}
+        sheetTitle={'custom title'}
+        googlePlacesApiKey={'this-api-key-wont-work'}
       />
     </PaymentScreen>
   );
