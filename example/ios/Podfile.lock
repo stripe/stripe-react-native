@@ -373,11 +373,11 @@ PODS:
     - StripeApplePay (= 22.7.1)
     - StripeCore (= 22.7.1)
     - StripeUICore (= 22.7.1)
-  - stripe-react-native (0.18.1):
+  - stripe-react-native (0.19.0):
     - React-Core
     - Stripe
     - StripeFinancialConnections
-  - stripe-react-native/Tests (0.18.1):
+  - stripe-react-native/Tests (0.19.0):
     - React-Core
     - Stripe
     - StripeFinancialConnections
@@ -458,12 +458,12 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
-  - Stripe (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
+  - Stripe (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
   - stripe-react-native (from `../..`)
   - stripe-react-native/Tests (from `../..`)
-  - StripeCore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
-  - StripeFinancialConnections (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
-  - StripeUICore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `private`)
+  - StripeCore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
+  - StripeFinancialConnections (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
+  - StripeUICore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -559,34 +559,34 @@ EXTERNAL SOURCES:
   RNScreens:
     :path: "../node_modules/react-native-screens"
   Stripe:
-    :branch: private
+    :branch: address-element-private-beta
     :git: https://github.com/stripe-ios/stripe-ios.git
   stripe-react-native:
     :path: "../.."
   StripeCore:
-    :branch: private
+    :branch: address-element-private-beta
     :git: https://github.com/stripe-ios/stripe-ios.git
   StripeFinancialConnections:
-    :branch: private
+    :branch: address-element-private-beta
     :git: https://github.com/stripe-ios/stripe-ios.git
   StripeUICore:
-    :branch: private
+    :branch: address-element-private-beta
     :git: https://github.com/stripe-ios/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 CHECKOUT OPTIONS:
   Stripe:
-    :commit: 43c9734cd7f17c149527720e2c656668a006d926
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
     :git: https://github.com/stripe-ios/stripe-ios.git
   StripeCore:
-    :commit: 43c9734cd7f17c149527720e2c656668a006d926
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
     :git: https://github.com/stripe-ios/stripe-ios.git
   StripeFinancialConnections:
-    :commit: 43c9734cd7f17c149527720e2c656668a006d926
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
     :git: https://github.com/stripe-ios/stripe-ios.git
   StripeUICore:
-    :commit: 43c9734cd7f17c149527720e2c656668a006d926
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
     :git: https://github.com/stripe-ios/stripe-ios.git
 
 SPEC CHECKSUMS:
@@ -641,7 +641,7 @@ SPEC CHECKSUMS:
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Stripe: fb29a476e4866fec4ef22fb76207363dd32795aa
-  stripe-react-native: be3daf590234e822432eaf28872d1b8473334ec7
+  stripe-react-native: 58256a285b470b17318de68cf5c0758362c473f0
   StripeApplePay: 09955cdf3f49b367af2feadd9c5b3bddb35446c0
   StripeCore: 39ea580c26ccc324fb9671288a2ae21114e54dca
   StripeFinancialConnections: 0e1d638388572d52ce829416fbc7b0af2bde3865
@@ -649,6 +649,6 @@ SPEC CHECKSUMS:
   Yoga: 236056dd74cda4d9d76c20306fd8c20bb087614d
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 2a2ab37aac3a4af88c4fc076243c12df8ec9fd75
+PODFILE CHECKSUM: fd80644f5f9a87eedead854f355024aba66b3db4
 
 COCOAPODS: 1.11.3
