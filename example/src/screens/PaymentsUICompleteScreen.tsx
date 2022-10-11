@@ -119,7 +119,7 @@ export default function PaymentsUICompleteScreen() {
         loading={loading}
         disabled={!paymentSheetEnabled}
         title="Add shipping"
-        onPress={() => setAddressSheetVisible(true)}
+        onPress={() => setAddressSheetVisible(!addressSheetVisible)}
       />
       <Button
         variant="primary"
@@ -130,22 +130,22 @@ export default function PaymentsUICompleteScreen() {
       />
       <AddressSheet
         visible={addressSheetVisible}
-        onSubmit={() => {
-          console.log('submit');
+        onSubmit={(result) => {
+          console.log(JSON.stringify(result, null, 2));
         }}
         onCancel={() => {
           console.log('cancel');
         }}
         presentationStyle={'popover'}
         animationStyle={'flip'}
-        appearance={{}}
-        defaultValues={{}}
+        // appearance={{}}
+        // defaultValues={{}}
         additionalFields={{
           phoneNumber: 'required',
           checkboxLabel: 'custom label',
         }}
-        allowedCountries={[]}
-        autocompleteCountries={[]}
+        // allowedCountries={[]}
+        // autocompleteCountries={[]}
         primaryButtonTitle={'use this address'}
         sheetTitle={'custom title'}
         googlePlacesApiKey={'this-api-key-wont-work'}

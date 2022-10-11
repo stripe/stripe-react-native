@@ -4,12 +4,7 @@ import {
   requireNativeComponent,
   NativeSyntheticEvent,
 } from 'react-native';
-import type {
-  PaymentSheetError,
-  StripeError,
-  PaymentSheet,
-  Address,
-} from '../types';
+import type { PaymentSheet, Address } from '../types';
 
 const AddressSheetNative = requireNativeComponent<any>('AddressSheet');
 
@@ -63,25 +58,16 @@ export type DefaultAddressDetails = {
   isCheckboxSelected?: boolean;
 };
 
-export type CollectAddressResult =
-  | {
-      /** The customer's full name. */
-      name: string;
-      /** The customer's address.  */
-      address: Address;
-      /** The customer's phone number in E.164 format e.g. "+15551234567". */
-      phoneNumber: string;
-      /** Whether or not the checkbox was selected. */
-      isCheckboxSelected?: Boolean;
-      error?: undefined;
-    }
-  | {
-      error: StripeError<PaymentSheetError>;
-      name?: undefined;
-      address?: undefined;
-      phoneNumber?: undefined;
-      isCheckboxSelected?: undefined;
-    };
+export type CollectAddressResult = {
+  /** The customer's full name. */
+  name: string;
+  /** The customer's address.  */
+  address: Address;
+  /** The customer's phone number in E.164 format e.g. "+15551234567". */
+  phone: string;
+  /** Whether or not the checkbox was selected. */
+  isCheckboxSelected?: Boolean;
+};
 
 /**
  *
