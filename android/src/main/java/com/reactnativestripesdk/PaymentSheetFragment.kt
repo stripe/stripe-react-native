@@ -64,7 +64,7 @@ class PaymentSheetFragment(
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     val appearance = try {
-      buildPaymentSheetAppearance(arguments?.getBundle("appearance"))
+      buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
     } catch (error: PaymentSheetAppearanceException) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), error))
       return
@@ -126,7 +126,8 @@ class PaymentSheetFragment(
         ephemeralKeySecret = customerEphemeralKeySecret
       ) else null,
       googlePay = googlePayConfig,
-      appearance = appearance
+      appearance = appearance,
+      shippingDetails = AddressLauncherFragment.shippingDetailsForPaymentSheet // TODO: add option to pass shipping details
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
