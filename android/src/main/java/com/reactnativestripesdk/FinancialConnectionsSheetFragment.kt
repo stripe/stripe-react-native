@@ -238,6 +238,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
         FinancialConnectionsAccount.Permissions.OWNERSHIP -> "ownership"
         FinancialConnectionsAccount.Permissions.TRANSACTIONS -> "transactions"
         FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
+        FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
       }
     }
 

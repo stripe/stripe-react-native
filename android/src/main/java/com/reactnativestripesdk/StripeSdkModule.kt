@@ -51,7 +51,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       googlePayFragment,
       paymentLauncherFragment,
       collectBankAccountLauncherFragment,
-      financialConnectionsSheetFragment
+      financialConnectionsSheetFragment,
+      AddressLauncherFragment
     )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
@@ -119,6 +120,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     this.publishableKey = publishableKey
+    AddressLauncherFragment.publishableKey = publishableKey
 
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")

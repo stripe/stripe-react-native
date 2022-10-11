@@ -261,6 +261,7 @@ class PaymentLauncherFragment(
       StripeIntent.NextActionType.AlipayRedirect,
       StripeIntent.NextActionType.BlikAuthorize,
       StripeIntent.NextActionType.WeChatPayRedirect,
+      StripeIntent.NextActionType.UpiAwaitNotification,
       null -> false
     }
   }
