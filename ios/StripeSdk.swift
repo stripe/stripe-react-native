@@ -79,7 +79,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
         if let appearanceParams = params["appearance"] as? NSDictionary {
             do {
-                configuration.appearance = try buildPaymentSheetAppearance(userParams: appearanceParams)
+                configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearanceParams)
             } catch {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
                 return

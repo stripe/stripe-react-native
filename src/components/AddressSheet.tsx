@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import type { PaymentSheet, Address } from '../types';
 
-const AddressSheetNative = requireNativeComponent<any>('AddressSheet');
+const AddressSheetNative = requireNativeComponent<any>('AddressSheetView');
 
 /**
  *  Props
@@ -28,6 +28,8 @@ export interface Props extends AccessibilityProps {
     phoneNumber?: 'hidden' | 'optional' | 'required';
     /** The label of a checkbox displayed below other fields. If null or undefined, the checkbox is not displayed. */
     checkboxLabel?: string;
+    /** Determines whether the customer name is hidden, required, or optional. Defaults to required. */
+    name?: string;
   };
   /** A list of two-letter country codes representing countries the customers can select. If the list is empty (the default), we display all countries. */
   allowedCountries?: Array<string>;

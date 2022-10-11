@@ -119,7 +119,7 @@ export default function PaymentsUICompleteScreen() {
         loading={loading}
         disabled={!paymentSheetEnabled}
         title="Add shipping"
-        onPress={() => setAddressSheetVisible(!addressSheetVisible)}
+        onPress={() => setAddressSheetVisible(true)}
       />
       <Button
         variant="primary"
@@ -131,9 +131,11 @@ export default function PaymentsUICompleteScreen() {
       <AddressSheet
         visible={addressSheetVisible}
         onSubmit={(result) => {
+          setAddressSheetVisible(false);
           console.log(JSON.stringify(result, null, 2));
         }}
         onCancel={() => {
+          setAddressSheetVisible(false);
           console.log('cancel');
         }}
         presentationStyle={'popover'}

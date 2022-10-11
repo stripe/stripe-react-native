@@ -10,7 +10,7 @@ import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
 
 class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
-  override fun getName() = "AddressSheet"
+  override fun getName() = "AddressSheetView"
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
