@@ -14,13 +14,15 @@ import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
 import com.stripe.android.paymentsheet.addresselement.AddressLauncherResult
 
-object AddressLauncherFragment : Fragment() {
-  private const val TAG = "address_launcher_fragment"
+class AddressLauncherFragment : Fragment() {
+  companion object {
+    internal var publishableKey: String? = null
+    internal const val TAG = "address_launcher_fragment"
+  }
+
   private lateinit var addressLauncher: AddressLauncher
   private var configuration = AddressLauncher.Configuration()
   private var callback: ((AddressLauncherResult) -> Unit)? = null
-  internal var shippingDetailsForPaymentSheet: AddressDetails? = null
-  internal var publishableKey: String? = null
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -32,7 +34,7 @@ object AddressLauncherFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     publishableKey?.let { publishableKey ->
       addressLauncher = AddressLauncher(this,
-                                        AddressLauncherFragment::onAddressLauncherResult).also {
+                                        ::onAddressLauncherResult).also {
         it.present(
           publishableKey = publishableKey,
           configuration = configuration
@@ -45,7 +47,6 @@ object AddressLauncherFragment : Fragment() {
 
   private fun onAddressLauncherResult(result: AddressLauncherResult) {
     callback?.let {
-      // set shippingDetailsForPaymentSheet
       it(result)
     }
   }
@@ -71,7 +72,7 @@ object AddressLauncherFragment : Fragment() {
       googlePlacesApiKey = googlePlacesApiKey,
       autocompleteCountries = autocompleteCountries,
     )
-    AddressLauncherFragment.callback = callback
+    this.callback = callback
     (context.currentActivity as? AppCompatActivity)?.let {
       attemptToCleanupPreviousFragment(it)
       commitFragmentAndStartFlow(it)

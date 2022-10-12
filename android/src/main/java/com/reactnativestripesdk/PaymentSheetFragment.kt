@@ -201,7 +201,7 @@ class PaymentSheetFragment(
   }
 
   companion object {
-    const val TAG = "payment_sheet_launch_fragment"
+    internal const val TAG = "payment_sheet_launch_fragment"
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null) {
