@@ -21,5 +21,5 @@ RCT_EXPORT_VIEW_PROPERTY(autocompleteCountries, NSArray)
 RCT_EXPORT_VIEW_PROPERTY(primaryButtonTitle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(sheetTitle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(onSubmitAction, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onCancelAction, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onErrorAction, RCTDirectEventBlock)
 @end

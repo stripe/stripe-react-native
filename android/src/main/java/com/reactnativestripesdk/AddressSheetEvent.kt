@@ -7,7 +7,7 @@ import com.facebook.react.uimanager.events.RCTEventEmitter
 internal class AddressSheetEvent constructor(viewTag: Int, private val eventType: EventType, private val eventMap: WritableMap?) : Event<AddressSheetEvent>(viewTag) {
   enum class EventType {
     OnSubmit,
-    OnCancel
+    OnError
   }
 
   override fun dispatch(rctEventEmitter: RCTEventEmitter) {
@@ -16,13 +16,13 @@ internal class AddressSheetEvent constructor(viewTag: Int, private val eventType
 
   companion object {
     const val ON_SUBMIT = "onSubmitAction"
-    const val ON_CANCEL = "onCancelAction"
+    const val ON_ERROR = "onErrorAction"
   }
 
   override fun getEventName(): String {
     return when (eventType) {
       EventType.OnSubmit -> ON_SUBMIT
-      EventType.OnCancel -> ON_CANCEL
+      EventType.OnError -> ON_ERROR
     }
   }
 }

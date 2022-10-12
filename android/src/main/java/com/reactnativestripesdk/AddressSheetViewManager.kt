@@ -15,7 +15,7 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
     return MapBuilder.of(
       AddressSheetEvent.ON_SUBMIT, MapBuilder.of("registrationName", "onSubmitAction"),
-      AddressSheetEvent.ON_CANCEL, MapBuilder.of("registrationName", "onCancelAction"))
+      AddressSheetEvent.ON_ERROR, MapBuilder.of("registrationName", "onErrorAction"))
   }
 
   @ReactProp(name = "visible")
@@ -48,7 +48,7 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
     view.setAutocompleteCountries(countries.toArrayList().filterIsInstance<String>())
   }
 
-  @ReactProp(name = "visible")
+  @ReactProp(name = "primaryButtonTitle")
   fun setPrimaryButtonTitle(view: AddressSheetView, title: String) {
     view.setPrimaryButtonTitle(title)
   }

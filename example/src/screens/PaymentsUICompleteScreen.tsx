@@ -6,6 +6,7 @@ import {
   Address,
   PaymentSheetError,
   AddressSheet,
+  AddressSheetError,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -134,22 +135,34 @@ export default function PaymentsUICompleteScreen() {
           setAddressSheetVisible(false);
           console.log(JSON.stringify(result, null, 2));
         }}
-        onCancel={() => {
+        onError={(err) => {
+          if (err.code === AddressSheetError.Failed) {
+            Alert.alert('There was an error.', 'Check the logs for details.');
+            console.log(err?.localizedMessage);
+          }
           setAddressSheetVisible(false);
-          console.log('cancel');
         }}
         presentationStyle={'popover'}
         animationStyle={'flip'}
-        // appearance={{}}
-        // defaultValues={{}}
+        appearance={{}}
+        defaultValues={{
+          name: 'Tom Riddle',
+          phone: '777-777-7777',
+          isCheckboxSelected: true,
+          address: {
+            country: 'Britain',
+            line1: 'Hogwarts',
+            postalCode: '77777',
+          },
+        }}
         additionalFields={{
           phoneNumber: 'required',
-          checkboxLabel: 'custom label',
+          checkboxLabel: 'Send me lots of emails',
         }}
-        // allowedCountries={[]}
-        // autocompleteCountries={[]}
+        // allowedCountries={['US', 'CA']}
+        // autocompleteCountries={['CA']}
         primaryButtonTitle={'use this address'}
-        sheetTitle={'custom title'}
+        sheetTitle={'🧙‍♀️ custom title'}
         googlePlacesApiKey={'this-api-key-wont-work'}
       />
     </PaymentScreen>

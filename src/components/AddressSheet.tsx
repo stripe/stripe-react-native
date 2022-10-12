@@ -4,7 +4,12 @@ import {
   requireNativeComponent,
   NativeSyntheticEvent,
 } from 'react-native';
-import type { PaymentSheet, Address } from '../types';
+import type {
+  PaymentSheet,
+  Address,
+  StripeError,
+  AddressSheetError,
+} from '../types';
 
 const AddressSheetNative = requireNativeComponent<any>('AddressSheetView');
 
@@ -28,8 +33,6 @@ export interface Props extends AccessibilityProps {
     phoneNumber?: 'hidden' | 'optional' | 'required';
     /** The label of a checkbox displayed below other fields. If null or undefined, the checkbox is not displayed. */
     checkboxLabel?: string;
-    /** Determines whether the customer name is hidden, required, or optional. Defaults to required. */
-    name?: string;
   };
   /** A list of two-letter country codes representing countries the customers can select. If the list is empty (the default), we display all countries. */
   allowedCountries?: Array<string>;
@@ -43,8 +46,8 @@ export interface Props extends AccessibilityProps {
   googlePlacesApiKey?: string;
   /** Called when the user submits their information */
   onSubmit: (result: CollectAddressResult) => void;
-  /** Called when the user closes the sheet before submitting their information */
-  onCancel: () => void;
+  /** Called when the user taps the button to close the sheet before submitting their information, or when an error occurs. */
+  onError: (error: StripeError<AddressSheetError>) => void;
 }
 
 export type DefaultAddressDetails = {
@@ -84,14 +87,18 @@ export type CollectAddressResult = {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function AddressSheet({ onSubmit, onCancel, ...props }: Props) {
+export function AddressSheet({ onSubmit, onError, ...props }: Props) {
   return (
     <AddressSheetNative
       {...props}
       onSubmitAction={(value: NativeSyntheticEvent<CollectAddressResult>) =>
         onSubmit(value.nativeEvent)
       }
-      onCancelAction={() => onCancel()}
+      onErrorAction={(
+        value: NativeSyntheticEvent<{
+          error: StripeError<AddressSheetError>;
+        }>
+      ) => onError(value.nativeEvent.error)}
     />
   );
 }

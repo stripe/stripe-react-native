@@ -21,7 +21,7 @@ class AddressSheetView: UIView {
     @objc var primaryButtonTitle: String? = nil
     @objc var sheetTitle: String? = nil
     @objc var onSubmitAction: RCTDirectEventBlock?
-    @objc var onCancelAction: RCTDirectEventBlock?
+    @objc var onErrorAction: RCTDirectEventBlock?
 
     private var wasVisible = false
     private var addressViewController: AddressViewController? = nil
@@ -46,7 +46,15 @@ class AddressSheetView: UIView {
     }
     
     private func presentAddressSheet() {
-        let config = buildAddressSheetConfiguration()
+        var config: AddressViewController.Configuration
+        do {
+            config = try buildAddressSheetConfiguration()
+        } catch {
+            onErrorAction!(
+                Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable : Any]
+            )
+            return
+        }
         
         self.addressViewController = AddressViewController(
             configuration: config,
@@ -62,13 +70,8 @@ class AddressSheetView: UIView {
         vc.present(navigationController, animated: true)
     }
     
-    private func buildAddressSheetConfiguration() -> AddressViewController.Configuration {
-        var appearanceConfiguration = PaymentSheet.Appearance()
-        do {
-            appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
-        } catch {
-            // TODO: turn onCancel to onError and emit error event
-        }
+    private func buildAddressSheetConfiguration() throws -> AddressViewController.Configuration {
+        let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
         
         return AddressViewController.Configuration(
             defaultValues: buildDefaultValues(),
@@ -160,7 +163,12 @@ class AddressSheetView: UIView {
 extension AddressSheetView: AddressViewControllerDelegate {
     func addressViewControllerDidFinish(_ addressViewController: AddressViewController, with address: AddressViewController.AddressDetails?) {
         guard let address = address else {
-            onCancelAction!(nil)
+            onErrorAction!(
+                Errors.createError(
+                    ErrorType.Canceled,
+                    "The flow has been canceled."
+                ) as? [AnyHashable : Any]
+            )
             return
         }
         self.addressDetails = address

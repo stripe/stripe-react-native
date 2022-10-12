@@ -8,6 +8,9 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
+import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
@@ -17,7 +20,7 @@ import com.stripe.android.paymentsheet.addresselement.AddressLauncherResult
 class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(context) {
   private var eventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var isVisible = false
-  private var appearance: PaymentSheet.Appearance = PaymentSheet.Appearance()
+  private var appearanceParams: ReadableMap? = null
   private var defaultAddress: AddressDetails? = null
   private var allowedCountries: Set<String> = emptySet()
   private var buttonTitle: String? = null
@@ -32,32 +35,41 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
     )
   }
 
-  private fun onCancel() {
+  private fun onError(params: WritableMap) {
     eventDispatcher?.dispatchEvent(
-      AddressSheetEvent(id, AddressSheetEvent.EventType.OnCancel, null)
+      AddressSheetEvent(id, AddressSheetEvent.EventType.OnError, params)
     )
   }
 
   fun setVisible(newVisibility: Boolean) {
     if (newVisibility && !isVisible) {
-      AddressLauncherFragment.presentAddressSheet(
-        context, appearance, defaultAddress, allowedCountries, buttonTitle, sheetTitle, googlePlacesApiKey, autocompleteCountries, additionalFields
-      ) { result ->
-        when (result) {
-          is AddressLauncherResult.Canceled -> {
-            onCancel()
-          }
-          is AddressLauncherResult.Succeeded -> {
-            onSubmit(buildResult(result.address))
-          }
-        }
-        isVisible = false
-      }
+      launchAddressSheet()
     } else if (!newVisibility && isVisible) {
       Log.w("StripeReactNative", "Programmatically dismissing the Address Sheet is not supported on Android.")
     }
-
     isVisible = newVisibility
+  }
+
+  private fun launchAddressSheet() {
+    val appearance = try {
+      buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
+    } catch (error: PaymentSheetAppearanceException) {
+      onError(createError(ErrorType.Failed.toString(), error))
+      return
+    }
+    AddressLauncherFragment.presentAddressSheet(
+      context, appearance, defaultAddress, allowedCountries, buttonTitle, sheetTitle, googlePlacesApiKey, autocompleteCountries, additionalFields
+    ) { result ->
+      when (result) {
+        is AddressLauncherResult.Canceled -> {
+          onError(createError(ErrorType.Canceled.toString(), "The flow has been canceled."))
+        }
+        is AddressLauncherResult.Succeeded -> {
+          onSubmit(buildResult(result.address))
+        }
+      }
+      isVisible = false
+    }
   }
 
   private fun buildResult(addressDetails: AddressDetails): WritableMap {
@@ -78,7 +90,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
   }
 
   fun setAppearance(appearanceParams: ReadableMap) {
-    appearance = buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
+    this.appearanceParams = appearanceParams
   }
 
   fun setDefaultValues(defaults: ReadableMap) {
