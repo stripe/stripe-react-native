@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.addresssheet
 
 import android.os.Bundle
 import android.util.Log
@@ -9,6 +9,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
+import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.createError
@@ -59,11 +60,22 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       return
     }
     AddressLauncherFragment.presentAddressSheet(
-      context, appearance, defaultAddress, allowedCountries, buttonTitle, sheetTitle, googlePlacesApiKey, autocompleteCountries, additionalFields
+      context,
+      appearance,
+      defaultAddress,
+      allowedCountries,
+      buttonTitle,
+      sheetTitle,
+      googlePlacesApiKey,
+      autocompleteCountries,
+      additionalFields
     ) { result ->
       when (result) {
         is AddressLauncherResult.Canceled -> {
-          onError(createError(ErrorType.Canceled.toString(), "The flow has been canceled."))
+          onError(
+            createError(
+              ErrorType.Canceled.toString(),
+              "The flow has been canceled."))
         }
         is AddressLauncherResult.Succeeded -> {
           onSubmit(buildResult(result.address))

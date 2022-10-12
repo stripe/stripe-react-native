@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.addresssheet
 
 import android.os.Bundle
 import android.util.Log
@@ -31,7 +31,8 @@ object AddressLauncherFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     publishableKey?.let { publishableKey ->
-      addressLauncher = AddressLauncher(this, ::onAddressLauncherResult).also {
+      addressLauncher = AddressLauncher(this,
+                                        AddressLauncherFragment::onAddressLauncherResult).also {
         it.present(
           publishableKey = publishableKey,
           configuration = configuration
@@ -70,7 +71,7 @@ object AddressLauncherFragment : Fragment() {
       googlePlacesApiKey = googlePlacesApiKey,
       autocompleteCountries = autocompleteCountries,
     )
-    this.callback = callback
+    AddressLauncherFragment.callback = callback
     (context.currentActivity as? AppCompatActivity)?.let {
       attemptToCleanupPreviousFragment(it)
       commitFragmentAndStartFlow(it)

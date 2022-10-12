@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.addresssheet
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
