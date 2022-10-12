@@ -10,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
@@ -70,6 +69,10 @@ class PaymentSheetFragment(
       return
     }
 
+    val shippingDetails = arguments?.getBundle("defaultShippingDetails")?.let {
+      AddressSheetView.buildAddressDetails(it)
+    }
+
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
       val result = paymentOption?.let {
         val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
@@ -127,7 +130,7 @@ class PaymentSheetFragment(
       ) else null,
       googlePay = googlePayConfig,
       appearance = appearance,
-      shippingDetails = AddressLauncherFragment.shippingDetailsForPaymentSheet // TODO: add option to pass shipping details
+      shippingDetails = shippingDetails
     )
 
     if (arguments?.getBoolean("customFlow") == true) {

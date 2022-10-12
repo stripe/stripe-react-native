@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import type {
   PaymentSheet,
-  Address,
+  AddressDetails,
   StripeError,
   AddressSheetError,
 } from '../types';
@@ -26,7 +26,7 @@ export interface Props extends AccessibilityProps {
   /** Configuration for the look and feel of the UI. */
   appearance?: PaymentSheet.AppearanceParams;
   /** The values to prepopulate the sheet's fields with. */
-  defaultValues?: DefaultAddressDetails;
+  defaultValues?: AddressDetails;
   /** Configuration for additional fields besides the physical address */
   additionalFields?: {
     /** Determines whether the phone number is hidden, required, or optional. Defaults to hidden. */
@@ -50,29 +50,7 @@ export interface Props extends AccessibilityProps {
   onError: (error: StripeError<AddressSheetError>) => void;
 }
 
-export type DefaultAddressDetails = {
-  /** The customer's full name. */
-  name?: string;
-  /** The customer's address. */
-  address?: Address;
-  /** The customer's phone number. */
-  phone?: string;
-  /** Whether or not the checkbox is initally selected. Defaults to false.
-   *  Note: The checkbox is displayed below the other fields when additionalFields.checkboxLabel is set.
-   *  */
-  isCheckboxSelected?: boolean;
-};
-
-export type CollectAddressResult = {
-  /** The customer's full name. */
-  name: string;
-  /** The customer's address.  */
-  address: Address;
-  /** The customer's phone number in E.164 format e.g. "+15551234567". */
-  phone: string;
-  /** Whether or not the checkbox was selected. */
-  isCheckboxSelected?: Boolean;
-};
+export type CollectAddressResult = Required<AddressDetails>;
 
 /**
  *

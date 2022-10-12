@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import {
+  AddressDetails,
   useStripe,
   BillingDetails,
   Address,
@@ -60,7 +61,7 @@ export default function PaymentsUICompleteScreen() {
     setLoading(false);
   };
 
-  const initialisePaymentSheet = async () => {
+  const initialisePaymentSheet = async (shippingDetails?: AddressDetails) => {
     const { paymentIntent, ephemeralKey, customer } =
       await fetchPaymentSheetParams();
 
@@ -93,6 +94,7 @@ export default function PaymentsUICompleteScreen() {
       },
       returnURL: 'stripe-example://stripe-redirect',
       defaultBillingDetails: billingDetails,
+      defaultShippingDetails: shippingDetails,
       allowsDelayedPaymentMethods: true,
       appearance,
     });
@@ -131,9 +133,11 @@ export default function PaymentsUICompleteScreen() {
       />
       <AddressSheet
         visible={addressSheetVisible}
-        onSubmit={(result) => {
+        onSubmit={async (result) => {
+          setPaymentSheetEnabled(false);
           setAddressSheetVisible(false);
           console.log(JSON.stringify(result, null, 2));
+          await initialisePaymentSheet(result);
         }}
         onError={(err) => {
           if (err.code === AddressSheetError.Failed) {
@@ -146,13 +150,14 @@ export default function PaymentsUICompleteScreen() {
         animationStyle={'flip'}
         appearance={{}}
         defaultValues={{
-          name: 'Tom Riddle',
-          phone: '777-777-7777',
+          name: 'Michael Scott',
+          phone: '111-222-3333',
           isCheckboxSelected: true,
           address: {
-            country: 'Britain',
-            line1: 'Hogwarts',
-            postalCode: '77777',
+            country: 'United States',
+            line1: 'Dunder Mifflin',
+            postalCode: '12345',
+            city: 'Scranton',
           },
         }}
         additionalFields={{

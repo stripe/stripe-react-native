@@ -126,6 +126,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
 
         }
+        
+        if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
+            configuration.shippingDetails = {
+                return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
+            }
+        }
 
         if let customerId = params["customerId"] as? String {
             if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {

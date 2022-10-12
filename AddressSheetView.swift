@@ -74,63 +74,13 @@ class AddressSheetView: UIView {
         let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
         
         return AddressViewController.Configuration(
-            defaultValues: buildDefaultValues(),
-            additionalFields: buildAdditionalFieldsConfiguration(),
+            defaultValues: AddressSheetUtils.buildDefaultValues(params: defaultValues),
+            additionalFields: AddressSheetUtils.buildAdditionalFieldsConfiguration(params: additionalFields),
             allowedCountries: allowedCountries,
             appearance: appearanceConfiguration,
             buttonTitle: primaryButtonTitle,
             title: sheetTitle
           )
-    }
-    
-    private func buildDefaultValues() -> AddressViewController.Configuration.DefaultAddressDetails {
-        guard let defaultValues = defaultValues else {
-            return AddressViewController.Configuration.DefaultAddressDetails()
-        }
-        
-        return AddressViewController.Configuration.DefaultAddressDetails(
-            address: buildAddress(),
-            name: defaultValues["name"] as? String,
-            phone: defaultValues["phone"] as? String,
-            isCheckboxSelected: defaultValues["isCheckboxSelected"] as? Bool
-        )
-    }
-    
-    private func buildAddress() -> PaymentSheet.Address {
-        guard let addressParams = defaultValues?["address"] as? NSDictionary else { return PaymentSheet.Address() }
-        return PaymentSheet.Address(
-            city: addressParams["city"] as? String,
-            country: addressParams["country"] as? String,
-            line1: addressParams["line1"] as? String,
-            line2: addressParams["line2"] as? String,
-            postalCode: addressParams["postalCode"] as? String,
-            state: addressParams["state"] as? String
-        )
-    }
-    
-    private func buildAdditionalFieldsConfiguration() -> AddressViewController.Configuration.AdditionalFields {
-        guard let additionalFields = additionalFields else {
-            return AddressViewController.Configuration.AdditionalFields()
-        }
-
-        return AddressViewController.Configuration.AdditionalFields(
-            name: getFieldConfiguration(input: additionalFields["name"] as? String, default: .required),
-            phone: getFieldConfiguration(input: additionalFields["phoneNumber"] as? String, default: .hidden),
-            checkboxLabel: additionalFields["checkboxLabel"] as? String
-        )
-    }
-    
-    private func getFieldConfiguration(input: String?, default: AddressViewController.Configuration.AdditionalFields.FieldConfiguration) -> AddressViewController.Configuration.AdditionalFields.FieldConfiguration {
-        switch (input) {
-        case "optional":
-            return .optional
-        case "required":
-            return .required
-        case "hidden":
-            return .hidden
-        default:
-            return `default`
-        }
     }
     
     private func getModalPresentationStyle() -> UIModalPresentationStyle {
@@ -172,22 +122,6 @@ extension AddressSheetView: AddressViewControllerDelegate {
             return
         }
         self.addressDetails = address
-        onSubmitAction!(buildResult(address: address))
-    }
-    
-    private func buildResult(address: AddressViewController.AddressDetails) -> [AnyHashable : Any] {
-        return [
-            "name": address.name ?? NSNull(),
-            "address": [
-                "country": address.address.country,
-                "state": address.address.state,
-                "line1": address.address.line1,
-                "line2": address.address.line2,
-                "postalCode": address.address.postalCode,
-                "city": address.address.city,
-            ],
-            "phone": address.phone ?? NSNull(),
-            "isCheckboxSelected": address.isCheckboxSelected ?? NSNull(),
-        ] as [AnyHashable : Any]
+        onSubmitAction!(AddressSheetUtils.buildResult(address: address))
     }
 }

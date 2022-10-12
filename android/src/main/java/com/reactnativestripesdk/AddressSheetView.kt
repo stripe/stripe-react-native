@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
 import com.facebook.react.bridge.Arguments
@@ -72,48 +73,12 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
     }
   }
 
-  private fun buildResult(addressDetails: AddressDetails): WritableMap {
-    val result = Arguments.createMap()
-    result.putString("name", addressDetails.name)
-    Arguments.createMap().let {
-      it.putString("city", addressDetails.address?.city)
-      it.putString("country", addressDetails.address?.country)
-      it.putString("line1", addressDetails.address?.line1)
-      it.putString("line2", addressDetails.address?.line2)
-      it.putString("postalCode", addressDetails.address?.postalCode)
-      it.putString("state", addressDetails.address?.state)
-      result.putMap("address", it)
-    }
-    result.putString("phone", addressDetails.phoneNumber)
-    result.putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
-    return result
-  }
-
   fun setAppearance(appearanceParams: ReadableMap) {
     this.appearanceParams = appearanceParams
   }
 
   fun setDefaultValues(defaults: ReadableMap) {
-    defaultAddress = AddressDetails(
-      name = defaults.getString("name"),
-      address = buildAddress(defaults.getMap("address")),
-      phoneNumber = defaults.getString("phone"),
-      isCheckboxSelected = defaults.getBoolean("isCheckboxSelected"),
-    )
-  }
-
-  private fun buildAddress(map: ReadableMap?): PaymentSheet.Address? {
-    if (map == null) {
-      return null
-    }
-    return PaymentSheet.Address(
-      city = map.getString("city"),
-      country = map.getString("country"),
-      line1 = map.getString("line1"),
-      line2 = map.getString("line2"),
-      state = map.getString("state"),
-      postalCode = map.getString("postalCode")
-    )
+    defaultAddress = buildAddressDetails(defaults)
   }
 
   fun setAdditionalFields(fields: ReadableMap) {
@@ -147,5 +112,51 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
 
   fun setGooglePlacesApiKey(key: String) {
     googlePlacesApiKey = key
+  }
+
+  companion object {
+    internal fun buildAddressDetails(bundle: Bundle): AddressDetails {
+      return AddressDetails(
+        name = bundle.getString("name"),
+        address = buildAddress(bundle.getBundle("address")),
+        phoneNumber = bundle.getString("phone"),
+        isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
+      )
+    }
+
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails {
+      return buildAddressDetails(toBundleObject(map))
+    }
+
+    private fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
+      if (bundle == null) {
+        return null
+      }
+      return PaymentSheet.Address(
+        city = bundle.getString("city"),
+        country = bundle.getString("country"),
+        line1 = bundle.getString("line1"),
+        line2 = bundle.getString("line2"),
+        state = bundle.getString("state"),
+        postalCode = bundle.getString("postalCode")
+      )
+    }
+
+    internal fun buildResult(addressDetails: AddressDetails): WritableMap {
+      val result = Arguments.createMap()
+      result.putString("name", addressDetails.name)
+      Arguments.createMap().let {
+        it.putString("city", addressDetails.address?.city)
+        it.putString("country", addressDetails.address?.country)
+        it.putString("line1", addressDetails.address?.line1)
+        it.putString("line2", addressDetails.address?.line2)
+        it.putString("postalCode", addressDetails.address?.postalCode)
+        it.putString("state", addressDetails.address?.state)
+        result.putMap("address", it)
+      }
+      result.putString("phone", addressDetails.phoneNumber)
+      result.putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
+      return result
+    }
   }
 }

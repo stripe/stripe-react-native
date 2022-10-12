@@ -44,7 +44,7 @@ export {
 };
 
 export * from './Errors';
-export { Address, BillingDetails } from './Common';
+export { Address, BillingDetails, AddressDetails } from './Common';
 
 /**
  * @ignore
