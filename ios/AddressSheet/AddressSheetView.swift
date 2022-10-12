@@ -46,6 +46,12 @@ class AddressSheetView: UIView {
     }
     
     private func presentAddressSheet() {
+        if (STPAPIClient.shared.publishableKey == nil) {
+            onErrorAction!(
+                Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.") as? [AnyHashable : Any]
+            )
+            return
+        }
         var config: AddressViewController.Configuration
         do {
             config = try buildAddressSheetConfiguration()
@@ -61,9 +67,7 @@ class AddressSheetView: UIView {
             delegate: self
         )
                 
-        let navigationController =
-        UINavigationController(
-            rootViewController: addressViewController!)
+        let navigationController = UINavigationController(rootViewController: addressViewController!)
         navigationController.modalPresentationStyle = getModalPresentationStyle()
         navigationController.modalTransitionStyle = getModalTransitionStyle()
         let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())

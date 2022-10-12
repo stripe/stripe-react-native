@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +8,9 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
+import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.createError
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -22,7 +24,7 @@ class AddressLauncherFragment : Fragment() {
 
   private lateinit var addressLauncher: AddressLauncher
   private var configuration = AddressLauncher.Configuration()
-  private var callback: ((AddressLauncherResult) -> Unit)? = null
+  private var callback: ((error: WritableMap?, address: AddressDetails?) -> Unit)? = null
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -41,13 +43,27 @@ class AddressLauncherFragment : Fragment() {
         )
       }
     } ?: run {
-      Log.e("StripeReactNative", "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
+      callback?.invoke(
+        createError(ErrorType.Failed.toString(), "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method."),
+        null
+      )
     }
   }
 
   private fun onAddressLauncherResult(result: AddressLauncherResult) {
-    callback?.let {
-      it(result)
+    when (result) {
+      is AddressLauncherResult.Canceled -> {
+        callback?.invoke(
+          createError(ErrorType.Canceled.toString(), "The flow has been canceled."),
+          null
+        )
+      }
+      is AddressLauncherResult.Succeeded -> {
+        callback?.invoke(
+          null,
+          result.address
+        )
+      }
     }
   }
 
@@ -61,7 +77,7 @@ class AddressLauncherFragment : Fragment() {
     googlePlacesApiKey: String?,
     autocompleteCountries: Set<String>,
     additionalFields: AddressLauncher.AdditionalFieldsConfiguration?,
-    callback: (result: AddressLauncherResult) -> Unit) {
+    callback: ((error: WritableMap?, address: AddressDetails?) -> Unit)) {
     configuration = AddressLauncher.Configuration(
       appearance = appearance,
       address = defaultAddress,

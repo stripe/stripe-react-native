@@ -37,7 +37,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
     )
   }
 
-  private fun onError(params: WritableMap) {
+  private fun onError(params: WritableMap?) {
     eventDispatcher?.dispatchEvent(
       AddressSheetEvent(id, AddressSheetEvent.EventType.OnError, params)
     )
@@ -59,7 +59,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       onError(createError(ErrorType.Failed.toString(), error))
       return
     }
-    AddressLauncherFragment.presentAddressSheet(
+    AddressLauncherFragment().presentAddressSheet(
       context,
       appearance,
       defaultAddress,
@@ -69,17 +69,11 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       googlePlacesApiKey,
       autocompleteCountries,
       additionalFields
-    ) { result ->
-      when (result) {
-        is AddressLauncherResult.Canceled -> {
-          onError(
-            createError(
-              ErrorType.Canceled.toString(),
-              "The flow has been canceled."))
-        }
-        is AddressLauncherResult.Succeeded -> {
-          onSubmit(buildResult(result.address))
-        }
+    ) { error, address ->
+      if (address != null) {
+        onSubmit(buildResult(address))
+      } else {
+        onError(error)
       }
       isVisible = false
     }
