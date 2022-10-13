@@ -6,6 +6,7 @@ import android.widget.FrameLayout
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
@@ -88,16 +89,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
   }
 
   fun setAdditionalFields(fields: ReadableMap) {
-    val phone = when (fields.getString("phoneNumber")) {
-      "hidden" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
-      "optional" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.OPTIONAL
-      "required" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED
-      else -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
-    }
-    additionalFields = AddressLauncher.AdditionalFieldsConfiguration(
-      phone = phone,
-      checkboxLabel = fields.getString("checkboxLabel")
-    )
+    additionalFields = buildAdditionalFieldsConfiguration(fields)
   }
 
   fun setAllowedCountries(countries: List<String>) {
@@ -134,7 +126,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       return buildAddressDetails(toBundleObject(map))
     }
 
-    private fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
+    internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
       if (bundle == null) {
         return null
       }
@@ -148,10 +140,28 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       )
     }
 
+    internal fun getFieldConfiguration(key: String?): AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration {
+      return when (key) {
+        "hidden" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
+        "optional" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.OPTIONAL
+        "required" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED
+        else -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
+      }
+    }
+
+    internal fun buildAdditionalFieldsConfiguration(params: ReadableMap): AddressLauncher.AdditionalFieldsConfiguration {
+      val phoneConfiguration = getFieldConfiguration(params.getString("phoneNumber"))
+
+      return AddressLauncher.AdditionalFieldsConfiguration(
+        phone = phoneConfiguration,
+        checkboxLabel = params.getString("checkboxLabel")
+      )
+    }
+
     internal fun buildResult(addressDetails: AddressDetails): WritableMap {
-      val result = Arguments.createMap()
+      val result = WritableNativeMap()
       result.putString("name", addressDetails.name)
-      Arguments.createMap().let {
+      WritableNativeMap().let {
         it.putString("city", addressDetails.address?.city)
         it.putString("country", addressDetails.address?.country)
         it.putString("line1", addressDetails.address?.line1)

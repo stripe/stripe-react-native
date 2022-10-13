@@ -1,4 +1,4 @@
-package com.reactnativestripesdk.pushprovisioning
+package com.reactnativestripesdk.paymentsheet
 
 import android.os.Bundle
 import androidx.core.os.bundleOf
