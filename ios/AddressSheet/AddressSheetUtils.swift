@@ -57,7 +57,7 @@ class AddressSheetUtils {
     
     internal class func buildAdditionalFieldsConfiguration(params: NSDictionary?) -> AddressViewController.Configuration.AdditionalFields {
         guard let params = params else {
-            return AddressViewController.Configuration.AdditionalFields()
+            return AddressViewController.Configuration.AdditionalFields(name: .required, phone: .hidden, checkboxLabel: nil)
         }
 
         return AddressViewController.Configuration.AdditionalFields(
