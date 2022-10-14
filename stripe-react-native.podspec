@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   end
 
   s.dependency 'React-Core'
-  s.dependency 'Stripe', stripe_version
-  s.dependency 'StripeFinancialConnections', stripe_version
+  s.dependency 'Stripe'
+  s.dependency 'StripeFinancialConnections'
 end

@@ -44,7 +44,7 @@ export {
 };
 
 export * from './Errors';
-export { Address, BillingDetails } from './Common';
+export { Address, BillingDetails, AddressDetails } from './Common';
 
 /**
  * @ignore
@@ -140,15 +140,10 @@ export type InitPaymentSheetResult =
       error: StripeError<PaymentSheetError>;
     };
 
-export type PresentPaymentSheetResult =
-  | {
-      paymentOption: PaymentSheet.PaymentOption;
-      error?: undefined;
-    }
-  | {
-      paymentOption?: undefined;
-      error: StripeError<PaymentSheetError>;
-    };
+export type PresentPaymentSheetResult = {
+  paymentOption?: PaymentSheet.PaymentOption | undefined;
+  error?: StripeError<PaymentSheetError> | undefined;
+};
 
 export type CreateTokenResult =
   | {

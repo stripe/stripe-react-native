@@ -1,4 +1,4 @@
-import type { BillingDetails } from './Common';
+import type { BillingDetails, AddressDetails } from './Common';
 import type { CartSummaryItem } from './ApplePay';
 
 export type SetupParams = ClientSecretParams & {
@@ -14,6 +14,7 @@ export type SetupParams = ClientSecretParams & {
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   returnURL?: string;
   defaultBillingDetails?: BillingDetails;
+  defaultShippingDetails?: AddressDetails;
   allowsDelayedPaymentMethods?: boolean;
   appearance?: AppearanceParams;
 };

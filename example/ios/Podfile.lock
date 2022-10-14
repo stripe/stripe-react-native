@@ -368,31 +368,31 @@ PODS:
     - React-Core
     - React-RCTImage
   - SocketRocket (0.6.0)
-  - Stripe (22.8.1):
-    - Stripe/Stripe3DS2 (= 22.8.1)
-    - StripeApplePay (= 22.8.1)
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - stripe-react-native (0.18.1):
+  - Stripe (22.7.1):
+    - Stripe/Stripe3DS2 (= 22.7.1)
+    - StripeApplePay (= 22.7.1)
+    - StripeCore (= 22.7.1)
+    - StripeUICore (= 22.7.1)
+  - stripe-react-native (0.19.0):
     - React-Core
-    - Stripe (~> 22.8.1)
-    - StripeFinancialConnections (~> 22.8.1)
-  - stripe-react-native/Tests (0.18.1):
+    - Stripe
+    - StripeFinancialConnections
+  - stripe-react-native/Tests (0.19.0):
     - React-Core
-    - Stripe (~> 22.8.1)
-    - StripeFinancialConnections (~> 22.8.1)
-  - Stripe/Stripe3DS2 (22.8.1):
-    - StripeApplePay (= 22.8.1)
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - StripeApplePay (22.8.1):
-    - StripeCore (= 22.8.1)
-  - StripeCore (22.8.1)
-  - StripeFinancialConnections (22.8.1):
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - StripeUICore (22.8.1):
-    - StripeCore (= 22.8.1)
+    - Stripe
+    - StripeFinancialConnections
+  - Stripe/Stripe3DS2 (22.7.1):
+    - StripeApplePay (= 22.7.1)
+    - StripeCore (= 22.7.1)
+    - StripeUICore (= 22.7.1)
+  - StripeApplePay (22.7.1):
+    - StripeCore (= 22.7.1)
+  - StripeCore (22.7.1)
+  - StripeFinancialConnections (22.7.1):
+    - StripeCore (= 22.7.1)
+    - StripeUICore (= 22.7.1)
+  - StripeUICore (22.7.1):
+    - StripeCore (= 22.7.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -458,8 +458,12 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
   - stripe-react-native (from `../..`)
   - stripe-react-native/Tests (from `../..`)
+  - StripeCore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
+  - StripeFinancialConnections (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
+  - StripeUICore (from `https://github.com/stripe-ios/stripe-ios.git`, branch `address-element-private-beta`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -478,11 +482,7 @@ SPEC REPOS:
     - libevent
     - OpenSSL-Universal
     - SocketRocket
-    - Stripe
     - StripeApplePay
-    - StripeCore
-    - StripeFinancialConnections
-    - StripeUICore
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -558,10 +558,36 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: address-element-private-beta
+    :git: https://github.com/stripe-ios/stripe-ios.git
   stripe-react-native:
     :path: "../.."
+  StripeCore:
+    :branch: address-element-private-beta
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeFinancialConnections:
+    :branch: address-element-private-beta
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :branch: address-element-private-beta
+    :git: https://github.com/stripe-ios/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeCore:
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeFinancialConnections:
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
+    :git: https://github.com/stripe-ios/stripe-ios.git
+  StripeUICore:
+    :commit: 58d9b238c80f4275c267c42fda2a0ed270fde891
+    :git: https://github.com/stripe-ios/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
@@ -614,15 +640,15 @@ SPEC CHECKSUMS:
   RNCPicker: abc646b53a3d28ccfa3232c927a0ca52e0cf024d
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  Stripe: b4cf3aa317a8e984b930d3545bac10b490dd3106
-  stripe-react-native: 0a6687da9a81bf4a9f80374d3fddd103e0e8dd1a
-  StripeApplePay: 858c1dadc39b658d317661dea8cc2b7158533a17
-  StripeCore: 52e0aba2fad604455692db593bf5edc04758b760
-  StripeFinancialConnections: 40f6c8f86a4ddfcfe981d4da343828637abb3e69
-  StripeUICore: b3d64c5cbcb4cacfa88f9a0950cdf1b4df72792e
+  Stripe: fb29a476e4866fec4ef22fb76207363dd32795aa
+  stripe-react-native: 58256a285b470b17318de68cf5c0758362c473f0
+  StripeApplePay: 09955cdf3f49b367af2feadd9c5b3bddb35446c0
+  StripeCore: 39ea580c26ccc324fb9671288a2ae21114e54dca
+  StripeFinancialConnections: 0e1d638388572d52ce829416fbc7b0af2bde3865
+  StripeUICore: eed17e95a4517fc02482e250a6422c2a81a14ce8
   Yoga: 236056dd74cda4d9d76c20306fd8c20bb087614d
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 17106566f645fc6d606ce750e3389c566170dbf4
+PODFILE CHECKSUM: fd80644f5f9a87eedead854f355024aba66b3db4
 
 COCOAPODS: 1.11.3

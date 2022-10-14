@@ -120,7 +120,7 @@ class PaymentLauncherFragment(
       }
     }
 
-    const val TAG = "payment_launcher_fragment"
+    internal const val TAG = "payment_launcher_fragment"
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -261,6 +261,7 @@ class PaymentLauncherFragment(
       StripeIntent.NextActionType.AlipayRedirect,
       StripeIntent.NextActionType.BlikAuthorize,
       StripeIntent.NextActionType.WeChatPayRedirect,
+      StripeIntent.NextActionType.UpiAwaitNotification,
       null -> false
     }
   }
