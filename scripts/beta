@@ -80,13 +80,10 @@ if [[ $CURRENT_VERSION != *$BETA_NAME* ]]; then
 fi
 
 echo "Bumping package.json prerelease version and tagging commit"
-yarn version --prerelease
+yarn version --prerelease --no-git-tag-version
 
 echo "Publishing beta release"
 yarn -s --ignore-scripts publish --non-interactive --access=public --tag=beta
-
-echo "Pushing git commit and tag"
-git push --follow-tags
 
 echo "Beta publish successful!"
 echo ""
