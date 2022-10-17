@@ -108,24 +108,3 @@ export interface PresentParams {
   shippingMethods?: ShippingMethod[];
   jcbEnabled?: boolean;
 }
-
-export type ApplePaySheetError =
-  | {
-      errorType: ApplePaySheetErrorType.InvalidShippingAddress;
-      field: AddressFields;
-      message?: string;
-    }
-  | {
-      errorType:
-        | ApplePaySheetErrorType.UnserviceableShippingAddress
-        | ApplePaySheetErrorType.InvalidCouponCode
-        | ApplePaySheetErrorType.ExpiredCouponCode;
-      message?: string;
-    };
-
-export const enum ApplePaySheetErrorType {
-  InvalidShippingAddress = 'InvalidShippingAddress',
-  UnserviceableShippingAddress = 'UnserviceableShippingAddress',
-  InvalidCouponCode = 'InvalidCouponCode',
-  ExpiredCouponCode = 'ExpiredCouponCode',
-}

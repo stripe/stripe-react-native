@@ -118,7 +118,7 @@ type NativeStripeSdkType = {
   updateApplePaySheet(
     summaryItems: Array<ApplePay.CartSummaryItem>,
     shippingMethods: Array<ApplePay.ShippingMethod>,
-    errors: Array<ApplePay.ApplePaySheetError>
+    errors: Array<NativePay.ApplePaySheetError>
   ): Promise<void>;
   confirmNativePay(
     clientSecret: string,

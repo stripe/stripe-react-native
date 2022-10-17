@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
-  ApplePay,
   NativePay,
   AddToWalletButton,
   Constants,
@@ -31,24 +30,33 @@ export default function ApplePayScreen() {
     onApplePayCouponCodeEntered: (code, handler) => {
       console.log(JSON.stringify(code, null, 2));
       if (code === 'stripe') {
-        setCart([
-          { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
-          { label: 'Discount', amount: '2.75', paymentType: 'Immediate' },
+        const newCart: NativePay.CartSummaryItem[] = [
+          {
+            label: 'Subtotal',
+            amount: '12.75',
+            paymentType: NativePay.PaymentType.Immediate,
+          },
+          {
+            label: 'Discount',
+            amount: '2.75',
+            paymentType: NativePay.PaymentType.Immediate,
+          },
           {
             label: 'Shipping',
             amount: '0.00',
             isPending: false,
-            paymentType: 'Immediate',
+            paymentType: NativePay.PaymentType.Immediate,
           },
           {
             label: 'Total',
             amount: '10.75',
             isPending: false,
-            paymentType: 'Immediate',
+            paymentType: NativePay.PaymentType.Immediate,
           },
-        ]);
+        ];
+        setCart(newCart);
         handler(
-          cart,
+          newCart,
           [
             {
               identifier: 'free-express',
@@ -62,7 +70,7 @@ export default function ApplePayScreen() {
       } else {
         handler(cart, shippingMethods, [
           {
-            errorType: ApplePay.ApplePaySheetErrorType.InvalidCouponCode,
+            errorType: NativePay.ApplePaySheetErrorType.InvalidCouponCode,
             message: 'Invalid coupon code. Test coupon code is: "stripe"',
           },
         ]);
@@ -130,7 +138,7 @@ export default function ApplePayScreen() {
     }
   };
 
-  const shippingMethods: ApplePay.ShippingMethod[] = [
+  const shippingMethods: NativePay.ShippingMethod[] = [
     {
       identifier: 'free',
       detail: 'Arrives by July 2',
@@ -150,19 +158,23 @@ export default function ApplePayScreen() {
       amount: '24.63',
     },
   ];
-  const [cart, setCart] = useState<ApplePay.CartSummaryItem[]>([
-    { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
+  const [cart, setCart] = useState<NativePay.CartSummaryItem[]>([
+    {
+      label: 'Subtotal',
+      amount: '12.75',
+      paymentType: NativePay.PaymentType.Immediate,
+    },
     {
       label: 'Shipping',
       amount: '0.00',
       isPending: false,
-      paymentType: 'Immediate',
+      paymentType: NativePay.PaymentType.Immediate,
     },
     {
       label: 'Total',
       amount: '12.75',
       isPending: false,
-      paymentType: 'Immediate',
+      paymentType: NativePay.PaymentType.Immediate,
     }, // Last item in array needs to reflect the total.
   ]);
 
@@ -214,12 +226,12 @@ export default function ApplePayScreen() {
           currencyCode: 'USD',
           shippingMethods,
           requiredShippingAddressFields: [
-            'emailAddress',
-            'phoneNumber',
-            'postalAddress',
-            'name',
+            NativePay.ContactField.EmailAddress,
+            NativePay.ContactField.PhoneNumber,
+            NativePay.ContactField.PostalAddress,
+            NativePay.ContactField.Name,
           ],
-          requiredBillingContactFields: ['postalAddress'],
+          requiredBillingContactFields: [NativePay.ContactField.PostalAddress],
           shippingType: NativePay.ApplePayShippingType.StorePickup,
           additionalEnabledNetworks: ['JCB'],
         },
@@ -242,12 +254,12 @@ export default function ApplePayScreen() {
         currencyCode: 'USD',
         shippingMethods,
         requiredShippingAddressFields: [
-          'emailAddress',
-          'phoneNumber',
-          'postalAddress',
-          'name',
+          NativePay.ContactField.EmailAddress,
+          NativePay.ContactField.PhoneNumber,
+          NativePay.ContactField.PostalAddress,
+          NativePay.ContactField.Name,
         ],
-        requiredBillingContactFields: ['postalAddress'],
+        requiredBillingContactFields: [NativePay.ContactField.PostalAddress],
         supportsCouponCode: true,
         couponCode: '123',
         shippingType: NativePay.ApplePayShippingType.StorePickup,

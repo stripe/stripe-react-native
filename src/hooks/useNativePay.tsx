@@ -1,7 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
 import type {
-  GooglePay,
-  ApplePay,
   NativePay,
   StripeError,
   NativePayError,
@@ -24,11 +22,11 @@ export type Props = {
    * ```
    */
   onApplePayShippingMethodSelected?: (
-    shippingMethod: ApplePay.ShippingMethod,
+    shippingMethod: NativePay.ShippingMethod,
     handler: (
-      summaryItems: Array<ApplePay.CartSummaryItem>,
-      shippingMethods: Array<ApplePay.ShippingMethod>,
-      errors: Array<ApplePay.ApplePaySheetError>
+      summaryItems: Array<NativePay.CartSummaryItem>,
+      shippingMethods: Array<NativePay.ShippingMethod>,
+      errors: Array<NativePay.ApplePaySheetError>
     ) => Promise<{
       error?: StripeError<NativePayError>;
     }>
@@ -45,11 +43,11 @@ export type Props = {
    * ```
    */
   onApplePayShippingContactSelected?: (
-    shippingContact: ApplePay.ShippingContact,
+    shippingContact: NativePay.ShippingContact,
     handler: (
-      summaryItems: Array<ApplePay.CartSummaryItem>,
-      shippingMethods: Array<ApplePay.ShippingMethod>,
-      errors: Array<ApplePay.ApplePaySheetError>
+      summaryItems: Array<NativePay.CartSummaryItem>,
+      shippingMethods: Array<NativePay.ShippingMethod>,
+      errors: Array<NativePay.ApplePaySheetError>
     ) => Promise<{
       error?: StripeError<NativePayError>;
     }>
@@ -72,9 +70,9 @@ export type Props = {
   onApplePayCouponCodeEntered?: (
     couponCode: string,
     handler: (
-      summaryItems: Array<ApplePay.CartSummaryItem>,
-      shippingMethods: Array<ApplePay.ShippingMethod>,
-      errors: Array<ApplePay.ApplePaySheetError>
+      summaryItems: Array<NativePay.CartSummaryItem>,
+      shippingMethods: Array<NativePay.ShippingMethod>,
+      errors: Array<NativePay.ApplePaySheetError>
     ) => Promise<{
       error?: StripeError<NativePayError>;
     }>
@@ -101,17 +99,17 @@ export function useNativePay({
     addOnApplePayShippingContactSelectedListener,
     canAddCardToWallet,
   } = useStripe();
-  const [summaryItems, setSummaryItems] = useState<ApplePay.CartSummaryItem[]>(
+  const [summaryItems, setSummaryItems] = useState<NativePay.CartSummaryItem[]>(
     []
   );
   const [shippingMethods, setShippingMethods] = useState<
-    ApplePay.ShippingMethod[]
+    NativePay.ShippingMethod[]
   >([]);
-  const [errors, setErrors] = useState<ApplePay.ApplePaySheetError[]>([]);
+  const [errors, setErrors] = useState<NativePay.ApplePaySheetError[]>([]);
   const [loading, setLoading] = useState(false);
 
   const onDidSetShippingMethod = useCallback(
-    (event: { shippingMethod: ApplePay.ShippingMethod }) => {
+    (event: { shippingMethod: NativePay.ShippingMethod }) => {
       if (onApplePayShippingMethodSelected) {
         onApplePayShippingMethodSelected(
           event.shippingMethod,
@@ -131,7 +129,7 @@ export function useNativePay({
   );
 
   const onDidSetShippingContact = useCallback(
-    (event: { shippingContact: ApplePay.ShippingContact }) => {
+    (event: { shippingContact: NativePay.ShippingContact }) => {
       if (onApplePayShippingContactSelected) {
         onApplePayShippingContactSelected(
           event.shippingContact,
@@ -190,7 +188,7 @@ export function useNativePay({
   ]);
 
   const _isNativePaySupported = useCallback(
-    async (params?: { googlePay?: GooglePay.IsSupportedParams }) => {
+    async (params?: { googlePay?: NativePay.IsGooglePaySupportedParams }) => {
       setLoading(true);
 
       const result = await isNativePaySupported(params);
@@ -257,9 +255,9 @@ export function useNativePay({
 
   const _updateApplePaySheet = useCallback(
     async (
-      scopedSummaryItems: Array<ApplePay.CartSummaryItem>,
-      scopedShippingMethods: Array<ApplePay.ShippingMethod>,
-      scopedErrors: Array<ApplePay.ApplePaySheetError>
+      scopedSummaryItems: Array<NativePay.CartSummaryItem>,
+      scopedShippingMethods: Array<NativePay.ShippingMethod>,
+      scopedErrors: Array<NativePay.ApplePaySheetError>
     ) => {
       setLoading(true);
       setSummaryItems(scopedSummaryItems);
@@ -335,6 +333,9 @@ export function useNativePay({
     updateApplePaySheet: _updateApplePaySheet,
     /**
      * Check if the app & device support adding this card to the native wallet.
+     * @param params An object containing fields for `primaryAccountIdentifier`, `cardLastFour`, and `testEnv`.
+     *
+     * @returns A promise resolving to an object of type CanAddCardToWalletResult. Check the `canAddCard` field, if it's true, you should show the `<AddToWalletButton />`
      */
     canAddCardToWallet: _canAddCardToWallet,
   };

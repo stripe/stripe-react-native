@@ -661,6 +661,12 @@ export const collectFinancialConnectionsAccounts = async (
   }
 };
 
+/**
+ * Check if the app & device support adding this card to the native wallet.
+ * @param params An object containing fields for `primaryAccountIdentifier`, `cardLastFour`, and `testEnv`.
+ *
+ * @returns A promise resolving to an object of type CanAddCardToWalletResult. Check the `canAddCard` field, if it's true, you should show the `<AddToWalletButton />`
+ */
 export const canAddCardToWallet = async (
   params: CanAddCardToWalletParams
 ): Promise<CanAddCardToWalletResult> => {
@@ -684,6 +690,7 @@ export const canAddCardToWallet = async (
   }
 };
 
+/** @deprecated Please use `canAddCardToWallet` instead. */
 export const isCardInWallet = async (params: {
   cardLastFour: string;
 }): Promise<IsCardInWalletResult> => {
@@ -717,7 +724,7 @@ export const Constants = NativeStripeSdk.getConstants();
  * @returns A boolean indicating whether or not the native wallet is supported.
  */
 export const isNativePaySupported = async (params?: {
-  googlePay?: GooglePay.IsSupportedParams;
+  googlePay?: NativePay.IsGooglePaySupportedParams;
 }): Promise<boolean> => {
   return await NativeStripeSdk.isNativePaySupported(params ?? {});
 };
@@ -836,9 +843,9 @@ export const createNativePayPaymentMethod = async (
  * @returns An object with an optional 'error' field, which is only populated if something went wrong.
  */
 export const updateApplePaySheet = async (
-  summaryItems: Array<ApplePay.CartSummaryItem>,
-  shippingMethods: Array<ApplePay.ShippingMethod>,
-  errors: Array<ApplePay.ApplePaySheetError>
+  summaryItems: Array<NativePay.CartSummaryItem>,
+  shippingMethods: Array<NativePay.ShippingMethod>,
+  errors: Array<NativePay.ApplePaySheetError>
 ): Promise<{
   error?: StripeError<NativePayError>;
 }> => {
@@ -876,7 +883,7 @@ function _getEmitter(): NativeEventEmitter {
  * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
  */
 export const addOnApplePayShippingMethodSelectedListener = (
-  listener: (event: { shippingMethod: ApplePay.ShippingMethod }) => void
+  listener: (event: { shippingMethod: NativePay.ShippingMethod }) => void
 ): EmitterSubscription => {
   return _getEmitter().addListener('onDidSetShippingMethod', listener);
 };
@@ -887,7 +894,7 @@ export const addOnApplePayShippingMethodSelectedListener = (
  * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
  */
 export const addOnApplePayShippingContactSelectedListener = (
-  listener: (event: { shippingContact: ApplePay.ShippingContact }) => void
+  listener: (event: { shippingContact: NativePay.ShippingContact }) => void
 ): EmitterSubscription => {
   return _getEmitter().addListener('onDidSetShippingContact', listener);
 };
