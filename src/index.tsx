@@ -2,6 +2,7 @@
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
+export { useNativePay } from './hooks/useNativePay';
 export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useGooglePay } from './hooks/useGooglePay';

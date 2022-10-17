@@ -6,14 +6,10 @@ import {
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
-  createNativePayPaymentMethod,
-  addOnApplePayCouponCodeEnteredListener,
   addOnApplePayShippingContactSelectedListener,
   addOnApplePayShippingMethodSelectedListener,
-  updateApplePaySheet,
-  isNativePaySupported,
-  confirmNativePayPayment,
   NativePayButton,
+  useNativePay,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -27,18 +23,14 @@ export default function ApplePayScreen() {
   const [cardDetails, setCardDetails] = useState<any>(null);
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
   const [clientSecret, setClientSecret] = useState<String | null>(null);
-
-  useEffect(() => {
-    fetchEphemeralKey();
-    checkIfCardInWallet();
-    checkIfApplePayIsSupported();
-    fetchPaymentIntentClientSecret();
-  }, []);
-
-  useEffect(() => {
-    const couponListener = addOnApplePayCouponCodeEnteredListener((event) => {
-      console.log(JSON.stringify(event, null, 2));
-      if (event.couponCode === 'stripe') {
+  const {
+    createNativePayPaymentMethod,
+    isNativePaySupported,
+    confirmNativePayPayment,
+  } = useNativePay({
+    onApplePayCouponCodeEntered: (code, handler) => {
+      console.log(JSON.stringify(code, null, 2));
+      if (code === 'stripe') {
         setCart([
           { label: 'Subtotal', amount: '12.75', paymentType: 'Immediate' },
           { label: 'Discount', amount: '2.75', paymentType: 'Immediate' },
@@ -55,7 +47,7 @@ export default function ApplePayScreen() {
             paymentType: 'Immediate',
           },
         ]);
-        updateApplePaySheet(
+        handler(
           cart,
           [
             {
@@ -68,36 +60,45 @@ export default function ApplePayScreen() {
           []
         );
       } else {
-        updateApplePaySheet(cart, shippingMethods, [
+        handler(cart, shippingMethods, [
           {
             errorType: ApplePay.ApplePaySheetErrorType.InvalidCouponCode,
             message: 'Invalid coupon code. Test coupon code is: "stripe"',
           },
         ]);
       }
-    });
+    },
+  });
+
+  useEffect(() => {
+    fetchEphemeralKey();
+    checkIfCardInWallet();
+    fetchPaymentIntentClientSecret();
+  }, []);
+
+  useEffect(() => {
     const shippingContactListener =
       addOnApplePayShippingContactSelectedListener((event) => {
         console.log(JSON.stringify(event, null, 2));
-        updateApplePaySheet(cart, shippingMethods, []);
       });
     const shippingMethodListener = addOnApplePayShippingMethodSelectedListener(
       (event) => {
         console.log(JSON.stringify(event, null, 2));
-        updateApplePaySheet(cart, shippingMethods, []);
       }
     );
 
     return function cleanup() {
-      couponListener.remove();
       shippingContactListener.remove();
       shippingMethodListener.remove();
     };
   });
 
-  const checkIfApplePayIsSupported = async () => {
-    setIsApplePaySupported(await isNativePaySupported());
-  };
+  useEffect(() => {
+    const checkCapability = async () => {
+      setIsApplePaySupported(await isNativePaySupported());
+    };
+    checkCapability();
+  }, [isNativePaySupported]);
 
   const checkIfCardInWallet = async () => {
     const response = await fetch(`${API_URL}/issuing-card-details`, {

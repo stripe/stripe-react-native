@@ -32,7 +32,10 @@ import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  NativePay,
+  NativePayError,
 } from '../types';
+import type { EmitterSubscription } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -65,6 +68,15 @@ import {
   collectBankAccountToken,
   collectFinancialConnectionsAccounts,
   resetPaymentSheetCustomer,
+  isNativePaySupported,
+  confirmNativePaySetupIntent,
+  confirmNativePayPayment,
+  dismissApplePay,
+  createNativePayPaymentMethod,
+  updateApplePaySheet,
+  addOnApplePayShippingMethodSelectedListener,
+  addOnApplePayCouponCodeEnteredListener,
+  addOnApplePayShippingContactSelectedListener,
 } from '../functions';
 
 /**
@@ -316,6 +328,88 @@ export function useStripe() {
     return resetPaymentSheetCustomer();
   }, []);
 
+  const _isNativePaySupported = useCallback(
+    async (params?: {
+      googlePay?: GooglePay.IsSupportedParams;
+    }): Promise<boolean> => {
+      return isNativePaySupported(params);
+    },
+    []
+  );
+
+  const _confirmNativePaySetupIntent = useCallback(
+    async (
+      clientSecret: string,
+      params: NativePay.ConfirmParams
+    ): Promise<NativePay.ConfirmSetupIntentResult> => {
+      return confirmNativePaySetupIntent(clientSecret, params);
+    },
+    []
+  );
+
+  const _confirmNativePayPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: NativePay.ConfirmParams
+    ): Promise<NativePay.ConfirmPaymentResult> => {
+      return confirmNativePayPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _dismissApplePay = useCallback(async (): Promise<boolean> => {
+    return dismissApplePay();
+  }, []);
+
+  const _createNativePayPaymentMethod = useCallback(
+    async (
+      params: NativePay.PaymentMethodParams
+    ): Promise<NativePay.PaymentMethodResult> => {
+      return createNativePayPaymentMethod(params);
+    },
+    []
+  );
+
+  const _updateApplePaySheet = useCallback(
+    async (
+      summaryItems: Array<ApplePay.CartSummaryItem>,
+      shippingMethods: Array<ApplePay.ShippingMethod>,
+      errors: Array<ApplePay.ApplePaySheetError>
+    ): Promise<{
+      error?: StripeError<NativePayError>;
+    }> => {
+      return updateApplePaySheet(summaryItems, shippingMethods, errors);
+    },
+    []
+  );
+
+  const _addOnApplePayShippingMethodSelectedListener = useCallback(
+    (
+      listener: (event: { shippingMethod: ApplePay.ShippingMethod }) => void // todo unpack event
+    ): EmitterSubscription => {
+      return addOnApplePayShippingMethodSelectedListener(listener);
+    },
+    []
+  );
+
+  const _addOnApplePayShippingContactSelectedListener = useCallback(
+    (
+      listener: (event: { shippingContact: ApplePay.ShippingContact }) => void
+    ): EmitterSubscription => {
+      return addOnApplePayShippingContactSelectedListener(listener);
+    },
+    []
+  );
+
+  const _addOnApplePayCouponCodeEnteredListener = useCallback(
+    (
+      listener: (event: { couponCode: string }) => void
+    ): EmitterSubscription => {
+      return addOnApplePayCouponCodeEnteredListener(listener);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -351,5 +445,17 @@ export function useStripe() {
      * is also cleared during logout.
      */
     resetPaymentSheetCustomer: _resetPaymentSheetCustomer,
+    isNativePaySupported: _isNativePaySupported,
+    confirmNativePaySetupIntent: _confirmNativePaySetupIntent,
+    confirmNativePayPayment: _confirmNativePayPayment,
+    dismissApplePay: _dismissApplePay,
+    createNativePayPaymentMethod: _createNativePayPaymentMethod,
+    updateApplePaySheet: _updateApplePaySheet,
+    addOnApplePayShippingMethodSelectedListener:
+      _addOnApplePayShippingMethodSelectedListener,
+    addOnApplePayShippingContactSelectedListener:
+      _addOnApplePayShippingContactSelectedListener,
+    addOnApplePayCouponCodeEnteredListener:
+      _addOnApplePayCouponCodeEnteredListener,
   };
 }
