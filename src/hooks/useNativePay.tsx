@@ -5,6 +5,8 @@ import type {
   NativePay,
   StripeError,
   NativePayError,
+  CanAddCardToWalletParams,
+  CanAddCardToWalletResult,
 } from '../types';
 import { useStripe } from './useStripe';
 
@@ -97,6 +99,7 @@ export function useNativePay({
     addOnApplePayShippingMethodSelectedListener,
     addOnApplePayCouponCodeEnteredListener,
     addOnApplePayShippingContactSelectedListener,
+    canAddCardToWallet,
   } = useStripe();
   const [summaryItems, setSummaryItems] = useState<ApplePay.CartSummaryItem[]>(
     []
@@ -275,6 +278,20 @@ export function useNativePay({
     [updateApplePaySheet]
   );
 
+  const _canAddCardToWallet = useCallback(
+    async (
+      params: CanAddCardToWalletParams
+    ): Promise<CanAddCardToWalletResult> => {
+      setLoading(true);
+
+      const result = await canAddCardToWallet(params);
+      setLoading(false);
+
+      return result;
+    },
+    [canAddCardToWallet]
+  );
+
   return {
     loading,
     /**
@@ -316,5 +333,9 @@ export function useNativePay({
      * @returns An object with an optional 'error' field, which is only populated if something went wrong.
      */
     updateApplePaySheet: _updateApplePaySheet,
+    /**
+     * Check if the app & device support adding this card to the native wallet.
+     */
+    canAddCardToWallet: _canAddCardToWallet,
   };
 }
