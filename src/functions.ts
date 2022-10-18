@@ -455,6 +455,15 @@ export const confirmPaymentSheetPayment =
     }
   };
 
+/**
+ * You must call this method when the user logs out from your app. This will ensure that
+ * any persisted authentication state in the PaymentSheet, such as authentication cookies,
+ * is also cleared during logout.
+ */
+export const resetPaymentSheetCustomer = async (): Promise<null> => {
+  return await NativeStripeSdk.resetPaymentSheetCustomer();
+};
+
 export const isGooglePaySupported = async (
   params?: GooglePay.IsSupportedParams
 ): Promise<boolean> => {

@@ -64,6 +64,7 @@ import {
   canAddCardToWallet,
   collectBankAccountToken,
   collectFinancialConnectionsAccounts,
+  resetPaymentSheetCustomer,
 } from '../functions';
 
 /**
@@ -311,6 +312,10 @@ export function useStripe() {
     []
   );
 
+  const _resetPaymentSheetCustomer = useCallback(async (): Promise<null> => {
+    return resetPaymentSheetCustomer();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -340,5 +345,11 @@ export function useStripe() {
     canAddCardToWallet: _canAddCardToWallet,
     collectBankAccountToken: _collectBankAccountToken,
     collectFinancialConnectionsAccounts: _collectFinancialConnectionsAccounts,
+    /**
+     * You must call this method when the user logs out from your app. This will ensure that
+     * any persisted authentication state in the PaymentSheet, such as authentication cookies,
+     * is also cleared during logout.
+     */
+    resetPaymentSheetCustomer: _resetPaymentSheetCustomer,
   };
 }
