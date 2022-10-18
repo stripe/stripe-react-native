@@ -14,7 +14,7 @@ export type Props = {
    * Pass this callback function to update the Apple Pay sheet after the customer selects a shipping method.
    * @example
    * ```ts
-   * const { presentApplePay } = useNativePay({
+   * const { ... } = useNativePay({
    *  onApplePayShippingMethodSelected: (shippingMethod, handler) => {
    *    handler(newCartItems, shippingMethods, anyErrors);
    *  }
@@ -35,7 +35,7 @@ export type Props = {
    * Pass this callback function to update the Apple Pay sheet after the customer edits their contact.
    * @example
    * ```ts
-   * const { presentApplePay } = useNativePay({
+   * const { ... } = useNativePay({
    *  onApplePayShippingContactSelected: (contact, handler) => {
    *    handler(newCartItems, shippingMethods, anyErrors);
    *  }
@@ -56,7 +56,7 @@ export type Props = {
    * Pass this callback function to update the Apple Pay sheet (including pricing) after the customer inputs a coupon code.
    * @example
    * ```ts
-   * const { presentApplePay } = useNativePay({
+   * const { ... } = useNativePay({
    *  onApplePayCouponCodeEntered: (couponCode, handler) => {
    *    if (isValid(couponCode)) {
    *       handler(newCartItems, shippingMethods, []);
@@ -291,6 +291,7 @@ export function useNativePay({
   );
 
   return {
+    /** Use this boolean to present a spinner or other similar loading screen. `true` if the SDK is currently processing, `false` if it is not. */
     loading,
     /**
      * Check if the relevant native wallet (Apple Pay on iOS, Google Pay on Android) is supported.
