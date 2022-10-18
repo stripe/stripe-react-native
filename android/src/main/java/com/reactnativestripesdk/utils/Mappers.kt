@@ -347,6 +347,8 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   card.putString("funding", paymentMethod.card?.funding)
   card.putString("last4", paymentMethod.card?.last4)
   card.putString("fingerprint", paymentMethod.card?.fingerprint)
+  card.putString("preferredNetwork", paymentMethod.card?.networks?.preferred)
+  card.putArray("availableNetworks", paymentMethod.card?.networks?.available?.toList() as? ReadableArray)
 
   sepaDebit.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
   sepaDebit.putString("country", paymentMethod.sepaDebit?.country)
