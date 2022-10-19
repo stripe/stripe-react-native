@@ -124,7 +124,7 @@
 - Fixed a bug on Android where a crash could occur if the PaymentSheet was canceled and opened again. [#1014](https://github.com/stripe/stripe-react-native/pull/1014)
 - Fixed an instance on iOS where `CardField`'s expiry date would remain marked as valid, even when it's invalid. [#1018](https://github.com/stripe/stripe-react-native/issues/1018)
 
-## 0.13.1 - 2022-06-16
+## 0.13.1 - 2022-06-16 (📌 Expo SDK 46)
 
 ### Breaking changes
 
@@ -265,6 +265,11 @@
   - (Typescript) `GooglePay.IsGooglePaySupportedParams` is now `GooglePay.IsSupportedParams`
   - (Typescript) Removed `GooglePay.SetupIntentParams`
 
+## 0.6.1 - 2022-04-01 (📌 Expo SDK 45)
+
+- Fix: correctly overwrite `package.json` import via babel. [#924](https://github.com/stripe/stripe-react-native/pull/924)
+- Fix: upgrade expo config plugins. [#936](https://github.com/stripe/stripe-react-native/pull/936)
+
 ## 0.6.0 - 2022-04-01
 
 - [#861](https://github.com/stripe/stripe-react-native/pull/861) BREAKING: This library now supports iOS 12 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 11, please continue to use `@stripe/stripe-react-native@0.5.0`.
@@ -314,7 +319,7 @@
 - [#658](https://github.com/stripe/stripe-react-native/pull/658) fix: TS issue with 0.2.3 StripeProvider cannot be used as a JSX component ([#658](https://github.com/stripe/stripe-react-native/issues/658))
 - [#635](https://github.com/stripe/stripe-react-native/pull/635) fix: billing address postal code ([#635](https://github.com/stripe/stripe-react-native/issues/635))
 
-## 0.2.3 - 2021-10-18
+## 0.2.3 - 2021-10-18 (📌 Expo SDK 44)
 
 - [#565](https://github.com/stripe/stripe-react-native/pull/565) chore: Add jest mock file ([#565](https://github.com/stripe/stripe-react-native/issues/565))
 - [#587](https://github.com/stripe/stripe-react-native/pull/587) chore: Update Podfile.lock stripe-react-native version ([#587](https://github.com/stripe/stripe-react-native/issues/587))
@@ -322,7 +327,7 @@
 - [#631](https://github.com/stripe/stripe-react-native/pull/631) chore: Update tips migration guide ([#631](https://github.com/stripe/stripe-react-native/issues/631))
 - [#601](https://github.com/stripe/stripe-react-native/pull/601) feat: Add button color, return URL, allowsDelayedPaymentMethods, and billing details to PaymentSheet ([#601](https://github.com/stripe/stripe-react-native/issues/601))
 
-## 0.2.2 - 2021-09-15
+## 0.2.2 - 2021-09-15 (📌 Expo SDK 43)
 
 - [#588](https://github.com/stripe/stripe-react-native/pull/588) fix: use the LocalBroadcastManager ([#588](https://github.com/stripe/stripe-react-native/issues/588))
 
@@ -358,7 +363,7 @@
 - [#337](https://github.com/stripe/stripe-react-native/pull/337) feat: expose CardField methods (focus, blur, clear)
 - [#366](https://github.com/stripe/stripe-react-native/pull/366) fix: open payment sheet from modal ([#315](https://github.com/stripe/stripe-react-native/issues/315); [#290](https://github.com/stripe/stripe-react-native/issues/290))
 
-## 0.1.4 - 2021-06-04 - Expo SDK 42.0.0
+## 0.1.4 - 2021-06-04 (📌 Expo SDK 42)
 
 ## 0.1.3 - 2021-06-04
 
@@ -382,7 +387,7 @@
 - [#234](https://github.com/stripe/stripe-react-native/pull/234) fix: add missing 3D Secure button props ([#201](https://github.com/stripe/stripe-react-native/issues/201))
 - [#226](https://github.com/stripe/stripe-react-native/pull/226) feat: add `autofocus` prop to `CardField` component ([#199](https://github.com/stripe/stripe-react-native/issues/199))
 
-## 0.1.1 - 2021-05-14 - Expo SDK 41.0.0
+## 0.1.1 - 2021-05-14 (📌 Expo SDK 41)
 
 - [#224](https://github.com/stripe/stripe-react-native/pull/224) chore: upgrade to [`stripe-android` version `16.8.2`](https://github.com/stripe/stripe-android/blob/master/CHANGELOG.md#1682---2021-05-14) ([#212](https://github.com/stripe/stripe-react-native/issues/212))
 - [#213](https://github.com/stripe/stripe-react-native/pull/213) fix: expose config-plugin and add blank swift file
