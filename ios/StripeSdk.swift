@@ -298,7 +298,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret, paymentMethodType: .USBankAccount)
             } else {
                 let parameters = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
-                
+
                 if let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String {
                     parameters.paymentMethodID = paymentMethodId
                 } else {
@@ -353,7 +353,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
             return
         }
-        
+
         var paymentSummaryItems : [PKPaymentSummaryItem] = []
         do {
             paymentSummaryItems = try ApplePayUtils.buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
@@ -361,7 +361,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
             return
         }
-        
+
         var shippingAddressErrors: [Error] = []
         for item in errorAddressFields {
             let field = item["field"] as! String
@@ -751,10 +751,18 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             email: billingDetails["email"] as? String
         )
 
+        let connectionsReturnURL: String?
+        if let urlScheme = urlScheme {
+            connectionsReturnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
+        } else {
+          connectionsReturnURL = nil
+        }
+
         if (isPaymentIntent) {
             DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
+                    returnURL: connectionsReturnURL,
                     params: collectParams,
                     from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
                 ) { intent, error in
@@ -780,6 +788,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForSetup(
                     clientSecret: clientSecret as String,
+                    returnURL: connectionsReturnURL,
                     params: collectParams,
                     from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
                 ) { intent, error in
@@ -821,7 +830,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(missingPaymentMethodError)
             return
         }
-        
+
         if (paymentMethodType == .FPX) {
             let testOfflineBank = paymentMethodData?["testOfflineBank"] as? Bool
             if (testOfflineBank == false || testOfflineBank == nil) {
@@ -838,7 +847,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             STPPaymentHandler.shared().confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
         }
     }
-    
+
     func getPaymentMethodType(
         params: NSDictionary?
     ) -> (NSDictionary?, STPPaymentMethodType?) {
@@ -868,7 +877,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret, paymentMethodType: .USBankAccount)
             } else {
                 guard let paymentMethodType = paymentMethodType else { return STPPaymentIntentParams(clientSecret: paymentIntentClientSecret) }
-                
+
                 let paymentMethodId = paymentMethodData?["paymentMethodId"] as? String
                 let parameters = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
 
@@ -1014,7 +1023,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(canAddCardToWallet:resolver:rejecter:)
     func canAddCardToWallet(
         params: NSDictionary,
@@ -1033,7 +1042,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             "details": ["status": status?.rawValue],
         ])
     }
-    
+
     @objc(isCardInWallet:resolver:rejecter:)
     func isCardInWallet(
         params: NSDictionary,
@@ -1046,7 +1055,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         resolve(["isInWallet": PushProvisioningUtils.passExistsWith(last4: last4)])
     }
-    
+
     @objc(collectBankAccountToken:resolver:rejecter:)
     func collectBankAccountToken(
         clientSecret: String,
@@ -1057,9 +1066,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.MISSING_INIT_ERROR)
             return
         }
-        FinancialConnections.presentForToken(withClientSecret: clientSecret, resolve: resolve)
+        let returnURL: String?
+        if let urlScheme = urlScheme {
+            returnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
+        } else {
+          returnURL = nil
+        }
+        FinancialConnections.presentForToken(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
     }
-    
+
     @objc(collectFinancialConnectionsAccounts:resolver:rejecter:)
     func collectFinancialConnectionsAccounts(
         clientSecret: String,
@@ -1070,9 +1085,15 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.MISSING_INIT_ERROR)
             return
         }
-        FinancialConnections.present(withClientSecret: clientSecret, resolve: resolve)
+        let returnURL: String?
+        if let urlScheme = urlScheme {
+            returnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
+        } else {
+          returnURL = nil
+        }
+        FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
     }
-    
+
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
     }
