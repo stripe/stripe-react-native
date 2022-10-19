@@ -12,7 +12,8 @@ import { API_URL } from '../Config';
 import appearance from './PaymentSheetAppearance';
 
 export default function PaymentsUICompleteScreen() {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
+    useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
@@ -118,6 +119,14 @@ export default function PaymentsUICompleteScreen() {
         disabled={!paymentSheetEnabled}
         title="Checkout"
         onPress={openPaymentSheet}
+      />
+
+      <Button
+        title="Reset customer"
+        onPress={async () => {
+          // Link will still be presented for the customer if you pass in the customer ID and ephemeral key to payment sheet
+          await resetPaymentSheetCustomer();
+        }}
       />
     </PaymentScreen>
   );
