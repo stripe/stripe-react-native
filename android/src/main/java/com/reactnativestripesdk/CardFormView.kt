@@ -135,10 +135,10 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       cardFormViewBinding.cardMultilineWidget.expiryDateEditText,
       cardFormViewBinding.postalCode
     )
-    val inputLayoutBindings = setOf(
-      cardFormViewBinding.cardMultilineWidget.cardNumberTextInputLayout,
-      cardFormViewBinding.cardMultilineWidget.cvcInputLayout,
-      cardFormViewBinding.cardMultilineWidget.expiryTextInputLayout,
+    val placeholderTextBindings = setOf(
+      multilineWidgetBinding.tlExpiry,
+      multilineWidgetBinding.tlCardNumber,
+      multilineWidgetBinding.tlCvc,
       cardFormViewBinding.postalCodeContainer,
     )
 
@@ -155,10 +155,9 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       }
     }
     placeholderColor?.let {
-      multilineWidgetBinding.tlExpiry.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
-      multilineWidgetBinding.tlCardNumber.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
-      multilineWidgetBinding.tlCvc.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
-      cardFormViewBinding.postalCodeContainer.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
+      for (binding in placeholderTextBindings) {
+        binding.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
+      }
     }
     fontSize?.let {
       for (binding in editTextBindings) {
@@ -171,7 +170,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       for (binding in editTextBindings) {
         binding.typeface = typeface
       }
-      for (binding in inputLayoutBindings) {
+      for (binding in placeholderTextBindings) {
         binding.typeface = typeface
       }
       cardFormViewBinding.countryLayout.typeface = typeface
