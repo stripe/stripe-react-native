@@ -545,17 +545,20 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         
         applePaymentMethodFlowCanBeCanceled = true
         createNativePayPaymentMethodResolver = resolve
-        applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)
-        applePaymentAuthorizationController?.delegate = self
-        DispatchQueue.main.async {
-            let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
-            vc.present(
-                self.applePaymentAuthorizationController!,
-                animated: true,
-                completion: nil
-            )
+        self.applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)
+        if let applePaymentAuthorizationController = self.applePaymentAuthorizationController {
+            applePaymentAuthorizationController.delegate = self
+            DispatchQueue.main.async {
+                let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                vc.present(
+                    applePaymentAuthorizationController,
+                    animated: true,
+                    completion: nil
+                )
+            }
+        } else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid in-app payment request. Search the iOS logs for `NSUnderlyingError` to get more information."))
         }
-            
     }
     
     @objc(dismissApplePay:rejecter:)
