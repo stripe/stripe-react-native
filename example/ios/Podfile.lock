@@ -368,31 +368,31 @@ PODS:
     - React-Core
     - React-RCTImage
   - SocketRocket (0.6.0)
-  - Stripe (22.8.1):
-    - Stripe/Stripe3DS2 (= 22.8.1)
-    - StripeApplePay (= 22.8.1)
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - stripe-react-native (0.18.1):
+  - Stripe (22.8.4):
+    - Stripe/Stripe3DS2 (= 22.8.4)
+    - StripeApplePay (= 22.8.4)
+    - StripeCore (= 22.8.4)
+    - StripeUICore (= 22.8.4)
+  - stripe-react-native (0.19.0):
     - React-Core
-    - Stripe (~> 22.8.1)
-    - StripeFinancialConnections (~> 22.8.1)
-  - stripe-react-native/Tests (0.18.1):
+    - Stripe (~> 22.8.3)
+    - StripeFinancialConnections (~> 22.8.3)
+  - stripe-react-native/Tests (0.19.0):
     - React-Core
-    - Stripe (~> 22.8.1)
-    - StripeFinancialConnections (~> 22.8.1)
-  - Stripe/Stripe3DS2 (22.8.1):
-    - StripeApplePay (= 22.8.1)
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - StripeApplePay (22.8.1):
-    - StripeCore (= 22.8.1)
-  - StripeCore (22.8.1)
-  - StripeFinancialConnections (22.8.1):
-    - StripeCore (= 22.8.1)
-    - StripeUICore (= 22.8.1)
-  - StripeUICore (22.8.1):
-    - StripeCore (= 22.8.1)
+    - Stripe (~> 22.8.3)
+    - StripeFinancialConnections (~> 22.8.3)
+  - Stripe/Stripe3DS2 (22.8.4):
+    - StripeApplePay (= 22.8.4)
+    - StripeCore (= 22.8.4)
+    - StripeUICore (= 22.8.4)
+  - StripeApplePay (22.8.4):
+    - StripeCore (= 22.8.4)
+  - StripeCore (22.8.4)
+  - StripeFinancialConnections (22.8.4):
+    - StripeCore (= 22.8.4)
+    - StripeUICore (= 22.8.4)
+  - StripeUICore (22.8.4):
+    - StripeCore (= 22.8.4)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -614,12 +614,12 @@ SPEC CHECKSUMS:
   RNCPicker: abc646b53a3d28ccfa3232c927a0ca52e0cf024d
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  Stripe: b4cf3aa317a8e984b930d3545bac10b490dd3106
-  stripe-react-native: 0a6687da9a81bf4a9f80374d3fddd103e0e8dd1a
-  StripeApplePay: 858c1dadc39b658d317661dea8cc2b7158533a17
-  StripeCore: 52e0aba2fad604455692db593bf5edc04758b760
-  StripeFinancialConnections: 40f6c8f86a4ddfcfe981d4da343828637abb3e69
-  StripeUICore: b3d64c5cbcb4cacfa88f9a0950cdf1b4df72792e
+  Stripe: 59f6659e8ea413def19c97c57e23f5ec6ea48cf8
+  stripe-react-native: 7135ed308ee04234d665da5e79e4d2737e549be3
+  StripeApplePay: 6e9aebd3d248464836e9fbdaef6e5fb1817d56a6
+  StripeCore: 193f27552fb98108ebfe0df11651fe5f38948305
+  StripeFinancialConnections: 955c345ada7d0dff1a9bd15c4ebc97eacce4ac75
+  StripeUICore: 6a5bbea0164d63bd91000f001903e7901859e1a4
   Yoga: 236056dd74cda4d9d76c20306fd8c20bb087614d
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
