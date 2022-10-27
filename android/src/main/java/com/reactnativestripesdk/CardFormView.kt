@@ -9,6 +9,7 @@ import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
@@ -194,14 +195,14 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     cardFormViewBinding.cardMultilineWidgetContainer.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
-        .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
+        .setAllCorners(CornerFamily.ROUNDED, PixelUtil.toPixelFromDIP(borderRadius.toDouble()))
         .build()
     ).also { shape ->
       shape.strokeWidth = 0.0f
       shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
       shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
       borderWidth?.let {
-        shape.strokeWidth = (it * 2).toFloat()
+        shape.strokeWidth = PixelUtil.toPixelFromDIP(it.toDouble())
       }
       borderColor?.let {
         shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
