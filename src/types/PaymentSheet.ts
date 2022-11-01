@@ -4,18 +4,35 @@ import type { CartSummaryItem } from './ApplePay';
 export type SetupParams = ClientSecretParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
+  /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
+  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
   customerEphemeralKeySecret?: string;
+  /** When set to true, separates out the payment method selection & confirmation steps.
+   * If true, you must call `confirmPaymentSheetPayment` on your own. Defaults to false. */
   customFlow?: boolean;
   /** iOS only. Enable Apple Pay in the Payment Sheet by passing an ApplePayParams object.  */
   applePay?: ApplePayParams;
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
   googlePay?: GooglePayParams;
+  /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+  /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
+  /** PaymentSheet pre-populates the billing fields with the values provided. */
   defaultBillingDetails?: BillingDetails;
+  /** If true, allows payment methods that do not move money at the end of the checkout. Defaults to false.
+   *
+   * Some payment methods can’t guarantee you will receive funds from your customer at the end of the checkout
+   * because they take time to settle (eg. most bank debits, like SEPA or ACH) or require customer action to
+   * complete (e.g. OXXO, Konbini, Boleto). If this is set to true, make sure your integration listens to webhooks
+   * for notifications on whether a payment has succeeded or not.
+   */
   allowsDelayedPaymentMethods?: boolean;
+  /** Customizes the appearance of PaymentSheet */
   appearance?: AppearanceParams;
+  /** The label to use for the primary button. If not set, Payment Sheet will display suitable default labels for payment and setup intents. */
+  primaryButtonLabel?: string;
 };
 
 export type ClientSecretParams =
@@ -35,6 +52,8 @@ export type ApplePayParams = {
    * An array of CartSummaryItem item objects that summarize the amount of the payment. If you're using a SetupIntent
    * for a recurring payment, you should set this to display the amount you intend to charge. */
   paymentSummaryItems?: CartSummaryItem[];
+  // TODO: Uncomment when https://github.com/stripe/stripe-react-native/pull/1164 lands
+  // buttonType: ButtonType
 };
 
 export type GooglePayParams = {

@@ -1,7 +1,7 @@
 require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
-stripe_version = '~> 22.8.4'
+stripe_version = '~> 23.1.0'
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'
@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.license      = package['license']
   s.authors      = package['author']
 
-  s.platforms    = { ios: '12.0' }
+  s.platforms    = { ios: '13.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
@@ -23,5 +23,9 @@ Pod::Spec.new do |s|
 
   s.dependency 'React-Core'
   s.dependency 'Stripe', stripe_version
+  s.dependency 'StripePaymentSheet', stripe_version
+  s.dependency 'StripePayments', stripe_version
+  s.dependency 'StripePaymentsUI', stripe_version
+  s.dependency 'StripeApplePay', stripe_version
   s.dependency 'StripeFinancialConnections', stripe_version
 end

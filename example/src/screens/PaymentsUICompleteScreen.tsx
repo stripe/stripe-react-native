@@ -93,6 +93,7 @@ export default function PaymentsUICompleteScreen() {
       defaultBillingDetails: billingDetails,
       allowsDelayedPaymentMethods: true,
       appearance,
+      primaryButtonLabel: 'purchase! 😃',
     });
     if (!error) {
       setPaymentSheetEnabled(true);
