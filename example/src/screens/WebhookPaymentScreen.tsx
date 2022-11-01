@@ -150,6 +150,7 @@ const inputStyles: CardFieldInput.Styles = {
   borderColor: '#000000',
   borderRadius: 8,
   fontSize: 14,
+  fontFamily: 'Macondo-Regular',
   placeholderColor: '#A020F0',
   textColor: '#0000ff',
 };

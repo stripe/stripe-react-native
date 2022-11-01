@@ -53,7 +53,7 @@ class Mappers {
         guard let bankAccount = bankAccount else {
             return nil
         }
-        
+
         let result: NSDictionary = [
             "id": bankAccount.stripeID,
             "bankName": bankAccount.bankName ?? NSNull(),
@@ -744,6 +744,10 @@ class Mappers {
 
     class func mapToReturnURL(urlScheme: String) -> String {
         return urlScheme + "://safepay"
+    }
+
+    class func mapToFinancialConnectionsReturnURL(urlScheme: String) -> String {
+        return urlScheme + "://financial_connections_redirect"
     }
 
     class func mapUICustomization(_ params: NSDictionary) -> STPThreeDSUICustomization {
