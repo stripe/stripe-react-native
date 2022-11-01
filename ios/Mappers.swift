@@ -594,8 +594,11 @@ class Mappers {
             "expMonth": paymentMethod.card?.expMonth ?? NSNull(),
             "fingerprint": paymentMethod.card?.fingerprint ?? NSNull(),
             "funding": paymentMethod.card?.funding ?? NSNull(),
-            "last4": paymentMethod.card?.last4 ?? NSNull()
+            "last4": paymentMethod.card?.last4 ?? NSNull(),
+            "preferredNetwork": paymentMethod.card?.networks?.preferred ?? NSNull(),
+            "availableNetworks": paymentMethod.card?.networks?.available ?? NSNull(),
         ]
+        
         let sepaDebit: NSDictionary = [
             "bankCode": paymentMethod.sepaDebit?.bankCode ?? NSNull(),
             "country": paymentMethod.sepaDebit?.country ?? NSNull(),

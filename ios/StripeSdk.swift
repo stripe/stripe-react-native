@@ -59,6 +59,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.urlScheme = urlScheme
 
         STPAPIClient.shared.publishableKey = publishableKey
+        StripeAPI.defaultPublishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
 
         let name = RCTConvert.nsString(appInfo["name"]) ?? ""
@@ -217,6 +218,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError(ErrorType.Failed, "No payment sheet has been initialized yet"))
             }
         }
+    }
+    
+    @objc(resetPaymentSheetCustomer:rejecter:)
+    func resetPaymentSheetCustomer(resolver resolve: @escaping RCTPromiseResolveBlock,
+                                   rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        PaymentSheet.resetCustomer()
+        resolve(nil)
     }
 
     @objc(presentPaymentSheet:rejecter:)

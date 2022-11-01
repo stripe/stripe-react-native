@@ -229,6 +229,8 @@ export interface CardResult {
   fingerprint?: string;
   funding?: string;
   last4?: string;
+  preferredNetwork?: string;
+  availableNetworks?: Array<string>;
 }
 
 export interface FpxResult {

@@ -60,6 +60,7 @@ const mockFunctions = {
   confirmPaymentSheetPayment: jest.fn(async () => ({
     error: null,
   })),
+  resetPaymentSheetCustomer: jest.fn(async () => null),
   initGooglePay: jest.fn(async () => ({
     error: null,
   })),
