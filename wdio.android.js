@@ -23,7 +23,16 @@ exports.config = {
   waitforTimeout: 8000,
   connectionRetryTimeout: 200000,
   connectionRetryCount: 4,
-  services: ['appium'],
+  services: [
+    [
+      'appium',
+      {
+        args: {
+          allowInsecure: 'chromedriver_autodownload',
+        },
+      },
+    ],
+  ],
   framework: 'mocha',
   reporters: ['spec'],
   mochaOpts: {
@@ -45,6 +54,7 @@ exports.config = {
       avdArgs: '-wipe-data',
       autoGrantPermissions: true,
       androidInstallTimeout: 200000,
+      chromeOptions: { w3c: false },
     },
   ],
   afterTest: function (test, _context, { passed }) {
