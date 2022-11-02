@@ -4,17 +4,21 @@
 
 ### Breaking changes
 
+- This library now supports iOS 13 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 12, please continue to use `@stripe/stripe-react-native@0.19.0`. [#1190](https://github.com/stripe/stripe-react-native/pull/1190)
+
 ### New features
 
 - Added [Link](https://stripe.com/docs/payments/link) support in Payment Sheet. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
 - Added the `resetPaymentSheetCustomer` method to clear persisted authentication state in the PaymentSheet. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
 - Added `preferredNetwork` and `availableNetworks` fields to the `CardResult` payment method. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
 - Added support for custom fonts to `CardForm` and `CardView` on Android. [#1150](https://github.com/stripe/stripe-react-native/pull/1150)
+- Added support for customizing the call to action button label in Payment Sheet by providing the `primaryButtonLabel` property to `initPaymentSheet()`. [#1190](https://github.com/stripe/stripe-react-native/pull/1190)
 
 ## Fixes
 
 - Fixed an issue on iOS where `confirmSetupIntent` would throw an error if the `Card` payment method was provided with the `paymentMethodId` parameter. [#1151](https://github.com/stripe/stripe-react-native/pull/1151)
 - Upgraded `stripe-android` to 20.15.+. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
+- Upgraded `stripe-ios` to 23.1.+. [#1190](https://github.com/stripe/stripe-react-native/pull/1190)
 - Fixed `FinancialConnections.Subcategory` and `FinancialConnections.Permission` types to be camel-case instead of snake case. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
 - Fixed an issue with Financial Connections on iOS where the app wouldn't properly redirect back after authentication. [#1178](https://github.com/stripe/stripe-react-native/pull/1178)
 - Fixed `borderWidth` and `borderRadius` for `<CardField />` and `CardForm />` was inconsistent across iOS and Android. [#1182](https://github.com/stripe/stripe-react-native/pull/1182)

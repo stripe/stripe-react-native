@@ -1,5 +1,6 @@
 import PassKit
 import Stripe
+import StripePaymentSheet
 import StripeFinancialConnections
 
 @objc(StripeSdk)
@@ -77,6 +78,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         var configuration = PaymentSheet.Configuration()
         self.paymentSheetFlowController = nil
+        
+        configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
 
         if let appearanceParams = params["appearance"] as? NSDictionary {
             do {
@@ -673,17 +676,22 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
+        let address = params["address"] as? NSDictionary
+        let cardSourceParams = STPCardParams()
+        if let params = cardFieldView?.cardParams as? STPPaymentMethodParams {
+            cardSourceParams.number = params.card!.number
+            cardSourceParams.cvc = params.card!.cvc
+            cardSourceParams.expMonth = UInt(truncating: params.card!.expMonth ?? 0)
+            cardSourceParams.expYear = UInt(truncating: params.card!.expYear ?? 0)
+        } else if let params = cardFormView?.cardParams as? STPPaymentMethodCardParams {
+            cardSourceParams.number = params.number
+            cardSourceParams.cvc = params.cvc
+            cardSourceParams.expMonth = UInt(truncating: params.expMonth ?? 0)
+            cardSourceParams.expYear = UInt(truncating: params.expYear ?? 0)
+        } else {
             resolve(Errors.createError(ErrorType.Failed, "Card details not complete"))
             return
         }
-
-        let address = params["address"] as? NSDictionary
-        let cardSourceParams = STPCardParams()
-        cardSourceParams.number = cardParams.number
-        cardSourceParams.cvc = cardParams.cvc
-        cardSourceParams.expMonth = UInt(truncating: cardParams.expMonth ?? 0)
-        cardSourceParams.expYear = UInt(truncating: cardParams.expYear ?? 0)
         cardSourceParams.address = Mappers.mapToAddress(address: address)
         cardSourceParams.name = params["name"] as? String
         cardSourceParams.currency = params["currency"] as? String

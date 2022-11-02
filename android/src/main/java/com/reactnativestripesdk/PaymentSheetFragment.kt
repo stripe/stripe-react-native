@@ -56,6 +56,7 @@ class PaymentSheetFragment(
       initPromise.resolve(createError(ErrorType.Failed.toString(), "merchantDisplayName cannot be empty or null."))
       return
     }
+    val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
     val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
@@ -126,7 +127,8 @@ class PaymentSheetFragment(
         ephemeralKeySecret = customerEphemeralKeySecret
       ) else null,
       googlePay = googlePayConfig,
-      appearance = appearance
+      appearance = appearance,
+      primaryButtonLabel = primaryButtonLabel
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
