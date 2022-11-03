@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.20.0 - 2022-11-03
+
 ### Breaking changes
 
 - This library now supports iOS 13 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 12, please continue to use `@stripe/stripe-react-native@0.19.0`. [#1190](https://github.com/stripe/stripe-react-native/pull/1190)
