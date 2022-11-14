@@ -73,7 +73,10 @@ class BasicPaymentScreen {
   }
 
   authorizeACH() {
-    driver.pause(5000);
+    driver.waitUntil(() => getAllWebviewContexts().length > 0, {
+      timeout: 10000,
+      interval: 1000,
+    });
     const webviewContexts = getAllWebviewContexts();
     for (const context of webviewContexts) {
       try {
@@ -132,9 +135,6 @@ export function getAllWebviewContexts(): string[] {
   const webviewContext = allContexts.filter((contextName) =>
     contextName.toLowerCase().includes('webview')
   );
-  if (!webviewContext.length) {
-    throw new Error('No webview context was found.');
-  }
 
   return webviewContext.sort((a, b) => {
     if (a.includes('stripe') && !b.includes('stripe')) {

@@ -4,7 +4,7 @@
 //
 //  Created by Charles Cruzan on 5/11/22.
 //
-import Stripe
+import StripePaymentSheet
 
 internal class PaymentSheetAppearance {
     class func buildAppearanceFromParams(userParams: NSDictionary?) throws -> PaymentSheet.Appearance {
@@ -31,8 +31,8 @@ internal class PaymentSheetAppearance {
         return appearance
     }
     
-    private class func buildFont(params: NSDictionary) throws -> Stripe.PaymentSheet.Appearance.Font {
-        var font = Stripe.PaymentSheet.Appearance.Font()
+    private class func buildFont(params: NSDictionary) throws -> PaymentSheet.Appearance.Font {
+        var font = PaymentSheet.Appearance.Font()
         if let fontName = params[PaymentSheetAppearanceKeys.FAMILY] as? String {
             guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
                 throw PaymentSheetAppearanceError.missingFont(fontName)
@@ -42,9 +42,9 @@ internal class PaymentSheetAppearance {
         font.sizeScaleFactor = params[PaymentSheetAppearanceKeys.SCALE] as? CGFloat ?? PaymentSheet.Appearance.default.font.sizeScaleFactor
         return font
     }
-    
-    private class func buildColors(params: NSDictionary) throws -> Stripe.PaymentSheet.Appearance.Colors {
-        var colors = Stripe.PaymentSheet.Appearance.Colors()
+
+    private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
+        var colors = PaymentSheet.Appearance.Colors()
         
         if (params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
             params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {

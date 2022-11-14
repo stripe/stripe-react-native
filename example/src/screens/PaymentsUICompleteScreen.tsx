@@ -15,7 +15,8 @@ import { API_URL } from '../Config';
 import appearance from './PaymentSheetAppearance';
 
 export default function PaymentsUICompleteScreen() {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
+    useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [addressSheetVisible, setAddressSheetVisible] = useState(false);
@@ -97,6 +98,7 @@ export default function PaymentsUICompleteScreen() {
       defaultShippingDetails: shippingDetails,
       allowsDelayedPaymentMethods: true,
       appearance,
+      primaryButtonLabel: 'purchase! 😃',
     });
     if (!error) {
       setPaymentSheetEnabled(true);
@@ -169,6 +171,13 @@ export default function PaymentsUICompleteScreen() {
         primaryButtonTitle={'use this address'}
         sheetTitle={'🧙‍♀️ custom title'}
         googlePlacesApiKey={'this-api-key-wont-work'}
+      />
+      <Button
+        title="Reset customer"
+        onPress={async () => {
+          // Link will still be presented for the customer if you pass in the customer ID and ephemeral key to payment sheet
+          await resetPaymentSheetCustomer();
+        }}
       />
     </PaymentScreen>
   );

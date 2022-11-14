@@ -49,6 +49,10 @@ describe('Payment scenarios with redirects', () => {
 
     BasicPaymentScreen.pay({ email: 'test@stripe.com' });
     driver.pause(10000);
+    driver.waitUntil(() => getAllWebviewContexts().length > 0, {
+      timeout: 10000,
+      interval: 1000,
+    });
     const webviewContexts = getAllWebviewContexts();
     expect(webviewContexts.length).toBeGreaterThan(0);
   });

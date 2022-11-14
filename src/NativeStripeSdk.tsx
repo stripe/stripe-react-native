@@ -105,6 +105,7 @@ type NativeStripeSdkType = {
   collectFinancialConnectionsAccounts(
     clientSecret: string
   ): Promise<FinancialConnections.SessionResult>;
+  resetPaymentSheetCustomer(): Promise<null>;
 };
 
 const { StripeSdk } = NativeModules;

@@ -1,4 +1,5 @@
 import Stripe
+import StripePaymentSheet
 
 class Mappers {
     class func createResult(_ key: String, _ value: NSDictionary?) -> NSDictionary {
@@ -53,7 +54,7 @@ class Mappers {
         guard let bankAccount = bankAccount else {
             return nil
         }
-        
+
         let result: NSDictionary = [
             "id": bankAccount.stripeID,
             "bankName": bankAccount.bankName ?? NSNull(),
@@ -594,8 +595,11 @@ class Mappers {
             "expMonth": paymentMethod.card?.expMonth ?? NSNull(),
             "fingerprint": paymentMethod.card?.fingerprint ?? NSNull(),
             "funding": paymentMethod.card?.funding ?? NSNull(),
-            "last4": paymentMethod.card?.last4 ?? NSNull()
+            "last4": paymentMethod.card?.last4 ?? NSNull(),
+            "preferredNetwork": paymentMethod.card?.networks?.preferred ?? NSNull(),
+            "availableNetworks": paymentMethod.card?.networks?.available ?? NSNull(),
         ]
+        
         let sepaDebit: NSDictionary = [
             "bankCode": paymentMethod.sepaDebit?.bankCode ?? NSNull(),
             "country": paymentMethod.sepaDebit?.country ?? NSNull(),
@@ -741,6 +745,10 @@ class Mappers {
 
     class func mapToReturnURL(urlScheme: String) -> String {
         return urlScheme + "://safepay"
+    }
+
+    class func mapToFinancialConnectionsReturnURL(urlScheme: String) -> String {
+        return urlScheme + "://financial_connections_redirect"
     }
 
     class func mapUICustomization(_ params: NSDictionary) -> STPThreeDSUICustomization {

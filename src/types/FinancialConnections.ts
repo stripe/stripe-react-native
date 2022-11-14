@@ -84,8 +84,8 @@ export type PaymentMethodType = 'us_bank_account' | 'link';
 
 export type Subcategory =
   | 'checking'
-  | 'credit_card'
-  | 'line_of_credit'
+  | 'creditCard'
+  | 'lineOfCredit'
   | 'mortgage'
   | 'other'
   | 'savings';
@@ -93,9 +93,9 @@ export type Subcategory =
 export type Permission =
   | 'balances'
   | 'ownership'
-  | 'payment_method'
+  | 'paymentMethod'
   | 'transactions'
-  | 'account_numbers';
+  | 'accountNumbers';
 
 export type Balance = {
   /** The UNIX timestamp (in milliseconds) of time that the external institution calculated this balance. */
