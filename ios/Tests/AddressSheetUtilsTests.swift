@@ -7,7 +7,7 @@
 
 import XCTest
 @testable import stripe_react_native
-import Stripe
+import StripePaymentSheet
 
 class AddressSheetUtilsTests: XCTestCase {
     let testCity = "testCity"
@@ -203,9 +203,6 @@ class AddressSheetUtilsTests: XCTestCase {
             result.phone, .hidden
         )
         XCTAssertEqual(
-            result.name, .required
-        )
-        XCTAssertEqual(
             result.checkboxLabel, nil
         )
     }
@@ -218,9 +215,6 @@ class AddressSheetUtilsTests: XCTestCase {
         
         XCTAssertEqual(
             result.phone, .optional
-        )
-        XCTAssertEqual(
-            result.name, .hidden
         )
         XCTAssertEqual(
             result.checkboxLabel, testCheckboxLabel
