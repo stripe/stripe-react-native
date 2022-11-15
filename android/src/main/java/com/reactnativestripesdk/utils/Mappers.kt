@@ -487,7 +487,7 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
     NextActionType.AlipayRedirect -> { // TODO: Can't access, private
       return null
     }
-    NextActionType.BlikAuthorize, NextActionType.UseStripeSdk, null -> {
+    NextActionType.BlikAuthorize, NextActionType.UseStripeSdk, NextActionType.UpiAwaitNotification,  null -> {
       return null
     }
   }
