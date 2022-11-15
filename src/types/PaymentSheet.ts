@@ -1,4 +1,4 @@
-import type { BillingDetails } from './Common';
+import type { BillingDetails, AddressDetails } from './Common';
 import type { CartSummaryItem } from './ApplePay';
 
 export type SetupParams = ClientSecretParams & {
@@ -21,6 +21,12 @@ export type SetupParams = ClientSecretParams & {
   returnURL?: string;
   /** PaymentSheet pre-populates the billing fields with the values provided. */
   defaultBillingDetails?: BillingDetails;
+  /**
+   * The shipping information for the customer. If set, PaymentSheet will pre-populate the form fields with the values provided.
+   * This is used to display a "Billing address is same as shipping" checkbox if `defaultBillingDetails` is not provided.
+   * If `name` and `line1` are populated, it's also [attached to the PaymentIntent](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-shipping) during payment.
+   */
+  defaultShippingDetails?: AddressDetails;
   /** If true, allows payment methods that do not move money at the end of the checkout. Defaults to false.
    *
    * Some payment methods can’t guarantee you will receive funds from your customer at the end of the checkout

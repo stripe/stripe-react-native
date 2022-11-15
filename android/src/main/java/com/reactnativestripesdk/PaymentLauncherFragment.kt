@@ -120,7 +120,7 @@ class PaymentLauncherFragment(
       }
     }
 
-    const val TAG = "payment_launcher_fragment"
+    internal const val TAG = "payment_launcher_fragment"
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

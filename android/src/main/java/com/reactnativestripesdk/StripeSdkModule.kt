@@ -5,13 +5,11 @@ import android.content.Intent
 import android.os.Parcelable
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.*
-import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createMissingActivityError
 import com.stripe.android.*
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
@@ -45,14 +43,17 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var googlePayFragment: GooglePayFragment? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
-  private var financialConnectionsSheetFragment: FinancialConnectionsSheetFragment? = null
-  private val allFragments: List<Fragment?>
+
+  // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
+  // Fragment will not work on RN < 0.65
+  private val allStripeFragmentTags: List<String>
     get() = listOf(
-      paymentSheetFragment,
-      googlePayFragment,
-      paymentLauncherFragment,
-      collectBankAccountLauncherFragment,
-      financialConnectionsSheetFragment
+      PaymentSheetFragment.TAG,
+      GooglePayFragment.TAG,
+      PaymentLauncherFragment.TAG,
+      CollectBankAccountLauncherFragment.TAG,
+      FinancialConnectionsSheetFragment.TAG,
+      AddressLauncherFragment.TAG
     )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
@@ -77,8 +78,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   // Necessary on older versions of React Native (~0.65 and below)
   private fun dispatchActivityResultsToFragments(requestCode: Int, resultCode: Int, data: Intent?) {
-    for (fragment in allFragments) {
-      fragment?.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+    getCurrentActivityOrResolveWithError(null)?.supportFragmentManager?.let { fragmentManager ->
+      for (tag in allStripeFragmentTags) {
+        fragmentManager.findFragmentByTag(tag)?.let {
+          it.activity?.activityResultRegistry?.dispatchResult(requestCode, resultCode, data)
+        }
+      }
     }
   }
 
@@ -120,6 +125,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     this.publishableKey = publishableKey
+    AddressLauncherFragment.publishableKey = publishableKey
 
     val name = getValOr(appInfo, "name", "") as String
     val partnerId = getValOr(appInfo, "partnerId", "")
@@ -718,7 +724,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       promise.resolve(createMissingInitError())
       return
     }
-    financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
+    FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForToken, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
   }
@@ -729,7 +735,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       promise.resolve(createMissingInitError())
       return
     }
-    financialConnectionsSheetFragment = FinancialConnectionsSheetFragment().also {
+    FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
   }

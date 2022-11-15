@@ -83,7 +83,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
 
         if let appearanceParams = params["appearance"] as? NSDictionary {
             do {
-                configuration.appearance = try buildPaymentSheetAppearance(userParams: appearanceParams)
+                configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearanceParams)
             } catch {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
                 return
@@ -129,6 +129,12 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                                                                 state: address["state"])
             }
 
+        }
+        
+        if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
+            configuration.shippingDetails = {
+                return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
+            }
         }
 
         if let customerId = params["customerId"] as? String {

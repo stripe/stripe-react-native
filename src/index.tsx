@@ -35,7 +35,10 @@ export {
   AddToWalletButton,
   Props as AddToWalletButtonProps,
 } from './components/AddToWalletButton';
-
+export {
+  AddressSheet,
+  Props as AddressSheetProps,
+} from './components/AddressSheet';
 export * from './functions';
 
 export * from './types/index';

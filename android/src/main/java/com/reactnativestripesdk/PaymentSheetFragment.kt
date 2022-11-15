@@ -10,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
@@ -18,6 +17,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
@@ -65,10 +65,14 @@ class PaymentSheetFragment(
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     val appearance = try {
-      buildPaymentSheetAppearance(arguments?.getBundle("appearance"))
+      buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
     } catch (error: PaymentSheetAppearanceException) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), error))
       return
+    }
+
+    val shippingDetails = arguments?.getBundle("defaultShippingDetails")?.let {
+      AddressSheetView.buildAddressDetails(it)
     }
 
     val paymentOptionCallback = PaymentOptionCallback { paymentOption ->
@@ -128,6 +132,7 @@ class PaymentSheetFragment(
       ) else null,
       googlePay = googlePayConfig,
       appearance = appearance,
+      shippingDetails = shippingDetails,
       primaryButtonLabel = primaryButtonLabel
     )
 
@@ -198,7 +203,7 @@ class PaymentSheetFragment(
   }
 
   companion object {
-    const val TAG = "payment_sheet_launch_fragment"
+    internal const val TAG = "payment_sheet_launch_fragment"
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null) {

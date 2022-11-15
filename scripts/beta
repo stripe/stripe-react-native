@@ -1,0 +1,89 @@
+#!/bin/bash
+
+set -euo pipefail
+
+BETA_NAME=${1:-}
+
+echo_help() {
+  cat << EOF
+DESCRIPTION:
+    Publishes a beta version of this package.
+
+USAGE:
+    ./scripts/beta <beta-name>
+
+ARGS:
+    <beta-name>
+            The user-facing name for this beta. This will show in the npm package version, i.e. :
+            stripe/stripe-react-native@X.X.X-new-payment-method-beta.1
+
+EOF
+}
+
+# Show help if no arguments passed
+if [ $# -eq 0 ]; then
+  echo "Error! Missing beta name argument"
+  echo ""
+  echo_help
+  exit 1
+fi
+
+# Show help message if -h, --help, or help passed
+case $1 in
+  -h | --help | help)
+    echo_help
+    exit 0
+    ;;
+esac
+
+# Validate passed release type
+if [[ $BETA_NAME != *-beta ]]; then
+  echo "Error! Invalid beta name supplied. The beta name must end with '-beta'"
+  echo ""
+  exit 1
+fi
+
+# Make sure our working dir is the repo root directory
+cd "$(git rev-parse --show-toplevel)"
+
+echo "Fetching git remotes"
+git fetch
+
+GIT_STATUS=$(git status)
+
+if ! grep -q "On branch $BETA_NAME" <<< "$GIT_STATUS"; then
+  echo "Error! Must be on a branch named after the beta to publish a beta release"
+  exit 1
+fi
+
+if ! grep -q "Your branch is up to date with 'origin/$BETA_NAME'" <<< "$GIT_STATUS"; then
+  echo "Error! Must be up to date with remote branch to publish"
+  exit 1
+fi
+
+if ! grep -q 'working tree clean' <<< "$GIT_STATUS"; then
+  echo "Error! Cannot publish with dirty working tree"
+  exit 1
+fi
+
+echo "Installing dependencies according to lockfile"
+yarn -s install --frozen-lockfile
+
+echo "Running tests"
+yarn -s run test
+
+CURRENT_VERSION=$(jq -r .version package.json)
+if [[ $CURRENT_VERSION != *$BETA_NAME* ]]; then
+  echo "Error! You have not properly configured the 'version' in 'package.json' to an appropriate beta version. The version should look something like: 'X.X.X-$BETA_NAME'"
+  echo ""
+  exit 1
+fi
+
+echo "Bumping package.json prerelease version and tagging commit"
+yarn version --prerelease --no-git-tag-version
+
+echo "Publishing beta release"
+yarn -s --ignore-scripts publish --non-interactive --access=public --tag=beta
+
+echo "Beta publish successful!"
+echo ""
