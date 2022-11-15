@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.21.0 - 2022-11-15
+
 ### Breaking changes
 
 ### New features
