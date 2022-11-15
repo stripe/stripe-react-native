@@ -11,6 +11,8 @@
 
 ## Fixes
 
+- Fixed a build error on Android when using Kotlin version 1.7.10. [#1195](https://github.com/stripe/stripe-react-native/pull/1195)
+
 ## 0.20.0 - 2022-11-03
 
 ### Breaking changes
