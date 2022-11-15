@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Stripe
+import StripePaymentSheet
 
 @objc(AddressSheetView)
 class AddressSheetView: UIView {

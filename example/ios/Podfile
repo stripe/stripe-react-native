@@ -24,11 +24,6 @@ target 'StripeSdkExample' do
     app_path: "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'Stripe', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'address-element-private-beta'
-  pod 'StripeUICore', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'address-element-private-beta'
-  pod 'StripeCore', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'address-element-private-beta'
-  pod 'StripeFinancialConnections', git: 'https://github.com/stripe-ios/stripe-ios.git', branch: 'address-element-private-beta'
-
   pod 'stripe-react-native',
       path: '../..',
       testspecs: ['Tests']

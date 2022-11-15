@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Stripe
+import StripePaymentSheet
 
 class AddressSheetUtils {
     internal class func buildDefaultValues(params: NSDictionary?) -> AddressViewController.Configuration.DefaultAddressDetails {
@@ -57,11 +57,10 @@ class AddressSheetUtils {
     
     internal class func buildAdditionalFieldsConfiguration(params: NSDictionary?) -> AddressViewController.Configuration.AdditionalFields {
         guard let params = params else {
-            return AddressViewController.Configuration.AdditionalFields(name: .required, phone: .hidden, checkboxLabel: nil)
+            return AddressViewController.Configuration.AdditionalFields(phone: .hidden, checkboxLabel: nil)
         }
 
         return AddressViewController.Configuration.AdditionalFields(
-            name: getFieldConfiguration(input: params["name"] as? String, default: .required),
             phone: getFieldConfiguration(input: params["phoneNumber"] as? String, default: .hidden),
             checkboxLabel: params["checkboxLabel"] as? String
         )
