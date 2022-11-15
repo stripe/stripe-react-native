@@ -490,6 +490,7 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
     NextActionType.BlikAuthorize, NextActionType.UseStripeSdk, null -> {
       return null
     }
+    else -> throw IllegalStateException("Someone forgot to add enough fragment cases to 'when' clause!")
   }
   return nextActionMap
 }
