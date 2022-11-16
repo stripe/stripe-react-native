@@ -39,7 +39,7 @@
 - Fixed an issue with Financial Connections on iOS where the app wouldn't properly redirect back after authentication. [#1178](https://github.com/stripe/stripe-react-native/pull/1178)
 - Fixed `borderWidth` and `borderRadius` for `<CardField />` and `CardForm />` was inconsistent across iOS and Android. [#1182](https://github.com/stripe/stripe-react-native/pull/1182)
 
-## 0.19.0 - 2022-09-16
+## 0.19.0 - 2022-09-16 (📌 Expo SDK 47)
 
 ### Breaking changes
 
