@@ -1,5 +1,13 @@
 # CHANGELOG
 
+### Breaking changes
+
+### New features
+
+## Fixes
+
+- Fixed an issue on iOS where `canAddCardToWallet` would return `false` if the card had already been provisioned on a paired device like an Apple Watch, but had not yet been provisioned on the current device, and would also return `false` if the card had been provisioned on the current device, but not on a paired Apple Watch. [#1162](https://github.com/stripe/stripe-react-native/pull/1162)
+
 ## Unreleased
 
 ### Breaking changes
