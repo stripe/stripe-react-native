@@ -85,6 +85,13 @@ class ApplePayUtils {
             }
         }
         
+        if #available(iOS 16.0, *) {
+            if let pa = <#optional#> {
+                <#statements#>
+            }
+            paymentRequest.recurringPaymentRequest = ApplePayUtils.buildRecurringPaymentRequest()
+        }
+        
         return (nil, paymentRequest)
     }
     
