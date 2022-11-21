@@ -10,7 +10,7 @@ class GooglePayButtonView(private val context: ThemedReactContext) : FrameLayout
   // Used in legacy GooglePayButton implementations
   private var buttonType: String? = null
 
-  // Used in the new NativePayButton implementations
+  // Used in the new PlatformPayButton implementations
   private var type: Int? = null
 
   fun initialize() {

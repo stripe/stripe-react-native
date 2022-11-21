@@ -2,7 +2,7 @@
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
-export { useNativePay } from './hooks/useNativePay';
+export { usePlatformPay } from './hooks/usePlatformPay';
 export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useGooglePay } from './hooks/useGooglePay';
@@ -41,9 +41,9 @@ export {
   Props as AddressSheetProps,
 } from './components/AddressSheet';
 export {
-  NativePayButton,
-  Props as NativePayButtonProps,
-} from './components/NativePayButton';
+  PlatformPayButton,
+  Props as PlatformPayButtonProps,
+} from './components/PlatformPayButton';
 
 export * from './functions';
 

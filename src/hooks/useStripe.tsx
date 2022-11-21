@@ -32,8 +32,8 @@ import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
-  NativePay,
-  NativePayError,
+  PlatformPay,
+  PlatformPayError,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -67,11 +67,11 @@ import {
   collectBankAccountToken,
   collectFinancialConnectionsAccounts,
   resetPaymentSheetCustomer,
-  isNativePaySupported,
-  confirmNativePaySetupIntent,
-  confirmNativePayPayment,
+  isPlatformPaySupported,
+  confirmPlatformPaySetupIntent,
+  confirmPlatformPayPayment,
   dismissApplePay,
-  createNativePayPaymentMethod,
+  createPlatformPayPaymentMethod,
   updateApplePaySheet,
 } from '../functions';
 
@@ -324,31 +324,31 @@ export function useStripe() {
     return resetPaymentSheetCustomer();
   }, []);
 
-  const _isNativePaySupported = useCallback(
+  const _isPlatformPaySupported = useCallback(
     async (params?: {
       googlePay?: GooglePay.IsSupportedParams;
     }): Promise<boolean> => {
-      return isNativePaySupported(params);
+      return isPlatformPaySupported(params);
     },
     []
   );
 
-  const _confirmNativePaySetupIntent = useCallback(
+  const _confirmPlatformPaySetupIntent = useCallback(
     async (
       clientSecret: string,
-      params: NativePay.ConfirmParams
-    ): Promise<NativePay.ConfirmSetupIntentResult> => {
-      return confirmNativePaySetupIntent(clientSecret, params);
+      params: PlatformPay.ConfirmParams
+    ): Promise<PlatformPay.ConfirmSetupIntentResult> => {
+      return confirmPlatformPaySetupIntent(clientSecret, params);
     },
     []
   );
 
-  const _confirmNativePayPayment = useCallback(
+  const _confirmPlatformPayPayment = useCallback(
     async (
       clientSecret: string,
-      params: NativePay.ConfirmParams
-    ): Promise<NativePay.ConfirmPaymentResult> => {
-      return confirmNativePayPayment(clientSecret, params);
+      params: PlatformPay.ConfirmParams
+    ): Promise<PlatformPay.ConfirmPaymentResult> => {
+      return confirmPlatformPayPayment(clientSecret, params);
     },
     []
   );
@@ -357,22 +357,22 @@ export function useStripe() {
     return dismissApplePay();
   }, []);
 
-  const _createNativePayPaymentMethod = useCallback(
+  const _createPlatformPayPaymentMethod = useCallback(
     async (
-      params: NativePay.PaymentMethodParams
-    ): Promise<NativePay.PaymentMethodResult> => {
-      return createNativePayPaymentMethod(params);
+      params: PlatformPay.PaymentMethodParams
+    ): Promise<PlatformPay.PaymentMethodResult> => {
+      return createPlatformPayPaymentMethod(params);
     },
     []
   );
 
   const _updateApplePaySheet = useCallback(
     async (
-      summaryItems: Array<NativePay.CartSummaryItem>,
-      shippingMethods: Array<NativePay.ShippingMethod>,
-      errors: Array<NativePay.ApplePaySheetError>
+      summaryItems: Array<PlatformPay.CartSummaryItem>,
+      shippingMethods: Array<PlatformPay.ShippingMethod>,
+      errors: Array<PlatformPay.ApplePaySheetError>
     ): Promise<{
-      error?: StripeError<NativePayError>;
+      error?: StripeError<PlatformPayError>;
     }> => {
       return updateApplePaySheet(summaryItems, shippingMethods, errors);
     },
@@ -414,11 +414,11 @@ export function useStripe() {
      * is also cleared during logout.
      */
     resetPaymentSheetCustomer: _resetPaymentSheetCustomer,
-    isNativePaySupported: _isNativePaySupported,
-    confirmNativePaySetupIntent: _confirmNativePaySetupIntent,
-    confirmNativePayPayment: _confirmNativePayPayment,
+    isPlatformPaySupported: _isPlatformPaySupported,
+    confirmPlatformPaySetupIntent: _confirmPlatformPaySetupIntent,
+    confirmPlatformPayPayment: _confirmPlatformPayPayment,
     dismissApplePay: _dismissApplePay,
-    createNativePayPaymentMethod: _createNativePayPaymentMethod,
+    createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
     updateApplePaySheet: _updateApplePaySheet,
   };
 }

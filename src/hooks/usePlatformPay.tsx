@@ -1,72 +1,72 @@
 import { useCallback, useState } from 'react';
 import type {
-  NativePay,
+  PlatformPay,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
 } from '../types';
 import { useStripe } from './useStripe';
 
 /**
- * useNativePay hook. Access all Apple and Google Pay functionality with this hook.
+ * usePlatformPay hook. Access all Apple and Google Pay functionality with this hook.
  */
-export function useNativePay() {
+export function usePlatformPay() {
   const {
-    isNativePaySupported,
-    confirmNativePaySetupIntent,
-    confirmNativePayPayment,
-    createNativePayPaymentMethod,
+    isPlatformPaySupported,
+    confirmPlatformPaySetupIntent,
+    confirmPlatformPayPayment,
+    createPlatformPayPaymentMethod,
     dismissApplePay,
     updateApplePaySheet,
     canAddCardToWallet,
   } = useStripe();
   const [loading, setLoading] = useState(false);
 
-  const _isNativePaySupported = useCallback(
-    async (params?: { googlePay?: NativePay.IsGooglePaySupportedParams }) => {
+  const _isPlatformPaySupported = useCallback(
+    async (params?: { googlePay?: PlatformPay.IsGooglePaySupportedParams }) => {
       setLoading(true);
 
-      const result = await isNativePaySupported(params);
+      const result = await isPlatformPaySupported(params);
       setLoading(false);
 
       return result;
     },
-    [isNativePaySupported]
+    [isPlatformPaySupported]
   );
 
-  const _confirmNativePaySetupIntent = useCallback(
-    async (clientSecret: string, params: NativePay.ConfirmParams) => {
+  const _confirmPlatformPaySetupIntent = useCallback(
+    async (clientSecret: string, params: PlatformPay.ConfirmParams) => {
       setLoading(true);
 
-      const result = await confirmNativePaySetupIntent(clientSecret, params);
+      const result = await confirmPlatformPaySetupIntent(clientSecret, params);
       setLoading(false);
 
       return result;
     },
-    [confirmNativePaySetupIntent]
+    [confirmPlatformPaySetupIntent]
   );
 
-  const _confirmNativePayPayment = useCallback(
-    async (clientSecret: string, params: NativePay.ConfirmParams) => {
+  const _confirmPlatformPayPayment = useCallback(
+    async (clientSecret: string, params: PlatformPay.ConfirmParams) => {
       setLoading(true);
 
-      const result = await confirmNativePayPayment(clientSecret, params);
+      const result = await confirmPlatformPayPayment(clientSecret, params);
       setLoading(false);
 
       return result;
     },
-    [confirmNativePayPayment]
+    [confirmPlatformPayPayment]
   );
 
-  const _createNativePayPaymentMethod = useCallback(
-    async (params: NativePay.PaymentMethodParams) => {
+  const _createPlatformPayPaymentMethod = useCallback(
+    async (params: PlatformPay.PaymentMethodParams) => {
       setLoading(true);
 
-      const result = await createNativePayPaymentMethod(params);
+      const result = await createPlatformPayPaymentMethod(params);
       setLoading(false);
 
       return result;
     },
-    [createNativePayPaymentMethod]
+    [createPlatformPayPaymentMethod]
   );
 
   const _dismissApplePay = useCallback(async () => {
@@ -80,9 +80,9 @@ export function useNativePay() {
 
   const _updateApplePaySheet = useCallback(
     async (
-      scopedSummaryItems: Array<NativePay.CartSummaryItem>,
-      scopedShippingMethods: Array<NativePay.ShippingMethod>,
-      scopedErrors: Array<NativePay.ApplePaySheetError>
+      scopedSummaryItems: Array<PlatformPay.CartSummaryItem>,
+      scopedShippingMethods: Array<PlatformPay.ShippingMethod>,
+      scopedErrors: Array<PlatformPay.ApplePaySheetError>
     ) => {
       setLoading(true);
 
@@ -119,27 +119,27 @@ export function useNativePay() {
      * Check if the relevant native wallet (Apple Pay on iOS, Google Pay on Android) is supported.
      * @returns A boolean indicating whether or not the native wallet is supported.
      */
-    isNativePaySupported: _isNativePaySupported,
+    isPlatformPaySupported: _isPlatformPaySupported,
     /**
      * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [SetupIntent](https://stripe.com/docs/api/setup_intents).
      * @param clientSecret The client secret of the SetupIntent.
      * @param params an object describing the Apple Pay and Google Pay configurations.
      * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `setupIntent` and `paymentMethod` fields.
      */
-    confirmNativePaySetupIntent: _confirmNativePaySetupIntent,
+    confirmPlatformPaySetupIntent: _confirmPlatformPaySetupIntent,
     /**
      * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [PaymentIntent](https://stripe.com/docs/api/payment_intents).
      * @param clientSecret The client secret of the PaymentIntent.
      * @param params an object describing the Apple Pay and Google Pay configurations.
      * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentIntent` and `paymentMethod` fields.
      */
-    confirmNativePayPayment: _confirmNativePayPayment,
+    confirmPlatformPayPayment: _confirmPlatformPayPayment,
     /**
      * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
      * @param params an object describing the Apple Pay and Google Pay configurations.
      * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
      */
-    createNativePayPaymentMethod: _createNativePayPaymentMethod,
+    createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
     /**
      * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
      * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.

@@ -5,7 +5,7 @@ import {
   ApplePay,
   ApplePayError,
   ApplePayResult,
-  NativePayError,
+  PlatformPayError,
   ConfirmPaymentResult,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
@@ -37,7 +37,7 @@ import {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
-  NativePay,
+  PlatformPay,
 } from './types';
 import { Platform } from 'react-native';
 
@@ -712,16 +712,14 @@ export const isCardInWallet = async (params: {
 
 export const Constants = NativeStripeSdk.getConstants();
 
-// BEGIN - NATIVE PAY
-
 /**
  * Check if the relevant native wallet (Apple Pay on iOS, Google Pay on Android) is supported.
  * @returns A boolean indicating whether or not the native wallet is supported.
  */
-export const isNativePaySupported = async (params?: {
-  googlePay?: NativePay.IsGooglePaySupportedParams;
+export const isPlatformPaySupported = async (params?: {
+  googlePay?: PlatformPay.IsGooglePaySupportedParams;
 }): Promise<boolean> => {
-  return await NativeStripeSdk.isNativePaySupported(params ?? {});
+  return await NativeStripeSdk.isPlatformPaySupported(params ?? {});
 };
 
 /**
@@ -730,16 +728,16 @@ export const isNativePaySupported = async (params?: {
  * @param params an object describing the Apple Pay and Google Pay configurations.
  * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `setupIntent` and `paymentMethod` fields.
  */
-export const confirmNativePaySetupIntent = async (
+export const confirmPlatformPaySetupIntent = async (
   clientSecret: string,
-  params: NativePay.ConfirmParams
-): Promise<NativePay.ConfirmSetupIntentResult> => {
+  params: PlatformPay.ConfirmParams
+): Promise<PlatformPay.ConfirmSetupIntentResult> => {
   try {
-    const { error, setupIntent } = (await NativeStripeSdk.confirmNativePay(
+    const { error, setupIntent } = (await NativeStripeSdk.confirmPlatformPay(
       clientSecret,
       params,
       false
-    )) as NativePay.ConfirmSetupIntentResult;
+    )) as PlatformPay.ConfirmSetupIntentResult;
     if (error) {
       return {
         error,
@@ -761,16 +759,16 @@ export const confirmNativePaySetupIntent = async (
  * @param params an object describing the Apple Pay and Google Pay configurations.
  * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentIntent` and `paymentMethod` fields.
  */
-export const confirmNativePayPayment = async (
+export const confirmPlatformPayPayment = async (
   clientSecret: string,
-  params: NativePay.ConfirmParams
-): Promise<NativePay.ConfirmPaymentResult> => {
+  params: PlatformPay.ConfirmParams
+): Promise<PlatformPay.ConfirmPaymentResult> => {
   try {
-    const { error, paymentIntent } = (await NativeStripeSdk.confirmNativePay(
+    const { error, paymentIntent } = (await NativeStripeSdk.confirmPlatformPay(
       clientSecret,
       params,
       true
-    )) as NativePay.ConfirmPaymentResult;
+    )) as PlatformPay.ConfirmPaymentResult;
     if (error) {
       return {
         error,
@@ -807,12 +805,12 @@ export const dismissApplePay = async (): Promise<boolean> => {
  * @param params an object describing the Apple Pay and Google Pay configurations.
  * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
  */
-export const createNativePayPaymentMethod = async (
-  params: NativePay.PaymentMethodParams
-): Promise<NativePay.PaymentMethodResult> => {
+export const createPlatformPayPaymentMethod = async (
+  params: PlatformPay.PaymentMethodParams
+): Promise<PlatformPay.PaymentMethodResult> => {
   try {
     const { error, paymentMethod, token } =
-      await NativeStripeSdk.createNativePayPaymentMethod(params);
+      await NativeStripeSdk.createPlatformPayPaymentMethod(params);
     if (error) {
       return {
         error,
@@ -838,11 +836,11 @@ export const createNativePayPaymentMethod = async (
  * @returns An object with an optional 'error' field, which is only populated if something went wrong.
  */
 export const updateApplePaySheet = async (
-  summaryItems: Array<NativePay.CartSummaryItem>,
-  shippingMethods: Array<NativePay.ShippingMethod>,
-  errors: Array<NativePay.ApplePaySheetError>
+  summaryItems: Array<PlatformPay.CartSummaryItem>,
+  shippingMethods: Array<PlatformPay.ShippingMethod>,
+  errors: Array<PlatformPay.ApplePaySheetError>
 ): Promise<{
-  error?: StripeError<NativePayError>;
+  error?: StripeError<PlatformPayError>;
 }> => {
   if (Platform.OS !== 'ios') {
     return {};
@@ -862,5 +860,3 @@ export const updateApplePaySheet = async (
     };
   }
 };
-
-// END - NATIVE PAY

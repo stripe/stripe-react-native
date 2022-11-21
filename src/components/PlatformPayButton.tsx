@@ -14,13 +14,13 @@ import {
   ButtonStyle,
   ShippingMethod,
   ShippingContact,
-} from '../types/NativePay';
+} from '../types/PlatformPay';
 
 const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
 const ApplePayButtonNative = requireNativeComponent<any>('ApplePayButton');
 
 /**
- *  Native Pay Button Component Props
+ *  PlatformPayButton Component Props
  */
 export interface Props extends AccessibilityProps {
   /** Sets the text displayed by the button. */
@@ -63,14 +63,14 @@ export interface Props extends AccessibilityProps {
 }
 
 /**
- *  Native Pay Button Component. Display the platform-specific native wallet pay button: Apple Pay on iOS, and Google Pay on Android.
+ *  PlatformPayButton Component. Display the platform-specific native wallet pay button: Apple Pay on iOS, and Google Pay on Android.
  *
  * @example
  * ```ts
- *  <NativePayButton
+ *  <PlatformPayButton
  *    onPress={pay}
- *    type={NativePay.ButtonType.Subscribe}
- *    appearance={NativePay.ButtonStyle.WhiteOutline}
+ *    type={PlatformPay.ButtonType.Subscribe}
+ *    appearance={PlatformPay.ButtonStyle.WhiteOutline}
  *    borderRadius={4}
  *    disabled={!isApplePaySupported}
  *    style={styles.payButton}
@@ -80,7 +80,7 @@ export interface Props extends AccessibilityProps {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function NativePayButton({
+export function PlatformPayButton({
   type = ButtonType.Default,
   appearance = ButtonStyle.Automatic,
   onPress,

@@ -3,12 +3,12 @@ import {
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
-  createNativePayPaymentMethod,
-  confirmNativePayPayment,
+  createPlatformPayPaymentMethod,
+  confirmPlatformPayPayment,
   GooglePayCardToken,
-  isNativePaySupported,
-  NativePay,
-  NativePayButton,
+  isPlatformPaySupported,
+  PlatformPay,
+  PlatformPayButton,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -35,7 +35,7 @@ export default function GooglePayScreen() {
   }, []);
 
   const checkIfGooglePayIsSupported = async () => {
-    setIsGooglePaySupported(await isNativePaySupported());
+    setIsGooglePaySupported(await isPlatformPaySupported());
   };
 
   const checkIfCardInWallet = async () => {
@@ -93,7 +93,7 @@ export default function GooglePayScreen() {
   };
 
   const pay = async () => {
-    const { error, paymentIntent } = await confirmNativePayPayment(
+    const { error, paymentIntent } = await confirmPlatformPayPayment(
       clientSecret as string,
       {
         googlePay: {
@@ -102,7 +102,7 @@ export default function GooglePayScreen() {
           merchantCountryCode: 'US',
           currencyCode: 'usd',
           billingAddressConfig: {
-            format: NativePay.BillingAddressFormat.Full,
+            format: PlatformPay.BillingAddressFormat.Full,
             isPhoneNumberRequired: true,
             isRequired: true,
           },
@@ -123,24 +123,25 @@ export default function GooglePayScreen() {
     As an alternative you can only create a paymentMethod instead of confirming the payment.
   */
   const createPaymentMethod = async () => {
-    const { error, paymentMethod, token } = await createNativePayPaymentMethod({
-      googlePay: {
-        amount: 12,
-        currencyCode: 'USD',
-        testEnv: true,
-        merchantName: 'Test',
-        merchantCountryCode: 'US',
-        billingAddressConfig: {
-          format: NativePay.BillingAddressFormat.Full,
-          isPhoneNumberRequired: true,
-          isRequired: true,
+    const { error, paymentMethod, token } =
+      await createPlatformPayPaymentMethod({
+        googlePay: {
+          amount: 12,
+          currencyCode: 'USD',
+          testEnv: true,
+          merchantName: 'Test',
+          merchantCountryCode: 'US',
+          billingAddressConfig: {
+            format: PlatformPay.BillingAddressFormat.Full,
+            isPhoneNumberRequired: true,
+            isRequired: true,
+          },
+          shippingAddressConfig: {
+            isRequired: true,
+          },
+          isEmailRequired: true,
         },
-        shippingAddressConfig: {
-          isRequired: true,
-        },
-        isEmailRequired: true,
-      },
-    });
+      });
 
     if (error) {
       Alert.alert('Failure', error.localizedMessage);
@@ -171,18 +172,18 @@ export default function GooglePayScreen() {
 
   return (
     <PaymentScreen>
-      <NativePayButton
+      <PlatformPayButton
         disabled={!isGooglePaySupported || !clientSecret}
         style={styles.payButton}
-        type={NativePay.ButtonType.Pay}
+        type={PlatformPay.ButtonType.Pay}
         onPress={pay}
       />
 
       <View style={styles.row}>
-        <NativePayButton
+        <PlatformPayButton
           disabled={!false}
           style={styles.standardButton}
-          type={NativePay.ButtonType.GooglePayMark}
+          type={PlatformPay.ButtonType.GooglePayMark}
           onPress={createPaymentMethod}
         />
       </View>

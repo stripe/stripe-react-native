@@ -26,7 +26,7 @@ import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
 import * as FinancialConnections from './FinancialConnections';
-import * as NativePay from './NativePay';
+import * as PlatformPay from './PlatformPay';
 
 export {
   ApplePay,
@@ -42,7 +42,7 @@ export {
   CardFormView,
   Token,
   FinancialConnections,
-  NativePay,
+  PlatformPay,
 };
 
 export * from './PushProvisioning';

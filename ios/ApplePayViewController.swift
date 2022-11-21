@@ -17,17 +17,17 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         applePaymentMethodFlowCanBeCanceled = false
         STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
             if let error = error {
-                self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
             } else {
                 STPAPIClient.shared.createToken(with: payment) { token, error in
                     if let error = error {
-                        self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                        self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                     } else {
                         var promiseResult = ["paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]]
                         if let token = token {
                             promiseResult["token"] = Mappers.mapFromToken(token: token.splitApplePayAddressByNewline())
                         }
-                        self.createNativePayPaymentMethodResolver?(promiseResult)
+                        self.createPlatformPayPaymentMethodResolver?(promiseResult)
                     }
                 }
             }
@@ -39,7 +39,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         _ controller: PKPaymentAuthorizationViewController
     ) {
         if (applePaymentMethodFlowCanBeCanceled) {
-            self.createNativePayPaymentMethodResolver?(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
+            self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
             applePaymentMethodFlowCanBeCanceled = false
         }
         _ = maybeDismissApplePay()

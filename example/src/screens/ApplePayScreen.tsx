@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
-  NativePay,
+  PlatformPay,
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
-  NativePayButton,
-  useNativePay,
+  PlatformPayButton,
+  usePlatformPay,
   updateApplePaySheet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
@@ -22,10 +22,10 @@ export default function ApplePayScreen() {
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
   const [clientSecret, setClientSecret] = useState<String | null>(null);
   const {
-    createNativePayPaymentMethod,
-    isNativePaySupported,
-    confirmNativePayPayment,
-  } = useNativePay();
+    createPlatformPayPaymentMethod,
+    isPlatformPaySupported,
+    confirmPlatformPayPayment,
+  } = usePlatformPay();
 
   useEffect(() => {
     fetchEphemeralKey();
@@ -36,28 +36,28 @@ export default function ApplePayScreen() {
   const couponCodeListener = (event: { couponCode: string }) => {
     console.log(JSON.stringify(event.couponCode, null, 2));
     if (event.couponCode === 'stripe') {
-      const newCart: NativePay.CartSummaryItem[] = [
+      const newCart: PlatformPay.CartSummaryItem[] = [
         {
           label: 'Subtotal',
           amount: '12.75',
-          paymentType: NativePay.PaymentType.Immediate,
+          paymentType: PlatformPay.PaymentType.Immediate,
         },
         {
           label: 'Discount',
           amount: '2.75',
-          paymentType: NativePay.PaymentType.Immediate,
+          paymentType: PlatformPay.PaymentType.Immediate,
         },
         {
           label: 'Shipping',
           amount: '0.00',
           isPending: false,
-          paymentType: NativePay.PaymentType.Immediate,
+          paymentType: PlatformPay.PaymentType.Immediate,
         },
         {
           label: 'Total',
           amount: '10.75',
           isPending: false,
-          paymentType: NativePay.PaymentType.Immediate,
+          paymentType: PlatformPay.PaymentType.Immediate,
         },
       ];
       setCart(newCart);
@@ -76,7 +76,7 @@ export default function ApplePayScreen() {
     } else {
       updateApplePaySheet(cart, shippingMethods, [
         {
-          errorType: NativePay.ApplePaySheetErrorType.InvalidCouponCode,
+          errorType: PlatformPay.ApplePaySheetErrorType.InvalidCouponCode,
           message: 'Invalid coupon code. Test coupon code is: "stripe"',
         },
       ]);
@@ -85,10 +85,10 @@ export default function ApplePayScreen() {
 
   useEffect(() => {
     const checkCapability = async () => {
-      setIsApplePaySupported(await isNativePaySupported());
+      setIsApplePaySupported(await isPlatformPaySupported());
     };
     checkCapability();
-  }, [isNativePaySupported]);
+  }, [isPlatformPaySupported]);
 
   const checkIfCardInWallet = async () => {
     const response = await fetch(`${API_URL}/issuing-card-details`, {
@@ -120,7 +120,7 @@ export default function ApplePayScreen() {
     }
   };
 
-  const shippingMethods: NativePay.ShippingMethod[] = [
+  const shippingMethods: PlatformPay.ShippingMethod[] = [
     {
       identifier: 'free',
       detail: 'Arrives by July 2',
@@ -140,23 +140,23 @@ export default function ApplePayScreen() {
       amount: '24.63',
     },
   ];
-  const [cart, setCart] = useState<NativePay.CartSummaryItem[]>([
+  const [cart, setCart] = useState<PlatformPay.CartSummaryItem[]>([
     {
       label: 'Subtotal',
       amount: '12.75',
-      paymentType: NativePay.PaymentType.Immediate,
+      paymentType: PlatformPay.PaymentType.Immediate,
     },
     {
       label: 'Shipping',
       amount: '0.00',
       isPending: false,
-      paymentType: NativePay.PaymentType.Immediate,
+      paymentType: PlatformPay.PaymentType.Immediate,
     },
     {
       label: 'Total',
       amount: '12.75',
       isPending: false,
-      paymentType: NativePay.PaymentType.Immediate,
+      paymentType: PlatformPay.PaymentType.Immediate,
     }, // Last item in array needs to reflect the total.
   ]);
 
@@ -199,7 +199,7 @@ export default function ApplePayScreen() {
       Alert.alert('No client secret is set.');
       return;
     }
-    const { paymentIntent, error } = await confirmNativePayPayment(
+    const { paymentIntent, error } = await confirmPlatformPayPayment(
       clientSecret as string,
       {
         applePay: {
@@ -208,13 +208,15 @@ export default function ApplePayScreen() {
           currencyCode: 'USD',
           shippingMethods,
           requiredShippingAddressFields: [
-            NativePay.ContactField.EmailAddress,
-            NativePay.ContactField.PhoneNumber,
-            NativePay.ContactField.PostalAddress,
-            NativePay.ContactField.Name,
+            PlatformPay.ContactField.EmailAddress,
+            PlatformPay.ContactField.PhoneNumber,
+            PlatformPay.ContactField.PostalAddress,
+            PlatformPay.ContactField.Name,
           ],
-          requiredBillingContactFields: [NativePay.ContactField.PostalAddress],
-          shippingType: NativePay.ApplePayShippingType.StorePickup,
+          requiredBillingContactFields: [
+            PlatformPay.ContactField.PostalAddress,
+          ],
+          shippingType: PlatformPay.ApplePayShippingType.StorePickup,
           additionalEnabledNetworks: ['JCB'],
         },
       }
@@ -229,25 +231,28 @@ export default function ApplePayScreen() {
   };
 
   const createPaymentMethod = async () => {
-    const { paymentMethod, token, error } = await createNativePayPaymentMethod({
-      applePay: {
-        cartItems: cart,
-        merchantCountryCode: 'US',
-        currencyCode: 'USD',
-        shippingMethods,
-        requiredShippingAddressFields: [
-          NativePay.ContactField.EmailAddress,
-          NativePay.ContactField.PhoneNumber,
-          NativePay.ContactField.PostalAddress,
-          NativePay.ContactField.Name,
-        ],
-        requiredBillingContactFields: [NativePay.ContactField.PostalAddress],
-        supportsCouponCode: true,
-        couponCode: '123',
-        shippingType: NativePay.ApplePayShippingType.StorePickup,
-        additionalEnabledNetworks: ['JCB'],
-      },
-    });
+    const { paymentMethod, token, error } =
+      await createPlatformPayPaymentMethod({
+        applePay: {
+          cartItems: cart,
+          merchantCountryCode: 'US',
+          currencyCode: 'USD',
+          shippingMethods,
+          requiredShippingAddressFields: [
+            PlatformPay.ContactField.EmailAddress,
+            PlatformPay.ContactField.PhoneNumber,
+            PlatformPay.ContactField.PostalAddress,
+            PlatformPay.ContactField.Name,
+          ],
+          requiredBillingContactFields: [
+            PlatformPay.ContactField.PostalAddress,
+          ],
+          supportsCouponCode: true,
+          couponCode: '123',
+          shippingType: PlatformPay.ApplePayShippingType.StorePickup,
+          additionalEnabledNetworks: ['JCB'],
+        },
+      });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
     } else {
@@ -267,9 +272,9 @@ export default function ApplePayScreen() {
       </View>
 
       <View>
-        <NativePayButton
+        <PlatformPayButton
           onPress={pay}
-          appearance={NativePay.ButtonStyle.White}
+          appearance={PlatformPay.ButtonStyle.White}
           borderRadius={4}
           disabled={!isApplePaySupported}
           style={styles.payButton}
@@ -283,10 +288,10 @@ export default function ApplePayScreen() {
           }}
         />
 
-        <NativePayButton
+        <PlatformPayButton
           onPress={createPaymentMethod}
-          type={NativePay.ButtonType.Continue}
-          appearance={NativePay.ButtonStyle.WhiteOutline}
+          type={PlatformPay.ButtonType.Continue}
+          appearance={PlatformPay.ButtonStyle.WhiteOutline}
           borderRadius={4}
           disabled={!isApplePaySupported}
           style={styles.createPaymentMethodButton}

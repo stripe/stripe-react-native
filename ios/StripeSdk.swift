@@ -28,7 +28,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var confirmApplePaySetupClientSecret: String? = nil
     
     var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
-    var createNativePayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
+    var createPlatformPayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
     var applePaymentMethodFlowCanBeCanceled = false
     
     var confirmPaymentClientSecret: String? = nil
@@ -526,15 +526,15 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
     }
     
-    @objc(isNativePaySupported:resolver:rejecter:)
-    func isNativePaySupported(params: NSDictionary,
+    @objc(isPlatformPaySupported:resolver:rejecter:)
+    func isPlatformPaySupported(params: NSDictionary,
                                           resolver resolve: @escaping RCTPromiseResolveBlock,
                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolve(StripeAPI.deviceSupportsApplePay())
     }
     
-    @objc(createNativePayPaymentMethod:resolver:rejecter:)
-    func createNativePayPaymentMethod(params: NSDictionary,
+    @objc(createPlatformPayPaymentMethod:resolver:rejecter:)
+    func createPlatformPayPaymentMethod(params: NSDictionary,
                                           resolver resolve: @escaping RCTPromiseResolveBlock,
                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let applePayPatams = params["applePay"] as? NSDictionary else {
@@ -552,7 +552,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         self.applePayShippingAddressErrors = nil
         self.applePayCouponCodeErrors = nil
         applePaymentMethodFlowCanBeCanceled = true
-        createNativePayPaymentMethodResolver = resolve
+        createPlatformPayPaymentMethodResolver = resolve
         self.applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)
         if let applePaymentAuthorizationController = self.applePaymentAuthorizationController {
             applePaymentAuthorizationController.delegate = self
@@ -575,8 +575,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(didDismiss)
     }
     
-    @objc(confirmNativePay:params:isPaymentIntent:resolver:rejecter:)
-    func confirmNativePay(
+    @objc(confirmPlatformPay:params:isPaymentIntent:resolver:rejecter:)
+    func confirmPlatformPay(
         clientSecret: String?,
         params: NSDictionary,
         isPaymentIntent: Bool,

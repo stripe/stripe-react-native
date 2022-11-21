@@ -2,7 +2,7 @@ import type { Result as Token } from './Token';
 import type { Result as PaymentMethod } from './PaymentMethod';
 import type { Result as PaymentIntent } from './PaymentIntent';
 import type { Result as SetupIntent } from './SetupIntent';
-import type { StripeError, NativePayError } from './Errors';
+import type { StripeError, PlatformPayError } from './Errors';
 import type { ShippingContact as ApplePayShippingContact } from './ApplePay';
 import type { IsSupportedParams } from './GooglePay';
 
@@ -302,25 +302,25 @@ export type PaymentMethodResult =
   | {
       paymentMethod?: undefined;
       token?: undefined;
-      error: StripeError<NativePayError>;
+      error: StripeError<PlatformPayError>;
     };
 
 export type ConfirmPaymentResult =
   | {
       paymentIntent: PaymentIntent;
-      error?: StripeError<NativePayError>;
+      error?: StripeError<PlatformPayError>;
     }
   | {
       paymentIntent?: undefined;
-      error: StripeError<NativePayError>;
+      error: StripeError<PlatformPayError>;
     };
 
 export type ConfirmSetupIntentResult =
   | {
       setupIntent: SetupIntent;
-      error?: StripeError<NativePayError>;
+      error?: StripeError<PlatformPayError>;
     }
   | {
       setupIntent?: undefined;
-      error: StripeError<NativePayError>;
+      error: StripeError<PlatformPayError>;
     };

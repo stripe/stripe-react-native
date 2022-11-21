@@ -20,17 +20,17 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
-                  isNativePaySupported:(NSDictionary *)params
+                  isPlatformPaySupported:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
-                  createNativePayPaymentMethod:(NSDictionary *)params
+                  createPlatformPayPaymentMethod:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
-                  confirmNativePay:(NSString *)clientSecret
+                  confirmPlatformPay:(NSString *)clientSecret
                   params:(NSDictionary *)params
                   isPaymentIntent:(BOOL)isPaymentIntent
                   resolver: (RCTPromiseResolveBlock)resolve
