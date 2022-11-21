@@ -5,10 +5,9 @@ import {
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
-  addOnApplePayShippingContactSelectedListener,
-  addOnApplePayShippingMethodSelectedListener,
   NativePayButton,
   useNativePay,
+  updateApplePaySheet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -26,57 +25,7 @@ export default function ApplePayScreen() {
     createNativePayPaymentMethod,
     isNativePaySupported,
     confirmNativePayPayment,
-  } = useNativePay({
-    onApplePayCouponCodeEntered: (code, handler) => {
-      console.log(JSON.stringify(code, null, 2));
-      if (code === 'stripe') {
-        const newCart: NativePay.CartSummaryItem[] = [
-          {
-            label: 'Subtotal',
-            amount: '12.75',
-            paymentType: NativePay.PaymentType.Immediate,
-          },
-          {
-            label: 'Discount',
-            amount: '2.75',
-            paymentType: NativePay.PaymentType.Immediate,
-          },
-          {
-            label: 'Shipping',
-            amount: '0.00',
-            isPending: false,
-            paymentType: NativePay.PaymentType.Immediate,
-          },
-          {
-            label: 'Total',
-            amount: '10.75',
-            isPending: false,
-            paymentType: NativePay.PaymentType.Immediate,
-          },
-        ];
-        setCart(newCart);
-        handler(
-          newCart,
-          [
-            {
-              identifier: 'free-express',
-              detail: 'Ships within 24 hours',
-              label: 'FREE Express Shipping',
-              amount: '0.00',
-            },
-          ],
-          []
-        );
-      } else {
-        handler(cart, shippingMethods, [
-          {
-            errorType: NativePay.ApplePaySheetErrorType.InvalidCouponCode,
-            message: 'Invalid coupon code. Test coupon code is: "stripe"',
-          },
-        ]);
-      }
-    },
-  });
+  } = useNativePay();
 
   useEffect(() => {
     fetchEphemeralKey();
@@ -84,22 +33,55 @@ export default function ApplePayScreen() {
     fetchPaymentIntentClientSecret();
   }, []);
 
-  useEffect(() => {
-    const shippingContactListener =
-      addOnApplePayShippingContactSelectedListener((event) => {
-        console.log(JSON.stringify(event, null, 2));
-      });
-    const shippingMethodListener = addOnApplePayShippingMethodSelectedListener(
-      (event) => {
-        console.log(JSON.stringify(event, null, 2));
-      }
-    );
-
-    return function cleanup() {
-      shippingContactListener.remove();
-      shippingMethodListener.remove();
-    };
-  });
+  const couponCodeListener = (event: { couponCode: string }) => {
+    console.log(JSON.stringify(event.couponCode, null, 2));
+    if (event.couponCode === 'stripe') {
+      const newCart: NativePay.CartSummaryItem[] = [
+        {
+          label: 'Subtotal',
+          amount: '12.75',
+          paymentType: NativePay.PaymentType.Immediate,
+        },
+        {
+          label: 'Discount',
+          amount: '2.75',
+          paymentType: NativePay.PaymentType.Immediate,
+        },
+        {
+          label: 'Shipping',
+          amount: '0.00',
+          isPending: false,
+          paymentType: NativePay.PaymentType.Immediate,
+        },
+        {
+          label: 'Total',
+          amount: '10.75',
+          isPending: false,
+          paymentType: NativePay.PaymentType.Immediate,
+        },
+      ];
+      setCart(newCart);
+      updateApplePaySheet(
+        newCart,
+        [
+          {
+            identifier: 'free-express',
+            detail: 'Ships within 24 hours',
+            label: 'FREE Express Shipping',
+            amount: '0.00',
+          },
+        ],
+        []
+      );
+    } else {
+      updateApplePaySheet(cart, shippingMethods, [
+        {
+          errorType: NativePay.ApplePaySheetErrorType.InvalidCouponCode,
+          message: 'Invalid coupon code. Test coupon code is: "stripe"',
+        },
+      ]);
+    }
+  };
 
   useEffect(() => {
     const checkCapability = async () => {
@@ -287,11 +269,18 @@ export default function ApplePayScreen() {
       <View>
         <NativePayButton
           onPress={pay}
-          type={NativePay.ButtonType.Plain}
           appearance={NativePay.ButtonStyle.White}
           borderRadius={4}
           disabled={!isApplePaySupported}
           style={styles.payButton}
+          onShippingContactSelected={({ shippingContact }) => {
+            console.log(JSON.stringify(shippingContact, null, 2));
+            updateApplePaySheet(cart, shippingMethods, []);
+          }}
+          onShippingMethodSelected={({ shippingMethod }) => {
+            console.log(JSON.stringify(shippingMethod, null, 2));
+            updateApplePaySheet(cart, shippingMethods, []);
+          }}
         />
 
         <NativePayButton
@@ -301,6 +290,15 @@ export default function ApplePayScreen() {
           borderRadius={4}
           disabled={!isApplePaySupported}
           style={styles.createPaymentMethodButton}
+          onCouponCodeEntered={couponCodeListener}
+          onShippingContactSelected={({ shippingContact }) => {
+            console.log(JSON.stringify(shippingContact, null, 2));
+            updateApplePaySheet(cart, shippingMethods, []);
+          }}
+          onShippingMethodSelected={({ shippingMethod }) => {
+            console.log(JSON.stringify(shippingMethod, null, 2));
+            updateApplePaySheet(cart, shippingMethods, []);
+          }}
         />
 
         {showAddToWalletButton && (

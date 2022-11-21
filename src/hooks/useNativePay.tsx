@@ -1,92 +1,15 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import type {
   NativePay,
-  StripeError,
-  NativePayError,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
 } from '../types';
 import { useStripe } from './useStripe';
 
-/** All the props for the `useNativePay` hook are callback functions for Apple Pay. These allow you to take action based on customer's interactions with the Apple Pay sheet, and update the sheet accordingly with the `handler` function (which maps to the updateApplePaySheet function). */
-export type Props = {
-  /**
-   * Pass this callback function to update the Apple Pay sheet after the customer selects a shipping method.
-   * @example
-   * ```ts
-   * const { ... } = useNativePay({
-   *  onApplePayShippingMethodSelected: (shippingMethod, handler) => {
-   *    handler(newCartItems, shippingMethods, anyErrors);
-   *  }
-   * })
-   * ```
-   */
-  onApplePayShippingMethodSelected?: (
-    shippingMethod: NativePay.ShippingMethod,
-    handler: (
-      summaryItems: Array<NativePay.CartSummaryItem>,
-      shippingMethods: Array<NativePay.ShippingMethod>,
-      errors: Array<NativePay.ApplePaySheetError>
-    ) => Promise<{
-      error?: StripeError<NativePayError>;
-    }>
-  ) => void;
-  /**
-   * Pass this callback function to update the Apple Pay sheet after the customer edits their contact.
-   * @example
-   * ```ts
-   * const { ... } = useNativePay({
-   *  onApplePayShippingContactSelected: (contact, handler) => {
-   *    handler(newCartItems, shippingMethods, anyErrors);
-   *  }
-   * })
-   * ```
-   */
-  onApplePayShippingContactSelected?: (
-    shippingContact: NativePay.ShippingContact,
-    handler: (
-      summaryItems: Array<NativePay.CartSummaryItem>,
-      shippingMethods: Array<NativePay.ShippingMethod>,
-      errors: Array<NativePay.ApplePaySheetError>
-    ) => Promise<{
-      error?: StripeError<NativePayError>;
-    }>
-  ) => void;
-  /**
-   * Pass this callback function to update the Apple Pay sheet (including pricing) after the customer inputs a coupon code.
-   * @example
-   * ```ts
-   * const { ... } = useNativePay({
-   *  onApplePayCouponCodeEntered: (couponCode, handler) => {
-   *    if (isValid(couponCode)) {
-   *       handler(newCartItems, shippingMethods, []);
-   *    } else {
-   *       handler(newCartItems, shippingMethods, [badCouponError]);
-   *    }
-   *  }
-   * })
-   * ```
-   */
-  onApplePayCouponCodeEntered?: (
-    couponCode: string,
-    handler: (
-      summaryItems: Array<NativePay.CartSummaryItem>,
-      shippingMethods: Array<NativePay.ShippingMethod>,
-      errors: Array<NativePay.ApplePaySheetError>
-    ) => Promise<{
-      error?: StripeError<NativePayError>;
-    }>
-  ) => void;
-};
-
 /**
  * useNativePay hook. Access all Apple and Google Pay functionality with this hook.
  */
-export function useNativePay({
-  onApplePayShippingMethodSelected,
-  onApplePayShippingContactSelected,
-  onApplePayCouponCodeEntered,
-}: Props = {}) {
+export function useNativePay() {
   const {
     isNativePaySupported,
     confirmNativePaySetupIntent,
@@ -94,98 +17,9 @@ export function useNativePay({
     createNativePayPaymentMethod,
     dismissApplePay,
     updateApplePaySheet,
-    addOnApplePayShippingMethodSelectedListener,
-    addOnApplePayCouponCodeEnteredListener,
-    addOnApplePayShippingContactSelectedListener,
     canAddCardToWallet,
   } = useStripe();
-  const [summaryItems, setSummaryItems] = useState<NativePay.CartSummaryItem[]>(
-    []
-  );
-  const [shippingMethods, setShippingMethods] = useState<
-    NativePay.ShippingMethod[]
-  >([]);
-  const [errors, setErrors] = useState<NativePay.ApplePaySheetError[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const onDidSetShippingMethod = useCallback(
-    (event: { shippingMethod: NativePay.ShippingMethod }) => {
-      if (onApplePayShippingMethodSelected) {
-        onApplePayShippingMethodSelected(
-          event.shippingMethod,
-          updateApplePaySheet
-        );
-      } else {
-        updateApplePaySheet(summaryItems, shippingMethods, errors);
-      }
-    },
-    [
-      summaryItems,
-      shippingMethods,
-      errors,
-      onApplePayShippingMethodSelected,
-      updateApplePaySheet,
-    ]
-  );
-
-  const onDidSetShippingContact = useCallback(
-    (event: { shippingContact: NativePay.ShippingContact }) => {
-      if (onApplePayShippingContactSelected) {
-        onApplePayShippingContactSelected(
-          event.shippingContact,
-          updateApplePaySheet
-        );
-      } else {
-        updateApplePaySheet(summaryItems, shippingMethods, errors);
-      }
-    },
-    [
-      summaryItems,
-      shippingMethods,
-      errors,
-      onApplePayShippingContactSelected,
-      updateApplePaySheet,
-    ]
-  );
-
-  const onDidSetCouponCode = useCallback(
-    (event: { couponCode: string }) => {
-      if (onApplePayCouponCodeEntered) {
-        onApplePayCouponCodeEntered(event.couponCode, updateApplePaySheet);
-      } else {
-        updateApplePaySheet(summaryItems, shippingMethods, errors);
-      }
-    },
-    [
-      summaryItems,
-      shippingMethods,
-      errors,
-      onApplePayCouponCodeEntered,
-      updateApplePaySheet,
-    ]
-  );
-
-  useEffect(() => {
-    const didSetShippingMethodListener =
-      addOnApplePayShippingMethodSelectedListener(onDidSetShippingMethod);
-    const didSetShippingContactListener =
-      addOnApplePayShippingContactSelectedListener(onDidSetShippingContact);
-    const didSetCouponCodeListener =
-      addOnApplePayCouponCodeEnteredListener(onDidSetCouponCode);
-
-    return () => {
-      didSetShippingMethodListener.remove();
-      didSetShippingContactListener.remove();
-      didSetCouponCodeListener.remove();
-    };
-  }, [
-    onDidSetShippingMethod,
-    addOnApplePayShippingMethodSelectedListener,
-    onDidSetShippingContact,
-    addOnApplePayShippingContactSelectedListener,
-    onDidSetCouponCode,
-    addOnApplePayCouponCodeEnteredListener,
-  ]);
 
   const _isNativePaySupported = useCallback(
     async (params?: { googlePay?: NativePay.IsGooglePaySupportedParams }) => {
@@ -202,9 +36,6 @@ export function useNativePay({
   const _confirmNativePaySetupIntent = useCallback(
     async (clientSecret: string, params: NativePay.ConfirmParams) => {
       setLoading(true);
-      setSummaryItems(params.applePay?.cartItems ?? []);
-      setShippingMethods(params.applePay?.shippingMethods ?? []);
-      setErrors([]);
 
       const result = await confirmNativePaySetupIntent(clientSecret, params);
       setLoading(false);
@@ -217,9 +48,6 @@ export function useNativePay({
   const _confirmNativePayPayment = useCallback(
     async (clientSecret: string, params: NativePay.ConfirmParams) => {
       setLoading(true);
-      setSummaryItems(params.applePay?.cartItems ?? []);
-      setShippingMethods(params.applePay?.shippingMethods ?? []);
-      setErrors([]);
 
       const result = await confirmNativePayPayment(clientSecret, params);
       setLoading(false);
@@ -232,9 +60,6 @@ export function useNativePay({
   const _createNativePayPaymentMethod = useCallback(
     async (params: NativePay.PaymentMethodParams) => {
       setLoading(true);
-      setSummaryItems(params.applePay?.cartItems ?? []);
-      setShippingMethods(params.applePay?.shippingMethods ?? []);
-      setErrors([]);
 
       const result = await createNativePayPaymentMethod(params);
       setLoading(false);
@@ -260,9 +85,6 @@ export function useNativePay({
       scopedErrors: Array<NativePay.ApplePaySheetError>
     ) => {
       setLoading(true);
-      setSummaryItems(scopedSummaryItems);
-      setShippingMethods(scopedShippingMethods);
-      setErrors(scopedErrors);
 
       const result = await updateApplePaySheet(
         scopedSummaryItems,

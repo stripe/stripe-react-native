@@ -7,8 +7,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
+  NativeSyntheticEvent,
 } from 'react-native';
-import { ButtonType, ButtonStyle } from '../types/NativePay';
+import {
+  ButtonType,
+  ButtonStyle,
+  ShippingMethod,
+  ShippingContact,
+} from '../types/NativePay';
 
 const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
 const ApplePayButtonNative = requireNativeComponent<any>('ApplePayButton');
@@ -27,6 +33,31 @@ export interface Props extends AccessibilityProps {
   onPress(): void;
   /** Set to `true` to disable the button from being pressed & apply a slight opacity to indicate that it is unpressable. Defaults to false. */
   disabled?: boolean;
+  /**
+   * This callback is triggered whenever the user selects a shipping method in the Apple Pay sheet.
+   * It receives one parameter: an `event` object with a `shippingMethod` field. You MUST
+   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * Apple Pay sheet will hang and the payment flow will automatically cancel.
+   */
+  onShippingMethodSelected?: (event: {
+    shippingMethod: ShippingMethod;
+  }) => void;
+  /**
+   * This callback is triggered whenever the user selects a shipping contact in the Apple Pay sheet.
+   * It receives one parameter: an `event` object with a `shippingContact` field. You MUST
+   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * Apple Pay sheet will hang and the payment flow will automatically cancel.
+   */
+  onShippingContactSelected?: (event: {
+    shippingContact: ShippingContact;
+  }) => void;
+  /**
+   * This callback is triggered whenever the user inputs a coupon code in the Apple Pay sheet.
+   * It receives one parameter: an `event` object with a `couponCode` field. You MUST
+   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * Apple Pay sheet will hang and the payment flow will automatically cancel.
+   */
+  onCouponCodeEntered?: (event: { couponCode: string }) => void;
   testID?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -50,13 +81,46 @@ export interface Props extends AccessibilityProps {
  * @category ReactComponents
  */
 export function NativePayButton({
-  type = ButtonType.Plain,
+  type = ButtonType.Default,
   appearance = ButtonStyle.Automatic,
   onPress,
   disabled,
   borderRadius,
+  onShippingMethodSelected,
+  onShippingContactSelected,
+  onCouponCodeEntered,
   ...props
 }: Props) {
+  const shippingMethodCallback = onShippingMethodSelected
+    ? (
+        value: NativeSyntheticEvent<{
+          shippingMethod: ShippingMethod;
+        }>
+      ) => {
+        onShippingMethodSelected && onShippingMethodSelected(value.nativeEvent);
+      }
+    : undefined;
+
+  const shippingContactCallback = onShippingContactSelected
+    ? (
+        value: NativeSyntheticEvent<{
+          shippingContact: ShippingContact;
+        }>
+      ) => {
+        onShippingContactSelected(value.nativeEvent);
+      }
+    : undefined;
+
+  const couponCodeCallback = onCouponCodeEntered
+    ? (
+        value: NativeSyntheticEvent<{
+          couponCode: string;
+        }>
+      ) => {
+        onCouponCodeEntered && onCouponCodeEntered(value.nativeEvent);
+      }
+    : undefined;
+
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -70,6 +134,9 @@ export function NativePayButton({
           buttonStyle={appearance}
           borderRadius={borderRadius}
           disabled={disabled}
+          onShippingMethodSelectedAction={shippingMethodCallback}
+          onShippingContactSelectedAction={shippingContactCallback}
+          onCouponCodeEnteredAction={couponCodeCallback}
           {...props}
         />
       ) : (

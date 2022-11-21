@@ -35,7 +35,6 @@ import type {
   NativePay,
   NativePayError,
 } from '../types';
-import type { EmitterSubscription } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
 import NativeStripeSdk from '../NativeStripeSdk';
@@ -74,9 +73,6 @@ import {
   dismissApplePay,
   createNativePayPaymentMethod,
   updateApplePaySheet,
-  addOnApplePayShippingMethodSelectedListener,
-  addOnApplePayCouponCodeEnteredListener,
-  addOnApplePayShippingContactSelectedListener,
 } from '../functions';
 
 /**
@@ -383,33 +379,6 @@ export function useStripe() {
     []
   );
 
-  const _addOnApplePayShippingMethodSelectedListener = useCallback(
-    (
-      listener: (event: { shippingMethod: NativePay.ShippingMethod }) => void // todo unpack event
-    ): EmitterSubscription => {
-      return addOnApplePayShippingMethodSelectedListener(listener);
-    },
-    []
-  );
-
-  const _addOnApplePayShippingContactSelectedListener = useCallback(
-    (
-      listener: (event: { shippingContact: NativePay.ShippingContact }) => void
-    ): EmitterSubscription => {
-      return addOnApplePayShippingContactSelectedListener(listener);
-    },
-    []
-  );
-
-  const _addOnApplePayCouponCodeEnteredListener = useCallback(
-    (
-      listener: (event: { couponCode: string }) => void
-    ): EmitterSubscription => {
-      return addOnApplePayCouponCodeEnteredListener(listener);
-    },
-    []
-  );
-
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -451,11 +420,5 @@ export function useStripe() {
     dismissApplePay: _dismissApplePay,
     createNativePayPaymentMethod: _createNativePayPaymentMethod,
     updateApplePaySheet: _updateApplePaySheet,
-    addOnApplePayShippingMethodSelectedListener:
-      _addOnApplePayShippingMethodSelectedListener,
-    addOnApplePayShippingContactSelectedListener:
-      _addOnApplePayShippingContactSelectedListener,
-    addOnApplePayCouponCodeEnteredListener:
-      _addOnApplePayCouponCodeEnteredListener,
   };
 }

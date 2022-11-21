@@ -162,8 +162,8 @@ export type ConfirmParams = {
 };
 
 export const enum ButtonType {
-  /** Default. A button with the Apple Pay or Google Pay logo only, useful when an additional call to action isn't needed. */
-  Plain = 0,
+  /** A button with the Apple Pay or Google Pay logo only, useful when an additional call to action isn't needed. */
+  Default = 0,
   /** A button useful for product purchases. */
   Buy = 1,
   /** A button useful for booking trips, flights, or other experiences. */

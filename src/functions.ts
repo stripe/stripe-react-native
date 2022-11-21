@@ -39,12 +39,7 @@ import {
   FinancialConnections,
   NativePay,
 } from './types';
-import {
-  Platform,
-  NativeEventEmitter,
-  NativeModules,
-  EmitterSubscription,
-} from 'react-native';
+import { Platform } from 'react-native';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -866,49 +861,6 @@ export const updateApplePaySheet = async (
       error,
     };
   }
-};
-
-let _emitter: NativeEventEmitter | null;
-
-function _getEmitter(): NativeEventEmitter {
-  if (!_emitter) {
-    _emitter = new NativeEventEmitter(NativeModules.StripeSdk);
-  }
-  return _emitter;
-}
-
-/**
- * Adds a listener that gets called whenever the user selects a shipping method in the Apple Pay sheet.
- * Your listener is passed one parameter: an `event` object with a `shippingMethod` field. You can
- * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
- */
-export const addOnApplePayShippingMethodSelectedListener = (
-  listener: (event: { shippingMethod: NativePay.ShippingMethod }) => void
-): EmitterSubscription => {
-  return _getEmitter().addListener('onDidSetShippingMethod', listener);
-};
-
-/**
- * Adds a listener that gets called whenever the user selects a shipping contact in the Apple Pay sheet.
- * Your listener is passed one parameter: an `event` object with a `shippingContact` field. You can
- * update the Apple Pay sheet in your callback using the updateApplePaySheet function.
- */
-export const addOnApplePayShippingContactSelectedListener = (
-  listener: (event: { shippingContact: NativePay.ShippingContact }) => void
-): EmitterSubscription => {
-  return _getEmitter().addListener('onDidSetShippingContact', listener);
-};
-
-/**
- * Adds a listener that gets called whenever the user inputs a coupon code in the Apple Pay sheet.
- * Your listener is passed one parameter: an `event` object with a `couponCode` field. You MUST
- * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
- * Apple Pay sheet will hang and the payment flow will automatically cancel.
- */
-export const addOnApplePayCouponCodeEnteredListener = (
-  listener: (event: { couponCode: string }) => void
-): EmitterSubscription => {
-  return _getEmitter().addListener('onDidSetCouponCode', listener);
 };
 
 // END - NATIVE PAY
