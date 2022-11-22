@@ -18,6 +18,7 @@ export function usePlatformPay() {
     dismissPlatformPay,
     updatePlatformPaySheet,
     canAddCardToWallet,
+    openPlatformPaySetup,
   } = useStripe();
   const [loading, setLoading] = useState(false);
 
@@ -110,6 +111,10 @@ export function usePlatformPay() {
     [canAddCardToWallet]
   );
 
+  const _openPlatformPaySetup = useCallback(async (): Promise<void> => {
+    return openPlatformPaySetup();
+  }, [openPlatformPaySetup]);
+
   return {
     /** Use this boolean to present a spinner or other similar loading screen. `true` if the SDK is currently processing, `false` if it is not. */
     loading,
@@ -159,5 +164,11 @@ export function usePlatformPay() {
      * @returns A promise resolving to an object of type CanAddCardToWalletResult. Check the `canAddCard` field, if it's true, you should show the `<AddToWalletButton />`
      */
     canAddCardToWallet: _canAddCardToWallet,
+    /**
+     * iOS only, this is a no-op on Android. Use this method to move users to the interface for adding credit cards.
+     * This method transfers control to the Wallet app on iPhone or to the Settings
+     * app on iPad. For devices that don’t support Apple Pay, this method does nothing.
+     */
+    openPlatformPaySetup: _openPlatformPaySetup,
   };
 }

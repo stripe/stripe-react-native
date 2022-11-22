@@ -73,6 +73,7 @@ import {
   dismissPlatformPay,
   createPlatformPayPaymentMethod,
   updatePlatformPaySheet,
+  openPlatformPaySetup,
 } from '../functions';
 
 /**
@@ -381,6 +382,10 @@ export function useStripe() {
     []
   );
 
+  const _openPlatformPaySetup = useCallback(async (): Promise<void> => {
+    return openPlatformPaySetup();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -422,5 +427,6 @@ export function useStripe() {
     dismissPlatformPay: _dismissPlatformPay,
     createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
     updatePlatformPaySheet: _updatePlatformPaySheet,
+    openPlatformPaySetup: _openPlatformPaySetup,
   };
 }

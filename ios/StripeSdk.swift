@@ -472,13 +472,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
 
     @objc(openApplePaySetup:rejecter:)
     func openApplePaySetup(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
-        let library = PKPassLibrary.init()
-        if (library.responds(to: #selector(PKPassLibrary.openPaymentSetup))) {
-            library.openPaymentSetup()
-            resolve([])
-        } else {
-            resolve(Errors.createError(ErrorType.Failed, "Cannot open payment setup"))
-        }
+        PKPassLibrary.init().openPaymentSetup()
+        resolve([])
     }
 
     @objc(confirmApplePayPayment:resolver:rejecter:)

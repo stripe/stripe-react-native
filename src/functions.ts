@@ -176,10 +176,12 @@ export const confirmPayment = async (
   }
 };
 
+/** @deprecated Use `isPlatformPaySupported` instead. */
 export const isApplePaySupported = async (): Promise<boolean> => {
   return isiOS && (await NativeStripeSdk.isApplePaySupported());
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const presentApplePay = async (
   params: ApplePay.PresentParams
 ): Promise<ApplePayResult> => {
@@ -209,6 +211,7 @@ export const presentApplePay = async (
   }
 };
 
+/** @deprecated Use `updatePlatformPaySheet` instead. */
 export const updateApplePaySummaryItems = async (
   summaryItems: ApplePay.CartSummaryItem[],
   errorAddressFields: Array<{
@@ -239,6 +242,7 @@ export const updateApplePaySummaryItems = async (
   }
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent` or `confirmPlatformPayPayment` instead. */
 export const confirmApplePayPayment = async (
   clientSecret: string
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
@@ -466,6 +470,7 @@ export const resetPaymentSheetCustomer = async (): Promise<null> => {
   return await NativeStripeSdk.resetPaymentSheetCustomer();
 };
 
+/** @deprecated Use `isPlatformPaySupported` instead. */
 export const isGooglePaySupported = async (
   params?: GooglePay.IsSupportedParams
 ): Promise<boolean> => {
@@ -474,6 +479,7 @@ export const isGooglePaySupported = async (
   );
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const initGooglePay = async (
   params: GooglePay.InitParams
 ): Promise<GooglePayInitResult> => {
@@ -492,6 +498,7 @@ export const initGooglePay = async (
   }
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const presentGooglePay = async (
   params: GooglePay.PresentParams
 ): Promise<PayWithGooglePayResult> => {
@@ -510,6 +517,7 @@ export const presentGooglePay = async (
   }
 };
 
+/** @deprecated Use `createPlatformPayPaymentMethod` instead. */
 export const createGooglePayPaymentMethod = async (
   params: GooglePay.CreatePaymentMethodParams
 ): Promise<CreateGooglePayPaymentMethodResult> => {
@@ -531,6 +539,7 @@ export const createGooglePayPaymentMethod = async (
   }
 };
 
+/** @deprecated Use `openNativePaySetup` instead. */
 export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
   try {
     const { error } = await NativeStripeSdk.openApplePaySetup();
@@ -862,4 +871,13 @@ export const updatePlatformPaySheet = async (params: {
       error,
     };
   }
+};
+
+/**
+ * iOS only, this is a no-op on Android. Use this method to move users to the interface for adding credit cards.
+ * This method transfers control to the Wallet app on iPhone or to the Settings
+ * app on iPad. For devices that don’t support Apple Pay, this method does nothing.
+ */
+export const openPlatformPaySetup = async (): Promise<void> => {
+  await NativeStripeSdk.openApplePaySetup();
 };
