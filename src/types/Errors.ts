@@ -85,7 +85,7 @@ export enum CollectBankAccountError {
   Unknown = 'Unknown',
 }
 
-export const enum AddressSheetError {
+export enum AddressSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
 }
