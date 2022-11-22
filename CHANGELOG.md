@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+## Fixes
+
+- Fixed an issue where builds would error with the message `'const' enums are not supported.` [see commit](https://github.com/stripe/stripe-react-native/commit/f882bfa588aa6d23a980b4b43d2cca660ca1dd2a)
+
 ## 0.21.0 - 2022-11-15
 
 ### Breaking changes
