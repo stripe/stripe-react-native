@@ -49,6 +49,14 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var applePayShippingAddressErrors: [Error]? = nil
     var applePayCouponCodeErrors: [Error]? = nil
     
+    var hasLegacyApplePayListeners = false
+    override func startObserving() {
+        hasLegacyApplePayListeners = true
+    }
+    override func stopObserving() {
+        hasLegacyApplePayListeners = false
+    }
+    
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
     }
