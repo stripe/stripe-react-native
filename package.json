@@ -109,6 +109,13 @@
           "trailingComma": "es5",
           "useTabs": false
         }
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "TSEnumDeclaration[const=true]",
+          "message": "`const enum` declarations are not allowed"
+        }
       ]
     }
   },
