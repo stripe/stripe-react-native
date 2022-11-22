@@ -7,7 +7,7 @@ import {
   canAddCardToWallet,
   PlatformPayButton,
   usePlatformPay,
-  updateApplePaySheet,
+  updatePlatformPaySheet,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -61,25 +61,33 @@ export default function ApplePayScreen() {
         },
       ];
       setCart(newCart);
-      updateApplePaySheet(
-        newCart,
-        [
-          {
-            identifier: 'free-express',
-            detail: 'Ships within 24 hours',
-            label: 'FREE Express Shipping',
-            amount: '0.00',
-          },
-        ],
-        []
-      );
-    } else {
-      updateApplePaySheet(cart, shippingMethods, [
-        {
-          errorType: PlatformPay.ApplePaySheetErrorType.InvalidCouponCode,
-          message: 'Invalid coupon code. Test coupon code is: "stripe"',
+      updatePlatformPaySheet({
+        applePay: {
+          summaryItems: newCart,
+          shippingMethods: [
+            {
+              identifier: 'free-express',
+              detail: 'Ships within 24 hours',
+              label: 'FREE Express Shipping',
+              amount: '0.00',
+            },
+          ],
+          errors: [],
         },
-      ]);
+      });
+    } else {
+      updatePlatformPaySheet({
+        applePay: {
+          summaryItems: cart,
+          shippingMethods,
+          errors: [
+            {
+              errorType: PlatformPay.ApplePaySheetErrorType.InvalidCouponCode,
+              message: 'Invalid coupon code. Test coupon code is: "stripe"',
+            },
+          ],
+        },
+      });
     }
   };
 
@@ -280,11 +288,15 @@ export default function ApplePayScreen() {
           style={styles.payButton}
           onShippingContactSelected={({ shippingContact }) => {
             console.log(JSON.stringify(shippingContact, null, 2));
-            updateApplePaySheet(cart, shippingMethods, []);
+            updatePlatformPaySheet({
+              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+            });
           }}
           onShippingMethodSelected={({ shippingMethod }) => {
             console.log(JSON.stringify(shippingMethod, null, 2));
-            updateApplePaySheet(cart, shippingMethods, []);
+            updatePlatformPaySheet({
+              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+            });
           }}
         />
 
@@ -298,11 +310,15 @@ export default function ApplePayScreen() {
           onCouponCodeEntered={couponCodeListener}
           onShippingContactSelected={({ shippingContact }) => {
             console.log(JSON.stringify(shippingContact, null, 2));
-            updateApplePaySheet(cart, shippingMethods, []);
+            updatePlatformPaySheet({
+              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+            });
           }}
           onShippingMethodSelected={({ shippingMethod }) => {
             console.log(JSON.stringify(shippingMethod, null, 2));
-            updateApplePaySheet(cart, shippingMethods, []);
+            updatePlatformPaySheet({
+              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+            });
           }}
         />
 

@@ -19,9 +19,9 @@
 
 # `updateApplePaySummaryItems`
 
-`updateApplePaySummaryItems` has been replaced with `updateApplePaySheet`.
+`updateApplePaySummaryItems` has been replaced with `updatePlatformPaySheet`.
 
-`updateApplePaySheet` accepts the same first parameter: your cart items. The second parameter allows you to set new shipping methods, and the third parameter allows you to set specific errors in the Apple Pay sheet so your customer can take action during checkout.
+`updatePlatformPaySheet` accepts the same first parameter: your cart items. The second parameter allows you to set new shipping methods, and the third parameter allows you to set specific errors in the Apple Pay sheet so your customer can take action during checkout.
 
 # `useGooglePay` and `useApplePay`
 

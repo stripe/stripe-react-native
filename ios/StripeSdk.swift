@@ -386,8 +386,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
     }
 
-    @objc(updateApplePaySheet:shippingMethods:errors:resolver:rejecter:)
-    func updateApplePaySheet(summaryItems: NSArray,
+    @objc(updatePlatformPaySheet:shippingMethods:errors:resolver:rejecter:)
+    func updatePlatformPaySheet(summaryItems: NSArray,
                              shippingMethods: NSArray,
                              errors: [NSDictionary],
                              resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -569,8 +569,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
     }
     
-    @objc(dismissApplePay:rejecter:)
-    func dismissApplePay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    @objc(dismissPlatformPay:rejecter:)
+    func dismissPlatformPay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let didDismiss = maybeDismissApplePay()
         resolve(didDismiss)
     }

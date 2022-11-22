@@ -70,9 +70,9 @@ import {
   isPlatformPaySupported,
   confirmPlatformPaySetupIntent,
   confirmPlatformPayPayment,
-  dismissApplePay,
+  dismissPlatformPay,
   createPlatformPayPaymentMethod,
-  updateApplePaySheet,
+  updatePlatformPaySheet,
 } from '../functions';
 
 /**
@@ -353,8 +353,8 @@ export function useStripe() {
     []
   );
 
-  const _dismissApplePay = useCallback(async (): Promise<boolean> => {
-    return dismissApplePay();
+  const _dismissPlatformPay = useCallback(async (): Promise<boolean> => {
+    return dismissPlatformPay();
   }, []);
 
   const _createPlatformPayPaymentMethod = useCallback(
@@ -366,15 +366,17 @@ export function useStripe() {
     []
   );
 
-  const _updateApplePaySheet = useCallback(
-    async (
-      summaryItems: Array<PlatformPay.CartSummaryItem>,
-      shippingMethods: Array<PlatformPay.ShippingMethod>,
-      errors: Array<PlatformPay.ApplePaySheetError>
-    ): Promise<{
+  const _updatePlatformPaySheet = useCallback(
+    async (params: {
+      applePay: {
+        summaryItems: Array<PlatformPay.CartSummaryItem>;
+        shippingMethods: Array<PlatformPay.ShippingMethod>;
+        errors: Array<PlatformPay.ApplePaySheetError>;
+      };
+    }): Promise<{
       error?: StripeError<PlatformPayError>;
     }> => {
-      return updateApplePaySheet(summaryItems, shippingMethods, errors);
+      return updatePlatformPaySheet(params);
     },
     []
   );
@@ -417,8 +419,8 @@ export function useStripe() {
     isPlatformPaySupported: _isPlatformPaySupported,
     confirmPlatformPaySetupIntent: _confirmPlatformPaySetupIntent,
     confirmPlatformPayPayment: _confirmPlatformPayPayment,
-    dismissApplePay: _dismissApplePay,
+    dismissPlatformPay: _dismissPlatformPay,
     createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
-    updateApplePaySheet: _updateApplePaySheet,
+    updatePlatformPaySheet: _updatePlatformPaySheet,
   };
 }

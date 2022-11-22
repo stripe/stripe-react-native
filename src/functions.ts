@@ -785,15 +785,15 @@ export const confirmPlatformPayPayment = async (
 };
 
 /**
- * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
+ * iOS only, this is a no-op on Android. Dismiss the Apple Pay sheet if it is open.
  * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
  */
-export const dismissApplePay = async (): Promise<boolean> => {
+export const dismissPlatformPay = async (): Promise<boolean> => {
   if (Platform.OS !== 'ios') {
     return false;
   }
   try {
-    const didDismiss = await NativeStripeSdk.dismissApplePay();
+    const didDismiss = await NativeStripeSdk.dismissPlatformPay();
     return didDismiss;
   } catch (error: any) {
     return false;
@@ -828,18 +828,21 @@ export const createPlatformPayPaymentMethod = async (
 };
 
 /**
- * Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
- * @param summaryItems An array of payment summary items to display in the Apple Pay sheet.
- * @param shippingMethods An array of shipping methods to display in the Apple Pay sheet.
- * @param errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
+ * iOS only. Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
+ * @param params an object describing the Apple Pay configuration, with the following fields:
+ * - summaryItems An array of payment summary items to display in the Apple Pay sheet.
+ * - shippingMethods An array of shipping methods to display in the Apple Pay sheet.
+ * - errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
  *
  * @returns An object with an optional 'error' field, which is only populated if something went wrong.
  */
-export const updateApplePaySheet = async (
-  summaryItems: Array<PlatformPay.CartSummaryItem>,
-  shippingMethods: Array<PlatformPay.ShippingMethod>,
-  errors: Array<PlatformPay.ApplePaySheetError>
-): Promise<{
+export const updatePlatformPaySheet = async (params: {
+  applePay: {
+    summaryItems: Array<PlatformPay.CartSummaryItem>;
+    shippingMethods: Array<PlatformPay.ShippingMethod>;
+    errors: Array<PlatformPay.ApplePaySheetError>;
+  };
+}): Promise<{
   error?: StripeError<PlatformPayError>;
 }> => {
   if (Platform.OS !== 'ios') {
@@ -847,10 +850,10 @@ export const updateApplePaySheet = async (
   }
 
   try {
-    await NativeStripeSdk.updateApplePaySheet(
-      summaryItems,
-      shippingMethods,
-      errors
+    await NativeStripeSdk.updatePlatformPaySheet(
+      params.applePay.summaryItems,
+      params.applePay.shippingMethods,
+      params.applePay.errors
     );
 
     return {};

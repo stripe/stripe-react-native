@@ -55,11 +55,11 @@ export type ApplePayBaseParams = {
   additionalEnabledNetworks?: Array<string>;
   /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. */
   cartItems: Array<CartSummaryItem>;
-  /** The list of fields that you need for a shipping contact in order to process the transaction. If provided, you must implement `addOnApplePayShippingContactSelectedListener` and call `updateApplePaySheet` from there.*/
+  /** The list of fields that you need for a shipping contact in order to process the transaction. If provided, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
   requiredShippingAddressFields?: Array<ContactField>;
   /** The list of fields that you need for a billing contact in order to process the transaction. */
   requiredBillingContactFields?: Array<ContactField>;
-  /** An array of shipping method objects that describe the supported shipping methods. If provided, you must implement `addOnApplePayShippingMethodSelectedListener` and call `updateApplePaySheet` from there. */
+  /** An array of shipping method objects that describe the supported shipping methods. If provided, you must implement the PlatformPayButton component's `onShippingMethodSelected` callback and call `updatePlatformPaySheet` from there. */
   shippingMethods?: Array<ShippingMethod>;
   /** Set the payment capabilities you support. If set, 3DS is required. */
   merchantCapabilities?: Array<ApplePayMerchantCapability>;
@@ -70,9 +70,9 @@ export type ApplePayBaseParams = {
 };
 
 export type ApplePayPaymentMethodParams = {
-  /** Set this value to true to display the coupon code field, or pass the 'couponCode' field to autofill with a coupon code. Defaults to false. If true, you must implement `addOnApplePayCouponCodeEnteredListener` and call `updateApplePaySheet` from there. */
+  /** Set this value to true to display the coupon code field, or pass the 'couponCode' field to autofill with a coupon code. Defaults to false. If true, you must implement the PlatformPayButton component's `onCouponCodeEntered` callback and call `updatePlatformPaySheet` from there. */
   supportsCouponCode?: boolean;
-  /** Set this value to autofill with a coupon code. If provided, you must implement `addOnApplePayCouponCodeEnteredListener` and call `updateApplePaySheet` from there. */
+  /** Set this value to autofill with a coupon code. If provided, you must implement the PlatformPayButton component's `onCouponCodeEntered` callback and call `updatePlatformPaySheet` from there. */
   couponCode?: string;
 };
 

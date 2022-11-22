@@ -38,11 +38,11 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  dismissApplePay: (RCTPromiseResolveBlock)resolve
+                  dismissPlatformPay: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
-                  updateApplePaySheet:(NSArray *)summaryItems
+                  updatePlatformPaySheet:(NSArray *)summaryItems
                   shippingMethods:(NSArray *)summaryItems
                   errors: (NSArray *)errors
                   resolver: (RCTPromiseResolveBlock)resolve

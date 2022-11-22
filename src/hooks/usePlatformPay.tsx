@@ -15,8 +15,8 @@ export function usePlatformPay() {
     confirmPlatformPaySetupIntent,
     confirmPlatformPayPayment,
     createPlatformPayPaymentMethod,
-    dismissApplePay,
-    updateApplePaySheet,
+    dismissPlatformPay,
+    updatePlatformPaySheet,
     canAddCardToWallet,
   } = useStripe();
   const [loading, setLoading] = useState(false);
@@ -69,33 +69,31 @@ export function usePlatformPay() {
     [createPlatformPayPaymentMethod]
   );
 
-  const _dismissApplePay = useCallback(async () => {
+  const _dismissPlatformPay = useCallback(async () => {
     setLoading(true);
 
-    const result = await dismissApplePay();
+    const result = await dismissPlatformPay();
     setLoading(false);
 
     return result;
-  }, [dismissApplePay]);
+  }, [dismissPlatformPay]);
 
-  const _updateApplePaySheet = useCallback(
-    async (
-      scopedSummaryItems: Array<PlatformPay.CartSummaryItem>,
-      scopedShippingMethods: Array<PlatformPay.ShippingMethod>,
-      scopedErrors: Array<PlatformPay.ApplePaySheetError>
-    ) => {
+  const _updatePlatformPaySheet = useCallback(
+    async (params: {
+      applePay: {
+        summaryItems: Array<PlatformPay.CartSummaryItem>;
+        shippingMethods: Array<PlatformPay.ShippingMethod>;
+        errors: Array<PlatformPay.ApplePaySheetError>;
+      };
+    }) => {
       setLoading(true);
 
-      const result = await updateApplePaySheet(
-        scopedSummaryItems,
-        scopedShippingMethods,
-        scopedErrors
-      );
+      const result = await updatePlatformPaySheet(params);
       setLoading(false);
 
       return result;
     },
-    [updateApplePaySheet]
+    [updatePlatformPaySheet]
   );
 
   const _canAddCardToWallet = useCallback(
@@ -144,7 +142,7 @@ export function usePlatformPay() {
      * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
      * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
      */
-    dismissApplePay: _dismissApplePay,
+    dismissPlatformPay: _dismissPlatformPay,
     /**
      * Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
      * @param summaryItems An array of payment summary items to display in the Apple Pay sheet.
@@ -153,7 +151,7 @@ export function usePlatformPay() {
      *
      * @returns An object with an optional 'error' field, which is only populated if something went wrong.
      */
-    updateApplePaySheet: _updateApplePaySheet,
+    updatePlatformPaySheet: _updatePlatformPaySheet,
     /**
      * Check if the app & device support adding this card to the native wallet.
      * @param params An object containing fields for `primaryAccountIdentifier`, `cardLastFour`, and `testEnv`.

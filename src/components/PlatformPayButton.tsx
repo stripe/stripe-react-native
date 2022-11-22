@@ -36,7 +36,7 @@ export interface Props extends AccessibilityProps {
   /**
    * This callback is triggered whenever the user selects a shipping method in the Apple Pay sheet.
    * It receives one parameter: an `event` object with a `shippingMethod` field. You MUST
-   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * update the Apple Pay sheet in your callback using the updatePlatformPaySheet function, otherwise the
    * Apple Pay sheet will hang and the payment flow will automatically cancel.
    */
   onShippingMethodSelected?: (event: {
@@ -45,7 +45,7 @@ export interface Props extends AccessibilityProps {
   /**
    * This callback is triggered whenever the user selects a shipping contact in the Apple Pay sheet.
    * It receives one parameter: an `event` object with a `shippingContact` field. You MUST
-   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * update the Apple Pay sheet in your callback using the updatePlatformPaySheet function, otherwise the
    * Apple Pay sheet will hang and the payment flow will automatically cancel.
    */
   onShippingContactSelected?: (event: {
@@ -54,7 +54,7 @@ export interface Props extends AccessibilityProps {
   /**
    * This callback is triggered whenever the user inputs a coupon code in the Apple Pay sheet.
    * It receives one parameter: an `event` object with a `couponCode` field. You MUST
-   * update the Apple Pay sheet in your callback using the updateApplePaySheet function, otherwise the
+   * update the Apple Pay sheet in your callback using the updatePlatformPaySheet function, otherwise the
    * Apple Pay sheet will hang and the payment flow will automatically cancel.
    */
   onCouponCodeEntered?: (event: { couponCode: string }) => void;

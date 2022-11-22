@@ -113,8 +113,8 @@ type NativeStripeSdkType = {
   createPlatformPayPaymentMethod(
     params: PlatformPay.PaymentMethodParams
   ): Promise<PlatformPay.PaymentMethodResult>;
-  dismissApplePay(): Promise<boolean>;
-  updateApplePaySheet(
+  dismissPlatformPay(): Promise<boolean>;
+  updatePlatformPaySheet(
     summaryItems: Array<ApplePay.CartSummaryItem>,
     shippingMethods: Array<ApplePay.ShippingMethod>,
     errors: Array<PlatformPay.ApplePaySheetError>
