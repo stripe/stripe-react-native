@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -54,9 +54,9 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           arch: x86_64
-          profile: Galaxy Nexus
+          profile: Pixel 3a
           target: google_apis
           force-avd-creation: false
           disable-animations: true
