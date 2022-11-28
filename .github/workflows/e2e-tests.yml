@@ -54,9 +54,9 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 29
           arch: x86_64
-          profile: pixel_3a
+          profile: Galaxy Nexus
           target: google_apis
           force-avd-creation: false
           disable-animations: true
