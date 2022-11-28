@@ -4,7 +4,10 @@ import {
   getTextInputByPlaceholder,
   clickButtonContainingText,
 } from './helpers';
-import BasicPaymentScreen from './screenObject/BasicPaymentScreen';
+import BasicPaymentScreen, {
+  getAllWebviewContexts,
+  getNativeContext,
+} from './screenObject/BasicPaymentScreen';
 import cardField from './screenObject/components/CardField';
 import homeScreen from './screenObject/HomeScreen';
 import BECSForm from './screenObject/components/BECSForm';
@@ -237,7 +240,7 @@ describe('Common payment scenarios', () => {
 
     clickButtonContainingText('Collect bank account');
 
-    BasicPaymentScreen.authorizeACH();
+    authorizeACH();
 
     let alert = getElementByText('Requires Confirmation');
     alert.waitForDisplayed({
@@ -273,7 +276,7 @@ describe('Common payment scenarios', () => {
 
     clickButtonContainingText('Collect bank account');
 
-    BasicPaymentScreen.authorizeACH();
+    authorizeACH();
 
     let alert = getElementByText('Requires Confirmation');
     alert.waitForDisplayed({
@@ -300,3 +303,62 @@ describe('Common payment scenarios', () => {
     alert.dismissAlert();
   });
 });
+
+function authorizeACH() {
+  driver.waitUntil(() => getAllWebviewContexts().length > 0, {
+    timeout: 10000,
+    interval: 1000,
+  });
+  const webviewContexts = getAllWebviewContexts();
+  for (const context of webviewContexts) {
+    try {
+      driver.switchContext(context);
+      let button = $(`button*=Manually verify instead`);
+      driver.waitUntil(() => button.isDisplayed(), {
+        timeout: 10000,
+        interval: 1000,
+      });
+      if (button.isDisplayed()) {
+        button.click();
+        driver.pause(2000);
+
+        button = $(`span=Confirm account number`);
+        button.click();
+        button.sendKeys(['000123456789']);
+        driver.pause(500);
+
+        button = $(`span=Account number`);
+        button.click();
+        button.pressKeyCode;
+        button.sendKeys(['000123456789']);
+        driver.pause(500);
+
+        button = $(`span=Routing number`);
+        button.click();
+        button.sendKeys(['110000000']);
+        driver.pause(500);
+
+        button = $(`span=Confirm account number`);
+        button.click();
+
+        button = $(`button*=Continue`);
+        button.click();
+
+        button = $(`//button[@data-testid='done-button']`);
+        driver.waitUntil(() => button.isDisplayed(), {
+          timeout: 10000,
+          interval: 1000,
+        });
+        button.click();
+
+        break;
+      }
+    } catch (e) {
+      console.log(
+        `Unable to switch to ${context} context. This context may no longer exist.`
+      );
+    }
+  }
+  driver.switchContext(getNativeContext());
+  driver.pause(5000);
+}
