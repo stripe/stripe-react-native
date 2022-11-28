@@ -794,7 +794,7 @@ export const confirmPlatformPayPayment = async (
 };
 
 /**
- * iOS only, this is a no-op on Android. Dismiss the Apple Pay sheet if it is open.
+ * iOS only, this will always return false on Android. Dismisses the Apple Pay sheet if it is open.
  * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
  */
 export const dismissPlatformPay = async (): Promise<boolean> => {
@@ -879,5 +879,7 @@ export const updatePlatformPaySheet = async (params: {
  * app on iPad. For devices that don’t support Apple Pay, this method does nothing.
  */
 export const openPlatformPaySetup = async (): Promise<void> => {
-  await NativeStripeSdk.openApplePaySetup();
+  if (Platform.OS === 'ios') {
+    await NativeStripeSdk.openApplePaySetup();
+  }
 };
