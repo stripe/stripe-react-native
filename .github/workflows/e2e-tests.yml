@@ -56,7 +56,7 @@ jobs:
         with:
           api-level: 33
           arch: x86_64
-          profile: Pixel 3a
+          profile: pixel_3a
           target: google_apis
           force-avd-creation: false
           disable-animations: true
