@@ -204,6 +204,10 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
 
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
+
+    if (isEnabled === false) {
+      mCardWidget.postalCodeRequired = false
+    }
   }
 
   /**
