@@ -1,0 +1,7 @@
+-keepclassmembers class com.google.android.gms.tapandpay.** {
+  public *;
+}
+
+-keepclassmembers class com.stripe.android.pushProvisioning.** {
+  public *;
+}
