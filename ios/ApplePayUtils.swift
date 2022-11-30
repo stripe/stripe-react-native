@@ -287,65 +287,7 @@ class ApplePayUtils {
     
     internal class func mapToArrayOfPaymentNetworks(arrayOfStrings: [String]) throws -> [PKPaymentNetwork] {
         let validNetworks: [PKPaymentNetwork?] = try arrayOfStrings.map { networkString in
-            switch networkString {
-            case "amex": return PKPaymentNetwork.amex
-            case "barcode": if #available(iOS 14.0, *) {
-                return PKPaymentNetwork.barcode
-            } else {
-                return nil
-            }
-            case "cartesBancaires": return PKPaymentNetwork.cartesBancaires
-            case "chinaUnionPay": return PKPaymentNetwork.chinaUnionPay
-            case "dankort": if #available(iOS 15.1, *) {
-                return PKPaymentNetwork.dankort
-            } else {
-                return nil
-            }
-            case "discover": return PKPaymentNetwork.discover
-            case "eftpos": return PKPaymentNetwork.eftpos
-            case "elo": if #available(iOS 12.1.1, *) {
-                return PKPaymentNetwork.elo
-            } else {
-                return nil
-            }
-            case "girocard": if #available(iOS 14.0, *) {
-                return PKPaymentNetwork.girocard
-            } else {
-                return nil
-            }
-            case "idCredit": return PKPaymentNetwork.idCredit
-            case "interac": return PKPaymentNetwork.interac
-            case "JCB": return PKPaymentNetwork.JCB
-            case "mada": if #available(iOS 12.1.1, *) {
-                return PKPaymentNetwork.mada
-            } else {
-                return nil
-            }
-            case "maestro": return PKPaymentNetwork.maestro
-            case "masterCard": return PKPaymentNetwork.masterCard
-            case "mir": if #available(iOS 14.5, *) {
-                return PKPaymentNetwork.mir
-            } else {
-                return nil
-            }
-            case "nanaco": if #available(iOS 15.0, *) {
-                return PKPaymentNetwork.nanaco
-            } else {
-                return nil
-            }
-            case "privateLabel": return PKPaymentNetwork.privateLabel
-            case "quicPay": return PKPaymentNetwork.quicPay
-            case "suica": return PKPaymentNetwork.suica
-            case "visa": return PKPaymentNetwork.visa
-            case "vPay": return PKPaymentNetwork.vPay
-            case "waon": if #available(iOS 15.0, *) {
-                return PKPaymentNetwork.waon
-            } else {
-                return nil
-            }
-            default:
-                throw ApplePayUtilsError.invalidPaymentNetwork(networkString)
-            }
+            return PKPaymentNetwork.init(rawValue: networkString)
         }
         return validNetworks.compactMap { $0 }
     }
