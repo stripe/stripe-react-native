@@ -58,7 +58,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
+        return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {

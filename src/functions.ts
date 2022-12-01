@@ -839,7 +839,7 @@ export const createPlatformPayPaymentMethod = async (
 /**
  * iOS only. Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
  * @param params an object describing the Apple Pay configuration, with the following fields:
- * - summaryItems An array of payment summary items to display in the Apple Pay sheet.
+ * - cartItems An array of payment summary items to display in the Apple Pay sheet.
  * - shippingMethods An array of shipping methods to display in the Apple Pay sheet.
  * - errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
  *
@@ -847,7 +847,7 @@ export const createPlatformPayPaymentMethod = async (
  */
 export const updatePlatformPaySheet = async (params: {
   applePay: {
-    summaryItems: Array<PlatformPay.CartSummaryItem>;
+    cartItems: Array<PlatformPay.CartSummaryItem>;
     shippingMethods: Array<PlatformPay.ShippingMethod>;
     errors: Array<PlatformPay.ApplePaySheetError>;
   };
@@ -860,7 +860,7 @@ export const updatePlatformPaySheet = async (params: {
 
   try {
     await NativeStripeSdk.updatePlatformPaySheet(
-      params.applePay.summaryItems,
+      params.applePay.cartItems,
       params.applePay.shippingMethods,
       params.applePay.errors
     );

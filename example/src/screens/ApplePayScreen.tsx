@@ -63,7 +63,7 @@ export default function ApplePayScreen() {
       setCart(newCart);
       updatePlatformPaySheet({
         applePay: {
-          summaryItems: newCart,
+          cartItems: newCart,
           shippingMethods: [
             {
               identifier: 'free-express',
@@ -78,7 +78,7 @@ export default function ApplePayScreen() {
     } else {
       updatePlatformPaySheet({
         applePay: {
-          summaryItems: cart,
+          cartItems: cart,
           shippingMethods,
           errors: [
             {
@@ -289,13 +289,13 @@ export default function ApplePayScreen() {
           onShippingContactSelected={({ shippingContact }) => {
             console.log(JSON.stringify(shippingContact, null, 2));
             updatePlatformPaySheet({
-              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
             });
           }}
           onShippingMethodSelected={({ shippingMethod }) => {
             console.log(JSON.stringify(shippingMethod, null, 2));
             updatePlatformPaySheet({
-              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
             });
           }}
         />
@@ -311,13 +311,13 @@ export default function ApplePayScreen() {
           onShippingContactSelected={({ shippingContact }) => {
             console.log(JSON.stringify(shippingContact, null, 2));
             updatePlatformPaySheet({
-              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
             });
           }}
           onShippingMethodSelected={({ shippingMethod }) => {
             console.log(JSON.stringify(shippingMethod, null, 2));
             updatePlatformPaySheet({
-              applePay: { summaryItems: cart, shippingMethods, errors: [] },
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
             });
           }}
         />

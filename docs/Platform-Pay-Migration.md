@@ -21,10 +21,12 @@
 
 `updateApplePaySummaryItems` has been replaced with `updatePlatformPaySheet`.
 
-`updatePlatformPaySheet` accepts the same first parameter: your cart items. The second parameter allows you to set new shipping methods, and the third parameter allows you to set specific errors in the Apple Pay sheet so your customer can take action during checkout.
+`updatePlatformPaySheet` accepts an object with the `applePay` key. Under that key, you can pass an object containing your `summaryItems`, `shippingMethods`, and `errors` to be displayed in the Apple Pay sheet so your customer can take action during checkout.
 
 # `useGooglePay` and `useApplePay`
 
-`useGooglePay` and `useApplePay` have both been replaced by the `usePlatformPay` hook.
+`useGooglePay` and `useApplePay` have both been replaced by the `usePlatformPay` hook. The callbacks passed to the `useApplePay` hook are now set via props on the `<PlatformPayButton />` component.
 
-`usePlatformPay` allows you to take action when a customer inputs a coupon code (via the `onApplePayCouponCodeEntered` prop).
+# `<GooglePayButton />` and `<ApplePayButton />`
+
+The `<GooglePayButton />` and `<ApplePayButton />` components have been replaced with `<PlatformPayButton />`.

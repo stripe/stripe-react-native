@@ -82,7 +82,7 @@ export function usePlatformPay() {
   const _updatePlatformPaySheet = useCallback(
     async (params: {
       applePay: {
-        summaryItems: Array<PlatformPay.CartSummaryItem>;
+        cartItems: Array<PlatformPay.CartSummaryItem>;
         shippingMethods: Array<PlatformPay.ShippingMethod>;
         errors: Array<PlatformPay.ApplePaySheetError>;
       };
@@ -150,7 +150,7 @@ export function usePlatformPay() {
     dismissPlatformPay: _dismissPlatformPay,
     /**
      * Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
-     * @param summaryItems An array of payment summary items to display in the Apple Pay sheet.
+     * @param cartItems An array of payment summary items to display in the Apple Pay sheet.
      * @param shippingMethods An array of shipping methods to display in the Apple Pay sheet.
      * @param errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
      *

@@ -370,7 +370,7 @@ export function useStripe() {
   const _updatePlatformPaySheet = useCallback(
     async (params: {
       applePay: {
-        summaryItems: Array<PlatformPay.CartSummaryItem>;
+        cartItems: Array<PlatformPay.CartSummaryItem>;
         shippingMethods: Array<PlatformPay.ShippingMethod>;
         errors: Array<PlatformPay.ApplePaySheetError>;
       };
