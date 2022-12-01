@@ -9,6 +9,7 @@
 ## Fixes
 
 - Fixed an issue where builds would error with the message `'const' enums are not supported.` [see commit](https://github.com/stripe/stripe-react-native/commit/f882bfa588aa6d23a980b4b43d2cca660ca1dd2a)
+- Fixed an issue where the `canAddCardToWallet` method would sometimes wrongly return `false` with a `details.status` of `MISSING_CONFIGURATION` in production builds. [#1215](https://github.com/stripe/stripe-react-native/pull/1215)
 - Fixed an issue on Android where, for certain countries, the postal code would not be enabled but would still be required. [#1213](https://github.com/stripe/stripe-react-native/pull/1213)
 
 ## 0.21.0 - 2022-11-15
