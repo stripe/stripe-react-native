@@ -1119,7 +1119,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         PushProvisioningUtils.canAddCardToWallet(
             last4: last4,
             primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
-            testEnv: params["testEnv"] as? Bool ?? false)
+            testEnv: params["testEnv"] as? Bool ?? false,
+            hasPairedAppleWatch: params["hasPairedAppleWatch"]  as? Bool ?? false)
         { canAddCard, status in
             resolve([
                 "canAddCard": canAddCard,

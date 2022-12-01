@@ -13,6 +13,7 @@ internal class PushProvisioningUtils {
         last4: String,
         primaryAccountIdentifier: String,
         testEnv: Bool,
+        hasPairedAppleWatch: Bool,
         completion: @escaping (_ canAddCard: Bool, _ status: AddCardToWalletStatus?) -> Void
     ) {
         if (!PKAddPassesViewController.canAddPasses()) {
@@ -26,15 +27,17 @@ internal class PushProvisioningUtils {
         if (!canAddCard) {
             completion(canAddCard, AddCardToWalletStatus.MISSING_CONFIGURATION)
         } else {
-            PaymentPassFinder.init(last4: last4) {canAddCardToADevice, passLocations in
+            PaymentPassFinder.findPassWithLast4(last4: last4, hasPairedAppleWatch: hasPairedAppleWatch) { canAddCardToADevice, passLocations in
                 var status: AddCardToWalletStatus? = nil
                 if (!canAddCardToADevice) {
                     status = AddCardToWalletStatus.CARD_ALREADY_EXISTS
-                } else if (passLocations.count > 0) {
-                    status = AddCardToWalletStatus.CARD_EXISTS_ON_SOME_DEVICES
+                } else if (passLocations.contains(.PAIRED_DEVICE)) {
+                    status = AddCardToWalletStatus.CARD_EXISTS_ON_PAIRED_DEVICE
+                } else if (passLocations.contains(.CURRENT_DEVICE)) {
+                    status = AddCardToWalletStatus.CARD_EXISTS_ON_CURRENT_DEVICE
                 }
                 completion(canAddCardToADevice, status)
-            }.findPassWithLast4()
+            }
         }
     }
     
@@ -78,6 +81,7 @@ internal class PushProvisioningUtils {
         case UNSUPPORTED_DEVICE
         case MISSING_CONFIGURATION
         case CARD_ALREADY_EXISTS
-        case CARD_EXISTS_ON_SOME_DEVICES
+        case CARD_EXISTS_ON_CURRENT_DEVICE
+        case CARD_EXISTS_ON_PAIRED_DEVICE
     }
 }

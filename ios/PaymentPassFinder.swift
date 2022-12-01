@@ -6,50 +6,14 @@
 //
 
 import Foundation
-import WatchConnectivity
 
 internal class PaymentPassFinder: NSObject {
     enum PassLocation: String {
         case CURRENT_DEVICE
         case PAIRED_DEVICE
     }
-    private var last4: String
-    private var findPassOnWatchCompletion: ((Bool, [PassLocation]) -> Void)
     
-    init(last4: String, completion: @escaping ((Bool, [PassLocation]) -> Void)) {
-        self.last4 = last4
-        self.findPassOnWatchCompletion = completion
-        super.init()
-    }
-    
-    func findPassWithLast4() {
-    
-        
-        if WCSession.isSupported() { // check if the device support to handle an Apple Watch
-            let session = WCSession.default
-            session.delegate = self
-            session.activate() // activate the session
-
-            if session.isPaired { // Check if the iPhone is paired with the Apple Watch
-                    // Do stuff
-            }
-        }
-        
-        
-    }
-}
-
-extension PaymentPassFinder: WCSessionDelegate {
-
-    func sessionDidBecomeInactive(_ session: WCSession) {}
-
-    func sessionDidDeactivate(_ session: WCSession) {}
-
-    func session(
-        _ session: WCSession,
-        activationDidCompleteWith activationState: WCSessionActivationState,
-        error: Error?
-    ) {
+    class func findPassWithLast4(last4: String, hasPairedAppleWatch: Bool, completion: @escaping ((Bool, [PassLocation]) -> Void)) {
         let existingPassOnDevice: PKPass? = {
             if #available(iOS 13.4, *) {
                 let allpasses = PKPassLibrary().passes()
@@ -63,6 +27,20 @@ extension PaymentPassFinder: WCSessionDelegate {
             }
         }()
         
+        var passLocations: [PassLocation] = []
+        if (existingPassOnDevice != nil) {
+            passLocations.append(.CURRENT_DEVICE)
+        }
+        
+        // We're done here if the user does not have a paired Apple Watch
+        if (!hasPairedAppleWatch) {
+            completion(
+                passLocations.count < 1,
+                passLocations
+            )
+            return
+        }
+        
         let existingPassOnPairedDevices: PKPass? = {
             if #available(iOS 13.4, *) {
                 return PKPassLibrary().remoteSecureElementPasses
@@ -73,25 +51,14 @@ extension PaymentPassFinder: WCSessionDelegate {
             }
         }()
         
-        var passLocations: [PassLocation] = []
-        if (existingPassOnDevice != nil) {
-            passLocations.append(.CURRENT_DEVICE)
-        }
+        
         if (existingPassOnPairedDevices != nil) {
             passLocations.append(.PAIRED_DEVICE)
         }
         
-        if activationState == .activated && session.isPaired {
-            findPassOnWatchCompletion(
-                passLocations.count < 2,
-                passLocations
-            )
-        } else {
-            findPassOnWatchCompletion(
-                passLocations.count < 1,
-                passLocations
-            )
-        }
+        completion(
+            passLocations.count < 2,
+            passLocations
+        )
     }
-
 }

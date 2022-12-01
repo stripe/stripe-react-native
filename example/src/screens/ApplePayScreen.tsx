@@ -117,6 +117,7 @@ export default function ApplePayScreen() {
       primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
       testEnv: false,
+      hasPairedAppleWatch: true,
     });
 
     setCanAddToWalletResponse(result);
