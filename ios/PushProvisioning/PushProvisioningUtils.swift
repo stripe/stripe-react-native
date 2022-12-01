@@ -26,7 +26,7 @@ internal class PushProvisioningUtils {
         if (!canAddCard) {
             completion(canAddCard, AddCardToWalletStatus.MISSING_CONFIGURATION)
         } else {
-            PaymentPassFinder.findPassWithLast4(last4: last4) {canAddCardToADevice, passLocations in
+            PaymentPassFinder.init(last4: last4) {canAddCardToADevice, passLocations in
                 var status: AddCardToWalletStatus? = nil
                 if (!canAddCardToADevice) {
                     status = AddCardToWalletStatus.CARD_ALREADY_EXISTS
@@ -34,7 +34,7 @@ internal class PushProvisioningUtils {
                     status = AddCardToWalletStatus.CARD_EXISTS_ON_SOME_DEVICES
                 }
                 completion(canAddCardToADevice, status)
-            }
+            }.findPassWithLast4()
         }
     }
     

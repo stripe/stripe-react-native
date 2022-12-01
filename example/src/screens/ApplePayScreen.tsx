@@ -13,9 +13,10 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { useEffect } from 'react';
 
-const TEST_CARD_ID = 'ic_1KnngYF05jLespP6nGoB1oXn';
+const TEST_CARD_ID = 'ic_1KnTM2F05jLespP6wNLZQ1mu';
 
 export default function ApplePayScreen() {
+  const [canAddToWalletResponse, setCanAddToWalletResponse] = useState({});
   const [ephemeralKey, setEphemeralKey] = useState({});
   const [showAddToWalletButton, setShowAddToWalletButton] = useState(true);
   const [cardDetails, setCardDetails] = useState<any>(null);
@@ -112,12 +113,15 @@ export default function ApplePayScreen() {
     const card = await response.json();
     setCardDetails(card);
 
-    const { canAddCard, details, error } = await canAddCardToWallet({
+    const result = await canAddCardToWallet({
       primaryAccountIdentifier: card?.wallet?.primary_account_identifier,
       cardLastFour: card.last4,
-      testEnv: true,
+      testEnv: false,
     });
 
+    setCanAddToWalletResponse(result);
+
+    const { canAddCard, details, error } = result;
     if (error) {
       Alert.alert(error.code, error.message);
     } else {
@@ -276,7 +280,7 @@ export default function ApplePayScreen() {
   return (
     <PaymentScreen>
       <View>
-        <Text>{JSON.stringify(cart, null, 2)}</Text>
+        <Text>{JSON.stringify(canAddToWalletResponse, null, 2)}</Text>
       </View>
 
       <View>
@@ -326,7 +330,6 @@ export default function ApplePayScreen() {
           <AddToWalletButton
             androidAssetSource={{}}
             testEnv={true}
-            style={styles.payButton}
             iOSButtonStyle="onLightBackground"
             cardDetails={{
               name: cardDetails?.cardholder?.name,
