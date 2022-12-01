@@ -16,9 +16,6 @@ internal class PaymentPassFinder: NSObject {
     class func findPassWithLast4(last4: String, hasPairedAppleWatch: Bool, completion: @escaping ((Bool, [PassLocation]) -> Void)) {
         let existingPassOnDevice: PKPass? = {
             if #available(iOS 13.4, *) {
-                let allpasses = PKPassLibrary().passes()
-                print(allpasses)
-                
                 return PKPassLibrary().passes(of: PKPassType.secureElement)
                     .first(where: { $0.secureElementPass?.primaryAccountNumberSuffix == last4 && $0.secureElementPass?.passActivationState != .deactivated && !$0.isRemotePass })
             } else {
