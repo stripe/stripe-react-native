@@ -62,6 +62,10 @@ function authorizeBankAccount() {
     try {
       driver.switchContext(context);
       let button = $(`button*=Enter account details manually instead`);
+      driver.waitUntil(() => button.isDisplayed(), {
+        timeout: 10000,
+        interval: 1000,
+      });
       if (button.isDisplayed()) {
         button.click();
         driver.pause(2000);

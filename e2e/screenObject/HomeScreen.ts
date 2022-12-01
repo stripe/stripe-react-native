@@ -49,7 +49,7 @@ class HomeScreen {
           `android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().text("${screen}"))`
         )
       : $(`~${screen}`);
-    expect(button).toBeDisplayed();
+    button.waitForDisplayed({ timeout: 10000, interval: 500 });
     button.click();
   }
 }

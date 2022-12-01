@@ -20,6 +20,35 @@ RCT_EXTERN_METHOD(
                   rejecter: (RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
+                  isPlatformPaySupported:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+                  createPlatformPayPaymentMethod:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+                  confirmPlatformPay:(NSString *)clientSecret
+                  params:(NSDictionary *)params
+                  isPaymentIntent:(BOOL)isPaymentIntent
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  dismissPlatformPay: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+                  updatePlatformPaySheet:(NSArray *)summaryItems
+                  shippingMethods:(NSArray *)summaryItems
+                  errors: (NSArray *)errors
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
                   presentApplePay:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)

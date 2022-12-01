@@ -16,11 +16,20 @@ export type AddressFields =
   | 'subLocality';
 
 export interface ShippingMethod {
+  /** A short, localized description. */
   label: string;
+  /** The cost associated with this shipping option. */
   amount: string;
+  /** When creating items for estimates or charges whose final value is not yet known, set this to true. */
   isPending?: boolean;
+  /** A unique identifier for the shipping method. */
   identifier: string;
+  /** A user-readable description of the shipping method. For example “Ships in 24 hours.” Don't repeat the content of the 'label' property. */
   detail?: string;
+  /** The unix timestamp of the start date of the expected range of delivery or shipping dates for a package, or the time range when an item is available for pickup. Measured in seconds. */
+  startDate?: number;
+  /** The unix timestamp of the end date of the expected range of delivery or shipping dates for a package, or the time range when an item is available for pickup. Measured in seconds. */
+  endDate?: number;
 }
 
 interface PostalAddress {

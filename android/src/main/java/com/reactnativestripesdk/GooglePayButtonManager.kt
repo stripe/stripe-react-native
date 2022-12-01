@@ -17,6 +17,11 @@ class GooglePayButtonManager : SimpleViewManager<GooglePayButtonView?>() {
 
   @ReactProp(name = "buttonType")
   fun buttonType(view: GooglePayButtonView, buttonType: String) {
+    view.setButtonType(buttonType)
+  }
+
+  @ReactProp(name = "type")
+  fun type(view: GooglePayButtonView, buttonType: Int) {
     view.setType(buttonType)
   }
 

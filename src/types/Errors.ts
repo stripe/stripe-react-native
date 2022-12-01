@@ -89,3 +89,9 @@ export enum AddressSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
 }
+
+export enum PlatformPayError {
+  Canceled = 'Canceled',
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}

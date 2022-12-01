@@ -5,7 +5,7 @@ export interface NativeProps {
   type?: number;
   buttonStyle?: number;
   borderRadius?: number;
-  onPressAction(): void;
+  onPressAction?(): void;
 }
 
 export type Type =
@@ -24,6 +24,7 @@ export type Type =
   | 'rent'
   | 'support'
   | 'contribute'
-  | 'tip';
+  | 'tip'
+  | 'continue';
 
 export type Style = 'white' | 'whiteOutline' | 'black' | 'automatic';

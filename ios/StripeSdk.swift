@@ -4,7 +4,7 @@ import StripePaymentSheet
 import StripeFinancialConnections
 
 @objc(StripeSdk)
-class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
+class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
     public var cardFieldView: CardFieldView? = nil
     public var cardFormView: CardFormView? = nil
 
@@ -14,19 +14,49 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     private var paymentSheetFlowController: PaymentSheet.FlowController?
 
     var urlScheme: String? = nil
-
-    var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
-    var applePayRequestResolver: RCTPromiseResolveBlock? = nil
-    var applePayRequestRejecter: RCTPromiseRejectBlock? = nil
-    var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
-    var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
 
+    var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
+    var deprecatedApplePayRequestResolver: RCTPromiseResolveBlock? = nil
+    var deprecatedApplePayRequestRejecter: RCTPromiseRejectBlock? = nil
+    var deprecatedApplePayCompletionRejecter: RCTPromiseRejectBlock? = nil
+    var deprecatedConfirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
+    
+    var confirmApplePayResolver: RCTPromiseResolveBlock? = nil
+    var confirmApplePayPaymentClientSecret: String? = nil
+    var confirmApplePaySetupClientSecret: String? = nil
+    
+    var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
+    var createPlatformPayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
+    var applePaymentMethodFlowCanBeCanceled = false
+    
     var confirmPaymentClientSecret: String? = nil
 
-    var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
-    var shippingContactUpdateHandler: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
-
+    var shippingMethodUpdateCompletion: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
+    var shippingContactUpdateCompletion: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
+    @available(iOS 15.0, *)
+    var couponCodeUpdateCompletion: ((PKPaymentRequestCouponCodeUpdate) -> Void)? {
+        get { _couponCodeUpdateCompletion as? ((PKPaymentRequestCouponCodeUpdate) -> Void) }
+        set { _couponCodeUpdateCompletion = newValue }
+    }
+    private var _couponCodeUpdateCompletion: Any? = nil
+    var shippingMethodUpdateJSCallback: RCTDirectEventBlock? = nil
+    var shippingContactUpdateJSCallback: RCTDirectEventBlock? = nil
+    var couponCodeEnteredJSCallback: RCTDirectEventBlock? = nil
+    var applePaySummaryItems: [PKPaymentSummaryItem] = []
+    var applePayShippingMethods: [PKShippingMethod] = []
+    var applePayShippingAddressErrors: [Error]? = nil
+    var applePayCouponCodeErrors: [Error]? = nil
+    
+    var hasLegacyApplePayListeners = false
+    override func startObserving() {
+        hasLegacyApplePayListeners = true
+    }
+    override func stopObserving() {
+        hasLegacyApplePayListeners = false
+    }
+    
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
@@ -364,9 +394,56 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
     }
 
+    @objc(updatePlatformPaySheet:shippingMethods:errors:resolver:rejecter:)
+    func updatePlatformPaySheet(summaryItems: NSArray,
+                             shippingMethods: NSArray,
+                             errors: [NSDictionary],
+                             resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock)
+    {
+        let couponUpdateHandlerIsNil: Bool = {
+            if #available(iOS 15.0, *), self.couponCodeUpdateCompletion == nil {
+                return true
+            }
+            return false
+        }()
+        
+        if (shippingMethodUpdateCompletion == nil && shippingContactUpdateCompletion == nil && couponUpdateHandlerIsNil) {
+            resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onShippingContactSelected, onShippingMethodSelected, or onCouponCodeEntered callbacks are triggered"))
+            return
+        }
+        
+        do {
+            applePaySummaryItems = try ApplePayUtils.buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+        
+        applePayShippingMethods = ApplePayUtils.buildShippingMethods(items: shippingMethods as? [[String : Any]])
+        
+        do {
+            (applePayShippingAddressErrors, applePayCouponCodeErrors) = try ApplePayUtils.buildApplePayErrors(errorItems: errors)
+        } catch {
+            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
+            return
+        }
+        
+
+        shippingMethodUpdateCompletion?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: applePaySummaryItems))
+        shippingContactUpdateCompletion?(PKPaymentRequestShippingContactUpdate.init(errors: applePayShippingAddressErrors, paymentSummaryItems: applePaySummaryItems, shippingMethods: applePayShippingMethods))
+        if #available(iOS 15.0, *) {
+            couponCodeUpdateCompletion?(PKPaymentRequestCouponCodeUpdate.init(errors: applePayCouponCodeErrors, paymentSummaryItems: applePaySummaryItems, shippingMethods: applePayShippingMethods))
+            self.couponCodeUpdateCompletion = nil
+        }
+        self.shippingMethodUpdateCompletion = nil
+        self.shippingContactUpdateCompletion = nil
+        resolve([])
+    }
+    
     @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
     func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
+        if (shippingMethodUpdateCompletion == nil && shippingContactUpdateCompletion == nil) {
             resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
             return
         }
@@ -386,86 +463,24 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             shippingAddressErrors.append(PKPaymentRequest.paymentShippingAddressInvalidError(withKey: field, localizedDescription: message))
         }
 
-        shippingMethodUpdateHandler?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
-        shippingContactUpdateHandler?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
-        self.shippingMethodUpdateHandler = nil
-        self.shippingContactUpdateHandler = nil
+        shippingMethodUpdateCompletion?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
+        shippingContactUpdateCompletion?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
+        self.shippingMethodUpdateCompletion = nil
+        self.shippingContactUpdateCompletion = nil
         resolve([])
     }
 
     @objc(openApplePaySetup:rejecter:)
     func openApplePaySetup(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
-        let library = PKPassLibrary.init()
-        if (library.responds(to: #selector(PKPassLibrary.openPaymentSetup))) {
-            library.openPaymentSetup()
-            resolve([])
-        } else {
-            resolve(Errors.createError(ErrorType.Failed, "Cannot open payment setup"))
-        }
-    }
-
-
-    func applePayContext(_ context: STPApplePayContext, didSelect shippingMethod: PKShippingMethod, handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void) {
-        self.shippingMethodUpdateHandler = handler
-        sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
-    }
-
-    func applePayContext(_ context: STPApplePayContext, didSelectShippingContact contact: PKContact, handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void) {
-        self.shippingContactUpdateHandler = handler
-        sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
-    }
-
-    func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
-        self.applePayCompletionCallback = completion
-
-        let address = paymentMethod.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
-        if (address?.indices.contains(0) == true) {
-            paymentMethod.billingDetails?.address?.line1 = String(address?[0] ?? "")
-        }
-        if (address?.indices.contains(1) == true) {
-            paymentMethod.billingDetails?.address?.line2 = String(address?[1] ?? "")
-        }
-
-        let method = Mappers.mapFromPaymentMethod(paymentMethod)
-        self.applePayRequestResolver?(Mappers.createResult("paymentMethod", method))
-        self.applePayRequestRejecter = nil
+        PKPassLibrary.init().openPaymentSetup()
+        resolve([])
     }
 
     @objc(confirmApplePayPayment:resolver:rejecter:)
     func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.applePayCompletionRejecter = reject
-        self.confirmApplePayPaymentResolver = resolve
+        self.deprecatedApplePayCompletionRejecter = reject
+        self.deprecatedConfirmApplePayPaymentResolver = resolve
         self.applePayCompletionCallback?(clientSecret, nil)
-    }
-
-    func applePayContext(_ context: STPApplePayContext, didCompleteWith status: STPPaymentStatus, error: Error?) {
-        switch status {
-        case .success:
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
-            confirmApplePayPaymentResolver?([])
-            break
-        case .error:
-            let message = "Payment not completed"
-            applePayCompletionRejecter?(ErrorType.Failed, message, nil)
-            applePayRequestRejecter?(ErrorType.Failed, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
-            break
-        case .userCancellation:
-            let message = "The payment has been canceled"
-            applePayCompletionRejecter?(ErrorType.Canceled, message, nil)
-            applePayRequestRejecter?(ErrorType.Canceled, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
-            break
-        @unknown default:
-            let message = "Payment not completed"
-            applePayCompletionRejecter?(ErrorType.Unknown, message, nil)
-            applePayRequestRejecter?(ErrorType.Unknown, message, nil)
-            applePayCompletionRejecter = nil
-            applePayRequestRejecter = nil
-        }
     }
 
     @objc(isApplePaySupported:rejecter:)
@@ -496,65 +511,110 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func presentApplePay(params: NSDictionary,
                          resolver resolve: @escaping RCTPromiseResolveBlock,
                          rejecter reject: @escaping RCTPromiseRejectBlock) {
-        if (merchantIdentifier == nil) {
-            reject(ErrorType.Failed, "You must provide merchantIdentifier", nil)
+        self.deprecatedApplePayRequestResolver = resolve
+        self.deprecatedApplePayRequestRejecter = reject
+        
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: params)
+        guard let paymentRequest = paymentRequest else {
+            resolve(error)
             return
         }
-
-        if (params["jcbEnabled"] as? Bool == true) {
-            StripeAPI.additionalEnabledApplePayNetworks = [.JCB]
-        }
-
-        guard let summaryItems = params["cartItems"] as? NSArray else {
-            reject(ErrorType.Failed, "You must provide the items for purchase", nil)
-            return
-        }
-        guard let country = params["country"] as? String else {
-            reject(ErrorType.Failed, "You must provide the country", nil)
-            return
-        }
-        guard let currency = params["currency"] as? String else {
-            reject(ErrorType.Failed, "You must provide the payment currency", nil)
-            return
-        }
-
-        self.applePayRequestResolver = resolve
-        self.applePayRequestRejecter = reject
-
-        let merchantIdentifier = self.merchantIdentifier ?? ""
-        let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
-
-        let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
-        let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
-        let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
-
-        paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
-            Mappers.mapToPKContactField(field: $0 as! String)
-        })
-
-        paymentRequest.requiredBillingContactFields = Set(requiredBillingContactFields.map {
-            Mappers.mapToPKContactField(field: $0 as! String)
-        })
-
-        paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
-
-        do {
-            paymentRequest.paymentSummaryItems = try ApplePayUtils
-                .buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
-        } catch  {
-            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-            return
-        }
-
+        
         if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
             DispatchQueue.main.async {
                 applePayContext.presentApplePay(completion: nil)
             }
         } else {
-            reject(ErrorType.Failed, "Payment not completed", nil)
+            resolve(Errors.createError(ErrorType.Failed, "Payment not completed"))
         }
     }
+    
+    @objc(isPlatformPaySupported:resolver:rejecter:)
+    func isPlatformPaySupported(params: NSDictionary,
+                                          resolver resolve: @escaping RCTPromiseResolveBlock,
+                                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve(StripeAPI.deviceSupportsApplePay())
+    }
+    
+    @objc(createPlatformPayPaymentMethod:resolver:rejecter:)
+    func createPlatformPayPaymentMethod(params: NSDictionary,
+                                          resolver resolve: @escaping RCTPromiseResolveBlock,
+                                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let applePayPatams = params["applePay"] as? NSDictionary else {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
+            return
+        }
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayPatams)
+        guard let paymentRequest = paymentRequest else {
+            resolve(error)
+            return
+        }
+        
+        self.applePaySummaryItems = paymentRequest.paymentSummaryItems
+        self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
+        self.applePayShippingAddressErrors = nil
+        self.applePayCouponCodeErrors = nil
+        applePaymentMethodFlowCanBeCanceled = true
+        createPlatformPayPaymentMethodResolver = resolve
+        self.applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)
+        if let applePaymentAuthorizationController = self.applePaymentAuthorizationController {
+            applePaymentAuthorizationController.delegate = self
+            DispatchQueue.main.async {
+                let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                vc.present(
+                    applePaymentAuthorizationController,
+                    animated: true,
+                    completion: nil
+                )
+            }
+        } else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid in-app payment request. Search the iOS logs for `NSUnderlyingError` to get more information."))
+        }
+    }
+    
+    @objc(dismissPlatformPay:rejecter:)
+    func dismissPlatformPay(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let didDismiss = maybeDismissApplePay()
+        resolve(didDismiss)
+    }
+    
+    @objc(confirmPlatformPay:params:isPaymentIntent:resolver:rejecter:)
+    func confirmPlatformPay(
+        clientSecret: String?,
+        params: NSDictionary,
+        isPaymentIntent: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard let applePayPatams = params["applePay"] as? NSDictionary else {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
+            return
+        }
+        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayPatams)
+        guard let paymentRequest = paymentRequest else {
+            resolve(error)
+            return
+        }
 
+        self.applePaySummaryItems = paymentRequest.paymentSummaryItems
+        self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
+        self.applePayShippingAddressErrors = nil
+        self.applePayCouponCodeErrors = nil
+        self.confirmApplePayResolver = resolve
+        if (isPaymentIntent) {
+            self.confirmApplePayPaymentClientSecret = clientSecret
+        } else {
+            self.confirmApplePaySetupClientSecret = clientSecret
+        }
+        if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
+            DispatchQueue.main.async {
+                applePayContext.presentApplePay(completion: nil)
+            }
+        } else {
+            resolve(Errors.createError(ErrorType.Failed, "Payment not completed"))
+        }
+    }
+    
     func configure3dSecure(_ params: NSDictionary) {
         let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
         let uiCustomization = Mappers.mapUICustomization(params)

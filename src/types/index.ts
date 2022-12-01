@@ -26,6 +26,7 @@ import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
 import * as FinancialConnections from './FinancialConnections';
+import * as PlatformPay from './PlatformPay';
 
 export {
   ApplePay,
@@ -41,8 +42,10 @@ export {
   CardFormView,
   Token,
   FinancialConnections,
+  PlatformPay,
 };
 
+export * from './PushProvisioning';
 export * from './Errors';
 export { Address, BillingDetails, AddressDetails } from './Common';
 
@@ -264,58 +267,4 @@ export type CollectBankAccountForSetupResult =
   | {
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
-    };
-
-export type GooglePayCardToken = {
-  id: string;
-  cardLastFour: string;
-  network: number;
-  serviceProvider: number;
-  issuer: string;
-  status:
-    | 'TOKEN_STATE_NEEDS_IDENTITY_VERIFICATION'
-    | 'TOKEN_STATE_PENDING'
-    | 'TOKEN_STATE_SUSPENDED'
-    | 'TOKEN_STATE_ACTIVE'
-    | 'TOKEN_STATE_FELICA_PENDING_PROVISIONING'
-    | 'TOKEN_STATE_UNTOKENIZED';
-};
-
-export type IsCardInWalletResult =
-  | {
-      isInWallet: boolean;
-      token?: GooglePayCardToken;
-      error?: undefined;
-    }
-  | {
-      isInWallet?: undefined;
-      token?: undefined;
-      error: StripeError<GooglePayError>;
-    };
-
-export type CanAddCardToWalletParams = {
-  /** The `primary_account_identifier` value from the issued card. Can be an empty string. */
-  primaryAccountIdentifier: string | null;
-  /** Last 4 digits of the card number. */
-  cardLastFour: string;
-  /** iOS only. Set this to `true` until shipping through TestFlight || App Store. If true, you must be using live cards, and have the proper iOS entitlement set up. See https://stripe.com/docs/issuing/cards/digital-wallets?platform=react-native#requesting-access-for-ios */
-  testEnv?: boolean;
-};
-
-export type CanAddCardToWalletResult =
-  | {
-      canAddCard: boolean;
-      details?: {
-        token?: GooglePayCardToken;
-        status?:
-          | 'MISSING_CONFIGURATION'
-          | 'UNSUPPORTED_DEVICE'
-          | 'CARD_ALREADY_EXISTS';
-      };
-      error?: undefined;
-    }
-  | {
-      canAddCard?: undefined;
-      details?: undefined;
-      error: StripeError<GooglePayError>;
     };

@@ -2,6 +2,7 @@
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
+export { usePlatformPay } from './hooks/usePlatformPay';
 export { useApplePay, Props as UseApplePayProps } from './hooks/useApplePay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useGooglePay } from './hooks/useGooglePay';
@@ -39,6 +40,11 @@ export {
   AddressSheet,
   Props as AddressSheetProps,
 } from './components/AddressSheet';
+export {
+  PlatformPayButton,
+  Props as PlatformPayButtonProps,
+} from './components/PlatformPayButton';
+
 export * from './functions';
 
 export * from './types/index';

@@ -39,10 +39,11 @@ export type InitParams = {
 } & IsSupportedParams;
 
 export type IsSupportedParams = {
+  /** Set to true to run in a test environment with relaxed application / merchant requirements. This environment is suggested for early development and for easily testing SDK. Defaults to false. */
   testEnv?: boolean;
   /**
    * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
-   * has an existing payment method.
+   * has an existing payment method. Defaults to false.
    */
   existingPaymentMethodRequired?: boolean;
 };

@@ -32,6 +32,8 @@ import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  PlatformPay,
+  PlatformPayError,
 } from '../types';
 import { useCallback, useEffect, useState } from 'react';
 import { isiOS } from '../helpers';
@@ -65,6 +67,13 @@ import {
   collectBankAccountToken,
   collectFinancialConnectionsAccounts,
   resetPaymentSheetCustomer,
+  isPlatformPaySupported,
+  confirmPlatformPaySetupIntent,
+  confirmPlatformPayPayment,
+  dismissPlatformPay,
+  createPlatformPayPaymentMethod,
+  updatePlatformPaySheet,
+  openPlatformPaySetup,
 } from '../functions';
 
 /**
@@ -316,6 +325,67 @@ export function useStripe() {
     return resetPaymentSheetCustomer();
   }, []);
 
+  const _isPlatformPaySupported = useCallback(
+    async (params?: {
+      googlePay?: GooglePay.IsSupportedParams;
+    }): Promise<boolean> => {
+      return isPlatformPaySupported(params);
+    },
+    []
+  );
+
+  const _confirmPlatformPaySetupIntent = useCallback(
+    async (
+      clientSecret: string,
+      params: PlatformPay.ConfirmParams
+    ): Promise<PlatformPay.ConfirmSetupIntentResult> => {
+      return confirmPlatformPaySetupIntent(clientSecret, params);
+    },
+    []
+  );
+
+  const _confirmPlatformPayPayment = useCallback(
+    async (
+      clientSecret: string,
+      params: PlatformPay.ConfirmParams
+    ): Promise<PlatformPay.ConfirmPaymentResult> => {
+      return confirmPlatformPayPayment(clientSecret, params);
+    },
+    []
+  );
+
+  const _dismissPlatformPay = useCallback(async (): Promise<boolean> => {
+    return dismissPlatformPay();
+  }, []);
+
+  const _createPlatformPayPaymentMethod = useCallback(
+    async (
+      params: PlatformPay.PaymentMethodParams
+    ): Promise<PlatformPay.PaymentMethodResult> => {
+      return createPlatformPayPaymentMethod(params);
+    },
+    []
+  );
+
+  const _updatePlatformPaySheet = useCallback(
+    async (params: {
+      applePay: {
+        cartItems: Array<PlatformPay.CartSummaryItem>;
+        shippingMethods: Array<PlatformPay.ShippingMethod>;
+        errors: Array<PlatformPay.ApplePaySheetError>;
+      };
+    }): Promise<{
+      error?: StripeError<PlatformPayError>;
+    }> => {
+      return updatePlatformPaySheet(params);
+    },
+    []
+  );
+
+  const _openPlatformPaySetup = useCallback(async (): Promise<void> => {
+    return openPlatformPaySetup();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -351,5 +421,12 @@ export function useStripe() {
      * is also cleared during logout.
      */
     resetPaymentSheetCustomer: _resetPaymentSheetCustomer,
+    isPlatformPaySupported: _isPlatformPaySupported,
+    confirmPlatformPaySetupIntent: _confirmPlatformPaySetupIntent,
+    confirmPlatformPayPayment: _confirmPlatformPayPayment,
+    dismissPlatformPay: _dismissPlatformPay,
+    createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
+    updatePlatformPaySheet: _updatePlatformPaySheet,
+    openPlatformPaySetup: _openPlatformPaySetup,
   };
 }

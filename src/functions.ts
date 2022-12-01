@@ -5,6 +5,7 @@ import {
   ApplePay,
   ApplePayError,
   ApplePayResult,
+  PlatformPayError,
   ConfirmPaymentResult,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
@@ -36,6 +37,7 @@ import {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  PlatformPay,
 } from './types';
 import { Platform } from 'react-native';
 
@@ -174,10 +176,12 @@ export const confirmPayment = async (
   }
 };
 
+/** @deprecated Use `isPlatformPaySupported` instead. */
 export const isApplePaySupported = async (): Promise<boolean> => {
   return isiOS && (await NativeStripeSdk.isApplePaySupported());
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const presentApplePay = async (
   params: ApplePay.PresentParams
 ): Promise<ApplePayResult> => {
@@ -207,6 +211,7 @@ export const presentApplePay = async (
   }
 };
 
+/** @deprecated Use `updatePlatformPaySheet` instead. */
 export const updateApplePaySummaryItems = async (
   summaryItems: ApplePay.CartSummaryItem[],
   errorAddressFields: Array<{
@@ -237,6 +242,7 @@ export const updateApplePaySummaryItems = async (
   }
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent` or `confirmPlatformPayPayment` instead. */
 export const confirmApplePayPayment = async (
   clientSecret: string
 ): Promise<{ error?: StripeError<ApplePayError> }> => {
@@ -464,6 +470,7 @@ export const resetPaymentSheetCustomer = async (): Promise<null> => {
   return await NativeStripeSdk.resetPaymentSheetCustomer();
 };
 
+/** @deprecated Use `isPlatformPaySupported` instead. */
 export const isGooglePaySupported = async (
   params?: GooglePay.IsSupportedParams
 ): Promise<boolean> => {
@@ -472,6 +479,7 @@ export const isGooglePaySupported = async (
   );
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const initGooglePay = async (
   params: GooglePay.InitParams
 ): Promise<GooglePayInitResult> => {
@@ -490,6 +498,7 @@ export const initGooglePay = async (
   }
 };
 
+/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
 export const presentGooglePay = async (
   params: GooglePay.PresentParams
 ): Promise<PayWithGooglePayResult> => {
@@ -508,6 +517,7 @@ export const presentGooglePay = async (
   }
 };
 
+/** @deprecated Use `createPlatformPayPaymentMethod` instead. */
 export const createGooglePayPaymentMethod = async (
   params: GooglePay.CreatePaymentMethodParams
 ): Promise<CreateGooglePayPaymentMethodResult> => {
@@ -529,6 +539,7 @@ export const createGooglePayPaymentMethod = async (
   }
 };
 
+/** @deprecated Use `openNativePaySetup` instead. */
 export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
   try {
     const { error } = await NativeStripeSdk.openApplePaySetup();
@@ -654,6 +665,12 @@ export const collectFinancialConnectionsAccounts = async (
   }
 };
 
+/**
+ * Check if the app & device support adding this card to the native wallet.
+ * @param params An object containing fields for `primaryAccountIdentifier`, `cardLastFour`, and `testEnv`.
+ *
+ * @returns A promise resolving to an object of type CanAddCardToWalletResult. Check the `canAddCard` field, if it's true, you should show the `<AddToWalletButton />`
+ */
 export const canAddCardToWallet = async (
   params: CanAddCardToWalletParams
 ): Promise<CanAddCardToWalletResult> => {
@@ -677,6 +694,7 @@ export const canAddCardToWallet = async (
   }
 };
 
+/** @deprecated Please use `canAddCardToWallet` instead. */
 export const isCardInWallet = async (params: {
   cardLastFour: string;
 }): Promise<IsCardInWalletResult> => {
@@ -702,3 +720,166 @@ export const isCardInWallet = async (params: {
 };
 
 export const Constants = NativeStripeSdk.getConstants();
+
+/**
+ * Check if the relevant native wallet (Apple Pay on iOS, Google Pay on Android) is supported.
+ * @returns A boolean indicating whether or not the native wallet is supported.
+ */
+export const isPlatformPaySupported = async (params?: {
+  googlePay?: PlatformPay.IsGooglePaySupportedParams;
+}): Promise<boolean> => {
+  return await NativeStripeSdk.isPlatformPaySupported(params ?? {});
+};
+
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [SetupIntent](https://stripe.com/docs/api/setup_intents).
+ * @param clientSecret The client secret of the SetupIntent.
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `setupIntent` and `paymentMethod` fields.
+ */
+export const confirmPlatformPaySetupIntent = async (
+  clientSecret: string,
+  params: PlatformPay.ConfirmParams
+): Promise<PlatformPay.ConfirmSetupIntentResult> => {
+  try {
+    const { error, setupIntent } = (await NativeStripeSdk.confirmPlatformPay(
+      clientSecret,
+      params,
+      false
+    )) as PlatformPay.ConfirmSetupIntentResult;
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to confirm a Stripe [PaymentIntent](https://stripe.com/docs/api/payment_intents).
+ * @param clientSecret The client secret of the PaymentIntent.
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentIntent` and `paymentMethod` fields.
+ */
+export const confirmPlatformPayPayment = async (
+  clientSecret: string,
+  params: PlatformPay.ConfirmParams
+): Promise<PlatformPay.ConfirmPaymentResult> => {
+  try {
+    const { error, paymentIntent } = (await NativeStripeSdk.confirmPlatformPay(
+      clientSecret,
+      params,
+      true
+    )) as PlatformPay.ConfirmPaymentResult;
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentIntent: paymentIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+/**
+ * iOS only, this will always return false on Android. Dismisses the Apple Pay sheet if it is open.
+ * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.
+ */
+export const dismissPlatformPay = async (): Promise<boolean> => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
+  try {
+    const didDismiss = await NativeStripeSdk.dismissPlatformPay();
+    return didDismiss;
+  } catch (error: any) {
+    return false;
+  }
+};
+
+/**
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
+ */
+export const createPlatformPayPaymentMethod = async (
+  params: PlatformPay.PaymentMethodParams
+): Promise<PlatformPay.PaymentMethodResult> => {
+  try {
+    const { error, paymentMethod, token } =
+      await NativeStripeSdk.createPlatformPayPaymentMethod(params);
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      paymentMethod: paymentMethod!,
+      token: token!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+/**
+ * iOS only. Update different items on the Apple Pay sheet, including the summary items, the shipping methods, and any errors shown. iOS only, this is a no-op on Android.
+ * @param params an object describing the Apple Pay configuration, with the following fields:
+ * - cartItems An array of payment summary items to display in the Apple Pay sheet.
+ * - shippingMethods An array of shipping methods to display in the Apple Pay sheet.
+ * - errors An array of errors associated with the user's input that must be corrected to proceed with payment. These errors will be shown in the Apple Pay sheet.
+ *
+ * @returns An object with an optional 'error' field, which is only populated if something went wrong.
+ */
+export const updatePlatformPaySheet = async (params: {
+  applePay: {
+    cartItems: Array<PlatformPay.CartSummaryItem>;
+    shippingMethods: Array<PlatformPay.ShippingMethod>;
+    errors: Array<PlatformPay.ApplePaySheetError>;
+  };
+}): Promise<{
+  error?: StripeError<PlatformPayError>;
+}> => {
+  if (Platform.OS !== 'ios') {
+    return {};
+  }
+
+  try {
+    await NativeStripeSdk.updatePlatformPaySheet(
+      params.applePay.cartItems,
+      params.applePay.shippingMethods,
+      params.applePay.errors
+    );
+
+    return {};
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+/**
+ * iOS only, this is a no-op on Android. Use this method to move users to the interface for adding credit cards.
+ * This method transfers control to the Wallet app on iPhone or to the Settings
+ * app on iPad. For devices that don’t support Apple Pay, this method does nothing.
+ */
+export const openPlatformPaySetup = async (): Promise<void> => {
+  if (Platform.OS === 'ios') {
+    await NativeStripeSdk.openApplePaySetup();
+  }
+};

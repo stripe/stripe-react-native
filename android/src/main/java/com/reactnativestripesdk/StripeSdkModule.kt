@@ -13,6 +13,7 @@ import com.reactnativestripesdk.utils.*
 import com.stripe.android.*
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
+import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.*
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -38,6 +39,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private var confirmPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
+  private var createPlatformPayPaymentMethodPromise: Promise? = null
 
   private var paymentSheetFragment: PaymentSheetFragment? = null
   private var googlePayFragment: GooglePayFragment? = null
@@ -53,20 +55,31 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       PaymentLauncherFragment.TAG,
       CollectBankAccountLauncherFragment.TAG,
       FinancialConnectionsSheetFragment.TAG,
-      AddressLauncherFragment.TAG
+      AddressLauncherFragment.TAG,
+      GooglePayLauncherFragment.TAG
     )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
       if (::stripe.isInitialized) {
-        dispatchActivityResultsToFragments(requestCode, resultCode, data)
-        try {
-          val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-          if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
-            onFpxPaymentMethodResult(result)
+        when (requestCode) {
+          GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
+            createPlatformPayPaymentMethodPromise?.let {
+              GooglePayRequestHelper.handleGooglePaymentMethodResult(resultCode, data, stripe, it)
+              createPlatformPayPaymentMethodPromise = null
+            } ?: run { Log.d("StripeReactNative", "No promise was found, Google Pay result went unhandled,") }
           }
-        } catch (e: java.lang.Exception) {
-          Log.d("Error", e.localizedMessage ?: e.toString())
+          else -> {
+            dispatchActivityResultsToFragments(requestCode, resultCode, data)
+            try {
+              val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
+              if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
+                onFpxPaymentMethodResult(result)
+              }
+            } catch (e: java.lang.Exception) {
+              Log.d("StripeReactNative", e.localizedMessage ?: e.toString())
+            }
+          }
         }
       }
     }
@@ -496,6 +509,26 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun isPlatformPaySupported(params: ReadableMap?, promise: Promise) {
+    val fragment = GooglePayPaymentMethodLauncherFragment(
+      reactApplicationContext,
+      getBooleanOrFalse(params, "testEnv"),
+      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
+      promise
+    )
+
+    getCurrentActivityOrResolveWithError(promise)?.let {
+      try {
+        it.supportFragmentManager.beginTransaction()
+          .add(fragment, GooglePayPaymentMethodLauncherFragment.TAG)
+          .commit()
+      } catch (error: IllegalStateException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
+      }
+    }
+  }
+
+  @ReactMethod
   fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
     val fragment = GooglePayPaymentMethodLauncherFragment(
       reactApplicationContext,
@@ -552,6 +585,62 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun confirmPlatformPay(clientSecret: String, params: ReadableMap, isPaymentIntent: Boolean, promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    val googlePayParams: ReadableMap = params.getMap("googlePay") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "You must provide the `googlePay` parameter."))
+      return
+    }
+
+    GooglePayLauncherFragment().also {
+      it.presentGooglePaySheet(
+        clientSecret,
+        if (isPaymentIntent) GooglePayLauncherFragment.Mode.ForPayment else GooglePayLauncherFragment.Mode.ForSetup,
+        googlePayParams,
+        reactApplicationContext
+      ) { launcherResult, errorMap ->
+        if (errorMap != null) {
+          promise.resolve(errorMap)
+        } else if (launcherResult != null) {
+          when (launcherResult) {
+            GooglePayLauncher.Result.Completed -> {
+              if (isPaymentIntent) {
+                stripe.retrievePaymentIntent(clientSecret, stripeAccountId,  object : ApiResultCallback<PaymentIntent> {
+                  override fun onError(e: Exception) {
+                    promise.resolve(createResult("paymentIntent", WritableNativeMap()))
+                  }
+                  override fun onSuccess(result: PaymentIntent) {
+                    promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
+                  }
+                })
+              } else {
+                stripe.retrieveSetupIntent(clientSecret, stripeAccountId,  object : ApiResultCallback<SetupIntent> {
+                  override fun onError(e: Exception) {
+                    promise.resolve(createResult("setupIntent", WritableNativeMap()))
+                  }
+                  override fun onSuccess(result: SetupIntent) {
+                    promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
+                  }
+                })
+              }
+            }
+            GooglePayLauncher.Result.Canceled -> {
+              promise.resolve(createError(GooglePayErrorType.Canceled.toString(), "Google Pay has been canceled"))
+            }
+            is GooglePayLauncher.Result.Failed -> {
+              promise.resolve(createError(GooglePayErrorType.Failed.toString(), launcherResult.error))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @ReactMethod
   fun createGooglePayPaymentMethod(params: ReadableMap, promise: Promise) {
     val currencyCode = getValOr(params, "currencyCode", null) ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
@@ -562,6 +651,23 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
     googlePayFragment?.createPaymentMethod(currencyCode, amount, promise)
+  }
+
+  @ReactMethod
+  fun createPlatformPayPaymentMethod(params: ReadableMap, promise: Promise) {
+    val googlePayParams: ReadableMap = params.getMap("googlePay") ?: run {
+      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "You must provide the `googlePay` parameter."))
+      return
+    }
+    createPlatformPayPaymentMethodPromise = promise
+    getCurrentActivityOrResolveWithError(promise)?.let {
+      val request = GooglePayRequestHelper.createPaymentRequest(
+        it,
+        GooglePayJsonFactory(reactApplicationContext),
+        googlePayParams
+      )
+      GooglePayRequestHelper.createPaymentMethod(request, it)
+    }
   }
 
   @ReactMethod
@@ -739,6 +845,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
   }
+
+  /**
+   * We need the following in order to avoid some annoying console.warns() from our Apple Pay event listeners. Otherwise,
+   * we'd have to put our users through some annoying (if Platform.OS...) logic & null-handling logic.
+   */
+  @ReactMethod
+  fun addListener(eventName: String) {}
+  @ReactMethod
+  fun removeListeners(count: Int) {}
 
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise

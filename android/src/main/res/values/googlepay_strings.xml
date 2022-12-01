@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="googlepay_button_content_description">Google Pay</string>
-    <string name="buy_with_googlepay_button_content_description">Buy with Google Pay</string>
+    <string name="add_to_googlepay_button_content_description">Add To Google Pay</string>
+    <string name="buy_with_googlepay_button_content_description">Buy With Google Pay</string>
     <string name="checkout_with_googlepay_button_content_description">Checkout With Google Pay</string>
     <string name="donate_with_googlepay_button_content_description">Donate With Google Pay</string>
     <string name="order_with_googlepay_button_content_description">Order With Google Pay</string>
