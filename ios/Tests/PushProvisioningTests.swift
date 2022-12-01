@@ -13,16 +13,17 @@ class PushProvisioningTests: XCTestCase {
     func testCanAddCardToWalletInTestMode() throws {
         PushProvisioningUtils.canAddCardToWallet(last4: "4242",
                                                  primaryAccountIdentifier: "",
-                                                                            testEnv: true) { canAddCard, status in
+                                                 testEnv: true, hasPairedAppleWatch: false) { canAddCard, status in
             XCTAssertEqual(canAddCard, true)
             XCTAssertEqual(status, nil)
         }
     }
-
+    
     func testCanAddCardToWalletInLiveMode() throws {
         PushProvisioningUtils.canAddCardToWallet(last4: "4242",
                                                  primaryAccountIdentifier: "",
-                                                                            testEnv: false) { canAddCard, status in
+                                                 testEnv: false,
+                                                 hasPairedAppleWatch: false) { canAddCard, status in
             XCTAssertEqual(canAddCard, false)
             XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.MISSING_CONFIGURATION)
         }
