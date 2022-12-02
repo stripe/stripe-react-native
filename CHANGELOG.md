@@ -6,11 +6,14 @@
 
 ### New features
 
+- Added the `hasPairedAppleWatch` option to `canAddCardToWallet`. [#1219](https://github.com/stripe/stripe-react-native/pull/1219)
+
 ## Fixes
 
 - Fixed an issue where builds would error with the message `'const' enums are not supported.` [see commit](https://github.com/stripe/stripe-react-native/commit/f882bfa588aa6d23a980b4b43d2cca660ca1dd2a)
 - Fixed an issue where the `canAddCardToWallet` method would sometimes wrongly return `false` with a `details.status` of `MISSING_CONFIGURATION` in production builds. [#1215](https://github.com/stripe/stripe-react-native/pull/1215)
 - Fixed an issue on Android where, for certain countries, the postal code would not be enabled but would still be required. [#1213](https://github.com/stripe/stripe-react-native/pull/1213)
+- Fixed an issue on iOS where `canAddCardToWallet` would return `false` if the card had already been provisioned on a paired device like an Apple Watch, but had not yet been provisioned on the current device, and would also return `false` if the card had been provisioned on the current device, but not on a paired Apple Watch. [#1219](https://github.com/stripe/stripe-react-native/pull/1219)
 
 ## 0.21.0 - 2022-11-15
 

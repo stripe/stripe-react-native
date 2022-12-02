@@ -20,14 +20,14 @@ export type ApplePaySheetError =
       message?: string;
     };
 
-export const enum ApplePaySheetErrorType {
+export enum ApplePaySheetErrorType {
   InvalidShippingAddress = 'InvalidShippingAddress',
   UnserviceableShippingAddress = 'UnserviceableShippingAddress',
   InvalidCouponCode = 'InvalidCouponCode',
   ExpiredCouponCode = 'ExpiredCouponCode',
 }
 
-export const enum ContactField {
+export enum ContactField {
   EmailAddress = 'emailAddress',
   Name = 'name',
   PhoneNumber = 'phoneNumber',
@@ -35,7 +35,7 @@ export const enum ContactField {
   PostalAddress = 'postalAddress',
 }
 
-export const enum InvalidShippingField {
+export enum InvalidShippingField {
   Street = 'street',
   City = 'city',
   SubAdministrativeArea = 'subAdministrativeArea',
@@ -76,7 +76,7 @@ export type ApplePayPaymentMethodParams = {
   couponCode?: string;
 };
 
-export const enum ApplePayMerchantCapability {
+export enum ApplePayMerchantCapability {
   /** Required. This value must be supplied. */
   Supports3DS = 'supports3DS',
   /** Optional. If present, only transactions that are categorized as credit cards are allowed. */
@@ -86,7 +86,7 @@ export const enum ApplePayMerchantCapability {
 }
 
 /** A type that indicates how to ship purchased items. */
-export const enum ApplePayShippingType {
+export enum ApplePayShippingType {
   /** Default. */
   Shipping = 'shipping',
   Delivery = 'delivery',
@@ -140,7 +140,7 @@ export type GooglePayPaymentMethodParams = {
   };
 };
 
-export const enum BillingAddressFormat {
+export enum BillingAddressFormat {
   /** Collect name, street address, locality, region, country code, and postal code. */
   Full = 'FULL',
   /** Collect name, country code, and postal code (default). */
@@ -161,7 +161,7 @@ export type ConfirmParams = {
   applePay?: ApplePayBaseParams;
 };
 
-export const enum ButtonType {
+export enum ButtonType {
   /** A button with the Apple Pay or Google Pay logo only, useful when an additional call to action isn't needed. */
   Default = 0,
   /** A button useful for product purchases. */
@@ -203,7 +203,7 @@ export const enum ButtonType {
 }
 
 /** iOS only. */
-export const enum ButtonStyle {
+export enum ButtonStyle {
   /** A white button with black lettering. */
   White = 0,
   /** A white button with black lettering and a black outline. */
@@ -221,7 +221,7 @@ export type CartSummaryItem =
   | RecurringCartSummaryItem;
 
 /** iOS only. */
-export const enum PaymentType {
+export enum PaymentType {
   Deferred = 'Deferred',
   Immediate = 'Immediate',
   Recurring = 'Recurring',
@@ -261,7 +261,7 @@ export type RecurringCartSummaryItem = {
 };
 
 /** iOS only. */
-export const enum IntervalUnit {
+export enum IntervalUnit {
   Minute = 'minute',
   Hour = 'hour',
   Day = 'day',
