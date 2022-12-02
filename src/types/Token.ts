@@ -56,6 +56,7 @@ export type BankAccountStatus =
   | 'Verified';
 
 export interface Card {
+  id: string;
   country: string;
   brand: CardBrand;
   currency?: string;
