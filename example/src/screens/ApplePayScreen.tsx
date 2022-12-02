@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
-<<<<<<< HEAD
   PlatformPay,
-=======
-  ApplePayButton,
-  useApplePay,
-  ApplePay,
->>>>>>> 7a9c9d6 (revert unnecessary changes)
   AddToWalletButton,
   Constants,
   canAddCardToWallet,
@@ -332,6 +326,7 @@ export default function ApplePayScreen() {
           <AddToWalletButton
             androidAssetSource={{}}
             testEnv={true}
+            style={styles.payButton}
             iOSButtonStyle="onLightBackground"
             cardDetails={{
               name: cardDetails?.cardholder?.name,
@@ -350,33 +345,8 @@ export default function ApplePayScreen() {
               );
             }}
           />
-
-          {showAddToWalletButton && (
-            <AddToWalletButton
-              androidAssetSource={{}}
-              testEnv={true}
-              style={styles.payButton}
-              iOSButtonStyle="onLightBackground"
-              cardDetails={{
-                name: cardDetails?.cardholder?.name,
-                primaryAccountIdentifier:
-                  cardDetails?.wallets?.primary_account_identifier,
-                lastFour: cardDetails?.last4,
-                description: 'Added by Stripe',
-              }}
-              ephemeralKey={ephemeralKey}
-              onComplete={({ error }) => {
-                Alert.alert(
-                  error ? error.code : 'Success',
-                  error
-                    ? error.message
-                    : 'Card was successfully added to the wallet.'
-                );
-              }}
-            />
-          )}
-        </View>
-      )}
+        )}
+      </View>
     </PaymentScreen>
   );
 }
