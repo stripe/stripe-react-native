@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-      "@stripe/stripe-react-native": ["./src/index"]
+      "react-native-stripe-sdk": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -10,26 +10,19 @@
     "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
-    "lib": ["ES6"],
-    "module": "commonjs",
+    "lib": ["esnext"],
+    "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "types": [
-      "node",
-      "webdriverio/sync",
-      "@wdio/mocha-framework",
-      "@wdio/appium-service",
-      "expect-webdriverio",
-      "jest"
-    ]
+    "target": "esnext"
   }
 }

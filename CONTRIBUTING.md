@@ -1,28 +1,67 @@
 # Contributing
 
-We want this community to be friendly and respectful to each other. Please follow it in all your interactions with the project.
+Contributions are always welcome, no matter how large or small!
+
+We want this community to be friendly and respectful to each other. Please follow it in all your interactions with the project. Before contributing, please read the [code of conduct](./CODE_OF_CONDUCT.md).
 
 ## Development workflow
 
-### Running the example app
+To get started with the project, run `yarn` in the root directory to install the required dependencies for each package:
 
-- Install the dependencies
-  - `yarn bootstrap`
-- Set up env vars
-  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
-- Start the example
-  - Terminal 1: `yarn example start:server`
-  - Terminal 2: `yarn example start`
-  - Terminal 3: depending on what platform you want to build for run either
-    - `yarn example ios`
-    - or
-    - `yarn example android`
+```sh
+yarn
+```
 
-To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
+> While it's possible to use [`npm`](https://github.com/npm/cli), the tooling is built around [`yarn`](https://classic.yarnpkg.com/), so you'll have an easier time if you use `yarn` for development.
 
-To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
+While developing, you can run the [example app](/example/) to test your changes. Any changes you make in your library's JavaScript code will be reflected in the example app without a rebuild. If you change any native code, then you'll need to rebuild the example app.
 
-Use your editor of choice for editing the Typescript files in `src/` and `example/`.
+To start the packager:
+
+```sh
+yarn example start
+```
+
+To run the example app on Android:
+
+```sh
+yarn example android
+```
+
+To run the example app on iOS:
+
+```sh
+yarn example ios
+```
+
+By default, the example is configured to build with the old architecture. To run the example with the new architecture, you can do the following:
+
+1. For Android, run:
+
+   ```sh
+   ORG_GRADLE_PROJECT_newArchEnabled=true yarn example android
+   ```
+
+2. For iOS, run:
+
+   ```sh
+   RCT_NEW_ARCH_ENABLED=1 yarn example pods
+   yarn example ios
+   ```
+
+If you are building for a different architecture than your previous build, make sure to remove the build folders first. You can run the following command to cleanup all build folders:
+
+```sh
+yarn clean
+```
+
+To confirm that the app is running with the new architecture, you can check the Metro logs for a message like this:
+
+```sh
+Running "StripeSdkExample" with {"fabric":true,"initialProps":{"concurrentRoot":true},"rootTag":1}
+```
+
+Note the `"fabric":true` and `"concurrentRoot":true` properties.
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
@@ -37,29 +76,16 @@ To fix formatting errors, run the following:
 yarn lint --fix
 ```
 
-Remember to add tests for your change if possible. End to end tests are done with Appium, and can be found in `e2e/`. Read the [test section below](#tests) for more details on setup.
+Remember to add tests for your change if possible. Run the unit tests by:
 
-## Testing inside of the Expo Go app
+```sh
+yarn test
+```
 
-> This section only needs to be done during an Expo SDK release.
+To edit the Objective-C or Swift files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-stripe-sdk`.
 
-Inside of the Expo Go app, you are limited to using the `react-native` version that comes bundled inside. To test the example app accurately, you must modify `example/package.json` by:
+To edit the Java or Kotlin files, open `example/android` in Android studio and find the source files at `react-native-stripe-sdk` under `Android`.
 
-1. Navigate to the example app directory: `cd example/`
-2. Install the Expo SDK: `yarn add expo`
-3. Set the `sdkVersion` in `example/app.json` to the version you want to test
-4. Install the proper versions of `react` and `react-native`: `expo install react react-native`
-   - There may be other dependencies to update. If there are, it will be indicated in the logs when running the app.
-5. Use `expo client:install:[android|ios]` to install Expo Go on your simulator
-6. Run `expo start` to run the app.
-
-### Install library as local repository
-
-To install local/private packages across local environment we recommend use [yalc](https://github.com/wclr/yalc) tool.
-
-- Run `yalc publish` in `@stripe/stripe-react-native` package to publish all the files that should be published in remote NPM registry.
-- Run `yalc add @stripe/stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/@stripe/stripe-react-native into package.json.
-- In your dependent project run `yarn install` and `cd ios && pod install`
 
 ### Commit message convention
 
@@ -69,12 +95,12 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 - `feat`: new features, e.g. add new method to the module.
 - `refactor`: code refactor, e.g. migrate from class components to hooks.
 - `docs`: changes into documentation, e.g. add usage example for the module..
-- `test`: adding or updating tests, eg add integration tests using appium.
+- `test`: adding or updating tests, e.g. add integration tests using detox.
 - `chore`: tooling changes, e.g. change CI config.
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
 
-### Linting
+### Linting and tests
 
 [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [TypeScript](https://www.typescriptlang.org/)
 
@@ -82,20 +108,15 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
 
-### Tests
+### Publishing to npm
 
-We use [Appium](https://github.com/appium/appium) for e2e testing.
-In order to run tests locally you have to install and configure appium following its [documentation](https://github.com/appium/appium/blob/master/docs/en/about-appium/getting-started.md).
+We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
 
-Next, you have to specify emulator/simulator details in the config files.
-To set it up on android, let's open `wdio.android.js/wdio.ios.js` files and edit `capabilities` section accordingly (platformVersion, deviceName, app).
+To publish new versions, run the following:
 
-As Appium uses chrome-driver on android to handle webviews interactions you must to specify chrome version which is installed on your emulator already.
-In order to do that, edit .npmrc accordinly to https://raw.githubusercontent.com/appium/appium-chromedriver/master/config/mapping.json mapping config.
-e.g. when you have `71.0.3578` chrome version installed you must specify `2.46` version of chrome-driver.
-
-1. run `yarn run-example-ios` / `yarn run-example-android` to build and open example app.
-2. run `yarn test:e2e:ios` / `yarn test:e2e:android` to run e2e tests.
+```sh
+yarn release
+```
 
 ### Scripts
 
@@ -111,7 +132,7 @@ The `package.json` file contains various scripts for common tasks:
 
 ### Sending a pull request
 
-> **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://egghead.io/series/how-to-contribute-to-an-open-source-project-on-github).
+> **Working on your first pull request?** You can learn how from this _free_ series: [How to Contribute to an Open Source Project on GitHub](https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github).
 
 When you're sending a pull request:
 
@@ -120,88 +141,3 @@ When you're sending a pull request:
 - Review the documentation to make sure it looks good.
 - Follow the pull request template when opening a pull request.
 - For pull requests that change the API or implementation, discuss with maintainers first by opening an issue.
-
-## Code of Conduct
-
-### Our Pledge
-
-We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
-
-We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
-
-### Our Standards
-
-Examples of behavior that contributes to a positive environment for our community include:
-
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the overall community
-
-Examples of unacceptable behavior include:
-
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
-
-### Enforcement Responsibilities
-
-Community leaders are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
-
-Community leaders have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
-
-### Scope
-
-This Code of Conduct applies within all community spaces, and also applies when an individual is officially representing the community in public spaces. Examples of representing our community include using an official e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
-
-### Enforcement
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [INSERT CONTACT METHOD]. All complaints will be reviewed and investigated promptly and fairly.
-
-All community leaders are obligated to respect the privacy and security of the reporter of any incident.
-
-### Enforcement Guidelines
-
-Community leaders will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
-
-#### 1. Correction
-
-**Community Impact**: Use of inappropriate language or other behavior deemed unprofessional or unwelcome in the community.
-
-**Consequence**: A private, written warning from community leaders, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate. A public apology may be requested.
-
-#### 2. Warning
-
-**Community Impact**: A violation through a single incident or series of actions.
-
-**Consequence**: A warning with consequences for continued behavior. No interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, for a specified period of time. This includes avoiding interactions in community spaces as well as external channels like social media. Violating these terms may lead to a temporary or permanent ban.
-
-#### 3. Temporary Ban
-
-**Community Impact**: A serious violation of community standards, including sustained inappropriate behavior.
-
-**Consequence**: A temporary ban from any sort of interaction or public communication with the community for a specified period of time. No public or private interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, is allowed during this period. Violating these terms may lead to a permanent ban.
-
-#### 4. Permanent Ban
-
-**Community Impact**: Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment of an individual, or aggression toward or disparagement of classes of individuals.
-
-**Consequence**: A permanent ban from any sort of public interaction within the community.
-
-### Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0,
-available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
-
-Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
-
-[homepage]: https://www.contributor-covenant.org
-
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.

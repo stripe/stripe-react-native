@@ -7,21 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		24172CD126284587005FB3C6 /* CardFieldDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24172CD026284587005FB3C6 /* CardFieldDelegate.swift */; };
-		243A967D269C223B0037175A /* CardFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243A967C269C223B0037175A /* CardFormView.swift */; };
-		243A967F269C22530037175A /* CardFormViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243A967E269C22530037175A /* CardFormViewManager.swift */; };
-		243A9681269C226A0037175A /* CardFormViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 243A9680269C226A0037175A /* CardFormViewManager.m */; };
-		247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */; };
-		2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */; };
-		2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */; };
-		2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */; };
-		249BA096256CF67B00B32764 /* UIColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249BA095256CF67B00B32764 /* UIColorExtension.swift */; };
-		24EA32E3262446DC007AF858 /* BECSDebitFormManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EA32E2262446DC007AF858 /* BECSDebitFormManager.swift */; };
-		24EA32E6262446E6007AF858 /* BECSDebitFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24EA32E5262446E6007AF858 /* BECSDebitFormView.swift */; };
-		24EA331C26244898007AF858 /* BECSDebitFormManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 24EA331B26244898007AF858 /* BECSDebitFormManager.m */; };
-		24FF2C37256530F9002FF847 /* CardFieldManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C36256530F9002FF847 /* CardFieldManager.swift */; };
-		24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C3825653109002FF847 /* CardFieldManager.m */; };
-		24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FF2C3A25653114002FF847 /* CardFieldView.swift */; };
+		5E555C0D2413F4C50049A1A2 /* StripeSdk.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* StripeSdk.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,22 +24,8 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libStripeSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libStripeSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		24172CD026284587005FB3C6 /* CardFieldDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldDelegate.swift; sourceTree = "<group>"; };
-		243A967C269C223B0037175A /* CardFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFormView.swift; sourceTree = "<group>"; };
-		243A967E269C22530037175A /* CardFormViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFormViewManager.swift; sourceTree = "<group>"; };
-		243A9680269C226A0037175A /* CardFormViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CardFormViewManager.m; sourceTree = "<group>"; };
-		247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodFactory.swift; sourceTree = "<group>"; };
-		2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayButtonManager.swift; sourceTree = "<group>"; };
-		2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ApplePayButtonManager.m; sourceTree = "<group>"; };
-		2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayButtonView.swift; sourceTree = "<group>"; };
-		249BA095256CF67B00B32764 /* UIColorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtension.swift; sourceTree = "<group>"; };
-		24EA32E2262446DC007AF858 /* BECSDebitFormManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BECSDebitFormManager.swift; sourceTree = "<group>"; };
-		24EA32E5262446E6007AF858 /* BECSDebitFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BECSDebitFormView.swift; sourceTree = "<group>"; };
-		24EA331B26244898007AF858 /* BECSDebitFormManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BECSDebitFormManager.m; sourceTree = "<group>"; };
-		24FF2C36256530F9002FF847 /* CardFieldManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldManager.swift; sourceTree = "<group>"; };
-		24FF2C3825653109002FF847 /* CardFieldManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CardFieldManager.m; sourceTree = "<group>"; };
-		24FF2C3A25653114002FF847 /* CardFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardFieldView.swift; sourceTree = "<group>"; };
-		F4FF95D5245B92E700C19C63 /* StripeSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "StripeSdk-Bridging-Header.h"; sourceTree = "<group>"; };
+		B3E7B5881CC2AC0600A0062D /* StripeSdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StripeSdk.h; sourceTree = "<group>"; };
+		B3E7B5891CC2AC0600A0062D /* StripeSdk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StripeSdk.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,22 +50,8 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				243A9680269C226A0037175A /* CardFormViewManager.m */,
-				243A967E269C22530037175A /* CardFormViewManager.swift */,
-				243A967C269C223B0037175A /* CardFormView.swift */,
-				24EA331B26244898007AF858 /* BECSDebitFormManager.m */,
-				24EA32E5262446E6007AF858 /* BECSDebitFormView.swift */,
-				24EA32E2262446DC007AF858 /* BECSDebitFormManager.swift */,
-				24172CD026284587005FB3C6 /* CardFieldDelegate.swift */,
-				247D86402601DC7400EBE2C2 /* PaymentMethodFactory.swift */,
-				2490F530256D1EDA0027A42B /* ApplePayButtonView.swift */,
-				2490F52E256D0B5A0027A42B /* ApplePayButtonManager.m */,
-				2490F52C256D08FB0027A42B /* ApplePayButtonManager.swift */,
-				249BA095256CF67B00B32764 /* UIColorExtension.swift */,
-				F4FF95D5245B92E700C19C63 /* StripeSdk-Bridging-Header.h */,
-				24FF2C36256530F9002FF847 /* CardFieldManager.swift */,
-				24FF2C3825653109002FF847 /* CardFieldManager.m */,
-				24FF2C3A25653114002FF847 /* CardFieldView.swift */,
+				B3E7B5881CC2AC0600A0062D /* StripeSdk.h */,
+				B3E7B5891CC2AC0600A0062D /* StripeSdk.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -155,21 +113,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				243A967D269C223B0037175A /* CardFormView.swift in Sources */,
-				24172CD126284587005FB3C6 /* CardFieldDelegate.swift in Sources */,
-				24FF2C37256530F9002FF847 /* CardFieldManager.swift in Sources */,
-				24FF2C3925653109002FF847 /* CardFieldManager.m in Sources */,
-				24FF2C3B25653114002FF847 /* CardFieldView.swift in Sources */,
-				24EA331C26244898007AF858 /* BECSDebitFormManager.m in Sources */,
-				243A967F269C22530037175A /* CardFormViewManager.swift in Sources */,
-				2490F52F256D0B5A0027A42B /* ApplePayButtonManager.m in Sources */,
-				247D86412601DC7400EBE2C2 /* PaymentMethodFactory.swift in Sources */,
-				2490F52D256D08FB0027A42B /* ApplePayButtonManager.swift in Sources */,
-				24EA32E6262446E6007AF858 /* BECSDebitFormView.swift in Sources */,
-				249BA096256CF67B00B32764 /* UIColorExtension.swift in Sources */,
-				2490F531256D1EDA0027A42B /* ApplePayButtonView.swift in Sources */,
-				24EA32E3262446DC007AF858 /* BECSDebitFormManager.swift in Sources */,
-				243A9681269C226A0037175A /* CardFormViewManager.m in Sources */,
+				B3E7B58A1CC2AC0600A0062D /* StripeSdk.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,7 +124,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -204,6 +148,7 @@
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -230,7 +175,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -254,6 +199,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=*]" = arm64;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -282,9 +228,6 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = StripeSdk;
 				SKIP_INSTALL = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "StripeSdk-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -301,8 +244,6 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = StripeSdk;
 				SKIP_INSTALL = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "StripeSdk-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
