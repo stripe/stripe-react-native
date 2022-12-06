@@ -33,7 +33,7 @@
     "@types/react-native": "^0.66.15",
     "babel-plugin-module-resolver": "^4.0.0",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "metro-react-native-babel-preset": "^0.70.3",
     "nodemon": "^2.0.19",
     "path": "^0.12.7",
