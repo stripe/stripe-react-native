@@ -140,6 +140,8 @@ export default function ApplePayScreen() {
       detail: 'Arrives by June 29',
       label: 'Standard Shipping',
       amount: '3.21',
+      startDate: 1670554064,
+      endDate: 1670726864,
     },
     {
       identifier: 'express',
@@ -152,7 +154,11 @@ export default function ApplePayScreen() {
     {
       label: 'Subtotal',
       amount: '12.75',
-      paymentType: PlatformPay.PaymentType.Immediate,
+      paymentType: PlatformPay.PaymentType.Recurring,
+      startDate: 1670554064,
+      endDate: 1670726864,
+      intervalUnit: PlatformPay.IntervalUnit.Day,
+      intervalCount: 3,
     },
     {
       label: 'Shipping',
