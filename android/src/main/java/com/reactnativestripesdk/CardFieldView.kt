@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Build
 import android.text.Editable
 import android.text.InputFilter
@@ -143,7 +142,6 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
       }
     }
 
-    mCardWidget.setPadding(40, 0, 40, 0)
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
