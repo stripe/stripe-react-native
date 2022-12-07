@@ -3,7 +3,6 @@ import {
   AccessibilityProps,
   StyleProp,
   ViewStyle,
-  requireNativeComponent,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -15,9 +14,8 @@ import {
   ShippingMethod,
   ShippingContact,
 } from '../types/PlatformPay';
-
-const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
-const ApplePayButtonNative = requireNativeComponent<any>('ApplePayButton');
+import GooglePayButtonNative from './GooglePayButtonNative';
+import ApplePayButtonNative from './ApplePayButtonNative';
 
 /**
  *  PlatformPayButton Component Props
