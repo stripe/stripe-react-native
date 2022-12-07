@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-### Breaking changes
-
-### New features
+## 0.22.1 - 2022-12-07
 
 ## Fixes
 
