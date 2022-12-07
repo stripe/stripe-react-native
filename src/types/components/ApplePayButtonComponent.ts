@@ -1,11 +1,27 @@
-import type { StyleProp, ViewStyle } from 'react-native';
-
+import type { StyleProp, ViewStyle, NativeSyntheticEvent } from 'react-native';
+import type { ShippingMethod, ShippingContact } from '../PlatformPay';
 export interface NativeProps {
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
   type?: number;
   buttonStyle?: number;
   borderRadius?: number;
   onPressAction?(): void;
+  onShippingMethodSelectedAction?: (
+    value: NativeSyntheticEvent<{
+      shippingMethod: ShippingMethod;
+    }>
+  ) => void;
+  onShippingContactSelectedAction?: (
+    value: NativeSyntheticEvent<{
+      shippingContact: ShippingContact;
+    }>
+  ) => void;
+  onCouponCodeEnteredAction?: (
+    value: NativeSyntheticEvent<{
+      couponCode: string;
+    }>
+  ) => void;
 }
 
 export type Type =

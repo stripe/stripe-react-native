@@ -10,6 +10,7 @@
 
 - Fixed the `ShippingMethod` type to contain the `isPending` field instead of a `type` field (which previously was never correct). This reflects the inputs accepted. [#1227](https://github.com/stripe/stripe-react-native/pull/1227)
 - Fixed the `ShippingMethod` type to contain the `startDate` and `endDate` keys, if applicable. [#1227](https://github.com/stripe/stripe-react-native/pull/1227)
+- Fixed instances of the "duplicate registered views" error. [#1233](https://github.com/stripe/stripe-react-native/pull/1233)
 - Fixed extra margin that was being added to `<CardForm />` on Android. [#1234](https://github.com/stripe/stripe-react-native/pull/1234)
 
 ## 0.22.0 - 2022-12-02

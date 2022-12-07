@@ -3,12 +3,10 @@ import {
   AccessibilityProps,
   StyleProp,
   ViewStyle,
-  requireNativeComponent,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-
-const GooglePayButtonNative = requireNativeComponent<any>('GooglePayButton');
+import GooglePayButtonNative from './GooglePayButtonNative';
 
 /**
  *  Google Pay Button Component Props
