@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Breaking changes
+
+### New features
+
+## Fixes
+
+- Fixed the `ShippingMethod` type to contain the `isPending` field instead of a `type` field (which previously was never correct). This reflects the inputs accepted. [#1227](https://github.com/stripe/stripe-react-native/pull/1227)
+- Fixed the `ShippingMethod` type to contain the `startDate` and `endDate` keys, if applicable. [#1227](https://github.com/stripe/stripe-react-native/pull/1227)
+
 ## 0.22.0 - 2022-12-02
 
 ### Breaking changes
