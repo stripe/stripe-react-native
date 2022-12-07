@@ -2,16 +2,12 @@ package com.reactnativestripesdk
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Build
 import android.text.InputFilter
 import android.view.View
 import android.view.View.OnFocusChangeListener
-import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.core.view.marginBottom
 import androidx.core.view.setMargins
-import androidx.core.view.setPadding
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
