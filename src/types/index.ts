@@ -49,7 +49,7 @@ export {
 
 export * from './PushProvisioning';
 export * from './Errors';
-export { Address, BillingDetails, AddressDetails } from './Common';
+export type { Address, BillingDetails, AddressDetails } from './Common';
 
 /**
  * @ignore
