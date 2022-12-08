@@ -5,6 +5,7 @@ import type {
   Double,
   WithDefault,
 } from 'react-native/Libraries/Types/CodegenTypes';
+import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 
 type Details = {
   last4?: string;
@@ -74,6 +75,18 @@ export interface NativeProps extends ViewProps {
   cardStyle: Styles;
   placeholders?: Placeholders;
 }
+
+type CardFieldViewType = HostComponent<NativeProps>;
+
+export interface NativeCommands {
+  focus: (viewRef: React.ElementRef<CardFieldViewType>) => void;
+  blur: (viewRef: React.ElementRef<CardFieldViewType>) => void;
+  clear: (viewRef: React.ElementRef<CardFieldViewType>) => void;
+}
+
+export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
+  supportedCommands: ['focus', 'blur', 'clear'],
+});
 
 export default codegenNativeComponent<NativeProps>(
   'CardField'

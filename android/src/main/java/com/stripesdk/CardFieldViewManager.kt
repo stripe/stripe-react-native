@@ -2,8 +2,6 @@ package com.stripesdk
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableNativeMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.common.MapBuilder
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
@@ -50,6 +48,18 @@ class CardFieldViewManager : CardFieldViewManagerSpec<CardFieldView>() {
     view.setPlaceHolders(placeholder)
   }
 
+  override fun focus(view: CardFieldView) {
+    view.requestFocusFromJS()
+  }
+
+  override fun blur(view: CardFieldView) {
+    view.requestBlurFromJS()
+  }
+
+  override fun clear(view: CardFieldView) {
+    view.requestClearFromJS()
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Map<String, String>> {
     return MapBuilder.of(
       CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
@@ -63,4 +73,5 @@ class CardFieldViewManager : CardFieldViewManagerSpec<CardFieldView>() {
   companion object {
     const val NAME = "CardField"
   }
+
 }

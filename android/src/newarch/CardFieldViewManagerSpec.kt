@@ -1,6 +1,7 @@
 package com.stripesdk
 
 import android.view.View
+import com.facebook.react.bridge.ReadableArray
 
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ViewManagerDelegate
@@ -19,5 +20,9 @@ abstract class CardFieldViewManagerSpec<T : View> : SimpleViewManager<T>(),
 
   override fun getDelegate(): ViewManagerDelegate<T>? {
     return mDelegate
+  }
+
+  override fun receiveCommand(root: T, commandId: String?, args: ReadableArray?) {
+    mDelegate.receiveCommand(root, commandId, args)
   }
 }

@@ -1,9 +1,12 @@
 import * as React from 'react';
 
-import { StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, View } from 'react-native';
 import { CardField, initStripe } from 'react-native-stripe-sdk';
+import type { CardFieldInput } from 'react-native-stripe-sdk';
 
 export default function App() {
+  const ref = React.useRef<CardFieldInput.Methods>(null);
+
   React.useEffect(() => {
     (async function () {
       try {
@@ -23,6 +26,7 @@ export default function App() {
     <View style={styles.container}>
       <Text>StripeSDK</Text>
       <CardField
+        ref={ref}
         cardStyle={inputStyles}
         style={styles.cardField}
         postalCodeEnabled={false}
@@ -32,6 +36,24 @@ export default function App() {
         onFocus={(e) => {
           console.log(`🚀🚀🚀🚀🚀🚀🚀🚀 `, e);
         }}
+      />
+      <Button
+        onPress={() => {
+          ref.current?.focus();
+        }}
+        title="focus"
+      />
+      <Button
+        onPress={() => {
+          ref.current?.clear();
+        }}
+        title="clear"
+      />
+      <Button
+        onPress={() => {
+          ref.current?.blur();
+        }}
+        title="blur"
       />
     </View>
   );

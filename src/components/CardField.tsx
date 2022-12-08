@@ -24,6 +24,7 @@ import {
 import CardFieldNative, {
   OnCardChangeEventData,
   OnFocusChangeEventData,
+  Commands as CardFieldCommands,
 } from '../spec/CardFieldViewNativeComponent';
 
 /**
@@ -132,27 +133,15 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const focus = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'focus' as any,
-        []
-      );
+      CardFieldCommands.focus(inputRef.current);
     };
 
     const blur = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'blur' as any,
-        []
-      );
+      CardFieldCommands.blur(inputRef.current);
     };
 
     const clear = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'clear' as any,
-        []
-      );
+      CardFieldCommands.clear(inputRef.current);
     };
 
     useImperativeHandle(ref, () => ({
