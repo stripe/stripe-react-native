@@ -4,9 +4,12 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableNativeMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.common.MapBuilder
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.stripesdk.events.CardChangedEvent
+import com.stripesdk.events.CardFocusEvent
 
 @ReactModule(name = CardFieldViewManager.NAME)
 class CardFieldViewManager : CardFieldViewManagerSpec<CardFieldView>() {
@@ -45,6 +48,12 @@ class CardFieldViewManager : CardFieldViewManagerSpec<CardFieldView>() {
   override fun setPlaceholders(view: CardFieldView, value: ReadableMap?) {
     val placeholder = value ?: Arguments.createMap()
     view.setPlaceHolders(placeholder)
+  }
+
+  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Map<String, String>> {
+    return MapBuilder.of(
+      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
+      CardChangedEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCardChange"))
   }
 
   override fun getName(): String {

@@ -14,7 +14,7 @@ export default function App() {
           setReturnUrlSchemeOnAndroid: true,
         });
       } catch (e) {
-        console.log(`🚀🚀🚀🚀🚀🚀🚀🚀 `, e);
+        console.log(`JUST IGNORE IT `);
       }
     })();
   }, []);
@@ -26,6 +26,12 @@ export default function App() {
         cardStyle={inputStyles}
         style={styles.cardField}
         postalCodeEnabled={false}
+        onCardChange={(e) => {
+          console.log(`🚀🚀🚀🚀🚀🚀🚀🚀 `, e);
+        }}
+        onFocus={(e) => {
+          console.log(`🚀🚀🚀🚀🚀🚀🚀🚀 `, e);
+        }}
       />
     </View>
   );
