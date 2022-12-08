@@ -12,6 +12,9 @@
     "react": "18.1.0",
     "react-native": "0.70.6"
   },
+  "resolutions": {
+    "@types/react": "17.0.21"
+  },
   "devDependencies": {
     "@babel/core": "^7.12.9",
     "@babel/runtime": "^7.12.5",

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { initStripe } from 'react-native-stripe-sdk';
+import { StyleSheet, Text, View } from 'react-native';
+import { CardField, initStripe } from 'react-native-stripe-sdk';
 
 export default function App() {
   React.useEffect(() => {
@@ -14,7 +14,7 @@ export default function App() {
           setReturnUrlSchemeOnAndroid: true,
         });
       } catch (e) {
-        console.log(`Please provide a publishableKey`);
+        console.log(`🚀🚀🚀🚀🚀🚀🚀🚀 `, e);
       }
     })();
   }, []);
@@ -22,6 +22,11 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>StripeSDK</Text>
+      <CardField
+        cardStyle={inputStyles}
+        style={styles.cardField}
+        postalCodeEnabled={false}
+      />
     </View>
   );
 }
@@ -29,12 +34,24 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
   },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
+  cardField: {
+    width: '100%',
+    height: 50,
+    marginVertical: 30,
+  },
+  or: {
+    textAlign: 'center',
+    marginTop: 30,
   },
 });
+
+const inputStyles = {
+  borderWidth: 1,
+  backgroundColor: '#FFFFFF',
+  borderColor: '#000000',
+  borderRadius: 8,
+  fontSize: 14,
+  placeholderColor: '#999999',
+};

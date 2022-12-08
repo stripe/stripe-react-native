@@ -8,3 +8,5 @@ export {
   StripeProvider,
   Props as StripeProviderProps,
 } from './components/StripeProvider';
+
+export { CardField, Props as CardFieldProps } from './components/CardField';
