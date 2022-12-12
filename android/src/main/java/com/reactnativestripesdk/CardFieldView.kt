@@ -10,9 +10,11 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.FrameLayout
 import androidx.core.os.LocaleListCompat
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.facebook.react.views.text.ReactTypefaceUtils
@@ -81,8 +83,11 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   private fun onChangeFocus() {
-    mEventDispatcher?.dispatchEvent(
-      CardFocusEvent(id, currentFocusedField))
+//    mEventDispatcher?.dispatchEvent(
+//      CardFocusEvent(id, currentFocusedField))
+    UIManagerHelper.getEventDispatcherForReactTag(context as ReactContext?, id)?.dispatchEvent(
+      CardFocusEvent(id, currentFocusedField)
+    )
   }
 
   fun setCardStyle(value: ReadableMap) {
@@ -248,8 +253,11 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   private fun sendCardDetailsEvent() {
-    mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails))
+//    mEventDispatcher?.dispatchEvent(
+//      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails))
+    UIManagerHelper.getEventDispatcherForReactTag(context as ReactContext?, id)?.dispatchEvent(
+      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails)
+    )
   }
 
   private fun setListeners() {

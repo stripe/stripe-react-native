@@ -1,25 +1,25 @@
 import * as React from 'react';
 
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { CardField } from '@stripe/stripe-react-native';
+import { CardField, initStripe } from '@stripe/stripe-react-native';
 import type { CardFieldInput } from '@stripe/stripe-react-native';
 
 export default function App() {
   const ref = React.useRef<CardFieldInput.Methods>(null);
 
   React.useEffect(() => {
-    // (async function () {
-    //   try {
-    //     await initStripe({
-    //       publishableKey: '',
-    //       merchantIdentifier: 'merchant.com.stripe.react.native',
-    //       urlScheme: 'stripe-example',
-    //       setReturnUrlSchemeOnAndroid: true,
-    //     });
-    //   } catch (e) {
-    //     console.log(`JUST IGNORE IT `);
-    //   }
-    // })();
+    (async function () {
+      try {
+        await initStripe({
+          publishableKey: '',
+          merchantIdentifier: 'merchant.com.stripe.react.native',
+          urlScheme: 'stripe-example',
+          setReturnUrlSchemeOnAndroid: true,
+        });
+      } catch (e) {
+        console.log(`JUST IGNORE IT `);
+      }
+    })();
   }, []);
 
   return (

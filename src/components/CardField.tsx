@@ -6,12 +6,10 @@ import React, {
   useLayoutEffect,
   useRef,
 } from 'react';
-import {
+import type {
   AccessibilityProps,
   NativeSyntheticEvent,
-  UIManager,
   StyleProp,
-  findNodeHandle,
   ViewStyle,
 } from 'react-native';
 import {
@@ -91,13 +89,21 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
         const card = event.nativeEvent;
 
         const data: CardFieldInput.Details = {
+          //@ts-ignore
           last4: card.last4,
+          //@ts-ignore
           expiryMonth: card.expiryMonth,
+          //@ts-ignore
           expiryYear: card.expiryYear,
+          //@ts-ignore
           complete: card.complete,
+          //@ts-ignore
           brand: card.brand,
+          //@ts-ignore
           validExpiryDate: card.validExpiryDate,
+          //@ts-ignore
           validNumber: card.validNumber,
+          //@ts-ignore
           validCVC: card.validCVC,
         };
 
@@ -105,6 +111,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
           data.postalCode = card.postalCode || '';
         }
         if (card.hasOwnProperty('number') || card.hasOwnProperty('cvc')) {
+          //@ts-ignore
           data.number = card.number || '';
           data.cvc = card.cvc || '';
           if (__DEV__ && onCardChange && card.complete) {
