@@ -412,7 +412,7 @@ class StripeSdkModule constructor(context: ReactApplicationContext) : StripeSdkS
     )
   }
 
-  override fun handleURLCallback(url: String?, promise: Promise?) {
+  override fun handleURLCallback(url: String, promise: Promise) {
     TODO("Not yet implemented")
   }
 
@@ -457,7 +457,7 @@ class StripeSdkModule constructor(context: ReactApplicationContext) : StripeSdkS
   @ReactMethod
   override fun confirmPayment(
     paymentIntentClientSecret: String,
-    params: ReadableMap?,
+    params: ReadableMap,
     options: ReadableMap,
     promise: Promise
   ) {
@@ -522,22 +522,22 @@ class StripeSdkModule constructor(context: ReactApplicationContext) : StripeSdkS
     }
   }
 
-  override fun isApplePaySupported(promise: Promise?) {
+  override fun isApplePaySupported(promise: Promise) {
     TODO("Not yet implemented")
   }
 
-  override fun presentApplePay(params: ReadableMap?, promise: Promise?) {
+  override fun presentApplePay(params: ReadableMap, promise: Promise) {
     TODO("Not yet implemented")
   }
 
-  override fun confirmApplePayPayment(clientSecret: ReadableMap?, promise: Promise?) {
+  override fun confirmApplePayPayment(clientSecret: ReadableMap, promise: Promise) {
     TODO("Not yet implemented")
   }
 
   override fun updateApplePaySummaryItems(
-    summaryItems: ReadableMap?,
-    errorAddressFields: ReadableArray?,
-    promise: Promise?
+    summaryItems: ReadableMap,
+    errorAddressFields: ReadableArray,
+    promise: Promise
   ) {
     TODO("Not yet implemented")
   }
@@ -625,7 +625,7 @@ class StripeSdkModule constructor(context: ReactApplicationContext) : StripeSdkS
   }
 
   @ReactMethod
-  override fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
+  override fun isGooglePaySupported(params: ReadableMap, promise: Promise) {
     val fragment = GooglePayPaymentMethodLauncherFragment(
       reactApplicationContext,
       getBooleanOrFalse(params, "testEnv"),
@@ -708,7 +708,7 @@ class StripeSdkModule constructor(context: ReactApplicationContext) : StripeSdkS
     googlePayFragment?.createPaymentMethod(currencyCode, amount, promise)
   }
 
-  override fun openApplePaySetup(promise: Promise?) {
+  override fun openApplePaySetup(promise: Promise) {
     TODO("Not yet implemented")
   }
 
