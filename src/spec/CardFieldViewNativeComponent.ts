@@ -1,3 +1,4 @@
+import type * as React from 'react';
 import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
 import type { HostComponent, ViewProps } from 'react-native';
 import type {
