@@ -1,11 +1,11 @@
 import * as React from 'react';
 
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { CardField, initStripe } from '@stripe/stripe-react-native';
+import { CardField } from '@stripe/stripe-react-native';
 import type { CardFieldInput } from '@stripe/stripe-react-native';
 
 export default function App() {
-  const ref = React.useRef<CardFieldInput.NativeProps>(null);
+  const ref = React.useRef<CardFieldInput.Methods>(null);
 
   React.useEffect(() => {
     // (async function () {
