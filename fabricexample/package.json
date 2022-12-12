@@ -13,7 +13,8 @@
     "react-native": "0.70.6"
   },
   "resolutions": {
-    "@types/react": "17.0.21"
+    "@types/react": "17.0.21",
+    "react-native/react-native-codegen": "0.72.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

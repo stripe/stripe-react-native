@@ -1,4 +1,12 @@
-import { NativeModules } from 'react-native';
+/** Those types are shared between a new and on old architecture. Unfortunately the CodeGen does not support many things:
+ * https://github.com/reactwg/react-native-new-architecture/discussions/91#discussioncomment-4282058
+ * https://github.com/reactwg/react-native-new-architecture/discussions/91#discussioncomment-4282384
+ * https://github.com/reactwg/react-native-new-architecture/discussions/91#discussioncomment-4282452
+ * The Codegen has some limitations, hence those types have to be written manually
+ */
+
+import { NativeModules, Platform } from 'react-native';
+
 import type {
   PaymentMethod,
   PaymentIntent,
@@ -31,7 +39,7 @@ import type {
   FinancialConnections,
 } from './types';
 
-type NativeStripeSdkType = {
+export type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
   createPaymentMethod(
     params: PaymentMethod.CreateParams,
@@ -108,6 +116,28 @@ type NativeStripeSdkType = {
   resetPaymentSheetCustomer(): Promise<null>;
 };
 
-const { StripeSdk } = NativeModules;
+const LINKING_ERROR =
+  `The package 'react-native-stripe-sdk' doesn't seem to be linked. Make sure: \n\n` +
+  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
+  '- You rebuilt the app after installing the package\n' +
+  '- You are not using Expo Go\n';
 
-export default StripeSdk as NativeStripeSdkType;
+// @ts-expect-error
+const isTurboModuleEnabled = global.__turboModuleProxy != null;
+
+const StripeSdkModule = isTurboModuleEnabled
+  ? require('./NewArchSdkWrapper').default
+  : NativeModules.StripeSdk;
+
+const StripeSdk: NativeStripeSdkType = StripeSdkModule
+  ? StripeSdkModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export default StripeSdk;

@@ -9,7 +9,6 @@ import React, {
 import {
   AccessibilityProps,
   NativeSyntheticEvent,
-  requireNativeComponent,
   UIManager,
   StyleProp,
   findNodeHandle,
@@ -22,8 +21,11 @@ import {
   unregisterInput,
 } from '../helpers';
 
-const CardFieldNative =
-  requireNativeComponent<CardFieldInput.NativeProps>('CardField');
+import CardFieldNative, {
+  OnCardChangeEventData,
+  OnFocusChangeEventData,
+  Commands as CardFieldCommands,
+} from '../spec/CardFieldViewNativeComponent';
 
 /**
  *  Card Field Component Props
@@ -85,7 +87,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     const inputRef = useRef<any>(null);
 
     const onCardChangeHandler = useCallback(
-      (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
+      (event: NativeSyntheticEvent<OnCardChangeEventData>) => {
         const card = event.nativeEvent;
 
         const data: CardFieldInput.Details = {
@@ -117,10 +119,11 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const onFocusHandler = useCallback(
-      (event) => {
+      (event: NativeSyntheticEvent<OnFocusChangeEventData>) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
           focusInput(inputRef.current);
+          //@ts-ignore
           onFocus?.(focusedField);
         } else {
           onBlur?.();
@@ -130,27 +133,15 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const focus = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'focus' as any,
-        []
-      );
+      CardFieldCommands.focus(inputRef.current);
     };
 
     const blur = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'blur' as any,
-        []
-      );
+      CardFieldCommands.blur(inputRef.current);
     };
 
     const clear = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'clear' as any,
-        []
-      );
+      CardFieldCommands.clear(inputRef.current);
     };
 
     useImperativeHandle(ref, () => ({
@@ -193,6 +184,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
           fontFamily: cardStyle?.fontFamily,
         }}
         placeholders={{
+          //@ts-ignore
           number: placeholders?.number,
           expiration: placeholders?.expiration,
           cvc: placeholders?.cvc,

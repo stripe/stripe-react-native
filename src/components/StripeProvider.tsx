@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-
-import NativeStripeSdk from '../NativeStripeSdk';
+import StripeSdkModule from '../NativeStripeSdk';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
@@ -28,7 +27,7 @@ const appInfo: AppInfo = {
 
 export const initStripe = async (params: InitStripeParams): Promise<void> => {
   const extendedParams: InitialiseParams = { ...params, appInfo };
-  NativeStripeSdk.initialise(extendedParams);
+  return StripeSdkModule.initialise(extendedParams);
 };
 
 /**
@@ -65,7 +64,7 @@ export function StripeProvider({
       return;
     }
     if (isAndroid) {
-      NativeStripeSdk.initialise({
+      StripeSdkModule.initialise({
         publishableKey,
         appInfo,
         stripeAccountId,
@@ -74,7 +73,7 @@ export function StripeProvider({
         setReturnUrlSchemeOnAndroid,
       });
     } else {
-      NativeStripeSdk.initialise({
+      StripeSdkModule.initialise({
         publishableKey,
         appInfo,
         stripeAccountId,
