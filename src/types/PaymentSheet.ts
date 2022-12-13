@@ -19,7 +19,7 @@ export type SetupParams = ClientSecretParams & {
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
-  /** PaymentSheet pre-populates the billing fields with the values provided. */
+  /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with the values provided. */
   defaultBillingDetails?: BillingDetails;
   /**
    * The shipping information for the customer. If set, PaymentSheet will pre-populate the form fields with the values provided.
