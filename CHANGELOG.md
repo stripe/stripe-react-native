@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Fixed an issue with `createPlatformPayPaymentMethod` on iOS where a "Canceled" error could be returned in production. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
+
 ## 0.22.1 - 2022-12-07
 
 ## Fixes
