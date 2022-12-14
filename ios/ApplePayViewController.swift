@@ -15,11 +15,19 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
     ) {
         applePaymentMethodFlowCanBeCanceled = false
-        STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
+        STPAPIClient.shared.createToken(with: payment) { token, error in
             if let error = error {
                 self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
             } else {
-                STPAPIClient.shared.createToken(with: payment) { token, error in
+                let cardParams = STPPaymentMethodCardParams()
+                cardParams.token = token?.tokenId
+                let billingDetails = ApplePayUtils.billingDetails(from: payment)
+                let paymentMethodParams = STPPaymentMethodParams(
+                    card: cardParams,
+                    billingDetails: billingDetails,
+                    metadata: nil
+                )
+                STPAPIClient.shared.createPaymentMethod(with: paymentMethodParams) { paymentMethod, error in
                     if let error = error {
                         self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                     } else {

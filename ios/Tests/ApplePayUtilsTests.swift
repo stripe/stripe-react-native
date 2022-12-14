@@ -177,6 +177,10 @@ class ApplePayUtilsTests: XCTestCase {
         }
     }
     
+    func test_billingDetails_emptyPKPayment() throws {
+        let result = ApplePayUtils.billingDetails(from: PKPayment.init())
+        XCTAssertNotNil(result)
+    }
     
     private struct TestFixtures {
         static let MERCHANT_ID = "merchant.com.id"
