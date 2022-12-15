@@ -29,6 +29,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     
     var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
     var createPlatformPayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
+    var platformPayUsesDeprecatedTokenFlow = false
     var applePaymentMethodFlowCanBeCanceled = false
     
     var confirmPaymentClientSecret: String? = nil
@@ -536,8 +537,9 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(StripeAPI.deviceSupportsApplePay())
     }
     
-    @objc(createPlatformPayPaymentMethod:resolver:rejecter:)
+    @objc(createPlatformPayPaymentMethod:usesDeprecatedTokenFlow:resolver:rejecter:)
     func createPlatformPayPaymentMethod(params: NSDictionary,
+                                        usesDeprecatedTokenFlow: Bool,
                                           resolver resolve: @escaping RCTPromiseResolveBlock,
                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let applePayPatams = params["applePay"] as? NSDictionary else {
@@ -554,6 +556,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
         self.applePayShippingAddressErrors = nil
         self.applePayCouponCodeErrors = nil
+        platformPayUsesDeprecatedTokenFlow = usesDeprecatedTokenFlow
         applePaymentMethodFlowCanBeCanceled = true
         createPlatformPayPaymentMethodResolver = resolve
         self.applePaymentAuthorizationController = PKPaymentAuthorizationViewController(paymentRequest: paymentRequest)

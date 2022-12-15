@@ -26,6 +26,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   createPlatformPayPaymentMethod:(NSDictionary *)params
+                  usesDeprecatedTokenFlow:(BOOL)usesDeprecatedTokenFlow
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject)
 

@@ -15,6 +15,7 @@ export function usePlatformPay() {
     confirmPlatformPaySetupIntent,
     confirmPlatformPayPayment,
     createPlatformPayPaymentMethod,
+    createPlatformPayToken,
     dismissPlatformPay,
     updatePlatformPaySheet,
     canAddCardToWallet,
@@ -68,6 +69,18 @@ export function usePlatformPay() {
       return result;
     },
     [createPlatformPayPaymentMethod]
+  );
+
+  const _createPlatformPayToken = useCallback(
+    async (params: PlatformPay.PaymentMethodParams) => {
+      setLoading(true);
+
+      const result = await createPlatformPayToken(params);
+      setLoading(false);
+
+      return result;
+    },
+    [createPlatformPayToken]
   );
 
   const _dismissPlatformPay = useCallback(async () => {
@@ -143,6 +156,12 @@ export function usePlatformPay() {
      * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
      */
     createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
+    /**
+     * @deprecated The Tokens API is deprecated, you should use Payment Methods and `createPlatformPayPaymentMethod` instead.  Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [token](https://stripe.com/docs/api/tokens).
+     * @param params an object describing the Apple Pay and Google Pay configurations.
+     * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with a `token` field.
+     */
+    createPlatformPayToken: _createPlatformPayToken,
     /**
      * Dismiss the Apple Pay sheet if it is open. iOS only, this is a no-op on Android.
      * @returns A boolean indicating whether or not the sheet was successfully closed. Will return false if the Apple Pay sheet was not open.

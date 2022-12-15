@@ -72,6 +72,7 @@ import {
   confirmPlatformPayPayment,
   dismissPlatformPay,
   createPlatformPayPaymentMethod,
+  createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
 } from '../functions';
@@ -367,6 +368,15 @@ export function useStripe() {
     []
   );
 
+  const _createPlatformPayToken = useCallback(
+    async (
+      params: PlatformPay.PaymentMethodParams
+    ): Promise<PlatformPay.TokenResult> => {
+      return createPlatformPayToken(params);
+    },
+    []
+  );
+
   const _updatePlatformPaySheet = useCallback(
     async (params: {
       applePay: {
@@ -426,6 +436,7 @@ export function useStripe() {
     confirmPlatformPayPayment: _confirmPlatformPayPayment,
     dismissPlatformPay: _dismissPlatformPay,
     createPlatformPayPaymentMethod: _createPlatformPayPaymentMethod,
+    createPlatformPayToken: _createPlatformPayToken,
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
   };

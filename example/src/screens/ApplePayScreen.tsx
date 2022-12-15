@@ -23,6 +23,7 @@ export default function ApplePayScreen() {
   const [clientSecret, setClientSecret] = useState<String | null>(null);
   const {
     createPlatformPayPaymentMethod,
+    createPlatformPayToken,
     isPlatformPaySupported,
     confirmPlatformPayPayment,
   } = usePlatformPay();
@@ -245,36 +246,57 @@ export default function ApplePayScreen() {
   };
 
   const createPaymentMethod = async () => {
-    const { paymentMethod, token, error } =
-      await createPlatformPayPaymentMethod({
-        applePay: {
-          cartItems: cart,
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-          shippingMethods,
-          requiredShippingAddressFields: [
-            PlatformPay.ContactField.EmailAddress,
-            PlatformPay.ContactField.PhoneNumber,
-            PlatformPay.ContactField.PostalAddress,
-            PlatformPay.ContactField.Name,
-          ],
-          requiredBillingContactFields: [
-            PlatformPay.ContactField.PostalAddress,
-          ],
-          supportsCouponCode: true,
-          couponCode: '123',
-          shippingType: PlatformPay.ApplePayShippingType.StorePickup,
-          additionalEnabledNetworks: ['JCB'],
-        },
-      });
+    const { paymentMethod, error } = await createPlatformPayPaymentMethod({
+      applePay: {
+        cartItems: cart,
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        shippingMethods,
+        requiredShippingAddressFields: [
+          PlatformPay.ContactField.EmailAddress,
+          PlatformPay.ContactField.PhoneNumber,
+          PlatformPay.ContactField.PostalAddress,
+          PlatformPay.ContactField.Name,
+        ],
+        requiredBillingContactFields: [PlatformPay.ContactField.PostalAddress],
+        supportsCouponCode: true,
+        couponCode: '123',
+        shippingType: PlatformPay.ApplePayShippingType.StorePickup,
+        additionalEnabledNetworks: ['JCB'],
+      },
+    });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
     } else {
-      Alert.alert(
-        'Success',
-        'Check the logs for payment method and token details.'
-      );
+      Alert.alert('Success', 'Check the logs for payment method details.');
       console.log(JSON.stringify(paymentMethod, null, 2));
+    }
+  };
+
+  const createToken = async () => {
+    const { token, error } = await createPlatformPayToken({
+      applePay: {
+        cartItems: cart,
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        shippingMethods,
+        requiredShippingAddressFields: [
+          PlatformPay.ContactField.EmailAddress,
+          PlatformPay.ContactField.PhoneNumber,
+          PlatformPay.ContactField.PostalAddress,
+          PlatformPay.ContactField.Name,
+        ],
+        requiredBillingContactFields: [PlatformPay.ContactField.PostalAddress],
+        supportsCouponCode: true,
+        couponCode: '123',
+        shippingType: PlatformPay.ApplePayShippingType.StorePickup,
+        additionalEnabledNetworks: ['JCB'],
+      },
+    });
+    if (error) {
+      Alert.alert(error.code, error.localizedMessage);
+    } else {
+      Alert.alert('Success', 'Check the logs for token details.');
       console.log(JSON.stringify(token, null, 2));
     }
   };
@@ -328,6 +350,28 @@ export default function ApplePayScreen() {
           }}
         />
 
+        <PlatformPayButton
+          onPress={createToken}
+          type={PlatformPay.ButtonType.SetUp}
+          appearance={PlatformPay.ButtonStyle.Black}
+          borderRadius={4}
+          disabled={!isApplePaySupported}
+          style={styles.createPaymentMethodButton}
+          onCouponCodeEntered={couponCodeListener}
+          onShippingContactSelected={({ shippingContact }) => {
+            console.log(JSON.stringify(shippingContact, null, 2));
+            updatePlatformPaySheet({
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
+            });
+          }}
+          onShippingMethodSelected={({ shippingMethod }) => {
+            console.log(JSON.stringify(shippingMethod, null, 2));
+            updatePlatformPaySheet({
+              applePay: { cartItems: cart, shippingMethods, errors: [] },
+            });
+          }}
+        />
+
         {showAddToWalletButton && (
           <AddToWalletButton
             androidAssetSource={{}}
@@ -361,13 +405,13 @@ const styles = StyleSheet.create({
   payButton: {
     width: '65%',
     height: 50,
-    marginTop: 40,
+    marginTop: 20,
     alignSelf: 'center',
   },
   createPaymentMethodButton: {
     width: '65%',
     height: 50,
-    marginTop: 40,
+    marginTop: 20,
     alignSelf: 'center',
   },
 });
