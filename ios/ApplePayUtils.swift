@@ -7,7 +7,6 @@
 
 import Foundation
 import StripePaymentSheet
-import Stripe
 
 class ApplePayUtils {
     
@@ -312,32 +311,6 @@ class ApplePayUtils {
             merchantCountryCode: countryCode,
             paymentSummaryItems:paymentSummaryItems.count > 0 ? paymentSummaryItems : nil
         )
-    }
-    
-    public class func billingDetails(from payment: PKPayment) -> STPPaymentMethodBillingDetails {
-        let billingDetails = STPPaymentMethodBillingDetails()
-        if let billingContact = payment.billingContact {
-            let billingAddress = STPAddress(pkContact: billingContact)
-            billingDetails.name = billingAddress.name
-            billingDetails.email = billingAddress.email
-            billingDetails.phone = billingAddress.phone
-            if (payment.billingContact?.postalAddress != nil) {
-                billingDetails.address = STPPaymentMethodAddress(address: billingAddress)
-            }
-        }
-
-        // Get email and phone from the PKPayment.shippingDetails
-        if let shippingContact = payment.shippingContact {
-            let shippingAddress = STPAddress(pkContact: shippingContact)
-            if billingDetails.email == nil && shippingAddress.email != nil {
-                billingDetails.email = shippingAddress.email
-            }
-            if billingDetails.phone == nil && shippingAddress.phone != nil {
-                billingDetails.phone = shippingAddress.phone
-            }
-        }
-        
-        return billingDetails
     }
 }
 
