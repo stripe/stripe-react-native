@@ -810,16 +810,19 @@ export const dismissPlatformPay = async (): Promise<boolean> => {
 };
 
 /**
- * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods) and [token](https://stripe.com/docs/api/tokens).
+ * Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [PaymentMethod](https://stripe.com/docs/api/payment_methods).
  * @param params an object describing the Apple Pay and Google Pay configurations.
- * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with both `paymentMethod` and `token` fields.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with a `paymentMethod` field.
  */
 export const createPlatformPayPaymentMethod = async (
   params: PlatformPay.PaymentMethodParams
 ): Promise<PlatformPay.PaymentMethodResult> => {
   try {
-    const { error, paymentMethod, token } =
-      await NativeStripeSdk.createPlatformPayPaymentMethod(params);
+    const { error, paymentMethod } =
+      (await NativeStripeSdk.createPlatformPayPaymentMethod(
+        params,
+        false
+      )) as PlatformPay.PaymentMethodResult;
     if (error) {
       return {
         error,
@@ -827,6 +830,34 @@ export const createPlatformPayPaymentMethod = async (
     }
     return {
       paymentMethod: paymentMethod!,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+/**
+ * @deprecated The Tokens API is deprecated, you should use Payment Methods and `createPlatformPayPaymentMethod` instead.  Launches the relevant native wallet sheet (Apple Pay on iOS, Google Pay on Android) in order to create a Stripe [token](https://stripe.com/docs/api/tokens).
+ * @param params an object describing the Apple Pay and Google Pay configurations.
+ * @returns An object with an error field if something went wrong or the flow was cancelled, otherwise an object with a `token` field.
+ */
+export const createPlatformPayToken = async (
+  params: PlatformPay.PaymentMethodParams
+): Promise<PlatformPay.TokenResult> => {
+  try {
+    const { error, token } =
+      (await NativeStripeSdk.createPlatformPayPaymentMethod(
+        params,
+        true
+      )) as PlatformPay.TokenResult;
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
       token: token!,
     };
   } catch (error: any) {

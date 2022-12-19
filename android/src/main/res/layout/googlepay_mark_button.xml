@@ -7,9 +7,7 @@
   android:focusable="true"
   android:minWidth="1dp"
   android:background="@drawable/googlepay_mark_background">
-
   <ImageView
-    android:id="@+id/imageView2"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:cropToPadding="true"

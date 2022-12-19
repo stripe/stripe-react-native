@@ -40,6 +40,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var confirmPromise: Promise? = null
   private var confirmPaymentClientSecret: String? = null
   private var createPlatformPayPaymentMethodPromise: Promise? = null
+  private var platformPayUsesDeprecatedTokenFlow = false
 
   private var paymentSheetFragment: PaymentSheetFragment? = null
   private var googlePayFragment: GooglePayFragment? = null
@@ -65,7 +66,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         when (requestCode) {
           GooglePayRequestHelper.LOAD_PAYMENT_DATA_REQUEST_CODE -> {
             createPlatformPayPaymentMethodPromise?.let {
-              GooglePayRequestHelper.handleGooglePaymentMethodResult(resultCode, data, stripe, it)
+              GooglePayRequestHelper.handleGooglePaymentMethodResult(resultCode, data, stripe, platformPayUsesDeprecatedTokenFlow, it)
               createPlatformPayPaymentMethodPromise = null
             } ?: run { Log.d("StripeReactNative", "No promise was found, Google Pay result went unhandled,") }
           }
@@ -654,11 +655,12 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun createPlatformPayPaymentMethod(params: ReadableMap, promise: Promise) {
+  fun createPlatformPayPaymentMethod(params: ReadableMap, usesDeprecatedTokenFlow: Boolean, promise: Promise) {
     val googlePayParams: ReadableMap = params.getMap("googlePay") ?: run {
       promise.resolve(createError(GooglePayErrorType.Failed.toString(), "You must provide the `googlePay` parameter."))
       return
     }
+    platformPayUsesDeprecatedTokenFlow = usesDeprecatedTokenFlow
     createPlatformPayPaymentMethodPromise = promise
     getCurrentActivityOrResolveWithError(promise)?.let {
       val request = GooglePayRequestHelper.createPaymentRequest(

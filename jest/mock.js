@@ -34,6 +34,9 @@ const mockFunctions = {
   dismissPlatformPay: jest.fn(async () => true),
   createPlatformPayPaymentMethod: jest.fn(async () => ({
     paymentMethod: {},
+    error: null,
+  })),
+  createPlatformPayToken: jest.fn(async () => ({
     token: {},
     error: null,
   })),
@@ -176,6 +179,9 @@ const mockHooks = {
     })),
     createPlatformPayPaymentMethod: jest.fn(async () => ({
       ...mockFunctions.createPlatformPayPaymentMethod(),
+    })),
+    createPlatformPayToken: jest.fn(async () => ({
+      ...mockFunctions.createPlatformPayToken(),
     })),
     updatePlatformPaySheet: jest.fn(async () => ({
       ...mockFunctions.updatePlatformPaySheet(),

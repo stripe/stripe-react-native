@@ -15,7 +15,8 @@
 
 - `confirmPlatformPaySetupIntent` if you were using them to confirm a setup intent
 - `confirmPlatformPayPayment` if you were using them to confirm a payment intent
-- `createPlatformPayPaymentMethod` if you were using them to create a payment method (this was impossible previously with Apple Pay, so it was only possible on Android). This method also now creates and returns the Stripe token object.
+- `createPlatformPayPaymentMethod` if you were using them to create a payment method (this was impossible previously with Apple Pay, so it was only possible on Android).
+- `createPlatformPayToken` if you are migrating from Tipsi Stripe and your payments code still uses the legacy Tokens API.
 
 # `updateApplePaySummaryItems`
 

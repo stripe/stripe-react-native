@@ -177,7 +177,6 @@ class ApplePayUtilsTests: XCTestCase {
         }
     }
     
-    
     private struct TestFixtures {
         static let MERCHANT_ID = "merchant.com.id"
         static let COUNTRY_CODE = "US"

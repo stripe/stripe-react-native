@@ -111,8 +111,9 @@ type NativeStripeSdkType = {
     googlePay?: GooglePay.IsSupportedParams;
   }): Promise<boolean>;
   createPlatformPayPaymentMethod(
-    params: PlatformPay.PaymentMethodParams
-  ): Promise<PlatformPay.PaymentMethodResult>;
+    params: PlatformPay.PaymentMethodParams,
+    usesDeprecatedTokenFlow: boolean
+  ): Promise<PlatformPay.PaymentMethodResult | PlatformPay.TokenResult>;
   dismissPlatformPay(): Promise<boolean>;
   updatePlatformPaySheet(
     summaryItems: Array<ApplePay.CartSummaryItem>,

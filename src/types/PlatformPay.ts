@@ -296,11 +296,19 @@ export type IsGooglePaySupportedParams = IsSupportedParams;
 export type PaymentMethodResult =
   | {
       paymentMethod: PaymentMethod;
-      token: Token;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      error: StripeError<PlatformPayError>;
+    };
+
+export type TokenResult =
+  | {
+      token: Token;
+      error?: undefined;
+    }
+  | {
       token?: undefined;
       error: StripeError<PlatformPayError>;
     };

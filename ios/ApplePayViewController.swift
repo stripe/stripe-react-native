@@ -15,23 +15,31 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
     ) {
         applePaymentMethodFlowCanBeCanceled = false
-        STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
-            if let error = error {
-                self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
-            } else {
-                STPAPIClient.shared.createToken(with: payment) { token, error in
-                    if let error = error {
-                        self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
-                    } else {
-                        var promiseResult = ["paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]]
-                        if let token = token {
-                            promiseResult["token"] = Mappers.mapFromToken(token: token.splitApplePayAddressByNewline())
-                        }
-                        self.createPlatformPayPaymentMethodResolver?(promiseResult)
-                    }
+        
+        if (platformPayUsesDeprecatedTokenFlow) {
+            STPAPIClient.shared.createToken(with: payment) { token, error in
+                if let error = error {
+                    self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                } else {
+                    let promiseResult = [
+                        "token": token != nil ? Mappers.mapFromToken(token: token!.splitApplePayAddressByNewline()) : [:]
+                    ]
+                    self.createPlatformPayPaymentMethodResolver?(promiseResult)
                 }
+                completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
             }
-            completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
+        } else {
+            STPAPIClient.shared.createPaymentMethod(with: payment) { paymentMethod, error in
+                if let error = error {
+                    self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
+                } else {
+                    let promiseResult = [
+                        "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]
+                    ]
+                    self.createPlatformPayPaymentMethodResolver?(promiseResult)
+                }
+                completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
+            }
         }
     }
     

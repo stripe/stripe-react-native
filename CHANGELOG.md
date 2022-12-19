@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Breaking changes
+
+- `createPlatformPayPaymentMethod` no longer returns a `token` object. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
+  - If your integration depends on Stripe's Tokens API, please use `createPlatformPayToken`, which accepts identical arguments.
+
+## Fixes
+
+- Fixed an issue with `createPlatformPayPaymentMethod` on iOS where a "Canceled" error could be returned in production. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
+- Fixed an issue where the `PlatformPayButton` with `type={PlatformPay.ButtonType.GooglePayMark}` would be unclickable. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
+
 ## 0.22.1 - 2022-12-07
 
 ## Fixes
