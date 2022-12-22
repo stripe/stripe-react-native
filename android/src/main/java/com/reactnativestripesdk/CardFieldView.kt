@@ -142,6 +142,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
       }
     }
 
+    mCardWidget.setPadding(20, 0, 20, 0)
     mCardWidget.background = MaterialShapeDrawable(
       ShapeAppearanceModel()
         .toBuilder()
