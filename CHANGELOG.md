@@ -11,6 +11,7 @@
 
 - Fixed an issue with `createPlatformPayPaymentMethod` on iOS where a "Canceled" error could be returned in production. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
 - Fixed an issue where the `PlatformPayButton` with `type={PlatformPay.ButtonType.GooglePayMark}` would be unclickable. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
+- Fixed an issue on Android where `CardField` would render without the necessary padding. [48debb2](https://github.com/stripe/stripe-react-native/commit/48debb27de4b02d8309b4e42737be066cdf33835)
 
 ## 0.22.1 - 2022-12-07
 
