@@ -1,5 +1,11 @@
 import type { BillingDetails, AddressDetails } from './Common';
 import type { CartSummaryItem } from './ApplePay';
+import type {
+  ButtonType,
+  RecurringPaymentRequest,
+  AutomaticReloadPaymentRequest,
+  MultiMerchantRequest,
+} from './PlatformPay';
 
 export type SetupParams = ClientSecretParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -57,9 +63,14 @@ export type ApplePayParams = {
   /**
    * An array of CartSummaryItem item objects that summarize the amount of the payment. If you're using a SetupIntent
    * for a recurring payment, you should set this to display the amount you intend to charge. */
-  paymentSummaryItems?: CartSummaryItem[];
-  // TODO: Uncomment when https://github.com/stripe/stripe-react-native/pull/1164 lands
-  // buttonType: ButtonType
+  cartItems?: CartSummaryItem[];
+  /** Sets the text displayed by the call to action button in the Apple Pay sheet. */
+  buttonType?: ButtonType;
+  /** A typical request is for a one-time payment. To support different types of payment requests, include a PaymentRequestType. Only supported on iOS 16 and up. */
+  request?:
+    | RecurringPaymentRequest
+    | AutomaticReloadPaymentRequest
+    | MultiMerchantRequest;
 };
 
 export type GooglePayParams = {

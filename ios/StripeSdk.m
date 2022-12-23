@@ -177,4 +177,12 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
+RCT_EXTERN_METHOD(
+                  configureOrderTracking:(NSString *)orderTypeIdentifier
+                  orderIdentifier:(NSString *)orderIdentifier
+                  webServiceUrl:(NSString *)webServiceUrl
+                  authenticationToken:(NSString *)authenticationToken
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
 @end

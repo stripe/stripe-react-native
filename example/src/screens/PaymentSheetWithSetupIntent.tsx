@@ -65,7 +65,7 @@ export default function PaymentSheetWithSetupIntent() {
       merchantDisplayName: 'Example Inc.',
       applePay: {
         merchantCountryCode: 'US',
-        paymentSummaryItems: [
+        cartItems: [
           {
             paymentType: 'Recurring',
             label: 'This is a subscription',

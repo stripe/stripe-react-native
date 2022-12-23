@@ -127,6 +127,12 @@ type NativeStripeSdkType = {
   ): Promise<
     PlatformPay.ConfirmPaymentResult | PlatformPay.ConfirmSetupIntentResult
   >;
+  configureOrderTracking(
+    orderTypeIdentifier: string,
+    orderIdentifier: string,
+    webServiceUrl: string,
+    authenticationToken: string
+  ): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

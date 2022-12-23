@@ -42,9 +42,11 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         set { _couponCodeUpdateCompletion = newValue }
     }
     private var _couponCodeUpdateCompletion: Any? = nil
+    var setOrderTrackingCompletion: (result: PKPaymentAuthorizationResult, handler: ((PKPaymentAuthorizationResult) -> Void))? = nil
     var shippingMethodUpdateJSCallback: RCTDirectEventBlock? = nil
     var shippingContactUpdateJSCallback: RCTDirectEventBlock? = nil
     var couponCodeEnteredJSCallback: RCTDirectEventBlock? = nil
+    var setOrderTrackingJSCallback: RCTDirectEventBlock? = nil
     var applePaySummaryItems: [PKPaymentSummaryItem] = []
     var applePayShippingMethods: [PKShippingMethod] = []
     var applePayShippingAddressErrors: [Error]? = nil
@@ -59,7 +61,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact"]
+        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -126,9 +128,10 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
                 configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
                     merchantIdentifier: self.merchantIdentifier,
                     merchantCountryCode: applePayParams["merchantCountryCode"] as? String,
-                    paymentSummaryItems: applePayParams["paymentSummaryItems"] as? [[String : Any]]
+                    paymentSummaryItems: applePayParams["cartItems"] as? [[String : Any]],
+                    buttonType: applePayParams["buttonType"] as? NSNumber
                 )
-            } catch  {
+            } catch {
                 resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
                 return
             }
@@ -603,6 +606,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
         self.applePayShippingAddressErrors = nil
         self.applePayCouponCodeErrors = nil
+        self.setOrderTrackingCompletion = nil
         self.confirmApplePayResolver = resolve
         if (isPaymentIntent) {
             self.confirmApplePayPaymentClientSecret = clientSecret
@@ -1181,6 +1185,30 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
           returnURL = nil
         }
         FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
+    }
+    
+    @objc(configureOrderTracking:orderIdentifier:webServiceUrl:authenticationToken:resolver:rejecter:)
+    func configureOrderTracking(
+        orderTypeIdentifier: String,
+        orderIdentifier: String,
+        webServiceUrl: String,
+        authenticationToken: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        if #available(iOS 16.0, *) {
+            if let setOrderTrackingCompletion = self.setOrderTrackingCompletion {
+                if let url = URL(string: webServiceUrl) {
+                    setOrderTrackingCompletion.result.orderDetails = PKPaymentOrderDetails(
+                        orderTypeIdentifier: orderTypeIdentifier,
+                        orderIdentifier: orderIdentifier,
+                        webServiceURL: url,
+                        authenticationToken: authenticationToken)
+                }
+                setOrderTrackingCompletion.handler(setOrderTrackingCompletion.result)
+                self.setOrderTrackingCompletion = nil
+            }
+        }
     }
 
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
