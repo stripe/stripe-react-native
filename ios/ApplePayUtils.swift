@@ -81,6 +81,7 @@ class ApplePayUtils {
             }
         }
         
+#if compiler(>=5.7)
         if #available(iOS 16.0, *) {
             if let requestParams = params["request"] as? NSDictionary {
                 do {
@@ -99,10 +100,11 @@ class ApplePayUtils {
                 }
             }
         }
-        
+#endif
         return (nil, paymentRequest)
     }
     
+#if compiler(>=5.7)
     @available(iOS 16.0, *)
     internal class func buildRecurringPaymentRequest(params: NSDictionary) throws -> PKRecurringPaymentRequest {
         guard let description = params["description"] as? String else {
@@ -163,6 +165,7 @@ class ApplePayUtils {
         }
         return result
     }
+#endif
     
     internal class func getMerchantCapabilityFrom(string: String?) -> PKMerchantCapability {
         switch string {

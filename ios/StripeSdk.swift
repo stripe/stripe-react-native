@@ -1196,6 +1196,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+#if compiler(>=5.7)
         if #available(iOS 16.0, *) {
             if let setOrderTrackingCompletion = self.setOrderTrackingCompletion {
                 if let url = URL(string: webServiceUrl) {
@@ -1209,6 +1210,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
                 self.setOrderTrackingCompletion = nil
             }
         }
+#endif
     }
 
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
