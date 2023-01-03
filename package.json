@@ -12,7 +12,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "prepare": "bob build",
+    "prepare": "bob build && husky install",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
