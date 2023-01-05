@@ -94,10 +94,10 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         StripeAPI.defaultPublishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
 
-        let name = RCTConvert.nsString(appInfo["name"]) ?? ""
-        let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
-        let version = RCTConvert.nsString(appInfo["version"]) ?? ""
-        let url = RCTConvert.nsString(appInfo["url"]) ?? ""
+        let name = appInfo["name"] as? String ?? ""
+        let partnerId = appInfo["partnerId"] as? String ?? ""
+        let version = appInfo["version"] as? String ?? ""
+        let url = appInfo["url"] as? String ?? ""
 
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier

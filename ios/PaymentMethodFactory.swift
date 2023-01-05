@@ -158,7 +158,7 @@ class PaymentMethodFactory {
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
         if let token = paymentMethodData?["token"] as? String {
             let methodParams = STPPaymentMethodCardParams()
-            methodParams.token = RCTConvert.nsString(token)
+            methodParams.token = token
             return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: nil)
         }
 
