@@ -71,6 +71,18 @@ export type ApplePayParams = {
     | RecurringPaymentRequest
     | AutomaticReloadPaymentRequest
     | MultiMerchantRequest;
+  /** Callback function for setting the order details (retrieved from your server) to give users the
+   * ability to track and manage their purchases in Wallet. Stripe calls your implementation after the
+   * payment is complete, but before iOS dismisses the Apple Pay sheet. You must call the `completion`
+   * function, or else the Apple Pay sheet will hang. */
+  setOrderTracking?: (
+    completion: (
+      orderIdentifier: string,
+      orderTypeIdentifier: string,
+      authenticationToken: string,
+      webServiceUrl: string
+    ) => void
+  ) => void;
 };
 
 export type GooglePayParams = {

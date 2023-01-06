@@ -34,7 +34,7 @@ class ApplePayButtonView: UIView {
             stripeSdk?.shippingMethodUpdateJSCallback = onShippingMethodSelectedAction
             stripeSdk?.shippingContactUpdateJSCallback = onShippingContactSelectedAction
             stripeSdk?.couponCodeEnteredJSCallback = onCouponCodeEnteredAction
-            stripeSdk?.setOrderTrackingJSCallback = onOrderTrackingAction
+            stripeSdk?.platformPayOrderTrackingJSCallback = onOrderTrackingAction
         }
     }
     

@@ -80,27 +80,13 @@ class ApplePayUtils {
                 paymentRequest.couponCode = couponCode
             }
         }
-        
-#if compiler(>=5.7)
-        if #available(iOS 16.0, *) {
-            if let requestParams = params["request"] as? NSDictionary {
-                do {
-                    switch requestParams["type"] as? String {
-                    case "Recurring":
-                        paymentRequest.recurringPaymentRequest = try ApplePayUtils.buildRecurringPaymentRequest(params: requestParams)
-                    case "AutomaticReload":
-                        paymentRequest.automaticReloadPaymentRequest = try ApplePayUtils.buildAutomaticReloadPaymentRequest(params: requestParams)
-                    case "MultiMerchant":
-                        paymentRequest.multiTokenContexts = ApplePayUtils.buildPaymentTokenContexts(items: requestParams["merchants"] as? [[String : Any]] ?? [])
-                    default:
-                        return (Errors.createError(ErrorType.Failed, "Apple Pay request type \(String(describing: requestParams["type"])) is not supported."), nil)
-                    }
-                } catch {
-                    return (Errors.createError(ErrorType.Failed, error.localizedDescription), nil)
-                }
-            }
+
+        do {
+            try paymentRequest.configureRequestType(requestParams: params["request"] as? NSDictionary)
+        } catch {
+            return (Errors.createError(ErrorType.Failed, error.localizedDescription), nil)
         }
-#endif
+
         return (nil, paymentRequest)
     }
     
@@ -375,7 +361,8 @@ class ApplePayUtils {
         merchantIdentifier: String?,
         merchantCountryCode: String?,
         paymentSummaryItems: [[String : Any]]?,
-        buttonType: NSNumber?
+        buttonType: NSNumber?,
+        customHandlers: PaymentSheet.ApplePayConfiguration.Handlers?
     ) throws -> PaymentSheet.ApplePayConfiguration {
         guard let merchantId = merchantIdentifier else {
             throw ApplePayUtilsError.missingMerchantId
@@ -386,11 +373,13 @@ class ApplePayUtils {
         let paymentSummaryItems = try ApplePayUtils.buildPaymentSummaryItems(
             items: paymentSummaryItems
         )
+        
         return PaymentSheet.ApplePayConfiguration.init(
             merchantId: merchantId,
             merchantCountryCode: countryCode,
             buttonType: PKPaymentButtonType(rawValue: buttonType as? Int ?? 0) ?? .plain,
-            paymentSummaryItems: paymentSummaryItems.count > 0 ? paymentSummaryItems : nil
+            paymentSummaryItems: paymentSummaryItems.count > 0 ? paymentSummaryItems : nil,
+            customHandlers: customHandlers
         )
     }
 }
@@ -402,6 +391,7 @@ enum ApplePayUtilsError : Error, Equatable {
     case invalidPaymentNetwork(String)
     case invalidErrorType(String)
     case invalidUrl(String)
+    case invalidRequestType(String)
     case missingMerchantId
     case missingCountryCode
 }
@@ -429,7 +419,29 @@ extension ApplePayUtilsError: LocalizedError {
             return "`merchantCountryCode` is a required param, but was not provided."
         case .invalidUrl(let url):
             return "Invalid URL: \(url)."
-
+        case .invalidRequestType(let tyoe):
+            return "Apple Pay request type `\(tyoe)` is not supported."
         }
+    }
+}
+
+extension PKPaymentRequest {
+    func configureRequestType(requestParams: NSDictionary?) throws -> Void {
+#if compiler(>=5.7)
+        if #available(iOS 16.0, *) {
+            if let requestParams = requestParams {
+                switch requestParams["type"] as? String {
+                case "Recurring":
+                    self.recurringPaymentRequest = try ApplePayUtils.buildRecurringPaymentRequest(params: requestParams)
+                case "AutomaticReload":
+                    self.automaticReloadPaymentRequest = try ApplePayUtils.buildAutomaticReloadPaymentRequest(params: requestParams)
+                case "MultiMerchant":
+                    self.multiTokenContexts = ApplePayUtils.buildPaymentTokenContexts(items: requestParams["merchants"] as? [[String : Any]] ?? [])
+                default:
+                    throw ApplePayUtilsError.invalidRequestType(String(describing: requestParams["type"]))
+                }
+            }
+        }
+#endif
     }
 }

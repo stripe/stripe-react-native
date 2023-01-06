@@ -113,6 +113,13 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  initPaymentSheetWithOrderTracking:(NSDictionary *)params
+                  callback:(RCTResponseSenderBlock)orderTrackingCallback
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   presentPaymentSheet:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

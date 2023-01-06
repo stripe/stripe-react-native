@@ -405,17 +405,28 @@ export const verifyMicrodepositsForSetup = async (
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
+  let result;
+
+  const setOrderTracking = params?.applePay?.setOrderTracking;
   try {
-    const { paymentOption, error } = await NativeStripeSdk.initPaymentSheet(
-      params
-    );
-    if (error) {
+    if (setOrderTracking && Platform.OS === 'ios') {
+      result = await NativeStripeSdk.initPaymentSheetWithOrderTracking(
+        params,
+        () => {
+          setOrderTracking(NativeStripeSdk.configureOrderTracking);
+        }
+      );
+    } else {
+      result = await NativeStripeSdk.initPaymentSheet(params);
+    }
+
+    if (result.error) {
       return {
-        error,
+        error: result.error,
       };
     }
     return {
-      paymentOption,
+      paymentOption: result.paymentOption,
     };
   } catch (error: any) {
     return {

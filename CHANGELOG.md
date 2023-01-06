@@ -28,6 +28,24 @@
 
 - `createPlatformPayPaymentMethod` no longer returns a `token` object. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
   - If your integration depends on Stripe's Tokens API, please use `createPlatformPayToken`, which accepts identical arguments.
+-  Renamed the `paymentSummaryItems` field in `initPaymentSheet()`'s `applePay` params to `cartItems`. So your change will look like this:
+
+```diff
+ initPaymentSheet({
+   ...
+   applePay: {
+-    paymentSummaryItems: [
++    cartItems: [
+   }
+  ...
+ })
+```
+
+## New Features
+
+- Added the `setOrderTracking` property to the `PlatformPayButton` component and the `initPaymentSheet` method. Use this callback for setting the order details to give users the ability to track and manage their purchases in Wallet. To learn more about order tracking, see [Apple’s Wallet Orders documentation](https://developer.apple.com/documentation/walletorders).
+- Added the `buttonType` field to `initPaymentSheet()`'s `applePay` params. Use this to set the text displayed by the call to action button in the Apple Pay sheet.
+- Added the `request` field to `initPaymentSheet()`'s, `confirmPlatformPayPayment()`'s, and `confirmPlatformPaySetupIntent`'s  `applePay` params. Use this to support different types of payment requests, like `RecurringPaymentRequest`, `AutomaticReloadPaymentRequest`, and `MultiMerchantRequest`.
 
 ## Fixes
 
