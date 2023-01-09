@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.23.0 - 2023-01-09
+
 ### Breaking changes
 
 - `createPlatformPayPaymentMethod` no longer returns a `token` object. [#1236](https://github.com/stripe/stripe-react-native/issues/1236)
