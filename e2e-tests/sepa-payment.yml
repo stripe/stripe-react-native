@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank Debits"
+- tapOn: "SEPA Direct Debit payment"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Iban"
+- inputText: "AT611904300234573201"
+- tapOn: "Pay"
+- assertVisible:
+    text: "Processing"
+- tapOn: "OK"

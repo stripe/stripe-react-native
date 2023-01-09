@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (single-step)"
+- tapOn: "Checkout"
+- tapOn:
+    leftOf: "TEST MODE"
+- assertVisible:
+    text: "The payment flow has been canceled"
+- tapOn: "OK"

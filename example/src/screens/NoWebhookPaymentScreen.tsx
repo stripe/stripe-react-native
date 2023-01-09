@@ -142,6 +142,7 @@ export default function NoWebhookPaymentScreen() {
   return (
     <PaymentScreen>
       <CardField
+        autofocus
         onCardChange={(cardDetails) => {
           console.log('cardDetails', cardDetails);
         }}

@@ -43,6 +43,7 @@ export default function CreateTokenScreen() {
       />
       <Text style={styles.or}>OR</Text>
       <CardField
+        autofocus
         cardStyle={inputStyles}
         style={styles.cardField}
         postalCodeEnabled={false}

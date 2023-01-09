@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "More payment scenarios"
+- tapOn: "Recollect a CVC"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "CVC"
+- inputText: "123"
+- tapOn: "Pay"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
+- tapOn: "Pay Synchronously"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

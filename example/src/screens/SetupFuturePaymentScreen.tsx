@@ -273,6 +273,7 @@ export default function SetupFuturePaymentScreen() {
         style={styles.input}
       />
       <CardField
+        autofocus
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('card details', cardDetails);
