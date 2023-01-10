@@ -60,8 +60,6 @@ EOF
     echo -n "    "
     hub release create -em "$release_notes" "v$current_version"
   fi
-
-  send_release_email "$version_and_date" "$release_notes"
 }
 
 create_github_release_fallback() {
@@ -73,35 +71,6 @@ Remember to create a release on GitHub at https://github.com/stripe/stripe-react
 $release_notes
 
 EOF
-}
-
-send_release_email() {
-  local version_and_date=$1
-  local release_notes=$2
-
-  echo "
-Sending an email to mobile-sdk-updates@stripe.com with the following information:
-
-Subject:
-[React Native SDK] v$version_and_date
-
-Body:
-$release_notes
-"
-
-  echo "
-Attempting to automatically draft and open the email to send...if the browser doesn't launch, open the following link:
-"
-  open "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$version_and_date")&body=$(percentEncodeString "$release_notes")"
-  echo "mailto:mobile-sdk-updates@stripe.com?subject=%5BReact%20Native%20SDK%5D%20$(percentEncodeString "$version_and_date")&body=$(percentEncodeString "$release_notes")
-"
-
-  while true ; do
-    read -r -n 1 -p "Once you've sent the email, press any key to continue..."
-    if [ $? = 0 ] ; then
-    exit ;
-    fi
-  done
 }
 
 # Show help if no arguments passed
