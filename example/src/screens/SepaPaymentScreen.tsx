@@ -12,6 +12,7 @@ export default function SepaPaymentScreen() {
   const { confirmPayment, loading } = useConfirmPayment();
   const [iban, setIban] = useState('');
   const [saveIban, setSaveIban] = useState(false);
+  const [canPay, setCanPay] = useState(true);
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -44,7 +45,7 @@ export default function SepaPaymentScreen() {
       name: 'John Doe',
       email: email,
     };
-
+    setCanPay(false);
     const { error, paymentIntent } = await confirmPayment(
       clientSecret,
       {
@@ -71,6 +72,7 @@ export default function SepaPaymentScreen() {
         Alert.alert('Payment status:', paymentIntent.status);
       }
     }
+    setCanPay(true);
   };
 
   return (
@@ -92,6 +94,7 @@ export default function SepaPaymentScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
+        disabled={!canPay}
         accessibilityLabel="Pay"
         loading={loading}
       />

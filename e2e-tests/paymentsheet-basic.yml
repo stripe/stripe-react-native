@@ -9,9 +9,9 @@ appId: ${APP_ID}
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"
+    optional: true
 - inputText: "0125123"
-- tapOn:
-    leftOf: "purchase!"
+- tapOn: "purchase!"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

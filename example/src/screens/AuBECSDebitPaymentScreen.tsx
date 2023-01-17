@@ -14,6 +14,7 @@ export default function AuBECSDebitPaymentScreen() {
   const [formDetails, setFormDetails] =
     useState<AuBECSDebitFormComponent.FormDetails>();
   const { confirmPayment, loading } = useConfirmPayment();
+  const [canPay, setCanPay] = useState(true);
 
   const fetchPaymentIntentClientSecret = async () => {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -39,6 +40,7 @@ export default function AuBECSDebitPaymentScreen() {
     }
 
     const clientSecret = await fetchPaymentIntentClientSecret();
+    setCanPay(false);
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       paymentMethodType: 'AuBecsDebit',
       paymentMethodData: {
@@ -64,6 +66,7 @@ export default function AuBECSDebitPaymentScreen() {
         Alert.alert('Payment status:', paymentIntent.status);
       }
     }
+    setCanPay(true);
   };
 
   return (
@@ -78,7 +81,7 @@ export default function AuBECSDebitPaymentScreen() {
 
       <View style={styles.buttonContainer}>
         <Button
-          disabled={!formDetails}
+          disabled={!formDetails || !canPay}
           title="Pay"
           accessibilityLabel="Pay"
           variant="primary"

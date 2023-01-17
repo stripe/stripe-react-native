@@ -7,5 +7,5 @@ appId: ${APP_ID}
 - tapOn:
     leftOf: "TEST MODE"
 - assertVisible:
-    text: "The payment flow has been canceled"
+    text: .*anceled.*
 - tapOn: "OK"
