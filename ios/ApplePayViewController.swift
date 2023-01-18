@@ -167,6 +167,8 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
     ) {
         if let clientSecret = self.confirmApplePayPaymentClientSecret {
             completion(clientSecret, nil)
+        } else if let clientSecret = self.confirmApplePaySetupClientSecret {
+            completion(clientSecret, nil)
         } else {
             self.applePayCompletionCallback = completion
             let method = Mappers.mapFromPaymentMethod(paymentMethod.splitApplePayAddressByNewline())
