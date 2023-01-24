@@ -16,7 +16,9 @@ export interface Result {
   canceledAt: string | null;
   clientSecret: string;
   livemode: boolean;
+  /** @deprecated Use paymentMethod.id instead. */
   paymentMethodId: string;
+  paymentMethod: PaymentMethodResult | null;
   captureMethod: 'Automatic' | 'Manual';
   confirmationMethod: 'Automatic' | 'Manual';
   lastPaymentError: LastPaymentError | null;

@@ -9,7 +9,9 @@ export interface Result {
   /** The UNIX timestamp (in milliseconds) of the date this Setup Intent was created. */
   created: string | null;
   livemode: boolean;
+  /** @deprecated Use paymentMethod.id instead. */
   paymentMethodId: string | null;
+  paymentMethod: PaymentMethod.Result | null;
   status: Status;
   paymentMethodTypes: Type[];
   usage: FutureUsage;

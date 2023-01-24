@@ -407,6 +407,12 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putString("clientSecret", paymentIntent.clientSecret)
   map.putBoolean("livemode", paymentIntent.isLiveMode)
   map.putString("paymentMethodId", paymentIntent.paymentMethodId)
+  val paymentMethod = paymentIntent.paymentMethod?.let {
+    mapFromPaymentMethod(it)
+  } ?: run {
+    null
+  }
+  map.putMap("paymentMethod", paymentMethod)
   map.putString("receiptEmail", paymentIntent.receiptEmail)
   map.putString("currency", paymentIntent.currency)
   map.putString("status", mapIntentStatus(paymentIntent.status))
@@ -786,6 +792,12 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putBoolean("livemode", setupIntent.isLiveMode)
   map.putString("clientSecret", setupIntent.clientSecret)
   map.putString("paymentMethodId", setupIntent.paymentMethodId)
+  val paymentMethod = setupIntent.paymentMethod?.let {
+    mapFromPaymentMethod(it)
+  } ?: run {
+    null
+  }
+  map.putMap("paymentMethod", paymentMethod)
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
   map.putString("created", convertToUnixTimestamp(setupIntent.created))
   map.putMap("nextAction", mapNextAction(setupIntent.nextActionType, setupIntent.nextActionData))

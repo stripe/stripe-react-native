@@ -146,6 +146,7 @@ export type KlarnaParams = {
     billingDetails: Pick<Required<BillingDetails>, 'email'> & {
       address: Pick<Required<Address>, 'country'>;
     } & BillingDetails;
+    shippingDetails?: ShippingDetails;
   };
 };
 
