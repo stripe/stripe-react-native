@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+## New features
+
+- Both [`PaymentIntent.Result`](https://stripe.dev/stripe-react-native/api-reference/interfaces/PaymentIntent.Result.html) and [`SetupIntent.Result`](https://stripe.dev/stripe-react-native/api-reference/interfaces/SetupIntent.Result.html) types now include a `paymentMethod` field. This replaces the `paymentMethodId` field, which will be removed in a later release. [#1272](https://github.com/stripe/stripe-react-native/pull/1272)
+
 ## Fixes
 
 - Fixed an issue with `confirmPlatformPaySetupIntent` on iOS. [#1266](https://github.com/stripe/stripe-react-native/pull/1266)
+- Fixed types so that Klarna accepts the `shippingDetails` property. [#1272](https://github.com/stripe/stripe-react-native/pull/1272)
 
 ## 0.23.0 - 2023-01-09
 

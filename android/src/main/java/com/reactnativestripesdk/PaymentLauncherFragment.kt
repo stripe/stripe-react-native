@@ -167,7 +167,7 @@ class PaymentLauncherFragment(
   }
 
   private fun retrieveSetupIntent(clientSecret: String, stripeAccountId: String?) {
-    stripe.retrieveSetupIntent(clientSecret, stripeAccountId, object : ApiResultCallback<SetupIntent> {
+    stripe.retrieveSetupIntent(clientSecret, stripeAccountId, expand = listOf("payment_method"), object : ApiResultCallback<SetupIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
         removeFragment(context)
@@ -208,7 +208,7 @@ class PaymentLauncherFragment(
   }
 
   private fun retrievePaymentIntent(clientSecret: String, stripeAccountId: String?) {
-    stripe.retrievePaymentIntent(clientSecret, stripeAccountId, object : ApiResultCallback<PaymentIntent> {
+    stripe.retrievePaymentIntent(clientSecret, stripeAccountId, expand = listOf("payment_method"), object : ApiResultCallback<PaymentIntent> {
       override fun onError(e: Exception) {
         promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
         removeFragment(context)

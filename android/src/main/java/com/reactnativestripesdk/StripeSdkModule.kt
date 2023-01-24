@@ -610,7 +610,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           when (launcherResult) {
             GooglePayLauncher.Result.Completed -> {
               if (isPaymentIntent) {
-                stripe.retrievePaymentIntent(clientSecret, stripeAccountId,  object : ApiResultCallback<PaymentIntent> {
+                stripe.retrievePaymentIntent(clientSecret, stripeAccountId, expand = listOf("payment_method"), object : ApiResultCallback<PaymentIntent> {
                   override fun onError(e: Exception) {
                     promise.resolve(createResult("paymentIntent", WritableNativeMap()))
                   }
@@ -619,7 +619,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
                   }
                 })
               } else {
-                stripe.retrieveSetupIntent(clientSecret, stripeAccountId,  object : ApiResultCallback<SetupIntent> {
+                stripe.retrieveSetupIntent(clientSecret, stripeAccountId, expand = listOf("payment_method"),  object : ApiResultCallback<SetupIntent> {
                   override fun onError(e: Exception) {
                     promise.resolve(createResult("setupIntent", WritableNativeMap()))
                   }

@@ -40,6 +40,17 @@ export default function KlarnaPaymentScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       paymentMethodType: 'Klarna',
       paymentMethodData: {
+        shippingDetails: {
+          address: {
+            city: 'Houston',
+            country: 'US',
+            line1: '1459  Circle Drive',
+            state: 'Texas',
+            postalCode: '77063',
+          },
+          email: 'myemail@s.com',
+          name: 'John Doe',
+        },
         billingDetails: {
           email: 'stripe@test.com',
           address: {
