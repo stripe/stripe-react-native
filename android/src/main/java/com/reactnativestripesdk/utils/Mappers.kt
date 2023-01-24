@@ -783,12 +783,11 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putBoolean("livemode", setupIntent.isLiveMode)
   map.putString("clientSecret", setupIntent.clientSecret)
   map.putString("paymentMethodId", setupIntent.paymentMethodId)
-  val paymentMethod = setupIntent.paymentMethod?.let {
+  map.putMap("paymentMethod", setupIntent.paymentMethod?.let {
     mapFromPaymentMethod(it)
   } ?: run {
     null
-  }
-  map.putMap("paymentMethod", paymentMethod)
+  })
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
   map.putString("created", convertToUnixTimestamp(setupIntent.created))
   map.putMap("nextAction", mapNextAction(setupIntent.nextActionType, setupIntent.nextActionData))
