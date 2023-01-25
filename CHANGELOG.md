@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.23.1 - 2023-01-25
+
 ## Fixes
 
 - Fixed an issue with `confirmPlatformPaySetupIntent` on iOS. [#1266](https://github.com/stripe/stripe-react-native/pull/1266)
