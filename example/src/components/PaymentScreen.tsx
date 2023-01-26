@@ -18,7 +18,7 @@ const PaymentScreen: React.FC<Props> = ({
 
   useEffect(() => {
     async function initialize() {
-      const publishableKey = await fetchPublishableKey(paymentMethod);
+      const publishableKey = 'pk_live_vkch7wsKUxAKTe6m70aN3hJB00sQcPadIf';
       if (publishableKey) {
         await initStripe({
           publishableKey,

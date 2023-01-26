@@ -17,7 +17,7 @@ export default function WebhookPaymentScreen() {
   const { confirmPayment, loading } = useConfirmPayment();
 
   const fetchPaymentIntentClientSecret = async () => {
-    const response = await fetch(`${API_URL}/create-payment-intent`, {
+    const response = await fetch(`${API_URL}/create_payment_intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -29,9 +29,9 @@ export default function WebhookPaymentScreen() {
         // request_three_d_secure: 'any',
       }),
     });
-    const { clientSecret } = await response.json();
+    const { secret } = await response.json();
 
-    return clientSecret;
+    return secret;
   };
 
   const handlePayPress = async () => {
