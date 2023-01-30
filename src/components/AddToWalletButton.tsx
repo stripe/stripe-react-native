@@ -24,7 +24,7 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   /** Sets the Apple Wallet/Google Pay button style. If the button is placed over a dark background, set this to 'onDarkBackground', otherwise set to 'onLightBackground'. */
   iOSButtonStyle?: 'onDarkBackground' | 'onLightBackground';
-  /** The image asset to use as the Google Pay button. Downloadable from https://developers.google.com/pay/issuers/apis/push-provisioning/android/downloads/flutter/googlepay_flutter_buttons.zip */
+  /** The image asset to use as the Google Pay button. Downloadable from https://developers.google.com/static/pay/issuers/apis/push-provisioning/android/downloads/flutter/2022_googlepay_flutter_buttons.zip  */
   androidAssetSource: ImageSourcePropType;
   testID?: string;
   /** iOS only. Set this to `true` until shipping through TestFlight || App Store. If false, you must be using live cards, and have the proper iOS entitlement set up. See https://stripe.com/docs/issuing/cards/digital-wallets?platform=react-native#requesting-access-for-ios */
