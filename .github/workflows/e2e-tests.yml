@@ -68,12 +68,9 @@ jobs:
           disable-animations: true
           cores: 3
           ram-size: 8192M
-          run: |
+          script: |
             yarn run-example-android
-
-      - name: Run tests
-        run: |
-          yarn test:e2e:android
+            yarn test:e2e:android
 
   test-ios:
     name: e2e-ios-test
@@ -113,7 +110,10 @@ jobs:
         run: yarn bootstrap
 
       - name: Install Maestro CLI
-        run: curl -Ls "https://get.maestro.mobile.dev" | bash
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          brew tap facebook/fb
+          brew install facebook/fb/idb-companion
 
       - name: Add Maestro to path
         run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH

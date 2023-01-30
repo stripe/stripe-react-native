@@ -80,7 +80,7 @@ export default function PayPalScreen() {
         variant="primary"
         onPress={handlePayPress}
         title="Pay"
-        accessibilityLabel="Pay now"
+        accessibilityLabel="Pay"
         loading={loadingPayment}
       />
 
