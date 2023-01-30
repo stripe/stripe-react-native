@@ -2,7 +2,7 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Bank redirects"
-- tapOn: "EPS"
+- tapOn: "giropay"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

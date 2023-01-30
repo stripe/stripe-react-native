@@ -1,8 +1,8 @@
 appId: ${APP_ID}
 ---
 - launchApp
-- tapOn: "Bank redirects"
-- tapOn: "EPS"
+- tapOn: "Buy now pay later"
+- tapOn: "Affirm"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

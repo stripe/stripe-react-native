@@ -3,7 +3,11 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (multi-step)"
-- tapOn: "Choose payment method"
+- tapOn:
+    text: "Choose payment method"
+- tapOn:
+    id: "+ Add"
+    optional: true
 - tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
@@ -15,7 +19,8 @@ appId: ${APP_ID}
     text: "CVC"
 - inputText: "123"
 - tapOn: "Continue"
-- tapOn: "Buy"
+- tapOn:
+    text: .*Buy.*
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

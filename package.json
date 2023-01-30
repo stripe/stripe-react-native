@@ -24,7 +24,9 @@
     "test:e2e:ios": "maestro test e2e-tests/ -e APP_ID=com.stripe.react.native",
     "test:e2e:android": "maestro test e2e-tests/ -e APP_ID=com.example.reactnativestripesdk",
     "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests",
-    "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest"
+    "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
+    "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
+    "test-android": "maestro test -e APP_ID=com.example.reactnativestripesdk"
   },
   "keywords": [
     "react-native",

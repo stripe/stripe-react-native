@@ -2,7 +2,11 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Bank redirects"
-- tapOn: "EPS"
+- scrollUntilVisible:
+    element:
+      text: "Przelewy24"
+    direction: DOWN
+- tapOn: "Przelewy24"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

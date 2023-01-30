@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import {
   useStripe,
   Address,
@@ -124,21 +124,7 @@ export default function PaymentsUICustomScreen() {
         <Button
           variant="primary"
           loading={loading}
-          title={
-            paymentMethod ? (
-              <View style={styles.row}>
-                <Image
-                  source={{
-                    uri: `data:image/png;base64,${paymentMethod.image}`,
-                  }}
-                  style={styles.image}
-                />
-                <Text style={styles.text}>{paymentMethod.label}</Text>
-              </View>
-            ) : (
-              'Choose payment method'
-            )
-          }
+          title={'Choose payment method'}
           disabled={!paymentSheetEnabled}
           onPress={choosePaymentOption}
         />
@@ -149,7 +135,7 @@ export default function PaymentsUICustomScreen() {
           variant="primary"
           loading={loading}
           disabled={!paymentMethod || !paymentSheetEnabled}
-          title="Buy"
+          title={`Buy${paymentMethod ? ` with ${paymentMethod.label}` : ''}`}
           onPress={onPressBuy}
         />
       </View>

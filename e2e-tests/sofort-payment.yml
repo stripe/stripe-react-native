@@ -2,7 +2,11 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Bank redirects"
-- tapOn: "EPS"
+- scrollUntilVisible:
+    element:
+      text: "Sofort"
+    direction: DOWN
+- tapOn: "Sofort"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
@@ -11,5 +15,5 @@ appId: ${APP_ID}
     retryTapIfNoChange: false
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
-    text: "Success"
+    text: "Processing"
 - tapOn: "OK"

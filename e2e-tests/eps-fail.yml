@@ -9,7 +9,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
-- tapOn: "AUTHORIZE TEST PAYMENT"
+- tapOn: "FAIL TEST PAYMENT"
 - assertVisible:
-    text: "Success"
+    text: .*Failed.*
 - tapOn: "OK"
