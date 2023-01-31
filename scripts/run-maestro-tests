@@ -1,0 +1,29 @@
+#!/bin/bash
+
+trap 'exit' INT
+
+PLATFORM=${1:-}
+
+# Validate passed platform
+case $PLATFORM in
+  ios | android )
+    ;;
+
+  *)
+    echo "Error! You must pass either 'android' or 'ios'"
+    echo ""
+    exit 1
+    ;;
+esac
+
+if [ "$PLATFORM" == "ios" ]; then
+  APPID="com.stripe.react.native"
+else
+  APPID="com.example.reactnativestripesdk"
+fi
+
+allTestFiles=$(ls ./e2e-tests/*.yml)
+for file in $allTestFiles
+do
+   maestro test "$file" -e APP_ID="$APPID"
+done
