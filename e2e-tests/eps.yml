@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Bank redirects"
 - tapOn: "EPS"
+- assertVisible:
+    text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

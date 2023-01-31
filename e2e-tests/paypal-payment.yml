@@ -7,6 +7,8 @@ appId: ${APP_ID}
       text: "PayPal"
     direction: DOWN
 - tapOn: "PayPal"
+- assertVisible:
+    text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

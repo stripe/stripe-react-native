@@ -7,6 +7,8 @@ appId: ${APP_ID}
       text: "Sofort SEPA Direct Debit set up"
     direction: DOWN
 - tapOn: "Sofort SEPA Direct Debit set up"
+- assertVisible:
+    text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

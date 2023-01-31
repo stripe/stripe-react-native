@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Accept a payment"
 - tapOn: "Card element only"
+- assertVisible:
+    text: "E-mail"
 - inputText: "4242424242424242"
 - inputText: "0125"
 - inputText: "123"

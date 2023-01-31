@@ -4,6 +4,9 @@ appId: ${APP_ID}
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (single-step)"
 - tapOn: "Checkout"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 20000
 - tapOn:
     text: "Card number"
 - inputText: "4242424242424242"

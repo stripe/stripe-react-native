@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Wallets"
 - tapOn: "Alipay"
+- assertVisible:
+    text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

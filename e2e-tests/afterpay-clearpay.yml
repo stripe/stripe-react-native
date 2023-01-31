@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Buy now pay later"
 - tapOn: "Afterpay and Clearpay"
+- assertVisible:
+    text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"

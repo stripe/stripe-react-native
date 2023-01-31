@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "More payment scenarios"
 - tapOn: "Create tokens"
+- assertVisible:
+    text: "Create a PII token"
 - inputText: "4242424242424242"
 - inputText: "0125"
 - inputText: "123"
