@@ -16,7 +16,7 @@ case $PLATFORM in
     ;;
 esac
 
-baseTestFiles=$(ls ./e2e-tests/*.yml)
+allTestFiles=$(ls ./e2e-tests/*.yml)
 
 if [ "$PLATFORM" == "ios" ]; then
   APPID="com.stripe.react.native"
@@ -26,10 +26,10 @@ else
   platformSpecificTestFiles=$(ls ./e2e-tests/android-only/*.yml)
 fi
 
-allTestFiles=( "${baseTestFiles[@]}" "${platformSpecificTestFiles[@]}" )
+allTestFiles+=( "${allTestFiles[@]}" "${platformSpecificTestFiles[@]}" )
 
 failedTests=()
-for file in "${allTestFiles[@]}"
+for file in $allTestFiles
 do
   if ! maestro test "$file" -e APP_ID="$APPID";
   then
