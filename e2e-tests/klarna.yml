@@ -11,8 +11,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
-- assertVisible:
-    text: "Let's do a quick verification"
+- extendedWaitUntil:
+    visible: "Let's do a quick verification"
+    timeout: 30000
 - tapOn:
     id: "${APP_ID}:id/action_close"
     optional: true

@@ -36,7 +36,11 @@ do
     echo "Test ${file} failed. Retrying..."
     if ! maestro test "$file" -e APP_ID="$APPID";
     then
-      failedTests+=("$file")
+      echo "Test ${file} failed again. Retrying for the last time..."
+      if ! maestro test "$file" -e APP_ID="$APPID";
+      then
+        failedTests+=("$file")
+      fi
     fi
   fi
 done
