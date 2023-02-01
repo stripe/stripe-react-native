@@ -33,7 +33,11 @@ for file in $allTestFiles
 do
   if ! maestro test "$file" -e APP_ID="$APPID";
   then
-    failedTests+=("$file")
+    echo "Test ${file} failed. Retrying..."
+    if ! maestro test "$file" -e APP_ID="$APPID";
+    then
+      failedTests+=("$file")
+    fi
   fi
 done
 

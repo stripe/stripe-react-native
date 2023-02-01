@@ -130,7 +130,11 @@ export default function PaymentsUICompleteScreen() {
         variant="primary"
         loading={loading}
         disabled={!paymentSheetEnabled}
-        title={paymentSheetEnabled ? 'Checkout' : 'Fetching payment intent...'}
+        title={
+          paymentSheetEnabled && !loading
+            ? 'Checkout'
+            : 'Fetching payment intent...'
+        }
         onPress={openPaymentSheet}
       />
       <AddressSheet

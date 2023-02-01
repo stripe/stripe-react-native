@@ -40,8 +40,7 @@ export default function PaymentsUICustomScreen() {
     setLoading(true);
 
     try {
-      const { paymentIntent, ephemeralKey, customer } =
-        await fetchPaymentSheetParams();
+      const { paymentIntent } = await fetchPaymentSheetParams();
 
       const address: Address = {
         city: 'San Francisco',
@@ -59,8 +58,6 @@ export default function PaymentsUICustomScreen() {
       };
 
       const { error, paymentOption } = await initPaymentSheet({
-        customerId: customer,
-        customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
         customFlow: true,
         merchantDisplayName: 'Example Inc.',

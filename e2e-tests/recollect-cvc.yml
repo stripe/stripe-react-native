@@ -11,6 +11,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "CVC"
 - inputText: "123"
+- scrollUntilVisible:
+    element:
+      text: "Pay Synchronously"
+    direction: DOWN
 - tapOn: "Pay Synchronously"
 - assertVisible:
     text: "Success"

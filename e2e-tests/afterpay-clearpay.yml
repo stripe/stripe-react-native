@@ -2,6 +2,10 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Buy now pay later"
+- scrollUntilVisible:
+    element:
+      text: "Afterpay and Clearpay"
+    direction: DOWN
 - tapOn: "Afterpay and Clearpay"
 - assertVisible:
     text: "E-mail"

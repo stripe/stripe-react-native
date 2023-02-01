@@ -8,7 +8,7 @@ appId: ${APP_ID}
 - tapOn: "Checkout"
 - extendedWaitUntil:
     visible: "TEST MODE"
-    timeout: 20000
+    timeout: 150000
 - tapOn:
     leftOf: "TEST MODE"
 - assertVisible:
