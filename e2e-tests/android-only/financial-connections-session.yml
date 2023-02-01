@@ -1,0 +1,27 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Financial Connections"
+- tapOn: "Collect Bank Account"
+- assertVisible:
+    text: "Collect session"
+- tapOn:
+    text: "Collect session"
+    retryTapIfNoChange: false
+- tapOn: "Enter account details manually instead"
+- tapOn:
+    id: "manualEntry_routingNumber"
+- inputText: "110000000"
+- hideKeyboard
+- tapOn:
+    id: "manualEntry_accountNumber"
+- inputText: "000123456789"
+- hideKeyboard
+- tapOn:
+    id: "manualEntry_confirmAccountNumber"
+- inputText: "000123456789"
+- hideKeyboard
+- tapOn: "Continue"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

@@ -13,10 +13,6 @@ appId: ${APP_ID}
     retryTapIfNoChange: false
 - tapOn:
     text: "Public Bank"
-    optional: true
-- tapOn:
-    text: "OK"
-    optional: true
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
     text: "Success"

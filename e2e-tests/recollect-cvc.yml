@@ -11,11 +11,11 @@ appId: ${APP_ID}
 - tapOn:
     text: "CVC"
 - inputText: "123"
-- tapOn: "Pay"
+- tapOn: "Pay Synchronously"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
-- tapOn: "Pay Synchronously"
+- tapOn: "Pay"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
