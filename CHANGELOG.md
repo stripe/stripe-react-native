@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Fixed a bug on Android where `canAddCardToWallet` wouldn't correctly return the `details.token` object. [#1282](https://github.com/stripe/stripe-react-native/pull/1282)
+
 ## 0.23.1 - 2023-01-25
 
 ## Fixes
