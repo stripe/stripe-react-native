@@ -1,5 +1,5 @@
 example/
-e2e/
+e2e-tests/
 docs/
 scripts/
 .tmp/
@@ -12,6 +12,8 @@ lib/typescript/example/
 android/src/androidTest/
 android/src/test/
 android/build/
+
+ios/Tests/
 
 yarn-error.log
 CODEOWNERS
