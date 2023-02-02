@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Multiline Card element only"
+- assertVisible:
+    text: "E-mail"
+- inputText: "4242424242424242"
+- inputText: "0125"
+- inputText: "123"
+- inputText: "12345"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- hideKeyboard
+- tapOn: "Pay"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

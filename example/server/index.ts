@@ -551,7 +551,6 @@ app.post('/payment-sheet', async (_, res) => {
     // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
     payment_method_types: [
       'card',
-      'link',
       // 'ideal',
       // 'sepa_debit',
       // 'sofort',

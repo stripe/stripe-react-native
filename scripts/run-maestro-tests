@@ -1,0 +1,54 @@
+#!/bin/bash
+
+trap 'exit' INT
+
+PLATFORM=${1:-}
+
+# Validate passed platform
+case $PLATFORM in
+  ios | android )
+    ;;
+
+  *)
+    echo "Error! You must pass either 'android' or 'ios'"
+    echo ""
+    exit 1
+    ;;
+esac
+
+allTestFiles=$(ls ./e2e-tests/*.yml)
+
+if [ "$PLATFORM" == "ios" ]; then
+  APPID="com.stripe.react.native"
+  platformSpecificTestFiles=$(ls ./e2e-tests/ios-only/*.yml)
+else
+  APPID="com.example.reactnativestripesdk"
+  platformSpecificTestFiles=$(ls ./e2e-tests/android-only/*.yml)
+fi
+
+allTestFiles+=( "${allTestFiles[@]}" "${platformSpecificTestFiles[@]}" )
+
+failedTests=()
+for file in $allTestFiles
+do
+  if ! maestro test "$file" -e APP_ID="$APPID";
+  then
+    echo "Test ${file} failed. Retrying..."
+    if ! maestro test "$file" -e APP_ID="$APPID";
+    then
+      echo "Test ${file} failed again. Retrying for the last time..."
+      if ! maestro test "$file" -e APP_ID="$APPID";
+      then
+        failedTests+=("$file")
+      fi
+    fi
+  fi
+done
+
+if [ ${#failedTests[@]} -eq 0 ]; then
+    exit 0
+else
+    echo "These tests failed:"
+    printf '%s\n' "${failedTests[@]}"
+    exit 1
+fi

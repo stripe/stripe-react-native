@@ -75,16 +75,14 @@ export default function CollectBankAccountScreen() {
       <Button
         variant="primary"
         onPress={handleCollectTokenPress}
-        title="Collect token"
-        accessibilityLabel="Collect token"
+        title={loading || !clientSecret ? 'loading...' : 'Collect token'}
         loading={loading}
         disabled={!clientSecret}
       />
       <Button
         variant="primary"
         onPress={handleCollectSessionPress}
-        title="Collect session"
-        accessibilityLabel="Collect session"
+        title={loading || !clientSecret ? 'loading...' : 'Collect session'}
         loading={loading}
         disabled={!clientSecret}
       />

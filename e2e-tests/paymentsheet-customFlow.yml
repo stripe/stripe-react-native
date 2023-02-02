@@ -1,0 +1,32 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (multi-step)"
+- extendedWaitUntil:
+    visible: "Choose payment method"
+    timeout: 150000
+- tapOn:
+    text: "Choose payment method"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000
+- tapOn:
+    id: "+ Add"
+    optional: true
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0125"
+- tapOn:
+    text: "CVC"
+- inputText: "123"
+- tapOn: "Continue"
+- tapOn:
+    text: .*Buy.*
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

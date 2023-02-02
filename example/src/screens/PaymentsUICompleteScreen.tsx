@@ -98,7 +98,7 @@ export default function PaymentsUICompleteScreen() {
       defaultShippingDetails: shippingDetails,
       allowsDelayedPaymentMethods: true,
       appearance,
-      primaryButtonLabel: 'purchase! 😃',
+      primaryButtonLabel: 'purchase!',
     });
     if (!error) {
       setPaymentSheetEnabled(true);
@@ -130,7 +130,11 @@ export default function PaymentsUICompleteScreen() {
         variant="primary"
         loading={loading}
         disabled={!paymentSheetEnabled}
-        title="Checkout"
+        title={
+          paymentSheetEnabled && !loading
+            ? 'Checkout'
+            : 'Fetching payment intent...'
+        }
         onPress={openPaymentSheet}
       />
       <AddressSheet

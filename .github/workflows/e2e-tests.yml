@@ -51,37 +51,24 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
+      - name: Install Maestro CLI
+        run: curl -Ls "https://get.maestro.mobile.dev" | bash
+
+      - name: Add Maestro to path
+        run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
           arch: x86_64
-          profile: Galaxy Nexus
           target: google_apis
           force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          cores: 3
-          ram-size: 8192M
           script: |
             yarn run-example-android
-            sleep 15
-            adb shell 'echo "chrome --disable-fre --no-default-browser-check --no-first-run" > /data/local/tmp/chrome-command-line'
-            adb shell am set-debug-app --persistent com.android.chrome
             yarn test:e2e:android
-
-      - name: Upload Screenshoots
-        uses: actions/upload-artifact@v1
-        with:
-          name: e2e-results-android
-          path: .tmp
-        if: ${{ always() }}
-
-      - uses: actions/download-artifact@v2
-        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
-        with:
-          name: e2e-results-android
-          path: .tmp
-        if: ${{ always() }}
 
   test-ios:
     name: e2e-ios-test
@@ -120,26 +107,19 @@ jobs:
       - name: Install Dependencies
         run: yarn bootstrap
 
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          brew tap facebook/fb
+          brew install facebook/fb/idb-companion
+
+      - name: Add Maestro to path
+        run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+
       - name: Build iOS App
         run: |
           yarn run-example-ios
-          BUILT_APP=`find ~/Library/Developer/Xcode/DerivedData -name StripeSdkExample.app | grep Build/Products/Release-iphonesimulator/StripeSdkExample.app` && mkdir -p example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator && cp -R $BUILT_APP example/ios/DerivedData/StripeSdkExample/Build/Products/Release-iphonesimulator
-          sleep 30
 
-      - name: Run Tests
+      - name: Run tests
         run: |
           yarn test:e2e:ios
-
-      - name: Upload Screenshoots
-        uses: actions/upload-artifact@v1
-        with:
-          name: e2e-results-ios
-          path: .tmp
-        if: ${{ always() }}
-
-      - uses: actions/download-artifact@v2
-        continue-on-error: true # https://github.com/actions/download-artifact/issues/42
-        with:
-          name: e2e-results-ios
-          path: .tmp
-        if: ${{ always() }}

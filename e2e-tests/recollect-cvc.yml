@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "More payment scenarios"
+- tapOn: "Recollect a CVC"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "reactnativecvctestcustomer@stripe.com"
+- tapOn:
+    text: "CVC"
+- inputText: "123"
+- scrollUntilVisible:
+    element:
+      text: "Pay Synchronously"
+    direction: DOWN
+- tapOn: "Pay Synchronously"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
+- tapOn: "Pay"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

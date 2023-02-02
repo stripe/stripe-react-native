@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- tapOn: "FPX"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- tapOn:
+    text: "Public Bank"
+- tapOn: "AUTHORIZE TEST PAYMENT"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

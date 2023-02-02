@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- scrollUntilVisible:
+    element:
+      text: "Sofort"
+    direction: DOWN
+- tapOn: "Sofort"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- tapOn: "AUTHORIZE TEST PAYMENT"
+- assertVisible:
+    text: "Processing"
+- tapOn: "OK"

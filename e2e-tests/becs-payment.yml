@@ -1,0 +1,32 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank Debits"
+- tapOn: "BECS Direct Debit payment"
+- tapOn:
+    text: "Name"
+    optional: true
+- tapOn:
+    text: "Full name"
+    optional: true
+- inputText: "stripe"
+- tapOn:
+    text: "Email Address"
+    optional: true
+- tapOn:
+    text: "Email"
+    index: 1
+    optional: true
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "BSB"
+- inputText: "000000"
+- tapOn:
+    text: "Account number"
+- inputText: "000123456"
+- hideKeyboard
+- pressKey: back
+- tapOn: "Pay"
+- assertVisible:
+    text: "Processing"
+- tapOn: "OK"

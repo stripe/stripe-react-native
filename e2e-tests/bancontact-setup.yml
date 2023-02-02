@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- tapOn: "Bancontact SEPA Direct Debit set up"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn: "Save"
+- tapOn: "AUTHORIZE TEST SETUP"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

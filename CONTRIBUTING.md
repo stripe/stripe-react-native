@@ -37,7 +37,7 @@ To fix formatting errors, run the following:
 yarn lint --fix
 ```
 
-Remember to add tests for your change if possible. End to end tests are done with Appium, and can be found in `e2e/`. Read the [test section below](#tests) for more details on setup.
+Remember to add tests for your change if possible. End to end tests are done with [Maestro](https://maestro.mobile.dev/), and can be found in `e2e-tests/`. Read the [test section below](#tests) for more details on setup.
 
 ## Testing inside of the Expo Go app
 
@@ -69,7 +69,7 @@ We follow the [conventional commits specification](https://www.conventionalcommi
 - `feat`: new features, e.g. add new method to the module.
 - `refactor`: code refactor, e.g. migrate from class components to hooks.
 - `docs`: changes into documentation, e.g. add usage example for the module..
-- `test`: adding or updating tests, eg add integration tests using appium.
+- `test`: adding or updating tests, eg add integration tests using Maestro or native unit tests.
 - `chore`: tooling changes, e.g. change CI config.
 
 Our pre-commit hooks verify that your commit message matches this format when committing.
@@ -84,18 +84,12 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 ### Tests
 
-We use [Appium](https://github.com/appium/appium) for e2e testing.
-In order to run tests locally you have to install and configure appium following its [documentation](https://github.com/appium/appium/blob/master/docs/en/about-appium/getting-started.md).
-
-Next, you have to specify emulator/simulator details in the config files.
-To set it up on android, let's open `wdio.android.js/wdio.ios.js` files and edit `capabilities` section accordingly (platformVersion, deviceName, app).
-
-As Appium uses chrome-driver on android to handle webviews interactions you must to specify chrome version which is installed on your emulator already.
-In order to do that, edit .npmrc accordinly to https://raw.githubusercontent.com/appium/appium-chromedriver/master/config/mapping.json mapping config.
-e.g. when you have `71.0.3578` chrome version installed you must specify `2.46` version of chrome-driver.
+We use [Maestro](https://maestro.mobile.dev/) for e2e testing.
+In order to run tests locally you have to install and configure Maestro following its [documentation](https://maestro.mobile.dev/getting-started/installing-maestro).
 
 1. run `yarn run-example-ios` / `yarn run-example-android` to build and open example app.
-2. run `yarn test:e2e:ios` / `yarn test:e2e:android` to run e2e tests.
+2. run `yarn test:e2e:ios` / `yarn test:e2e:android` to run all e2e tests.
+3. You can also run a single test with `yarn test-android ./path/to/testFile.yml` | `yarn test-ios ./path/to/testFile.yml`
 
 ### Scripts
 

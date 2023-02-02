@@ -13,6 +13,7 @@ import { colors } from '../colors';
 export default function WebhookPaymentScreen() {
   const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
+  const [canPay, setCanPay] = useState(true);
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -50,7 +51,7 @@ export default function WebhookPaymentScreen() {
         postalCode: '77063',
       },
     }; // mocked data for tests
-
+    setCanPay(false);
     // 3. Confirm payment with card details
     // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(
@@ -76,6 +77,7 @@ export default function WebhookPaymentScreen() {
       );
       console.log('Success from promise', paymentIntent);
     }
+    setCanPay(true);
   };
 
   return (
@@ -114,6 +116,7 @@ export default function WebhookPaymentScreen() {
       </View>
       <Button
         variant="primary"
+        disabled={!canPay}
         onPress={handlePayPress}
         title="Pay"
         accessibilityLabel="Pay"

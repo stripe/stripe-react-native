@@ -1,5 +1,5 @@
 example/
-e2e/
+e2e-tests/
 docs/
 scripts/
 .tmp/
@@ -13,14 +13,11 @@ android/src/androidTest/
 android/src/test/
 android/build/
 
-wdio.conf.js
+ios/Tests/
+
 yarn-error.log
-wdio.ios.js
-wdio.android.js
-run-appium-tests.js
 CODEOWNERS
 CONTRIBUTING.md
-appium.log
 babel.config.js
 tsconfig.json
 yarn.lock

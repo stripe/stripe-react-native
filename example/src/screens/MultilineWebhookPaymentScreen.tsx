@@ -41,6 +41,7 @@ export default function MultilineWebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
+    setComplete(false);
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
@@ -78,6 +79,7 @@ export default function MultilineWebhookPaymentScreen() {
       );
       console.log('Success from promise', paymentIntent);
     }
+    setComplete(true);
   };
 
   return (

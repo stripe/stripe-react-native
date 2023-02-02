@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- tapOn: "Bancontact Payment"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn: "Pay"
+- tapOn: "AUTHORIZE TEST PAYMENT"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

@@ -1,0 +1,29 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- scrollUntilVisible:
+    element:
+      text: "iDEAL SEPA Direct Debit set up"
+    direction: DOWN
+- tapOn: "iDEAL SEPA Direct Debit set up"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- assertVisible:
+    text: "Optional - choose your bank"
+- tapOn:
+    text: "Optional - choose your bank"
+    optional: true
+- tapOn:
+    text: "Knab"
+    optional: true
+- tapOn:
+    text: "Save"
+    retryTapIfNoChange: false
+- tapOn: "AUTHORIZE TEST SETUP"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

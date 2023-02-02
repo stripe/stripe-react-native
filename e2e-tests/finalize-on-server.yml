@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "More payment scenarios"
+- tapOn: "Finalize payments on the server"
+- assertVisible:
+    text: "Pay"
+- inputText: "4242424242424242"
+- inputText: "0125"
+- inputText: "123"
+- tapOn: "Pay"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

@@ -1,0 +1,41 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank Debits"
+- scrollUntilVisible:
+    element:
+      text: "ACH setup"
+    direction: DOWN
+- tapOn: "ACH setup"
+- tapOn:
+    text: "Collect bank account"
+    retryTapIfNoChange: false
+- tapOn: "Manually verify instead"
+- tapOn:
+    id: "manualEntry_routingNumber"
+- inputText: "110000000"
+- hideKeyboard
+- tapOn:
+    id: "manualEntry_accountNumber"
+- inputText: "000123456789"
+- hideKeyboard
+- tapOn:
+    id: "manualEntry_confirmAccountNumber"
+- inputText: "000123456789"
+- hideKeyboard
+- tapOn: "Continue"
+- tapOn: "Done"
+- assertVisible:
+    text: "Requires Confirmation"
+- tapOn: "OK"
+- tapOn:
+    text: "Confirm"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Awaiting verification"
+- tapOn: "OK"
+- tapOn: "Descriptor code or comma-separated amounts"
+- inputText: "32,45"
+- tapOn: "Verify microdeposit"
+- assertVisible:
+    text: "Succeeded"

@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "More payment scenarios"
+- tapOn: "Set up future payments"
+- assertVisible:
+    text: "E-mail"
+- inputText: "4242424242424242"
+- inputText: "0125"
+- inputText: "123"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn: "Save via card input form"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
+- tapOn: "Save via token"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
+- tapOn: "Save via payment method ID"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

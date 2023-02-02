@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank redirects"
+- scrollUntilVisible:
+    element:
+      text: "Sofort SEPA Direct Debit set up"
+    direction: DOWN
+- tapOn: "Sofort SEPA Direct Debit set up"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Save"
+    retryTapIfNoChange: false
+- tapOn: "AUTHORIZE TEST SETUP"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

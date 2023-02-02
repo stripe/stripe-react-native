@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Financial Connections"
+- tapOn: "Collect Bank Account"
+- assertVisible:
+    text: "Collect token"
+- tapOn:
+    text: "Collect token"
+    retryTapIfNoChange: false
+- tapOn: "Enter account details manually instead"
+- tapOn: "123456789"
+- inputText: "110000000"
+- tapOn:
+    text: "000123456789"
+    index: 0
+- inputText: "000123456789"
+- tapOn:
+    text: "000123456789"
+    index: 1
+- inputText: "000123456789"
+- tapOn: "Continue"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

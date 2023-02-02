@@ -27,6 +27,7 @@ export default function SetupFuturePaymentScreen() {
   const [setupIntent, setSetupIntent] = useState<SetupIntent.Result | null>(
     null
   );
+  const [disabled, setDisabled] = useState(false);
 
   // It is also possible to use `useStripe` and then `stripe.confirmSetupIntent`
   // The only difference is that this approach will not have `loading` status support
@@ -80,6 +81,7 @@ export default function SetupFuturePaymentScreen() {
       },
     }; // mocked data for tests
 
+    setDisabled(true);
     // 3. Confirm setup intent
     const { error, setupIntent: setupIntentResult } = await confirmSetupIntent(
       clientSecret,
@@ -100,11 +102,13 @@ export default function SetupFuturePaymentScreen() {
 
       setSetupIntent(setupIntentResult);
     }
+    setDisabled(false);
   };
 
   const handlePayPressUsingToken = async () => {
     const clientSecret = await createSetupIntentOnBackend(email);
 
+    setDisabled(true);
     const { error: tokenError, token } = await createToken({
       type: 'Card',
       name: 'David Wallace',
@@ -138,11 +142,13 @@ export default function SetupFuturePaymentScreen() {
 
       setSetupIntent(setupIntentResult);
     }
+    setDisabled(false);
   };
 
   const handlePayPressUsingID = async () => {
     const clientSecret = await createSetupIntentOnBackend(email);
 
+    setDisabled(true);
     const { error: e, paymentMethod } = await createPaymentMethod({
       paymentMethodType: 'Card',
     });
@@ -177,12 +183,14 @@ export default function SetupFuturePaymentScreen() {
 
       setSetupIntent(setupIntentResult);
     }
+    setDisabled(false);
   };
 
   // It's only for example purposes
   // This action is responsible for charging your previously added card and should be called independently of the payment flow.
   const handleOffSessionPayment = async () => {
     setOffSessionLoading(true);
+    setDisabled(true);
     const res = await chargeCardOffSession();
     if (res.error) {
       // If the PaymentIntent has any other status, the payment did not succeed and the request fails.
@@ -194,7 +202,7 @@ export default function SetupFuturePaymentScreen() {
     }
 
     setOffSessionLoading(false);
-
+    setDisabled(false);
     console.log('charge off session result', res);
   };
 
@@ -243,6 +251,7 @@ export default function SetupFuturePaymentScreen() {
       },
     }; // mocked data for tests
 
+    setDisabled(true);
     if (retrievedPaymentIntent?.lastPaymentError?.paymentMethod.id) {
       const { error } = await confirmPayment(
         retrievedPaymentIntent.clientSecret,
@@ -261,6 +270,7 @@ export default function SetupFuturePaymentScreen() {
         Alert.alert('Success', 'The payment was confirmed successfully!');
       }
     }
+    setDisabled(false);
   };
 
   return (
@@ -273,6 +283,7 @@ export default function SetupFuturePaymentScreen() {
         style={styles.input}
       />
       <CardField
+        autofocus
         postalCodeEnabled={false}
         onCardChange={(cardDetails) => {
           console.log('card details', cardDetails);
@@ -285,18 +296,21 @@ export default function SetupFuturePaymentScreen() {
           onPress={handlePayPressUsingForm}
           title="Save via card input form"
           loading={loading}
+          disabled={disabled}
         />
         <Button
           variant="primary"
           onPress={handlePayPressUsingToken}
           title="Save via token"
           loading={loading}
+          disabled={disabled}
         />
         <Button
           variant="primary"
           onPress={handlePayPressUsingID}
           title="Save via payment method ID"
           loading={loading}
+          disabled={disabled}
         />
       </View>
       <View style={styles.buttonContainer}>
@@ -304,7 +318,7 @@ export default function SetupFuturePaymentScreen() {
           variant="primary"
           onPress={handleOffSessionPayment}
           title="Pay with saved card off-session"
-          disabled={!setupIntent}
+          disabled={!setupIntent || disabled}
           loading={offSessionLoading}
         />
       </View>

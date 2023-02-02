@@ -1,0 +1,20 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Vouchers"
+- tapOn: "OXXO"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "MX$14.00"
+- tapOn:
+    text: "Close"
+    optional: true
+- assertVisible:
+    text: "Success"
