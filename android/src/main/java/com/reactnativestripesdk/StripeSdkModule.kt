@@ -172,8 +172,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun presentPaymentSheet(promise: Promise) {
-    paymentSheetFragment?.present(promise)
+  fun presentPaymentSheet(options: ReadableMap, promise: Promise) {
+    val timeoutKey = "timeout"
+    if (options.hasKey(timeoutKey)) {
+      paymentSheetFragment?.presentWithTimeout(
+        options.getInt(timeoutKey).toLong(), promise
+      )
+    } else {
+      paymentSheetFragment?.present(promise)
+    }
   }
 
   @ReactMethod

@@ -43,7 +43,7 @@ export default function PaymentsUICompleteScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await presentPaymentSheet();
+    const { error } = await presentPaymentSheet({ timeout: 3000 });
 
     if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');

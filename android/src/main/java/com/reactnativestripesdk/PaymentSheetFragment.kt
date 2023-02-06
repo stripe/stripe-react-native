@@ -1,10 +1,13 @@
 package com.reactnativestripesdk
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -21,10 +24,7 @@ import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
-import com.stripe.android.paymentsheet.PaymentOptionCallback
-import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.PaymentSheetResult
-import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import com.stripe.android.paymentsheet.*
 import java.io.ByteArrayOutputStream
 
 class PaymentSheetFragment(
@@ -38,6 +38,7 @@ class PaymentSheetFragment(
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
+  private var paymentSheetActivity: Activity? = null
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -156,6 +157,38 @@ class PaymentSheetFragment(
     } else if(flowController != null) {
       flowController?.presentPaymentOptions()
     }
+  }
+
+  fun presentWithTimeout(timeout: Long, promise: Promise) {
+    Handler().postDelayed({
+      this.dismiss()
+    }, timeout)
+
+    context.currentActivity?.application?.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+      override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        paymentSheetActivity = activity
+      }
+
+      override fun onActivityStarted(activity: Activity) {}
+
+      override fun onActivityResumed(activity: Activity) {}
+
+      override fun onActivityPaused(activity: Activity) {}
+
+      override fun onActivityStopped(activity: Activity) {}
+
+      override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+      override fun onActivityDestroyed(activity: Activity) {
+        paymentSheetActivity = null
+      }
+    })
+
+    this.present(promise)
+  }
+
+  fun dismiss() {
+    paymentSheetActivity?.finish()
   }
 
   fun confirmPayment(promise: Promise) {
