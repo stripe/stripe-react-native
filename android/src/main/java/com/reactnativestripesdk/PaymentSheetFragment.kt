@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -168,12 +169,7 @@ class PaymentSheetFragment(
   }
 
   fun presentWithTimeout(timeout: Long, promise: Promise) {
-    Handler().postDelayed({
-      this.dismiss()
-      context.currentActivity.application.unregisterActivityLifecycleCallbacks()
-    }, timeout)
-
-    context.currentActivity?.application?.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+    val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         paymentSheetActivity = activity
       }
@@ -190,8 +186,15 @@ class PaymentSheetFragment(
 
       override fun onActivityDestroyed(activity: Activity) {
         paymentSheetActivity = null
+        context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
       }
-    })
+    }
+
+    Handler(Looper.getMainLooper()).postDelayed({
+      this.dismiss()
+    }, timeout)
+
+    context.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     this.present(promise)
   }

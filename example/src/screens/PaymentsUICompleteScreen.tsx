@@ -164,10 +164,7 @@ export default function PaymentsUICompleteScreen() {
           setLoading(true);
           const { error } = await presentPaymentSheet({ timeout: 2000 });
           if (error) {
-            Alert.alert(
-              `PaymentSheet present timed out: ${error.code}`,
-              error.message
-            );
+            Alert.alert(`${error.code}`, error.message);
           }
           setLoading(false);
         }}
