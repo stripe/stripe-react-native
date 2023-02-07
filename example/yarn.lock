@@ -1172,13 +1172,22 @@
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
 
 "@types/react-native@^0.66.15":
-  version "0.66.25"
-  resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.66.25.tgz#0a10458e28d88bb04a19b2a911b6cfe73835dcfe"
-  integrity sha512-PChgvdSNebNLsp+0F9hElID2u1JMkOMme5zE3zrHeh156HN5y+tzYqyzDFCor1d2/HDah+St2zQavt8nfWfuMQ==
+  version "0.66.26"
+  resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.66.26.tgz#79b00df896db0160727d4dca0fe989d11dbacc2b"
+  integrity sha512-UrpnaumuqADmvV3nba+7MGDA8cpX9AomSPo7gJfsDPRkulw6H1f9KGh5c95P61dwROsOLbWkSMx4F2dp1j/xlg==
   dependencies:
     "@types/react" "^17"
 
-"@types/react@^17", "@types/react@^17.0.38":
+"@types/react@^17":
+  version "17.0.53"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.53.tgz#10d4d5999b8af3d6bc6a9369d7eb953da82442ab"
+  integrity sha512-1yIpQR2zdYu1Z/dc1OxC+MA6GR240u3gcnP4l6mvj/PJiVaqHsQPmWttsvHsfnhfPbU2FuGmo0wSITPygjBmsw==
+  dependencies:
+    "@types/prop-types" "*"
+    "@types/scheduler" "*"
+    csstype "^3.0.2"
+
+"@types/react@^17.0.38":
   version "17.0.52"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.52.tgz#10d8b907b5c563ac014a541f289ae8eaa9bf2e9b"
   integrity sha512-vwk8QqVODi0VaZZpDXQCmEmiOuyjEFPY7Ttaw5vjM112LOq37yz1CDJGrRJwA1fYEq4Iitd5rnjd1yWAc/bT+A==
