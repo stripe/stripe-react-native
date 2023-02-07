@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Fixes a build failure on Android when using `stripe-android` v20.19.2. [#1289](https://github.com/stripe/stripe-react-native/pull/1289)
+
 ## 0.23.2 - 2023-02-06
 
 ## Fixes
