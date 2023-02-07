@@ -43,7 +43,7 @@ export default function PaymentsUICompleteScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await presentPaymentSheet({ timeout: 300000 });
+    const { error } = await presentPaymentSheet();
 
     if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');
@@ -147,6 +147,30 @@ export default function PaymentsUICompleteScreen() {
             : 'Fetching payment intent...'
         }
         onPress={openPaymentSheet}
+      />
+      <Button
+        variant="primary"
+        loading={loading}
+        disabled={!paymentSheetEnabled}
+        title={
+          paymentSheetEnabled && !loading
+            ? 'trigger payment sheet timeout'
+            : 'Fetching payment intent...'
+        }
+        onPress={async () => {
+          if (!clientSecret) {
+            return;
+          }
+          setLoading(true);
+          const { error } = await presentPaymentSheet({ timeout: 2000 });
+          if (error) {
+            Alert.alert(
+              `PaymentSheet present timed out: ${error.code}`,
+              error.message
+            );
+          }
+          setLoading(false);
+        }}
       />
       <AddressSheet
         visible={addressSheetVisible}
