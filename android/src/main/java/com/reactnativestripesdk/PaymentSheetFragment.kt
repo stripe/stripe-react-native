@@ -91,17 +91,23 @@ class PaymentSheetFragment(
     }
 
     val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
-      when (paymentResult) {
-        is PaymentSheetResult.Canceled -> {
-          resolvePaymentResult(createError(PaymentSheetErrorType.Canceled.toString(), "The payment flow has been canceled"))
-        }
-        is PaymentSheetResult.Failed -> {
-          resolvePaymentResult(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
-        }
-        is PaymentSheetResult.Completed -> {
-          resolvePaymentResult(WritableNativeMap())
-          // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
-          removeFragment(context)
+      if (paymentSheetActivity != null) {
+        resolvePaymentResult(createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out"))
+      } else {
+        when (paymentResult) {
+          is PaymentSheetResult.Canceled -> {
+            resolvePaymentResult(createError(PaymentSheetErrorType.Canceled.toString(), "The payment flow has been canceled"))
+          }
+          is PaymentSheetResult.Failed -> {
+            resolvePaymentResult(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
+          }
+          is PaymentSheetResult.Completed -> {
+            resolvePaymentResult(WritableNativeMap())
+            // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
+            removeFragment(context)
+            paymentSheet = null
+            flowController = null
+          }
         }
       }
     }
@@ -156,12 +162,15 @@ class PaymentSheetFragment(
       }
     } else if(flowController != null) {
       flowController?.presentPaymentOptions()
+    } else {
+      promise.resolve(createMissingInitError())
     }
   }
 
   fun presentWithTimeout(timeout: Long, promise: Promise) {
     Handler().postDelayed({
       this.dismiss()
+      context.currentActivity.application.unregisterActivityLifecycleCallbacks()
     }, timeout)
 
     context.currentActivity?.application?.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
@@ -187,7 +196,7 @@ class PaymentSheetFragment(
     this.present(promise)
   }
 
-  fun dismiss() {
+  private fun dismiss() {
     paymentSheetActivity?.finish()
   }
 
@@ -237,6 +246,10 @@ class PaymentSheetFragment(
 
   companion object {
     internal const val TAG = "payment_sheet_launch_fragment"
+
+    internal fun createMissingInitError(): WritableMap {
+      return createError(PaymentSheetErrorType.Failed.toString(), "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.")
+    }
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null) {

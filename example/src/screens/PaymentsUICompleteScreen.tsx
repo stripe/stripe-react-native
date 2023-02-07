@@ -43,22 +43,33 @@ export default function PaymentsUICompleteScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await presentPaymentSheet({ timeout: 3000 });
+    const { error } = await presentPaymentSheet({ timeout: 300000 });
 
     if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');
-    } else if (error.code === PaymentSheetError.Failed) {
-      Alert.alert(
-        `PaymentSheet present failed with error code: ${error.code}`,
-        error.message
-      );
-    } else if (error.code === PaymentSheetError.Canceled) {
-      Alert.alert(
-        `PaymentSheet present was canceled with code: ${error.code}`,
-        error.message
-      );
+    } else {
+      switch (error.code) {
+        case PaymentSheetError.Failed:
+          Alert.alert(
+            `PaymentSheet present failed with error code: ${error.code}`,
+            error.message
+          );
+          setPaymentSheetEnabled(false);
+          break;
+        case PaymentSheetError.Canceled:
+          Alert.alert(
+            `PaymentSheet present was canceled with code: ${error.code}`,
+            error.message
+          );
+          break;
+        case PaymentSheetError.Timeout:
+          Alert.alert(
+            `PaymentSheet present timed out: ${error.code}`,
+            error.message
+          );
+          break;
+      }
     }
-    setPaymentSheetEnabled(false);
     setLoading(false);
   };
 

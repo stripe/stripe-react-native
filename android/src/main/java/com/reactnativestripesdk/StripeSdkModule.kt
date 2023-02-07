@@ -173,6 +173,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun presentPaymentSheet(options: ReadableMap, promise: Promise) {
+    if (paymentSheetFragment == null) {
+      promise.resolve(PaymentSheetFragment.createMissingInitError())
+      return
+    }
+
     val timeoutKey = "timeout"
     if (options.hasKey(timeoutKey)) {
       paymentSheetFragment?.presentWithTimeout(
@@ -185,6 +190,11 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun confirmPaymentSheetPayment(promise: Promise) {
+    if (paymentSheetFragment == null) {
+      promise.resolve(PaymentSheetFragment.createMissingInitError())
+      return
+    }
+
     paymentSheetFragment?.confirmPayment(promise)
   }
 
