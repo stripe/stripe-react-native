@@ -23,6 +23,10 @@
 - Added the `buttonType` field to `initPaymentSheet()`'s `applePay` params. Use this to set the text displayed by the call to action button in the Apple Pay sheet.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
 - Added the `request` field to `initPaymentSheet()`'s, `confirmPlatformPayPayment()`'s, and `confirmPlatformPaySetupIntent`'s  `applePay` params. Use this to support different types of payment requests, like `RecurringPaymentRequest`, `AutomaticReloadPaymentRequest`, and `MultiMerchantRequest`.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
 
+### Fixes
+
+- Added an `options` argument to `presentPaymentSheet` which includes a `timeout` property. [#1287](https://github.com/stripe/stripe-react-native/pull/1287)
+
 ## 0.23.3 - 2023-02-07
 
 ### Fixes

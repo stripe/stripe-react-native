@@ -436,7 +436,7 @@ export const initPaymentSheet = async (
 };
 
 export const presentPaymentSheet = async (
-  options: { timeout?: number } = {}
+  options: PaymentSheet.PresentOptions = {}
 ): Promise<PresentPaymentSheetResult> => {
   try {
     const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet(

@@ -204,9 +204,9 @@ export function useStripe() {
   );
 
   const _presentPaymentSheet = useCallback(
-    async (options?: {
-      timeout?: number;
-    }): Promise<PresentPaymentSheetResult> => {
+    async (
+      options?: PaymentSheet.PresentOptions
+    ): Promise<PresentPaymentSheetResult> => {
       return presentPaymentSheet(options);
     },
     []

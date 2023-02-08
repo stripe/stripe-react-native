@@ -21,7 +21,7 @@ export function usePaymentSheet() {
     return result;
   };
 
-  const presentPaymentSheet = async (options?: { timeout?: number }) => {
+  const presentPaymentSheet = async (options?: PaymentSheet.PresentOptions) => {
     setLoading(true);
     const result = await presentPaymentSheetNative(options);
     setLoading(false);
