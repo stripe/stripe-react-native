@@ -12,7 +12,6 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
 
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
-    private var paymentSheetViewController: UIViewController?
 
     var urlScheme: String? = nil
     
@@ -167,20 +166,22 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     func presentPaymentSheet(options: NSDictionary,
                              resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        var paymentSheetViewController: UIViewController?
+        
         if let timeout = options["timeout"] as? Double {
             DispatchQueue.main.asyncAfter(deadline: .now() + timeout/1000) {
-                if let paymentSheetViewController = self.paymentSheetViewController {
+                if let paymentSheetViewController = paymentSheetViewController {
                     paymentSheetViewController.dismiss(animated: true)
                     resolve(Errors.createError(ErrorType.Timeout, "The payment has timed out."))
                 }
             }
         }
         DispatchQueue.main.async {
-            self.paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
             if let paymentSheetFlowController = self.paymentSheetFlowController {
-                paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: self.paymentSheetViewController!)
+                paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) {
-                    self.paymentSheetViewController = nil
+                    paymentSheetViewController = nil
                     if let paymentOption = self.paymentSheetFlowController?.paymentOption {
                         let option: NSDictionary = [
                             "label": paymentOption.label,
@@ -192,9 +193,9 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
                     }
                 }
             } else if let paymentSheet = self.paymentSheet {
-                paymentSheet.present(from: findViewControllerPresenter(from: self.paymentSheetViewController!)
+                paymentSheet.present(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) { paymentResult in
-                    self.paymentSheetViewController = nil
+                    paymentSheetViewController = nil
                     switch paymentResult {
                     case .completed:
                         resolve([])

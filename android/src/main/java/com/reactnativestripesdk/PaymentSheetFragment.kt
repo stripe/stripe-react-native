@@ -39,7 +39,7 @@ class PaymentSheetFragment(
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
-  private var paymentSheetActivity: Activity? = null
+  private var paymentSheetTimedOut = false
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -86,13 +86,19 @@ class PaymentSheetFragment(
         option.putString("image", imageString)
         createResult("paymentOption", option)
       } ?: run {
-        createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled")
+        if (paymentSheetTimedOut) {
+          paymentSheetTimedOut = false
+          createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
+        } else {
+          createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled")
+        }
       }
       presentPromise?.resolve(result)
     }
 
     val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
-      if (paymentSheetActivity != null) {
+      if (paymentSheetTimedOut) {
+        paymentSheetTimedOut = false
         resolvePaymentResult(createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out"))
       } else {
         when (paymentResult) {
@@ -169,6 +175,8 @@ class PaymentSheetFragment(
   }
 
   fun presentWithTimeout(timeout: Long, promise: Promise) {
+    var paymentSheetActivity: Activity? = null
+
     val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         paymentSheetActivity = activity
@@ -191,16 +199,15 @@ class PaymentSheetFragment(
     }
 
     Handler(Looper.getMainLooper()).postDelayed({
-      this.dismiss()
+      paymentSheetActivity?.let {
+        it.finish()
+        paymentSheetTimedOut = true
+      }
     }, timeout)
 
     context.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     this.present(promise)
-  }
-
-  private fun dismiss() {
-    paymentSheetActivity?.finish()
   }
 
   fun confirmPayment(promise: Promise) {

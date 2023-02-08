@@ -162,7 +162,7 @@ export default function PaymentsUICompleteScreen() {
             return;
           }
           setLoading(true);
-          const { error } = await presentPaymentSheet({ timeout: 2000 });
+          const { error } = await presentPaymentSheet({ timeout: 5000 });
           if (error) {
             Alert.alert(`${error.code}`, error.message);
           }

@@ -9,8 +9,7 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "TEST MODE"
     timeout: 150000
-- tapOn:
-    leftOf: "TEST MODE"
+- tapOn: "Close"
 - assertVisible:
     text: .*anceled.*
 - tapOn: "OK"
