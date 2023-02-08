@@ -37,8 +37,8 @@ do
     sleep 30
     if ! maestro test "$file" -e APP_ID="$APPID";
     then
-      echo "Test ${file} failed again. Retrying for the last time in 60 seconds..."
-      sleep 60
+      echo "Test ${file} failed again. Retrying for the last time in 120 seconds..."
+      sleep 120
       if ! maestro test "$file" -e APP_ID="$APPID";
       then
         failedTests+=("$file")
