@@ -119,7 +119,7 @@ export default function ApplePayScreen() {
     });
 
     if (error) {
-      Alert.alert(error.code, error.message);
+      console.log(error.code, error.message);
     } else {
       setShowAddToWalletButton(canAddCard ?? false);
       if (details?.status) {
