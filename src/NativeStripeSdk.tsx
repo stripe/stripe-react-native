@@ -139,6 +139,9 @@ type NativeStripeSdkType = {
     webServiceUrl: string,
     authenticationToken: string
   ): Promise<void>;
+  createPaymentMethodCustomNative(
+    params: PaymentMethod.CreateParams
+  ): Promise<CreatePaymentMethodResult>;
 };
 
 const { StripeSdk } = NativeModules;

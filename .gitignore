@@ -39,6 +39,7 @@ android.iml
 android/build/
 android/build/reports
 example/android/app/build/reports
+example/
 
 # Cocoapods
 #

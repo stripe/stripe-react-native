@@ -1174,6 +1174,66 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             break
         }
     }
+
+    // Custom
+    func extractPaymentMethodCreateParams(
+        options: NSDictionary,
+        token: String?
+    ) -> STPPaymentMethodParams {
+        let cardParams = options["card"] as? NSDictionary
+        let billingDetailsParams = options["billingDetails"] as? NSDictionary
+        let addressParams = billingDetailsParams?["address"] as? NSDictionary
+        let card = STPPaymentMethodCardParams()
+        let billingDetails = STPPaymentMethodBillingDetails()
+        let address = STPPaymentMethodAddress(address: Mappers.mapToAddress(address: addressParams))
+        billingDetails.address = address
+        billingDetails.email = billingDetailsParams?["email"] as? String
+        billingDetails.name = billingDetailsParams?["name"] as? String
+        billingDetails.phone = billingDetailsParams?["phone"] as? String
+        if let token = token {
+            card.token = token
+        } else {
+            card.number = cardParams?["number"] as? String
+            card.expMonth = cardParams?["expMonth"] as? NSNumber
+            card.expYear = cardParams?["expYear"] as? NSNumber
+            card.cvc = cardParams?["cvc"] as? String
+        }
+        return STPPaymentMethodParams(card: card, billingDetails: billingDetails, metadata: nil)
+    }
+
+    @objc(createPaymentMethodCustomNative:resolver:rejecter:)
+    func createPaymentMethodCustomNative(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let billingDetailsParams = params["billingDetails"] as? NSDictionary
+        let addressParams = billingDetailsParams?["address"] as? NSDictionary
+        let cardParamsMap = params["card"] as? NSDictionary
+        let cardSourceParams = STPCardParams()
+        cardSourceParams.number = cardParamsMap?["number"] as? String
+        cardSourceParams.expMonth = UInt(truncating: cardParamsMap?["expMonth"] as? NSNumber ?? 0)
+        cardSourceParams.expYear = UInt(truncating: cardParamsMap?["expYear"] as? NSNumber ?? 0)
+        cardSourceParams.cvc = cardParamsMap?["cvc"] as? String
+        cardSourceParams.address = Mappers.mapToAddress(address: addressParams)
+        cardSourceParams.name = billingDetailsParams?["name"] as? String
+        STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
+            if let token = token {
+                let pmcp = self.extractPaymentMethodCreateParams(options: params, token: token.tokenId)
+                STPAPIClient.shared.createPaymentMethod(with: pmcp) { paymentMethod, error in
+                    if let error = error {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
+                        return
+                    }
+                    resolve(
+                        Mappers.createResult("paymentMethod", Mappers.mapFromPaymentMethod(paymentMethod))
+                    )
+                }
+            } else {
+                resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+            }
+        }
+    }
 }
 
 func findViewControllerPresenter(from uiViewController: UIViewController) -> UIViewController {

@@ -28,5 +28,8 @@
       "node",
       "jest"
     ]
-  }
+  },
+  "exclude": [
+    "example"
+  ]
 }
