@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Wallets"
+- tapOn: "Apple Pay"
+- tapOn: "Buy with Apple\_Pay"
+- tapOn: .*Simulated Card.*
+- tapOn:
+    text: "Simulated Card - AmEx, ‪•••• 1234‬"
+    index: 0
+- tapOn: "Pay with Passcode"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

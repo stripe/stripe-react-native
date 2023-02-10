@@ -101,6 +101,7 @@ export function PlatformPayButton({
   onShippingContactSelected,
   onCouponCodeEntered,
   setOrderTracking,
+  style,
   ...props
 }: Props) {
   const shippingMethodCallback = onShippingMethodSelected
@@ -144,7 +145,7 @@ export function PlatformPayButton({
       disabled={disabled}
       activeOpacity={disabled ? 0.3 : 1}
       onPress={onPress}
-      style={disabled ? styles.disabled : styles.notDisabled}
+      style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
       {Platform.OS === 'ios' ? (
         <ApplePayButtonNative
@@ -156,10 +157,15 @@ export function PlatformPayButton({
           onShippingContactSelectedAction={shippingContactCallback}
           onCouponCodeEnteredAction={couponCodeCallback}
           onOrderTrackingAction={orderTrackingCallback}
+          style={styles.nativeButtonStyle}
           {...props}
         />
       ) : (
-        <GooglePayButtonNative type={type} {...props} />
+        <GooglePayButtonNative
+          type={type}
+          style={styles.nativeButtonStyle}
+          {...props}
+        />
       )}
     </TouchableOpacity>
   );
@@ -168,9 +174,10 @@ export function PlatformPayButton({
 const styles = StyleSheet.create({
   disabled: {
     flex: 0,
-    opacity: 0.3,
+    opacity: 0.4,
   },
   notDisabled: {
     flex: 0,
   },
+  nativeButtonStyle: { flex: 1 },
 });

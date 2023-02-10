@@ -93,10 +93,9 @@ export default function ApplePayScreen() {
   };
 
   useEffect(() => {
-    const checkCapability = async () => {
+    (async function () {
       setIsApplePaySupported(await isPlatformPaySupported());
-    };
-    checkCapability();
+    })();
   }, [isPlatformPaySupported]);
 
   const checkIfCardInWallet = async () => {

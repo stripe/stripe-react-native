@@ -625,12 +625,16 @@ app.post('/ephemeral-key', async (req, res) => {
     typescript: true,
   });
 
-  let key = await stripe.ephemeralKeys.create(
-    { issuing_card: req.body.issuingCardId },
-    { apiVersion: req.body.apiVersion }
-  );
-
-  return res.send(key);
+  try {
+    let key = await stripe.ephemeralKeys.create(
+      { issuing_card: req.body.issuingCardId },
+      { apiVersion: req.body.apiVersion }
+    );
+    return res.send(key);
+  } catch (e) {
+    console.log(e);
+    return res.send({ error: e });
+  }
 });
 
 app.post('/issuing-card-details', async (req, res) => {
@@ -641,15 +645,19 @@ app.post('/issuing-card-details', async (req, res) => {
     typescript: true,
   });
 
-  let card = await stripe.issuing.cards.retrieve(req.body.id);
+  try {
+    let card = await stripe.issuing.cards.retrieve(req.body.id);
 
-  if (!card) {
-    return res.send({
-      error: 'No card with that ID exists.',
-    });
+    if (!card) {
+      console.log('No card with that ID exists.');
+      return res.send({ error: 'No card with that ID exists.' });
+    } else {
+      return res.send(card);
+    }
+  } catch (e) {
+    console.log(e);
+    return res.send({ error: e });
   }
-
-  return res.send(card);
 });
 
 app.post('/financial-connections-sheet', async (_, res) => {
