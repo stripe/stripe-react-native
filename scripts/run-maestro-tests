@@ -26,10 +26,10 @@ else
   platformSpecificTestFiles=$(ls ./e2e-tests/android-only/*.yml)
 fi
 
-allTestFiles+=( "${allTestFiles[@]}" "${platformSpecificTestFiles[@]}" )
+allTestFiles+=("${platformSpecificTestFiles[@]}")
 
 failedTests=()
-for file in $allTestFiles
+for file in "${allTestFiles[@]}"
 do
   if ! maestro test "$file" -e APP_ID="$APPID";
   then
