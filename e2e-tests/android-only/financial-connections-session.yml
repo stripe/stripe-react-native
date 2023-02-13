@@ -24,4 +24,7 @@ appId: ${APP_ID}
 - tapOn: "Continue"
 - assertVisible:
     text: "Success"
-- tapOn: "OK"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true

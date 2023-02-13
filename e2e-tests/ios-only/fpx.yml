@@ -11,6 +11,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
     text: "Public Bank"
 - tapOn: "AUTHORIZE TEST PAYMENT"
