@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Buy now pay later"
+- tapOn: "Klarna"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible: "Let's do a quick verification"
+    timeout: 30000
+- tapOn:
+    id: "${APP_ID}:id/action_close"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+- assertVisible:
+    text: "Error code: Canceled"
+- tapOn: "OK"
