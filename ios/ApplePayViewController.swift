@@ -148,7 +148,6 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         if let callback = self.shippingContactUpdateJSCallback {
             self.shippingContactUpdateCompletion = handler
             callback(["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
-
         } else {
             handler(
                 PKPaymentRequestShippingContactUpdate.init(
