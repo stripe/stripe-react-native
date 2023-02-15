@@ -6,6 +6,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect bank account"
     retryTapIfNoChange: false
+- scrollUntilVisible:
+    element:
+      text: "Manually verify instead"
+    direction: DOWN
 - tapOn: "Manually verify instead"
 - tapOn:
     id: "manualEntry_routingNumber"

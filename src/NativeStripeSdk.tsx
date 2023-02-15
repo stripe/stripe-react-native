@@ -69,6 +69,10 @@ type NativeStripeSdkType = {
   initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;
+  initPaymentSheetWithOrderTracking(
+    params: PaymentSheet.SetupParams,
+    callback?: () => void
+  ): Promise<InitPaymentSheetResult>;
   presentPaymentSheet(): Promise<PresentPaymentSheetResult>;
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
@@ -127,6 +131,12 @@ type NativeStripeSdkType = {
   ): Promise<
     PlatformPay.ConfirmPaymentResult | PlatformPay.ConfirmSetupIntentResult
   >;
+  configureOrderTracking(
+    orderTypeIdentifier: string,
+    orderIdentifier: string,
+    webServiceUrl: string,
+    authenticationToken: string
+  ): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

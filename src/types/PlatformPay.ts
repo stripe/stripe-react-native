@@ -69,6 +69,77 @@ export type ApplePayBaseParams = {
   supportedCountries?: Array<string>;
 };
 
+export type ApplePayConfirmParams = {
+  /** A typical request is for a one-time payment. To support different types of payment requests, include a PaymentRequestType. Only supported on iOS 16 and up. */
+  request?:
+    | RecurringPaymentRequest
+    | AutomaticReloadPaymentRequest
+    | MultiMerchantRequest;
+};
+
+export enum PaymentRequestType {
+  Recurring = 'Recurring',
+  AutomaticReload = 'AutomaticReload',
+  MultiMerchant = 'MultiMerchant',
+}
+
+/** Use this for a recurring payment, typically a subscription. */
+export type RecurringPaymentRequest = {
+  type: PaymentRequestType.Recurring;
+  /** A description that you provide of the recurring payment and that Apple Pay displays to the user in the sheet. */
+  description: string;
+  /** A URL to a web page where the user can update or delete the payment method for the recurring payment. */
+  managementUrl: string;
+  /** The regular billing cycle for the payment, including start and end dates, an interval, and an interval count. */
+  billing: RecurringCartSummaryItem;
+  /** Same as the billing property, but use this if the purchase has a trial period. */
+  trialBilling?: RecurringCartSummaryItem;
+  /** A localized billing agreement that the sheet displays to the user before the user authorizes the payment. */
+  billingAgreement?: string;
+  /** A URL you provide to receive life-cycle notifications from the Apple Pay servers about the Apple Pay merchant token for the recurring payment.
+   * For more information about handling merchant token life-cycle notifications, see Receiving and handling merchant token notifications.
+   */
+  tokenNotificationURL?: string;
+};
+
+/** Use this for an automatic reload or refill payment, such as a store card top-up. */
+export type AutomaticReloadPaymentRequest = {
+  type: PaymentRequestType.AutomaticReload;
+  /** A description that you provide of the recurring payment and that Apple Pay displays to the user in the sheet. */
+  description: string;
+  /** A URL to a web page where the user can update or delete the payment method for the recurring payment. */
+  managementUrl: string;
+  /** A short, localized description of the item. */
+  label: string;
+  /** This is the amount that is automatically applied to the account when the account balance drops below the threshold amount. */
+  reloadAmount: string;
+  /** The balance an account reaches before you apply the automatic reload amount. */
+  thresholdAmount: string;
+  /** A localized billing agreement that the sheet displays to the user before the user authorizes the payment. */
+  billingAgreement?: string;
+  /** A URL you provide to receive life-cycle notifications from the Apple Pay servers about the Apple Pay merchant token for the recurring payment.
+   * For more information about handling merchant token life-cycle notifications, see Receiving and handling merchant token notifications.
+   */
+  tokenNotificationURL?: string;
+};
+
+/** Use this to indicate payments for multiple merchants. */
+export type MultiMerchantRequest = {
+  type: PaymentRequestType.MultiMerchant;
+  merchants: Array<{
+    /** The Apple Pay merchant identifier. */
+    merchantIdentifier: string;
+    /** An external identifier for the merchant. */
+    externalIdentifier: string;
+    /** The merchant’s display name that the Apple Pay server associates with the payment token. */
+    merchantName: string;
+    /** The merchant’s top-level domain that the Apple Pay server associates with the payment token. */
+    merchantDomain?: string;
+    /** The amount to authorize for the payment token. */
+    amount: string;
+  }>;
+};
+
 export type ApplePayPaymentMethodParams = {
   /** Set this value to true to display the coupon code field, or pass the 'couponCode' field to autofill with a coupon code. Defaults to false. If true, you must implement the PlatformPayButton component's `onCouponCodeEntered` callback and call `updatePlatformPaySheet` from there. */
   supportsCouponCode?: boolean;
@@ -158,7 +229,7 @@ export type ConfirmParams = {
   /** Defines Google Pay behavior. Android only. */
   googlePay?: GooglePayBaseParams;
   /** Defines Apple Pay behavior. iOS only. */
-  applePay?: ApplePayBaseParams;
+  applePay?: ApplePayBaseParams & ApplePayConfirmParams;
 };
 
 export enum ButtonType {

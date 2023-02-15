@@ -93,10 +93,9 @@ export default function ApplePayScreen() {
   };
 
   useEffect(() => {
-    const checkCapability = async () => {
+    (async function () {
       setIsApplePaySupported(await isPlatformPaySupported());
-    };
-    checkCapability();
+    })();
   }, [isPlatformPaySupported]);
 
   const checkIfCardInWallet = async () => {
@@ -120,7 +119,7 @@ export default function ApplePayScreen() {
     });
 
     if (error) {
-      Alert.alert(error.code, error.message);
+      console.log(error.code, error.message);
     } else {
       setShowAddToWalletButton(canAddCard ?? false);
       if (details?.status) {

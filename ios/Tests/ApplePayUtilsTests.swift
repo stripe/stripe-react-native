@@ -15,7 +15,7 @@ class ApplePayUtilsTests: XCTestCase {
     
     func test_buildPaymentSheetApplePayConfig_FailsWithoutMerchantIdentifier() throws {
         XCTAssertThrowsError(
-            try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: nil, merchantCountryCode: "", paymentSummaryItems: nil)
+            try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: nil, merchantCountryCode: "", paymentSummaryItems: nil, buttonType: nil, customHandlers: nil)
         ) { error in
             XCTAssertEqual(
                 error as! ApplePayUtilsError, ApplePayUtilsError.missingMerchantId
@@ -25,7 +25,7 @@ class ApplePayUtilsTests: XCTestCase {
     
     func test_buildPaymentSheetApplePayConfig_FailsWithoutCountryCode() throws {
         XCTAssertThrowsError(
-            try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: nil, paymentSummaryItems: nil)
+            try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: nil, paymentSummaryItems: nil, buttonType: nil, customHandlers: nil)
         ) { error in
             XCTAssertEqual(
                 error as! ApplePayUtilsError, ApplePayUtilsError.missingCountryCode
@@ -34,13 +34,13 @@ class ApplePayUtilsTests: XCTestCase {
     }
     
     func test_buildPaymentSheetApplePayConfig_withNilAndEmptyArray_shouldBeEqual() throws {
-        let resultWithItemsAsNil = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: nil)
-        let resultWithItemsAsEmptyArray = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: [])
+        let resultWithItemsAsNil = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: nil, buttonType: nil, customHandlers: nil)
+        let resultWithItemsAsEmptyArray = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: [], buttonType: nil, customHandlers: nil)
         XCTAssertEqual(resultWithItemsAsNil.paymentSummaryItems, resultWithItemsAsEmptyArray.paymentSummaryItems)
     }
     
     func test_buildPaymentSheetApplePayConfig_withItems_shouldMatchExpected() throws {
-        let result = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: TestFixtures.CART_ITEM_DICTIONARY)
+        let result = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: TestFixtures.CART_ITEM_DICTIONARY, buttonType: nil, customHandlers: nil)
         
         let deferredItemResult = PKDeferredPaymentSummaryItem(label: "deferred label", amount: 1.00)
         deferredItemResult.deferredDate = Date(timeIntervalSince1970: 123456789)
@@ -175,6 +175,16 @@ class ApplePayUtilsTests: XCTestCase {
                 error as! ApplePayUtilsError, ApplePayUtilsError.invalidCartSummaryItemType("null")
             )
         }
+    }
+    
+    func test_buildPaymentSheetApplePayConfig_withNilButtonType_shouldBePlain() throws {
+        let result = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: nil, buttonType: nil, customHandlers: nil)
+        XCTAssertEqual(result.buttonType, .plain)
+    }
+    
+    func test_buildPaymentSheetApplePayConfig_withButtonType4_shouldBeDonate() throws {
+        let result = try ApplePayUtils.buildPaymentSheetApplePayConfig(merchantIdentifier: TestFixtures.MERCHANT_ID, merchantCountryCode: TestFixtures.COUNTRY_CODE, paymentSummaryItems: nil, buttonType: 4, customHandlers: nil)
+        XCTAssertEqual(result.buttonType, .donate)
     }
     
     private struct TestFixtures {

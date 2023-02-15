@@ -9,14 +9,17 @@ appId: ${APP_ID}
 - tapOn: "Manually verify instead"
 - tapOn: "123456789"
 - inputText: "110000000"
+- hideKeyboard
 - tapOn:
     text: "000123456789"
     index: 0
 - inputText: "000123456789"
+- hideKeyboard
 - tapOn:
     text: "000123456789"
     index: 1
 - inputText: "000123456789"
+- hideKeyboard
 - tapOn: "Continue"
 - tapOn: "Done"
 - assertVisible:

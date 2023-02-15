@@ -16,17 +16,13 @@ case $PLATFORM in
     ;;
 esac
 
-allTestFiles=$(ls ./e2e-tests/*.yml)
-
 if [ "$PLATFORM" == "ios" ]; then
   APPID="com.stripe.react.native"
-  platformSpecificTestFiles=$(ls ./e2e-tests/ios-only/*.yml)
+  allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/ios-only/*.yml)
 else
   APPID="com.example.reactnativestripesdk"
-  platformSpecificTestFiles=$(ls ./e2e-tests/android-only/*.yml)
+  allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/android-only/*.yml)
 fi
-
-allTestFiles+=( "${allTestFiles[@]}" "${platformSpecificTestFiles[@]}" )
 
 failedTests=()
 for file in $allTestFiles

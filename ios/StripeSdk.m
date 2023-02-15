@@ -113,6 +113,13 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
+                  initPaymentSheetWithOrderTracking:(NSDictionary *)params
+                  callback:(RCTResponseSenderBlock)orderTrackingCallback
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
                   presentPaymentSheet:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
@@ -174,6 +181,14 @@ RCT_EXTERN_METHOD(
                   )
 RCT_EXTERN_METHOD(
                   collectFinancialConnectionsAccounts:(NSString *)clientSecret
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+RCT_EXTERN_METHOD(
+                  configureOrderTracking:(NSString *)orderTypeIdentifier
+                  orderIdentifier:(NSString *)orderIdentifier
+                  webServiceUrl:(NSString *)webServiceUrl
+                  authenticationToken:(NSString *)authenticationToken
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Wallets"
+- tapOn: "Apple Pay"
+- tapOn: "Continue with Apple\_Pay"
+- tapOn:
+    text: "Forward"
+    index: 1
+- tapOn: "Done"
+- tapOn: "Pay with Passcode"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

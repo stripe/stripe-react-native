@@ -177,6 +177,19 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
+   func applePayContext(
+       _ context: STPApplePayContext,
+       willCompleteWithResult authorizationResult: PKPaymentAuthorizationResult,
+       handler: @escaping (PKPaymentAuthorizationResult) -> Void
+   ) {
+       if let callback = self.platformPayOrderTrackingJSCallback {
+           self.orderTrackingHandler = (authorizationResult, handler)
+           callback(nil)
+       } else {
+           handler(authorizationResult)
+       }
+   }
+    
     func applePayContext(
         _ context: STPApplePayContext,
         didCompleteWith status: STPPaymentStatus,

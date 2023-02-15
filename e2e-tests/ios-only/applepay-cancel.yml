@@ -1,0 +1,20 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Wallets"
+- tapOn: "Apple Pay"
+- tapOn: "Buy with Apple\_Pay"
+- tapOn: "close"
+- assertVisible:
+    text: "Canceled"
+- tapOn: "OK"
+- tapOn: "Continue with Apple\_Pay"
+- tapOn: "close"
+- assertVisible:
+    text: "Canceled"
+- tapOn: "OK"
+- tapOn: "Set up Apple\_Pay"
+- tapOn: "close"
+- assertVisible:
+    text: "Canceled"
+- tapOn: "OK"

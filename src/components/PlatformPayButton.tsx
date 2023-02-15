@@ -8,6 +8,7 @@ import {
   Platform,
   NativeSyntheticEvent,
 } from 'react-native';
+import NativeStripeSdk from '../NativeStripeSdk';
 import {
   ButtonType,
   ButtonStyle,
@@ -56,6 +57,18 @@ export interface Props extends AccessibilityProps {
    * Apple Pay sheet will hang and the payment flow will automatically cancel.
    */
   onCouponCodeEntered?: (event: { couponCode: string }) => void;
+  /** Callback function for setting the order details (retrieved from your server) to give users the
+   * ability to track and manage their purchases in Wallet. Stripe calls your implementation after the
+   * payment is complete, but before iOS dismisses the Apple Pay sheet. You must call the `completion`
+   * function, or else the Apple Pay sheet will hang.*/
+  setOrderTracking?: (
+    completion: (
+      orderIdentifier: string,
+      orderTypeIdentifier: string,
+      authenticationToken: string,
+      webServiceUrl: string
+    ) => void
+  ) => void;
   testID?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -87,6 +100,8 @@ export function PlatformPayButton({
   onShippingMethodSelected,
   onShippingContactSelected,
   onCouponCodeEntered,
+  setOrderTracking,
+  style,
   ...props
 }: Props) {
   const shippingMethodCallback = onShippingMethodSelected
@@ -119,12 +134,18 @@ export function PlatformPayButton({
       }
     : undefined;
 
+  const orderTrackingCallback = setOrderTracking
+    ? () => {
+        setOrderTracking(NativeStripeSdk.configureOrderTracking);
+      }
+    : undefined;
+
   return (
     <TouchableOpacity
       disabled={disabled}
       activeOpacity={disabled ? 0.3 : 1}
       onPress={onPress}
-      style={disabled ? styles.disabled : styles.notDisabled}
+      style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
       {Platform.OS === 'ios' ? (
         <ApplePayButtonNative
@@ -135,10 +156,16 @@ export function PlatformPayButton({
           onShippingMethodSelectedAction={shippingMethodCallback}
           onShippingContactSelectedAction={shippingContactCallback}
           onCouponCodeEnteredAction={couponCodeCallback}
+          onOrderTrackingAction={orderTrackingCallback}
+          style={styles.nativeButtonStyle}
           {...props}
         />
       ) : (
-        <GooglePayButtonNative type={type} {...props} />
+        <GooglePayButtonNative
+          type={type}
+          style={styles.nativeButtonStyle}
+          {...props}
+        />
       )}
     </TouchableOpacity>
   );
@@ -147,9 +174,10 @@ export function PlatformPayButton({
 const styles = StyleSheet.create({
   disabled: {
     flex: 0,
-    opacity: 0.3,
+    opacity: 0.4,
   },
   notDisabled: {
     flex: 0,
   },
+  nativeButtonStyle: { flex: 1 },
 });

@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Wallets"
+- tapOn: "Apple Pay"
+- tapOn: "Set up Apple\_Pay"
+- tapOn:
+    text: "Forward"
+    index: 3
+- tapOn:
+    text: "Standard Shipping, US$3,21, 8 – 10 Dec 2022"
+    index: 0
+- tapOn: "Pay with Passcode"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

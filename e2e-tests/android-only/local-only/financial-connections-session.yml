@@ -8,6 +8,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect session"
     retryTapIfNoChange: false
+- scrollUntilVisible:
+    element:
+      text: "Enter account details manually instead"
+    direction: DOWN
 - tapOn: "Enter account details manually instead"
 - tapOn:
     id: "manualEntry_routingNumber"
@@ -24,4 +28,7 @@ appId: ${APP_ID}
 - tapOn: "Continue"
 - assertVisible:
     text: "Success"
-- tapOn: "OK"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true

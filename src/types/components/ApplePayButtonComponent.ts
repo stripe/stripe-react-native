@@ -22,6 +22,7 @@ export interface NativeProps {
       couponCode: string;
     }>
   ) => void;
+  onOrderTrackingAction?: () => void;
 }
 
 export type Type =

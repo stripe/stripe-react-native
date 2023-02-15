@@ -10,8 +10,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
 
     var merchantIdentifier: String? = nil
 
-    private var paymentSheet: PaymentSheet?
-    private var paymentSheetFlowController: PaymentSheet.FlowController?
+    internal var paymentSheet: PaymentSheet?
+    internal var paymentSheetFlowController: PaymentSheet.FlowController?
 
     var urlScheme: String? = nil
     
@@ -42,9 +42,11 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         set { _couponCodeUpdateCompletion = newValue }
     }
     private var _couponCodeUpdateCompletion: Any? = nil
+    var orderTrackingHandler: (result: PKPaymentAuthorizationResult, handler: ((PKPaymentAuthorizationResult) -> Void))? = nil
     var shippingMethodUpdateJSCallback: RCTDirectEventBlock? = nil
     var shippingContactUpdateJSCallback: RCTDirectEventBlock? = nil
     var couponCodeEnteredJSCallback: RCTDirectEventBlock? = nil
+    var platformPayOrderTrackingJSCallback: RCTDirectEventBlock? = nil
     var applePaySummaryItems: [PKPaymentSummaryItem] = []
     var applePayShippingMethods: [PKShippingMethod] = []
     var applePayShippingAddressErrors: [Error]? = nil
@@ -59,7 +61,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact"]
+        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -107,134 +109,27 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     @objc(initPaymentSheet:resolver:rejecter:)
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        var configuration = PaymentSheet.Configuration()
         self.paymentSheetFlowController = nil
         
-        configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
-
-        if let appearanceParams = params["appearance"] as? NSDictionary {
-            do {
-                configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearanceParams)
-            } catch {
-                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-                return
-            }
-        }
-
-        if let applePayParams = params["applePay"] as? NSDictionary {
-            do {
-                configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
-                    merchantIdentifier: self.merchantIdentifier,
-                    merchantCountryCode: applePayParams["merchantCountryCode"] as? String,
-                    paymentSummaryItems: applePayParams["paymentSummaryItems"] as? [[String : Any]]
-                )
-            } catch  {
-                resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-                return
-            }
-        }
-
-        if let merchantDisplayName = params["merchantDisplayName"] as? String {
-            configuration.merchantDisplayName = merchantDisplayName
-        }
-
-        if let returnURL = params["returnURL"] as? String {
-            configuration.returnURL = returnURL
-        }
-
-        if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
-            configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
-        }
-
-        if let defaultBillingDetails = params["defaultBillingDetails"] as? [String: Any?] {
-            configuration.defaultBillingDetails.name = defaultBillingDetails["name"] as? String
-            configuration.defaultBillingDetails.email = defaultBillingDetails["email"] as? String
-            configuration.defaultBillingDetails.phone = defaultBillingDetails["phone"] as? String
-
-            if let address = defaultBillingDetails["address"] as? [String: String] {
-            configuration.defaultBillingDetails.address = .init(city: address["city"],
-                                                                country: address["country"],
-                                                                line1: address["line1"],
-                                                                line2: address["line2"],
-                                                                postalCode: address["postalCode"],
-                                                                state: address["state"])
-            }
-
+        let (error, configuration) = buildPaymentSheetConfiguration(params: params)
+        guard let configuration = configuration else {
+            resolve(error)
+            return
         }
         
-        if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
-            configuration.shippingDetails = {
-                return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
-            }
+        preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
+    }
+    
+    @objc(initPaymentSheetWithOrderTracking:callback:resolver:rejecter:)
+    func initPaymentSheetWithOrderTracking(params: NSDictionary, callback orderTrackingCallback: @escaping RCTResponseSenderBlock, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        let (error, configuration) = buildPaymentSheetConfiguration(params: params, orderTrackingCallback: orderTrackingCallback)
+        guard let configuration = configuration else {
+            resolve(error)
+            return
         }
-
-        if let customerId = params["customerId"] as? String {
-            if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
-                if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {
-                    resolve(Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` format does not match expected client secret formatting."))
-                    return
-                }
-                configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
-            }
-        }
-
-        if #available(iOS 13.0, *) {
-            if let style = params["style"] as? String {
-                configuration.style = Mappers.mapToUserInterfaceStyle(style)
-            }
-        }
-
-        func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
-            switch result {
-            case .failure(let error):
-                resolve(Errors.createError(ErrorType.Failed, error as NSError))
-            case .success(let paymentSheetFlowController):
-                self.paymentSheetFlowController = paymentSheetFlowController
-                var result: NSDictionary? = nil
-                if let paymentOption = stripeSdk?.paymentSheetFlowController?.paymentOption {
-                    result = [
-                        "label": paymentOption.label,
-                        "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
-                    ]
-                }
-                resolve(Mappers.createResult("paymentOption", result))
-            }
-        }
-
-        if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
-            if (!Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret)) {
-                resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))
-                return
-            }
-
-            if params["customFlow"] as? Bool == true {
-                PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
-                                                   configuration: configuration) { [weak self] result in
-                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
-                }
-            } else {
-                self.paymentSheet = PaymentSheet(paymentIntentClientSecret: paymentIntentClientSecret, configuration: configuration)
-                resolve([])
-            }
-        } else if let setupIntentClientSecret = params["setupIntentClientSecret"] as? String {
-            if (!Errors.isSetiClientSecretValid(clientSecret: setupIntentClientSecret)) {
-                resolve(Errors.createError(ErrorType.Failed, "`secret` format does not match expected client secret formatting."))
-                return
-            }
-
-            if params["customFlow"] as? Bool == true {
-                PaymentSheet.FlowController.create(setupIntentClientSecret: setupIntentClientSecret,
-                                                   configuration: configuration) { [weak self] result in
-                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
-                }
-            } else {
-                self.paymentSheet = PaymentSheet(setupIntentClientSecret: setupIntentClientSecret, configuration: configuration)
-                resolve([])
-            }
-        } else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide either paymentIntentClientSecret or setupIntentClientSecret"))
-        }
-
+        
+        preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)
@@ -603,6 +498,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
         self.applePayShippingAddressErrors = nil
         self.applePayCouponCodeErrors = nil
+        self.orderTrackingHandler = nil
         self.confirmApplePayResolver = resolve
         if (isPaymentIntent) {
             self.confirmApplePayPaymentClientSecret = clientSecret
@@ -1181,6 +1077,32 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
           returnURL = nil
         }
         FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
+    }
+    
+    @objc(configureOrderTracking:orderIdentifier:webServiceUrl:authenticationToken:resolver:rejecter:)
+    func configureOrderTracking(
+        orderTypeIdentifier: String,
+        orderIdentifier: String,
+        webServiceUrl: String,
+        authenticationToken: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+#if compiler(>=5.7)
+        if #available(iOS 16.0, *) {
+            if let orderTrackingHandler = self.orderTrackingHandler {
+                if let url = URL(string: webServiceUrl) {
+                    orderTrackingHandler.result.orderDetails = PKPaymentOrderDetails(
+                        orderTypeIdentifier: orderTypeIdentifier,
+                        orderIdentifier: orderIdentifier,
+                        webServiceURL: url,
+                        authenticationToken: authenticationToken)
+                }
+                orderTrackingHandler.handler(orderTrackingHandler.result)
+                self.orderTrackingHandler = nil
+            }
+        }
+#endif
     }
 
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
