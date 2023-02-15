@@ -11,7 +11,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
-- tapOn: "Pay"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

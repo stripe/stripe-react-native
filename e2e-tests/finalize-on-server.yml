@@ -8,7 +8,9 @@ appId: ${APP_ID}
 - inputText: "4242424242424242"
 - inputText: "0125"
 - inputText: "123"
-- tapOn: "Pay"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

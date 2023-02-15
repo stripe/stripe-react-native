@@ -11,7 +11,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "Iban"
 - inputText: "AT611904300234573201"
-- tapOn: "Pay"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Processing"
 - tapOn: "OK"

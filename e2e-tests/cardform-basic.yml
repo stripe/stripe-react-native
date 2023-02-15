@@ -13,7 +13,9 @@ appId: ${APP_ID}
     text: "E-mail"
 - inputText: "test@stripe.com"
 - hideKeyboard
-- tapOn: "Pay"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
