@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Breaking changes
+
 -  [#1248](https://github.com/stripe/stripe-react-native/pull/1248) Renamed the `paymentSummaryItems` field in `initPaymentSheet()`'s `applePay` params to `cartItems`. So your change will look like this:
 
 ```diff
