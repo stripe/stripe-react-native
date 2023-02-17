@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Fixed an issue on iOS where `canAddCardToWallet` would always return a `details.status` of `UNSUPPORTED_DEVICE` on iPads. [#1305](https://github.com/stripe/stripe-react-native/pull/1305)
+- Fixed an issue on iOS where `canAddCardToWallet` would always return a `{canAddCard: false}` if the card in question had been provsioned on the current device, but **had not yet been provisioned** on a paired Watch. [#1305](https://github.com/stripe/stripe-react-native/pull/1305)
+
 ## 0.24.0 - 2023-02-17
 
 ### Breaking changes
