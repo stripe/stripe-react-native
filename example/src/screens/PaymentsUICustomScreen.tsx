@@ -61,9 +61,6 @@ export default function PaymentsUICustomScreen() {
         paymentIntentClientSecret: paymentIntent,
         customFlow: true,
         merchantDisplayName: 'Example Inc.',
-        applePay: {
-          merchantCountryCode: 'US',
-        },
         style: 'automatic',
         googlePay: { merchantCountryCode: 'US', testEnv: true },
         returnURL: 'stripe-example://stripe-redirect',
@@ -124,6 +121,20 @@ export default function PaymentsUICustomScreen() {
           title={'Choose payment method'}
           disabled={!paymentSheetEnabled}
           onPress={choosePaymentOption}
+        />
+        <Button
+          variant="primary"
+          loading={loading}
+          title={'Trigger timeout'}
+          disabled={!paymentSheetEnabled}
+          onPress={async () => {
+            setLoading(true);
+            const { error } = await presentPaymentSheet({ timeout: 5000 });
+            if (error) {
+              Alert.alert(`${error.code}`, error.message);
+            }
+            setLoading(false);
+          }}
         />
       </View>
 

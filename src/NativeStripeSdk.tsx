@@ -73,7 +73,9 @@ type NativeStripeSdkType = {
     params: PaymentSheet.SetupParams,
     callback?: () => void
   ): Promise<InitPaymentSheetResult>;
-  presentPaymentSheet(): Promise<PresentPaymentSheetResult>;
+  presentPaymentSheet(
+    options: PaymentSheet.PresentOptions
+  ): Promise<PresentPaymentSheetResult>;
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;

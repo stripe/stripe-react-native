@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (multi-step)"
+- extendedWaitUntil:
+    visible: "Trigger timeout"
+    timeout: 150000
+- tapOn: "Trigger timeout"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000
+- tapOn:
+    id: "UIButton.Close"
+- assertVisible:
+    text: .*anceled.*
+- tapOn: "OK"

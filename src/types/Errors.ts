@@ -41,6 +41,7 @@ export enum ApplePayError {
 export enum PaymentSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
+  Timeout = 'Timeout',
 }
 
 export type ErrorType =

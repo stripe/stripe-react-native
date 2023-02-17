@@ -15,11 +15,15 @@ appId: ${APP_ID}
     element:
       text: "Pay Synchronously"
     direction: DOWN
-- tapOn: "Pay Synchronously"
+- tapOn:
+    text: "Pay Synchronously"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
-- tapOn: "Pay"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

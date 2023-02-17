@@ -203,10 +203,14 @@ export function useStripe() {
     []
   );
 
-  const _presentPaymentSheet =
-    useCallback(async (): Promise<PresentPaymentSheetResult> => {
-      return presentPaymentSheet();
-    }, []);
+  const _presentPaymentSheet = useCallback(
+    async (
+      options?: PaymentSheet.PresentOptions
+    ): Promise<PresentPaymentSheetResult> => {
+      return presentPaymentSheet(options);
+    },
+    []
+  );
 
   const _confirmPaymentSheetPayment =
     useCallback(async (): Promise<ConfirmPaymentSheetPaymentResult> => {

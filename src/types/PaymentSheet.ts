@@ -255,3 +255,10 @@ export interface PaymentOption {
   label: string;
   image: string;
 }
+
+export type PresentOptions = {
+  /** The number of milliseconds (after presenting) before the Payment Sheet closes automatically, at which point
+   *`presentPaymentSheet` will resolve with an `error.code` of `PaymentSheetError.Timeout`. The default is no timeout.
+   */
+  timeout?: number;
+};

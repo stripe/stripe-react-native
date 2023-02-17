@@ -26,7 +26,9 @@ appId: ${APP_ID}
 - inputText: "000123456"
 - hideKeyboard
 - pressKey: back
-- tapOn: "Save"
+- tapOn:
+    text: "Save"
+    retryTapIfNoChange: false
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

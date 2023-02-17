@@ -8,24 +8,11 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect token"
     retryTapIfNoChange: false
-- scrollUntilVisible:
-    element:
-      text: "Enter account details manually instead"
-    direction: DOWN
-- tapOn: "Enter account details manually instead"
-- tapOn:
-    id: "manualEntry_routingNumber"
-- inputText: "110000000"
-- hideKeyboard
-- tapOn:
-    id: "manualEntry_accountNumber"
-- inputText: "000123456789"
-- hideKeyboard
-- tapOn:
-    id: "manualEntry_confirmAccountNumber"
-- inputText: "000123456789"
-- hideKeyboard
-- tapOn: "Continue"
+- tapOn: "Agree"
+- tapOn: "Test Institution"
+- tapOn: "Success"
+- tapOn: "Link account"
+- tapOn: "Done"
 - assertVisible:
     text: "Success"
     optional: true

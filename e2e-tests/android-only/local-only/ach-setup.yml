@@ -10,24 +10,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect bank account"
     retryTapIfNoChange: false
-- scrollUntilVisible:
-    element:
-      text: "Manually verify instead"
-    direction: DOWN
-- tapOn: "Manually verify instead"
-- tapOn:
-    id: "manualEntry_routingNumber"
-- inputText: "110000000"
-- hideKeyboard
-- tapOn:
-    id: "manualEntry_accountNumber"
-- inputText: "000123456789"
-- hideKeyboard
-- tapOn:
-    id: "manualEntry_confirmAccountNumber"
-- inputText: "000123456789"
-- hideKeyboard
-- tapOn: "Continue"
+- tapOn: "Agree"
+- tapOn: "Test Institution"
+- tapOn: "Success"
+- tapOn: "Link account"
 - tapOn: "Done"
 - assertVisible:
     text: "Requires Confirmation"
@@ -36,10 +22,6 @@ appId: ${APP_ID}
     text: "Confirm"
     retryTapIfNoChange: false
 - assertVisible:
-    text: "Awaiting verification"
+    text: "Success"
 - tapOn: "OK"
-- tapOn: "Descriptor code or comma-separated amounts"
-- inputText: "32,45"
-- tapOn: "Verify microdeposit"
-- assertVisible:
-    text: "Succeeded"
+

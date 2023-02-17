@@ -1,10 +1,14 @@
 package com.reactnativestripesdk
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -21,10 +25,7 @@ import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
-import com.stripe.android.paymentsheet.PaymentOptionCallback
-import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.paymentsheet.PaymentSheetResult
-import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import com.stripe.android.paymentsheet.*
 import java.io.ByteArrayOutputStream
 
 class PaymentSheetFragment(
@@ -38,6 +39,7 @@ class PaymentSheetFragment(
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
+  private var paymentSheetTimedOut = false
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -84,23 +86,35 @@ class PaymentSheetFragment(
         option.putString("image", imageString)
         createResult("paymentOption", option)
       } ?: run {
-        createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled")
+        if (paymentSheetTimedOut) {
+          paymentSheetTimedOut = false
+          createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
+        } else {
+          createError(PaymentSheetErrorType.Canceled.toString(), "The payment option selection flow has been canceled")
+        }
       }
       presentPromise?.resolve(result)
     }
 
     val paymentResultCallback = PaymentSheetResultCallback { paymentResult ->
-      when (paymentResult) {
-        is PaymentSheetResult.Canceled -> {
-          resolvePaymentResult(createError(PaymentSheetErrorType.Canceled.toString(), "The payment flow has been canceled"))
-        }
-        is PaymentSheetResult.Failed -> {
-          resolvePaymentResult(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
-        }
-        is PaymentSheetResult.Completed -> {
-          resolvePaymentResult(WritableNativeMap())
-          // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
-          removeFragment(context)
+      if (paymentSheetTimedOut) {
+        paymentSheetTimedOut = false
+        resolvePaymentResult(createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out"))
+      } else {
+        when (paymentResult) {
+          is PaymentSheetResult.Canceled -> {
+            resolvePaymentResult(createError(PaymentSheetErrorType.Canceled.toString(), "The payment flow has been canceled"))
+          }
+          is PaymentSheetResult.Failed -> {
+            resolvePaymentResult(createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error))
+          }
+          is PaymentSheetResult.Completed -> {
+            resolvePaymentResult(WritableNativeMap())
+            // Remove the fragment now, we can be sure it won't be needed again if an intent is successful
+            removeFragment(context)
+            paymentSheet = null
+            flowController = null
+          }
         }
       }
     }
@@ -155,7 +169,45 @@ class PaymentSheetFragment(
       }
     } else if(flowController != null) {
       flowController?.presentPaymentOptions()
+    } else {
+      promise.resolve(createMissingInitError())
     }
+  }
+
+  fun presentWithTimeout(timeout: Long, promise: Promise) {
+    var paymentSheetActivity: Activity? = null
+
+    val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
+      override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        paymentSheetActivity = activity
+      }
+
+      override fun onActivityStarted(activity: Activity) {}
+
+      override fun onActivityResumed(activity: Activity) {}
+
+      override fun onActivityPaused(activity: Activity) {}
+
+      override fun onActivityStopped(activity: Activity) {}
+
+      override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+      override fun onActivityDestroyed(activity: Activity) {
+        paymentSheetActivity = null
+        context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+      }
+    }
+
+    Handler(Looper.getMainLooper()).postDelayed({
+      paymentSheetActivity?.let {
+        it.finish()
+        paymentSheetTimedOut = true
+      }
+    }, timeout)
+
+    context.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+
+    this.present(promise)
   }
 
   fun confirmPayment(promise: Promise) {
@@ -204,6 +256,10 @@ class PaymentSheetFragment(
 
   companion object {
     internal const val TAG = "payment_sheet_launch_fragment"
+
+    internal fun createMissingInitError(): WritableMap {
+      return createError(PaymentSheetErrorType.Failed.toString(), "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.")
+    }
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null) {

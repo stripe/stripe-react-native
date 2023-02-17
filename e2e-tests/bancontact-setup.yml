@@ -8,7 +8,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
-- tapOn: "Save"
+- tapOn:
+    text: "Save"
+    retryTapIfNoChange: false
 - tapOn: "AUTHORIZE TEST SETUP"
 - assertVisible:
     text: "Success"

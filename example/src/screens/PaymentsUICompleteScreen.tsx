@@ -47,18 +47,29 @@ export default function PaymentsUICompleteScreen() {
 
     if (!error) {
       Alert.alert('Success', 'The payment was confirmed successfully');
-    } else if (error.code === PaymentSheetError.Failed) {
-      Alert.alert(
-        `PaymentSheet present failed with error code: ${error.code}`,
-        error.message
-      );
-    } else if (error.code === PaymentSheetError.Canceled) {
-      Alert.alert(
-        `PaymentSheet present was canceled with code: ${error.code}`,
-        error.message
-      );
+    } else {
+      switch (error.code) {
+        case PaymentSheetError.Failed:
+          Alert.alert(
+            `PaymentSheet present failed with error code: ${error.code}`,
+            error.message
+          );
+          setPaymentSheetEnabled(false);
+          break;
+        case PaymentSheetError.Canceled:
+          Alert.alert(
+            `PaymentSheet present was canceled with code: ${error.code}`,
+            error.message
+          );
+          break;
+        case PaymentSheetError.Timeout:
+          Alert.alert(
+            `PaymentSheet present timed out: ${error.code}`,
+            error.message
+          );
+          break;
+      }
     }
-    setPaymentSheetEnabled(false);
     setLoading(false);
   };
 
@@ -136,6 +147,27 @@ export default function PaymentsUICompleteScreen() {
             : 'Fetching payment intent...'
         }
         onPress={openPaymentSheet}
+      />
+      <Button
+        variant="primary"
+        loading={loading}
+        disabled={!paymentSheetEnabled}
+        title={
+          paymentSheetEnabled && !loading
+            ? 'trigger payment sheet timeout'
+            : 'Fetching payment intent...'
+        }
+        onPress={async () => {
+          if (!clientSecret) {
+            return;
+          }
+          setLoading(true);
+          const { error } = await presentPaymentSheet({ timeout: 5000 });
+          if (error) {
+            Alert.alert(`${error.code}`, error.message);
+          }
+          setLoading(false);
+        }}
       />
       <AddressSheet
         visible={addressSheetVisible}
