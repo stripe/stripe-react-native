@@ -1022,12 +1022,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard let last4 = params["cardLastFour"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide `cardLastFour`"))
-            return
-        }
         PushProvisioningUtils.canAddCardToWallet(
-            last4: last4,
             primaryAccountIdentifier: params["primaryAccountIdentifier"] as? String ?? "",
             testEnv: params["testEnv"] as? Bool ?? false,
             hasPairedAppleWatch: params["hasPairedAppleWatch"]  as? Bool ?? false)
