@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Bank Debits"
+- tapOn: "ACH payment"
+- tapOn:
+    text: "Collect bank account"
+    retryTapIfNoChange: false
+- tapOn: "Agree"
+- tapOn: "Test Institution"
+- tapOn: "Success"
+- tapOn: "Link account"
+- tapOn: "Done"
+- assertVisible:
+    text: "Requires Confirmation"
+- tapOn: "OK"
+- tapOn:
+    text: "Confirm"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Processing"
+- tapOn: "OK"
