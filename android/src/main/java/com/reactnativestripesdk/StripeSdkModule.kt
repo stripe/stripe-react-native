@@ -696,7 +696,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       return
     }
 
-    if (!PushProvisioningProxy.isNFCEnabled(reactApplicationContext)) {
+    if (params.getBooleanOr("supportsTapToPay", true) && !PushProvisioningProxy.isNFCEnabled(reactApplicationContext)) {
       promise.resolve(createCanAddCardResult(false, "UNSUPPORTED_DEVICE"))
       return
     }

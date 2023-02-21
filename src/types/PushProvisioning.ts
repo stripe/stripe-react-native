@@ -45,6 +45,8 @@ export type CanAddCardToWalletParams = {
   testEnv?: boolean;
   /** iOS only. Set this to `true` if: your user has an Apple Watch device currently paired, and you want to check that device for the presence of the specified card. */
   hasPairedAppleWatch?: boolean;
+  /** Android only, defaults to `true`. Set this to `false` if you'd like to allow users without NFC-enabled devices to add cards to the wallet. NFC is required for paying in stores. */
+  supportsTapToPay?: boolean;
 };
 
 export type CanAddCardToWalletResult =
