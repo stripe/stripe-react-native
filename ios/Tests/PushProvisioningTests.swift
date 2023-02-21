@@ -11,34 +11,33 @@ import XCTest
 
 class PushProvisioningTests: XCTestCase {
     func testCanAddCardToWalletInTestMode() throws {
-        PushProvisioningUtils.canAddCardToWallet(last4: "4242",
-                                                 primaryAccountIdentifier: "",
-                                                 testEnv: true, hasPairedAppleWatch: false) { canAddCard, status in
+        PushProvisioningUtils.canAddCardToWallet(primaryAccountIdentifier: "",
+                                                 testEnv: true,
+                                                 hasPairedAppleWatch: false) { canAddCard, status in
             XCTAssertEqual(canAddCard, true)
             XCTAssertEqual(status, nil)
         }
     }
     
     func testCanAddCardToWalletInLiveMode() throws {
-        PushProvisioningUtils.canAddCardToWallet(last4: "4242",
-                                                 primaryAccountIdentifier: "",
+        PushProvisioningUtils.canAddCardToWallet(primaryAccountIdentifier: "",
                                                  testEnv: false,
                                                  hasPairedAppleWatch: false) { canAddCard, status in
             XCTAssertEqual(canAddCard, false)
-            XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.MISSING_CONFIGURATION)
+            XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.UNSUPPORTED_DEVICE)
         }
     }
     
     func testCanAddPaymentPassInTestMode() throws {
         XCTAssertEqual(
-            PushProvisioningUtils.canAddPaymentPass(primaryAccountIdentifier: "", isTestMode: true),
+            PushProvisioningUtils.canAddPaymentPass(isTestMode: true),
             true
         )
     }
     
     func testCanAddPaymentPassInLiveMode() throws {
         XCTAssertEqual(
-            PushProvisioningUtils.canAddPaymentPass(primaryAccountIdentifier: "", isTestMode: false),
+            PushProvisioningUtils.canAddPaymentPass(isTestMode: false),
             false
         )
     }
