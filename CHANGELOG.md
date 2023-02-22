@@ -10,6 +10,8 @@
 
 - Fixed an issue on iOS where `canAddCardToWallet` would always return a `details.status` of `UNSUPPORTED_DEVICE` on iPads. [#1305](https://github.com/stripe/stripe-react-native/pull/1305)
 - Fixed an issue on iOS where `canAddCardToWallet` would always return a `{canAddCard: false}` if the card in question had been provsioned on the current device, but **had not yet been provisioned** on a paired Watch. [#1305](https://github.com/stripe/stripe-react-native/pull/1305)
+- Fixed an issue on iOS where the **deprecated** `onDidSetShippingMethod` & `onDidSetShippingContact` events wouldn't be triggered if you were using the `useApplePay` hook _without_ using the `ApplePayButton` component. [#1298](https://github.com/stripe/stripe-react-native/pull/1298)
+- Fixed an issue on Android where `canAddCardToWallet` could result in a null pointer exception on devices without NFC compatibility. [#1308](https://github.com/stripe/stripe-react-native/pull/1308)
 
 ## 0.24.0 - 2023-02-17
 
