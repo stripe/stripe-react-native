@@ -122,13 +122,13 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         didSelect shippingMethod: PKShippingMethod,
         handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
     ) {
+        if (self.hasLegacyApplePayListeners) {
+            // Legacy, remove when useApplePay hook is removed
+            sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
+        }
         if let callback = self.shippingMethodUpdateJSCallback {
             self.shippingMethodUpdateCompletion = handler
             callback(["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
-            if (self.hasLegacyApplePayListeners) {
-                // Legacy, remove when useApplePay hook is removed
-                sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
-            }
         } else {
             handler(
                 PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: applePaySummaryItems)
@@ -141,13 +141,13 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         didSelectShippingContact contact: PKContact,
         handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
     ) {
+        if (self.hasLegacyApplePayListeners) {
+            // Legacy, remove when useApplePay hook is removed
+            sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
+        }
         if let callback = self.shippingContactUpdateJSCallback {
             self.shippingContactUpdateCompletion = handler
             callback(["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
-            if (self.hasLegacyApplePayListeners) {
-                // Legacy, remove when useApplePay hook is removed
-                sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
-            }
         } else {
             handler(
                 PKPaymentRequestShippingContactUpdate.init(
