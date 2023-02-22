@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New Features
+
+- Added the `supportsTapToPay` option to `canAddCardToWallet`. [#1308](https://github.com/stripe/stripe-react-native/pull/1308)
+
 ### Fixes
 
 - Fixed an issue on iOS where `canAddCardToWallet` would always return a `details.status` of `UNSUPPORTED_DEVICE` on iPads. [#1305](https://github.com/stripe/stripe-react-native/pull/1305)
