@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.25.0 - 2023-02-27
+
 ### New Features
 
 - Added the `supportsTapToPay` option to `canAddCardToWallet`. [#1308](https://github.com/stripe/stripe-react-native/pull/1308)
