@@ -53,6 +53,8 @@
 
 ## 0.23.1 - 2023-01-25
 
+> **Note**: This version pulls in a new version of `stripe-android` that now requires v1.8.0 of the Kotlin Gradle plugin. [Refer to this issue for a limited workaround](https://github.com/stripe/stripe-react-native/issues/1294#issuecomment-1426150258).
+
 ### Fixes
 
 - Fixed an issue with `confirmPlatformPaySetupIntent` on iOS. [#1266](https://github.com/stripe/stripe-react-native/pull/1266)
