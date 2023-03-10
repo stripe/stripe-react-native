@@ -39,7 +39,7 @@
 - Added the `request` field to `initPaymentSheet()`'s, `confirmPlatformPayPayment()`'s, and `confirmPlatformPaySetupIntent`'s  `applePay` params. Use this to support different types of payment requests, like `RecurringPaymentRequest`, `AutomaticReloadPaymentRequest`, and `MultiMerchantRequest`.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
 - Added an `options` argument to `presentPaymentSheet` which includes a `timeout` property. [#1287](https://github.com/stripe/stripe-react-native/pull/1287)
 
-## 0.23.3 - 2023-02-07
+## 0.23.3 - 2023-02-07 (📌 Expo SDK 48)
 
 ### Fixes
 
