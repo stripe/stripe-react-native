@@ -4,7 +4,7 @@
 
 ### Fixes
 
-= Compatible with v0.1.4 of `@stripe/stripe-identity-react-native`. [8fa8a7a](https://github.com/stripe/stripe-react-native/commit/8fa8a7a0595a31d7422af6bbe26d696ba5e211f7)
+- Compatible with v0.1.4 of `@stripe/stripe-identity-react-native`. [8fa8a7a](https://github.com/stripe/stripe-react-native/commit/8fa8a7a0595a31d7422af6bbe26d696ba5e211f7)
 
 ## 0.25.0 - 2023-02-27
 
