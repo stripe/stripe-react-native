@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.26.0 - 2023-03-16
+
 ### New Features
 
 - Added support for PayPal and CashApp to PaymentSheet, `confirmPayment`, and `confirmSetupIntent`. [#1331](https://github.com/stripe/stripe-react-native/pull/1331)
