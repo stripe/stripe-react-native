@@ -1,4 +1,3 @@
-import type { BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import {
@@ -10,7 +9,7 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function PayPalScreen() {
+export default function CashAppScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading: loadingPayment } = useConfirmPayment();
   const { confirmSetupIntent, loading: loadingSetup } = useConfirmSetupIntent();
@@ -23,8 +22,8 @@ export default function PayPalScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'gbp',
-        payment_method_types: ['paypal'],
+        currency: 'usd',
+        payment_method_types: ['cashapp'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -42,16 +41,8 @@ export default function PayPalScreen() {
       return;
     }
 
-    const billingDetails: BillingDetails = {
-      name: 'John Doe',
-      email,
-    };
-
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      paymentMethodType: 'PayPal',
-      paymentMethodData: {
-        billingDetails,
-      },
+      paymentMethodType: 'CashApp',
     });
 
     if (error) {
@@ -76,23 +67,9 @@ export default function PayPalScreen() {
       return;
     }
 
-    const { error, setupIntent } = await confirmSetupIntent(
-      clientSecret,
-      {
-        paymentMethodType: 'PayPal',
-        paymentMethodData: {
-          mandateData: {
-            customerAcceptance: {
-              online: {
-                ipAddress: '1.1.1.1',
-                userAgent: 'my-agent',
-              },
-            },
-          },
-        },
-      },
-      { setupFutureUsage: 'OffSession' }
-    );
+    const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
+      paymentMethodType: 'CashApp',
+    });
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
@@ -104,7 +81,7 @@ export default function PayPalScreen() {
   };
 
   return (
-    <PaymentScreen paymentMethod="paypal">
+    <PaymentScreen paymentMethod="cashapp">
       <TextInput
         placeholder="E-mail"
         autoCapitalize="none"
