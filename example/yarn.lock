@@ -3858,10 +3858,17 @@ pump@^3.0.0:
     end-of-stream "^1.1.0"
     once "^1.3.1"
 
-qs@6.11.0, qs@^6.10.3:
+qs@6.11.0:
   version "6.11.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.0.tgz#fd0d963446f7a65e1367e01abd85429453f0c37a"
   integrity sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==
+  dependencies:
+    side-channel "^1.0.4"
+
+qs@^6.11.0:
+  version "6.11.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.11.1.tgz#6c29dff97f0c0060765911ba65cbc9764186109f"
+  integrity sha512-0wsrzgTz/kAVIeuxSjnpGC56rzYtr6JT/2BwEvMaPhFIoYa1aGO8LbzuU1R0uUYQkLpWBTOj0l/CLAJB64J6nQ==
   dependencies:
     side-channel "^1.0.4"
 
@@ -4518,13 +4525,13 @@ strip-eof@^1.0.0:
   resolved "https://registry.yarnpkg.com/strip-eof/-/strip-eof-1.0.0.tgz#bb43ff5598a6eb05d89b59fcd129c983313606bf"
   integrity sha512-7FCwGGmx8mD5xQd3RPUvnSpUXHM3BWuzjtpD4TXsfcZ9EL4azvVVUscFYwD9nx8Kh+uCBC00XBtAykoMHwTh8Q==
 
-stripe@^9.0.0:
-  version "9.16.0"
-  resolved "https://registry.yarnpkg.com/stripe/-/stripe-9.16.0.tgz#94c24549c91fced457b9e3259e8a1a1bdb6dbd0e"
-  integrity sha512-Dn8K+jSoQcXjxCobRI4HXUdHjOXsiF/KszK49fJnkbeCFjZ3EZxLG2JiM/CX+Hcq27NBDtv/Sxhvy+HhTmvyaQ==
+stripe@^11.0.0:
+  version "11.14.0"
+  resolved "https://registry.yarnpkg.com/stripe/-/stripe-11.14.0.tgz#3e755921f69267a2a653e61d8ac37fe853740421"
+  integrity sha512-EqIMCKkfkewf3eLJo0fopDy/EN2UF6q7L3NEycwThjZRUj8HFz3BpcEDjCITfNJ04ozrAmZNqFaiW46YG4KUtw==
   dependencies:
     "@types/node" ">=8.1.0"
-    qs "^6.10.3"
+    qs "^6.11.0"
 
 sudo-prompt@^9.0.0:
   version "9.2.1"

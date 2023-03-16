@@ -43,7 +43,8 @@ export type CreateParams =
   | BancontactParams
   | USBankAccountParams
   | PayPalParams
-  | AffirmParams;
+  | AffirmParams
+  | CashAppParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -205,6 +206,13 @@ export type USBankAccountParams = {
 
 export type PayPalParams = {
   paymentMethodType: 'PayPal';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+  };
+};
+
+export type CashAppParams = {
+  paymentMethodType: 'CashApp';
   paymentMethodData?: {
     billingDetails?: BillingDetails;
   };

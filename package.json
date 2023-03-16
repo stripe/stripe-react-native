@@ -16,6 +16,7 @@
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
+    "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",

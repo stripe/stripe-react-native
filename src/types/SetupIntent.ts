@@ -1,5 +1,9 @@
 import type { Type } from './PaymentMethod';
-import type { LastPaymentError } from './PaymentIntent';
+import type {
+  LastPaymentError,
+  ConfirmParams as PaymentIntentConfirmParams,
+  ConfirmOptions as PaymentIntentConfirmOptions,
+} from './PaymentIntent';
 import type { NextAction } from './NextAction';
 import type * as PaymentMethod from './PaymentMethod';
 export interface Result {
@@ -19,26 +23,9 @@ export interface Result {
   nextAction: NextAction | null;
 }
 
-export type ConfirmParams =
-  | PaymentMethod.CardParams
-  | PaymentMethod.IdealParams
-  | PaymentMethod.OxxoParams
-  | PaymentMethod.P24Params
-  | PaymentMethod.AlipayParams
-  | PaymentMethod.GiropayParams
-  | PaymentMethod.SepaParams
-  | PaymentMethod.EpsParams
-  | PaymentMethod.AuBecsDebitParams
-  | PaymentMethod.SofortParams
-  | PaymentMethod.GrabPayParams
-  | PaymentMethod.FPXParams
-  | PaymentMethod.AfterpayClearpayParams
-  | PaymentMethod.KlarnaParams
-  | PaymentMethod.BancontactParams
-  | PaymentMethod.USBankAccountParams;
-// TODO: Change the above back to PaymentMethod.CreateParams when PayPal is supported through SetupIntents
+export type ConfirmParams = PaymentIntentConfirmParams;
 
-export type ConfirmOptions = {};
+export type ConfirmOptions = PaymentIntentConfirmOptions;
 
 export type FutureUsage =
   | 'Unknown'
