@@ -399,9 +399,9 @@ class PaymentMethodCreateParamsFactory(
   }
 
   private fun buildMandateDataParams(): MandateDataParams? {
-    getMapOrNull(paymentMethodData, "mandateData")?.let {
-      getMapOrNull(it, "customerAcceptance")?.let { customerAcceptance ->
-        getMapOrNull(it, "online")?.let { onlineParams ->
+    getMapOrNull(paymentMethodData, "mandateData")?.let { mandateData ->
+      getMapOrNull(mandateData, "customerAcceptance")?.let { customerAcceptance ->
+        getMapOrNull(customerAcceptance, "online")?.let { onlineParams ->
           return MandateDataParams(MandateDataParams.Type.Online(
             ipAddress = getValOr(onlineParams, "ipAddress", "") ?: "",
             userAgent = getValOr(onlineParams, "userAgent", "") ?: "",

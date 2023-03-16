@@ -4,18 +4,18 @@ appId: ${APP_ID}
 - tapOn: "Wallets"
 - scrollUntilVisible:
     element:
-      text: "PayPal"
+      text: "CashApp"
     direction: DOWN
-- tapOn: "PayPal"
+- tapOn: "CashApp"
 - assertVisible:
     text: "E-mail"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
-    text: "Pay"
+    text: "Setup for later"
     retryTapIfNoChange: false
-- tapOn: "AUTHORIZE TEST PAYMENT"
+- tapOn: "AUTHORIZE TEST SETUP"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
