@@ -123,6 +123,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.USBankAccount -> "USBankAccount"
     PaymentMethod.Type.PayPal -> "PayPal"
     PaymentMethod.Type.Affirm -> "Affirm"
+    PaymentMethod.Type.CashAppPay -> "CashApp"
     else -> "Unknown"
   }
 }
@@ -152,6 +153,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "USBankAccount" -> PaymentMethod.Type.USBankAccount
     "PayPal" -> PaymentMethod.Type.PayPal
     "Affirm" -> PaymentMethod.Type.Affirm
+    "CashApp" -> PaymentMethod.Type.CashAppPay
     else -> null
   }
 }

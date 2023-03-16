@@ -240,11 +240,6 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             return
         }
 
-        if (paymentMethodType == .payPal) {
-            resolve(Errors.createError(ErrorType.Failed, "PayPal is not yet supported through SetupIntents."))
-            return
-        }
-
         var err: NSDictionary? = nil
         let setupIntentParams: STPSetupIntentConfirmParams = {
             // If payment method data is not supplied, assume payment method was attached through via collectBankAccount
@@ -260,6 +255,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
                     do {
                         let paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
                         parameters.paymentMethodParams = paymentMethodParams
+                        parameters.mandateData = factory.createMandateData()
                     } catch  {
                         err = Errors.createError(ErrorType.Failed, error as NSError?)
                     }
@@ -881,6 +877,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
                         let paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
                         parameters.paymentMethodParams = paymentMethodParams
                         parameters.paymentMethodOptions = paymentMethodOptions
+                        parameters.mandateData = factory.createMandateData()
                     } catch  {
                         err = Errors.createError(ErrorType.Failed, error as NSError?)
                     }
