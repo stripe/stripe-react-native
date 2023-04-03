@@ -1,13 +1,11 @@
 package com.reactnativestripesdk
 
-import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.ThemedReactContext
@@ -88,36 +86,45 @@ class StripeSdkCardView(private val context: ThemedReactContext) : FrameLayout(c
     val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
+    val cursorColor = getValOr(value, "cursorColor", null)
+    val bindings = setOf(binding.cardNumberEditText, binding.cvcEditText, binding.expiryDateEditText, binding.postalCodeEditText)
 
     textColor?.let {
-      binding.cardNumberEditText.setTextColor(Color.parseColor(it))
-      binding.cvcEditText.setTextColor(Color.parseColor(it))
-      binding.expiryDateEditText.setTextColor(Color.parseColor(it))
-      binding.postalCodeEditText.setTextColor(Color.parseColor(it))
+      for (editTextBinding in bindings) {
+        editTextBinding.setTextColor(Color.parseColor(it))
+      }
     }
     textErrorColor?.let {
-      binding.cardNumberEditText.setErrorColor(Color.parseColor(it))
-      binding.cvcEditText.setErrorColor(Color.parseColor(it))
-      binding.expiryDateEditText.setErrorColor(Color.parseColor(it))
-      binding.postalCodeEditText.setErrorColor(Color.parseColor(it))
+      for (editTextBinding in bindings) {
+        editTextBinding.setErrorColor(Color.parseColor(it))
+      }
     }
     placeholderColor?.let {
-      binding.cardNumberEditText.setHintTextColor(Color.parseColor(it))
-      binding.cvcEditText.setHintTextColor(Color.parseColor(it))
-      binding.expiryDateEditText.setHintTextColor(Color.parseColor(it))
-      binding.postalCodeEditText.setHintTextColor(Color.parseColor(it))
+      for (editTextBinding in bindings) {
+        editTextBinding.setHintTextColor(Color.parseColor(it))
+      }
     }
     fontSize?.let {
-      binding.cardNumberEditText.textSize = it.toFloat()
-      binding.cvcEditText.textSize = it.toFloat()
-      binding.expiryDateEditText.textSize = it.toFloat()
-      binding.postalCodeEditText.textSize = it.toFloat()
+      for (editTextBinding in bindings) {
+        editTextBinding.textSize = it.toFloat()
+      }
     }
     fontFamily?.let {
-      binding.cardNumberEditText.typeface = Typeface.create(it, Typeface.NORMAL)
-      binding.cvcEditText.typeface = Typeface.create(it, Typeface.NORMAL)
-      binding.expiryDateEditText.typeface = Typeface.create(it, Typeface.NORMAL)
-      binding.postalCodeEditText.typeface = Typeface.create(it, Typeface.NORMAL)
+      for (editTextBinding in bindings) {
+        editTextBinding.typeface = Typeface.create(it, Typeface.NORMAL)
+      }
+    }
+    cursorColor?.let {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val color = Color.parseColor(it)
+        for (editTextBinding in bindings) {
+          editTextBinding.textCursorDrawable?.setTint(color)
+          editTextBinding.textSelectHandle?.setTint(color)
+          editTextBinding.textSelectHandleLeft?.setTint(color)
+          editTextBinding.textSelectHandleRight?.setTint(color)
+          editTextBinding.highlightColor = color
+        }
+      }
     }
 
     mCardWidget.setPadding(40, 0, 40, 0)

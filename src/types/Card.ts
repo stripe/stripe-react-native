@@ -58,9 +58,24 @@ export namespace Card {
     state?: string;
   }
 
-  export interface CreateTokenParams {
-    type: 'Account' | 'BankAccount' | 'Card' | 'CvcUpdate' | 'Person' | 'Pii';
-    address?: Address;
+  export type CreateTokenParams =
+  | CreateTokenCardParams
+  | CreateTokenBankAccountParams;
+
+  export type CreateTokenCardParams = {
+    type: 'Card';
+    address?: Card.Address;
     name?: string;
-  }
+  };
+  export type BankAcccountHolderType = 'Company' | 'Individual';
+
+  export type CreateTokenBankAccountParams = {
+    type: 'BankAccount';
+    accountHolderName?: string;
+    accountHolderType?: BankAcccountHolderType;
+    accountNumber: string;
+    country: string;
+    currency: string;
+    routingNumber?: string;
+  };
 }

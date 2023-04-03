@@ -43,6 +43,7 @@ import {
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
+  isGooglePaySupported,
   initGooglePay,
   createGooglePayPaymentMethod,
   presentGooglePay,
@@ -191,6 +192,13 @@ export function useStripe() {
     []
   );
 
+  const _isGooglePaySupported = useCallback(
+    async (params?: GooglePay.IsGooglePaySupportedParams): Promise<boolean> => {
+      return isGooglePaySupported(params);
+    },
+    []
+  );
+
   const _initGooglePay = useCallback(
     async (params: GooglePay.InitParams): Promise<GooglePayInitResult> => {
       return initGooglePay(params);
@@ -238,6 +246,7 @@ export function useStripe() {
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
+    isGooglePaySupported: _isGooglePaySupported,
     initGooglePay: _initGooglePay,
     presentGooglePay: _presentGooglePay,
     createGooglePayPaymentMethod: _createGooglePayPaymentMethod,

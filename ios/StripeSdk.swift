@@ -7,10 +7,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     public var cardFormView: CardFormView? = nil
 
     var merchantIdentifier: String? = nil
-    
+
     private var paymentSheet: PaymentSheet?
     private var paymentSheetFlowController: PaymentSheet.FlowController?
-    
+
     var urlScheme: String? = nil
 
     var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
@@ -19,20 +19,20 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     var applePayCompletionRejecter: RCTPromiseRejectBlock? = nil
     var confirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
-    
+
     var confirmPaymentClientSecret: String? = nil
-    
+
     var shippingMethodUpdateHandler: ((PKPaymentRequestShippingMethodUpdate) -> Void)? = nil
     var shippingContactUpdateHandler: ((PKPaymentRequestShippingContactUpdate) -> Void)? = nil
-    
+
     override func supportedEvents() -> [String]! {
         return ["onDidSetShippingMethod", "onDidSetShippingContact"]
     }
-    
+
     @objc override static func requiresMainQueueSetup() -> Bool {
         return false
     }
-    
+
     @objc(initialise:resolver:rejecter:)
     func initialise(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let publishableKey = params["publishableKey"] as! String
@@ -41,21 +41,21 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         let params3ds = params["threeDSecureParams"] as? NSDictionary
         let urlScheme = params["urlScheme"] as? String
         let merchantIdentifier = params["merchantIdentifier"] as? String
-        
+
         if let params3ds = params3ds {
             configure3dSecure(params3ds)
         }
-        
+
         self.urlScheme = urlScheme
-        
+
         STPAPIClient.shared.publishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
-        
+
         let name = RCTConvert.nsString(appInfo["name"]) ?? ""
         let partnerId = RCTConvert.nsString(appInfo["partnerId"]) ?? ""
         let version = RCTConvert.nsString(appInfo["version"]) ?? ""
         let url = RCTConvert.nsString(appInfo["url"]) ?? ""
-        
+
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
         self.merchantIdentifier = merchantIdentifier
         resolve(NSNull())
@@ -65,7 +65,8 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         var configuration = PaymentSheet.Configuration()
-        
+        self.paymentSheetFlowController = nil
+
         if  params["applePay"] as? Bool == true {
             if let merchantIdentifier = self.merchantIdentifier, let merchantCountryCode = params["merchantCountryCode"] as? String {
                 configuration.applePay = .init(merchantId: merchantIdentifier,
@@ -75,29 +76,29 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 return
             }
         }
-        
+
         if let merchantDisplayName = params["merchantDisplayName"] as? String {
             configuration.merchantDisplayName = merchantDisplayName
         }
-        
+
         if let returnURL = params["returnURL"] as? String {
             configuration.returnURL = returnURL
         }
-        
+
         if let buttonColorHexStr = params["primaryButtonColor"] as? String {
             let primaryButtonColor = UIColor(hexString: buttonColorHexStr)
             configuration.primaryButtonColor = primaryButtonColor
         }
-        
+
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
-        
+
         if let defaultBillingDetails = params["defaultBillingDetails"] as? [String: Any?] {
             configuration.defaultBillingDetails.name = defaultBillingDetails["name"] as? String
             configuration.defaultBillingDetails.email = defaultBillingDetails["email"] as? String
             configuration.defaultBillingDetails.phone = defaultBillingDetails["phone"] as? String
-            
+
             if let address = defaultBillingDetails["address"] as? [String: String] {
             configuration.defaultBillingDetails.address = .init(city: address["city"],
                                                                 country: address["country"],
@@ -106,9 +107,9 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                                                                 postalCode: address["postalCode"],
                                                                 state: address["state"])
             }
-            
+
         }
-        
+
         if let customerId = params["customerId"] as? String {
             if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
                 if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {
@@ -118,13 +119,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
             }
         }
-        
+
         if #available(iOS 13.0, *) {
             if let style = params["style"] as? String {
                 configuration.style = Mappers.mapToUserInterfaceStyle(style)
             }
         }
-        
+
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
             switch result {
             case .failure(let error):
@@ -142,13 +143,13 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 }
             }
         }
-        
+
         if let paymentIntentClientSecret = params["paymentIntentClientSecret"] as? String {
             if (!Errors.isPIClientSecretValid(clientSecret: paymentIntentClientSecret)) {
                 resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`secret` format does not match expected client secret formatting."))
                 return
             }
-            
+
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(paymentIntentClientSecret: paymentIntentClientSecret,
                                                    configuration: configuration) { [weak self] result in
@@ -163,7 +164,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "`secret` format does not match expected client secret formatting."))
                 return
             }
-            
+
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(setupIntentClientSecret: setupIntentClientSecret,
                                                    configuration: configuration) { [weak self] result in
@@ -176,7 +177,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         } else {
             resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "You must provide either paymentIntentClientSecret or setupIntentClientSecret"))
         }
-        
+
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)
@@ -194,18 +195,18 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                     case .failed(let error):
                         resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, error.localizedDescription))
                     }
-                   
+
                 }
             } else {
                 resolve(Errors.createError(PaymentSheetErrorType.Failed.rawValue, "No payment sheet has been initialized yet"))
             }
         }
     }
-    
+
     @objc(presentPaymentSheet:rejecter:)
     func presentPaymentSheet(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        
+
         DispatchQueue.main.async {
             if let paymentSheetFlowController = self.paymentSheetFlowController {
                 paymentSheetFlowController.presentPaymentOptions(from:
@@ -240,14 +241,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(createTokenForCVCUpdate:resolver:rejecter:)
     func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cvc = cvc else {
             resolve(Errors.createError("Failed", "You must provide CVC"))
             return;
         }
-        
+
         STPAPIClient.shared.createToken(forCVCUpdate: cvc) { (token, error) in
             if error != nil || token == nil {
                 resolve(Errors.createError("Failed", error?.localizedDescription ?? ""))
@@ -257,7 +258,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(confirmSetupIntent:data:options:resolver:rejecter:)
     func confirmSetupIntent (setupIntentClientSecret: String, params: NSDictionary,
                              options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -269,7 +270,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
-        
+
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
@@ -280,14 +281,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(ConfirmPaymentErrorType.Unknown.rawValue, "Unhandled error occured"))
             return
         }
-        
+
         let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret)
         setupIntentParams.paymentMethodParams = paymentMethodParams
-        
+
         if let urlScheme = urlScheme {
             setupIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
-        
+
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { status, setupIntent, error in
             switch (status) {
@@ -310,7 +311,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
     func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if (shippingMethodUpdateHandler == nil && shippingContactUpdateHandler == nil) {
@@ -340,7 +341,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         self.shippingContactUpdateHandler = nil
         resolve([])
     }
-    
+
     @objc(openApplePaySetup:rejecter:)
     func openApplePaySetup(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         let library = PKPassLibrary.init()
@@ -351,21 +352,21 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError("Failed", "Cannot open payment setup"))
         }
     }
-    
-    
+
+
     func applePayContext(_ context: STPApplePayContext, didSelect shippingMethod: PKShippingMethod, handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void) {
         self.shippingMethodUpdateHandler = handler
         sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
     }
-    
+
     func applePayContext(_ context: STPApplePayContext, didSelectShippingContact contact: PKContact, handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void) {
         self.shippingContactUpdateHandler = handler
         sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
     }
-    
+
     func applePayContext(_ context: STPApplePayContext, didCreatePaymentMethod paymentMethod: STPPaymentMethod, paymentInformation: PKPayment, completion: @escaping STPIntentClientSecretCompletionBlock) {
         self.applePayCompletionCallback = completion
-        
+
         let address = paymentMethod.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
         if (address?.indices.contains(0) == true) {
             paymentMethod.billingDetails?.address?.line1 = String(address?[0] ?? "")
@@ -385,14 +386,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         ]);
         self.applePayRequestRejecter = nil
     }
-    
+
     @objc(confirmApplePayPayment:resolver:rejecter:)
     func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.applePayCompletionRejecter = reject
         self.confirmApplePayPaymentResolver = resolve
         self.applePayCompletionCallback?(clientSecret, nil)
     }
-    
+
     func applePayContext(_ context: STPApplePayContext, didCompleteWith status: STPPaymentStatus, error: Error?) {
         switch status {
         case .success:
@@ -422,14 +423,14 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             applePayRequestRejecter = nil
         }
     }
-    
+
     @objc(isApplePaySupported:rejecter:)
     func isApplePaySupported(resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         let isSupported = StripeAPI.deviceSupportsApplePay()
         resolve(isSupported)
     }
-  
+
     @objc(handleURLCallback:resolver:rejecter:)
     func handleURLCallback(url: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
       guard let url = url else {
@@ -446,7 +447,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
       }
     }
-  
+
     @objc(presentApplePay:resolver:rejecter:)
     func presentApplePay(params: NSDictionary,
                          resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -455,11 +456,11 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             reject(ApplePayErrorType.Failed.rawValue, "You must provide merchantIdentifier", nil)
             return
         }
-        
+
         if (params["jcbEnabled"] as? Bool == true) {
             StripeAPI.additionalEnabledApplePayNetworks = [.JCB]
         }
-        
+
         guard let summaryItems = params["cartItems"] as? NSArray else {
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the items for purchase", nil)
             return
@@ -472,29 +473,29 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             reject(ApplePayErrorType.Failed.rawValue, "You must provide the payment currency", nil)
             return
         }
-        
+
         self.applePayRequestResolver = resolve
         self.applePayRequestRejecter = reject
-        
+
         let merchantIdentifier = self.merchantIdentifier ?? ""
         let paymentRequest = StripeAPI.paymentRequest(withMerchantIdentifier: merchantIdentifier, country: country, currency: currency)
-        
+
         let requiredShippingAddressFields = params["requiredShippingAddressFields"] as? NSArray ?? NSArray()
         let requiredBillingContactFields = params["requiredBillingContactFields"] as? NSArray ?? NSArray()
         let shippingMethods = params["shippingMethods"] as? NSArray ?? NSArray()
-        
+
         paymentRequest.requiredShippingContactFields = Set(requiredShippingAddressFields.map {
             Mappers.mapToPKContactField(field: $0 as! String)
         })
-        
+
         paymentRequest.requiredBillingContactFields = Set(requiredBillingContactFields.map {
             Mappers.mapToPKContactField(field: $0 as! String)
         })
-        
+
         paymentRequest.shippingMethods = Mappers.mapToShippingMethods(shippingMethods: shippingMethods)
-        
+
         var paymentSummaryItems: [PKPaymentSummaryItem] = []
-        
+
         if let items = summaryItems as? [[String : Any]] {
             for item in items {
                 let label = item["label"] as? String ?? ""
@@ -503,7 +504,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 paymentSummaryItems.append(PKPaymentSummaryItem(label: label, amount: amount, type: type))
             }
         }
-        
+
         paymentRequest.paymentSummaryItems = paymentSummaryItems
         if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
             DispatchQueue.main.async {
@@ -517,10 +518,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     func configure3dSecure(_ params: NSDictionary) {
         let threeDSCustomizationSettings = STPPaymentHandler.shared().threeDSCustomizationSettings
         let uiCustomization = Mappers.mapUICustomization(params)
-        
+
         threeDSCustomizationSettings.uiCustomization = uiCustomization
     }
-    
+
     @objc(createPaymentMethod:options:resolver:rejecter:)
     func createPaymentMethod(
         params: NSDictionary,
@@ -533,35 +534,35 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-        
+
         var paymentMethodParams: STPPaymentMethodParams?
         let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
-        
+
         do {
             paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
         } catch  {
             resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, error.localizedDescription))
             return
         }
-        
+
         guard let params = paymentMethodParams else {
             resolve(Errors.createError(NextPaymentActionErrorType.Unknown.rawValue, "Unhandled error occured"))
             return
         }
-        
+
         STPAPIClient.shared.createPaymentMethod(with: params) { paymentMethod, error in
             if let createError = error {
                 resolve(Errors.createError(NextPaymentActionErrorType.Failed.rawValue, createError.localizedDescription))
                 return
             }
-            
+
             if let paymentMethod = paymentMethod {
                 let method = Mappers.mapFromPaymentMethod(paymentMethod)
                 resolve(Mappers.createResult("paymentMethod", method))
             }
         }
     }
-    
+
     @objc(createToken:resolver:rejecter:)
     func createToken(
         params: NSDictionary,
@@ -569,18 +570,18 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         let address = params["address"] as? NSDictionary
-        
+
         if let type = params["type"] as? String {
             if (type != "Card") {
                 resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, type + " type is not supported yet"))
             }
         }
-        
+
         guard let cardParams = cardFieldView?.cardParams ?? cardFormView?.cardParams else {
             resolve(Errors.createError(CreateTokenErrorType.Failed.rawValue, "Card details not complete"))
             return
         }
-        
+
         let cardSourceParams = STPCardParams()
         cardSourceParams.number = cardParams.number
         cardSourceParams.cvc = cardParams.cvc
@@ -597,7 +598,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(handleCardAction:resolver:rejecter:)
     func handleCardAction(
         paymentIntentClientSecret: String,
@@ -639,19 +640,19 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
     ) -> Void {
         self.confirmPaymentResolver = resolve
         self.confirmPaymentClientSecret = paymentIntentClientSecret
-                
+
         let paymentMethodId = params["paymentMethodId"] as? String
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: paymentIntentClientSecret)
         if let setupFutureUsage = params["setupFutureUsage"] as? String {
             paymentIntentParams.setupFutureUsage = Mappers.mapToPaymentIntentFutureUsage(usage: setupFutureUsage)
         }
-                
+
         let type = Mappers.mapToPaymentMethodType(type: params["type"] as? String)
         guard let paymentMethodType = type else {
             resolve(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "You must provide paymentMethodType"))
             return
         }
-        
+
         if (paymentMethodType == STPPaymentMethodType.FPX) {
             let testOfflineBank = params["testOfflineBank"] as? Bool
             if (testOfflineBank == false || testOfflineBank == nil) {
@@ -665,7 +666,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             var paymentMethodParams: STPPaymentMethodParams?
             var paymentMethodOptions: STPConfirmPaymentMethodOptions?
             let factory = PaymentMethodFactory.init(params: params, cardFieldView: cardFieldView, cardFormView: cardFormView)
-            
+
             do {
                 paymentMethodParams = try factory.createParams(paymentMethodType: paymentMethodType)
                 paymentMethodOptions = try factory.createOptions(paymentMethodType: paymentMethodType)
@@ -685,7 +686,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
          if let urlScheme = urlScheme {
             paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
-        
+
         let paymentHandler = STPPaymentHandler.shared()
         paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
     }
@@ -703,10 +704,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 } else {
                     resolve(Errors.createError(RetrievePaymentIntentErrorType.Unknown.rawValue, error?.localizedDescription))
                 }
-               
+
                 return
             }
-            
+
             if let paymentIntent = paymentIntent {
                 resolve(Mappers.createResult("paymentIntent", Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)))
             } else {
@@ -714,7 +715,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     @objc(retrieveSetupIntent:resolver:rejecter:)
     func retrieveSetupIntent(
         clientSecret: String,
@@ -728,10 +729,10 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
                 } else {
                     resolve(Errors.createError(RetrieveSetupIntentErrorType.Unknown.rawValue, error?.localizedDescription))
                 }
-               
+
                 return
             }
-            
+
             if let setupIntent = setupIntent {
                 resolve(Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: setupIntent)))
             } else {
@@ -739,16 +740,16 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             }
         }
     }
-    
+
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Canceled.rawValue, "FPX Payment has been canceled"))
     }
-            
+
     func payWithFPX(_ paymentIntentClientSecret: String) {
         let vc = STPBankSelectionViewController.init(bankMethod: .FPX)
 
         vc.delegate = self
-        
+
         DispatchQueue.main.async {
             vc.presentationController?.delegate = self
 
@@ -756,7 +757,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
             share?.window??.rootViewController?.present(vc, animated: true)
         }
     }
-    
+
     func bankSelectionViewController(_ bankViewController: STPBankSelectionViewController, didCreatePaymentMethodParams paymentMethodParams: STPPaymentMethodParams) {
         guard let clientSecret = confirmPaymentClientSecret else {
             confirmPaymentResolver?(Errors.createError(ConfirmPaymentErrorType.Failed.rawValue, "Missing paymentIntentClientSecret"))
@@ -764,7 +765,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         }
         let paymentIntentParams = STPPaymentIntentParams(clientSecret: clientSecret)
         paymentIntentParams.paymentMethodParams = paymentMethodParams
-        
+
         if let urlScheme = urlScheme {
             paymentIntentParams.returnURL = Mappers.mapToReturnURL(urlScheme: urlScheme)
         }
@@ -772,7 +773,7 @@ class StripeSdk: RCTEventEmitter, STPApplePayContextDelegate, STPBankSelectionVi
         bankViewController.dismiss(animated: true)
         paymentHandler.confirmPayment(paymentIntentParams, with: self, completion: onCompleteConfirmPayment)
     }
-        
+
     func onCompleteConfirmPayment(status: STPPaymentHandlerActionStatus, paymentIntent: STPPaymentIntent?, error: NSError?) {
         self.confirmPaymentClientSecret = nil
         switch (status) {

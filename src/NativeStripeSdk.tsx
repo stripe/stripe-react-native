@@ -15,7 +15,6 @@ import type {
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
-  Card,
   ApplePayResult,
   CreateTokenResult,
   GooglePayInitResult,
@@ -23,6 +22,7 @@ import type {
   CreateGooglePayPaymentMethodResult,
   GooglePay,
   OpenApplePaySetupResult,
+  CreateTokenParams,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -65,7 +65,10 @@ type NativeStripeSdkType = {
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
-  createToken(params: Card.CreateTokenParams): Promise<CreateTokenResult>;
+  createToken(params: CreateTokenParams): Promise<CreateTokenResult>;
+  isGooglePaySupported(
+    params: GooglePay.IsGooglePaySupportedParams
+  ): Promise<boolean>;
   initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
   presentGooglePay(
     params: GooglePay.PresentGooglePayParams

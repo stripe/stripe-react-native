@@ -1,4 +1,5 @@
-import { createError, isiOS } from './helpers';
+import { createError, isAndroid, isiOS } from './helpers';
+import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import {
   ApplePay,
@@ -57,6 +58,17 @@ export const createPaymentMethod = async (
 export const createToken = async (
   params: Card.CreateTokenParams
 ): Promise<CreateTokenResult> => {
+
+  if (
+    params.type === 'BankAccount' &&
+    params.country?.toLowerCase() === 'us' &&
+    !params.routingNumber
+  ) {
+    return {
+      error: MissingRoutingNumber,
+    };
+  }
+
   try {
     const { token, error } = await NativeStripeSdk.createToken(params);
 
@@ -359,6 +371,14 @@ export const confirmPaymentSheetPayment =
         error: createError(error),
       };
     }
+  };
+
+  export const isGooglePaySupported = async (
+    params?: GooglePay.IsGooglePaySupportedParams
+  ): Promise<boolean> => {
+    return (
+      isAndroid && (await NativeStripeSdk.isGooglePaySupported(params ?? {}))
+    );
   };
 
 export const initGooglePay = async (

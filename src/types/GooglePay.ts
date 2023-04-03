@@ -28,8 +28,7 @@ export namespace GooglePay {
     clientSecret: string;
   }
 
-  export interface InitParams {
-    testEnv: boolean;
+  export type InitParams = {
     merchantName: string;
     countryCode: string;
     /**
@@ -42,14 +41,16 @@ export namespace GooglePay {
      * Default to `false`.
      */
     isEmailRequired?: boolean;
+  } & IsGooglePaySupportedParams;
+
+  export type IsGooglePaySupportedParams = {
+    testEnv?: boolean;
     /**
      * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
-     * has existing payment methods.
-     *
-     * Default to `true`.
+     * has an existing payment method.
      */
     existingPaymentMethodRequired?: boolean;
-  }
+  };
 
   export interface BillingAddressConfig {
     isRequired?: boolean;
