@@ -240,6 +240,7 @@ export interface CardResult {
   last4?: string;
   preferredNetwork?: string;
   availableNetworks?: Array<string>;
+  isThreeDSecureSupported?: boolean;
 }
 
 export interface FpxResult {
