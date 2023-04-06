@@ -55,7 +55,7 @@ interface ContactName {
 export interface ShippingContact {
   emailAddress?: string;
   name: ContactName;
-  phoneNumber?: number;
+  phoneNumber?: string;
   postalAddress: PostalAddress;
 }
 
