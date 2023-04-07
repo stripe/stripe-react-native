@@ -240,7 +240,11 @@ export interface CardResult {
   last4?: string;
   preferredNetwork?: string;
   availableNetworks?: Array<string>;
-  isThreeDSecureSupported?: boolean;
+  threeDSecureUsage?: ThreeDSecureUsage;
+}
+
+export interface ThreeDSecureUsage {
+  isSupported?: boolean;
 }
 
 export interface FpxResult {

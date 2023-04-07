@@ -612,7 +612,9 @@ class Mappers {
             "last4": paymentMethod.card?.last4 ?? NSNull(),
             "preferredNetwork": paymentMethod.card?.networks?.preferred ?? NSNull(),
             "availableNetworks": paymentMethod.card?.networks?.available ?? NSNull(),
-            "isThreeDSecureSupported": paymentMethod.card?.threeDSecureUsage?.supported ?? false,
+            "threeDSecureUsage": [
+              "isSupported": paymentMethod.card?.threeDSecureUsage?.supported ?? false
+            ],
         ]
 
         let sepaDebit: NSDictionary = [
