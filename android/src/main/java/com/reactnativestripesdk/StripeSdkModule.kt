@@ -307,8 +307,51 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       "Pii" -> {
         createTokenFromPii(params, promise)
       }
+      "Account" -> {
+        createTokenFromAccount(params, promise)
+      }
       else -> {
-        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$type type is not supported yet"))
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$type type is not toto supported yet"))
+      }
+    }
+  }
+
+  private fun createTokenFromAccount(params: ReadableMap, promise: Promise) {
+    val businessType = getValOr(params, "businessType", null)
+    if (businessType == null) {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "You must provide businessType"))
+      return
+    }
+
+    /*val businessTypeParams = null
+    when (businessType) {
+      "Company" -> {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "Company businessType is not implemented yet"))
+        return
+      }
+      "Individual" -> {
+      }
+      else -> {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "$businessType businessType is not supported yet"))
+        return
+      }
+    }*/
+
+    val individualData = getMapOrNull(params, "individual")
+    val accountParams = AccountParams.create(
+      tosShownAndAccepted = getBooleanOrFalse(params, "tosShownAndAccepted"),
+      individual = AccountParams.BusinessTypeParams.Individual.Builder()
+        .setFirstName(getValOr(individualData, "firstName", null))
+        .setLastName(getValOr(individualData, "lastName", null))
+        .setEmail(getValOr(individualData, "email", null))
+        .build()
+    )
+    CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
+        val token = stripe.createAccountToken(accountParams, null, stripeAccountId)
+        promise.resolve(createResult("token", mapFromToken(token)))
+      }.onFailure {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
     }
   }
