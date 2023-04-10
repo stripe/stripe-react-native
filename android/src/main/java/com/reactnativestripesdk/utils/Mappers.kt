@@ -346,6 +346,9 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
     it.putString("fingerprint", paymentMethod.card?.fingerprint)
     it.putString("preferredNetwork", paymentMethod.card?.networks?.preferred)
     it.putArray("availableNetworks", paymentMethod.card?.networks?.available?.toList() as? ReadableArray)
+    it.putMap("threeDSecureUsage", WritableNativeMap().also { threeDSecureUsageMap ->
+      threeDSecureUsageMap.putBoolean("isSupported", paymentMethod.card?.threeDSecureUsage?.isSupported ?: false)
+    })
   })
   pm.putMap("SepaDebit", WritableNativeMap().also {
     it.putString("bankCode", paymentMethod.sepaDebit?.bankCode)

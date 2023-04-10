@@ -187,7 +187,7 @@ class Mappers {
             "isPending": shippingMethod.type == .pending,
             "label": shippingMethod.label
         ]
-        
+
         if #available(iOS 15.0, *) {
             if let dateComponentsRange = shippingMethod.dateComponentsRange {
                 method.setObject(
@@ -612,8 +612,11 @@ class Mappers {
             "last4": paymentMethod.card?.last4 ?? NSNull(),
             "preferredNetwork": paymentMethod.card?.networks?.preferred ?? NSNull(),
             "availableNetworks": paymentMethod.card?.networks?.available ?? NSNull(),
+            "threeDSecureUsage": [
+              "isSupported": paymentMethod.card?.threeDSecureUsage?.supported ?? false
+            ],
         ]
-        
+
         let sepaDebit: NSDictionary = [
             "bankCode": paymentMethod.sepaDebit?.bankCode ?? NSNull(),
             "country": paymentMethod.sepaDebit?.country ?? NSNull(),
@@ -950,7 +953,7 @@ class Mappers {
         }
         return nil
     }
-    
+
     class func convertDateToUnixTimestampSeconds(date: Date?) -> String? {
         if let date = date {
             let value = date.timeIntervalSince1970
