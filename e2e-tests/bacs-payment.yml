@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: 'Bank Debits'
+- tapOn: 'Bacs Direct Debit payment'
+- assertVisible:
+    text: 'E-mail'
+- tapOn:
+    text: 'E-mail'
+- inputText: 'test@stripe.com'
+- tapOn:
+    text: 'sortCode'
+- inputText: '108800'
+- tapOn:
+    text: 'accountNumber'
+- inputText: '90012345'
+- tapOn:
+    text: 'Pay'
+    retryTapIfNoChange: false
+- assertVisible:
+    text: 'Processing'
+- tapOn: 'OK'
