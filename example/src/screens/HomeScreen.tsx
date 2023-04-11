@@ -151,6 +151,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Bacs Direct Debit payment"
+              onPress={() => {
+                navigation.navigate('BacsDebitPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="BECS Direct Debit payment"
               onPress={() => {
                 navigation.navigate('AuBECSDebitPaymentScreen');

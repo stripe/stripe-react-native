@@ -41,6 +41,7 @@ import PayPalScreen from './screens/PayPalScreen';
 import AffirmScreen from './screens/AffirmScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
+import BacsDebitPaymentScreen from './screens/BacsDebitPaymentScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,6 +84,7 @@ export type RootStackParamList = {
   CashAppScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
+  BacsDebitPaymentScreen: undefined;
 };
 
 declare global {
@@ -199,6 +201,10 @@ export default function App() {
           <Stack.Screen
             name="SepaPaymentScreen"
             component={SepaPaymentScreen}
+          />
+          <Stack.Screen
+            name="BacsDebitPaymentScreen"
+            component={BacsDebitPaymentScreen}
           />
           <Stack.Screen
             name="SepaSetupFuturePaymentScreen"

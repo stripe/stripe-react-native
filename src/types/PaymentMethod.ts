@@ -44,7 +44,8 @@ export type CreateParams =
   | USBankAccountParams
   | PayPalParams
   | AffirmParams
-  | CashAppParams;
+  | CashAppParams
+  | BacsParams;
 
 export type ConfirmParams = CreateParams;
 
@@ -122,6 +123,15 @@ export interface SepaParams {
   paymentMethodType: 'SepaDebit';
   paymentMethodData: {
     iban: string;
+    billingDetails: BillingDetails;
+  };
+}
+
+export interface BacsParams {
+  paymentMethodType: 'BacsDebit';
+  paymentMethodData: {
+    accountNumber: string;
+    sortCode: string;
     billingDetails: BillingDetails;
   };
 }
@@ -303,7 +313,8 @@ export type Type =
   | 'Upi'
   | 'USBankAccount'
   | 'PayPal'
-  | 'Unknown';
+  | 'Unknown'
+  | 'BacsDebit';
 
 export type CollectBankAccountParams = {
   paymentMethodType: 'USBankAccount';

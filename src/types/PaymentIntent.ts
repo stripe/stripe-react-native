@@ -47,7 +47,8 @@ export type ConfirmParams =
   | USBankAccountParams
   | PayPalParams
   | AffirmParams
-  | CashAppParams;
+  | CashAppParams
+  | BacsParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -163,6 +164,15 @@ export interface SepaParams {
     iban: string;
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+  };
+}
+
+export interface BacsParams {
+  paymentMethodType: 'BacsDebit';
+  paymentMethodData: {
+    accountNumber: string;
+    sortCode: string;
+    billingDetails: BillingDetails;
   };
 }
 
