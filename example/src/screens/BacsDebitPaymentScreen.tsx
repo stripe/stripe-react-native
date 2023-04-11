@@ -51,6 +51,7 @@ export default function BacsPaymentScreen() {
       },
     };
     setCanPay(false);
+
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       paymentMethodType: 'BacsDebit',
       paymentMethodData: { billingDetails, sortCode, accountNumber },
