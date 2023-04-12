@@ -89,10 +89,9 @@ function buildTestTokenParams(type: Token.Type): Token.CreateParams {
     case 'Account':
       return {
         type: 'Account',
-        businessType: 'Individual',
-        individual: {
-          firstName: 'Jane',
-          lastName: 'Doe',
+        businessType: 'Company',
+        company: {
+          phone: '00000000'
         },
         tosShownAndAccepted: true,
       };
