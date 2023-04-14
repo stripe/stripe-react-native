@@ -4,7 +4,6 @@ export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
 export { usePlatformPay } from './hooks/usePlatformPay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
-export { useGooglePay } from './hooks/useGooglePay';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
 
 //components
@@ -18,8 +17,6 @@ export { AuBECSDebitForm } from './components/AuBECSDebitForm';
 export type { Props as AuBECSDebitFormProps } from './components/AuBECSDebitForm';
 export { StripeContainer } from './components/StripeContainer';
 export type { Props as StripeContainerProps } from './components/StripeContainer';
-export { GooglePayButton } from './components/GooglePayButton';
-export type { Props as GooglePayButtonProps } from './components/GooglePayButton';
 export { AddToWalletButton } from './components/AddToWalletButton';
 export type { Props as AddToWalletButtonProps } from './components/AddToWalletButton';
 export { AddressSheet } from './components/AddressSheet';

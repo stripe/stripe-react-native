@@ -1,4 +1,4 @@
-import { isAndroid, createError } from './helpers';
+import { createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
 import type {
@@ -11,18 +11,14 @@ import type {
   CreatePaymentMethodResult,
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
-  GooglePayInitResult,
   HandleNextActionResult,
   InitPaymentSheetResult,
   PaymentMethod,
   PaymentSheet,
-  PayWithGooglePayResult,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   StripeError,
-  GooglePay,
-  CreateGooglePayPaymentMethodResult,
   Token,
   VerifyMicrodepositsParams,
   VerifyMicrodepositsForPaymentResult,
@@ -431,75 +427,6 @@ export const confirmPaymentSheetPayment =
  */
 export const resetPaymentSheetCustomer = async (): Promise<null> => {
   return await NativeStripeSdk.resetPaymentSheetCustomer();
-};
-
-/** @deprecated Use `isPlatformPaySupported` instead. */
-export const isGooglePaySupported = async (
-  params?: GooglePay.IsSupportedParams
-): Promise<boolean> => {
-  return (
-    isAndroid && (await NativeStripeSdk.isGooglePaySupported(params ?? {}))
-  );
-};
-
-/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
-export const initGooglePay = async (
-  params: GooglePay.InitParams
-): Promise<GooglePayInitResult> => {
-  try {
-    const { error } = await NativeStripeSdk.initGooglePay(params);
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {};
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
-export const presentGooglePay = async (
-  params: GooglePay.PresentParams
-): Promise<PayWithGooglePayResult> => {
-  try {
-    const { error } = await NativeStripeSdk.presentGooglePay(params);
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {};
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `createPlatformPayPaymentMethod` instead. */
-export const createGooglePayPaymentMethod = async (
-  params: GooglePay.CreatePaymentMethodParams
-): Promise<CreateGooglePayPaymentMethodResult> => {
-  try {
-    const { error, paymentMethod } =
-      await NativeStripeSdk.createGooglePayPaymentMethod(params);
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {
-      paymentMethod: paymentMethod!,
-    };
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
 };
 
 export const collectBankAccountForPayment = async (

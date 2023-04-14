@@ -15,10 +15,6 @@ import type {
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
   CreateTokenResult,
-  PayWithGooglePayResult,
-  GooglePayInitResult,
-  GooglePay,
-  CreateGooglePayPaymentMethodResult,
   Token,
   VerifyMicrodepositsParams,
   VerifyMicrodepositsForPaymentResult,
@@ -45,10 +41,6 @@ import {
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
-  isGooglePaySupported,
-  initGooglePay,
-  createGooglePayPaymentMethod,
-  presentGooglePay,
   collectBankAccountForPayment,
   collectBankAccountForSetup,
   verifyMicrodepositsForPayment,
@@ -171,38 +163,6 @@ export function useStripe() {
     []
   );
 
-  const _isGooglePaySupported = useCallback(
-    async (params?: GooglePay.IsSupportedParams): Promise<boolean> => {
-      return isGooglePaySupported(params);
-    },
-    []
-  );
-
-  const _initGooglePay = useCallback(
-    async (params: GooglePay.InitParams): Promise<GooglePayInitResult> => {
-      return initGooglePay(params);
-    },
-    []
-  );
-
-  const _presentGooglePay = useCallback(
-    async (
-      params: GooglePay.PresentParams
-    ): Promise<PayWithGooglePayResult> => {
-      return presentGooglePay(params);
-    },
-    []
-  );
-
-  const _createGooglePayPaymentMethod = useCallback(
-    async (
-      params: GooglePay.CreatePaymentMethodParams
-    ): Promise<CreateGooglePayPaymentMethodResult> => {
-      return createGooglePayPaymentMethod(params);
-    },
-    []
-  );
-
   const _collectBankAccountForPayment = useCallback(
     async (
       clientSecret: string,
@@ -274,7 +234,7 @@ export function useStripe() {
 
   const _isPlatformPaySupported = useCallback(
     async (params?: {
-      googlePay?: GooglePay.IsSupportedParams;
+      googlePay?: PlatformPay.IsGooglePaySupportedParams;
     }): Promise<boolean> => {
       return isPlatformPaySupported(params);
     },
@@ -355,10 +315,6 @@ export function useStripe() {
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
-    isGooglePaySupported: _isGooglePaySupported,
-    initGooglePay: _initGooglePay,
-    presentGooglePay: _presentGooglePay,
-    createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
     collectBankAccountForPayment: _collectBankAccountForPayment,
     collectBankAccountForSetup: _collectBankAccountForSetup,
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
