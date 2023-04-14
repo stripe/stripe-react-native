@@ -477,8 +477,12 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
   - stripe-react-native (from `../..`)
   - stripe-react-native/Tests (from `../..`)
+  - StripeCore (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeFinancialConnections (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeUICore (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -497,14 +501,10 @@ SPEC REPOS:
     - libevent
     - OpenSSL-Universal
     - SocketRocket
-    - Stripe
     - StripeApplePay
-    - StripeCore
-    - StripeFinancialConnections
     - StripePayments
     - StripePaymentSheet
     - StripePaymentsUI
-    - StripeUICore
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -580,10 +580,36 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../.."
+  StripeCore:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeFinancialConnections:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 18f552227b41e0b3266992b2971c0e5b4738c9ae
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCore:
+    :commit: 18f552227b41e0b3266992b2971c0e5b4738c9ae
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeFinancialConnections:
+    :commit: 18f552227b41e0b3266992b2971c0e5b4738c9ae
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :commit: 18f552227b41e0b3266992b2971c0e5b4738c9ae
+    :git: https://github.com/stripe/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
@@ -648,6 +674,6 @@ SPEC CHECKSUMS:
   Yoga: 0b84a956f7393ef1f37f3bb213c516184e4a689d
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: d98ea981c14c48ddbbd4f2d6bcf130927b15a93f
+PODFILE CHECKSUM: 49e35199bac550b5cd8b2c5553b2d93dc8d5b23a
 
 COCOAPODS: 1.11.3

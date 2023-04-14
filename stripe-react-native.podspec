@@ -23,10 +23,10 @@ Pod::Spec.new do |s|
   end
 
   s.dependency 'React-Core'
-  s.dependency 'Stripe', stripe_version
-  s.dependency 'StripePaymentSheet', stripe_version
-  s.dependency 'StripePayments', stripe_version
-  s.dependency 'StripePaymentsUI', stripe_version
-  s.dependency 'StripeApplePay', stripe_version
-  s.dependency 'StripeFinancialConnections', stripe_version
+  s.dependency 'Stripe'
+  s.dependency 'StripePaymentSheet'
+  s.dependency 'StripePayments'
+  s.dependency 'StripePaymentsUI'
+  s.dependency 'StripeApplePay'
+  s.dependency 'StripeFinancialConnections'
 end
