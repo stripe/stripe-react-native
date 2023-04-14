@@ -99,10 +99,14 @@ extension StripeSdk {
         return (nil, configuration)
     }
     
+    enum ConfirmHandlerType : String {
+        case None = "NONE", ConfirmHandler = "CONFIRM_HANDLER", ConfirmHandlerServerSideConfirmation = "CONFIRM_HANDLER_SERVER_SIDE"
+    }
+    
     internal func preparePaymentSheetInstance(
         params: NSDictionary,
         configuration: PaymentSheet.Configuration,
-        confirmHandlerType: String,
+        confirmHandlerType: ConfirmHandlerType,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
         self.paymentSheetFlowController = nil
@@ -163,7 +167,7 @@ extension StripeSdk {
                 resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
                 return
             }
-            if (confirmHandlerType == "NONE") {
+            if (confirmHandlerType == .None) {
                 resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmHandlerForServerSideConfirmation` if you are not passing an intent client secret"))
                 return
             }
@@ -193,7 +197,7 @@ extension StripeSdk {
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
-        confirmHandlerType: String
+        confirmHandlerType: ConfirmHandlerType
     ) -> PaymentSheet.IntentConfiguration {
         var mode: PaymentSheet.IntentConfiguration.Mode
         if let amount = modeParams["amount"] as? Int {
@@ -211,7 +215,7 @@ extension StripeSdk {
             )
         }
         
-        if (confirmHandlerType == "CONFIRM_HANDLER_SERVER_SIDE") {
+        if (confirmHandlerType == .ConfirmHandlerServerSideConfirmation) {
             return PaymentSheet.IntentConfiguration.init(
                 mode: mode,
                 captureMethod: captureMethod,

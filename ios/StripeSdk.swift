@@ -111,7 +111,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             return
         }
         
-        preparePaymentSheetInstance(params: params, configuration: configuration, confirmHandlerType: confirmHandlerType, resolve: resolve)
+        preparePaymentSheetInstance(params: params, configuration: configuration, confirmHandlerType: ConfirmHandlerType(rawValue: confirmHandlerType) ?? .None, resolve: resolve)
     }
     
     @objc(intentCreationCallback:resolver:rejecter:)

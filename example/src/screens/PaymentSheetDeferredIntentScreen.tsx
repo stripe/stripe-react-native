@@ -125,7 +125,7 @@ export default function PaymentSheetDeferredIntentScreen() {
               },
             });
           } else {
-            intentCreationCallback(clientSecret);
+            intentCreationCallback({ clientSecret });
           }
         },
         mode: {
