@@ -6,10 +6,13 @@
 //
 
 import Foundation
-import StripePaymentSheet
+@_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
-    internal func buildPaymentSheetConfiguration(params: NSDictionary, orderTrackingCallback: RCTResponseSenderBlock? = nil) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
+    internal func buildPaymentSheetConfiguration(
+            params: NSDictionary,
+            enableOrderTracking: Bool
+    ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
         var configuration = PaymentSheet.Configuration()
         
         configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
@@ -29,7 +32,7 @@ extension StripeSdk {
                     merchantCountryCode: applePayParams["merchantCountryCode"] as? String,
                     paymentSummaryItems: applePayParams["cartItems"] as? [[String : Any]],
                     buttonType: applePayParams["buttonType"] as? NSNumber,
-                    customHandlers: buildCustomerHandlersForPaymentSheet(applePayParams: applePayParams, orderTrackingCallback: orderTrackingCallback)
+                    customHandlers: buildCustomerHandlersForPaymentSheet(applePayParams: applePayParams, enableOrderTracking: enableOrderTracking)
                 )
             } catch {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
@@ -96,8 +99,14 @@ extension StripeSdk {
         return (nil, configuration)
     }
     
-    internal func preparePaymentSheetInstance(params: NSDictionary, configuration: PaymentSheet.Configuration, resolve: @escaping RCTPromiseResolveBlock) {
-    
+    internal func preparePaymentSheetInstance(
+        params: NSDictionary,
+        configuration: PaymentSheet.Configuration,
+        confirmHandlerType: String,
+        resolve: @escaping RCTPromiseResolveBlock
+    ) {
+        self.paymentSheetFlowController = nil
+        
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
             switch result {
             case .failure(let error):
@@ -146,12 +155,92 @@ extension StripeSdk {
                 resolve([])
             }
         } else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide either paymentIntentClientSecret or setupIntentClientSecret"))
+            guard let intentConfiguration = params["intentConfiguration"] as? NSDictionary else {
+                resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required"))
+                return
+            }
+            guard let modeParams =  intentConfiguration["mode"] as? NSDictionary else {
+                resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
+                return
+            }
+            if (confirmHandlerType == "NONE") {
+                resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmHandlerForServerSideConfirmation` if you are not passing an intent client secret"))
+                return
+            }
+            let captureMethodString = intentConfiguration["captureMethod"] as? String
+            let intentConfig = buildIntentConfiguration(
+                modeParams: modeParams,
+                paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
+                captureMethod: captureMethodString == "Manual" ? .manual : .automatic,
+                confirmHandlerType: confirmHandlerType
+            )
+            
+            if params["customFlow"] as? Bool == true {
+                PaymentSheet.FlowController.create(intentConfig: intentConfig, configuration: configuration) { [weak self] result in
+                    handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
+                }
+            } else {
+                self.paymentSheet = PaymentSheet(
+                    intentConfig: intentConfig,
+                    configuration: configuration
+                )
+                resolve([])
+            }
         }
     }
     
-    private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary, orderTrackingCallback: RCTResponseSenderBlock?) -> PaymentSheet.ApplePayConfiguration.Handlers? {
-        if (applePayParams["request"] == nil && orderTrackingCallback == nil) {
+    private func buildIntentConfiguration(
+        modeParams: NSDictionary,
+        paymentMethodTypes: [String]?,
+        captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
+        confirmHandlerType: String
+    ) -> PaymentSheet.IntentConfiguration {
+        var mode: PaymentSheet.IntentConfiguration.Mode
+        if let amount = modeParams["amount"] as? Int {
+            mode = PaymentSheet.IntentConfiguration.Mode.payment(
+                amount: amount,
+                currency: modeParams["currencyCode"] as? String ?? "",
+                setupFutureUsage: modeParams["setupFutureUsage"] != nil
+                    ? (modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession)
+                    : nil
+            )
+        } else {
+            mode = PaymentSheet.IntentConfiguration.Mode.setup(
+                currency: modeParams["currencyCode"] as? String,
+                setupFutureUsage: modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession
+            )
+        }
+        
+        if (confirmHandlerType == "CONFIRM_HANDLER_SERVER_SIDE") {
+            return PaymentSheet.IntentConfiguration.init(
+                mode: mode,
+                captureMethod: captureMethod,
+                confirmHandlerForServerSideConfirmation: { paymentMethodId, shouldSavePaymentMethod, intentCreationCallback in
+                    if (self.hasLegacyApplePayListeners) {
+                        self.paymentSheetIntentCreationCallback = intentCreationCallback
+                        self.sendEvent(withName: "onConfirmHandlerForServerSideConfirmationCallback", body: ["paymentMethodId":paymentMethodId, "shouldSavePaymentMethod": shouldSavePaymentMethod])
+                    } else {
+                        RCTMakeAndLogError("Tried to call confirmHandlerForServerSideConfirmation, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
+                    }
+                }
+            )
+        } else {
+            return PaymentSheet.IntentConfiguration.init(
+                mode: mode,
+                captureMethod: captureMethod,
+                confirmHandler: { paymentMethodId, intentCreationCallback in
+                    if (self.hasLegacyApplePayListeners) {
+                        self.paymentSheetIntentCreationCallback = intentCreationCallback
+                        self.sendEvent(withName: "onConfirmHandlerCallback", body: ["paymentMethodId":paymentMethodId])
+                    } else {
+                        RCTMakeAndLogError("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
+                    }
+                })
+        }
+    }
+    
+    private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary, enableOrderTracking: Bool) -> PaymentSheet.ApplePayConfiguration.Handlers? {
+        if (applePayParams["request"] == nil) {
             return nil
         }
         return PaymentSheet.ApplePayConfiguration.Handlers(paymentRequestHandler: { request in
@@ -163,9 +252,13 @@ extension StripeSdk {
             }
             return request
         }, authorizationResultHandler: { result, completion in
-            if let orderTrackingCallback = orderTrackingCallback {
-                self.orderTrackingHandler = (result, completion)
-                orderTrackingCallback(nil)
+            if enableOrderTracking {
+                if (self.hasLegacyApplePayListeners) {
+                    self.orderTrackingHandler = (result, completion)
+                    self.sendEvent(withName: "onOrderTrackingCallback", body: [:])
+                } else {
+                    RCTMakeAndLogError("Order tracking is enabled, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
+                }
             } else {
                 completion(result)
             }

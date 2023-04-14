@@ -2,6 +2,7 @@ import PassKit
 import Stripe
 import StripePaymentSheet
 import StripeFinancialConnections
+import Foundation
 
 @objc(StripeSdk)
 class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
@@ -12,7 +13,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
 
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
-
+    var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
+    
     var urlScheme: String? = nil
     
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
@@ -61,7 +63,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode"]
+        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode", "onOrderTrackingCallback", "onConfirmHandlerCallback", "onConfirmHandlerForServerSideConfirmationCallback"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -106,30 +108,41 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(NSNull())
     }
 
-    @objc(initPaymentSheet:resolver:rejecter:)
-    func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(initPaymentSheet:hasSetOrderTracking:confirmHandlerType:resolver:rejecter:)
+    func initPaymentSheet(params: NSDictionary, hasSetOrderTracking: Bool, confirmHandlerType: String, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        self.paymentSheetFlowController = nil
-        
-        let (error, configuration) = buildPaymentSheetConfiguration(params: params)
+        let (error, configuration) = buildPaymentSheetConfiguration(params: params, enableOrderTracking: hasSetOrderTracking)
         guard let configuration = configuration else {
             resolve(error)
             return
         }
         
-        preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
+        preparePaymentSheetInstance(params: params, configuration: configuration, confirmHandlerType: confirmHandlerType, resolve: resolve)
     }
     
-    @objc(initPaymentSheetWithOrderTracking:callback:resolver:rejecter:)
-    func initPaymentSheetWithOrderTracking(params: NSDictionary, callback orderTrackingCallback: @escaping RCTResponseSenderBlock, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(intentCreationCallback:resolver:rejecter:)
+    func intentCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        let (error, configuration) = buildPaymentSheetConfiguration(params: params, orderTrackingCallback: orderTrackingCallback)
-        guard let configuration = configuration else {
-            resolve(error)
+        guard let paymentSheetIntentCreationCallback = self.paymentSheetIntentCreationCallback else {
+            resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
             return
         }
-        
-        preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
+        if let clientSecret = result["clientSecret"] as? String {
+            paymentSheetIntentCreationCallback(.success(clientSecret))
+        } else {
+            class ConfirmationError: Error, LocalizedError {
+                private var errorMessage: String
+                init(errorMessage: String) {
+                    self.errorMessage = errorMessage
+                }
+                public var errorDescription: String? {
+                    return errorMessage
+                }
+            }
+            let errorParams = result["error"] as? NSDictionary
+            let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+            paymentSheetIntentCreationCallback(.failure(error))
+        }
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)

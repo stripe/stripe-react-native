@@ -39,7 +39,7 @@ import {
   FinancialConnections,
   PlatformPay,
 } from './types';
-import { Platform } from 'react-native';
+import { Platform, NativeEventEmitter, NativeModules } from 'react-native';
 
 const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
   'Apple pay is not supported on this device';
@@ -402,23 +402,68 @@ export const verifyMicrodepositsForSetup = async (
   }
 };
 
+const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   let result;
+  let confirmHandlerType:
+    | 'NONE'
+    | 'CONFIRM_HANDLER'
+    | 'CONFIRM_HANDLER_SERVER_SIDE' = 'NONE';
 
-  const setOrderTracking = params?.applePay?.setOrderTracking;
-  try {
-    if (setOrderTracking && Platform.OS === 'ios') {
-      result = await NativeStripeSdk.initPaymentSheetWithOrderTracking(
-        params,
-        () => {
-          setOrderTracking(NativeStripeSdk.configureOrderTracking);
+  const confirmHandler = params?.intentConfiguration?.confirmHandler;
+  const confirmHandlerForServerSideConfirmation =
+    params?.intentConfiguration?.confirmHandlerForServerSideConfirmation;
+  if (confirmHandler) {
+    confirmHandlerType = 'CONFIRM_HANDLER';
+    let confirmHandlerCallback = eventEmitter.addListener(
+      'onConfirmHandlerCallback',
+      ({ paymentMethodId }: { paymentMethodId: string }) => {
+        confirmHandler(paymentMethodId, NativeStripeSdk.intentCreationCallback);
+        confirmHandlerCallback.remove();
+      }
+    );
+  } else if (confirmHandlerForServerSideConfirmation) {
+    confirmHandlerType = 'CONFIRM_HANDLER_SERVER_SIDE';
+    let confirmHandlerForServerSideConfirmationCallback =
+      eventEmitter.addListener(
+        'onConfirmHandlerForServerSideConfirmationCallback',
+        ({
+          paymentMethodId,
+          shouldSavePaymentMethod,
+        }: {
+          paymentMethodId: string;
+          shouldSavePaymentMethod: boolean;
+        }) => {
+          confirmHandlerForServerSideConfirmation(
+            paymentMethodId,
+            shouldSavePaymentMethod,
+            NativeStripeSdk.intentCreationCallback
+          );
+          confirmHandlerForServerSideConfirmationCallback.remove();
         }
       );
-    } else {
-      result = await NativeStripeSdk.initPaymentSheet(params);
-    }
+  }
+
+  const orderTrackingCallback = params?.applePay?.setOrderTracking;
+  if (orderTrackingCallback) {
+    let orderTrackingCallbackListener = eventEmitter.addListener(
+      'onOrderTrackingCallback',
+      () => {
+        orderTrackingCallback(NativeStripeSdk.configureOrderTracking);
+        orderTrackingCallbackListener.remove();
+      }
+    );
+  }
+
+  try {
+    result = await NativeStripeSdk.initPaymentSheet(
+      params,
+      !!orderTrackingCallback,
+      confirmHandlerType
+    );
 
     if (result.error) {
       return {

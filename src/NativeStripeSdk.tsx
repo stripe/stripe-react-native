@@ -67,12 +67,13 @@ type NativeStripeSdkType = {
   ): Promise<RetrievePaymentIntentResult>;
   retrieveSetupIntent(clientSecret: string): Promise<RetrieveSetupIntentResult>;
   initPaymentSheet(
-    params: PaymentSheet.SetupParams
-  ): Promise<InitPaymentSheetResult>;
-  initPaymentSheetWithOrderTracking(
     params: PaymentSheet.SetupParams,
-    callback?: () => void
+    hasSetOrderTracking: boolean,
+    confirmHandlerType: string
   ): Promise<InitPaymentSheetResult>;
+  intentCreationCallback(
+    result: PaymentSheet.IntentCreationCallbackParams
+  ): void;
   presentPaymentSheet(
     options: PaymentSheet.PresentOptions
   ): Promise<PresentPaymentSheetResult>;
