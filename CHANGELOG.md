@@ -6,6 +6,7 @@
 
 - Updated Google Pay button asset to match Google's most recent branding guidelines. [#1343](https://github.com/stripe/stripe-react-native/pull/1343)
 - Fixed type for `ApplePay.ShippingContact.phoneNumber`. [#1349](https://github.com/stripe/stripe-react-native/pull/1349)
+- Fixed `CardResult` type to include `threeDSecureUsage`. [#1347](https://github.com/stripe/stripe-react-native/pull/1347)
 
 ## 0.26.0 - 2023-03-16
 
