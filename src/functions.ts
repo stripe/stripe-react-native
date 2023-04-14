@@ -1,10 +1,7 @@
-import { isAndroid, isiOS, createError } from './helpers';
+import { isAndroid, createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './NativeStripeSdk';
-import {
-  ApplePay,
-  ApplePayError,
-  ApplePayResult,
+import type {
   PlatformPayError,
   ConfirmPaymentResult,
   ConfirmPaymentSheetPaymentResult,
@@ -26,7 +23,6 @@ import {
   StripeError,
   GooglePay,
   CreateGooglePayPaymentMethodResult,
-  OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
   VerifyMicrodepositsForPaymentResult,
@@ -40,9 +36,6 @@ import {
   PlatformPay,
 } from './types';
 import { Platform, NativeEventEmitter, NativeModules } from 'react-native';
-
-const APPLE_PAY_NOT_SUPPORTED_MESSAGE =
-  'Apple pay is not supported on this device';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -169,94 +162,6 @@ export const confirmPayment = async (
     return {
       paymentIntent: paymentIntent!,
     };
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `isPlatformPaySupported` instead. */
-export const isApplePaySupported = async (): Promise<boolean> => {
-  return isiOS && (await NativeStripeSdk.isApplePaySupported());
-};
-
-/** @deprecated Use `confirmPlatformPaySetupIntent`, `confirmPlatformPayPayment`, or `createPlatformPayPaymentMethod` instead. */
-export const presentApplePay = async (
-  params: ApplePay.PresentParams
-): Promise<ApplePayResult> => {
-  if (!(await NativeStripeSdk.isApplePaySupported())) {
-    return {
-      error: {
-        code: ApplePayError.Canceled,
-        message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
-    };
-  }
-
-  try {
-    const { paymentMethod, error } = await NativeStripeSdk.presentApplePay(
-      params
-    );
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return { paymentMethod: paymentMethod! };
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `updatePlatformPaySheet` instead. */
-export const updateApplePaySummaryItems = async (
-  summaryItems: ApplePay.CartSummaryItem[],
-  errorAddressFields: Array<{
-    field: ApplePay.AddressFields;
-    message?: string;
-  }> = []
-): Promise<{ error?: StripeError<ApplePayError> }> => {
-  if (!(await NativeStripeSdk.isApplePaySupported())) {
-    return {
-      error: {
-        code: ApplePayError.Canceled,
-        message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
-    };
-  }
-
-  try {
-    await NativeStripeSdk.updateApplePaySummaryItems(
-      summaryItems,
-      errorAddressFields
-    );
-
-    return {};
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `confirmPlatformPaySetupIntent` or `confirmPlatformPayPayment` instead. */
-export const confirmApplePayPayment = async (
-  clientSecret: string
-): Promise<{ error?: StripeError<ApplePayError> }> => {
-  if (!(await NativeStripeSdk.isApplePaySupported())) {
-    return {
-      error: {
-        code: ApplePayError.Canceled,
-        message: APPLE_PAY_NOT_SUPPORTED_MESSAGE,
-      },
-    };
-  }
-  try {
-    await NativeStripeSdk.confirmApplePayPayment(clientSecret);
-    return {};
   } catch (error: any) {
     return {
       error,
@@ -590,23 +495,6 @@ export const createGooglePayPaymentMethod = async (
     return {
       paymentMethod: paymentMethod!,
     };
-  } catch (error: any) {
-    return {
-      error,
-    };
-  }
-};
-
-/** @deprecated Use `openNativePaySetup` instead. */
-export const openApplePaySetup = async (): Promise<OpenApplePaySetupResult> => {
-  try {
-    const { error } = await NativeStripeSdk.openApplePaySetup();
-    if (error) {
-      return {
-        error,
-      };
-    }
-    return {};
   } catch (error: any) {
     return {
       error,

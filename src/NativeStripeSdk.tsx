@@ -17,7 +17,6 @@ import type {
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
-  ApplePayResult,
   CreateTokenResult,
   GooglePayInitResult,
   PayWithGooglePayResult,
@@ -47,16 +46,6 @@ type NativeStripeSdkType = {
     params?: PaymentIntent.ConfirmParams,
     options?: PaymentIntent.ConfirmOptions
   ): Promise<ConfirmPaymentResult>;
-  isApplePaySupported(): Promise<boolean>;
-  presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
-  confirmApplePayPayment(clientSecret: string): Promise<void>;
-  updateApplePaySummaryItems(
-    summaryItems: ApplePay.CartSummaryItem[],
-    errorAddressFields: Array<{
-      field: ApplePay.AddressFields;
-      message?: string;
-    }>
-  ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
     params: SetupIntent.ConfirmParams,

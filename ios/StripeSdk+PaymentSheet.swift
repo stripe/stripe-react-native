@@ -216,7 +216,7 @@ extension StripeSdk {
                 mode: mode,
                 captureMethod: captureMethod,
                 confirmHandlerForServerSideConfirmation: { paymentMethodId, shouldSavePaymentMethod, intentCreationCallback in
-                    if (self.hasLegacyApplePayListeners) {
+                    if (self.hasEventListeners) {
                         self.paymentSheetIntentCreationCallback = intentCreationCallback
                         self.sendEvent(withName: "onConfirmHandlerForServerSideConfirmationCallback", body: ["paymentMethodId":paymentMethodId, "shouldSavePaymentMethod": shouldSavePaymentMethod])
                     } else {
@@ -229,7 +229,7 @@ extension StripeSdk {
                 mode: mode,
                 captureMethod: captureMethod,
                 confirmHandler: { paymentMethodId, intentCreationCallback in
-                    if (self.hasLegacyApplePayListeners) {
+                    if (self.hasEventListeners) {
                         self.paymentSheetIntentCreationCallback = intentCreationCallback
                         self.sendEvent(withName: "onConfirmHandlerCallback", body: ["paymentMethodId":paymentMethodId])
                     } else {
@@ -253,7 +253,7 @@ extension StripeSdk {
             return request
         }, authorizationResultHandler: { result, completion in
             if enableOrderTracking {
-                if (self.hasLegacyApplePayListeners) {
+                if (self.hasEventListeners) {
                     self.orderTrackingHandler = (result, completion)
                     self.sendEvent(withName: "onOrderTrackingCallback", body: [:])
                 } else {

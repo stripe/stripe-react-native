@@ -18,12 +18,6 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var urlScheme: String? = nil
     
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
-
-    var applePayCompletionCallback: STPIntentClientSecretCompletionBlock? = nil
-    var deprecatedApplePayRequestResolver: RCTPromiseResolveBlock? = nil
-    var deprecatedApplePayRequestRejecter: RCTPromiseRejectBlock? = nil
-    var deprecatedApplePayCompletionRejecter: RCTPromiseRejectBlock? = nil
-    var deprecatedConfirmApplePayPaymentResolver: RCTPromiseResolveBlock? = nil
     
     var confirmApplePayResolver: RCTPromiseResolveBlock? = nil
     var confirmApplePayPaymentClientSecret: String? = nil
@@ -54,16 +48,16 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var applePayShippingAddressErrors: [Error]? = nil
     var applePayCouponCodeErrors: [Error]? = nil
     
-    var hasLegacyApplePayListeners = false
+    var hasEventListeners = false
     override func startObserving() {
-        hasLegacyApplePayListeners = true
+        hasEventListeners = true
     }
     override func stopObserving() {
-        hasLegacyApplePayListeners = false
+        hasEventListeners = false
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onDidSetShippingMethod", "onDidSetShippingContact", "onDidSetCouponCode", "onOrderTrackingCallback", "onConfirmHandlerCallback", "onConfirmHandlerForServerSideConfirmationCallback"]
+        return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onConfirmHandlerForServerSideConfirmationCallback"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -355,54 +349,11 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         self.shippingContactUpdateCompletion = nil
         resolve([])
     }
-    
-    @objc(updateApplePaySummaryItems:errorAddressFields:resolver:rejecter:)
-    func updateApplePaySummaryItems(summaryItems: NSArray, errorAddressFields: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        if (shippingMethodUpdateCompletion == nil && shippingContactUpdateCompletion == nil) {
-            resolve(Errors.createError(ErrorType.Failed, "You can use this method only after either onDidSetShippingMethod or onDidSetShippingContact events emitted"))
-            return
-        }
-
-        var paymentSummaryItems : [PKPaymentSummaryItem] = []
-        do {
-            paymentSummaryItems = try ApplePayUtils.buildPaymentSummaryItems(items: summaryItems as? [[String : Any]])
-        } catch {
-            resolve(Errors.createError(ErrorType.Failed, error.localizedDescription))
-            return
-        }
-
-        var shippingAddressErrors: [Error] = []
-        for item in errorAddressFields {
-            let field = item["field"] as! String
-            let message = item["message"] as? String ?? field + " error"
-            shippingAddressErrors.append(PKPaymentRequest.paymentShippingAddressInvalidError(withKey: field, localizedDescription: message))
-        }
-
-        shippingMethodUpdateCompletion?(PKPaymentRequestShippingMethodUpdate.init(paymentSummaryItems: paymentSummaryItems))
-        shippingContactUpdateCompletion?(PKPaymentRequestShippingContactUpdate.init(errors: shippingAddressErrors, paymentSummaryItems: paymentSummaryItems, shippingMethods: []))
-        self.shippingMethodUpdateCompletion = nil
-        self.shippingContactUpdateCompletion = nil
-        resolve([])
-    }
 
     @objc(openApplePaySetup:rejecter:)
     func openApplePaySetup(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         PKPassLibrary.init().openPaymentSetup()
         resolve([])
-    }
-
-    @objc(confirmApplePayPayment:resolver:rejecter:)
-    func confirmApplePayPayment(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.deprecatedApplePayCompletionRejecter = reject
-        self.deprecatedConfirmApplePayPaymentResolver = resolve
-        self.applePayCompletionCallback?(clientSecret, nil)
-    }
-
-    @objc(isApplePaySupported:rejecter:)
-    func isApplePaySupported(resolver resolve: @escaping RCTPromiseResolveBlock,
-                             rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let isSupported = StripeAPI.deviceSupportsApplePay()
-        resolve(isSupported)
     }
 
     @objc(handleURLCallback:resolver:rejecter:)
@@ -420,28 +371,6 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
           resolve(stripeHandled)
         }
       }
-    }
-
-    @objc(presentApplePay:resolver:rejecter:)
-    func presentApplePay(params: NSDictionary,
-                         resolver resolve: @escaping RCTPromiseResolveBlock,
-                         rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.deprecatedApplePayRequestResolver = resolve
-        self.deprecatedApplePayRequestRejecter = reject
-        
-        let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: params)
-        guard let paymentRequest = paymentRequest else {
-            resolve(error)
-            return
-        }
-        
-        if let applePayContext = STPApplePayContext(paymentRequest: paymentRequest, delegate: self) {
-            DispatchQueue.main.async {
-                applePayContext.presentApplePay(completion: nil)
-            }
-        } else {
-            resolve(Errors.createError(ErrorType.Failed, "Payment not completed"))
-        }
     }
     
     @objc(isPlatformPaySupported:resolver:rejecter:)
