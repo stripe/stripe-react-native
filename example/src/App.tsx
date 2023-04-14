@@ -41,6 +41,7 @@ import PayPalScreen from './screens/PayPalScreen';
 import AffirmScreen from './screens/AffirmScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
+import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,6 +84,7 @@ export type RootStackParamList = {
   CashAppScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
+  PaymentSheetDeferredIntentScreen: undefined;
 };
 
 declare global {
@@ -148,6 +150,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetWithSetupIntent"
             component={PaymentSheetWithSetupIntent}
+          />
+          <Stack.Screen
+            name="PaymentSheetDeferredIntentScreen"
+            component={PaymentSheetDeferredIntentScreen}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"

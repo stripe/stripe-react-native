@@ -690,6 +690,27 @@ app.post('/financial-connections-sheet', async (_, res) => {
   return res.send({ clientSecret: session.client_secret });
 });
 
+app.post('/payment-intent-for-payment-sheet', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 5099,
+      currency: 'usd',
+      payment_method: req.body.paymentMethodId,
+    });
+
+    return res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (e) {
+    return res.send({ error: e });
+  }
+});
+
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)
 );
