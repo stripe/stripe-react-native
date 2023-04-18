@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Added `billingDetailsCollectionConfiguration` to `initPaymentSheet` parameters. Use this to configure the collection of email, phone, name, or address in the Payment Sheet. [#1361](https://github.com/stripe/stripe-react-native/pull/1361)
+
 ### Fixes
 
 - Updated Google Pay button asset to match Google's most recent branding guidelines. [#1343](https://github.com/stripe/stripe-react-native/pull/1343)
