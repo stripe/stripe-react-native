@@ -64,6 +64,7 @@ class PaymentSheetFragment(
     val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
+    val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     val appearance = try {
@@ -119,6 +120,15 @@ class PaymentSheetFragment(
       }
     }
 
+    val billingDetailsConfig = PaymentSheet.BillingDetailsCollectionConfiguration(
+      name = mapToCollectionMode(billingConfigParams?.getString("name")),
+      phone = mapToCollectionMode(billingConfigParams?.getString("phone")),
+      email = mapToCollectionMode(billingConfigParams?.getString("email")),
+      address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
+      attachDefaultsToPaymentMethod = billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod")
+        ?: false
+    )
+
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     if (billingDetailsBundle != null) {
       val addressBundle = billingDetailsBundle.getBundle("address")
@@ -147,7 +157,8 @@ class PaymentSheetFragment(
       googlePay = googlePayConfig,
       appearance = appearance,
       shippingDetails = shippingDetails,
-      primaryButtonLabel = primaryButtonLabel
+      primaryButtonLabel = primaryButtonLabel,
+      billingDetailsCollectionConfiguration = billingDetailsConfig
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
@@ -299,4 +310,22 @@ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
   bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
   val imageBytes: ByteArray = stream.toByteArray()
   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
+}
+
+fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
+  return when (str) {
+    "automatic" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
+    "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Never
+    "always" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Always
+    else -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
+  }
+}
+
+fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
+  return when (str) {
+    "automatic" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+    "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Never
+    "full" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
+    else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+  }
 }

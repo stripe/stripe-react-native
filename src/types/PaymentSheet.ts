@@ -25,6 +25,8 @@ export type SetupParams = ClientSecretParams & {
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
+  /** Configuration for how billing details are collected during checkout. */
+  billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
   /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with the values provided. */
   defaultBillingDetails?: BillingDetails;
   /**
@@ -262,3 +264,34 @@ export type PresentOptions = {
    */
   timeout?: number;
 };
+
+export type BillingDetailsCollectionConfiguration = {
+  /** How to collect the name field. Defaults to `CollectionMode.automatic`. */
+  name?: CollectionMode;
+  /** How to collect the phone field. Defaults to `CollectionMode.automatic`. */
+  phone?: CollectionMode;
+  /** How to collect the email field. Defaults to `CollectionMode.automatic`. */
+  email?: CollectionMode;
+  /** How to collect the billing address. Defaults to `CollectionMode.automatic`. */
+  address?: AddressCollectionMode;
+  /** Whether the values included in `Configuration.defaultBillingDetails` should be attached to the payment method, this includes fields that aren't displayed in the form. If `false` (the default), those values will only be used to prefill the corresponding fields in the form. */
+  attachDefaultsToPaymentMethod?: Boolean;
+};
+
+export enum CollectionMode {
+  /** The field may or may not be collected depending on the Payment Method's requirements. */
+  AUTOMATIC = 'automatic',
+  /** The field will never be collected. If this field is required by the Payment Method, you must provide it as part of `defaultBillingDetails`. */
+  NEVER = 'never',
+  /** The field will always be collected, even if it isn't required for the Payment Method. */
+  ALWAYS = 'always',
+}
+
+export enum AddressCollectionMode {
+  /** Only the fields required by the Payment Method will be collected, which may be none. */
+  AUTOMATIC = 'automatic',
+  /** Billing address will never be collected. If the Payment Method requires a billing address, you must provide it as part of `defaultBillingDetails`. */
+  NEVER = 'never',
+  /** Collect the full billing address, regardless of the Payment Method's requirements. */
+  FULL = 'full',
+}

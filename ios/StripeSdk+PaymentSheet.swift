@@ -47,6 +47,14 @@ extension StripeSdk {
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
+        
+        if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
+            configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+            configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+            configuration.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+            configuration.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+            configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
+        }
 
         if let defaultBillingDetails = params["defaultBillingDetails"] as? [String: Any?] {
             configuration.defaultBillingDetails.name = defaultBillingDetails["name"] as? String
@@ -163,4 +171,31 @@ extension StripeSdk {
             }
         })
     }
+    
+    private static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
+        switch str {
+        case "automatic":
+            return .automatic
+        case "never":
+            return .never
+        case "always":
+            return .always
+        default:
+            return .automatic
+        }
+    }
+    
+    private static func mapToAddressCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
+        switch str {
+        case "automatic":
+            return .automatic
+        case "never":
+            return .never
+        case "full":
+            return .full
+        default:
+            return .automatic
+        }
+    }
 }
+
