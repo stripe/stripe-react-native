@@ -7,7 +7,7 @@
 
 ### Features
 
-- Added `billingDetailsCollectionConfiguration` to `initPaymentSheet` parameters. Use this to configure the collection of email, phone, name, or address in the Payment Sheet. [#1361](https://github.com/stripe/stripe-react-native/pull/1361)
+- Added `billingDetailsCollectionConfiguration` to `initPaymentSheet` parameters. Use this to configure the collection of email, phone, name, or address in the Payment Sheet. [See the docs here](https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet#collect-billing-details) [#1361](https://github.com/stripe/stripe-react-native/pull/1361)
 
 ### Fixes
 
