@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 0.27.0 - 2023-04-21
+
 ### Features
 
 - Added `billingDetailsCollectionConfiguration` to `initPaymentSheet` parameters. Use this to configure the collection of email, phone, name, or address in the Payment Sheet. [#1361](https://github.com/stripe/stripe-react-native/pull/1361)
