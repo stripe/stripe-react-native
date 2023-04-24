@@ -367,10 +367,12 @@ export type IsGooglePaySupportedParams = IsSupportedParams;
 export type PaymentMethodResult =
   | {
       paymentMethod: PaymentMethod;
+      shippingContact?: ShippingContact;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      shippingContact?: ShippingContact;
       error: StripeError<PlatformPayError>;
     };
 

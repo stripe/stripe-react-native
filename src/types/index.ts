@@ -167,10 +167,12 @@ export type ConfirmPaymentSheetPaymentResult = {
 export type ApplePayResult =
   | {
       paymentMethod: PaymentMethod.Result;
+      shippingContact?: ApplePay.ShippingContact;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      shippingContact?: ApplePay.ShippingContact;
       error: StripeError<ApplePayError>;
     };
 

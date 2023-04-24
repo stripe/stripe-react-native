@@ -195,15 +195,14 @@ export const presentApplePay = async (
   }
 
   try {
-    const { paymentMethod, error } = await NativeStripeSdk.presentApplePay(
-      params
-    );
+    const { paymentMethod, shippingContact, error } =
+      await NativeStripeSdk.presentApplePay(params);
     if (error) {
       return {
         error,
       };
     }
-    return { paymentMethod: paymentMethod! };
+    return { paymentMethod: paymentMethod!, shippingContact };
   } catch (error: any) {
     return {
       error,
@@ -831,7 +830,7 @@ export const createPlatformPayPaymentMethod = async (
   params: PlatformPay.PaymentMethodParams
 ): Promise<PlatformPay.PaymentMethodResult> => {
   try {
-    const { error, paymentMethod } =
+    const { error, paymentMethod, shippingContact } =
       (await NativeStripeSdk.createPlatformPayPaymentMethod(
         params,
         false
@@ -843,6 +842,7 @@ export const createPlatformPayPaymentMethod = async (
     }
     return {
       paymentMethod: paymentMethod!,
+      shippingContact: shippingContact,
     };
   } catch (error: any) {
     return {

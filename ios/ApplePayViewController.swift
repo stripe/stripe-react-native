@@ -33,10 +33,18 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                 if let error = error {
                     self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                 } else {
-                    let promiseResult = [
-                        "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]
-                    ]
-                    self.createPlatformPayPaymentMethodResolver?(promiseResult)
+                    let mapped = Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]
+                    if let shippingContact = payment.shippingContact {
+                        let promiseResult = [
+                            "paymentMethod": mapped,
+                            "shippingContact": Mappers.mapFromShippingContact(shippingContact: shippingContact)
+                        ]
+                        self.createPlatformPayPaymentMethodResolver?(promiseResult)
+                    } else {
+                        self.createPlatformPayPaymentMethodResolver?([
+                            "paymentMethod": mapped
+                        ])
+                    }
                 }
                 completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
             }
@@ -172,7 +180,12 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         } else {
             self.applePayCompletionCallback = completion
             let method = Mappers.mapFromPaymentMethod(paymentMethod.splitApplePayAddressByNewline())
-            self.deprecatedApplePayRequestResolver?(Mappers.createResult("paymentMethod", method))
+            if let shippingContact = paymentInformation.shippingContact {
+                let shipping = Mappers.mapFromShippingContact(shippingContact: shippingContact)
+                self.deprecatedApplePayRequestResolver?(["paymentMethod": method ?? NSNull(), "shippingContact": shipping])
+            } else {
+                self.deprecatedApplePayRequestResolver?([Mappers.createResult("paymentMethod", method)])
+            }
             self.deprecatedApplePayRequestRejecter = nil
         }
     }
