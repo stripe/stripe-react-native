@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## Fixes
+
+- Fixed the type of `created` on `Token.Result` on Android (was a number, should be a string). [#1369](https://github.com/stripe/stripe-react-native/pull/1369)
 
 ## 0.27.0 - 2023-04-21
 
