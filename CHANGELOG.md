@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+> Note: [Xcode 13 is no longer supported by Apple](https://developer.apple.com/news/upcoming-requirements/). Please upgrade to Xcode 14.1 or later.
+
 ## Fixes
 
 - Fixed the type of `created` on `Token.Result` on Android (was a number, should be a string). [#1369](https://github.com/stripe/stripe-react-native/pull/1369)
