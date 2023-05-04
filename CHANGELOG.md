@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## Unreleased
-
+- Updated `stripe-android` from 20.24.0 to 20.24.+.
 ## 0.27.1 - 2023-05-03
 
 > Note: [Xcode 13 is no longer supported by Apple](https://developer.apple.com/news/upcoming-requirements/). Please upgrade to Xcode 14.1 or later.
