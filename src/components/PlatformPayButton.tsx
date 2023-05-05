@@ -26,7 +26,7 @@ export interface Props extends AccessibilityProps {
   type?: ButtonType;
   /** iOS only. Sets the coloring of the button. */
   appearance?: ButtonStyle;
-  /** iOS only. Sets the border radius of the button. */
+  /** Affects iOS only. Sets the border radius of the button. On Android, you cannot modify the radius of the Google Pay button, since doing so violates the [Google Brand Guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines#style). */
   borderRadius?: number;
   /** Function called whenever the button is pressed. */
   onPress(): void;
