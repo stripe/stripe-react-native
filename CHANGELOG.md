@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-- Updated `stripe-android` from 20.24.0 to 20.24.+ [#1382](https://github.com/stripe/stripe-react-native/pull/1382)
+## Fixes
+
+- Updated `stripe-android` from 20.24.0 to 20.25.+ [#1384](https://github.com/stripe/stripe-react-native/pull/1384)
+- Updated `stripe-ios` from 23.7.+ to 23.8.+ [#1384](https://github.com/stripe/stripe-react-native/pull/1384)
 
 ## 0.27.1 - 2023-05-03
 
