@@ -12,7 +12,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
-- hideKeyboard
+- pressKey: Enter
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
