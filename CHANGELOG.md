@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Resolve with better error objects on iOS in `confirmPaymentSheetPayment`, `createTokenForCVCUpdate`, `createPaymentMethod`, `retrievePaymentIntent`, and `retrieveSetupIntent`  [#1399](https://github.com/stripe/stripe-react-native/pull/1399)
+
 ## 0.27.2 - 2023-05-15
 
 ## Fixes
