@@ -25,7 +25,10 @@ appId: ${APP_ID}
     text: "Account number"
 - inputText: "000123456"
 - hideKeyboard
-- pressKey: back
+- scrollUntilVisible:
+    element:
+      text: "Pay"
+    direction: DOWN
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
