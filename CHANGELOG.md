@@ -4,6 +4,7 @@
 
 ## Fixes
 
+- Fixed an instance on Android where `collectBankAccountToken` or `collectFinancialConnectionsAccounts` could result in a fatal error. [#1401](https://github.com/stripe/stripe-react-native/pull/1401)
 - Resolve with better error objects on iOS in `confirmPaymentSheetPayment`, `createTokenForCVCUpdate`, `createPaymentMethod`, `retrievePaymentIntent`, and `retrieveSetupIntent`  [#1399](https://github.com/stripe/stripe-react-native/pull/1399)
 
 ## 0.27.2 - 2023-05-15
