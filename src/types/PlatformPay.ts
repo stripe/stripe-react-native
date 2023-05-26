@@ -55,7 +55,7 @@ export type ApplePayBaseParams = {
   additionalEnabledNetworks?: Array<string>;
   /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. */
   cartItems: Array<CartSummaryItem>;
-  /** The list of fields that you need for a shipping contact in order to process the transaction. If provided, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
+  /** The list of fields that you need for a shipping contact in order to process the transaction. If you include ContactField.PostalAddress in this array, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
   requiredShippingAddressFields?: Array<ContactField>;
   /** The list of fields that you need for a billing contact in order to process the transaction. */
   requiredBillingContactFields?: Array<ContactField>;
