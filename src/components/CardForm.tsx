@@ -36,7 +36,6 @@ export interface Props extends AccessibilityProps {
   disabled?: boolean;
   /** All styles except backgroundColor, cursorColor, borderColor, and borderRadius are Android only */
   cardStyle?: CardFormView.Styles;
-  // isUserInteractionEnabled?: boolean;
 
   // TODO: will make it public when iOS SDK allows for this
   // postalCodeEnabled?: boolean;
@@ -79,7 +78,6 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     {
       onFormComplete,
       cardStyle,
-      // isUserInteractionEnabled = true,
       // postalCodeEnabled = true,
       // onFocus,
       // onBlur,
