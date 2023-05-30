@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Features
+
+- Added a `disabled` prop to `CardField` and `CardForm` which applies a disabled state such that user input is not accepted.  [#1403](https://github.com/stripe/stripe-react-native/pull/1403)
+
 ## Fixes
 
 - Fixed an instance on Android where `collectBankAccountToken` or `collectFinancialConnectionsAccounts` could result in a fatal error. [#1401](https://github.com/stripe/stripe-react-native/pull/1401)

@@ -36,6 +36,7 @@ export default function WebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
+    setCanPay(false);
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
@@ -51,7 +52,7 @@ export default function WebhookPaymentScreen() {
         postalCode: '77063',
       },
     }; // mocked data for tests
-    setCanPay(false);
+
     // 3. Confirm payment with card details
     // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(
@@ -90,6 +91,7 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
+        disabled={!canPay}
         postalCodeEnabled={false}
         autofocus
         placeholders={{

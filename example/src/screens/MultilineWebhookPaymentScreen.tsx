@@ -19,6 +19,7 @@ export default function MultilineWebhookPaymentScreen() {
   const [email, setEmail] = useState('');
   const [saveCard, setSaveCard] = useState(false);
   const [isComplete, setComplete] = useState(false);
+  const [inputDisabled, setInputDisabled] = useState(false);
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -42,6 +43,7 @@ export default function MultilineWebhookPaymentScreen() {
 
   const handlePayPress = async () => {
     setComplete(false);
+    setInputDisabled(true);
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
@@ -80,6 +82,7 @@ export default function MultilineWebhookPaymentScreen() {
       console.log('Success from promise', paymentIntent);
     }
     setComplete(true);
+    setInputDisabled(false);
   };
 
   return (
@@ -92,6 +95,7 @@ export default function MultilineWebhookPaymentScreen() {
         style={styles.input}
       />
       <CardForm
+        disabled={inputDisabled}
         placeholders={{
           number: '4242 4242 4242 4242',
           postalCode: '12345',

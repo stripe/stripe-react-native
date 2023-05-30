@@ -66,6 +66,7 @@ export interface NativeProps {
   ): void;
   cardStyle?: Styles;
   placeholders?: Placeholders;
+  disabled?: boolean;
 }
 
 export interface Methods {
