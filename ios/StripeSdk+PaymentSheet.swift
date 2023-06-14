@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalPaymentSheetDecouplingAPI) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
@@ -99,14 +99,10 @@ extension StripeSdk {
         return (nil, configuration)
     }
     
-    enum ConfirmHandlerType : String {
-        case None = "NONE", ConfirmHandler = "CONFIRM_HANDLER", ConfirmHandlerServerSideConfirmation = "CONFIRM_HANDLER_SERVER_SIDE"
-    }
-    
     internal func preparePaymentSheetInstance(
         params: NSDictionary,
         configuration: PaymentSheet.Configuration,
-        confirmHandlerType: ConfirmHandlerType,
+        hasConfirmHandler: Bool,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
         self.paymentSheetFlowController = nil
@@ -167,8 +163,8 @@ extension StripeSdk {
                 resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
                 return
             }
-            if (confirmHandlerType == .None) {
-                resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmHandlerForServerSideConfirmation` if you are not passing an intent client secret"))
+            if (!hasConfirmHandler) {
+                resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` if you are not passing an intent client secret"))
                 return
             }
             let captureMethodString = intentConfiguration["captureMethod"] as? String
@@ -176,16 +172,16 @@ extension StripeSdk {
                 modeParams: modeParams,
                 paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
                 captureMethod: captureMethodString == "Manual" ? .manual : .automatic,
-                confirmHandlerType: confirmHandlerType
+                hasConfirmHandler: hasConfirmHandler
             )
             
             if params["customFlow"] as? Bool == true {
-                PaymentSheet.FlowController.create(intentConfig: intentConfig, configuration: configuration) { [weak self] result in
+                PaymentSheet.FlowController.create(intentConfiguration: intentConfig, configuration: configuration) { [weak self] result in
                     handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
                 }
             } else {
                 self.paymentSheet = PaymentSheet(
-                    intentConfig: intentConfig,
+                    intentConfiguration: intentConfig,
                     configuration: configuration
                 )
                 resolve([])
@@ -197,7 +193,7 @@ extension StripeSdk {
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
-        confirmHandlerType: ConfirmHandlerType
+        hasConfirmHandler: Bool
     ) -> PaymentSheet.IntentConfiguration {
         var mode: PaymentSheet.IntentConfiguration.Mode
         if let amount = modeParams["amount"] as? Int {
@@ -206,7 +202,8 @@ extension StripeSdk {
                 currency: modeParams["currencyCode"] as? String ?? "",
                 setupFutureUsage: modeParams["setupFutureUsage"] != nil
                     ? (modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession)
-                    : nil
+                    : nil,
+            captureMethod: captureMethod
             )
         } else {
             mode = PaymentSheet.IntentConfiguration.Mode.setup(
@@ -214,33 +211,20 @@ extension StripeSdk {
                 setupFutureUsage: modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession
             )
         }
-        
-        if (confirmHandlerType == .ConfirmHandlerServerSideConfirmation) {
-            return PaymentSheet.IntentConfiguration.init(
-                mode: mode,
-                captureMethod: captureMethod,
-                confirmHandlerForServerSideConfirmation: { paymentMethodId, shouldSavePaymentMethod, intentCreationCallback in
-                    if (self.hasEventListeners) {
-                        self.paymentSheetIntentCreationCallback = intentCreationCallback
-                        self.sendEvent(withName: "onConfirmHandlerForServerSideConfirmationCallback", body: ["paymentMethodId":paymentMethodId, "shouldSavePaymentMethod": shouldSavePaymentMethod])
-                    } else {
-                        RCTMakeAndLogError("Tried to call confirmHandlerForServerSideConfirmation, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
-                    }
+
+        return PaymentSheet.IntentConfiguration.init(
+            mode: mode,
+            confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
+                if (self.hasEventListeners) {
+                    self.paymentSheetIntentCreationCallback = intentCreationCallback
+                    self.sendEvent(withName: "onConfirmHandlerCallback", body: [
+                        "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
+                        "shouldSavePaymentMethod": shouldSavePaymentMethod
+                    ])
+                } else {
+                    RCTMakeAndLogError("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
                 }
-            )
-        } else {
-            return PaymentSheet.IntentConfiguration.init(
-                mode: mode,
-                captureMethod: captureMethod,
-                confirmHandler: { paymentMethodId, intentCreationCallback in
-                    if (self.hasEventListeners) {
-                        self.paymentSheetIntentCreationCallback = intentCreationCallback
-                        self.sendEvent(withName: "onConfirmHandlerCallback", body: ["paymentMethodId":paymentMethodId])
-                    } else {
-                        RCTMakeAndLogError("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
-                    }
-                })
-        }
+            })
     }
     
     private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary, enableOrderTracking: Bool) -> PaymentSheet.ApplePayConfiguration.Handlers? {

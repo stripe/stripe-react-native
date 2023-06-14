@@ -309,43 +309,28 @@ export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   let result;
-  let confirmHandlerType:
-    | 'NONE'
-    | 'CONFIRM_HANDLER'
-    | 'CONFIRM_HANDLER_SERVER_SIDE' = 'NONE';
+  let hasConfirmHandler = false;
 
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
-  const confirmHandlerForServerSideConfirmation =
-    params?.intentConfiguration?.confirmHandlerForServerSideConfirmation;
   if (confirmHandler) {
-    confirmHandlerType = 'CONFIRM_HANDLER';
+    hasConfirmHandler = true;
     let confirmHandlerCallback = eventEmitter.addListener(
       'onConfirmHandlerCallback',
-      ({ paymentMethodId }: { paymentMethodId: string }) => {
-        confirmHandler(paymentMethodId, NativeStripeSdk.intentCreationCallback);
+      ({
+        paymentMethod,
+        shouldSavePaymentMethod,
+      }: {
+        paymentMethod: PaymentMethod.Result;
+        shouldSavePaymentMethod: boolean;
+      }) => {
+        confirmHandler(
+          paymentMethod,
+          shouldSavePaymentMethod,
+          NativeStripeSdk.intentCreationCallback
+        );
         confirmHandlerCallback.remove();
       }
     );
-  } else if (confirmHandlerForServerSideConfirmation) {
-    confirmHandlerType = 'CONFIRM_HANDLER_SERVER_SIDE';
-    let confirmHandlerForServerSideConfirmationCallback =
-      eventEmitter.addListener(
-        'onConfirmHandlerForServerSideConfirmationCallback',
-        ({
-          paymentMethodId,
-          shouldSavePaymentMethod,
-        }: {
-          paymentMethodId: string;
-          shouldSavePaymentMethod: boolean;
-        }) => {
-          confirmHandlerForServerSideConfirmation(
-            paymentMethodId,
-            shouldSavePaymentMethod,
-            NativeStripeSdk.intentCreationCallback
-          );
-          confirmHandlerForServerSideConfirmationCallback.remove();
-        }
-      );
   }
 
   const orderTrackingCallback = params?.applePay?.setOrderTracking;
@@ -363,7 +348,7 @@ export const initPaymentSheet = async (
     result = await NativeStripeSdk.initPaymentSheet(
       params,
       !!orderTrackingCallback,
-      confirmHandlerType
+      hasConfirmHandler
     );
 
     if (result.error) {

@@ -53,7 +53,7 @@ type NativeStripeSdkType = {
   initPaymentSheet(
     params: PaymentSheet.SetupParams,
     hasSetOrderTracking: boolean,
-    confirmHandlerType: string
+    hasConfirmHandler: boolean
   ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
     result: PaymentSheet.IntentCreationCallbackParams

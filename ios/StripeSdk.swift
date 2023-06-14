@@ -57,7 +57,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onConfirmHandlerForServerSideConfirmationCallback"]
+        return ["onOrderTrackingCallback", "onConfirmHandlerCallback"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -102,8 +102,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(NSNull())
     }
 
-    @objc(initPaymentSheet:hasSetOrderTracking:confirmHandlerType:resolver:rejecter:)
-    func initPaymentSheet(params: NSDictionary, hasSetOrderTracking: Bool, confirmHandlerType: String, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(initPaymentSheet:hasSetOrderTracking:hasConfirmHandler:resolver:rejecter:)
+    func initPaymentSheet(params: NSDictionary, hasSetOrderTracking: Bool, hasConfirmHandler: Bool, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         let (error, configuration) = buildPaymentSheetConfiguration(params: params, enableOrderTracking: hasSetOrderTracking)
         guard let configuration = configuration else {
@@ -111,7 +111,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             return
         }
         
-        preparePaymentSheetInstance(params: params, configuration: configuration, confirmHandlerType: ConfirmHandlerType(rawValue: confirmHandlerType) ?? .None, resolve: resolve)
+        preparePaymentSheetInstance(params: params, configuration: configuration, hasConfirmHandler: hasConfirmHandler, resolve: resolve)
     }
     
     @objc(intentCreationCallback:resolver:rejecter:)

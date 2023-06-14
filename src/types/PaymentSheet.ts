@@ -1,4 +1,3 @@
-import type { StripeError } from '.';
 import type { BillingDetails, AddressDetails } from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
@@ -8,6 +7,8 @@ import type {
   MultiMerchantRequest,
 } from './PlatformPay';
 import type { FutureUsage, CaptureMethod } from './PaymentIntent';
+import type { Result } from './PaymentMethod';
+import type { StripeError } from './Errors';
 
 export type SetupParams = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -322,25 +323,12 @@ export type IntentConfiguration = {
     Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
     - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
     - Parameters:
-      - paymentMethodId: The id of the PaymentMethod representing the customer's payment details. If you need to inspect payment method details, you can fetch the PaymentMethod object using this id on your server. Otherwise, you can ignore this.
+      - paymentMethod: The PaymentMethod representing the customer's payment details.
+      - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
       - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
   */
   confirmHandler?: (
-    paymentMethodId: string,
-    intentCreationCallback: (result: IntentCreationCallbackParams) => void
-  ) => void;
-  /*
-  For advanced users who need server-side confirmation. Called when the customer confirms payment. Your implementation should create and confirm a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
-  - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
-  - Parameters:
-    - paymentMethodId: The id of the PaymentMethod representing the customer's payment details.
-      If you need to inspect payment method details, you can fetch the PaymentMethod object using this id on your server. Otherwise, you can ignore this.
-    - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox.
-      Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
-    - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
-  */
-  confirmHandlerForServerSideConfirmation?: (
-    paymentMethodId: string,
+    paymentMethod: Result,
     shouldSavePaymentMethod: boolean,
     intentCreationCallback: (result: IntentCreationCallbackParams) => void
   ) => void;
