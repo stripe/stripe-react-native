@@ -48,7 +48,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
-  internal var hasEventListeners = false
+  internal var eventListenerCount = 0
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -881,12 +881,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun addListener(eventName: String) {
-    hasEventListeners = true
+    eventListenerCount++
   }
 
   @ReactMethod
   fun removeListeners(count: Int) {
-    hasEventListeners = false
+    eventListenerCount -= count
+    if (eventListenerCount < 0) {
+      eventListenerCount = 0
+    }
   }
 
   internal fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap) {

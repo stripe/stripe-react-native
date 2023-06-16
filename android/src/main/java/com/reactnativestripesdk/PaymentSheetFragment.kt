@@ -130,10 +130,9 @@ class PaymentSheetFragment(
 
     val createIntentCallback = CreateIntentCallback {  paymentMethod, shouldSavePaymentMethod ->
       val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-      if (stripeSdkModule == null || !stripeSdkModule.hasEventListeners) {
+      if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
         return@CreateIntentCallback CreateIntentResult.Failure(
-          cause = Exception(""),
-          displayMessage = ""
+          cause = Exception("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"),
         )
       }
       val params = Arguments.createMap().apply {

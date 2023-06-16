@@ -31,7 +31,12 @@ import type {
   FinancialConnections,
   PlatformPay,
 } from './types';
-import { Platform, NativeEventEmitter, NativeModules } from 'react-native';
+import {
+  Platform,
+  NativeEventEmitter,
+  NativeModules,
+  EmitterSubscription,
+} from 'react-native';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -304,6 +309,8 @@ export const verifyMicrodepositsForSetup = async (
 };
 
 const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+let confirmHandlerCallback: EmitterSubscription | null = null;
+let orderTrackingCallbackListener: EmitterSubscription | null = null;
 
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
@@ -311,7 +318,8 @@ export const initPaymentSheet = async (
   let result;
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
   if (confirmHandler) {
-    let confirmHandlerCallback = eventEmitter.addListener(
+    confirmHandlerCallback?.remove();
+    confirmHandlerCallback = eventEmitter.addListener(
       'onConfirmHandlerCallback',
       ({
         paymentMethod,
@@ -325,18 +333,17 @@ export const initPaymentSheet = async (
           shouldSavePaymentMethod,
           NativeStripeSdk.intentCreationCallback
         );
-        confirmHandlerCallback.remove();
       }
     );
   }
 
   const orderTrackingCallback = params?.applePay?.setOrderTracking;
   if (orderTrackingCallback) {
-    let orderTrackingCallbackListener = eventEmitter.addListener(
+    orderTrackingCallbackListener?.remove();
+    orderTrackingCallbackListener = eventEmitter.addListener(
       'onOrderTrackingCallback',
       () => {
         orderTrackingCallback(NativeStripeSdk.configureOrderTracking);
-        orderTrackingCallbackListener.remove();
       }
     );
   }
