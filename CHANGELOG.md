@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.28.0 - 2023-06-16
+
 ## Features
 
 - Added a `disabled` prop to `CardField` and `CardForm` which applies a disabled state such that user input is not accepted.  [#1403](https://github.com/stripe/stripe-react-native/pull/1403)
