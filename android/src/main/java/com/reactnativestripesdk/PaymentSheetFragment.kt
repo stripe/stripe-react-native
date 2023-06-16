@@ -382,7 +382,7 @@ class PaymentSheetFragment(
 
       if (modeParams.containsKey("amount")) {
         return PaymentSheet.IntentConfiguration.Mode.Payment(
-          amount = modeParams.getLong("amount"),
+          amount = modeParams.getInt("amount").toLong(),
           currency = currencyCode,
           setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
           captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
