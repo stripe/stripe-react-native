@@ -102,16 +102,16 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         resolve(NSNull())
     }
 
-    @objc(initPaymentSheet:hasSetOrderTracking:hasConfirmHandler:resolver:rejecter:)
-    func initPaymentSheet(params: NSDictionary, hasSetOrderTracking: Bool, hasConfirmHandler: Bool, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(initPaymentSheet:resolver:rejecter:)
+    func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        let (error, configuration) = buildPaymentSheetConfiguration(params: params, enableOrderTracking: hasSetOrderTracking)
+        let (error, configuration) = buildPaymentSheetConfiguration(params: params)
         guard let configuration = configuration else {
             resolve(error)
             return
         }
         
-        preparePaymentSheetInstance(params: params, configuration: configuration, hasConfirmHandler: hasConfirmHandler, resolve: resolve)
+        preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
     }
     
     @objc(intentCreationCallback:resolver:rejecter:)

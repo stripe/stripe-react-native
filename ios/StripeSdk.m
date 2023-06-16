@@ -95,8 +95,6 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   initPaymentSheet:(NSDictionary *)params
-                  hasSetOrderTracking:(BOOL)hasSetOrderTracking
-                  hasConfirmHandler:(BOOL)hasConfirmHandler
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

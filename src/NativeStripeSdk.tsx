@@ -51,9 +51,7 @@ type NativeStripeSdkType = {
   ): Promise<RetrievePaymentIntentResult>;
   retrieveSetupIntent(clientSecret: string): Promise<RetrieveSetupIntentResult>;
   initPaymentSheet(
-    params: PaymentSheet.SetupParams,
-    hasSetOrderTracking: boolean,
-    hasConfirmHandler: boolean
+    params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
     result: PaymentSheet.IntentCreationCallbackParams

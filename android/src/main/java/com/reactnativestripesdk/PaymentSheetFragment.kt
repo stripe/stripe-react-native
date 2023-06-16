@@ -17,17 +17,17 @@ import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.*
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.stripe.android.paymentsheet.*
+import kotlinx.coroutines.CompletableDeferred
 import java.io.ByteArrayOutputStream
+import kotlin.Exception
 
+@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
 class PaymentSheetFragment(
   private val context: ReactApplicationContext,
   private val initPromise: Promise
@@ -36,10 +36,12 @@ class PaymentSheetFragment(
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
   private var setupIntentClientSecret: String? = null
+  private var intentConfiguration: PaymentSheet.IntentConfiguration? = null
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
   private var paymentSheetTimedOut = false
+  internal val paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -67,6 +69,12 @@ class PaymentSheetFragment(
     val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
+    intentConfiguration = try {
+      buildIntentConfiguration(arguments?.getBundle("intentConfiguration"))
+    } catch (error: PaymentSheetException) {
+      initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+      return
+    }
     val appearance = try {
       buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
     } catch (error: PaymentSheetAppearanceException) {
@@ -120,6 +128,34 @@ class PaymentSheetFragment(
       }
     }
 
+    val createIntentCallback = CreateIntentCallback {  paymentMethod, shouldSavePaymentMethod ->
+      val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+      if (stripeSdkModule == null || !stripeSdkModule.hasEventListeners) {
+        return@CreateIntentCallback CreateIntentResult.Failure(
+          cause = Exception(""),
+          displayMessage = ""
+        )
+      }
+      val params = Arguments.createMap().apply {
+        putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+        putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
+      }
+
+      stripeSdkModule.sendEvent(context, "onConfirmHandlerCallback", params)
+
+      val resultFromJavascript = paymentSheetIntentCreationCallback.await()
+
+      return@CreateIntentCallback resultFromJavascript.getString("clientSecret")?.let {
+        CreateIntentResult.Success(clientSecret = it)
+      } ?: run {
+        val errorMap = resultFromJavascript.getMap("error")
+        CreateIntentResult.Failure(
+          cause = Exception(errorMap?.getString("message")),
+          displayMessage = errorMap?.getString("localizedMessage")
+        )
+      }
+    }
+
     val billingDetailsConfig = PaymentSheet.BillingDetailsCollectionConfiguration(
       name = mapToCollectionMode(billingConfigParams?.getString("name")),
       phone = mapToCollectionMode(billingConfigParams?.getString("phone")),
@@ -162,10 +198,34 @@ class PaymentSheetFragment(
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
-      flowController = PaymentSheet.FlowController.create(this, paymentOptionCallback, paymentResultCallback)
+      flowController = if (intentConfiguration != null) {
+        PaymentSheet.FlowController.create(
+          this,
+          paymentOptionCallback = paymentOptionCallback,
+          createIntentCallback = createIntentCallback,
+          paymentResultCallback = paymentResultCallback
+        )
+      } else {
+        PaymentSheet.FlowController.create(
+          this,
+          paymentOptionCallback = paymentOptionCallback,
+          paymentResultCallback = paymentResultCallback
+        )
+      }
       configureFlowController()
     } else {
-      paymentSheet = PaymentSheet(this, paymentResultCallback)
+      paymentSheet = if (intentConfiguration != null) {
+        PaymentSheet(
+          this,
+          createIntentCallback = createIntentCallback,
+          paymentResultCallback = paymentResultCallback
+        )
+      } else {
+        PaymentSheet(
+          this,
+          callback = paymentResultCallback
+        )
+      }
       initPromise.resolve(WritableNativeMap())
     }
   }
@@ -177,6 +237,11 @@ class PaymentSheetFragment(
         paymentSheet?.presentWithPaymentIntent(paymentIntentClientSecret!!, paymentSheetConfiguration)
       } else if (!setupIntentClientSecret.isNullOrEmpty()) {
         paymentSheet?.presentWithSetupIntent(setupIntentClientSecret!!, paymentSheetConfiguration)
+      } else if (intentConfiguration != null) {
+        paymentSheet?.presentWithIntentConfiguration(
+          intentConfiguration = intentConfiguration!!,
+          configuration = paymentSheetConfiguration
+        )
       }
     } else if(flowController != null) {
       flowController?.presentPaymentOptions()
@@ -253,6 +318,15 @@ class PaymentSheetFragment(
         configuration = paymentSheetConfiguration,
         callback = onFlowControllerConfigure
       )
+    } else if (intentConfiguration != null) {
+      flowController?.configureWithIntentConfiguration(
+        intentConfiguration = intentConfiguration!!,
+        configuration = paymentSheetConfiguration,
+        callback = onFlowControllerConfigure
+      )
+    } else {
+      initPromise.resolve(createError(ErrorType.Failed.toString(), "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required"))
+      return
     }
   }
 
@@ -286,6 +360,41 @@ class PaymentSheetFragment(
         countryCode = countryCode,
         currencyCode = currencyCode
       )
+    }
+
+    @Throws(PaymentSheetException::class)
+    private fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
+      if (intentConfigurationParams == null) {
+        return null
+      }
+      val modeParams = intentConfigurationParams.getBundle("mode")
+              ?: throw PaymentSheetException("If `intentConfiguration` is provided, `intentConfiguration.mode` is required")
+
+      return PaymentSheet.IntentConfiguration(
+        mode = buildIntentConfigurationMode(modeParams),
+        paymentMethodTypes = intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList() ?: emptyList(),
+      )
+    }
+
+    private fun buildIntentConfigurationMode(modeParams: Bundle): PaymentSheet.IntentConfiguration.Mode {
+      val currencyCode = modeParams.getString("currencyCode")
+        ?: throw PaymentSheetException("You must provide a value to intentConfiguration.mode.currencyCode")
+
+      if (modeParams.containsKey("amount")) {
+        return PaymentSheet.IntentConfiguration.Mode.Payment(
+          amount = modeParams.getLong("amount"),
+          currency = currencyCode,
+          setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
+          captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
+        )
+      } else {
+        val setupFutureUsage = mapToSetupFutureUse(modeParams.getString("setupFutureUsage"))
+          ?: throw PaymentSheetException("You must provide a value to intentConfiguration.mode.setupFutureUsage")
+        return PaymentSheet.IntentConfiguration.Mode.Setup(
+          currency = currencyCode,
+          setupFutureUse = setupFutureUsage
+        )
+      }
     }
   }
 }
@@ -327,5 +436,24 @@ fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollect
     "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Never
     "full" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+  }
+}
+
+@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
+fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFutureUse? {
+  return when (type) {
+    "OffSession" ->  PaymentSheet.IntentConfiguration.SetupFutureUse.OffSession
+    "OnSession" ->  PaymentSheet.IntentConfiguration.SetupFutureUse.OnSession
+    else ->  null
+  }
+}
+
+@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
+fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureMethod {
+  return when (type) {
+    "Automatic" ->  PaymentSheet.IntentConfiguration.CaptureMethod.Automatic
+    "Manual" ->  PaymentSheet.IntentConfiguration.CaptureMethod.Manual
+    "AutomaticAsync" ->  PaymentSheet.IntentConfiguration.CaptureMethod.AutomaticAsync
+    else ->  PaymentSheet.IntentConfiguration.CaptureMethod.Automatic
   }
 }

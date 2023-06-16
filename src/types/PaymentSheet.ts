@@ -6,7 +6,7 @@ import type {
   AutomaticReloadPaymentRequest,
   MultiMerchantRequest,
 } from './PlatformPay';
-import type { FutureUsage, CaptureMethod } from './PaymentIntent';
+import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 
@@ -327,7 +327,7 @@ export type IntentConfiguration = {
       - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
       - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
   */
-  confirmHandler?: (
+  confirmHandler: (
     paymentMethod: Result,
     shouldSavePaymentMethod: boolean,
     intentCreationCallback: (result: IntentCreationCallbackParams) => void
@@ -339,6 +339,20 @@ export type IntentConfiguration = {
 };
 
 export type Mode = PaymentMode | SetupMode;
+
+/**
+ * Controls when the funds will be captured. Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method
+ */
+export enum CaptureMethod {
+  /** (Default) Stripe automatically captures funds when the customer authorizes the payment. */
+  Automatic = 'Automatic',
+  /** Place a hold on the funds when the customer authorizes the payment, but don’t capture the funds until later. (Not all payment methods support this.) */
+  Manual = 'Manual',
+  /** Asynchronously capture funds when the customer authorizes the payment.
+  - Note: Recommended over `CaptureMethod.Automatic` due to improved latency, but may require additional integration changes.
+  - Seealso: https://stripe.com/docs/payments/payment-intents/asynchronous-capture-automatic-async */
+  AutomaticAsync = 'AutomaticAsync',
+}
 
 /* Use this if your integration creates a PaymentIntent */
 export type PaymentMode = {

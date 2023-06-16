@@ -309,11 +309,8 @@ export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
 ): Promise<InitPaymentSheetResult> => {
   let result;
-  let hasConfirmHandler = false;
-
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
   if (confirmHandler) {
-    hasConfirmHandler = true;
     let confirmHandlerCallback = eventEmitter.addListener(
       'onConfirmHandlerCallback',
       ({
@@ -345,11 +342,7 @@ export const initPaymentSheet = async (
   }
 
   try {
-    result = await NativeStripeSdk.initPaymentSheet(
-      params,
-      !!orderTrackingCallback,
-      hasConfirmHandler
-    );
+    result = await NativeStripeSdk.initPaymentSheet(params);
 
     if (result.error) {
       return {
