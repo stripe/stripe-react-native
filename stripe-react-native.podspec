@@ -2,7 +2,7 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '~> 23.8.0'
+stripe_version = '~> 23.9.0'
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'
@@ -23,10 +23,10 @@ Pod::Spec.new do |s|
   end
 
   s.dependency 'React-Core'
-  s.dependency 'Stripe'
-  s.dependency 'StripePaymentSheet'
-  s.dependency 'StripePayments'
-  s.dependency 'StripePaymentsUI'
-  s.dependency 'StripeApplePay'
-  s.dependency 'StripeFinancialConnections'
+  s.dependency 'Stripe', stripe_version
+  s.dependency 'StripePaymentSheet', stripe_version
+  s.dependency 'StripePayments', stripe_version
+  s.dependency 'StripePaymentsUI', stripe_version
+  s.dependency 'StripeApplePay', stripe_version
+  s.dependency 'StripeFinancialConnections', stripe_version
 end

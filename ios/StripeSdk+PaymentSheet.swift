@@ -222,6 +222,7 @@ extension StripeSdk {
 
         return PaymentSheet.IntentConfiguration.init(
             mode: mode,
+            paymentMethodTypes: paymentMethodTypes,
             confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
                 if (self.hasEventListeners) {
                     self.paymentSheetIntentCreationCallback = intentCreationCallback

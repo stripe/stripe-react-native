@@ -7,6 +7,7 @@ import {
   Address,
   PaymentSheetError,
   PaymentSheet,
+  PaymentMethod,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -88,10 +89,6 @@ export default function PaymentSheetDeferredIntentScreen() {
       merchantDisplayName: 'Example Inc.',
       applePay: { merchantCountryCode: 'US' },
       style: 'automatic',
-      googlePay: {
-        merchantCountryCode: 'US',
-        testEnv: true,
-      },
       returnURL: 'stripe-example://stripe-redirect',
       defaultBillingDetails: billingDetails,
       defaultShippingDetails: shippingDetails,
@@ -99,7 +96,8 @@ export default function PaymentSheetDeferredIntentScreen() {
       primaryButtonLabel: 'purchase!',
       intentConfiguration: {
         confirmHandler: async (
-          paymentMethodId: string,
+          paymentMethod: PaymentMethod.Result,
+          _shouldSavePaymentMethod: boolean,
           intentCreationCallback: (
             result: PaymentSheet.IntentCreationCallbackParams
           ) => void
@@ -111,7 +109,7 @@ export default function PaymentSheetDeferredIntentScreen() {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ paymentMethodId }),
+              body: JSON.stringify({ paymentMethodId: paymentMethod.id }),
             }
           );
           const { clientSecret, error: responseError } = await response.json();
@@ -129,9 +127,10 @@ export default function PaymentSheetDeferredIntentScreen() {
           }
         },
         mode: {
-          amount: 5099,
+          amount: 6099,
           currencyCode: 'USD',
         },
+        paymentMethodTypes: [],
       },
     });
     if (!error) {
