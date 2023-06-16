@@ -133,7 +133,8 @@ class PaymentSheetFragment(
       if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
         return@CreateIntentCallback CreateIntentResult.Failure(
           cause = Exception("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"),
-        )
+          displayMessage = "An unexpected error occurred"
+          )
       }
       val params = Arguments.createMap().apply {
         putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))

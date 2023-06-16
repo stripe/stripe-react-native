@@ -703,6 +703,7 @@ app.post('/payment-intent-for-payment-sheet', async (req, res) => {
       amount: 5099,
       currency: 'usd',
       payment_method: req.body.paymentMethodId,
+      customer: req.body.customerId,
     });
 
     return res.send({ clientSecret: paymentIntent.client_secret });

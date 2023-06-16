@@ -109,7 +109,10 @@ export default function PaymentSheetDeferredIntentScreen() {
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ paymentMethodId: paymentMethod.id }),
+              body: JSON.stringify({
+                paymentMethodId: paymentMethod.id,
+                customerId: customer,
+              }),
             }
           );
           const { clientSecret, error: responseError } = await response.json();

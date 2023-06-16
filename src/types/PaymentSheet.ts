@@ -334,7 +334,7 @@ export type IntentConfiguration = {
   ) => void;
   /* Information about the payment (PaymentIntent) or setup (SetupIntent).*/
   mode: Mode;
-  /* A list of payment method types to display to the customer. If nil, we dynamically determine the payment methods using your Stripe Dashboard settings. */
+  /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
   paymentMethodTypes?: Array<string>;
 };
 
