@@ -346,7 +346,10 @@ export const createTokenForCVCUpdate = async (
 };
 
 export const handleURLCallback = async (url: string): Promise<boolean> => {
-  const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
+  const stripeHandled =
+    Platform.OS === 'ios'
+      ? await NativeStripeSdk.handleURLCallback(url)
+      : false;
   return stripeHandled;
 };
 
