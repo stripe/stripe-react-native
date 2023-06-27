@@ -133,7 +133,7 @@ export default function PaymentSheetDeferredIntentScreen() {
           amount: 6099,
           currencyCode: 'USD',
         },
-        paymentMethodTypes: [],
+        paymentMethodTypes: ['card'],
       },
     });
     if (!error) {
