@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Fixes
+
+- Only call `handleURLCallback` on iOS. [#1423](https://github.com/stripe/stripe-react-native/pull/1423)
+
 ## 0.28.0 - 2023-06-16
 
 ## Features
