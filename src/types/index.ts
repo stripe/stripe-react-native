@@ -115,6 +115,16 @@ export type HandleNextActionResult =
       error: StripeError<CardActionError>;
     };
 
+export type HandleNextActionForSetupResult =
+  | {
+      setupIntent: SetupIntent.Result;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
+      error: StripeError<CardActionError>;
+    };
+
 export type ConfirmSetupIntentResult =
   | {
       setupIntent: SetupIntent.Result;

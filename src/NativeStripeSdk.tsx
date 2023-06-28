@@ -12,6 +12,7 @@ import type {
   RetrieveSetupIntentResult,
   ConfirmPaymentResult,
   HandleNextActionResult,
+  HandleNextActionForSetupResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
   InitPaymentSheetResult,
@@ -42,6 +43,10 @@ type NativeStripeSdkType = {
     paymentIntentClientSecret: string,
     returnURL?: string | null
   ): Promise<HandleNextActionResult>;
+  handleNextActionForSetup(
+    setupIntentClientSecret: string,
+    returnURL?: string | null
+  ): Promise<HandleNextActionForSetupResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
     params?: PaymentIntent.ConfirmParams,

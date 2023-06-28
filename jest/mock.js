@@ -56,6 +56,10 @@ const mockFunctions = {
     paymentIntent: {},
     error: null,
   })),
+  handleNextActionForSetup: jest.fn(async () => ({
+    setupIntent: {},
+    error: null,
+  })),
   confirmSetupIntent: jest.fn(async () => ({
     setupIntent: {},
     error: null,
