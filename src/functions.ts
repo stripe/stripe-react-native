@@ -251,8 +251,17 @@ export const createTokenForCVCUpdate = async (
   }
 };
 
+/**
+ * Call this method in your app whenever you receive a URL for a Stripe callback.
+ * For convenience, you can pass all URLs you receive to this method first, and
+ * check the return value to easily determine whether it is a callback URL that Stripe will handle
+ * or if your app should process it normally. This is iOS-only, and will always return false on Android.
+ */
 export const handleURLCallback = async (url: string): Promise<boolean> => {
-  const stripeHandled = await NativeStripeSdk.handleURLCallback(url);
+  const stripeHandled =
+    Platform.OS === 'ios'
+      ? await NativeStripeSdk.handleURLCallback(url)
+      : false;
   return stripeHandled;
 };
 
