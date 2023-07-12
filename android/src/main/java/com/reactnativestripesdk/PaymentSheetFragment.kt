@@ -27,7 +27,6 @@ import kotlinx.coroutines.CompletableDeferred
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
 
-@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
 class PaymentSheetFragment(
   private val context: ReactApplicationContext,
   private val initPromise: Promise
@@ -380,8 +379,8 @@ class PaymentSheetFragment(
       val currencyCode = modeParams.getString("currencyCode")
         ?: throw PaymentSheetException("You must provide a value to intentConfiguration.mode.currencyCode")
 
-      if (modeParams.containsKey("amount")) {
-        return PaymentSheet.IntentConfiguration.Mode.Payment(
+      return if (modeParams.containsKey("amount")) {
+        PaymentSheet.IntentConfiguration.Mode.Payment(
           amount = modeParams.getInt("amount").toLong(),
           currency = currencyCode,
           setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
@@ -390,7 +389,7 @@ class PaymentSheetFragment(
       } else {
         val setupFutureUsage = mapToSetupFutureUse(modeParams.getString("setupFutureUsage"))
           ?: throw PaymentSheetException("You must provide a value to intentConfiguration.mode.setupFutureUsage")
-        return PaymentSheet.IntentConfiguration.Mode.Setup(
+        PaymentSheet.IntentConfiguration.Mode.Setup(
           currency = currencyCode,
           setupFutureUse = setupFutureUsage
         )
@@ -439,7 +438,6 @@ fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollect
   }
 }
 
-@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
 fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFutureUse? {
   return when (type) {
     "OffSession" ->  PaymentSheet.IntentConfiguration.SetupFutureUse.OffSession
@@ -448,7 +446,6 @@ fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFu
   }
 }
 
-@OptIn(ExperimentalPaymentSheetDecouplingApi::class)
 fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureMethod {
   return when (type) {
     "Automatic" ->  PaymentSheet.IntentConfiguration.CaptureMethod.Automatic

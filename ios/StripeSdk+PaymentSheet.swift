@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalPaymentSheetDecouplingAPI) import StripePaymentSheet
+import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
