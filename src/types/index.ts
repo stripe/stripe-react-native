@@ -19,9 +19,6 @@ import * as PaymentMethod from './PaymentMethod';
 import * as PaymentSheet from './PaymentSheet';
 import * as SetupIntent from './SetupIntent';
 import * as ThreeDSecure from './ThreeDSecure';
-import * as GooglePay from './GooglePay';
-import * as ApplePayButtonComponent from './components/ApplePayButtonComponent';
-import * as GooglePayButtonComponent from './components/GooglePayButtonComponent';
 import * as AuBECSDebitFormComponent from './components/AuBECSDebitFormComponent';
 import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
@@ -36,9 +33,6 @@ export {
   PaymentSheet,
   SetupIntent,
   ThreeDSecure,
-  GooglePay,
-  ApplePayButtonComponent,
-  GooglePayButtonComponent,
   AuBECSDebitFormComponent,
   CardFieldInput,
   CardFormView,

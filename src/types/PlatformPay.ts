@@ -3,8 +3,6 @@ import type { Result as PaymentMethod } from './PaymentMethod';
 import type { Result as PaymentIntent } from './PaymentIntent';
 import type { Result as SetupIntent } from './SetupIntent';
 import type { StripeError, PlatformPayError } from './Errors';
-import type { ShippingContact as ApplePayShippingContact } from './ApplePay';
-import type { IsSupportedParams } from './GooglePay';
 
 export type ApplePaySheetError =
   | {
@@ -358,11 +356,44 @@ export type ShippingMethod = {
   endDate?: number;
 };
 
+interface PostalAddress {
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  state?: string;
+  street?: string;
+  isoCountryCode?: string;
+  subAdministrativeArea?: string;
+  subLocality?: string;
+}
+
+interface ContactName {
+  familyName?: string;
+  namePrefix?: string;
+  nameSuffix?: string;
+  givenName?: string;
+  middleName?: string;
+  nickname?: string;
+}
+
 /** iOS only. */
-export type ShippingContact = ApplePayShippingContact;
+export interface ShippingContact {
+  emailAddress?: string;
+  name: ContactName;
+  phoneNumber?: string;
+  postalAddress: PostalAddress;
+}
 
 /** Android only. */
-export type IsGooglePaySupportedParams = IsSupportedParams;
+export type IsGooglePaySupportedParams = {
+  /** Set to true to run in a test environment with relaxed application / merchant requirements. This environment is suggested for early development and for easily testing SDK. Defaults to false. */
+  testEnv?: boolean;
+  /**
+   * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
+   * has an existing payment method. Defaults to false.
+   */
+  existingPaymentMethodRequired?: boolean;
+};
 
 export type PaymentMethodResult =
   | {

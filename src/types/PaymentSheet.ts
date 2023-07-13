@@ -6,8 +6,11 @@ import type {
   AutomaticReloadPaymentRequest,
   MultiMerchantRequest,
 } from './PlatformPay';
+import type { FutureUsage } from './PaymentIntent';
+import type { Result } from './PaymentMethod';
+import type { StripeError } from './Errors';
 
-export type SetupParams = ClientSecretParams & {
+export type SetupParams = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
@@ -49,14 +52,21 @@ export type SetupParams = ClientSecretParams & {
   primaryButtonLabel?: string;
 };
 
-export type ClientSecretParams =
+export type IntentParams =
   | {
       paymentIntentClientSecret: string;
       setupIntentClientSecret?: undefined;
+      intentConfiguration?: never;
     }
   | {
       setupIntentClientSecret: string;
       paymentIntentClientSecret?: undefined;
+      intentConfiguration?: never;
+    }
+  | {
+      setupIntentClientSecret?: never;
+      paymentIntentClientSecret?: never;
+      intentConfiguration: IntentConfiguration;
     };
 
 export type ApplePayParams = {
@@ -295,3 +305,77 @@ export enum AddressCollectionMode {
   /** Collect the full billing address, regardless of the Payment Method's requirements. */
   FULL = 'full',
 }
+
+export type IntentCreationError = StripeError<'Failed'>;
+
+export type IntentCreationCallbackParams =
+  | {
+      clientSecret: string;
+      error?: never;
+    }
+  | {
+      clientSecret?: never;
+      error: IntentCreationError;
+    };
+
+export type IntentConfiguration = {
+  /*
+    Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+    - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+    - Parameters:
+      - paymentMethod: The PaymentMethod representing the customer's payment details.
+      - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
+      - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
+  */
+  confirmHandler: (
+    paymentMethod: Result,
+    shouldSavePaymentMethod: boolean,
+    intentCreationCallback: (result: IntentCreationCallbackParams) => void
+  ) => void;
+  /* Information about the payment (PaymentIntent) or setup (SetupIntent).*/
+  mode: Mode;
+  /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
+  paymentMethodTypes?: Array<string>;
+};
+
+export type Mode = PaymentMode | SetupMode;
+
+/**
+ * Controls when the funds will be captured. Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method
+ */
+export enum CaptureMethod {
+  /** (Default) Stripe automatically captures funds when the customer authorizes the payment. */
+  Automatic = 'Automatic',
+  /** Place a hold on the funds when the customer authorizes the payment, but don’t capture the funds until later. (Not all payment methods support this.) */
+  Manual = 'Manual',
+  /** Asynchronously capture funds when the customer authorizes the payment.
+  - Note: Recommended over `CaptureMethod.Automatic` due to improved latency, but may require additional integration changes.
+  - Seealso: https://stripe.com/docs/payments/payment-intents/asynchronous-capture-automatic-async */
+  AutomaticAsync = 'AutomaticAsync',
+}
+
+/* Use this if your integration creates a PaymentIntent */
+export type PaymentMode = {
+  /* Amount intended to be collected in the smallest currency unit (e.g. 100 cents to charge $1.00). Shown in Apple Pay, Google Pay, Buy now pay later UIs, the Pay button, and influences available payment methods.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-amount */
+  amount: number;
+  /*  Three-letter ISO currency code. Filters out payment methods based on supported currency.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-currency */
+  currencyCode: string;
+  /* Indicates that you intend to make future payments.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
+  setupFutureUsage?: FutureUsage;
+  /* Controls when the funds will be captured.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
+  captureMethod?: CaptureMethod;
+};
+
+/* Use this if your integration creates a SetupIntent */
+export type SetupMode = {
+  /*  Three-letter ISO currency code. Filters out payment methods based on supported currency.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-currency */
+  currencyCode?: string;
+  /*  Indicates that you intend to make future payments.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
+  setupFutureUsage: FutureUsage;
+};

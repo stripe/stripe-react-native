@@ -1,5 +1,5 @@
 import { requireNativeComponent } from 'react-native';
-import type { ApplePayButtonComponent } from '../types';
+import type * as ApplePayButtonComponent from '../types/components/ApplePayButtonComponent';
 const ApplePayButtonNative =
   requireNativeComponent<ApplePayButtonComponent.NativeProps>('ApplePayButton');
 export default ApplePayButtonNative;

@@ -122,10 +122,6 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         didSelect shippingMethod: PKShippingMethod,
         handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
     ) {
-        if (self.hasLegacyApplePayListeners) {
-            // Legacy, remove when useApplePay hook is removed
-            sendEvent(withName: "onDidSetShippingMethod", body: ["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
-        }
         if let callback = self.shippingMethodUpdateJSCallback {
             self.shippingMethodUpdateCompletion = handler
             callback(["shippingMethod": Mappers.mapFromShippingMethod(shippingMethod: shippingMethod)])
@@ -141,10 +137,6 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         didSelectShippingContact contact: PKContact,
         handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
     ) {
-        if (self.hasLegacyApplePayListeners) {
-            // Legacy, remove when useApplePay hook is removed
-            sendEvent(withName: "onDidSetShippingContact", body: ["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
-        }
         if let callback = self.shippingContactUpdateJSCallback {
             self.shippingContactUpdateCompletion = handler
             callback(["shippingContact": Mappers.mapFromShippingContact(shippingContact: contact)])
@@ -170,10 +162,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         } else if let clientSecret = self.confirmApplePaySetupClientSecret {
             completion(clientSecret, nil)
         } else {
-            self.applePayCompletionCallback = completion
-            let method = Mappers.mapFromPaymentMethod(paymentMethod.splitApplePayAddressByNewline())
-            self.deprecatedApplePayRequestResolver?(Mappers.createResult("paymentMethod", method))
-            self.deprecatedApplePayRequestRejecter = nil
+            RCTMakeAndLogError("Tried to complete Apple Pay payment, but no client secret was found.", nil, nil)
         }
     }
     
@@ -233,44 +222,28 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                         }
                     }
                 }
-                
-            } else {
-                deprecatedConfirmApplePayPaymentResolver?([])
             }
             break
         case .error:
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Failed, error as NSError?))
-            } else {
-                let message = "Payment not completed"
-                deprecatedApplePayCompletionRejecter?(ErrorType.Failed, message, nil)
-                deprecatedApplePayRequestRejecter?(ErrorType.Failed, message, nil)
             }
             break
         case .userCancellation:
             let message = "The payment has been canceled"
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Canceled, message))
-            } else {
-                deprecatedApplePayCompletionRejecter?(ErrorType.Canceled, message, nil)
-                deprecatedApplePayRequestRejecter?(ErrorType.Canceled, message, nil)
             }
             break
         @unknown default:
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Unknown, error as NSError?))
-            } else {
-                let message = "Payment not completed"
-                deprecatedApplePayCompletionRejecter?(ErrorType.Unknown, message, nil)
-                deprecatedApplePayRequestRejecter?(ErrorType.Unknown, message, nil)
             }
             break
         }
         confirmApplePayResolver = nil
         confirmApplePayPaymentClientSecret = nil
         confirmApplePaySetupClientSecret = nil
-        deprecatedApplePayCompletionRejecter = nil
-        deprecatedApplePayRequestRejecter = nil
     }
     
 }

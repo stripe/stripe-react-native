@@ -2,7 +2,6 @@ import { NativeModules } from 'react-native';
 import type {
   PaymentMethod,
   PaymentIntent,
-  ApplePay,
   PlatformPay,
   PaymentSheet,
   SetupIntent,
@@ -17,12 +16,7 @@ import type {
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
-  ApplePayResult,
   CreateTokenResult,
-  GooglePayInitResult,
-  PayWithGooglePayResult,
-  CreateGooglePayPaymentMethodResult,
-  GooglePay,
   OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
@@ -47,16 +41,6 @@ type NativeStripeSdkType = {
     params?: PaymentIntent.ConfirmParams,
     options?: PaymentIntent.ConfirmOptions
   ): Promise<ConfirmPaymentResult>;
-  isApplePaySupported(): Promise<boolean>;
-  presentApplePay(params: ApplePay.PresentParams): Promise<ApplePayResult>;
-  confirmApplePayPayment(clientSecret: string): Promise<void>;
-  updateApplePaySummaryItems(
-    summaryItems: ApplePay.CartSummaryItem[],
-    errorAddressFields: Array<{
-      field: ApplePay.AddressFields;
-      message?: string;
-    }>
-  ): Promise<void>;
   confirmSetupIntent(
     paymentIntentClientSecret: string,
     params: SetupIntent.ConfirmParams,
@@ -69,10 +53,9 @@ type NativeStripeSdkType = {
   initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;
-  initPaymentSheetWithOrderTracking(
-    params: PaymentSheet.SetupParams,
-    callback?: () => void
-  ): Promise<InitPaymentSheetResult>;
+  intentCreationCallback(
+    result: PaymentSheet.IntentCreationCallbackParams
+  ): void;
   presentPaymentSheet(
     options: PaymentSheet.PresentOptions
   ): Promise<PresentPaymentSheetResult>;
@@ -80,14 +63,6 @@ type NativeStripeSdkType = {
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;
   createToken(params: Token.CreateParams): Promise<CreateTokenResult>;
-  isGooglePaySupported(params: GooglePay.IsSupportedParams): Promise<boolean>;
-  initGooglePay(params: GooglePay.InitParams): Promise<GooglePayInitResult>;
-  presentGooglePay(
-    params: GooglePay.PresentParams
-  ): Promise<PayWithGooglePayResult>;
-  createGooglePayPaymentMethod(
-    params: GooglePay.CreatePaymentMethodParams
-  ): Promise<CreateGooglePayPaymentMethodResult>;
   openApplePaySetup(): Promise<OpenApplePaySetupResult>;
   verifyMicrodeposits(
     isPaymentIntent: boolean,
@@ -114,7 +89,7 @@ type NativeStripeSdkType = {
   ): Promise<FinancialConnections.SessionResult>;
   resetPaymentSheetCustomer(): Promise<null>;
   isPlatformPaySupported(params: {
-    googlePay?: GooglePay.IsSupportedParams;
+    googlePay?: PlatformPay.IsGooglePaySupportedParams;
   }): Promise<boolean>;
   createPlatformPayPaymentMethod(
     params: PlatformPay.PaymentMethodParams,
@@ -122,8 +97,8 @@ type NativeStripeSdkType = {
   ): Promise<PlatformPay.PaymentMethodResult | PlatformPay.TokenResult>;
   dismissPlatformPay(): Promise<boolean>;
   updatePlatformPaySheet(
-    summaryItems: Array<ApplePay.CartSummaryItem>,
-    shippingMethods: Array<ApplePay.ShippingMethod>,
+    summaryItems: Array<PlatformPay.CartSummaryItem>,
+    shippingMethods: Array<PlatformPay.ShippingMethod>,
     errors: Array<PlatformPay.ApplePaySheetError>
   ): Promise<void>;
   confirmPlatformPay(
