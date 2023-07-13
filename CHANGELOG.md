@@ -4,12 +4,11 @@
 
 ### Breaking changes
 
-- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed.
+- The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
 ## Features
 
-- You can now collect payment details before creating a `PaymentIntent` or `SetupIntent`. See [our docs](https://stripe.com/docs/payments/accept-a-payment-deferred?platform=react-native) for more info. This integration also allows you to [confirm the Intent on the server]
-(https://stripe.com/docs/payments/finalize-payments-on-the-server?platform=react-native).
+- You can now collect payment details before creating a `PaymentIntent` or `SetupIntent`. See [our docs](https://stripe.com/docs/payments/accept-a-payment-deferred?platform=react-native) for more info. This integration also allows you to [confirm the Intent on the server](https://stripe.com/docs/payments/finalize-payments-on-the-server?platform=react-native). [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
 ## Fixes
 
