@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.29.0 - 2023-07-13
+
 ### Breaking changes
 
 - The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
