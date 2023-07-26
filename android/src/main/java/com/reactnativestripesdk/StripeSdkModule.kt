@@ -318,16 +318,17 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   private fun createTokenFromAccount(params: ReadableMap, promise: Promise) {
     val businessType = getValOr(params, "businessType", null)
-    if (businessType != "Company") {
-      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "businessType currently only accepts the Company account type"))
+    if (businessType != "Individual") {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "businessType currently only accepts the Individual account type"))
       return
     }
 
-    val companyData = getMapOrNull(params, "company")
+    val individualData = getMapOrNull(params, "individual")
     val accountParams = AccountParams.create(
       tosShownAndAccepted = getBooleanOrFalse(params, "tosShownAndAccepted"),
-      company = AccountParams.BusinessTypeParams.Company.Builder()
-        .setPhone(getValOr(companyData, "phone", null))
+      company = AccountParams.BusinessTypeParams.Individual.Builder()
+        .setEmail(getValOr(individualData, "email", null))
+        .setPhone(getValOr(individualData, "phone", null))
         .build()
     )
     CoroutineScope(Dispatchers.IO).launch {

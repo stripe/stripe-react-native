@@ -110,10 +110,11 @@ export type AccountBusinessType = 'Company' | 'Individual';
 export type CreateAccountTokenParams = {
   type: 'Account';
   businessType: AccountBusinessType;
-  company?: AccountCompany;
+  individual?: AccountIndividual;
   tosShownAndAccepted?: boolean;
 };
 
-export type AccountCompany = {
+export type AccountIndividual = {
   phone?: string;
+  email?: string;
 }

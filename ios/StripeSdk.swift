@@ -640,18 +640,20 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         let businessType = params["businessType"] as? String
-        if (businessType != "Company") {
-            resolve(Errors.createError(ErrorType.Failed, "businessType currently only accepts the Company account type."))
+        if (businessType != "Individual") {
+            resolve(Errors.createError(ErrorType.Failed, "businessType currently only accepts the Individual account type."))
             return
         }
 
         let tosShownAndAccepted = params["tosShownAndAccepted"] as? Bool ?? false
         let phone = params["phone"] as? String
+        let email = params["email"] as? String
 
-        let connectAccountCompanyParams = STPConnectAccountCompanyParams()
-        connectAccountCompanyParams.phone = phone
+        let connectAccountIndividualParams = STPConnectAccountIndividualParams()
+        connectAccountIndividualParams.phone = phone
+        connectAccountIndividualParams.email = email
 
-        guard let accountParams = STPConnectAccountParams(tosShownAndAccepted: tosShownAndAccepted, company: connectAccountCompanyParams) else {
+        guard let accountParams = STPConnectAccountParams(tosShownAndAccepted: tosShownAndAccepted, company: connectAccountIndividualParams) else {
             resolve(Errors.createError(ErrorType.Failed, "tosShownAndAccepted parameter must be true"))
             return
         }

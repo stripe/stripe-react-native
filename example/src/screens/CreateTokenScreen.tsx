@@ -89,10 +89,8 @@ function buildTestTokenParams(type: Token.Type): Token.CreateParams {
     case 'Account':
       return {
         type: 'Account',
-        businessType: 'Company',
-        company: {
-          phone: '00000000'
-        },
+        businessType: 'Individual',
+        individual: {},
         tosShownAndAccepted: true,
       };
     default:
