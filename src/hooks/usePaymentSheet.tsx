@@ -1,6 +1,7 @@
-import type { PaymentSheet } from '../types';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useStripe } from './useStripe';
+
+import type { PaymentSheet } from '../types';
 
 /**
  * usePaymentSheet hook
@@ -14,33 +15,39 @@ export function usePaymentSheet() {
   } = useStripe();
   const [loading, setLoading] = useState(false);
 
-  const initPaymentSheet = async (params: PaymentSheet.SetupParams) => {
-    setLoading(true);
-    const result = await initPaymentSheetNative(params);
-    setLoading(false);
-    return result;
-  };
+  const initPaymentSheet = useCallback(
+    async (params: PaymentSheet.SetupParams) => {
+      setLoading(true);
+      const result = await initPaymentSheetNative(params);
+      setLoading(false);
+      return result;
+    },
+    [initPaymentSheetNative]
+  );
 
-  const presentPaymentSheet = async (options?: PaymentSheet.PresentOptions) => {
-    setLoading(true);
-    const result = await presentPaymentSheetNative(options);
-    setLoading(false);
-    return result;
-  };
+  const presentPaymentSheet = useCallback(
+    async (options?: PaymentSheet.PresentOptions) => {
+      setLoading(true);
+      const result = await presentPaymentSheetNative(options);
+      setLoading(false);
+      return result;
+    },
+    [presentPaymentSheetNative]
+  );
 
-  const confirmPaymentSheetPayment = async () => {
+  const confirmPaymentSheetPayment = useCallback(async () => {
     setLoading(true);
     const result = await confirmPaymentSheetPaymentNative();
     setLoading(false);
     return result;
-  };
+  }, [confirmPaymentSheetPaymentNative]);
 
-  const resetPaymentSheetCustomer = async () => {
+  const resetPaymentSheetCustomer = useCallback(async () => {
     setLoading(true);
     const result = await resetPaymentSheetCustomerNative();
     setLoading(false);
     return result;
-  };
+  }, [resetPaymentSheetCustomerNative]);
 
   return {
     loading,
