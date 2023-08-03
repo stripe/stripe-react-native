@@ -5,6 +5,7 @@
 **Fixes**
 
 - Fixed an error on Android where `AddressSheet` would throw an error if submitted with the keyboard open. [#1462](https://github.com/stripe/stripe-react-native/pull/1462)
+- Fixed an issue where `state` was not included in the returned PaymentIntent's `shippingDetails` on iOS. [#1465](https://github.com/stripe/stripe-react-native/pull/1465)
 
 ## 0.29.0 - 2023-07-13
 
