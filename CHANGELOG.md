@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## Fixes
+### Fixes
 
 - Fixed an error on Android where `AddressSheet` would throw an error if submitted with the keyboard open. [#1462](https://github.com/stripe/stripe-react-native/pull/1462)
 
@@ -12,28 +12,28 @@
 
 - The Apple Pay and Google Pay APIs, which are deprecated and were replaced with the [Platform Pay API](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) last year, have been removed. [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
-## Features
+### Features
 
 - You can now collect payment details before creating a `PaymentIntent` or `SetupIntent`. See [our docs](https://stripe.com/docs/payments/accept-a-payment-deferred?platform=react-native) for more info. This integration also allows you to [confirm the Intent on the server](https://stripe.com/docs/payments/finalize-payments-on-the-server?platform=react-native). [#1424](https://github.com/stripe/stripe-react-native/pull/1424)
 
-## Fixes
+### Fixes
 
 - Fixes `handleURLCallback` to only take action on iOS, no-op on Android. [#1423](https://github.com/stripe/stripe-react-native/pull/1423)
 
 ## 0.28.0 - 2023-06-16
 
-## Features
+### Features
 
-- Added a `disabled` prop to `CardField` and `CardForm` which applies a disabled state such that user input is not accepted.  [#1403](https://github.com/stripe/stripe-react-native/pull/1403)
+- Added a `disabled` prop to `CardField` and `CardForm` which applies a disabled state such that user input is not accepted. [#1403](https://github.com/stripe/stripe-react-native/pull/1403)
 
-## Fixes
+### Fixes
 
 - Fixed an instance on Android where `collectBankAccountToken` or `collectFinancialConnectionsAccounts` could result in a fatal error. [#1401](https://github.com/stripe/stripe-react-native/pull/1401)
-- Resolve with better error objects on iOS in `confirmPaymentSheetPayment`, `createTokenForCVCUpdate`, `createPaymentMethod`, `retrievePaymentIntent`, and `retrieveSetupIntent`  [#1399](https://github.com/stripe/stripe-react-native/pull/1399)
+- Resolve with better error objects on iOS in `confirmPaymentSheetPayment`, `createTokenForCVCUpdate`, `createPaymentMethod`, `retrievePaymentIntent`, and `retrieveSetupIntent` [#1399](https://github.com/stripe/stripe-react-native/pull/1399)
 
 ## 0.27.2 - 2023-05-15
 
-## Fixes
+### Fixes
 
 - Updated `stripe-android` from 20.24.0 to 20.25.+ [#1384](https://github.com/stripe/stripe-react-native/pull/1384)
 - Updated `stripe-ios` from 23.7.+ to 23.8.+ [#1384](https://github.com/stripe/stripe-react-native/pull/1384)
@@ -42,7 +42,7 @@
 
 > Note: [Xcode 13 is no longer supported by Apple](https://developer.apple.com/news/upcoming-requirements/). Please upgrade to Xcode 14.1 or later.
 
-## Fixes
+### Fixes
 
 - Fixed the type of `created` on `Token.Result` on Android (was a number, should be a string). [#1369](https://github.com/stripe/stripe-react-native/pull/1369)
 - Fixed `AddToWalletButton` not properly resolving the `androidAssetSource` in release mode. [#1373](https://github.com/stripe/stripe-react-native/pull/1373)
@@ -62,7 +62,7 @@
 
 ## 0.26.0 - 2023-03-16
 
-### New Features
+### Features
 
 - Added support for PayPal and CashApp to PaymentSheet, `confirmPayment`, and `confirmSetupIntent`. [#1331](https://github.com/stripe/stripe-react-native/pull/1331)
 
@@ -72,7 +72,7 @@
 
 ## 0.25.0 - 2023-02-27
 
-### New Features
+### Features
 
 - Added the `supportsTapToPay` option to `canAddCardToWallet`. [#1308](https://github.com/stripe/stripe-react-native/pull/1308)
 
@@ -87,7 +87,7 @@
 
 ### Breaking changes
 
--  [#1248](https://github.com/stripe/stripe-react-native/pull/1248) Renamed the `paymentSummaryItems` field in `initPaymentSheet()`'s `applePay` params to `cartItems`. So your change will look like this:
+- [#1248](https://github.com/stripe/stripe-react-native/pull/1248) Renamed the `paymentSummaryItems` field in `initPaymentSheet()`'s `applePay` params to `cartItems`. So your change will look like this:
 
 ```diff
  initPaymentSheet({
@@ -100,11 +100,11 @@
  })
 ```
 
-### New Features
+### Features
 
 - Added the `setOrderTracking` property to the `PlatformPayButton` component and the `initPaymentSheet` method. Use this callback for setting the order details to give users the ability to track and manage their purchases in Wallet. To learn more about order tracking, see [Apple’s Wallet Orders documentation](https://developer.apple.com/documentation/walletorders). [#1248](https://github.com/stripe/stripe-react-native/pull/1248)
 - Added the `buttonType` field to `initPaymentSheet()`'s `applePay` params. Use this to set the text displayed by the call to action button in the Apple Pay sheet.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
-- Added the `request` field to `initPaymentSheet()`'s, `confirmPlatformPayPayment()`'s, and `confirmPlatformPaySetupIntent`'s  `applePay` params. Use this to support different types of payment requests, like `RecurringPaymentRequest`, `AutomaticReloadPaymentRequest`, and `MultiMerchantRequest`.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
+- Added the `request` field to `initPaymentSheet()`'s, `confirmPlatformPayPayment()`'s, and `confirmPlatformPaySetupIntent`'s `applePay` params. Use this to support different types of payment requests, like `RecurringPaymentRequest`, `AutomaticReloadPaymentRequest`, and `MultiMerchantRequest`.[#1248](https://github.com/stripe/stripe-react-native/pull/1248)
 - Added an `options` argument to `presentPaymentSheet` which includes a `timeout` property. [#1287](https://github.com/stripe/stripe-react-native/pull/1287)
 
 ## 0.23.3 - 2023-02-07 (📌 Expo SDK 48)
@@ -156,7 +156,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Added the `hasPairedAppleWatch` option to `canAddCardToWallet`. [#1219](https://github.com/stripe/stripe-react-native/pull/1219)
 - Added new functions and a new component to streamline integrating with Apple and Google Pay and add more feature support. See the [Migrating to Platform Pay guide](https://github.com/stripe/stripe-react-native/blob/master/docs/Platform-Pay-Migration.md) for more details. The old Apple and Google Pay APIs are marked as `deprecated` and will be removed in a future release, but are still supported in this version.
@@ -172,7 +172,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Added the `<AddressSheet />` component, which enables you to collect local and international shipping or billing addresses from your customers _with_ address autocomplete. [#1169](https://github.com/stripe/stripe-react-native/pull/1169)
   - [Find the docs here](https://stripe.com/docs/elements/address-element?platform=react-native)
@@ -188,7 +188,7 @@
 
 - This library now supports iOS 13 and up, due to `stripe-ios` increasing the deployment target. If you would like to build for iOS 12, please continue to use `@stripe/stripe-react-native@0.19.0`. [#1190](https://github.com/stripe/stripe-react-native/pull/1190)
 
-### New features
+### Features
 
 - Added [Link](https://stripe.com/docs/payments/link) support in Payment Sheet. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
 - Added the `resetPaymentSheetCustomer` method to clear persisted authentication state in the PaymentSheet. [#1176](https://github.com/stripe/stripe-react-native/pull/1176)
@@ -212,7 +212,7 @@
 - To comply with Google's [new branding guidelines for the Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines), the `<GooglePayButton />` component's `type` prop now only accepts `standard` or `pay` (`pay_shadow`, `pay_dark`, `standard_shadow`, and `standard_dark` were all removed). It defaults to `standard`. [#1135](https://github.com/stripe/stripe-react-native/pull/1135)
 - Your `compileSdkVersion` (in `android/build.gradle`) now must be at least 33. Changing your `compileSdkVersion` does not change runtime behavior.
 
-### New features
+### Features
 
 - Add `returnURL` as an optional parameter to `handleNextAction`. Use this so the Stripe SDK can redirect back to your app after authentication. [#1104](https://github.com/stripe/stripe-react-native/pull/1104)
 
@@ -226,7 +226,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 ### Fixes
 
@@ -238,7 +238,7 @@
 
 - Your `compileSdkVersion` (in `android/build.gradle`) now must be at least `32`. Changing your `compileSdkVersion` does not change runtime behavior.
 
-### New features
+### Features
 
 - `confirmPayment` can now be called with _just_ a client secret (e.g. `await confirmPayment("payment-intent-id")`), in other words the payment method can be excluded. If the payment method is excluded, it is assumed by the SDK that you have attached the payment method on the server-side during payment intent creation. [#1084](https://github.com/stripe/stripe-react-native/pull/1084)
 - Payment Sheet now supports Link on iOS. [#1086](https://github.com/stripe/stripe-react-native/pull/1086).
@@ -252,7 +252,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Added the [`collectBankAccountToken`](https://stripe.com/docs/financial-connections/connect-payouts?platform=react-native) & [`collectFinancialConnectionsAccounts`](https://stripe.com/docs/financial-connections/other-data-powered-products?platform=react-native) functions.
 
@@ -268,7 +268,7 @@
 
 - The `<GooglePayButton />` component no longer overrides the `type` to use the dark mode version when the device is in Dark Mode. If you set the `type` value, it will always be respected. If you don't set the `type` value, it will match the system's theme (`standard_shadow` when in Light Mode, and `standard_dark` when in Dark Mode). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
 
-### New features
+### Features
 
 - Added support for `pay_dark` and `standard_dark` to the `<GooglePayButton />` component's `type` prop. This allows you to display the [dark Google Pay button](https://developers.google.com/pay/api/android/guides/brand-guidelines). [#1051](https://github.com/stripe/stripe-react-native/pull/1051)
 - Added support for `borderColor`, `borderRadius`, and `cursorColor` to `CardForm`'s `cardStyle` prop on iOS (already exists on Android). [#1048](https://github.com/stripe/stripe-react-native/pull/1048)
@@ -282,7 +282,7 @@
 ### Breaking changes
 
 - [#1020](https://github.com/stripe/stripe-react-native/pull/1020) Changed some of fields for the `params` object that is supplied to `initPaymentSheet(params)`:
-  - **Changed the `applePay` field**. Previously this field accepted a boolean, now it accepts an object of type `ApplePayParams`, which includes the `merchantCountryCode` field, and a new `paymentSummaryItems` field (see "New features" below).
+  - **Changed the `applePay` field**. Previously this field accepted a boolean, now it accepts an object of type `ApplePayParams`, which includes the `merchantCountryCode` field, and a new `paymentSummaryItems` field (see "Features" below).
   - **Changed the `googlePay` field**. Previously this field accepted a boolean, now it accepts an object of type `GooglePayParams`, which includes the `merchantCountryCode`, `currencyCode`, and `testEnv` fields.
   - Since the `merchantCountryCode` field now lives under the `applePay` and `googlePay` objects, it has been removed from the base `params` object.
   - Similarly, since the `currencyCode` and `testEnv` fields now live under the `googlePay` object, they have been removed from the base `params` object .
@@ -291,7 +291,7 @@
     - The same change was made to `ApplePay.ShippingMethod`: renamed `type` to `isPending`.
   - Added a **new** `paymentType` field. This field is **required**, and in all pre-existing cases where you created a `CartSummaryItem`, should be set to `paymentType: 'Immediate'` (support for types `Deferred` and `Recurring` wasn't available until this release).
 
-### New features
+### Features
 
 - Added support for iOS 15 `paymentSummaryItems`: `PKDeferredPaymentSummaryItem` and `PKRecurringPaymentSummaryItem`.
 - You can now specify Apple Pay line items to be displayed when paying with Apple Pay in PaymentSheet by providing `applePay.paymentSummaryItems` to the `initPaymentSheet` method. [#1020](https://github.com/stripe/stripe-react-native/pull/1020)
@@ -307,7 +307,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Added the `canAddCardToWallet` method. [#986](https://github.com/stripe/stripe-react-native/pull/986).
 
@@ -323,7 +323,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 ### Fixes
 
@@ -333,7 +333,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Added a `defaultValues` prop to the `CardForm` component. Currently only accepts `countryCode`, and is Android-only. [#974](https://github.com/stripe/stripe-react-native/pull/974)
 - Added the `countryCode` prop to the `CardField` component. [#989](https://github.com/stripe/stripe-react-native/pull/989)
@@ -351,7 +351,7 @@
 
 - Renamed `appearance.shapes.shadow.borderRadius` to `appearance.shapes.shadow.blurRadius`, and `appearance.primaryButton.shapes.shadow.borderRadius` to `appearance.primaryButton.shapes.shadow.blurRadius`. [#962](https://github.com/stripe/stripe-react-native/pull/962)
 
-### New features
+### Features
 
 ### Fixes
 
@@ -367,7 +367,7 @@
 
 - Removed support for `primaryButtonColor` field on `initPaymentSheet()`. Please use the new `appearance.primaryButton.colors.background` field instead. [#940](https://github.com/stripe/stripe-react-native/pull/940)
 
-### New features
+### Features
 
 - You can now customize the appearance of your Payment Sheet via the `appearance` field on `initPaymentSheet()`. [#940](https://github.com/stripe/stripe-react-native/pull/940)
 - Added Affirm and AU BECS Direct Debit support to Payment Sheet. [#940](https://github.com/stripe/stripe-react-native/pull/940)
@@ -381,7 +381,7 @@
 
 ### Breaking changes
 
-### New features
+### Features
 
 - Card scanning is available in payment sheet on Android. [#944](https://github.com/stripe/stripe-react-native/pull/944)
   - To enable this, you will need to add `implementation 'com.stripe:stripecardscan:20.3.+'` to your `dependencies {}` block in `android/app/build.gradle`.
