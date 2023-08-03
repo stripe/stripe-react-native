@@ -856,7 +856,20 @@ fun toBundleObject(readableMap: ReadableMap?): Bundle {
       }
       ReadableType.String -> result.putString(key, readableMap.getString(key))
       ReadableType.Map -> result.putBundle(key, toBundleObject(readableMap.getMap(key)))
-      ReadableType.Array -> Log.e("toBundleException", "Cannot put arrays of objects into bundles. Failed on: $key.")
+      ReadableType.Array -> {
+        val list = readableMap.getArray(key)?.toArrayList()
+        if (list == null) {
+          result.putString(key, null)
+        } else if (list.isEmpty()) {
+          result.putStringArrayList(key, ArrayList())
+        } else {
+          when (list.first()) {
+            is String -> result.putStringArrayList(key, list as java.util.ArrayList<String>)
+            is Int -> result.putIntegerArrayList(key, list as java.util.ArrayList<Int>)
+            else -> Log.e("toBundleException", "Cannot put arrays of objects into bundles. Failed on: $key.")
+          }
+        }
+      }
       else -> Log.e("toBundleException", "Could not convert object with key: $key.")
     }
   }

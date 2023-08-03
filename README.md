@@ -228,11 +228,11 @@ jest.mock('@stripe/stripe-react-native', () => mock);
 To have a more control over the mocks, you can extend and override particular methods e.g.:
 
 ```tsx
-const presentApplePayMock = jest.fn();
+const presentNativePayMock = jest.fn();
 
 jest.mock('@stripe/stripe-react-native', () => ({
   ...mock,
-  presentApplePay: presentApplePayMock,
+  presentNativePay: presentNativePayMock,
 }));
 ```
 

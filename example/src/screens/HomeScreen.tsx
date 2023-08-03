@@ -77,6 +77,24 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI (deferred intent)"
+              onPress={() => {
+                navigation.navigate('PaymentSheetDeferredIntentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Prebuilt UI (multi-step) (deferred intent)"
+              onPress={() => {
+                navigation.navigate(
+                  'PaymentSheetDeferredIntentMultiStepScreen'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Card element only"
               onPress={() => {
                 navigation.navigate('WebhookPaymentScreen');

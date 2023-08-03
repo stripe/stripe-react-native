@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.*
@@ -46,6 +47,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var googlePayFragment: GooglePayFragment? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
+
+  internal var eventListenerCount = 0
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -202,6 +205,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun resetPaymentSheetCustomer(promise: Promise) {
     PaymentSheet.resetCustomer(context = reactApplicationContext)
     promise.resolve(null)
+  }
+
+  @ReactMethod
+  fun intentCreationCallback(params: ReadableMap, promise: Promise) {
+    if (paymentSheetFragment == null) {
+      promise.resolve(PaymentSheetFragment.createMissingInitError())
+      return
+    }
+
+    paymentSheetFragment?.paymentSheetIntentCreationCallback?.complete(params)
   }
 
   private fun payWithFpx() {
@@ -878,14 +891,24 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
-  /**
-   * We need the following in order to avoid some annoying console.warns() from our Apple Pay event listeners. Otherwise,
-   * we'd have to put our users through some annoying (if Platform.OS...) logic & null-handling logic.
-   */
   @ReactMethod
-  fun addListener(eventName: String) {}
+  fun addListener(eventName: String) {
+    eventListenerCount++
+  }
+
   @ReactMethod
-  fun removeListeners(count: Int) {}
+  fun removeListeners(count: Int) {
+    eventListenerCount -= count
+    if (eventListenerCount < 0) {
+      eventListenerCount = 0
+    }
+  }
+
+  internal fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap) {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params)
+  }
 
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise

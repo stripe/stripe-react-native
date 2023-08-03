@@ -46,12 +46,6 @@ const mockFunctions = {
   openPlatformPaySetup: jest.fn(async () => {
     return;
   }),
-  isApplePaySupported: jest.fn(async () => true),
-  presentApplePay: jest.fn(async () => ({
-    error: null,
-  })),
-  updateApplePaySummaryItems: jest.fn(async () => ({})),
-  confirmApplePayPayment: jest.fn(async () => ({})),
   handleNextAction: jest.fn(async () => ({
     paymentIntent: {},
     error: null,
