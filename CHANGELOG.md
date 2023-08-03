@@ -5,6 +5,7 @@
 **Fixes**
 
 - Fixed an error on Android where `AddressSheet` would throw an error if submitted with the keyboard open. [#1462](https://github.com/stripe/stripe-react-native/pull/1462)
+- Fixed an error where `usePaymentSheet` could cause infinite reloads. [#1439](https://github.com/stripe/stripe-react-native/pull/1439)'
 
 ## 0.29.0 - 2023-07-13
 
