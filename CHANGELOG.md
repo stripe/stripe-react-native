@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.30.0 - 2023-08-04
+
 **Features**
 
 - Added the `handleNextActionForSetup` method. This can be used exactly like `handleNextAction`, except with [SetupIntents](https://stripe.com/docs/api/setup_intents). [#1440](https://github.com/stripe/stripe-react-native/pull/1440)
