@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useStripe } from './useStripe';
 
 /**
@@ -12,19 +12,25 @@ export function useFinancialConnectionsSheet() {
   const { collectBankAccountToken, collectFinancialConnectionsAccounts } =
     useStripe();
 
-  const _collectBankAccountToken = async (clientSecret: string) => {
-    setLoading(true);
-    const result = await collectBankAccountToken(clientSecret);
-    setLoading(false);
-    return result;
-  };
+  const _collectBankAccountToken = useCallback(
+    async (clientSecret: string) => {
+      setLoading(true);
+      const result = await collectBankAccountToken(clientSecret);
+      setLoading(false);
+      return result;
+    },
+    [collectBankAccountToken]
+  );
 
-  const _collectFinancialConnectionsAccounts = async (clientSecret: string) => {
-    setLoading(true);
-    const result = await collectFinancialConnectionsAccounts(clientSecret);
-    setLoading(false);
-    return result;
-  };
+  const _collectFinancialConnectionsAccounts = useCallback(
+    async (clientSecret: string) => {
+      setLoading(true);
+      const result = await collectFinancialConnectionsAccounts(clientSecret);
+      setLoading(false);
+      return result;
+    },
+    [collectFinancialConnectionsAccounts]
+  );
 
   return {
     collectBankAccountToken: _collectBankAccountToken,
