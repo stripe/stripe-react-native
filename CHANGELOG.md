@@ -4,6 +4,7 @@
 
 **Features**
 
+- Added the `handleNextActionForSetup` method. This can be used exactly like `handleNextAction`, except with [SetupIntents](https://stripe.com/docs/api/setup_intents). [#1440](https://github.com/stripe/stripe-react-native/pull/1440)
 - `canAddCardToWallet` now returns the `fpanLastFour` and `dpanLastFour` in the `GooglePayCardToken` type. The `cardLastFour` field (which is now superseded by `fpanLastFour`) is deprecated.
 
 **Fixes**

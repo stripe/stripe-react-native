@@ -650,6 +650,38 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
     }
 
+    @objc(handleNextActionForSetup:returnURL:resolver:rejecter:)
+    func handleNextActionForSetup(
+        setupIntentClientSecret: String,
+        returnURL: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ){
+        let paymentHandler = STPPaymentHandler.shared()
+        paymentHandler.handleNextAction(forSetupIntent: setupIntentClientSecret, with: self, returnURL: returnURL) { status, setupIntent, handleActionError in
+            switch (status) {
+            case .failed:
+                resolve(Errors.createError(ErrorType.Failed, handleActionError))
+                break
+            case .canceled:
+                if let lastError = setupIntent?.lastSetupError {
+                    resolve(Errors.createError(ErrorType.Canceled, lastError))
+                } else {
+                    resolve(Errors.createError(ErrorType.Canceled, "The setup intent has been canceled"))
+                }
+                break
+            case .succeeded:
+                if let setupIntent = setupIntent {
+                    resolve(Mappers.createResult("setupIntent", Mappers.mapFromSetupIntent(setupIntent: setupIntent)))
+                }
+                break
+            @unknown default:
+                resolve(Errors.createError(ErrorType.Unknown, "Cannot complete setup"))
+                break
+            }
+        }
+    }
+    
     @objc(collectBankAccount:clientSecret:params:resolver:rejecter:)
     func collectBankAccount(
         isPaymentIntent: Bool,

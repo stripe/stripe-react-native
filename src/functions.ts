@@ -12,6 +12,7 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   HandleNextActionResult,
+  HandleNextActionForSetupResult,
   InitPaymentSheetResult,
   PaymentMethod,
   PaymentSheet,
@@ -195,6 +196,41 @@ export const handleNextAction = async (
     }
     return {
       paymentIntent: paymentIntent!,
+    };
+  } catch (error: any) {
+    return {
+      error: createError(error),
+    };
+  }
+};
+
+/** Handles any nextAction required to authenticate the SetupIntent.
+ * Call this method if you are confirming the SetupIntent on your backend and get a status of requires_action.
+ *
+ * @param {string} setupIntentClientSecret The client secret associated with the SetupIntent.
+ * @param {string=} returnURL An optional return URL so the Stripe SDK can redirect back to your app after authentication. This should match the `return_url` you specified during PaymentIntent confirmation.
+ * */
+export const handleNextActionForSetup = async (
+  setupIntentClientSecret: string,
+  returnURL?: string
+): Promise<HandleNextActionForSetupResult> => {
+  try {
+    const { setupIntent, error } =
+      Platform.OS === 'ios'
+        ? await NativeStripeSdk.handleNextActionForSetup(
+            setupIntentClientSecret,
+            returnURL ?? null
+          )
+        : await NativeStripeSdk.handleNextActionForSetup(
+            setupIntentClientSecret
+          );
+    if (error) {
+      return {
+        error,
+      };
+    }
+    return {
+      setupIntent: setupIntent!,
     };
   } catch (error: any) {
     return {

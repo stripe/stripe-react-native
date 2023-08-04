@@ -406,13 +406,25 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun handleNextAction(paymentIntentClientSecret: String, promise: Promise) {
-    paymentLauncherFragment = PaymentLauncherFragment.forNextAction(
+    paymentLauncherFragment = PaymentLauncherFragment.forNextActionPayment(
       context = reactApplicationContext,
       stripe,
       publishableKey,
       stripeAccountId,
       promise,
       paymentIntentClientSecret
+    )
+  }
+
+  @ReactMethod
+  fun handleNextActionForSetup(setupIntentClientSecret: String, promise: Promise) {
+    paymentLauncherFragment = PaymentLauncherFragment.forNextActionSetup(
+      context = reactApplicationContext,
+      stripe,
+      publishableKey,
+      stripeAccountId,
+      promise,
+      setupIntentClientSecret
     )
   }
 
