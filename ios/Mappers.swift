@@ -357,6 +357,7 @@ class Mappers {
         if let address = shipping.address {
             addressDetails = [
                 "city": address.city ?? NSNull(),
+                "state": address.state ?? NSNull(),
                 "country": address.country ?? NSNull(),
                 "line1": address.line1 ?? NSNull(),
                 "line2":address.line2 ?? NSNull(),

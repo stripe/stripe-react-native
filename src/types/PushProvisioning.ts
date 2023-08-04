@@ -1,12 +1,20 @@
 import type { StripeError, GooglePayError } from './Errors';
 
 export type GooglePayCardToken = {
+  /** The token reference ID. */
   id: string;
-  cardLastFour: string;
+  /** Last four digits of the FPAN */
+  fpanLastFour: string;
+  /** Last four digits of the DPAN */
+  dpanLastFour: string;
   network: number;
   serviceProvider: number;
+  /** The name of the issuer. */
   issuer: string;
+  /** The GooglePayCardTokenStatus. */
   status: GooglePayCardTokenStatus;
+  /** Deprecated. Use fpanLastFour or dpanLastFour. */
+  cardLastFour: string;
 };
 
 export enum GooglePayCardTokenStatus {
