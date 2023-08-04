@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+- `canAddCardToWallet` now returns the `fpanLastFour` and `dpanLastFour` in the `GooglePayCardToken` type. The `cardLastFour` field (which is now superseded by `fpanLastFour`) is deprecated.
+
 **Fixes**
 
 - Fixed an error on Android where `AddressSheet` would throw an error if submitted with the keyboard open. [#1462](https://github.com/stripe/stripe-react-native/pull/1462)
