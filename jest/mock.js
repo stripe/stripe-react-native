@@ -83,17 +83,6 @@ const mockFunctions = {
     error: null,
   })),
   resetPaymentSheetCustomer: jest.fn(async () => null),
-  initGooglePay: jest.fn(async () => ({
-    error: null,
-  })),
-  isGooglePaySupported: jest.fn(async () => true),
-  presentGooglePay: jest.fn(async () => ({
-    error: null,
-  })),
-  createGooglePayPaymentMethod: jest.fn(async () => ({
-    paymentMethod: {},
-    error: null,
-  })),
   openApplePaySetup: jest.fn(async () => ({
     error: null,
   })),
@@ -135,32 +124,6 @@ const mockHooks = {
   useConfirmSetupIntent: jest.fn(() => ({
     confirmSetupIntent: jest.fn(() => ({
       ...mockFunctions.confirmSetupIntent(),
-    })),
-  })),
-  useGooglePay: jest.fn(() => ({
-    loading: false,
-    initGooglePay: jest.fn(async () => ({
-      ...mockFunctions.initGooglePay(),
-    })),
-    isGooglePaySupported: jest.fn(async () => true),
-    presentGooglePay: jest.fn(async () => ({
-      ...mockFunctions.presentGooglePay(),
-    })),
-    createGooglePayPaymentMethod: jest.fn(async () => ({
-      ...mockFunctions.createGooglePayPayment(),
-    })),
-  })),
-  useApplePay: jest.fn(() => ({
-    loading: false,
-    isApplePaySupported: true,
-    presentApplePay: jest.fn(async () => ({
-      ...mockFunctions.presentApplePay(),
-    })),
-    confirmApplePayPayment: jest.fn(async () => ({
-      ...mockFunctions.confirmApplePayPayment(),
-    })),
-    openApplePaySetup: jest.fn(async () => ({
-      ...mockFunctions.openApplePaySetup(),
     })),
   })),
   usePlatformPay: jest.fn(() => ({
