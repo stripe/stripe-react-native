@@ -850,9 +850,15 @@ fun toBundleObject(readableMap: ReadableMap?): Bundle {
       ReadableType.Null -> result.putString(key, null)
       ReadableType.Boolean -> result.putBoolean(key, readableMap.getBoolean(key))
       ReadableType.Number -> try {
-        result.putInt(key, readableMap.getInt(key))
+        val numAsInt = readableMap.getInt(key)
+        val numAsDouble = readableMap.getDouble(key)
+        if (numAsDouble - numAsInt != 0.0) {
+          result.putDouble(key, numAsDouble)
+        } else {
+          result.putInt(key, numAsInt)
+        }
       } catch (e: Exception) {
-        result.putDouble(key, readableMap.getDouble(key))
+        Log.e("toBundleException", "Failed to add number to bundle. Failed on: $key.")
       }
       ReadableType.String -> result.putString(key, readableMap.getString(key))
       ReadableType.Map -> result.putBundle(key, toBundleObject(readableMap.getMap(key)))
