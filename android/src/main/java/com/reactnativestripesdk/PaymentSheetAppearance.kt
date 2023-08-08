@@ -22,9 +22,11 @@ fun buildPaymentSheetAppearance(userParams: Bundle?, context: Context): PaymentS
 }
 
 private fun buildTypography(fontParams: Bundle?, context: Context): PaymentSheet.Typography {
+  val scale = getDoubleOrNull(fontParams, PaymentSheetAppearanceKeys.SCALE)
+  val resId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, PaymentSheet.Typography.default.fontResId, context)
   return PaymentSheet.Typography.default.copy(
-    sizeScaleFactor = getFloatOr(fontParams, PaymentSheetAppearanceKeys.SCALE, PaymentSheet.Typography.default.sizeScaleFactor),
-    fontResId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, PaymentSheet.Typography.default.fontResId, context)
+    sizeScaleFactor = scale?.toFloat() ?: PaymentSheet.Typography.default.sizeScaleFactor,
+    fontResId = resId
   )
 }
 
@@ -103,6 +105,14 @@ private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.
     onBackground = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.TEXT), default.onBackground),
     border = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BORDER), default.border),
   )
+}
+
+private fun getDoubleOrNull(bundle: Bundle?, key: String): Double? {
+  return if (bundle?.containsKey(key) == true) {
+    bundle.getDouble(key, bundle.getDouble(key))
+  } else {
+    null
+  }
 }
 
 private fun getFloatOr(bundle: Bundle?, key: String, defaultValue: Float): Float {

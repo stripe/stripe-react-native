@@ -44,7 +44,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var platformPayUsesDeprecatedTokenFlow = false
 
   private var paymentSheetFragment: PaymentSheetFragment? = null
-  private var googlePayFragment: GooglePayFragment? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
@@ -55,7 +54,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private val allStripeFragmentTags: List<String>
     get() = listOf(
       PaymentSheetFragment.TAG,
-      GooglePayFragment.TAG,
       PaymentLauncherFragment.TAG,
       CollectBankAccountLauncherFragment.TAG,
       FinancialConnectionsSheetFragment.TAG,
@@ -573,62 +571,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun isGooglePaySupported(params: ReadableMap?, promise: Promise) {
-    val fragment = GooglePayPaymentMethodLauncherFragment(
-      reactApplicationContext,
-      getBooleanOrFalse(params, "testEnv"),
-      getBooleanOrFalse(params, "existingPaymentMethodRequired"),
-      promise
-    )
-
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      try {
-        it.supportFragmentManager.beginTransaction()
-          .add(fragment, GooglePayPaymentMethodLauncherFragment.TAG)
-          .commit()
-      } catch (error: IllegalStateException) {
-        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
-      }
-    }
-  }
-
-  @ReactMethod
-  fun initGooglePay(params: ReadableMap, promise: Promise) {
-    googlePayFragment = GooglePayFragment(promise).also {
-      val bundle = toBundleObject(params)
-      it.arguments = bundle
-    }
-
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      try {
-        it.supportFragmentManager.beginTransaction()
-          .add(googlePayFragment!!, GooglePayFragment.TAG)
-          .commit()
-      } catch (error: IllegalStateException) {
-        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
-      }
-    }
-  }
-
-  @ReactMethod
-  fun presentGooglePay(params: ReadableMap, promise: Promise) {
-    val clientSecret = getValOr(params, "clientSecret") ?: run {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide clientSecret"))
-      return
-    }
-
-    if (getBooleanOrFalse(params, "forSetupIntent")) {
-      val currencyCode = getValOr(params, "currencyCode") ?: run {
-        promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
-        return
-      }
-      googlePayFragment?.presentForSetupIntent(clientSecret, currencyCode, promise)
-    } else {
-      googlePayFragment?.presentForPaymentIntent(clientSecret, promise)
-    }
-  }
-
-  @ReactMethod
   fun confirmPlatformPay(clientSecret: String, params: ReadableMap, isPaymentIntent: Boolean, promise: Promise) {
     if (!::stripe.isInitialized) {
       promise.resolve(createMissingInitError())
@@ -682,19 +624,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
       }
     }
-  }
-
-  @ReactMethod
-  fun createGooglePayPaymentMethod(params: ReadableMap, promise: Promise) {
-    val currencyCode = getValOr(params, "currencyCode", null) ?: run {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide currencyCode"))
-      return
-    }
-    val amount = getIntOrNull(params, "amount") ?: run {
-      promise.resolve(createError(GooglePayErrorType.Failed.toString(), "you must provide amount"))
-      return
-    }
-    googlePayFragment?.createPaymentMethod(currencyCode, amount, promise)
   }
 
   @ReactMethod
