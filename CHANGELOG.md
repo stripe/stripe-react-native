@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Fixed font scaling on Android PaymentSheet not respecting floating-point number values. [#1469](https://github.com/stripe/stripe-react-native/pull/1469)
+
 ## 0.30.0 - 2023-08-04
 
 **Features**
