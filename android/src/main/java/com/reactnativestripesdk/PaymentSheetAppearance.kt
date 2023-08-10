@@ -108,27 +108,48 @@ private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.
 }
 
 private fun getDoubleOrNull(bundle: Bundle?, key: String): Double? {
-  return if (bundle?.containsKey(key) == true) {
-    bundle.getDouble(key, bundle.getDouble(key))
-  } else {
-    null
+  if (bundle?.containsKey(key) == true) {
+    val valueOfUnknownType = bundle.get(key)
+    if (valueOfUnknownType is Double) {
+      return valueOfUnknownType
+    } else if (valueOfUnknownType is Int) {
+      return valueOfUnknownType.toDouble()
+    } else if (valueOfUnknownType is Float) {
+      return valueOfUnknownType.toDouble()
+    }
   }
+
+  return null
 }
 
 private fun getFloatOr(bundle: Bundle?, key: String, defaultValue: Float): Float {
-  return if (bundle?.containsKey(key) == true) {
-    bundle.getFloat(key, bundle.getInt(key).toFloat())
-  } else {
-    defaultValue
+  if (bundle?.containsKey(key) == true) {
+    val valueOfUnknownType = bundle.get(key)
+    if (valueOfUnknownType is Float) {
+      return valueOfUnknownType
+    } else if (valueOfUnknownType is Int) {
+      return valueOfUnknownType.toFloat()
+    } else if (valueOfUnknownType is Double) {
+      return valueOfUnknownType.toFloat()
+    }
   }
+
+  return defaultValue
 }
 
 private fun getFloatOrNull(bundle: Bundle?, key: String): Float? {
-  return if (bundle?.containsKey(key) == true) {
-    bundle.getFloat(key, bundle.getInt(key).toFloat())
-  } else {
-    null
+  if (bundle?.containsKey(key) == true) {
+    val valueOfUnknownType = bundle.get(key)
+    if (valueOfUnknownType is Float) {
+      return valueOfUnknownType
+    } else if (valueOfUnknownType is Int) {
+      return valueOfUnknownType.toFloat()
+    } else if (valueOfUnknownType is Double) {
+      return valueOfUnknownType.toFloat()
+    }
   }
+
+  return null
 }
 
 @Throws(PaymentSheetAppearanceException::class)
