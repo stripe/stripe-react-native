@@ -135,7 +135,12 @@ export default function PaymentsUICompleteScreen() {
         loading={loading}
         disabled={!paymentSheetEnabled}
         title="Add shipping"
-        onPress={() => setAddressSheetVisible(true)}
+        onPress={() => {
+          setTimeout(function () {
+            setAddressSheetVisible(false);
+          }, 5000);
+          setAddressSheetVisible(true);
+        }}
       />
       <Button
         variant="primary"
