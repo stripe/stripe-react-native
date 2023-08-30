@@ -31,6 +31,10 @@ import type {
   CanAddCardToWalletResult,
   FinancialConnections,
   PlatformPay,
+  CustomerSheetError,
+  CustomerSheetInitParams,
+  CustomerSheetPresentParams,
+  CustomerSheetResult,
 } from './types';
 import {
   Platform,
@@ -820,5 +824,33 @@ export const updatePlatformPaySheet = async (params: {
 export const openPlatformPaySetup = async (): Promise<void> => {
   if (Platform.OS === 'ios') {
     await NativeStripeSdk.openApplePaySetup();
+  }
+};
+
+export const initCustomerSheet = async (
+  params: CustomerSheetInitParams
+): Promise<{ error?: StripeError<CustomerSheetError> }> => {
+  try {
+    const { error } = await NativeStripeSdk.initCustomerSheet(params);
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+export const presentCustomerSheet = async (
+  params: CustomerSheetPresentParams
+): Promise<CustomerSheetResult> => {
+  try {
+    return await NativeStripeSdk.presentCustomerSheet(params);
+  } catch (error: any) {
+    return {
+      error,
+    };
   }
 };

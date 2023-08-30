@@ -91,6 +91,11 @@ export enum AddressSheetError {
   Canceled = 'Canceled',
 }
 
+export enum CustomerSheetError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+}
+
 export enum PlatformPayError {
   Canceled = 'Canceled',
   Failed = 'Failed',

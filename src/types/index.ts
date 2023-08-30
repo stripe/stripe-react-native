@@ -43,6 +43,7 @@ export {
 
 export * from './PushProvisioning';
 export * from './Errors';
+export * from './CustomerSheet';
 export type { Address, BillingDetails, AddressDetails } from './Common';
 
 /**

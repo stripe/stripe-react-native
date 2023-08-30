@@ -25,6 +25,11 @@ import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  CustomerSheetInitParams,
+  CustomerSheetPresentParams,
+  CustomerSheetResult,
+  CustomerSheetError,
+  StripeError,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -119,6 +124,12 @@ type NativeStripeSdkType = {
     webServiceUrl: string,
     authenticationToken: string
   ): Promise<void>;
+  initCustomerSheet(
+    params: CustomerSheetInitParams
+  ): Promise<{ error?: StripeError<CustomerSheetError> }>;
+  presentCustomerSheet(
+    params: CustomerSheetPresentParams
+  ): Promise<CustomerSheetResult>;
 };
 
 const { StripeSdk } = NativeModules;
