@@ -333,6 +333,7 @@ export default function ApplePayScreen() {
           appearance={PlatformPay.ButtonStyle.WhiteOutline}
           borderRadius={4}
           disabled={!isApplePaySupported}
+          disabledNativeOnPressOpacity={true}
           style={styles.createPaymentMethodButton}
           onCouponCodeEntered={couponCodeListener}
           onShippingContactSelected={({ shippingContact }) => {

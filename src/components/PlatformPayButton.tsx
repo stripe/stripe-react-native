@@ -32,6 +32,8 @@ export interface Props extends AccessibilityProps {
   onPress(): void;
   /** Set to `true` to disable the button from being pressed & apply a slight opacity to indicate that it is unpressable. Defaults to false. */
   disabled?: boolean;
+  /** Set to `true` to disable the native onPress opacity and use opacity from RN TouchableOpacity only. Defaults to false. */
+  disabledNativeOnPressOpacity?: boolean;
   /**
    * This callback is triggered whenever the user selects a shipping method in the Apple Pay sheet.
    * It receives one parameter: an `event` object with a `shippingMethod` field. You MUST
@@ -97,6 +99,7 @@ export function PlatformPayButton({
   appearance = ButtonStyle.Automatic,
   onPress,
   disabled,
+  disabledNativeOnPressOpacity,
   borderRadius,
   onShippingMethodSelected,
   onShippingContactSelected,
@@ -144,7 +147,6 @@ export function PlatformPayButton({
   return (
     <TouchableOpacity
       disabled={disabled}
-      activeOpacity={disabled ? 0.3 : 1}
       onPress={onPress}
       style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
@@ -153,7 +155,7 @@ export function PlatformPayButton({
           type={type}
           buttonStyle={appearance}
           borderRadius={borderRadius}
-          disabled={disabled}
+          disabled={disabledNativeOnPressOpacity}
           onShippingMethodSelectedAction={shippingMethodCallback}
           onShippingContactSelectedAction={shippingContactCallback}
           onCouponCodeEnteredAction={couponCodeCallback}
