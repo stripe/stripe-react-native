@@ -48,6 +48,11 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var applePayShippingAddressErrors: [Error]? = nil
     var applePayCouponCodeErrors: [Error]? = nil
     
+    var customerSheetConfiguration = CustomerSheet.Configuration()
+    var customerSheet: CustomerSheet? = nil
+    var customerAdapter: StripeCustomerAdapter? = nil
+    var customerSheetViewController: UIViewController?
+    
     var hasEventListeners = false
     override func startObserving() {
         hasEventListeners = true

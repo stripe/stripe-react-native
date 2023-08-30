@@ -262,7 +262,7 @@ extension StripeSdk {
         })
     }
     
-    private static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
+    internal static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
         switch str {
         case "automatic":
             return .automatic
@@ -275,7 +275,7 @@ extension StripeSdk {
         }
     }
     
-    private static func mapToAddressCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
+    internal static func mapToAddressCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
         switch str {
         case "automatic":
             return .automatic
