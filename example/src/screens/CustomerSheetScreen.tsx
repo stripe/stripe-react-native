@@ -1,10 +1,12 @@
 import React from 'react';
 import { Alert, Image, StyleSheet } from 'react-native';
-import { CustomerSheet } from '@stripe/stripe-react-native';
+import { CustomerSheetBeta } from '@stripe/stripe-react-native';
 import type { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+
+const { CustomerSheet } = CustomerSheetBeta;
 
 export default function CustomerSheetScreen() {
   const [stripeInitialized, setStripeInitialized] = React.useState(false);

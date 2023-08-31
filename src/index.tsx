@@ -21,11 +21,12 @@ export { AddToWalletButton } from './components/AddToWalletButton';
 export type { Props as AddToWalletButtonProps } from './components/AddToWalletButton';
 export { AddressSheet } from './components/AddressSheet';
 export type { Props as AddressSheetProps } from './components/AddressSheet';
-export { CustomerSheet } from './components/CustomerSheet';
-export type { Props as CustomerSheetProps } from './components/CustomerSheet';
 export { PlatformPayButton } from './components/PlatformPayButton';
 export type { Props as PlatformPayButtonProps } from './components/PlatformPayButton';
 
 export * from './functions';
 
 export * from './types/index';
+
+export * as CustomerSheetBeta from './components/CustomerSheet';
+export type { Props as CustomerSheetProps } from './components/CustomerSheet';

@@ -1,10 +1,40 @@
 import React from 'react';
+import NativeStripeSdk from '../NativeStripeSdk';
 import type {
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
   CustomerSheetResult,
+  CustomerSheetError,
+  StripeError,
 } from '../types';
-import { initCustomerSheet, presentCustomerSheet } from '../functions';
+
+export const initCustomerSheet = async (
+  params: CustomerSheetInitParams
+): Promise<{ error?: StripeError<CustomerSheetError> }> => {
+  try {
+    const { error } = await NativeStripeSdk.initCustomerSheet(params);
+    if (error) {
+      return { error };
+    }
+    return {};
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+export const presentCustomerSheet = async (
+  params: CustomerSheetPresentParams
+): Promise<CustomerSheetResult> => {
+  try {
+    return await NativeStripeSdk.presentCustomerSheet(params);
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
 
 /**
  *  Props
