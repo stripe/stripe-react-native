@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Features**
+
+- **[BETA]** Added [CustomerSheet](https://stripe.com/docs/elements/customer-sheet?platform=react-native) API, a prebuilt UI component that lets your customers manage their saved payment methods.
+- [PaymentSheet] Added support for AmazonPay (private beta), BLIK (iOS only), GrabPay, and FPX with PaymentIntents.
+
 **Fixes**
 
 - Fixed font scaling on Android PaymentSheet not respecting floating-point number values. [#1469](https://github.com/stripe/stripe-react-native/pull/1469)
