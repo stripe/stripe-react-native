@@ -8,7 +8,7 @@ import type {
   StripeError,
 } from '../types';
 
-export const initCustomerSheet = async (
+const initCustomerSheet = async (
   params: CustomerSheetInitParams
 ): Promise<{ error?: StripeError<CustomerSheetError> }> => {
   try {
@@ -24,7 +24,7 @@ export const initCustomerSheet = async (
   }
 };
 
-export const presentCustomerSheet = async (
+const presentCustomerSheet = async (
   params: CustomerSheetPresentParams
 ): Promise<CustomerSheetResult> => {
   try {
@@ -60,7 +60,7 @@ export type Props = {
  * @returns JSX.Element
  * @category ReactComponents
  */
-export function CustomerSheet({
+function CustomerSheet({
   visible,
   presentationStyle,
   animationStyle,
@@ -116,3 +116,9 @@ export function CustomerSheet({
 
   return null;
 }
+
+export const CustomerSheetBeta = {
+  CustomerSheet,
+  initCustomerSheet,
+  presentCustomerSheet,
+};

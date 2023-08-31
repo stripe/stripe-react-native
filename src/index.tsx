@@ -28,5 +28,5 @@ export * from './functions';
 
 export * from './types/index';
 
-export * as CustomerSheetBeta from './components/CustomerSheet';
+export * from './components/CustomerSheet';
 export type { Props as CustomerSheetProps } from './components/CustomerSheet';
