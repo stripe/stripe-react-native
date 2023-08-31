@@ -27,7 +27,7 @@ export type CustomerSheetInitParams = {
   billingDetailsCollectionConfiguration?: PaymentSheet.BillingDetailsCollectionConfiguration;
   /** A URL that redirects back to your app that CustomerSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
-  /** Optional configuration to display a custom message when a saved payment method is removed. */
+  /** Optional configuration to display a custom message when a saved payment method is removed. iOS only. */
   removeSavedPaymentMethodMessage?: string;
   /** Whether to show Apple Pay as an option. Defaults to false. */
   applePayEnabled?: boolean;

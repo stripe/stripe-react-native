@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Image, StyleSheet } from 'react-native';
 import { CustomerSheet } from '@stripe/stripe-react-native';
 import type { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -58,6 +58,14 @@ export default function CustomerSheetScreen() {
           setCustomerSheetVisible(true);
         }}
       />
+      {selectedPaymentOption?.image && (
+        <Image
+          style={styles.image}
+          source={{
+            uri: `data:image/png;base64,${selectedPaymentOption?.image}`,
+          }}
+        />
+      )}
       <CustomerSheet
         visible={customerSheetVisible}
         setupIntentClientSecret={setupIntent}
@@ -81,3 +89,7 @@ export default function CustomerSheetScreen() {
     </PaymentScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  image: { alignSelf: 'center', width: 150, height: 100 },
+});

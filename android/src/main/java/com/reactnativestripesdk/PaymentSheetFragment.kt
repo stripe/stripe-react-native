@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -399,10 +400,13 @@ class PaymentSheetFragment(
 }
 
 fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
-  var drawable = AppCompatResources.getDrawable(context!!, drawableId) ?: return null
+  val drawable = AppCompatResources.getDrawable(context!!, drawableId) ?: return null
+  return getBitmapFromDrawable(drawable)
+}
 
-  drawable = DrawableCompat.wrap(drawable).mutate()
-  val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+fun getBitmapFromDrawable(drawable: Drawable): Bitmap {
+  val drawableCompat = DrawableCompat.wrap(drawable).mutate()
+  val bitmap = Bitmap.createBitmap(drawableCompat.intrinsicWidth, drawableCompat.intrinsicHeight, Bitmap.Config.ARGB_8888)
   bitmap.eraseColor(Color.WHITE)
   val canvas = Canvas(bitmap)
   drawable.setBounds(0, 0, canvas.width, canvas.height)

@@ -14,6 +14,9 @@ import com.reactnativestripesdk.utils.*
 import com.stripe.android.*
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
+import com.stripe.android.customersheet.CustomerAdapter
+import com.stripe.android.customersheet.CustomerSheet
+import com.stripe.android.customersheet.ExperimentalCustomerSheetApi
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.*
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -47,6 +50,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
+  private var customerSheetFragment: CustomerSheetFragment? = null
+  internal var customerSheetInitPromise: Promise? = null
+
   internal var eventListenerCount = 0
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
@@ -58,7 +64,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       CollectBankAccountLauncherFragment.TAG,
       FinancialConnectionsSheetFragment.TAG,
       AddressLauncherFragment.TAG,
-      GooglePayLauncherFragment.TAG
+      GooglePayLauncherFragment.TAG,
+      CustomerSheetFragment.TAG
     )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
@@ -818,6 +825,39 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, stripeAccountId, promise, reactApplicationContext)
     }
+  }
+
+  @ReactMethod
+  fun initCustomerSheet(params: ReadableMap, promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      customerSheetFragment?.removeFragment(reactApplicationContext)
+      customerSheetInitPromise = promise
+      customerSheetFragment = CustomerSheetFragment(reactApplicationContext).also {
+        val bundle = toBundleObject(params)
+        it.arguments = bundle
+      }
+      try {
+        activity.supportFragmentManager.beginTransaction()
+          .add(customerSheetFragment!!, CustomerSheetFragment.TAG)
+          .commit()
+      } catch (error: IllegalStateException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun presentCustomerSheet(params: ReadableMap, promise: Promise) {
+    var timeout: Long? = null
+    if (params.hasKey("timeout")) {
+      timeout = params.getInt("timeout").toLong()
+    }
+    customerSheetFragment?.present(timeout, promise)
   }
 
   @ReactMethod
