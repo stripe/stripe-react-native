@@ -6,13 +6,6 @@ import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 
-const {
-  CustomerSheet,
-  initCustomerSheet,
-  presentCustomerSheet,
-  retrieveCustomerSheetPaymentOptionSelection,
-} = CustomerSheetBeta;
-
 export default function CustomerSheetScreen() {
   const [useComponent, setUseComponent] = React.useState(false);
   const [stripeInitialized, setStripeInitialized] = React.useState(false);
@@ -53,7 +46,7 @@ export default function CustomerSheetScreen() {
       setupIntent: setupIntentClientSecret,
       ephemeralKeySecret: customerEphemeralKeySecret,
     } = await fetchCustomerSheetParams();
-    const { error } = await initCustomerSheet({
+    const { error } = await CustomerSheetBeta.initialize({
       setupIntentClientSecret,
       customerEphemeralKeySecret,
       customerId,
@@ -67,7 +60,7 @@ export default function CustomerSheetScreen() {
       error: retrievalError,
       paymentOption,
       paymentMethod,
-    } = await retrieveCustomerSheetPaymentOptionSelection();
+    } = await CustomerSheetBeta.retrievePaymentOptionSelection();
     if (retrievalError) {
       Alert.alert(retrievalError.code, retrievalError.localizedMessage);
     }
@@ -87,7 +80,7 @@ export default function CustomerSheetScreen() {
       setCustomerSheetVisible(true);
     } else {
       const { error, paymentOption, paymentMethod } =
-        await presentCustomerSheet();
+        await CustomerSheetBeta.present();
       if (error) {
         Alert.alert(error.code, error.localizedMessage);
       }
@@ -116,7 +109,7 @@ export default function CustomerSheetScreen() {
         }}
       />
       {useComponent && (
-        <CustomerSheet
+        <CustomerSheetBeta.CustomerSheet
           visible={customerSheetVisible}
           setupIntentClientSecret={setupIntent}
           customerEphemeralKeySecret={ephemeralKeySecret}

@@ -8,7 +8,7 @@ import type {
   StripeError,
 } from '../types';
 
-const initCustomerSheet = async (
+const initialize = async (
   params: CustomerSheetInitParams
 ): Promise<{ error?: StripeError<CustomerSheetError> }> => {
   try {
@@ -24,7 +24,7 @@ const initCustomerSheet = async (
   }
 };
 
-const presentCustomerSheet = async (
+const present = async (
   params: CustomerSheetPresentParams = {}
 ): Promise<CustomerSheetResult> => {
   try {
@@ -36,7 +36,7 @@ const presentCustomerSheet = async (
   }
 };
 
-const retrieveCustomerSheetPaymentOptionSelection =
+const retrievePaymentOptionSelection =
   async (): Promise<CustomerSheetResult> => {
     try {
       return await NativeStripeSdk.retrieveCustomerSheetPaymentOptionSelection();
@@ -93,7 +93,7 @@ function CustomerSheet({
 }: Props) {
   React.useEffect(() => {
     if (visible) {
-      initCustomerSheet({
+      initialize({
         style,
         appearance,
         setupIntentClientSecret,
@@ -111,7 +111,7 @@ function CustomerSheet({
         if (initResult.error) {
           onResult(initResult);
         } else {
-          presentCustomerSheet({
+          present({
             timeout,
             presentationStyle,
             animationStyle,
@@ -130,7 +130,7 @@ function CustomerSheet({
 
 export const CustomerSheetBeta = {
   CustomerSheet,
-  initCustomerSheet,
-  presentCustomerSheet,
-  retrieveCustomerSheetPaymentOptionSelection,
+  initialize,
+  present,
+  retrievePaymentOptionSelection,
 };
