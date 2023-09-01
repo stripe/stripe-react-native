@@ -404,8 +404,11 @@ fun getBitmapFromVectorDrawable(context: Context?, drawableId: Int): Bitmap? {
   return getBitmapFromDrawable(drawable)
 }
 
-fun getBitmapFromDrawable(drawable: Drawable): Bitmap {
+fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
   val drawableCompat = DrawableCompat.wrap(drawable).mutate()
+  if (drawableCompat.intrinsicWidth <= 0 || drawableCompat.intrinsicHeight <= 0) {
+    return null
+  }
   val bitmap = Bitmap.createBitmap(drawableCompat.intrinsicWidth, drawableCompat.intrinsicHeight, Bitmap.Config.ARGB_8888)
   bitmap.eraseColor(Color.WHITE)
   val canvas = Canvas(bitmap)
