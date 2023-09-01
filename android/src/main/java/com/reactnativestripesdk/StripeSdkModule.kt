@@ -857,7 +857,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     if (params.hasKey("timeout")) {
       timeout = params.getInt("timeout").toLong()
     }
-    customerSheetFragment?.present(timeout, promise)
+    customerSheetFragment?.present(timeout, promise) ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+    }
+  }
+
+  @ReactMethod
+  fun retrieveCustomerSheetPaymentOptionSelection(promise: Promise) {
+    customerSheetFragment?.retrievePaymentOptionSelection(promise) ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+    }
   }
 
   @ReactMethod

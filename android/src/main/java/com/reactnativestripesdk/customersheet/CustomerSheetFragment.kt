@@ -3,44 +3,32 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.*
-import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.*
-import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createResult
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.customersheet.CustomerEphemeralKey
-import com.stripe.android.customersheet.CustomerEphemeralKeyProvider
 import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.customersheet.CustomerSheetResult
 import com.stripe.android.customersheet.ExperimentalCustomerSheetApi
 import com.stripe.android.customersheet.PaymentOptionSelection
-import com.stripe.android.customersheet.SetupIntentClientSecretProvider
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentsheet.*
-import kotlinx.coroutines.CompletableDeferred
-import java.io.ByteArrayOutputStream
-import kotlin.Exception
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalCustomerSheetApi::class)
-class CustomerSheetFragment(private val context: ReactApplicationContext,) : Fragment() {
+class CustomerSheetFragment(private val context: ReactApplicationContext) : Fragment() {
   private var customerSheet: CustomerSheet? = null
   private var customerAdapter: CustomerAdapter? = null
 
@@ -143,10 +131,11 @@ class CustomerSheetFragment(private val context: ReactApplicationContext,) : Fra
 
   private fun presentWithTimeout(timeout: Long) {
     var customerSheetActivity: Activity? = null
-
+    var activities: MutableList<Activity> = mutableListOf()
     val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         customerSheetActivity = activity
+        activities.add(activity)
       }
 
       override fun onActivityStarted(activity: Activity) {}
@@ -161,18 +150,50 @@ class CustomerSheetFragment(private val context: ReactApplicationContext,) : Fra
 
       override fun onActivityDestroyed(activity: Activity) {
         customerSheetActivity = null
+        activities = mutableListOf()
         context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
       }
     }
 
-    Handler(Looper.getMainLooper()).postDelayed({
-      customerSheetActivity?.finish()
-    }, timeout)
+      Handler(Looper.getMainLooper()).postDelayed({
+        //customerSheetActivity?.finish()
+        for (a in activities) {
+          a.finish()
+        }
+      }, timeout)
+
 
     context.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     customerSheet?.present() ?: run {
       presentPromise?.resolve(createMissingInitError())
+    }
+  }
+
+  internal fun retrievePaymentOptionSelection(promise: Promise) {
+    CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
+        val result = customerSheet?.retrievePaymentOptionSelection() ?: run {
+          promise.resolve(createMissingInitError())
+          return@launch
+        }
+        var promiseResult = Arguments.createMap()
+        when (result) {
+          is CustomerSheetResult.Failed -> {
+            presentPromise?.resolve(createError(ErrorType.Failed.toString(), result.exception))
+          }
+          is CustomerSheetResult.Selected -> {
+            promiseResult = createPaymentOptionResult(result.selection)
+          }
+          is CustomerSheetResult.Canceled -> {
+            promiseResult = createPaymentOptionResult(result.selection)
+            promiseResult.putMap("error", Arguments.createMap().also { it.putString("code", ErrorType.Canceled.toString()) })
+          }
+        }
+        promise.resolve(promiseResult)
+      }.onFailure {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
+      }
     }
   }
 

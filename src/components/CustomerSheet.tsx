@@ -25,7 +25,7 @@ const initCustomerSheet = async (
 };
 
 const presentCustomerSheet = async (
-  params: CustomerSheetPresentParams
+  params: CustomerSheetPresentParams = {}
 ): Promise<CustomerSheetResult> => {
   try {
     return await NativeStripeSdk.presentCustomerSheet(params);
@@ -35,6 +35,17 @@ const presentCustomerSheet = async (
     };
   }
 };
+
+const retrieveCustomerSheetPaymentOptionSelection =
+  async (): Promise<CustomerSheetResult> => {
+    try {
+      return await NativeStripeSdk.retrieveCustomerSheetPaymentOptionSelection();
+    } catch (error: any) {
+      return {
+        error,
+      };
+    }
+  };
 
 /**
  *  Props
@@ -121,4 +132,5 @@ export const CustomerSheetBeta = {
   CustomerSheet,
   initCustomerSheet,
   presentCustomerSheet,
+  retrieveCustomerSheetPaymentOptionSelection,
 };

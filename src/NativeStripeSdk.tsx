@@ -130,6 +130,7 @@ type NativeStripeSdkType = {
   presentCustomerSheet(
     params: CustomerSheetPresentParams
   ): Promise<CustomerSheetResult>;
+  retrieveCustomerSheetPaymentOptionSelection(): Promise<CustomerSheetResult>;
 };
 
 const { StripeSdk } = NativeModules;

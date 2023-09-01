@@ -95,7 +95,7 @@ extension StripeSdk {
         }
         
         Task {
-            var payload: NSDictionary? = nil
+            var payload: NSDictionary = [:]
             var paymentMethodOption: CustomerSheet.PaymentOptionSelection? = nil
             do {
                 paymentMethodOption = try await customerAdapter.retrievePaymentOptionSelection()
