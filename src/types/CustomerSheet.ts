@@ -47,7 +47,10 @@ export type CustomerSheetPresentParams = {
 };
 
 export type CustomerSheetResult = {
+  /** The users selected payment option, if one exists. */
   paymentOption?: PaymentSheet.PaymentOption;
+  /** The Stripe PaymentMethod associated with the paymentOption, if it exists. */
   paymentMethod?: PaymentMethod.Result;
+  /** The error that occurred. */
   error?: StripeError<CustomerSheetError>;
 };

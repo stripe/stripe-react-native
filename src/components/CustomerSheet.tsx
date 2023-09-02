@@ -8,6 +8,7 @@ import type {
   StripeError,
 } from '../types';
 
+/** Initialize an instance of Customer Sheet with your desired configuration. */
 const initialize = async (
   params: CustomerSheetInitParams
 ): Promise<{ error?: StripeError<CustomerSheetError> }> => {
@@ -24,6 +25,7 @@ const initialize = async (
   }
 };
 
+/** Launches the Customer Sheet UI. */
 const present = async (
   params: CustomerSheetPresentParams = {}
 ): Promise<CustomerSheetResult> => {
@@ -36,6 +38,10 @@ const present = async (
   }
 };
 
+/**
+ * You can use this to obtain the selected payment method without presenting the CustomerSheet.
+ * This will return an error if you have not called `.initialize`
+ */
 const retrievePaymentOptionSelection =
   async (): Promise<CustomerSheetResult> => {
     try {
@@ -59,13 +65,36 @@ export type Props = {
   CustomerSheetPresentParams;
 
 /**
- *
+ * A component wrapper around the Customer Sheet functions. Upon passing `true` to the `visible` prop,
+ * Customer Sheet will call `initialize` and `present`, and the result(s) will be passed through to the
+ * onResult callback.
  *
  * @example
  * ```ts
- *  <CustomerSheet
+ *  const [selectedPaymentOption, setSelectedPaymentOption] = React.useState(null);
+ *  const [customerSheetVisible, setCustomerSheetVisible] = React.useState(false);
  *
- *  />
+ *  return (
+ *    <CustomerSheet
+ *      visible={customerSheetVisible}
+ *      customerEphemeralKeySecret={ephemeralKeySecret}
+ *      customerId={customer}
+ *      returnURL={'stripe-example://stripe-redirect'}
+ *      onResult={({ error, paymentOption, paymentMethod }) => {
+ *        setCustomerSheetVisible(false);
+ *        if (error) {
+ *          Alert.alert(error.code, error.localizedMessage);
+ *        }
+ *        if (paymentOption) {
+ *          setSelectedPaymentOption(paymentOption);
+ *          console.log(JSON.stringify(paymentOption, null, 2));
+ *        }
+ *        if (paymentMethod) {
+ *          console.log(JSON.stringify(paymentMethod, null, 2));
+ *        }
+ *      }}
+ *    />
+ *  );
  * ```
  * @param __namedParameters Props
  * @returns JSX.Element
@@ -128,6 +157,9 @@ function CustomerSheet({
   return null;
 }
 
+/**
+ * The Customer Sheet is a prebuilt UI component that lets your customers manage their saved payment methods.
+ */
 export const CustomerSheetBeta = {
   CustomerSheet,
   initialize,
