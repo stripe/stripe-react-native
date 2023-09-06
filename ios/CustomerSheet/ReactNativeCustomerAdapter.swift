@@ -10,7 +10,6 @@ import Foundation
 
 class ReactNativeCustomerAdapter: StripeCustomerAdapter {
     var overridesFetchPaymentMethods: Bool
-    var fetchedPaymentMethodsCompletion: (() -> [STPPaymentMethod])? = nil
     var overridesAttachPaymentMethod: Bool
     var overridesDetachPaymentMethod: Bool
     var overridesSetSelectedPaymentOption: Bool
