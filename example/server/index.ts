@@ -740,6 +740,23 @@ app.post('/customer-sheet', async (_, res) => {
   });
 });
 
+app.post('/fetch-payment-methods', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  const paymentMethods = await stripe.customers.listPaymentMethods(
+    req.body.customerId
+  );
+
+  res.json({
+    paymentMethods: paymentMethods.data,
+  });
+});
+
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)
 );

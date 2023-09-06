@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     @objc(initCustomerSheet:resolver:rejecter:)
@@ -42,7 +42,10 @@ extension StripeSdk {
         customerAdapter = CustomerSheetUtils.buildStripeCustomerAdapter(
             customerId: customerId,
             ephemeralKeySecret: customerEphemeralKeySecret,
-            setupIntentClientSecret: params["setupIntentClientSecret"] as? String)
+            setupIntentClientSecret: params["setupIntentClientSecret"] as? String,
+            customerAdapter: params["customerAdapter"] as? NSDictionary,
+            stripeSdk: self
+        )
 
         customerSheet = CustomerSheet(configuration: customerSheetConfiguration, customer: customerAdapter!)
         
@@ -114,5 +117,50 @@ extension StripeSdk {
             }
             resolve(payload)
         }
+    }
+    
+    @objc(customerAdapterFetchPaymentMethodsCallback:resolver:rejecter:)
+    func customerAdapterFetchPaymentMethodsCallback(paymentMethod: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        let decodedPaymentMethods = paymentMethod.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable : Any]) }
+        self.fetchPaymentMethodsCallback?(decodedPaymentMethods)
+        resolve([])
+    }
+    
+    @objc(customerAdapterAttachPaymentMethodCallback:rejecter:)
+    func customerAdapterAttachPaymentMethodCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        self.attachPaymentMethodCallback?()
+        resolve([])
+    }
+    
+    @objc(customerAdapterDetachPaymentMethodCallback:rejecter:)
+    func customerAdapterDetachPaymentMethodCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        self.detachPaymentMethodCallback?()
+        resolve([])
+    }
+    
+    @objc(customerAdapterSetSelectedPaymentOptionCallback:rejecter:)
+    func customerAdapterSetSelectedPaymentOptionCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        self.setSelectedPaymentOptionCallback?()
+        resolve([])
+    }
+    
+    @objc(customerAdapterFetchSelectedPaymentOptionCallback:resolver:rejecter:)
+    func customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        if let paymentOption = paymentOption {
+            self.fetchSelectedPaymentOptionCallback?(CustomerPaymentOption.init(value: paymentOption))
+        } else {
+            self.fetchSelectedPaymentOptionCallback?(nil)
+        }
+        resolve([])
+    }
+    
+    @objc(customerAdapterSetupIntentClientSecretForCustomerAttachCallback:resolver:rejecter:)
+    func customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        self.setupIntentClientSecretForCustomerAttachCallback?(clientSecret)
+        resolve([])
     }
 }

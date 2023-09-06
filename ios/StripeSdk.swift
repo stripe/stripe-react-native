@@ -52,6 +52,12 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var customerSheet: CustomerSheet? = nil
     var customerAdapter: StripeCustomerAdapter? = nil
     var customerSheetViewController: UIViewController?
+    var fetchPaymentMethodsCallback: (([STPPaymentMethod]) -> Void)? = nil
+    var attachPaymentMethodCallback: (() -> Void)? = nil
+    var detachPaymentMethodCallback: (() -> Void)? = nil
+    var setSelectedPaymentOptionCallback: (() -> Void)? = nil
+    var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
+    var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     
     var hasEventListeners = false
     override func startObserving() {
@@ -62,7 +68,9 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     }
     
     override func supportedEvents() -> [String]! {
-        return ["onOrderTrackingCallback", "onConfirmHandlerCallback"]
+        return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onCustomerAdapterFetchPaymentMethodsCallback", "onCustomerAdapterAttachPaymentMethodCallback",
+        "onCustomerAdapterDetachPaymentMethodCallback", "onCustomerAdapterSetSelectedPaymentOptionCallback", "onCustomerAdapterFetchSelectedPaymentOptionCallback",
+        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {

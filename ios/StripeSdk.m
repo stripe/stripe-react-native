@@ -203,4 +203,37 @@ RCT_EXTERN_METHOD(
                   retrieveCustomerSheetPaymentOptionSelection:(RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterFetchPaymentMethodsCallback:(NSArray *)paymentMethods
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterAttachPaymentMethodCallback:(RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterDetachPaymentMethodCallback:(RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterSetSelectedPaymentOptionCallback:(RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterFetchSelectedPaymentOptionCallback:(NSString *)paymentOption
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+                  customerAdapterSetupIntentClientSecretForCustomerAttachCallback:(NSString *)clientSecret
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
 @end

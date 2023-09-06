@@ -1,4 +1,9 @@
 import React from 'react';
+import {
+  NativeEventEmitter,
+  NativeModules,
+  EmitterSubscription,
+} from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import type {
   CustomerSheetInitParams,
@@ -6,12 +11,26 @@ import type {
   CustomerSheetResult,
   CustomerSheetError,
   StripeError,
+  CustomerAdapter,
 } from '../types';
+
+const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+let fetchPaymentMethodsCallback: EmitterSubscription | null = null;
+let attachPaymentMethodCallback: EmitterSubscription | null = null;
+let detachPaymentMethodCallback: EmitterSubscription | null = null;
+let setSelectedPaymentOptionCallback: EmitterSubscription | null = null;
+let fetchSelectedPaymentOptionCallback: EmitterSubscription | null = null;
+let setupIntentClientSecretForCustomerAttachCallback: EmitterSubscription | null =
+  null;
 
 /** Initialize an instance of Customer Sheet with your desired configuration. */
 const initialize = async (
   params: CustomerSheetInitParams
 ): Promise<{ error?: StripeError<CustomerSheetError> }> => {
+  if (params.customerAdapter) {
+    configureCustomerAdapterEventListeners(params.customerAdapter);
+  }
+
   try {
     const { error } = await NativeStripeSdk.initCustomerSheet(params);
     if (error) {
@@ -22,6 +41,90 @@ const initialize = async (
     return {
       error,
     };
+  }
+};
+
+const configureCustomerAdapterEventListeners = (
+  customerAdapter: CustomerAdapter
+) => {
+  const fetchPaymentMethods = customerAdapter.fetchPaymentMethods;
+
+  if (fetchPaymentMethods) {
+    fetchPaymentMethodsCallback?.remove();
+    fetchPaymentMethodsCallback = eventEmitter.addListener(
+      'onCustomerAdapterFetchPaymentMethodsCallback',
+      async () => {
+        const paymentMethods = await fetchPaymentMethods();
+        await NativeStripeSdk.customerAdapterFetchPaymentMethodsCallback(
+          paymentMethods
+        );
+      }
+    );
+  }
+
+  const attachPaymentMethod = customerAdapter.attachPaymentMethod;
+  if (attachPaymentMethod) {
+    attachPaymentMethodCallback?.remove();
+    attachPaymentMethodCallback = eventEmitter.addListener(
+      'onCustomerAdapterAttachPaymentMethodCallback',
+      async ({ paymentMethodId }: { paymentMethodId: string }) => {
+        await attachPaymentMethod(paymentMethodId);
+        await NativeStripeSdk.customerAdapterAttachPaymentMethodCallback();
+      }
+    );
+  }
+
+  const detachPaymentMethod = customerAdapter.detachPaymentMethod;
+  if (detachPaymentMethod) {
+    detachPaymentMethodCallback?.remove();
+    detachPaymentMethodCallback = eventEmitter.addListener(
+      'onCustomerAdapterDetachPaymentMethodCallback',
+      async ({ paymentMethodId }: { paymentMethodId: string }) => {
+        await detachPaymentMethod(paymentMethodId);
+        await NativeStripeSdk.customerAdapterDetachPaymentMethodCallback();
+      }
+    );
+  }
+
+  const setSelectedPaymentOption = customerAdapter.setSelectedPaymentOption;
+  if (setSelectedPaymentOption) {
+    setSelectedPaymentOptionCallback?.remove();
+    setSelectedPaymentOptionCallback = eventEmitter.addListener(
+      'onCustomerAdapterSetSelectedPaymentOptionCallback',
+      async ({ paymentOption }: { paymentOption: string }) => {
+        await setSelectedPaymentOption(paymentOption);
+        await NativeStripeSdk.customerAdapterSetSelectedPaymentOptionCallback();
+      }
+    );
+  }
+
+  const fetchSelectedPaymentOption = customerAdapter.fetchSelectedPaymentOption;
+  if (fetchSelectedPaymentOption) {
+    fetchSelectedPaymentOptionCallback?.remove();
+    fetchSelectedPaymentOptionCallback = eventEmitter.addListener(
+      'onCustomerAdapterFetchSelectedPaymentOptionCallback',
+      async () => {
+        const paymentOption = await fetchSelectedPaymentOption();
+        await NativeStripeSdk.customerAdapterFetchSelectedPaymentOptionCallback(
+          paymentOption
+        );
+      }
+    );
+  }
+
+  const setupIntentClientSecretForCustomerAttach =
+    customerAdapter.setupIntentClientSecretForCustomerAttach;
+  if (setupIntentClientSecretForCustomerAttach) {
+    setupIntentClientSecretForCustomerAttachCallback?.remove();
+    setupIntentClientSecretForCustomerAttachCallback = eventEmitter.addListener(
+      'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback',
+      async () => {
+        const clientSecret = await setupIntentClientSecretForCustomerAttach();
+        await NativeStripeSdk.customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+          clientSecret
+        );
+      }
+    );
   }
 };
 

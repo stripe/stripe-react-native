@@ -33,8 +33,11 @@ export type CustomerSheetInitParams = {
   applePayEnabled?: boolean;
   /** Whether to show Google Pay as an option. Defaults to false. */
   googlePayEnabled?: boolean;
-  /** TODO */
-  customerAdapter?: any;
+  /** Optional override. It is generally recommended to rely on the default behavior, but- provide a CustomerAdapter here if
+   * you would prefer retrieving and updating your Stripe customer object via your own backend instead.
+   * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
+   */
+  customerAdapter?: CustomerAdapter;
 };
 
 export type CustomerSheetPresentParams = {
@@ -54,3 +57,56 @@ export type CustomerSheetResult = {
   /** The error that occurred. */
   error?: StripeError<CustomerSheetError>;
 };
+
+export interface CustomerAdapter {
+  /** Retrieves a list of Payment Methods attached to a customer.
+   * If you are implementing your own CustomerAdapter:
+   * Call the list method ( https://stripe.com/docs/api/payment_methods/list )
+   * with the Stripe customer. If this API call succeeds, return the list of payment methods in JSON format.
+   * Otherwise, throw an error.
+   */
+  fetchPaymentMethods?(): Promise<Array<object>>;
+  /** Adds a Payment Method to a customer.
+   * If you are implementing your own CustomerAdapter:
+   * On your backend, retrieve the Stripe customer associated with your logged-in user.
+   * Then, call the Attach method on the Payment Method with that customer's ID
+   * ( https://stripe.com/docs/api/payment_methods/attach ).
+   * If this API call fails, throw the error that occurred.
+   * - Parameters:
+   *   - paymentMethod:   A valid Stripe Payment Method ID
+   */
+  attachPaymentMethod?(paymentMethodId: string): Promise<void>;
+  /** Deletes the given Payment Method from the customer.
+   * If you are implementing your own CustomerAdapter:
+   * Call the Detach method ( https://stripe.com/docs/api/payment_methods/detach )
+   * on the Payment Method.
+   * If this API call fails, throw the error that occurred.
+   * - Parameters:
+   *   - paymentMethod:   The Stripe Payment Method ID to delete from the customer
+   */
+  detachPaymentMethod?(paymentMethodId: String): Promise<void>;
+  /** Set the last selected payment method for the customer.
+   * To unset the default payment method, pass `null` as the `paymentOption`.
+   * If you are implementing your own CustomerAdapter:
+   * Save a representation of the passed `paymentOption` as the customer's default payment method.
+   */
+  setSelectedPaymentOption?(
+    paymentOption: CustomerPaymentOption | null
+  ): Promise<void>;
+  /** Retrieve the last selected payment method for the customer.
+   * If you are implementing your own CustomerAdapter:
+   * Return a CustomerPaymentOption for the customer's default selected payment method.
+   * If no default payment method is selected, return null.
+   */
+  fetchSelectedPaymentOption?(): Promise<CustomerPaymentOption | null>;
+  /** Creates a SetupIntent configured to attach a new payment method to a customer,
+   * then returns the client secret for the created SetupIntent.
+   */
+  setupIntentClientSecretForCustomerAttach?(): Promise<String>;
+}
+
+export type CustomerPaymentOption =
+  | 'apple_pay'
+  | 'google_pay'
+  | 'link'
+  | string;

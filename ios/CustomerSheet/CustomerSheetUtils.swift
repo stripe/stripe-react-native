@@ -56,8 +56,20 @@ class CustomerSheetUtils {
     internal class func buildStripeCustomerAdapter(
         customerId: String,
         ephemeralKeySecret: String,
-        setupIntentClientSecret: String?
+        setupIntentClientSecret: String?,
+        customerAdapter: NSDictionary?,
+        stripeSdk: StripeSdk
     ) -> StripeCustomerAdapter {
+        if let customerAdapter = customerAdapter {
+            return buildCustomerAdapterOverride(
+                customerAdapter: customerAdapter,
+                customerId: customerId,
+                ephemeralKeySecret: ephemeralKeySecret,
+                setupIntentClientSecret: setupIntentClientSecret,
+                stripeSdk: stripeSdk
+            )
+        }
+        
         if let setupIntentClientSecret = setupIntentClientSecret {
             return StripeCustomerAdapter(
                 customerEphemeralKeyProvider: {
@@ -73,6 +85,27 @@ class CustomerSheetUtils {
             customerEphemeralKeyProvider: {
                 return CustomerEphemeralKey(customerId: customerId, ephemeralKeySecret: ephemeralKeySecret)
             }
+        )
+    }
+    
+    internal class func buildCustomerAdapterOverride(
+        customerAdapter: NSDictionary,
+        customerId: String,
+        ephemeralKeySecret: String,
+        setupIntentClientSecret: String?,
+        stripeSdk: StripeSdk
+    ) -> StripeCustomerAdapter {
+        return ReactNativeCustomerAdapter(
+            fetchPaymentMethods: customerAdapter.value(forKey: "fetchPaymentMethods") != nil,
+            attachPaymentMethod: customerAdapter.value(forKey: "attachPaymentMethod") != nil,
+            detachPaymentMethod: customerAdapter.value(forKey: "detachPaymentMethod") != nil,
+            setSelectedPaymentOption: customerAdapter.value(forKey: "setSelectedPaymentOption") != nil,
+            fetchSelectedPaymentOption: customerAdapter.value(forKey: "fetchSelectedPaymentOption") != nil,
+            setupIntentClientSecretForCustomerAttach: customerAdapter.value(forKey: "setupIntentClientSecretForCustomerAttach") != nil,
+            customerId: customerId,
+            ephemeralKeySecret: ephemeralKeySecret,
+            setupIntentClientSecret: setupIntentClientSecret,
+            stripeSdk: stripeSdk
         )
     }
 

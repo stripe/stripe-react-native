@@ -30,6 +30,7 @@ import type {
   CustomerSheetResult,
   CustomerSheetError,
   StripeError,
+  CustomerPaymentOption,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -131,6 +132,18 @@ type NativeStripeSdkType = {
     params: CustomerSheetPresentParams
   ): Promise<CustomerSheetResult>;
   retrieveCustomerSheetPaymentOptionSelection(): Promise<CustomerSheetResult>;
+  customerAdapterFetchPaymentMethodsCallback(
+    paymentMethods: Array<object>
+  ): Promise<void>;
+  customerAdapterAttachPaymentMethodCallback(): Promise<void>;
+  customerAdapterDetachPaymentMethodCallback(): Promise<void>;
+  customerAdapterSetSelectedPaymentOptionCallback(): Promise<void>;
+  customerAdapterFetchSelectedPaymentOptionCallback(
+    paymentOption: CustomerPaymentOption | null
+  ): Promise<void>;
+  customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+    clientSecret: String
+  ): Promise<void>;
 };
 
 const { StripeSdk } = NativeModules;

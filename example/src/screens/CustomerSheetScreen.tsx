@@ -51,6 +51,21 @@ export default function CustomerSheetScreen() {
       customerEphemeralKeySecret,
       customerId,
       returnURL: 'stripe-example://stripe-redirect',
+      customerAdapter: {
+        fetchPaymentMethods: async () => {
+          const response = await fetch(`${API_URL}/fetch-payment-methods`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              customerId,
+            }),
+          });
+          const result = await response.json();
+          return result.paymentMethods;
+        },
+      },
     });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
