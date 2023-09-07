@@ -2,11 +2,11 @@ package com.reactnativestripesdk
 
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,11 +29,13 @@ import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalCustomerSheetApi::class)
-class CustomerSheetFragment(private val context: ReactApplicationContext) : Fragment() {
+class CustomerSheetFragment : Fragment() {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
-
+  internal var context: ReactApplicationContext? = null
+  internal var initPromise: Promise? = null
   private var presentPromise: Promise? = null
+
   override fun onCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
@@ -47,7 +49,14 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    val initPromise = context.getNativeModule(StripeSdkModule::class.java)?.customerSheetInitPromise ?: return
+    val context = context ?: run {
+      Log.e("StripeReactNative", "No context found during CustomerSheet.initialize. Please file an issue: https://github.com/stripe/stripe-react-native/issues")
+      return
+    }
+    val initPromise = initPromise ?: run {
+      Log.e("StripeReactNative", "No promise found for CustomerSheet.initialize. Please file an issue: https://github.com/stripe/stripe-react-native/issues")
+      return
+    }
 
     val headerTextForSelectionScreen = arguments?.getString("headerTextForSelectionScreen")
     val merchantDisplayName = arguments?.getString("merchantDisplayName")
@@ -105,10 +114,15 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
   }
 
   private fun handleResult(result: CustomerSheetResult) {
+    val presentPromise = presentPromise ?: run {
+      Log.e("StripeReactNative", "No promise found for CustomerSheet.present")
+      return
+    }
+
     var promiseResult = Arguments.createMap()
     when (result) {
       is CustomerSheetResult.Failed -> {
-        presentPromise?.resolve(createError(ErrorType.Failed.toString(), result.exception))
+        presentPromise.resolve(createError(ErrorType.Failed.toString(), result.exception))
       }
       is CustomerSheetResult.Selected -> {
         promiseResult = createPaymentOptionResult(result.selection)
@@ -118,20 +132,20 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
         promiseResult.putMap("error", Arguments.createMap().also { it.putString("code", ErrorType.Canceled.toString()) })
       }
     }
-    presentPromise?.resolve(promiseResult)
+    presentPromise.resolve(promiseResult)
   }
 
   fun present(timeout: Long?, promise: Promise) {
     presentPromise = promise
     if (timeout != null) {
-      presentWithTimeout(timeout)
+      presentWithTimeout(timeout, promise)
     }
     customerSheet?.present() ?: run {
-      presentPromise?.resolve(createMissingInitError())
+      promise.resolve(createMissingInitError())
     }
   }
 
-  private fun presentWithTimeout(timeout: Long) {
+  private fun presentWithTimeout(timeout: Long, promise: Promise) {
     var customerSheetActivity: Activity? = null
     var activities: MutableList<Activity> = mutableListOf()
     val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
@@ -153,7 +167,7 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
       override fun onActivityDestroyed(activity: Activity) {
         customerSheetActivity = null
         activities = mutableListOf()
-        context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+        context?.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
       }
     }
 
@@ -165,10 +179,10 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
       }, timeout)
 
 
-    context.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    context?.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
     customerSheet?.present() ?: run {
-      presentPromise?.resolve(createMissingInitError())
+      promise.resolve(createMissingInitError())
     }
   }
 
@@ -182,7 +196,7 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
         var promiseResult = Arguments.createMap()
         when (result) {
           is CustomerSheetResult.Failed -> {
-            presentPromise?.resolve(createError(ErrorType.Failed.toString(), result.exception))
+            promise.resolve(createError(ErrorType.Failed.toString(), result.exception))
           }
           is CustomerSheetResult.Selected -> {
             promiseResult = createPaymentOptionResult(result.selection)

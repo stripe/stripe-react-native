@@ -14,9 +14,6 @@ import com.reactnativestripesdk.utils.*
 import com.stripe.android.*
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
-import com.stripe.android.customersheet.CustomerAdapter
-import com.stripe.android.customersheet.CustomerSheet
-import com.stripe.android.customersheet.ExperimentalCustomerSheetApi
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.*
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -52,7 +49,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
   private var customerSheetFragment: CustomerSheetFragment? = null
-  internal var customerSheetInitPromise: Promise? = null
 
   internal var eventListenerCount = 0
 
@@ -509,11 +505,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
-      paymentIntent?.let {
-        promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
-      } ?: run {
-        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Failed to retrieve the PaymentIntent"))
-      }
+      promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
     }
   }
 
@@ -521,11 +513,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
-      setupIntent?.let {
-        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
-      } ?: run {
-        promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), "Failed to retrieve the SetupIntent"))
-      }
+      promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
     }
   }
 
@@ -837,8 +825,9 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       customerSheetFragment?.removeFragment(reactApplicationContext)
-      customerSheetInitPromise = promise
-      customerSheetFragment = CustomerSheetFragment(reactApplicationContext).also {
+      customerSheetFragment = CustomerSheetFragment().also {
+        it.context = reactApplicationContext
+        it.initPromise = promise
         val bundle = toBundleObject(params)
         bundle.putBundle("customerAdapter", toBundleObject(customerAdapterOverrides))
         it.arguments = bundle
@@ -873,7 +862,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun customerAdapterFetchPaymentMethodsCallback(paymentMethodJsonObjects: ReadableArray, promise: Promise) {
-    customerSheetFragment?.let {
+    customerSheetFragment?.let { fragment ->
       val paymentMethods = mutableListOf<PaymentMethod>()
       for (paymentMethodJson in paymentMethodJsonObjects.toArrayList()) {
         PaymentMethod.fromJson(JSONObject((paymentMethodJson as HashMap<*, *>)))?.let {
@@ -882,7 +871,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
         }
       }
-      it.customerAdapter?.fetchPaymentMethodsCallback?.complete(paymentMethods)
+      fragment.customerAdapter?.fetchPaymentMethodsCallback?.complete(paymentMethods)
     } ?: run {
       promise.resolve(CustomerSheetFragment.createMissingInitError())
       return
