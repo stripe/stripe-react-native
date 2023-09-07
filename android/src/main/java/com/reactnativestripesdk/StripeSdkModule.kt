@@ -25,6 +25,7 @@ import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 
 @ReactModule(name = StripeSdkModule.NAME)
@@ -866,6 +867,84 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun retrieveCustomerSheetPaymentOptionSelection(promise: Promise) {
     customerSheetFragment?.retrievePaymentOptionSelection(promise) ?: run {
       promise.resolve(CustomerSheetFragment.createMissingInitError())
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterFetchPaymentMethodsCallback(paymentMethodJsonObjects: ReadableArray, promise: Promise) {
+    customerSheetFragment?.let {
+      val paymentMethods = mutableListOf<PaymentMethod>()
+      for (paymentMethodJson in paymentMethodJsonObjects.toArrayList()) {
+        PaymentMethod.fromJson(JSONObject((paymentMethodJson as HashMap<*, *>)))?.let {
+          paymentMethods.add(it)
+        } ?: run {
+          Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        }
+      }
+      it.customerAdapter?.fetchPaymentMethodsCallback?.complete(paymentMethods)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterAttachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
+    customerSheetFragment?.let {
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      if (paymentMethod == null) {
+        Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        return
+      }
+      it.customerAdapter?.attachPaymentMethodCallback?.complete(paymentMethod)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterDetachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
+    customerSheetFragment?.let {
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      if (paymentMethod == null) {
+        Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        return
+      }
+      it.customerAdapter?.detachPaymentMethodCallback?.complete(paymentMethod)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterSetSelectedPaymentOptionCallback(promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.setSelectedPaymentOptionCallback?.complete(Unit)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String, promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.fetchSelectedPaymentOptionCallback?.complete(paymentOption)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.setupIntentClientSecretForCustomerAttachCallback?.complete(clientSecret)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
     }
   }
 

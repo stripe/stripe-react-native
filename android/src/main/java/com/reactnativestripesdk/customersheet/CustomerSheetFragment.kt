@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.*
+import com.reactnativestripesdk.customersheet.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.utils.*
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.customersheet.CustomerEphemeralKey
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCustomerSheetApi::class)
 class CustomerSheetFragment(private val context: ReactApplicationContext) : Fragment() {
   private var customerSheet: CustomerSheet? = null
-  private var customerAdapter: CustomerAdapter? = null
+  internal var customerAdapter: ReactNativeCustomerAdapter? = null
 
   private var presentPromise: Promise? = null
   override fun onCreateView(
@@ -56,6 +57,7 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
     val setupIntentClientSecret = arguments?.getString("setupIntentClientSecret")
     val customerId = arguments?.getString("customerId")
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
+    val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
 
     if (customerId == null) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), "You must provide a value for `customerId`"))
@@ -87,7 +89,7 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
     }
 
     val customerAdapter = createCustomerAdapter(
-      context, customerId, customerEphemeralKeySecret, setupIntentClientSecret
+      context, customerId, customerEphemeralKeySecret, setupIntentClientSecret, customerAdapterOverrideParams
     ).also {
       this.customerAdapter = it
     }
@@ -205,7 +207,6 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
     }
 
     internal fun createDefaultBillingDetails(bundle: Bundle): PaymentSheet.BillingDetails {
-      var defaultBillingDetails: PaymentSheet.BillingDetails? = null
       val addressBundle = bundle.getBundle("address")
       val address = PaymentSheet.Address(
         addressBundle?.getString("city"),
@@ -214,12 +215,11 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
         addressBundle?.getString("line2"),
         addressBundle?.getString("postalCode"),
         addressBundle?.getString("state"))
-      defaultBillingDetails = PaymentSheet.BillingDetails(
+      return PaymentSheet.BillingDetails(
         address,
         bundle.getString("email"),
         bundle.getString("name"),
         bundle.getString("phone"))
-      return defaultBillingDetails
     }
 
     internal fun createBillingDetailsCollectionConfiguration(bundle: Bundle): PaymentSheet.BillingDetailsCollectionConfiguration {
@@ -229,16 +229,16 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
         email = mapToCollectionMode(bundle.getString("email")),
         address = mapToAddressCollectionMode(bundle.getString("address")),
         attachDefaultsToPaymentMethod = bundle.getBoolean("attachDefaultsToPaymentMethod")
-          ?: false
       )
     }
 
     internal fun createCustomerAdapter(
-      context: Context,
+      context: ReactApplicationContext,
       customerId: String,
       customerEphemeralKeySecret: String,
-      setupIntentClientSecret: String?
-    ): CustomerAdapter {
+      setupIntentClientSecret: String?,
+      customerAdapterOverrideParams: Bundle?,
+    ): ReactNativeCustomerAdapter {
       val ephemeralKeyProvider = {
         CustomerAdapter.Result.success(
           CustomerEphemeralKey.create(
@@ -247,8 +247,8 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
           )
         )
       }
-      if (setupIntentClientSecret != null) {
-        return CustomerAdapter.create(
+      val customerAdapter = if (setupIntentClientSecret != null) {
+        CustomerAdapter.create(
           context,
           customerEphemeralKeyProvider = ephemeralKeyProvider,
           setupIntentClientSecretProvider = {
@@ -257,11 +257,23 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
             )
           }
         )
+      } else {
+        CustomerAdapter.create(
+          context,
+          customerEphemeralKeyProvider = ephemeralKeyProvider,
+          setupIntentClientSecretProvider = null
+        )
       }
-      return CustomerAdapter.create(
-        context,
-        customerEphemeralKeyProvider = ephemeralKeyProvider,
-        setupIntentClientSecretProvider = null
+
+      return ReactNativeCustomerAdapter(
+        context = context,
+        adapter = customerAdapter,
+        overridesFetchPaymentMethods = customerAdapterOverrideParams?.containsKey("fetchPaymentMethods") ?: false,
+        overridesAttachPaymentMethod = customerAdapterOverrideParams?.containsKey("attachPaymentMethod") ?: false,
+        overridesDetachPaymentMethod = customerAdapterOverrideParams?.containsKey("detachPaymentMethod") ?: false,
+        overridesSetSelectedPaymentOption = customerAdapterOverrideParams?.containsKey("setSelectedPaymentOption") ?: false,
+        overridesFetchSelectedPaymentOption = customerAdapterOverrideParams?.containsKey("fetchSelectedPaymentOption") ?: false,
+        overridesSetupIntentClientSecretForCustomerAttach = customerAdapterOverrideParams?.containsKey("setupIntentClientSecretForCustomerAttach") ?: false
       )
     }
 
@@ -287,7 +299,7 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
       return paymentOptionResult
     }
 
-    internal fun buildResult(label: String, drawable: Drawable, paymentMethod: PaymentMethod?): WritableMap {
+    private fun buildResult(label: String, drawable: Drawable, paymentMethod: PaymentMethod?): WritableMap {
       val result = Arguments.createMap()
       val paymentOption = Arguments.createMap().also {
         it.putString("label", label)
