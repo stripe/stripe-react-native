@@ -25,6 +25,13 @@ import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   FinancialConnections,
+  CustomerSheetInitParams,
+  CustomerSheetPresentParams,
+  CustomerSheetResult,
+  CustomerSheetError,
+  StripeError,
+  CustomerPaymentOption,
+  CustomerAdapter,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -118,6 +125,30 @@ type NativeStripeSdkType = {
     orderIdentifier: string,
     webServiceUrl: string,
     authenticationToken: string
+  ): Promise<void>;
+  initCustomerSheet(
+    params: CustomerSheetInitParams,
+    customerAdapterOverrides: { [Property in keyof CustomerAdapter]: boolean }
+  ): Promise<{ error?: StripeError<CustomerSheetError> }>;
+  presentCustomerSheet(
+    params: CustomerSheetPresentParams
+  ): Promise<CustomerSheetResult>;
+  retrieveCustomerSheetPaymentOptionSelection(): Promise<CustomerSheetResult>;
+  customerAdapterFetchPaymentMethodsCallback(
+    paymentMethods: Array<object>
+  ): Promise<void>;
+  customerAdapterAttachPaymentMethodCallback(
+    paymentMethod: object
+  ): Promise<void>;
+  customerAdapterDetachPaymentMethodCallback(
+    paymentMethod: object
+  ): Promise<void>;
+  customerAdapterSetSelectedPaymentOptionCallback(): Promise<void>;
+  customerAdapterFetchSelectedPaymentOptionCallback(
+    paymentOption: CustomerPaymentOption | null
+  ): Promise<void>;
+  customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+    clientSecret: String
   ): Promise<void>;
 };
 

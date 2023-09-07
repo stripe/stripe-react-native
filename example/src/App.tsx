@@ -43,6 +43,7 @@ import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
+import CustomerSheetScreen from './screens/CustomerSheetScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -87,6 +88,7 @@ export type RootStackParamList = {
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
+  CustomerSheetScreen: undefined;
 };
 
 declare global {
@@ -241,6 +243,10 @@ export default function App() {
           <Stack.Screen
             name="CollectBankAccountScreen"
             component={CollectBankAccountScreen}
+          />
+          <Stack.Screen
+            name="CustomerSheetScreen"
+            component={CustomerSheetScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

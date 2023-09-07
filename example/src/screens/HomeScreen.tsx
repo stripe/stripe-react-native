@@ -95,6 +95,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Customer Sheet"
+              onPress={() => {
+                navigation.navigate('CustomerSheetScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Card element only"
               onPress={() => {
                 navigation.navigate('WebhookPaymentScreen');

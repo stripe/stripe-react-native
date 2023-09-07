@@ -22,6 +22,7 @@ import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 
 @ReactModule(name = StripeSdkModule.NAME)
@@ -47,6 +48,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
+  private var customerSheetFragment: CustomerSheetFragment? = null
+
   internal var eventListenerCount = 0
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
@@ -58,7 +61,8 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       CollectBankAccountLauncherFragment.TAG,
       FinancialConnectionsSheetFragment.TAG,
       AddressLauncherFragment.TAG,
-      GooglePayLauncherFragment.TAG
+      GooglePayLauncherFragment.TAG,
+      CustomerSheetFragment.TAG
     )
 
   private val mActivityEventListener = object : BaseActivityEventListener() {
@@ -501,11 +505,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun retrievePaymentIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
-      paymentIntent?.let {
-        promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(it)))
-      } ?: run {
-        promise.resolve(createError(RetrievePaymentIntentErrorType.Unknown.toString(), "Failed to retrieve the PaymentIntent"))
-      }
+      promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
     }
   }
 
@@ -513,11 +513,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun retrieveSetupIntent(clientSecret: String, promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
-      setupIntent?.let {
-        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(it)))
-      } ?: run {
-        promise.resolve(createError(RetrieveSetupIntentErrorType.Unknown.toString(), "Failed to retrieve the SetupIntent"))
-      }
+      promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
     }
   }
 
@@ -817,6 +813,128 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
     FinancialConnectionsSheetFragment().also {
       it.presentFinancialConnectionsSheet(clientSecret, FinancialConnectionsSheetFragment.Mode.ForSession, publishableKey, stripeAccountId, promise, reactApplicationContext)
+    }
+  }
+
+  @ReactMethod
+  fun initCustomerSheet(params: ReadableMap, customerAdapterOverrides: ReadableMap, promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      customerSheetFragment?.removeFragment(reactApplicationContext)
+      customerSheetFragment = CustomerSheetFragment().also {
+        it.context = reactApplicationContext
+        it.initPromise = promise
+        val bundle = toBundleObject(params)
+        bundle.putBundle("customerAdapter", toBundleObject(customerAdapterOverrides))
+        it.arguments = bundle
+      }
+      try {
+        activity.supportFragmentManager.beginTransaction()
+          .add(customerSheetFragment!!, CustomerSheetFragment.TAG)
+          .commit()
+      } catch (error: IllegalStateException) {
+        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun presentCustomerSheet(params: ReadableMap, promise: Promise) {
+    var timeout: Long? = null
+    if (params.hasKey("timeout")) {
+      timeout = params.getInt("timeout").toLong()
+    }
+    customerSheetFragment?.present(timeout, promise) ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+    }
+  }
+
+  @ReactMethod
+  fun retrieveCustomerSheetPaymentOptionSelection(promise: Promise) {
+    customerSheetFragment?.retrievePaymentOptionSelection(promise) ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterFetchPaymentMethodsCallback(paymentMethodJsonObjects: ReadableArray, promise: Promise) {
+    customerSheetFragment?.let { fragment ->
+      val paymentMethods = mutableListOf<PaymentMethod>()
+      for (paymentMethodJson in paymentMethodJsonObjects.toArrayList()) {
+        PaymentMethod.fromJson(JSONObject((paymentMethodJson as HashMap<*, *>)))?.let {
+          paymentMethods.add(it)
+        } ?: run {
+          Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        }
+      }
+      fragment.customerAdapter?.fetchPaymentMethodsCallback?.complete(paymentMethods)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterAttachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
+    customerSheetFragment?.let {
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      if (paymentMethod == null) {
+        Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        return
+      }
+      it.customerAdapter?.attachPaymentMethodCallback?.complete(paymentMethod)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterDetachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
+    customerSheetFragment?.let {
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      if (paymentMethod == null) {
+        Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
+        return
+      }
+      it.customerAdapter?.detachPaymentMethodCallback?.complete(paymentMethod)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterSetSelectedPaymentOptionCallback(promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.setSelectedPaymentOptionCallback?.complete(Unit)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String?, promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.fetchSelectedPaymentOptionCallback?.complete(paymentOption)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @ReactMethod
+  fun customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, promise: Promise) {
+    customerSheetFragment?.let {
+      it.customerAdapter?.setupIntentClientSecretForCustomerAttachCallback?.complete(clientSecret)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
     }
   }
 

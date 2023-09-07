@@ -754,7 +754,7 @@ class Mappers {
     }
 
     @available(iOS 13.0, *)
-    class func mapToUserInterfaceStyle(_ style: String) -> PaymentSheet.UserInterfaceStyle {
+    class func mapToUserInterfaceStyle(_ style: String?) -> PaymentSheet.UserInterfaceStyle {
         switch style {
         case "alwaysDark": return PaymentSheet.UserInterfaceStyle.alwaysDark
         case "alwaysLight": return PaymentSheet.UserInterfaceStyle.alwaysLight

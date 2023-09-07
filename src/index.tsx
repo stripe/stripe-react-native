@@ -27,3 +27,6 @@ export type { Props as PlatformPayButtonProps } from './components/PlatformPayBu
 export * from './functions';
 
 export * from './types/index';
+
+export * from './components/CustomerSheet';
+export type { Props as CustomerSheetProps } from './components/CustomerSheet';
