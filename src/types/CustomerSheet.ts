@@ -62,8 +62,7 @@ export interface CustomerAdapter {
   /** Retrieves a list of Payment Methods attached to a customer.
    * If you are implementing your own CustomerAdapter:
    * Call the list method ( https://stripe.com/docs/api/payment_methods/list )
-   * with the Stripe customer. If this API call succeeds, return the list of payment methods in JSON format.
-   * Otherwise, throw an error.
+   * with the Stripe customer. Return the list of payment methods in JSON format.
    */
   fetchPaymentMethods?(): Promise<Array<object>>;
   /** Adds a Payment Method to a customer.
@@ -71,20 +70,20 @@ export interface CustomerAdapter {
    * On your backend, retrieve the Stripe customer associated with your logged-in user.
    * Then, call the Attach method on the Payment Method with that customer's ID
    * ( https://stripe.com/docs/api/payment_methods/attach ).
-   * If this API call fails, throw the error that occurred.
    * - Parameters:
    *   - paymentMethod:   A valid Stripe Payment Method ID
+   * Return the payment method in JSON format.
    */
-  attachPaymentMethod?(paymentMethodId: string): Promise<void>;
+  attachPaymentMethod?(paymentMethodId: string): Promise<object>;
   /** Deletes the given Payment Method from the customer.
    * If you are implementing your own CustomerAdapter:
    * Call the Detach method ( https://stripe.com/docs/api/payment_methods/detach )
    * on the Payment Method.
-   * If this API call fails, throw the error that occurred.
    * - Parameters:
    *   - paymentMethod:   The Stripe Payment Method ID to delete from the customer
+   * Return the payment method in JSON format.
    */
-  detachPaymentMethod?(paymentMethodId: String): Promise<void>;
+  detachPaymentMethod?(paymentMethodId: String): Promise<object>;
   /** Set the last selected payment method for the customer.
    * To unset the default payment method, pass `null` as the `paymentOption`.
    * If you are implementing your own CustomerAdapter:

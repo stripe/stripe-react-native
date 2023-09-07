@@ -120,22 +120,22 @@ extension StripeSdk {
     }
     
     @objc(customerAdapterFetchPaymentMethodsCallback:resolver:rejecter:)
-    func customerAdapterFetchPaymentMethodsCallback(paymentMethod: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock,
+    func customerAdapterFetchPaymentMethodsCallback(paymentMethods: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock,
                                                      rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        let decodedPaymentMethods = paymentMethod.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable : Any]) }
+        let decodedPaymentMethods = paymentMethods.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable : Any]) }
         self.fetchPaymentMethodsCallback?(decodedPaymentMethods)
         resolve([])
     }
     
-    @objc(customerAdapterAttachPaymentMethodCallback:rejecter:)
-    func customerAdapterAttachPaymentMethodCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(customerAdapterAttachPaymentMethodCallback:resolver:rejecter:)
+    func customerAdapterAttachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                                                      rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         self.attachPaymentMethodCallback?()
         resolve([])
     }
     
-    @objc(customerAdapterDetachPaymentMethodCallback:rejecter:)
-    func customerAdapterDetachPaymentMethodCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(customerAdapterDetachPaymentMethodCallback:resolver:rejecter:)
+    func customerAdapterDetachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                                                      rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         self.detachPaymentMethodCallback?()
         resolve([])

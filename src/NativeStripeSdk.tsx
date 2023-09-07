@@ -135,8 +135,12 @@ type NativeStripeSdkType = {
   customerAdapterFetchPaymentMethodsCallback(
     paymentMethods: Array<object>
   ): Promise<void>;
-  customerAdapterAttachPaymentMethodCallback(): Promise<void>;
-  customerAdapterDetachPaymentMethodCallback(): Promise<void>;
+  customerAdapterAttachPaymentMethodCallback(
+    paymentMethod: object
+  ): Promise<void>;
+  customerAdapterDetachPaymentMethodCallback(
+    paymentMethod: object
+  ): Promise<void>;
   customerAdapterSetSelectedPaymentOptionCallback(): Promise<void>;
   customerAdapterFetchSelectedPaymentOptionCallback(
     paymentOption: CustomerPaymentOption | null

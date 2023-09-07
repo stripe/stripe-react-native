@@ -68,8 +68,10 @@ const configureCustomerAdapterEventListeners = (
     attachPaymentMethodCallback = eventEmitter.addListener(
       'onCustomerAdapterAttachPaymentMethodCallback',
       async ({ paymentMethodId }: { paymentMethodId: string }) => {
-        await attachPaymentMethod(paymentMethodId);
-        await NativeStripeSdk.customerAdapterAttachPaymentMethodCallback();
+        const paymentMethod = await attachPaymentMethod(paymentMethodId);
+        await NativeStripeSdk.customerAdapterAttachPaymentMethodCallback(
+          paymentMethod
+        );
       }
     );
   }
@@ -80,8 +82,10 @@ const configureCustomerAdapterEventListeners = (
     detachPaymentMethodCallback = eventEmitter.addListener(
       'onCustomerAdapterDetachPaymentMethodCallback',
       async ({ paymentMethodId }: { paymentMethodId: string }) => {
-        await detachPaymentMethod(paymentMethodId);
-        await NativeStripeSdk.customerAdapterDetachPaymentMethodCallback();
+        const paymentMethod = await detachPaymentMethod(paymentMethodId);
+        await NativeStripeSdk.customerAdapterDetachPaymentMethodCallback(
+          paymentMethod
+        );
       }
     );
   }

@@ -211,12 +211,14 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-                  customerAdapterAttachPaymentMethodCallback:(RCTPromiseResolveBlock)resolve
+                  customerAdapterAttachPaymentMethodCallback:(NSDictionary *)unusedPaymentMethod
+                  resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 
 RCT_EXTERN_METHOD(
-                  customerAdapterDetachPaymentMethodCallback:(RCTPromiseResolveBlock)resolve
+                  customerAdapterDetachPaymentMethodCallback:(NSDictionary *)unusedPaymentMethod
+                  resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 

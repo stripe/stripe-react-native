@@ -145,7 +145,7 @@ extension ReactNativeCustomerAdapter {
     
     func detachPaymentMethod(_ paymentMethodId: String, completion: @escaping () -> Void) {
         DispatchQueue.main.async {
-            self.stripeSdk.attachPaymentMethodCallback = completion
+            self.stripeSdk.detachPaymentMethodCallback = completion
             self.stripeSdk.sendEvent(withName: "onCustomerAdapterDetachPaymentMethodCallback", body: ["paymentMethodId": paymentMethodId])
         }
     }
