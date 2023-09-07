@@ -14,13 +14,6 @@ appId: ${APP_ID}
     text: "MM / YY"
     optional: true
 - inputText: "0125123"
-- tapOn:
-    text: "ZIP"
-    optional: true
-- tapOn:
-    text: "ZIP Code"
-    optional: true
-- inputText: "12345"
 - tapOn: "Save"
 - tapOn: "Confirm"
 - assertVisible:
@@ -30,3 +23,9 @@ appId: ${APP_ID}
 - assertVisible:
     text: "Canceled"
 - tapOn: "OK"
+- tapOn:
+    id: "customer_adapter_switch"
+- tapOn: "····4242"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000

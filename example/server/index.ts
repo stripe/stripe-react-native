@@ -757,6 +757,56 @@ app.post('/fetch-payment-methods', async (req, res) => {
   });
 });
 
+app.post('/attach-payment-method', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+  console.log({ customer: req.body.customerId });
+  const paymentMethod = await stripe.paymentMethods.attach(
+    req.body.paymentMethodId,
+    { customer: req.body.customerId }
+  );
+  console.log('got here');
+  res.json({
+    paymentMethod,
+  });
+});
+
+app.post('/detach-payment-method', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  const paymentMethod = await stripe.paymentMethods.detach(
+    req.body.paymentMethodId
+  );
+
+  res.json({
+    paymentMethod,
+  });
+});
+
+// Mocks a Database. In your code, you should use a persistent database.
+let savedPaymentOptions = new Map<string, string>();
+
+app.post('/set-payment-option', async (req, res) => {
+  savedPaymentOptions.set(req.body.customerId, req.body.paymentOption);
+  res.json({});
+});
+
+app.post('/get-payment-option', async (req, res) => {
+  const customerPaymentOption = savedPaymentOptions.get(req.body.customerId);
+  res.json({
+    savedPaymentOption: customerPaymentOption ?? null,
+  });
+});
+
 app.listen(4242, (): void =>
   console.log(`Node server listening on port ${4242}!`)
 );

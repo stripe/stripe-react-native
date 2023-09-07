@@ -1,10 +1,11 @@
 import React from 'react';
 import { Alert, Image, StyleSheet, Switch, Text, View } from 'react-native';
 import { CustomerSheetBeta } from '@stripe/stripe-react-native';
-import type { PaymentSheet } from '@stripe/stripe-react-native';
+import { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import { ExampleCustomerAdapter } from './ExampleCustomerAdapter';
 
 export default function CustomerSheetScreen() {
   const [useComponent, setUseComponent] = React.useState(false);
@@ -15,6 +16,8 @@ export default function CustomerSheetScreen() {
   const [ephemeralKeySecret, setEphemeralKeySecret] = React.useState('');
   const [customer, setCustomer] = React.useState('');
   const [customerSheetVisible, setCustomerSheetVisible] = React.useState(false);
+  const [customerAdapter, setCustomerAdapter] =
+    React.useState<ExampleCustomerAdapter | null>(null);
 
   const fetchCustomerSheetParams = async () => {
     const response = await fetch(`${API_URL}/customer-sheet`, {
@@ -46,25 +49,34 @@ export default function CustomerSheetScreen() {
       setupIntent: setupIntentClientSecret,
       ephemeralKeySecret: customerEphemeralKeySecret,
     } = await fetchCustomerSheetParams();
+    const address = {
+      city: 'San Francisco',
+      country: 'US',
+      line1: '510 Townsend St.',
+      line2: '123 Street',
+      postalCode: '94102',
+      state: 'California',
+    };
+    const billingDetails = {
+      name: 'Jane Doe',
+      email: 'foo@bar.com',
+      phone: '561-555-5555',
+      address: address,
+    };
+
     const { error } = await CustomerSheetBeta.initialize({
       setupIntentClientSecret,
       customerEphemeralKeySecret,
       customerId,
       returnURL: 'stripe-example://stripe-redirect',
-      customerAdapter: {
-        fetchPaymentMethods: async () => {
-          const response = await fetch(`${API_URL}/fetch-payment-methods`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              customerId,
-            }),
-          });
-          const result = await response.json();
-          return result.paymentMethods;
-        },
+      removeSavedPaymentMethodMessage:
+        'Are you sure you wanna remove this payment method? 😿',
+      style: 'alwaysLight',
+      merchantDisplayName: 'React Native Test Merchant',
+      headerTextForSelectionScreen: 'Welcome to customer sheet!',
+      defaultBillingDetails: billingDetails,
+      billingDetailsCollectionConfiguration: {
+        phone: PaymentSheet.CollectionMode.ALWAYS,
       },
     });
     if (error) {
@@ -123,7 +135,7 @@ export default function CustomerSheetScreen() {
           present();
         }}
       />
-      {useComponent && (
+      {useComponent && customerAdapter && (
         <CustomerSheetBeta.CustomerSheet
           visible={customerSheetVisible}
           setupIntentClientSecret={setupIntent}
@@ -143,6 +155,7 @@ export default function CustomerSheetScreen() {
               console.log(JSON.stringify(paymentMethod, null, 2));
             }
           }}
+          customerAdapter={customerAdapter}
         />
       )}
       {selectedPaymentOption?.image && (
@@ -155,7 +168,18 @@ export default function CustomerSheetScreen() {
       )}
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Use component: </Text>
-        <Switch onValueChange={setUseComponent} value={useComponent} />
+        <Switch
+          testID="customer_adapter_switch"
+          onValueChange={(v) => {
+            if (!v) {
+              setup();
+            } else {
+              setCustomerAdapter(new ExampleCustomerAdapter(customer));
+            }
+            setUseComponent(v);
+          }}
+          value={useComponent}
+        />
       </View>
     </PaymentScreen>
   );
