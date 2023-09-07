@@ -85,7 +85,7 @@ export interface CustomerAdapter {
    */
   detachPaymentMethod?(paymentMethodId: String): Promise<object>;
   /** Set the last selected payment method for the customer.
-   * To unset the default payment method, pass `null` as the `paymentOption`.
+   * To unset the default payment method, `null` is passed as the `paymentOption`.
    * If you are implementing your own CustomerAdapter:
    * Save a representation of the passed `paymentOption` as the customer's default payment method.
    */

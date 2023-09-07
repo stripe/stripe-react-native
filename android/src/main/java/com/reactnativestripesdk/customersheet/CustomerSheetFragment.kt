@@ -268,12 +268,12 @@ class CustomerSheetFragment(private val context: ReactApplicationContext) : Frag
       return ReactNativeCustomerAdapter(
         context = context,
         adapter = customerAdapter,
-        overridesFetchPaymentMethods = customerAdapterOverrideParams?.containsKey("fetchPaymentMethods") ?: false,
-        overridesAttachPaymentMethod = customerAdapterOverrideParams?.containsKey("attachPaymentMethod") ?: false,
-        overridesDetachPaymentMethod = customerAdapterOverrideParams?.containsKey("detachPaymentMethod") ?: false,
-        overridesSetSelectedPaymentOption = customerAdapterOverrideParams?.containsKey("setSelectedPaymentOption") ?: false,
-        overridesFetchSelectedPaymentOption = customerAdapterOverrideParams?.containsKey("fetchSelectedPaymentOption") ?: false,
-        overridesSetupIntentClientSecretForCustomerAttach = customerAdapterOverrideParams?.containsKey("setupIntentClientSecretForCustomerAttach") ?: false
+        overridesFetchPaymentMethods = customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
+        overridesAttachPaymentMethod = customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
+        overridesDetachPaymentMethod = customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
+        overridesSetSelectedPaymentOption = customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
+        overridesFetchSelectedPaymentOption = customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
+        overridesSetupIntentClientSecretForCustomerAttach = customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach") ?: false
       )
     }
 

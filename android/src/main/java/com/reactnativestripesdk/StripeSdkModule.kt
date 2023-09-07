@@ -829,7 +829,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun initCustomerSheet(params: ReadableMap, promise: Promise) {
+  fun initCustomerSheet(params: ReadableMap, customerAdapterOverrides: ReadableMap, promise: Promise) {
     if (!::stripe.isInitialized) {
       promise.resolve(createMissingInitError())
       return
@@ -840,6 +840,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       customerSheetInitPromise = promise
       customerSheetFragment = CustomerSheetFragment(reactApplicationContext).also {
         val bundle = toBundleObject(params)
+        bundle.putBundle("customerAdapter", toBundleObject(customerAdapterOverrides))
         it.arguments = bundle
       }
       try {
@@ -929,7 +930,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String, promise: Promise) {
+  fun customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String?, promise: Promise) {
     customerSheetFragment?.let {
       it.customerAdapter?.fetchSelectedPaymentOptionCallback?.complete(paymentOption)
     } ?: run {

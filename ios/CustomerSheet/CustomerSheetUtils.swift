@@ -57,10 +57,10 @@ class CustomerSheetUtils {
         customerId: String,
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
-        customerAdapter: NSDictionary?,
+        customerAdapter: NSDictionary,
         stripeSdk: StripeSdk
     ) -> StripeCustomerAdapter {
-        if let customerAdapter = customerAdapter {
+        if (customerAdapter.count > 0) {
             return buildCustomerAdapterOverride(
                 customerAdapter: customerAdapter,
                 customerId: customerId,
@@ -96,12 +96,12 @@ class CustomerSheetUtils {
         stripeSdk: StripeSdk
     ) -> StripeCustomerAdapter {
         return ReactNativeCustomerAdapter(
-            fetchPaymentMethods: customerAdapter.value(forKey: "fetchPaymentMethods") != nil,
-            attachPaymentMethod: customerAdapter.value(forKey: "attachPaymentMethod") != nil,
-            detachPaymentMethod: customerAdapter.value(forKey: "detachPaymentMethod") != nil,
-            setSelectedPaymentOption: customerAdapter.value(forKey: "setSelectedPaymentOption") != nil,
-            fetchSelectedPaymentOption: customerAdapter.value(forKey: "fetchSelectedPaymentOption") != nil,
-            setupIntentClientSecretForCustomerAttach: customerAdapter.value(forKey: "setupIntentClientSecretForCustomerAttach") != nil,
+            fetchPaymentMethods: customerAdapter["fetchPaymentMethods"] as? Bool ?? false,
+            attachPaymentMethod: customerAdapter["attachPaymentMethod"] as? Bool ?? false,
+            detachPaymentMethod: customerAdapter["detachPaymentMethod"] as? Bool ?? false,
+            setSelectedPaymentOption: customerAdapter["setSelectedPaymentOption"] as? Bool ?? false,
+            fetchSelectedPaymentOption: customerAdapter["fetchSelectedPaymentOption"] as? Bool ?? false,
+            setupIntentClientSecretForCustomerAttach: customerAdapter["setupIntentClientSecretForCustomerAttach"] as? Bool ?? false,
             customerId: customerId,
             ephemeralKeySecret: ephemeralKeySecret,
             setupIntentClientSecret: setupIntentClientSecret,

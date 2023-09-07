@@ -31,6 +31,7 @@ import type {
   CustomerSheetError,
   StripeError,
   CustomerPaymentOption,
+  CustomerAdapter,
 } from './types';
 
 type NativeStripeSdkType = {
@@ -126,7 +127,8 @@ type NativeStripeSdkType = {
     authenticationToken: string
   ): Promise<void>;
   initCustomerSheet(
-    params: CustomerSheetInitParams
+    params: CustomerSheetInitParams,
+    customerAdapterOverrides: { [Property in keyof CustomerAdapter]: boolean }
   ): Promise<{ error?: StripeError<CustomerSheetError> }>;
   presentCustomerSheet(
     params: CustomerSheetPresentParams

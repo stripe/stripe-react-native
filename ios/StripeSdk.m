@@ -189,6 +189,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   initCustomerSheet:(NSDictionary *)params
+                  customerAdapterOverrides: (NSDictionary *)customerAdapterOverrides
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )

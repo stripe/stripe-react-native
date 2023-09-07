@@ -9,8 +9,8 @@ import Foundation
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
-    @objc(initCustomerSheet:resolver:rejecter:)
-    func initCustomerSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
+    func initCustomerSheet(params: NSDictionary, customerAdapterOverrides: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         do {
             customerSheetConfiguration = CustomerSheetUtils.buildCustomerSheetConfiguration(
@@ -43,7 +43,7 @@ extension StripeSdk {
             customerId: customerId,
             ephemeralKeySecret: customerEphemeralKeySecret,
             setupIntentClientSecret: params["setupIntentClientSecret"] as? String,
-            customerAdapter: params["customerAdapter"] as? NSDictionary,
+            customerAdapter: customerAdapterOverrides,
             stripeSdk: self
         )
 
