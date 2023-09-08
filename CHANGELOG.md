@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.31.0 - 2023-09-08
+
 **Features**
 
 - **[BETA]** Added [CustomerSheet](https://stripe.com/docs/elements/customer-sheet?platform=react-native) API, a prebuilt UI component that lets your customers manage their saved payment methods. [#1491](https://github.com/stripe/stripe-react-native/pull/1491)
