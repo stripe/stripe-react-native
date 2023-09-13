@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+- `Constants.API_VERSIONS.ISSUING` has been removed, please use the asynchronous `getIssuingApiVersion` method instead. This should improve app startup time.
+
 **Features**
 
 - `createPlatformPayPaymentMethod` and `createPlatformPayToken` now also include an optional `shippingContact` field in their results. [#1500](https://github.com/stripe/stripe-react-native/pull/1500)

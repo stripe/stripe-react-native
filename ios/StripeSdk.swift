@@ -81,9 +81,13 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         return [
             "API_VERSIONS": [
                 "CORE": STPAPIClient.apiVersion,
-                "ISSUING": STPAPIClient.apiVersion,
             ]
         ]
+    }
+    
+    @objc(getIssuingApiVersion:rejecter:)
+    func getIssuingApiVersion(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolve(STPAPIClient.apiVersion)
     }
 
     @objc(initialise:resolver:rejecter:)
