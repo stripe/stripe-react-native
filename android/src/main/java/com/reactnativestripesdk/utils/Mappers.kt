@@ -881,3 +881,22 @@ fun toBundleObject(readableMap: ReadableMap?): Bundle {
   }
   return result
 }
+
+internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableMap {
+  val map = WritableNativeMap()
+  map.putString("emailAddress", googlePayResult.email)
+  val name = WritableNativeMap()
+  googlePayResult.name
+  name.putString("givenName", googlePayResult.shippingInformation?.name)
+  map.putMap("name", name)
+  map.putString("phoneNumber", googlePayResult.shippingInformation?.phone)
+  val postalAddress = WritableNativeMap()
+  postalAddress.putString("city", googlePayResult.shippingInformation?.address?.city)
+  postalAddress.putString("country", googlePayResult.shippingInformation?.address?.country)
+  postalAddress.putString("postalCode", googlePayResult.shippingInformation?.address?.postalCode)
+  postalAddress.putString("state", googlePayResult.shippingInformation?.address?.state)
+  postalAddress.putString("street", googlePayResult.shippingInformation?.address?.line1 + "\n" + googlePayResult.shippingInformation?.address?.line2)
+  postalAddress.putString("isoCountryCode", googlePayResult.shippingInformation?.address?.country)
+  map.putMap("postalAddress", postalAddress)
+  return map
+}
