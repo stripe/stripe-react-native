@@ -9,7 +9,7 @@
 
 **Fixes**
 
-- Fixed an issue where recollecting the CVC on iOS wouldn't work correctly. [#1501](https://github.com/stripe/stripe-react-native/pull/1501)
+- Fixed an issue on iOS where recollecting the CVC wouldn't work correctly. [#1501](https://github.com/stripe/stripe-react-native/pull/1501)
 
 ## 0.31.1 - 2023-09-08
 
