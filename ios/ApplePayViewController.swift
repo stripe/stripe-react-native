@@ -21,9 +21,13 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                 if let error = error {
                     self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                 } else {
-                    let promiseResult = [
-                        "token": token != nil ? Mappers.mapFromToken(token: token!.splitApplePayAddressByNewline()) : [:]
+                    var promiseResult = [
+                        "token": token != nil ? Mappers.mapFromToken(token: token!.splitApplePayAddressByNewline()) : [:],
                     ]
+                    if let shippingContact = payment.shippingContact {
+                        promiseResult["shippingContact"] = Mappers.mapFromShippingContact(shippingContact: shippingContact)
+                    }
+
                     self.createPlatformPayPaymentMethodResolver?(promiseResult)
                 }
                 completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
@@ -33,9 +37,13 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                 if let error = error {
                     self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
                 } else {
-                    let promiseResult = [
+                    var promiseResult = [
                         "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod?.splitApplePayAddressByNewline()) ?? [:]
                     ]
+                    if let shippingContact = payment.shippingContact {
+                        promiseResult["shippingContact"] = Mappers.mapFromShippingContact(shippingContact: shippingContact)
+                    }
+                    
                     self.createPlatformPayPaymentMethodResolver?(promiseResult)
                 }
                 completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))

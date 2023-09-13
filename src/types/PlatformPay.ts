@@ -376,7 +376,6 @@ interface ContactName {
   nickname?: string;
 }
 
-/** iOS only. */
 export interface ShippingContact {
   emailAddress?: string;
   name: ContactName;
@@ -398,20 +397,24 @@ export type IsGooglePaySupportedParams = {
 export type PaymentMethodResult =
   | {
       paymentMethod: PaymentMethod;
+      shippingContact?: ShippingContact;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      shippingContact?: undefined;
       error: StripeError<PlatformPayError>;
     };
 
 export type TokenResult =
   | {
       token: Token;
+      shippingContact?: ShippingContact;
       error?: undefined;
     }
   | {
       token?: undefined;
+      shippingContact?: undefined;
       error: StripeError<PlatformPayError>;
     };
 
