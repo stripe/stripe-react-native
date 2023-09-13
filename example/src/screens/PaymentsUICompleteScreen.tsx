@@ -110,6 +110,7 @@ export default function PaymentsUICompleteScreen() {
       allowsDelayedPaymentMethods: true,
       appearance,
       primaryButtonLabel: 'purchase!',
+      removeSavedPaymentMethodMessage: 'remove this payment method?',
     });
     if (!error) {
       setPaymentSheetEnabled(true);

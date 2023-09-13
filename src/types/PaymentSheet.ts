@@ -50,6 +50,8 @@ export type SetupParams = IntentParams & {
   appearance?: AppearanceParams;
   /** The label to use for the primary button. If not set, Payment Sheet will display suitable default labels for payment and setup intents. */
   primaryButtonLabel?: string;
+  /** Optional configuration to display a custom message when a saved payment method is removed. iOS only. */
+  removeSavedPaymentMethodMessage?: string;
 };
 
 export type IntentParams =
