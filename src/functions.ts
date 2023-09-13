@@ -726,7 +726,7 @@ export const createPlatformPayPaymentMethod = async (
   params: PlatformPay.PaymentMethodParams
 ): Promise<PlatformPay.PaymentMethodResult> => {
   try {
-    const { error, paymentMethod } =
+    const { error, paymentMethod, shippingContact } =
       (await NativeStripeSdk.createPlatformPayPaymentMethod(
         params,
         false
@@ -738,6 +738,7 @@ export const createPlatformPayPaymentMethod = async (
     }
     return {
       paymentMethod: paymentMethod!,
+      shippingContact,
     };
   } catch (error: any) {
     return {
@@ -755,7 +756,7 @@ export const createPlatformPayToken = async (
   params: PlatformPay.PaymentMethodParams
 ): Promise<PlatformPay.TokenResult> => {
   try {
-    const { error, token } =
+    const { error, token, shippingContact } =
       (await NativeStripeSdk.createPlatformPayPaymentMethod(
         params,
         true
@@ -767,6 +768,7 @@ export const createPlatformPayToken = async (
     }
     return {
       token: token!,
+      shippingContact,
     };
   } catch (error: any) {
     return {
