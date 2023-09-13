@@ -50,6 +50,10 @@ extension StripeSdk {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
         
+        if let removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String {
+            configuration.removeSavedPaymentMethodMessage = removeSavedPaymentMethodMessage
+        }
+        
         if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
             configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
             configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
