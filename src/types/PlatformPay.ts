@@ -376,7 +376,6 @@ interface ContactName {
   nickname?: string;
 }
 
-/** iOS only. */
 export interface ShippingContact {
   emailAddress?: string;
   name: ContactName;

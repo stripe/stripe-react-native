@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+- `createPlatformPayPaymentMethod` and `createPlatformPayToken` now also include an optional `shippingContact` field in their results. [#1499](https://github.com/stripe/stripe-react-native/pull/1499)
+
 ## 0.31.0 - 2023-09-08
 
 **Features**
