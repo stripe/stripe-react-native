@@ -7,6 +7,10 @@
 - `createPlatformPayPaymentMethod` and `createPlatformPayToken` now also include an optional `shippingContact` field in their results. [#1500](https://github.com/stripe/stripe-react-native/pull/1500)
 - Added the `removeSavedPaymentMethodMessage` field to `initPaymentSheet` to display a custom message when a saved payment method is removed. iOS Only. [#1498](https://github.com/stripe/stripe-react-native/pull/1498)
 
+**Fixes**
+
+- Fixed an issue where recollecting the CVC on iOS wouldn't work correctly. [#1501](https://github.com/stripe/stripe-react-native/pull/1501)
+
 ## 0.31.1 - 2023-09-08
 
 **Features**
