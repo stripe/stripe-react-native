@@ -807,11 +807,8 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
     map.putMap("lastSetupError", setupError)
   }
 
-  setupIntent.paymentMethodTypes.forEach { code ->
-    val type: PaymentMethod.Type? = PaymentMethod.Type.values().find {
-      code == it.code
-    }
-    type?.let {
+  for (code in setupIntent.paymentMethodTypes) {
+    PaymentMethod.Type.fromCode(code)?.let {
       paymentMethodTypes.pushString(mapPaymentMethodType(it))
     }
   }
