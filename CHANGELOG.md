@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+**Features**
+
+- Added the `amount` and `label` params to `initPaymentSheet`'s `googlePay` field configuration. Use this to diplay the amount for setup intents.
+- Added the `amount` and `label` params `createPlatformPayPaymentMethod`, `confirmPlatformPayPayment`, and `confirmPlatformPaySetupIntent`.
+- PaymentSheet now supports the following payment methods on both iOS and Android (previously some of the following were iOS only) for SetupIntents and PaymentIntents with setup for future usage:
+  - Alipay
+  - BECS Direct Debit
+  - Cash App Pay
+  - iDEAL
+  - SEPA
+  - Sofort
+  - Bancontact
+  - BLIK
+  - Boleto
+  - Revolut Pay
+  - OXXO (PaymentIntents only)
+  - Konbini (PaymentIntents only)
+- PaymentSheet now supports the following payment methods on iOS only for SetupIntents and PaymentIntents with setup for future usage:
+  - PayNow
+  - PromptPay
+
 ## 0.32.0 - 2023-09-15
 
 **Features**
