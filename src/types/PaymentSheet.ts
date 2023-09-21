@@ -106,6 +106,10 @@ export type GooglePayParams = {
   currencyCode?: string;
   /** Whether or not to use the Google Pay test environment.  Set to `true` until you have applied for and been granted access to the Production environment. */
   testEnv?: boolean;
+  /** An optional label to display with the amount. Google Pay may or may not display this label depending on its own internal logic. Defaults to a generic label if none is provided. */
+  label?: string;
+  /** An optional amount to display for setup intents. Google Pay may or may not display this amount depending on its own internal logic. Defaults to 0 if none is provided. */
+  amount?: string;
 };
 
 /**

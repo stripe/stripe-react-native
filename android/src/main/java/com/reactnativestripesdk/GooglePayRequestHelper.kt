@@ -80,12 +80,14 @@ class GooglePayRequestHelper {
       val countryCode = params.getString("merchantCountryCode").orEmpty()
       val currencyCode = params.getString("currencyCode") ?: "USD"
       val amount = params.getInt("amount")
+      val label = params.getString("label")
 
       return GooglePayJsonFactory.TransactionInfo(
         currencyCode = currencyCode,
         totalPriceStatus = GooglePayJsonFactory.TransactionInfo.TotalPriceStatus.Estimated,
         countryCode = countryCode,
         totalPrice = amount,
+        totalPriceLabel = label,
         checkoutOption = GooglePayJsonFactory.TransactionInfo.CheckoutOption.Default
       )
     }

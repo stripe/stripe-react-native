@@ -354,11 +354,15 @@ class PaymentSheetFragment(
       val countryCode = params.getString("merchantCountryCode").orEmpty()
       val currencyCode = params.getString("currencyCode").orEmpty()
       val testEnv = params.getBoolean("testEnv")
+      val amount = params.getString("amount")?.toLongOrNull()
+      val label = params.getString("label")
 
       return PaymentSheet.GooglePayConfiguration(
         environment = if (testEnv) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode,
-        currencyCode = currencyCode
+        currencyCode = currencyCode,
+        amount = amount,
+        label = label
       )
     }
 

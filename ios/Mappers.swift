@@ -451,14 +451,16 @@ class Mappers {
                     "voucherURL": it.oxxoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
                     "voucherNumber": it.oxxoDisplayDetails?.number ?? NSNull(),
                 ]
-// TODO: Not supported on Android
-//            case .boletoDisplayDetails:
-//                return [
-//                    "type": "boletoVoucher",
-//                    "expiration": it.boletoDisplayDetails?.expiresAt.timeIntervalSince1970.description ?? NSNull(),
-//                    "voucherURL": it.boletoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
-//                    "voucherNumber": it.boletoDisplayDetails?.number ?? NSNull(),
-//                ]
+            case .boletoDisplayDetails:
+                return [
+                    "type": "boletoVoucher",
+                    "voucherURL": it.boletoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+                ]
+            case .konbiniDisplayDetails:
+                return [
+                    "type": "konbiniVoucher",
+                    "voucherURL": it.konbiniDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+                ]
             default: // .useStripeSDK, .BLIKAuthorize, .unknown
                 return nil
             }
