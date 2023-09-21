@@ -22,6 +22,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     var confirmApplePayResolver: RCTPromiseResolveBlock? = nil
     var confirmApplePayPaymentClientSecret: String? = nil
     var confirmApplePaySetupClientSecret: String? = nil
+    var confirmApplePayPaymentMethod: STPPaymentMethod? = nil
     
     var applePaymentAuthorizationController: PKPaymentAuthorizationViewController? = nil
     var createPlatformPayPaymentMethodResolver: RCTPromiseResolveBlock? = nil
