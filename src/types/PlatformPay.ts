@@ -193,11 +193,13 @@ export type GooglePayBaseParams = {
     /** Defines what address fields to collect. Defaults to BillingAddressFormat.Min */
     format?: BillingAddressFormat;
   };
+  /** An optional label to display with the amount. Google Pay may or may not display this label depending on its own internal logic. Defaults to a generic label if none is provided. */
+  label?: string;
+  /** An optional amount to display for setup intents. Google Pay may or may not display this amount depending on its own internal logic. Defaults to 0 if none is provided. */
+  amount?: number;
 };
 
 export type GooglePayPaymentMethodParams = {
-  /** Total monetary value of the transaction. */
-  amount: number;
   /** Describes the configuration for shipping address collection in the Google Pay sheet. */
   shippingAddressConfig?: {
     /** Set to true if shipping address is required for payment. Defaults to false. */
