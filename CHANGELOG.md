@@ -23,6 +23,10 @@
   - PayNow
   - PromptPay
 
+**Fixes**
+
+- Fixed an issue on iOS where the value for the `paymentMethod` field on the returned `paymentIntent` object from `confirmPlatformPayPayment` and the returned `setupIntent` object from `confirmPlatformPaySetupIntent` would be null.
+
 ## 0.32.0 - 2023-09-15
 
 **Features**
