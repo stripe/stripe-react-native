@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.33.0 - 2023-09-22
+
 **Features**
 
 - Added the `amount` and `label` params to `initPaymentSheet`'s `googlePay` field configuration. Use this to diplay the amount for setup intents.
