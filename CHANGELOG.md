@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+- Added new `presentationStyle` options for CustomerSheet and AddressSheet. [#1515](https://github.com/stripe/stripe-react-native/pull/1515)
+
 ## 0.33.0 - 2023-09-22
 
 **Features**
