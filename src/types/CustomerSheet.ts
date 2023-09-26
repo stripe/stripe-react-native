@@ -41,8 +41,14 @@ export type CustomerSheetInitParams = {
 };
 
 export type CustomerSheetPresentParams = {
-  /** Controls how the modal is presented (after animation). iOS only. Defaults to `popover`. */
-  presentationStyle?: 'fullscreen' | 'popover';
+  /** Controls how the modal is presented (after animation). iOS only. Defaults to `popover`. See https://developer.apple.com/documentation/uikit/uimodalpresentationstyle for more info. */
+  presentationStyle?:
+    | 'fullscreen'
+    | 'popover'
+    | 'pageSheet'
+    | 'formSheet'
+    | 'automatic'
+    | 'overFullScreen';
   /** Controls how the modal animates. iOS only. */
   animationStyle?: 'flip' | 'curl' | 'slide' | 'dissolve';
   /** Time (in milliseconds) before the Customer Sheet will automatically dismiss. */
