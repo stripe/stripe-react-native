@@ -898,7 +898,11 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   googlePayResult.name
   name.putString("givenName", googlePayResult.shippingInformation?.name)
   map.putMap("name", name)
-  map.putString("phoneNumber", googlePayResult.phoneNumber)
+  googlePayResult.shippingInformation?.phone?.let {
+    map.putString("phoneNumber", it)
+  } ?: run {
+    map.putString("phoneNumber", googlePayResult?.phoneNumber)
+  }
   val postalAddress = WritableNativeMap()
   postalAddress.putString("city", googlePayResult.shippingInformation?.address?.city)
   postalAddress.putString("country", googlePayResult.shippingInformation?.address?.country)
