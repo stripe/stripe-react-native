@@ -6,6 +6,11 @@
 
 - Added new `presentationStyle` options for CustomerSheet and AddressSheet. [#1515](https://github.com/stripe/stripe-react-native/pull/1515)
 
+**Fixes**
+
+- Fixed an issue on Android where `street` in `shippingContact` for PlatformPay methods would include `null` in the string
+- Fixed an issue on Android where `phoneNumber` in `ShippingContact` for PlatformPay methods would be `null`
+
 ## 0.33.0 - 2023-09-22
 
 **Features**
