@@ -8,6 +8,7 @@
 
 **Fixes**
 
+- Fixed an issue on Android where apps could crash when launching Google Pay
 - Fixed an issue on Android where `street` in `shippingContact` for PlatformPay methods would include `null` in the string
 - Fixed an issue on Android where `phoneNumber` in `ShippingContact` for PlatformPay methods would be `null`
 
