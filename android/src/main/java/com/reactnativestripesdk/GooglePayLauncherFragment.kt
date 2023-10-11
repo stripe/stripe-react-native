@@ -49,7 +49,7 @@ class GooglePayLauncherFragment : Fragment() {
     this.mode = mode
     this.callback = callback
     this.currencyCode = googlePayParams.getString("currencyCode") ?: "USD"
-    this.amount = googlePayParams.getInt("amount")
+    this.amount = getIntOrNull(googlePayParams, "amount")
     this.label = googlePayParams.getString("label")
     this.configuration = GooglePayLauncher.Config(
       environment = if (googlePayParams.getBoolean("testEnv")) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
