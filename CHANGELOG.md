@@ -5,12 +5,14 @@
 **Features**
 
 - Added new `presentationStyle` options for CustomerSheet and AddressSheet. [#1515](https://github.com/stripe/stripe-react-native/pull/1515)
+- Support `PlatformPayButton`'s `appearance` and `borderRadius` props on Android. [#1534](https://github.com/stripe/stripe-react-native/pull/1534)
 
 **Fixes**
 
 - Fixed an issue on Android where apps could crash when launching Google Pay
 - Fixed an issue on Android where `street` in `shippingContact` for PlatformPay methods would include `null` in the string
 - Fixed an issue on Android where `phoneNumber` in `ShippingContact` for PlatformPay methods would be `null`
+- Removed XML asset files, library size reduced. [#1534](https://github.com/stripe/stripe-react-native/pull/1534)
 
 ## 0.33.0 - 2023-09-22
 
