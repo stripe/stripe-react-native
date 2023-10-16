@@ -202,8 +202,9 @@ export default function GooglePayScreen() {
       <View style={styles.row}>
         <PlatformPayButton
           disabled={!isGooglePaySupported || !clientSecret}
-          style={styles.payButton}
-          type={PlatformPay.ButtonType.Pay}
+          style={styles.donateButton}
+          type={PlatformPay.ButtonType.Donate}
+          borderRadius={0}
           onPress={pay}
         />
       </View>
@@ -213,12 +214,14 @@ export default function GooglePayScreen() {
           disabled={!isGooglePaySupported}
           style={styles.standardButton}
           type={PlatformPay.ButtonType.GooglePayMark}
+          appearance={PlatformPay.ButtonStyle.White}
+          borderRadius={25}
           onPress={createPaymentMethod}
         />
 
         <PlatformPayButton
           disabled={!isGooglePaySupported}
-          style={styles.standardButton}
+          style={styles.buyButton}
           onPress={createToken}
         />
       </View>
@@ -258,12 +261,16 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-around',
   },
-  payButton: {
-    width: 202,
+  donateButton: {
+    width: 222,
     height: 48,
   },
   standardButton: {
     width: 112,
+    height: 48,
+  },
+  buyButton: {
+    width: 202,
     height: 48,
   },
   addToWalletButton: {
