@@ -20,6 +20,16 @@ class GooglePayButtonManager : SimpleViewManager<GooglePayButtonView?>() {
     view.setType(buttonType)
   }
 
+  @ReactProp(name = "appearance")
+  fun appearance(view: GooglePayButtonView, appearance: Int) {
+    view.setAppearance(appearance)
+  }
+
+  @ReactProp(name = "borderRadius")
+  fun borderRadius(view: GooglePayButtonView, borderRadius: Int) {
+    view.setBorderRadius(borderRadius)
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): GooglePayButtonView {
     return GooglePayButtonView(reactContext)
   }

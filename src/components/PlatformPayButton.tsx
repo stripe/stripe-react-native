@@ -24,9 +24,9 @@ import ApplePayButtonNative from './ApplePayButtonNative';
 export interface Props extends AccessibilityProps {
   /** Sets the text displayed by the button. */
   type?: ButtonType;
-  /** iOS only. Sets the coloring of the button. */
+  /** Sets the coloring of the button. */
   appearance?: ButtonStyle;
-  /** Affects iOS only. Sets the border radius of the button. On Android, you cannot modify the radius of the Google Pay button, since doing so violates the [Google Brand Guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines#style). */
+  /** Sets the border radius of the button. */
   borderRadius?: number;
   /** Function called whenever the button is pressed. */
   onPress(): void;
@@ -164,6 +164,8 @@ export function PlatformPayButton({
       ) : (
         <GooglePayButtonNative
           type={type}
+          appearance={appearance}
+          borderRadius={borderRadius}
           style={styles.nativeButtonStyle}
           {...props}
         />
