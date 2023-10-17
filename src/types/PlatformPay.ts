@@ -269,7 +269,7 @@ export enum ButtonType {
   Continue = 16,
   /** Android only. A button useful for general payments. */
   Pay = 1000,
-  /** Android only. A plain white button with the Google Pay logo. Use when you show Google Pay as a payment option in your payment flows. */
+  /** Android only. The Google Pay payment button without the additional text. */
   GooglePayMark = 1001,
 }
 
