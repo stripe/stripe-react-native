@@ -19,6 +19,7 @@ export function usePlatformPay() {
     dismissPlatformPay,
     updatePlatformPaySheet,
     canAddCardToWallet,
+    getIssuingApiVersion,
     openPlatformPaySetup,
   } = useStripe();
   const [loading, setLoading] = useState(false);
@@ -124,6 +125,15 @@ export function usePlatformPay() {
     [canAddCardToWallet]
   );
 
+  const _getIssuingApiVersion = useCallback(async (): Promise<string> => {
+    setLoading(true);
+
+    const result = await getIssuingApiVersion();
+    setLoading(false);
+
+    return result;
+  }, [getIssuingApiVersion]);
+
   const _openPlatformPaySetup = useCallback(async (): Promise<void> => {
     return openPlatformPaySetup();
   }, [openPlatformPaySetup]);
@@ -183,6 +193,12 @@ export function usePlatformPay() {
      * @returns A promise resolving to an object of type CanAddCardToWalletResult. Check the `canAddCard` field, if it's true, you should show the `<AddToWalletButton />`
      */
     canAddCardToWallet: _canAddCardToWallet,
+    /**
+     * Get the supported Stripe API version for usage on your server with Issuing-related API calls.
+     * @returns A string representing the supported API version, or an empty string if
+     * the required push provisioning dependencies are not found.
+     */
+    getIssuingApiVersion: _getIssuingApiVersion,
     /**
      * iOS only, this is a no-op on Android. Use this method to move users to the interface for adding credit cards.
      * This method transfers control to the Wallet app on iPhone or to the Settings

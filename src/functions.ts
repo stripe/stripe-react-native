@@ -602,6 +602,15 @@ export const canAddCardToWallet = async (
   }
 };
 
+/**
+ * Get the supported Stripe API version for usage on your server with Issuing-related API calls.
+ * @returns A string representing the supported API version, or an empty string if
+ * the required push provisioning dependencies are not found.
+ */
+export const getIssuingApiVersion = async (): Promise<string> => {
+  return await NativeStripeSdk.getIssuingApiVersion();
+};
+
 /** @deprecated Please use `canAddCardToWallet` instead. */
 export const isCardInWallet = async (params: {
   cardLastFour: string;

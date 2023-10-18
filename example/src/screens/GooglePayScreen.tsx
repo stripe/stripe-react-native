@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   AddToWalletButton,
-  Constants,
   canAddCardToWallet,
   createPlatformPayPaymentMethod,
   createPlatformPayToken,
@@ -10,6 +9,7 @@ import {
   isPlatformPaySupported,
   PlatformPay,
   PlatformPayButton,
+  getIssuingApiVersion,
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -183,13 +183,14 @@ export default function GooglePayScreen() {
   };
 
   const fetchEphemeralKey = async () => {
+    const issuingApiVersion = await getIssuingApiVersion();
     const response = await fetch(`${API_URL}/ephemeral-key`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        apiVersion: Constants.API_VERSIONS.ISSUING,
+        apiVersion: issuingApiVersion,
         issuingCardId: LIVE_CARD_ID,
       }),
     });

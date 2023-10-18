@@ -3,7 +3,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   PlatformPay,
   AddToWalletButton,
-  Constants,
+  getIssuingApiVersion,
   canAddCardToWallet,
   PlatformPayButton,
   usePlatformPay,
@@ -194,13 +194,14 @@ export default function ApplePayScreen() {
   };
 
   const fetchEphemeralKey = async () => {
+    const issuingApiVersion = await getIssuingApiVersion();
     const response = await fetch(`${API_URL}/ephemeral-key`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        apiVersion: Constants.API_VERSIONS.ISSUING,
+        apiVersion: issuingApiVersion,
         issuingCardId: TEST_CARD_ID,
       }),
     });
