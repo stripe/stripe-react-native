@@ -6,6 +6,8 @@
 
 - Added new `presentationStyle` options for CustomerSheet and AddressSheet. [#1515](https://github.com/stripe/stripe-react-native/pull/1515)
 - Support `PlatformPayButton`'s `appearance` and `borderRadius` props on Android. [#1534](https://github.com/stripe/stripe-react-native/pull/1534)
+- PaymentSheet now supports Swish for PaymentIntents in private beta [#1542](https://github.com/stripe/stripe-react-native/pull/1542)
+- PaymentSheet now supports saved payment method support for SEPA family payment methods [#1542](https://github.com/stripe/stripe-react-native/pull/1542)
 
 **Fixes**
 
