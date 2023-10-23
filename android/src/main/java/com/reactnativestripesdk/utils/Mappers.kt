@@ -502,6 +502,12 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
         nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
       }
     }
+    NextActionType.SwishRedirect -> {
+      (data as? NextActionData.SwishRedirect)?.let {
+        nextActionMap.putString("type", "swishRedirect")
+        nextActionMap.putString("mobileAuthUrl", it.mobileAuthUrl)
+      }
+    }
   }
   return nextActionMap
 }
