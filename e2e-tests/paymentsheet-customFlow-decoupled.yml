@@ -12,7 +12,7 @@ appId: ${APP_ID}
     visible: "TEST MODE"
     timeout: 150000
 - tapOn:
-    id: "+ Add"
+    above: "+ Add"
     optional: true
 - tapOn:
     text: "Card number"
