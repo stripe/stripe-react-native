@@ -293,6 +293,7 @@ class Mappers {
         case STPPaymentMethodType.payPal: return "PayPal"
         case STPPaymentMethodType.affirm: return "Affirm"
         case STPPaymentMethodType.cashApp: return "CashApp"
+        case STPPaymentMethodType.revolutPay: return "RevolutPay"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -324,6 +325,7 @@ class Mappers {
             case "PayPal": return STPPaymentMethodType.payPal
             case "Affirm": return STPPaymentMethodType.affirm
             case "CashApp": return STPPaymentMethodType.cashApp
+            case "RevolutPay": return STPPaymentMethodType.revolutPay
             default: return STPPaymentMethodType.unknown
             }
         }

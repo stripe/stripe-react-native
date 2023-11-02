@@ -49,7 +49,8 @@ export type ConfirmParams =
   | USBankAccountParams
   | PayPalParams
   | AffirmParams
-  | CashAppParams;
+  | CashAppParams
+  | RevolutPayParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -264,6 +265,14 @@ export type PayPalParams = {
 
 export type CashAppParams = {
   paymentMethodType: 'CashApp';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+    mandateData?: MandateData;
+  };
+};
+
+export type RevolutPayParams = {
+  paymentMethodType: 'RevolutPay';
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
