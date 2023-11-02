@@ -71,6 +71,7 @@ function getKeys(payment_method?: string) {
       secret_key = process.env.STRIPE_SECRET_KEY_WECHAT;
       break;
     case 'paypal':
+    case 'revolut_pay':
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_UK;
       secret_key = process.env.STRIPE_SECRET_KEY_UK;
       break;
@@ -363,11 +364,20 @@ app.post('/create-setup-intent', async (req, res) => {
     },
     confirm: true,
   };
+  const revolutPayIntentPayload = {
+    payment_method_data: {
+      type: 'revolut_pay',
+    },
+    usage: 'off_session',
+  };
 
   //@ts-ignore
   const setupIntent = await stripe.setupIntents.create({
     ...{ customer: customer.id, payment_method_types },
     ...(payment_method_types?.includes('paypal') ? payPalIntentPayload : {}),
+    ...(payment_method_types?.includes('revolut_pay')
+      ? revolutPayIntentPayload
+      : {}),
   });
 
   // Send publishable key and SetupIntent details to client

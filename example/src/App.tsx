@@ -44,6 +44,7 @@ import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
+import RevolutPayScreen from './screens/RevolutPayScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -89,6 +90,7 @@ export type RootStackParamList = {
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   CustomerSheetScreen: undefined;
+  RevolutPayScreen: undefined;
 };
 
 declare global {
@@ -248,6 +250,7 @@ export default function App() {
             name="CustomerSheetScreen"
             component={CustomerSheetScreen}
           />
+          <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

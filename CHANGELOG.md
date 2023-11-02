@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Features**
+
+- Added support for RevolutPay bindings
+
 ## 0.34.0 - 2023-10-25
 
 **Features**

@@ -124,6 +124,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.PayPal -> "PayPal"
     PaymentMethod.Type.Affirm -> "Affirm"
     PaymentMethod.Type.CashAppPay -> "CashApp"
+    PaymentMethod.Type.RevolutPay -> "RevolutPay"
     else -> "Unknown"
   }
 }
@@ -154,6 +155,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "PayPal" -> PaymentMethod.Type.PayPal
     "Affirm" -> PaymentMethod.Type.Affirm
     "CashApp" -> PaymentMethod.Type.CashAppPay
+    "RevolutPay" -> PaymentMethod.Type.RevolutPay
     else -> null
   }
 }
