@@ -13,17 +13,17 @@ appId: ${APP_ID}
 - tapOn: "Manually verify instead"
 - tapOn: "123456789"
 - inputText: "110000000"
-- hideKeyboard
+- tapOn: "Your bank information will be verified with micro-deposits to your account."
 - tapOn:
     text: "000123456789"
     index: 0
 - inputText: "000123456789"
-- hideKeyboard
+- tapOn: "Your bank information will be verified with micro-deposits to your account."
 - tapOn:
     text: "000123456789"
     index: 1
 - inputText: "000123456789"
-- hideKeyboard
+- tapOn: "Please enter a checking account."
 - tapOn: "Continue"
 - tapOn: "Done"
 - assertVisible:
