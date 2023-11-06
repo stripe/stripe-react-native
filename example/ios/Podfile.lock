@@ -284,10 +284,6 @@ PODS:
   - React-jsinspector (0.69.9)
   - React-logger (0.69.9):
     - glog
-  - react-native-config (1.4.11):
-    - react-native-config/App (= 1.4.11)
-  - react-native-config/App (1.4.11):
-    - React-Core
   - react-native-safe-area-context (4.4.1):
     - RCT-Folly
     - RCTRequired
@@ -374,7 +370,7 @@ PODS:
     - StripePayments (= 23.18.0)
     - StripePaymentsUI (= 23.18.0)
     - StripeUICore (= 23.18.0)
-  - stripe-react-native (0.34.0):
+  - stripe-react-native (0.35.0):
     - React-Core
     - Stripe (~> 23.18.0)
     - StripeApplePay (~> 23.18.0)
@@ -382,7 +378,7 @@ PODS:
     - StripePayments (~> 23.18.0)
     - StripePaymentSheet (~> 23.18.0)
     - StripePaymentsUI (~> 23.18.0)
-  - stripe-react-native/Tests (0.34.0):
+  - stripe-react-native/Tests (0.35.0):
     - React-Core
     - Stripe (~> 23.18.0)
     - StripeApplePay (~> 23.18.0)
@@ -460,7 +456,6 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
-  - react-native-config (from `../node_modules/react-native-config`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -546,8 +541,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
-  react-native-config:
-    :path: "../node_modules/react-native-config"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-perflogger:
@@ -618,7 +611,6 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 3b506d7fc50275bf44f8fd5624f23eaedd78bf78
   React-jsinspector: 5b92a5a30e02e1a21802f293cc71e05d887c7378
   React-logger: 96d904c5bc87c2660d48e6a36fb2edf65f9cfb11
-  react-native-config: bcafda5b4c51491ee1b0e1d0c4e3905bc7b56c1b
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   React-perflogger: f6f4b3c63629ead2e8a5a22eaedd06368c31617a
   React-RCTActionSheet: 5e95058e99c53313d778d96b7f37697ce3a9418e
@@ -637,7 +629,7 @@ SPEC CHECKSUMS:
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Stripe: 4092bc51f41ca1758166aef921aa0dd2f0fbc639
-  stripe-react-native: 8607258ea7b0e77534840f5c898ccb70cd8900be
+  stripe-react-native: 2e2dad1734c1c2b71564b66bae4395bfd8419af4
   StripeApplePay: aedbcb53f5324d527a52a5888bd0eeee25b3ca36
   StripeCore: f86db23fb3f984808e6f5d3876397b953bf58a52
   StripeFinancialConnections: 0aaddb3593a7cc76b5f01eab185f16ef60798b15

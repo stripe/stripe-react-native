@@ -143,7 +143,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
         if (isNewArchitectureEnabled()) {
             // We configure the NDK build only if you decide to opt-in for the New Architecture.
