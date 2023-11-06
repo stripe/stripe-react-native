@@ -20,15 +20,15 @@ appId: ${APP_ID}
 - tapOn: "Save"
 - tapOn: "Confirm"
 - assertVisible:
-    text: "••••4242"
-- tapOn: "••••4242"
+    text: .*4242
+- tapOn: .*4242
 - tapOn: "Close"
 - assertVisible:
     text: "Canceled"
 - tapOn: "OK"
 - tapOn:
     id: "customer_adapter_switch"
-- tapOn: "••••4242"
+- tapOn: .*4242
 - extendedWaitUntil:
     visible: "TEST MODE"
     timeout: 150000
