@@ -1,5 +1,5 @@
 {
-  "name": "stripe-react-native-example",
+  "name": "@stripe/stripe-react-native-example",
   "description": "Example app for @stripe/stripe-react-native",
   "version": "0.0.1",
   "private": true,
