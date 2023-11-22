@@ -1,7 +1,11 @@
 import { AndroidConfig } from '@expo/config-plugins';
 import { resolve } from 'path';
 
-import { setApplePayEntitlement, setGooglePayMetaData } from '../withStripe';
+import {
+  setApplePayEntitlement,
+  setGooglePayMetaData,
+  addGooglePlacesSdk,
+} from '../withStripe';
 
 jest.mock(
   '@stripe/stripe-react-native/package.json',
@@ -17,6 +21,7 @@ const { getMainApplicationOrThrow, readAndroidManifestAsync } =
 
 const fixturesPath = resolve(__dirname, 'fixtures');
 const sampleManifestPath = resolve(fixturesPath, 'sample-AndroidManifest.xml');
+const sampleBuildGradlePath = resolve(fixturesPath, 'sample-build.gradle');
 
 describe('setApplePayEntitlement', () => {
   it(`sets the apple pay entitlement when none exist`, () => {
@@ -107,5 +112,17 @@ describe('setGooglePayMetaData', () => {
       (e) => e.$['android:name'] === 'com.google.android.gms.wallet.api.enabled'
     );
     expect(apiKeyItem).toHaveLength(0);
+  });
+});
+
+describe('addGooglePlacesSdk', () => {
+  it(`Properly adds Google Places SDK to build.gradle`, async () => {
+    let buildGradle = AndroidConfig.Paths.getFileInfo(sampleBuildGradlePath);
+    buildGradle.contents = addGooglePlacesSdk(buildGradle.contents);
+    expect(
+      buildGradle.contents.includes(
+        'com.google.android.libraries.places:places:2.6.0'
+      )
+    ).toBe(true);
   });
 });
