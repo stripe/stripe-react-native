@@ -186,5 +186,5 @@ module.exports = {
   GooglePayButton: () => 'GooglePayButton',
   AddToWalletButton: () => 'AddToWalletButton',
   PlatformPayButton: () => 'PlatformPayButton',
-  useStripe: jest.fn(() => mockHooks),
+  useStripe: jest.fn(() => mockFunctions),
 };
