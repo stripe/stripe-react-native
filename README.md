@@ -242,6 +242,10 @@ See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to 
 
 ## Troubleshooting
 
+### Android web browser windows close on backgrounding the app
+
+This is known limitation of using `singleTask` as your `launchMode` on Android. See [here](https://github.com/stripe/stripe-react-native/blob/master/docs/android-chrome-tab-closes-on-background.md) for a workaround.
+
 ### `Undefined symbols for architecture x86_64` on iOS
 
 While building your iOS project, you may see a `Undefined symbols for architecture x86_64` error. This is caused by `react-native init` template configuration that is not fully compatible with Swift 5.1.
