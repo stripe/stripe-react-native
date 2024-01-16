@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.35.1 - 2024-01-16
+
 **Fixes**
 
 - Fixed a build error on Android when using React Native 0.73.0 and higher [#1579](https://github.com/stripe/stripe-react-native/pull/1579)
