@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Fixed a build error on Android when using React Native 0.73.0 and higher [#1579](https://github.com/stripe/stripe-react-native/pull/1579)
+- Fixed the test mock for `useStripe` [#1559](https://github.com/stripe/stripe-react-native/pull/1559)
+- Fixed a build error on Android that would only occur when using the `nx` build tool [#1586](https://github.com/stripe/stripe-react-native/pull/1586)
+  
 ## 0.35.0 - 2023-11-02
 
 **Features**
