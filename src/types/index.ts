@@ -44,12 +44,8 @@ export {
 export * from './PushProvisioning';
 export * from './Errors';
 export * from './CustomerSheet';
-export type {
-  Address,
-  BillingDetails,
-  AddressDetails,
-  CardBrand,
-} from './Common';
+export type { Address, BillingDetails, AddressDetails } from './Common';
+export { CardBrand } from './Common';
 
 /**
  * @ignore

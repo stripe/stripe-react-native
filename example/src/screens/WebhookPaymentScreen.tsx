@@ -4,7 +4,11 @@ import type {
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
-import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
+import {
+  CardBrand,
+  CardField,
+  useConfirmPayment,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -108,6 +112,7 @@ export default function WebhookPaymentScreen() {
         }}
         cardStyle={inputStyles}
         style={styles.cardField}
+        preferredNetworks={[CardBrand.Amex]}
       />
       <View style={styles.row}>
         <Switch
