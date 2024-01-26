@@ -15,7 +15,8 @@ class PaymentSheetFragmentTest {
       bundleOf(
         "merchantCountryCode" to "US",
         "currencyCode" to "USD",
-        "testEnv" to true
+        "testEnv" to true,
+        "buttonType" to 4
       )
     )
     Assert.assertEquals(
@@ -23,7 +24,8 @@ class PaymentSheetFragmentTest {
       PaymentSheet.GooglePayConfiguration(
         environment = PaymentSheet.GooglePayConfiguration.Environment.Test,
         countryCode = "US",
-        currencyCode = "USD"
+        currencyCode = "USD",
+        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Donate
       )
     )
   }
@@ -46,7 +48,8 @@ class PaymentSheetFragmentTest {
       PaymentSheet.GooglePayConfiguration(
         environment = PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = "",
-        currencyCode = ""
+        currencyCode = "",
+        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Pay
       )
     )
   }

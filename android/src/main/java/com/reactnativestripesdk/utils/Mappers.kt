@@ -909,7 +909,7 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   googlePayResult.shippingInformation?.phone?.let {
     map.putString("phoneNumber", it)
   } ?: run {
-    map.putString("phoneNumber", googlePayResult?.phoneNumber)
+    map.putString("phoneNumber", googlePayResult.phoneNumber)
   }
   val postalAddress = WritableNativeMap()
   postalAddress.putString("city", googlePayResult.shippingInformation?.address?.city)
@@ -925,4 +925,26 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   postalAddress.putString("isoCountryCode", googlePayResult.shippingInformation?.address?.country)
   map.putMap("postalAddress", postalAddress)
   return map
+}
+
+internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardBrand> {
+  if (networksAsInts == null) {
+    return emptyList()
+  }
+
+  val intToCardBrand = mapOf(
+    0 to CardBrand.JCB,
+    1 to CardBrand.AmericanExpress,
+    2 to CardBrand.CartesBancaires,
+    3 to CardBrand.DinersClub,
+    4 to CardBrand.Discover,
+    5 to CardBrand.MasterCard,
+    6 to CardBrand.UnionPay,
+    7 to CardBrand.Visa,
+    8 to CardBrand.Unknown,
+  )
+
+  return networksAsInts.mapNotNull {
+    intToCardBrand[it]
+  }
 }

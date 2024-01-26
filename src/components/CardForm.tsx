@@ -1,4 +1,4 @@
-import type { CardFormView } from '../types';
+import type { CardFormView, CardBrand } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -36,7 +36,9 @@ export interface Props extends AccessibilityProps {
   disabled?: boolean;
   /** All styles except backgroundColor, cursorColor, borderColor, and borderRadius are Android only */
   cardStyle?: CardFormView.Styles;
-
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
   // TODO: will make it public when iOS SDK allows for this
   // postalCodeEnabled?: boolean;
 

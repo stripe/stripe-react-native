@@ -1,4 +1,4 @@
-import type { BillingDetails, AddressDetails } from './Common';
+import type { BillingDetails, AddressDetails, CardBrand } from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
   ButtonType,
@@ -52,6 +52,9 @@ export type SetupParams = IntentParams & {
   primaryButtonLabel?: string;
   /** Optional configuration to display a custom message when a saved payment method is removed. iOS only. */
   removeSavedPaymentMethodMessage?: string;
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
 };
 
 export type IntentParams =
@@ -110,6 +113,10 @@ export type GooglePayParams = {
   label?: string;
   /** An optional amount to display for setup intents. Google Pay may or may not display this amount depending on its own internal logic. Defaults to 0 if none is provided. */
   amount?: string;
+  /** The Google Pay button type to use. Set to "Pay" by default. See
+   * [Google's documentation](https://developers.google.com/android/reference/com/google/android/gms/wallet/Wallet.WalletOptions#environment)
+   * for more information on button types. */
+  buttonType?: ButtonType;
 };
 
 /**

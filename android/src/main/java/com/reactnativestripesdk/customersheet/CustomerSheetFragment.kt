@@ -84,11 +84,11 @@ class CustomerSheetFragment : Fragment() {
       return
     }
 
-    val configuration = CustomerSheet.Configuration.builder()
+    val configuration = CustomerSheet.Configuration.builder(merchantDisplayName ?: "")
       .appearance(appearance)
       .googlePayEnabled(googlePayEnabled)
-      .merchantDisplayName(merchantDisplayName)
       .headerTextForSelectionScreen(headerTextForSelectionScreen)
+      .preferredNetworks(mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")))
 
     billingDetailsBundle?.let {
       configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsBundle))

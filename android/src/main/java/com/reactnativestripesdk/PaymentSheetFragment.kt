@@ -194,7 +194,8 @@ class PaymentSheetFragment(
       appearance = appearance,
       shippingDetails = shippingDetails,
       primaryButtonLabel = primaryButtonLabel,
-      billingDetailsCollectionConfiguration = billingDetailsConfig
+      billingDetailsCollectionConfiguration = billingDetailsConfig,
+      preferredNetworks = mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks"))
     )
 
     if (arguments?.getBoolean("customFlow") == true) {
@@ -342,6 +343,17 @@ class PaymentSheetFragment(
   companion object {
     internal const val TAG = "payment_sheet_launch_fragment"
 
+    private val mapIntToButtonType = mapOf(
+      1 to PaymentSheet.GooglePayConfiguration.ButtonType.Buy,
+      6 to PaymentSheet.GooglePayConfiguration.ButtonType.Book,
+      5 to PaymentSheet.GooglePayConfiguration.ButtonType.Checkout,
+      4 to PaymentSheet.GooglePayConfiguration.ButtonType.Donate,
+      11 to PaymentSheet.GooglePayConfiguration.ButtonType.Order,
+      1000 to PaymentSheet.GooglePayConfiguration.ButtonType.Pay,
+      7 to PaymentSheet.GooglePayConfiguration.ButtonType.Subscribe,
+      1001 to PaymentSheet.GooglePayConfiguration.ButtonType.Plain,
+    )
+
     internal fun createMissingInitError(): WritableMap {
       return createError(PaymentSheetErrorType.Failed.toString(), "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.")
     }
@@ -356,13 +368,16 @@ class PaymentSheetFragment(
       val testEnv = params.getBoolean("testEnv")
       val amount = params.getString("amount")?.toLongOrNull()
       val label = params.getString("label")
+      val buttonType = mapIntToButtonType.get(params.getInt("buttonType")) ?: PaymentSheet.GooglePayConfiguration.ButtonType.Pay
+
 
       return PaymentSheet.GooglePayConfiguration(
         environment = if (testEnv) PaymentSheet.GooglePayConfiguration.Environment.Test else PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = countryCode,
         currencyCode = currencyCode,
         amount = amount,
-        label = label
+        label = label,
+        buttonType = buttonType
       )
     }
 

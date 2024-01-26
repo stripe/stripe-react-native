@@ -4,6 +4,7 @@ import type {
   CustomerSheetError,
   BillingDetails,
   PaymentMethod,
+  CardBrand,
 } from '../types';
 
 export type CustomerSheetInitParams = {
@@ -33,6 +34,9 @@ export type CustomerSheetInitParams = {
   applePayEnabled?: boolean;
   /** Whether to show Google Pay as an option. Defaults to false. */
   googlePayEnabled?: boolean;
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
   /** Optional override. It is generally recommended to rely on the default behavior, but- provide a CustomerAdapter here if
    * you would prefer retrieving and updating your Stripe customer object via your own backend instead.
    * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
