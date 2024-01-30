@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.utils
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import com.facebook.react.bridge.*
@@ -447,6 +448,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   return map
 }
 
+@SuppressLint("RestrictedApi")
 internal fun mapFromMicrodepositType(type: MicrodepositType): String {
   return when (type) {
     MicrodepositType.AMOUNTS -> "amounts"
@@ -455,6 +457,7 @@ internal fun mapFromMicrodepositType(type: MicrodepositType): String {
   }
 }
 
+@SuppressLint("RestrictedApi")
 internal fun mapNextAction(type: NextActionType?, data: NextActionData?): WritableNativeMap? {
   val nextActionMap = WritableNativeMap()
   when (type) {

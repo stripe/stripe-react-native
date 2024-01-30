@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
@@ -66,6 +67,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     cardForm.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
   }
 
+  @SuppressLint("RestrictedApi")
   private fun setCountry(countryString: String?) {
     if (countryString != null) {
       cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(countryString))
@@ -126,6 +128,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       CardFocusEvent(id, currentFocusedField))
   }
 
+  @SuppressLint("RestrictedApi")
   fun setCardStyle(value: ReadableMap) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
@@ -291,6 +294,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     )
   }
 
+  @SuppressLint("RestrictedApi")
   private fun createPostalCodeInputFilter(): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       if (cardFormViewBinding.countryLayout.getSelectedCountryCode() == CountryCode.US) {
