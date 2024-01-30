@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
@@ -41,6 +42,7 @@ class GooglePayButtonView(private val context: ThemedReactContext) : FrameLayout
     return googlePayButton
   }
 
+  @SuppressLint("RestrictedApi")
   private fun buildButtonOptions(): ButtonOptions {
     val allowedPaymentMethods = JSONArray().put(
       GooglePayJsonFactory(context).createCardPaymentMethod(

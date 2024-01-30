@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
@@ -204,7 +205,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
 
-    if (isEnabled === false) {
+    if (isEnabled == false) {
       mCardWidget.postalCodeRequired = false
     }
   }
@@ -217,6 +218,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
    * We can reliable assume that setPostalCodeEnabled is called before
    * setCountryCode because of the order of the props in CardField.tsx
    */
+  @SuppressLint("RestrictedApi")
   fun setCountryCode(countryString: String?) {
     if (mCardWidget.postalCodeEnabled) {
       val countryCode = CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0]?.country ?: "US")
@@ -354,6 +356,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     )
   }
 
+  @SuppressLint("RestrictedApi")
   private fun createPostalCodeInputFilter(countryCode: CountryCode): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       for (i in start until end) {
