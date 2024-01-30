@@ -1027,27 +1027,27 @@ class Mappers {
     }
 
     class func intToCardBrand(int: Int) -> STPCardBrand? {
-        return switch int {
+        switch int {
         case 0:
-            STPCardBrand.JCB
+            return STPCardBrand.JCB
         case 1:
-            STPCardBrand.amex
+            return STPCardBrand.amex
         case 2:
-            STPCardBrand.cartesBancaires
+            return STPCardBrand.cartesBancaires
         case 3:
-            STPCardBrand.dinersClub
+            return STPCardBrand.dinersClub
         case 4:
-            STPCardBrand.discover
+            return STPCardBrand.discover
         case 5:
-            STPCardBrand.mastercard
+            return STPCardBrand.mastercard
         case 6:
-            STPCardBrand.unionPay
+            return STPCardBrand.unionPay
         case 7:
-            STPCardBrand.visa
+            return STPCardBrand.visa
         case 8:
-            STPCardBrand.unknown
+            return STPCardBrand.unknown
         default:
-            nil
+            return nil
         }
     }
 }
