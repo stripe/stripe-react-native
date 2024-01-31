@@ -167,10 +167,11 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
 
   private fun setCardBrandTint(color: Int) {
     try {
-      cardInputWidgetBinding.cardBrandView::class.java.getDeclaredField("tintColorInt").let { internalTintColor ->
-        internalTintColor.isAccessible = true
-        internalTintColor.set(cardInputWidgetBinding.cardBrandView, color)
-      }
+      cardInputWidgetBinding.cardBrandView::class.java
+        .getDeclaredMethod("setTintColorInt\$payments_core_release", Int::class.java)
+        .let {
+          it(cardInputWidgetBinding.cardBrandView, color)
+        }
     } catch (e: Exception) {
       Log.e(
         "StripeReactNative",
