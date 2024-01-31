@@ -22,7 +22,9 @@ extension StripeSdk {
                 applePayEnabled: params["applePayEnabled"] as? Bool,
                 merchantDisplayName: params["merchantDisplayName"] as? String,
                 billingDetailsCollectionConfiguration: params["billingDetailsCollectionConfiguration"] as? NSDictionary,
-                defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary)
+                defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary,
+                preferredNetworks: params["preferredNetworks"] as? Array<Int>
+            )
         } catch {
             resolve(
                 Errors.createError(ErrorType.Failed, error.localizedDescription)

@@ -18,7 +18,8 @@ class CustomerSheetUtils {
         applePayEnabled: Bool?,
         merchantDisplayName: String?,
         billingDetailsCollectionConfiguration: NSDictionary?,
-        defaultBillingDetails: NSDictionary?
+        defaultBillingDetails: NSDictionary?,
+        preferredNetworks: Array<Int>?
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
         config.appearance = appearance
@@ -29,6 +30,9 @@ class CustomerSheetUtils {
         config.applePayEnabled = applePayEnabled ?? false
         if let merchantDisplayName = merchantDisplayName {
             config.merchantDisplayName = merchantDisplayName
+        }
+        if let preferredNetworks = preferredNetworks {
+            config.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
         }
         if let billingConfigParams = billingDetailsCollectionConfiguration {
             config.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)

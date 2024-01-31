@@ -11,6 +11,13 @@ class CardFormView: UIView, STPCardFormViewDelegate {
     @objc var onFormComplete: RCTDirectEventBlock?
     @objc var autofocus: Bool = false
     @objc var disabled: Bool = false
+    @objc var preferredNetworks: Array<Int>? {
+        didSet {
+            if let preferredNetworks = preferredNetworks {
+                cardForm?.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
+            }
+        }
+    }
     
     override func didSetProps(_ changedProps: [String]!) {
         if let cardForm = self.cardForm {

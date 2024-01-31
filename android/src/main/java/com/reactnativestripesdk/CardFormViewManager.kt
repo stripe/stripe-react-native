@@ -61,6 +61,12 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
     view.setDisabled(isDisabled)
   }
 
+  @ReactProp(name = "preferredNetworks")
+  fun setPreferredNetworks(view: CardFormView, preferredNetworks: ReadableArray?) {
+    val networks = preferredNetworks?.toArrayList()?.filterIsInstance<Int>()?.let { ArrayList(it) }
+    view.setPreferredNetworks(networks)
+  }
+
   override fun createViewInstance(reactContext: ThemedReactContext): CardFormView {
     val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFormView(reactContext)

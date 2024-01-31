@@ -99,6 +99,10 @@ extension StripeSdk {
             }
         }
         
+        if let preferredNetworksAsInts = params["preferredNetworks"] as? Array<Int> {
+            configuration.preferredNetworks = preferredNetworksAsInts.map(Mappers.intToCardBrand).compactMap { $0 }
+        }
+        
         return (nil, configuration)
     }
     

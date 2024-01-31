@@ -8,6 +8,7 @@ import {
   PaymentSheetError,
   AddressSheet,
   AddressSheetError,
+  CardBrand,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -111,6 +112,7 @@ export default function PaymentsUICompleteScreen() {
       appearance,
       primaryButtonLabel: 'purchase!',
       removeSavedPaymentMethodMessage: 'remove this payment method?',
+      preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
     });
     if (!error) {
       setPaymentSheetEnabled(true);

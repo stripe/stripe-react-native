@@ -1,4 +1,4 @@
-import type { CardFieldInput } from '../types';
+import type { CardFieldInput, CardBrand } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -43,6 +43,9 @@ export interface Props extends AccessibilityProps {
   onBlur?(): void;
   onFocus?(focusedField: CardFieldInput.FieldName | null): void;
   testID?: string;
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.
    * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.

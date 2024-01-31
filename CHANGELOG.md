@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+**Features**
+
+- Use `preferredNetworks` on `CardField`, `CardForm`, `CustomerSheet`, and `PaymentSheet` to set the list of preferred networks that should be used to process payments made with a co-branded card.
+- Set the Google Pay button type that is used in PaymentSheet with the `googlePay.buttonType` parameter.
+
+**Fixes**
+
+- Fixed an issue on Android where `CardField`'s `placeholderColor` wasn't being applied to the card brand icon.
+
 ## 0.35.1 - 2024-01-16
 
 **Fixes**
@@ -9,7 +18,7 @@
 - Fixed a build error on Android when using React Native 0.73.0 and higher [#1579](https://github.com/stripe/stripe-react-native/pull/1579)
 - Fixed the test mock for `useStripe` [#1559](https://github.com/stripe/stripe-react-native/pull/1559)
 - Fixed a build error on Android that would only occur when using the `nx` build tool [#1586](https://github.com/stripe/stripe-react-native/pull/1586)
-  
+
 ## 0.35.0 - 2023-11-02
 
 **Features**

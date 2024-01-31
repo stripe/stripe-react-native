@@ -1025,4 +1025,29 @@ class Mappers {
             default: return STPPaymentMethodUSBankAccountType.checking
         }
     }
+
+    class func intToCardBrand(int: Int) -> STPCardBrand? {
+        switch int {
+        case 0:
+            return STPCardBrand.JCB
+        case 1:
+            return STPCardBrand.amex
+        case 2:
+            return STPCardBrand.cartesBancaires
+        case 3:
+            return STPCardBrand.dinersClub
+        case 4:
+            return STPCardBrand.discover
+        case 5:
+            return STPCardBrand.mastercard
+        case 6:
+            return STPCardBrand.unionPay
+        case 7:
+            return STPCardBrand.visa
+        case 8:
+            return STPCardBrand.unknown
+        default:
+            return nil
+        }
+    }
 }

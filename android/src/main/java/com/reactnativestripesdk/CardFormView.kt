@@ -63,6 +63,10 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     cardForm.isEnabled = !isDisabled
   }
 
+  fun setPreferredNetworks(preferredNetworks: ArrayList<Int>?) {
+    cardForm.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
+  }
+
   @SuppressLint("RestrictedApi")
   private fun setCountry(countryString: String?) {
     if (countryString != null) {

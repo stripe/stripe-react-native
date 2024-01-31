@@ -30,6 +30,14 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
     
+    @objc var preferredNetworks: Array<Int>? {
+        didSet {
+            if let preferredNetworks = preferredNetworks {
+                cardField.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
+            }
+        }
+    }
+    
     @objc var placeholders: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholders["number"] as? String {
