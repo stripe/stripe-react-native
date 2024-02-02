@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.36.0 - 2024-02-02
+
 **Features**
 
 - Use `preferredNetworks` on `CardField`, `CardForm`, `CustomerSheet`, and `PaymentSheet` to set the list of preferred networks that should be used to process payments made with a co-branded card.
