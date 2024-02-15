@@ -73,7 +73,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 #### Android
 
 - Android 5.0 (API level 21) and above
-  - Your `compileSdkVersion` must be `33`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
+  - Your `compileSdkVersion` must be `34`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
 - Android gradle plugin 4.x and above
 
 _Components_
@@ -198,7 +198,7 @@ function App() {
     initStripe({
       publishableKey: publishableKey,
       merchantIdentifier: 'merchant.identifier',
-      urlScheme: "your-url-scheme",
+      urlScheme: 'your-url-scheme',
     });
   }, []);
 }

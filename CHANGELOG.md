@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+- Your `compileSdkVersion` (in `android/build.gradle`) now must be at least 34. Changing your `compileSdkVersion` does not change runtime behavior.
+
+**Fixes**
+
+- Fixed an issue on Android where the SDK was unable to follow URL redirects in some cases.
+- Fixed an issue on Android where Google Pay & Link were not saved as default payment methods in PaymentSheet.
+
 ## 0.36.0 - 2024-02-02
 
 **Features**
