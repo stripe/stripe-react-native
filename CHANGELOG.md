@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.37.0 - 2024-02-16
+
 **Breaking changes**
 
 - Your `compileSdkVersion` (in `android/build.gradle`) now must be at least 34. Changing your `compileSdkVersion` does not change runtime behavior.
