@@ -1,4 +1,4 @@
-import type { BillingDetails, AddressDetails } from './Common';
+import type { BillingDetails, AddressDetails, CardBrand } from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
   ButtonType,
@@ -6,8 +6,11 @@ import type {
   AutomaticReloadPaymentRequest,
   MultiMerchantRequest,
 } from './PlatformPay';
+import type { FutureUsage } from './PaymentIntent';
+import type { Result } from './PaymentMethod';
+import type { StripeError } from './Errors';
 
-export type SetupParams = ClientSecretParams & {
+export type SetupParams = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
@@ -25,6 +28,8 @@ export type SetupParams = ClientSecretParams & {
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
+  /** Configuration for how billing details are collected during checkout. */
+  billingDetailsCollectionConfiguration?: BillingDetailsCollectionConfiguration;
   /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with the values provided. */
   defaultBillingDetails?: BillingDetails;
   /**
@@ -45,16 +50,28 @@ export type SetupParams = ClientSecretParams & {
   appearance?: AppearanceParams;
   /** The label to use for the primary button. If not set, Payment Sheet will display suitable default labels for payment and setup intents. */
   primaryButtonLabel?: string;
+  /** Optional configuration to display a custom message when a saved payment method is removed. iOS only. */
+  removeSavedPaymentMethodMessage?: string;
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
 };
 
-export type ClientSecretParams =
+export type IntentParams =
   | {
       paymentIntentClientSecret: string;
       setupIntentClientSecret?: undefined;
+      intentConfiguration?: never;
     }
   | {
       setupIntentClientSecret: string;
       paymentIntentClientSecret?: undefined;
+      intentConfiguration?: never;
+    }
+  | {
+      setupIntentClientSecret?: never;
+      paymentIntentClientSecret?: never;
+      intentConfiguration: IntentConfiguration;
     };
 
 export type ApplePayParams = {
@@ -92,6 +109,14 @@ export type GooglePayParams = {
   currencyCode?: string;
   /** Whether or not to use the Google Pay test environment.  Set to `true` until you have applied for and been granted access to the Production environment. */
   testEnv?: boolean;
+  /** An optional label to display with the amount. Google Pay may or may not display this label depending on its own internal logic. Defaults to a generic label if none is provided. */
+  label?: string;
+  /** An optional amount to display for setup intents. Google Pay may or may not display this amount depending on its own internal logic. Defaults to 0 if none is provided. */
+  amount?: string;
+  /** The Google Pay button type to use. Set to "Pay" by default. See
+   * [Google's documentation](https://developers.google.com/android/reference/com/google/android/gms/wallet/Wallet.WalletOptions#environment)
+   * for more information on button types. */
+  buttonType?: ButtonType;
 };
 
 /**
@@ -261,4 +286,109 @@ export type PresentOptions = {
    *`presentPaymentSheet` will resolve with an `error.code` of `PaymentSheetError.Timeout`. The default is no timeout.
    */
   timeout?: number;
+};
+
+export type BillingDetailsCollectionConfiguration = {
+  /** How to collect the name field. Defaults to `CollectionMode.automatic`. */
+  name?: CollectionMode;
+  /** How to collect the phone field. Defaults to `CollectionMode.automatic`. */
+  phone?: CollectionMode;
+  /** How to collect the email field. Defaults to `CollectionMode.automatic`. */
+  email?: CollectionMode;
+  /** How to collect the billing address. Defaults to `CollectionMode.automatic`. */
+  address?: AddressCollectionMode;
+  /** Whether the values included in `Configuration.defaultBillingDetails` should be attached to the payment method, this includes fields that aren't displayed in the form. If `false` (the default), those values will only be used to prefill the corresponding fields in the form. */
+  attachDefaultsToPaymentMethod?: Boolean;
+};
+
+export enum CollectionMode {
+  /** The field may or may not be collected depending on the Payment Method's requirements. */
+  AUTOMATIC = 'automatic',
+  /** The field will never be collected. If this field is required by the Payment Method, you must provide it as part of `defaultBillingDetails`. */
+  NEVER = 'never',
+  /** The field will always be collected, even if it isn't required for the Payment Method. */
+  ALWAYS = 'always',
+}
+
+export enum AddressCollectionMode {
+  /** Only the fields required by the Payment Method will be collected, which may be none. */
+  AUTOMATIC = 'automatic',
+  /** Billing address will never be collected. If the Payment Method requires a billing address, you must provide it as part of `defaultBillingDetails`. */
+  NEVER = 'never',
+  /** Collect the full billing address, regardless of the Payment Method's requirements. */
+  FULL = 'full',
+}
+
+export type IntentCreationError = StripeError<'Failed'>;
+
+export type IntentCreationCallbackParams =
+  | {
+      clientSecret: string;
+      error?: never;
+    }
+  | {
+      clientSecret?: never;
+      error: IntentCreationError;
+    };
+
+export type IntentConfiguration = {
+  /*
+    Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+    - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+    - Parameters:
+      - paymentMethod: The PaymentMethod representing the customer's payment details.
+      - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
+      - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
+  */
+  confirmHandler: (
+    paymentMethod: Result,
+    shouldSavePaymentMethod: boolean,
+    intentCreationCallback: (result: IntentCreationCallbackParams) => void
+  ) => void;
+  /* Information about the payment (PaymentIntent) or setup (SetupIntent).*/
+  mode: Mode;
+  /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
+  paymentMethodTypes?: Array<string>;
+};
+
+export type Mode = PaymentMode | SetupMode;
+
+/**
+ * Controls when the funds will be captured. Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method
+ */
+export enum CaptureMethod {
+  /** (Default) Stripe automatically captures funds when the customer authorizes the payment. */
+  Automatic = 'Automatic',
+  /** Place a hold on the funds when the customer authorizes the payment, but don’t capture the funds until later. (Not all payment methods support this.) */
+  Manual = 'Manual',
+  /** Asynchronously capture funds when the customer authorizes the payment.
+  - Note: Recommended over `CaptureMethod.Automatic` due to improved latency, but may require additional integration changes.
+  - Seealso: https://stripe.com/docs/payments/payment-intents/asynchronous-capture-automatic-async */
+  AutomaticAsync = 'AutomaticAsync',
+}
+
+/* Use this if your integration creates a PaymentIntent */
+export type PaymentMode = {
+  /* Amount intended to be collected in the smallest currency unit (e.g. 100 cents to charge $1.00). Shown in Apple Pay, Google Pay, Buy now pay later UIs, the Pay button, and influences available payment methods.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-amount */
+  amount: number;
+  /*  Three-letter ISO currency code. Filters out payment methods based on supported currency.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-currency */
+  currencyCode: string;
+  /* Indicates that you intend to make future payments.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
+  setupFutureUsage?: FutureUsage;
+  /* Controls when the funds will be captured.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
+  captureMethod?: CaptureMethod;
+};
+
+/* Use this if your integration creates a SetupIntent */
+export type SetupMode = {
+  /*  Three-letter ISO currency code. Filters out payment methods based on supported currency.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-currency */
+  currencyCode?: string;
+  /*  Indicates that you intend to make future payments.
+  Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
+  setupFutureUsage: FutureUsage;
 };

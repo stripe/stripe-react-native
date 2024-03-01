@@ -2,6 +2,10 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element:
+      text: "Multiline Card element only"
+    direction: DOWN
 - tapOn: "Multiline Card element only"
 - assertVisible:
     text: "E-mail"
@@ -12,7 +16,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
-- hideKeyboard
+- pressKey: Enter
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false

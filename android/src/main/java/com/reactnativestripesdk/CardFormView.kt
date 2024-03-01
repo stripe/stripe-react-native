@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
@@ -20,7 +21,7 @@ import com.google.android.material.shape.ShapeAppearanceModel
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.mapCardBrand
 import com.stripe.android.core.model.CountryCode
-import com.stripe.android.databinding.CardMultilineWidgetBinding
+import com.stripe.android.databinding.StripeCardMultilineWidgetBinding
 import com.stripe.android.databinding.StripeCardFormViewBinding
 import com.stripe.android.model.Address
 import com.stripe.android.model.PaymentMethodCreateParams
@@ -28,14 +29,14 @@ import com.stripe.android.view.CardFormView
 import com.stripe.android.view.CardInputListener
 
 class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
-  private var cardForm: CardFormView = CardFormView(context, null, R.style.StripeCardFormView_Borderless)
+  private var cardForm: CardFormView = CardFormView(context, null, com.stripe.android.R.style.StripeCardFormView_Borderless)
   private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
   private val cardFormViewBinding = StripeCardFormViewBinding.bind(cardForm)
-  private val multilineWidgetBinding = CardMultilineWidgetBinding.bind(cardFormViewBinding.cardMultilineWidget)
+  private val multilineWidgetBinding = StripeCardMultilineWidgetBinding.bind(cardFormViewBinding.cardMultilineWidget)
 
   init {
     cardFormViewBinding.cardMultilineWidgetContainer.isFocusable = true
@@ -58,6 +59,15 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     setCountry(defaults.getString("countryCode"))
   }
 
+  fun setDisabled(isDisabled: Boolean) {
+    cardForm.isEnabled = !isDisabled
+  }
+
+  fun setPreferredNetworks(preferredNetworks: ArrayList<Int>?) {
+    cardForm.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
+  }
+
+  @SuppressLint("RestrictedApi")
   private fun setCountry(countryString: String?) {
     if (countryString != null) {
       cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(countryString))
@@ -118,6 +128,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
       CardFocusEvent(id, currentFocusedField))
   }
 
+  @SuppressLint("RestrictedApi")
   fun setCardStyle(value: ReadableMap) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
@@ -283,6 +294,7 @@ class CardFormView(context: ThemedReactContext) : FrameLayout(context) {
     )
   }
 
+  @SuppressLint("RestrictedApi")
   private fun createPostalCodeInputFilter(): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       if (cardFormViewBinding.countryLayout.getSelectedCountryCode() == CountryCode.US) {

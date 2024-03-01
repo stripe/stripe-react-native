@@ -72,6 +72,7 @@ function getKeys(payment_method?: string) {
       break;
     case 'paypal':
     case 'bacs_debit':
+    case 'revolut_pay':
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_UK;
       secret_key = process.env.STRIPE_SECRET_KEY_UK;
       break;
@@ -364,11 +365,20 @@ app.post('/create-setup-intent', async (req, res) => {
     },
     confirm: true,
   };
+  const revolutPayIntentPayload = {
+    payment_method_data: {
+      type: 'revolut_pay',
+    },
+    usage: 'off_session',
+  };
 
   //@ts-ignore
   const setupIntent = await stripe.setupIntents.create({
     ...{ customer: customer.id, payment_method_types },
     ...(payment_method_types?.includes('paypal') ? payPalIntentPayload : {}),
+    ...(payment_method_types?.includes('revolut_pay')
+      ? revolutPayIntentPayload
+      : {}),
   });
 
   // Send publishable key and SetupIntent details to client
@@ -689,6 +699,123 @@ app.post('/financial-connections-sheet', async (_, res) => {
   });
 
   return res.send({ clientSecret: session.client_secret });
+});
+
+app.post('/payment-intent-for-payment-sheet', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 5099,
+      currency: 'usd',
+      payment_method: req.body.paymentMethodId,
+      customer: req.body.customerId,
+    });
+
+    return res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (e) {
+    return res.send({ error: e });
+  }
+});
+
+app.post('/customer-sheet', async (_, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  // Use an existing Customer ID if this is a returning customer.
+  const customer = await stripe.customers.create();
+
+  // Use the same version as the SDK
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    { customer: customer.id },
+    { apiVersion: '2020-08-27' }
+  );
+
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customer.id,
+  });
+
+  res.json({
+    customer: customer.id,
+    ephemeralKeySecret: ephemeralKey.secret,
+    setupIntent: setupIntent.client_secret,
+  });
+});
+
+app.post('/fetch-payment-methods', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  const paymentMethods = await stripe.customers.listPaymentMethods(
+    req.body.customerId
+  );
+
+  res.json({
+    paymentMethods: paymentMethods.data,
+  });
+});
+
+app.post('/attach-payment-method', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+  console.log({ customer: req.body.customerId });
+  const paymentMethod = await stripe.paymentMethods.attach(
+    req.body.paymentMethodId,
+    { customer: req.body.customerId }
+  );
+  console.log('got here');
+  res.json({
+    paymentMethod,
+  });
+});
+
+app.post('/detach-payment-method', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2022-11-15',
+    typescript: true,
+  });
+
+  const paymentMethod = await stripe.paymentMethods.detach(
+    req.body.paymentMethodId
+  );
+
+  res.json({
+    paymentMethod,
+  });
+});
+
+// Mocks a Database. In your code, you should use a persistent database.
+let savedPaymentOptions = new Map<string, string>();
+
+app.post('/set-payment-option', async (req, res) => {
+  savedPaymentOptions.set(req.body.customerId, req.body.paymentOption);
+  res.json({});
+});
+
+app.post('/get-payment-option', async (req, res) => {
+  const customerPaymentOption = savedPaymentOptions.get(req.body.customerId);
+  res.json({
+    savedPaymentOption: customerPaymentOption ?? null,
+  });
 });
 
 app.listen(4242, (): void =>

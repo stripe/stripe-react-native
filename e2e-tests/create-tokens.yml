@@ -9,7 +9,10 @@ appId: ${APP_ID}
 - inputText: "0125"
 - inputText: "123"
 - hideKeyboard
-- pressKey: back
+- scrollUntilVisible:
+    element:
+      text: "Create a token from a card"
+    direction: DOWN
 - tapOn:
     text: "Create a token from a card"
 - assertVisible:

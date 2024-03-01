@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
@@ -22,7 +23,7 @@ import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.mapCardBrand
 import com.stripe.android.core.model.CountryCode
 import com.stripe.android.core.model.CountryUtils
-import com.stripe.android.databinding.CardInputWidgetBinding
+import com.stripe.android.databinding.StripeCardInputWidgetBinding
 import com.stripe.android.model.Address
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardInputListener
@@ -32,7 +33,7 @@ import com.stripe.android.view.StripeEditText
 
 class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget = CardInputWidget(context)
-  private val cardInputWidgetBinding = CardInputWidgetBinding.bind(mCardWidget)
+  private val cardInputWidgetBinding = StripeCardInputWidgetBinding.bind(mCardWidget)
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "", "validNumber" to "Unknown", "validCVC" to "Unknown", "validExpiryDate" to "Unknown")
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
@@ -166,10 +167,11 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
 
   private fun setCardBrandTint(color: Int) {
     try {
-      cardInputWidgetBinding.cardBrandView::class.java.getDeclaredField("tintColorInt").let { internalTintColor ->
-        internalTintColor.isAccessible = true
-        internalTintColor.set(cardInputWidgetBinding.cardBrandView, color)
-      }
+      cardInputWidgetBinding.cardBrandView::class.java
+        .getDeclaredMethod("setTintColorInt\$payments_core_release", Int::class.java)
+        .let {
+          it(cardInputWidgetBinding.cardBrandView, color)
+        }
     } catch (e: Exception) {
       Log.e(
         "StripeReactNative",
@@ -204,15 +206,24 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
 
-    if (isEnabled === false) {
+    if (isEnabled == false) {
       mCardWidget.postalCodeRequired = false
     }
+  }
+
+  fun setDisabled(isDisabled: Boolean) {
+    mCardWidget.isEnabled = !isDisabled
+  }
+
+  fun setPreferredNetworks(preferredNetworks: ArrayList<Int>?) {
+    mCardWidget.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
   }
 
   /**
    * We can reliable assume that setPostalCodeEnabled is called before
    * setCountryCode because of the order of the props in CardField.tsx
    */
+  @SuppressLint("RestrictedApi")
   fun setCountryCode(countryString: String?) {
     if (mCardWidget.postalCodeEnabled) {
       val countryCode = CountryCode.create(value = countryString ?: LocaleListCompat.getAdjustedDefault()[0]?.country ?: "US")
@@ -350,6 +361,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     )
   }
 
+  @SuppressLint("RestrictedApi")
   private fun createPostalCodeInputFilter(countryCode: CountryCode): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       for (i in start until end) {

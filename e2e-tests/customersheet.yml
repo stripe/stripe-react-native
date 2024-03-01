@@ -1,0 +1,34 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Customer Sheet"
+- tapOn: "Edit payment methods"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0125123"
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn: "Save"
+- tapOn: "Confirm"
+- assertVisible:
+    text: .*4242
+- tapOn: .*4242
+- tapOn: "Close"
+- assertVisible:
+    text: "Canceled"
+- tapOn: "OK"
+- tapOn:
+    id: "customer_adapter_switch"
+- tapOn: .*4242
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000

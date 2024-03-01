@@ -12,6 +12,12 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     public var cardParams: STPPaymentMethodParams? = nil
     public var cardPostalCode: String? = nil
 
+    @objc var disabled: Bool = false {
+        didSet {
+            cardField.isUserInteractionEnabled = !disabled
+        }
+    }
+    
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
@@ -21,6 +27,14 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var countryCode: String? {
         didSet {
             cardField.countryCode = countryCode
+        }
+    }
+    
+    @objc var preferredNetworks: Array<Int>? {
+        didSet {
+            if let preferredNetworks = preferredNetworks {
+                cardField.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
+            }
         }
     }
     

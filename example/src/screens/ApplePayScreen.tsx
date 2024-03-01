@@ -245,35 +245,39 @@ export default function ApplePayScreen() {
   };
 
   const createPaymentMethod = async () => {
-    const { paymentMethod, error } = await createPlatformPayPaymentMethod({
-      applePay: {
-        cartItems: cart,
-        merchantCountryCode: 'US',
-        currencyCode: 'USD',
-        shippingMethods,
-        requiredShippingAddressFields: [
-          PlatformPay.ContactField.EmailAddress,
-          PlatformPay.ContactField.PhoneNumber,
-          PlatformPay.ContactField.PostalAddress,
-          PlatformPay.ContactField.Name,
-        ],
-        requiredBillingContactFields: [PlatformPay.ContactField.PostalAddress],
-        supportsCouponCode: true,
-        couponCode: '123',
-        shippingType: PlatformPay.ApplePayShippingType.StorePickup,
-        additionalEnabledNetworks: ['JCB'],
-      },
-    });
+    const { paymentMethod, shippingContact, error } =
+      await createPlatformPayPaymentMethod({
+        applePay: {
+          cartItems: cart,
+          merchantCountryCode: 'US',
+          currencyCode: 'USD',
+          shippingMethods,
+          requiredShippingAddressFields: [
+            PlatformPay.ContactField.EmailAddress,
+            PlatformPay.ContactField.PhoneNumber,
+            PlatformPay.ContactField.PostalAddress,
+            PlatformPay.ContactField.Name,
+          ],
+          requiredBillingContactFields: [
+            PlatformPay.ContactField.PostalAddress,
+          ],
+          supportsCouponCode: true,
+          couponCode: '123',
+          shippingType: PlatformPay.ApplePayShippingType.StorePickup,
+          additionalEnabledNetworks: ['JCB'],
+        },
+      });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
     } else {
       Alert.alert('Success', 'Check the logs for payment method details.');
       console.log(JSON.stringify(paymentMethod, null, 2));
+      console.log(JSON.stringify(shippingContact, null, 2));
     }
   };
 
   const createToken = async () => {
-    const { token, error } = await createPlatformPayToken({
+    const { token, shippingContact, error } = await createPlatformPayToken({
       applePay: {
         cartItems: cart,
         merchantCountryCode: 'US',
@@ -297,6 +301,7 @@ export default function ApplePayScreen() {
     } else {
       Alert.alert('Success', 'Check the logs for token details.');
       console.log(JSON.stringify(token, null, 2));
+      console.log(JSON.stringify(shippingContact, null, 2));
     }
   };
 

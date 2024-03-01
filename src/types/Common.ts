@@ -26,3 +26,15 @@ export type AddressDetails = {
    *  */
   isCheckboxSelected?: boolean;
 };
+
+export enum CardBrand {
+  JCB = 0,
+  Amex = 1,
+  CartesBancaires = 2,
+  DinersClub = 3,
+  Discover = 4,
+  Mastercard = 5,
+  UnionPay = 6,
+  Visa = 7,
+  Unknown = 8,
+}

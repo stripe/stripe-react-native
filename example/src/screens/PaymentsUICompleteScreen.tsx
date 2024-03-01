@@ -8,6 +8,7 @@ import {
   PaymentSheetError,
   AddressSheet,
   AddressSheetError,
+  CardBrand,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -114,6 +115,8 @@ export default function PaymentsUICompleteScreen() {
       allowsDelayedPaymentMethods: true,
       appearance,
       primaryButtonLabel: 'purchase!',
+      removeSavedPaymentMethodMessage: 'remove this payment method?',
+      preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
     });
     if (!error) {
       setPaymentSheetEnabled(true);
@@ -139,7 +142,12 @@ export default function PaymentsUICompleteScreen() {
         loading={loading}
         disabled={!paymentSheetEnabled}
         title="Add shipping"
-        onPress={() => setAddressSheetVisible(true)}
+        onPress={() => {
+          setTimeout(function () {
+            setAddressSheetVisible(false);
+          }, 5000);
+          setAddressSheetVisible(true);
+        }}
       />
       <Button
         variant="primary"

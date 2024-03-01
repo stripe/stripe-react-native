@@ -39,6 +39,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmParams()
         PaymentMethod.Type.CashAppPay -> createCashAppParams()
         PaymentMethod.Type.BacsDebit -> createBacsParams()
+        PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
         }
@@ -232,6 +233,11 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
+  private fun createRevolutPayParams(): PaymentMethodCreateParams {
+    return PaymentMethodCreateParams.createRevolutPay(billingDetailsParams)
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
   fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type?, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
@@ -254,7 +260,8 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Klarna,
         PaymentMethod.Type.PayPal,
         PaymentMethod.Type.BacsDebit,
-        PaymentMethod.Type.CashAppPay -> {
+        PaymentMethod.Type.CashAppPay,
+        PaymentMethod.Type.RevolutPay -> {
           val params = createPaymentMethodParams(paymentMethodType)
 
           return if (isPaymentIntent) {

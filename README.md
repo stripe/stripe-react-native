@@ -73,7 +73,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 #### Android
 
 - Android 5.0 (API level 21) and above
-  - Your `compileSdkVersion` must be `33`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
+  - Your `compileSdkVersion` must be `34`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
 - Android gradle plugin 4.x and above
 
 _Components_
@@ -96,7 +96,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-The Stripe React Native SDK requires Xcode 13.2.1 or later and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
+The Stripe React Native SDK requires Xcode 14.1 or later and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
 
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
@@ -198,7 +198,7 @@ function App() {
     initStripe({
       publishableKey: publishableKey,
       merchantIdentifier: 'merchant.identifier',
-      urlScheme: "your-url-scheme",
+      urlScheme: 'your-url-scheme',
     });
   }, []);
 }
@@ -228,11 +228,11 @@ jest.mock('@stripe/stripe-react-native', () => mock);
 To have a more control over the mocks, you can extend and override particular methods e.g.:
 
 ```tsx
-const presentApplePayMock = jest.fn();
+const presentNativePayMock = jest.fn();
 
 jest.mock('@stripe/stripe-react-native', () => ({
   ...mock,
-  presentApplePay: presentApplePayMock,
+  presentNativePay: presentNativePayMock,
 }));
 ```
 
@@ -241,6 +241,10 @@ jest.mock('@stripe/stripe-react-native', () => ({
 See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to the repository or to learn how to run the example app.
 
 ## Troubleshooting
+
+### Android web browser windows close on backgrounding the app
+
+This is known limitation of using `singleTask` as your `launchMode` on Android. See [here](https://github.com/stripe/stripe-react-native/blob/master/docs/android-chrome-tab-closes-on-background.md) for a workaround.
 
 ### `Undefined symbols for architecture x86_64` on iOS
 

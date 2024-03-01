@@ -1,4 +1,4 @@
-import type { CardFormView } from '../types';
+import type { CardFormView, CardBrand } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -32,11 +32,13 @@ export interface Props extends AccessibilityProps {
   style?: StyleProp<ViewStyle>;
   autofocus?: boolean;
   testID?: string;
-
+  /** Applies a disabled state such that user input is not accepted. Defaults to false. */
+  disabled?: boolean;
   /** All styles except backgroundColor, cursorColor, borderColor, and borderRadius are Android only */
   cardStyle?: CardFormView.Styles;
-  // isUserInteractionEnabled?: boolean;
-
+  /** The list of preferred networks that should be used to process payments made with a co-branded card.
+   * This value will only be used if your user hasn't selected a network themselves. */
+  preferredNetworks?: Array<CardBrand>;
   // TODO: will make it public when iOS SDK allows for this
   // postalCodeEnabled?: boolean;
 
@@ -78,7 +80,6 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     {
       onFormComplete,
       cardStyle,
-      // isUserInteractionEnabled = true,
       // postalCodeEnabled = true,
       // onFocus,
       // onBlur,
@@ -181,7 +182,6 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           // disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
           // type: cardStyle?.type,
         }}
-        // isUserInteractionEnabledValue={isUserInteractionEnabled}
         placeholders={{
           number: placeholders?.number,
           expiration: placeholders?.expiration,

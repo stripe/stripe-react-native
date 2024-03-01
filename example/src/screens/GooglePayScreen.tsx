@@ -124,35 +124,37 @@ export default function GooglePayScreen() {
     As an alternative you can only create a paymentMethod instead of confirming the payment.
   */
   const createPaymentMethod = async () => {
-    const { error, paymentMethod } = await createPlatformPayPaymentMethod({
-      googlePay: {
-        amount: 12,
-        currencyCode: 'USD',
-        testEnv: true,
-        merchantName: 'Test',
-        merchantCountryCode: 'US',
-        billingAddressConfig: {
-          format: PlatformPay.BillingAddressFormat.Full,
-          isPhoneNumberRequired: true,
-          isRequired: true,
+    const { error, paymentMethod, shippingContact } =
+      await createPlatformPayPaymentMethod({
+        googlePay: {
+          amount: 12,
+          currencyCode: 'USD',
+          testEnv: true,
+          merchantName: 'Test',
+          merchantCountryCode: 'US',
+          billingAddressConfig: {
+            format: PlatformPay.BillingAddressFormat.Full,
+            isPhoneNumberRequired: true,
+            isRequired: true,
+          },
+          shippingAddressConfig: {
+            isRequired: true,
+          },
+          isEmailRequired: true,
         },
-        shippingAddressConfig: {
-          isRequired: true,
-        },
-        isEmailRequired: true,
-      },
-    });
+      });
 
     if (error) {
       Alert.alert('Failure', error.localizedMessage);
     } else {
       Alert.alert('Success', 'Check the logs for payment method details.');
       console.log(JSON.stringify(paymentMethod, null, 2));
+      console.log(JSON.stringify(shippingContact, null, 2));
     }
   };
 
   const createToken = async () => {
-    const { error, token } = await createPlatformPayToken({
+    const { error, token, shippingContact } = await createPlatformPayToken({
       googlePay: {
         amount: 12,
         currencyCode: 'USD',
@@ -176,6 +178,7 @@ export default function GooglePayScreen() {
     } else {
       Alert.alert('Success', 'Check the logs for token details.');
       console.log(JSON.stringify(token, null, 2));
+      console.log(JSON.stringify(shippingContact, null, 2));
     }
   };
 
@@ -199,8 +202,9 @@ export default function GooglePayScreen() {
       <View style={styles.row}>
         <PlatformPayButton
           disabled={!isGooglePaySupported || !clientSecret}
-          style={styles.payButton}
-          type={PlatformPay.ButtonType.Pay}
+          style={styles.donateButton}
+          type={PlatformPay.ButtonType.Donate}
+          borderRadius={0}
           onPress={pay}
         />
       </View>
@@ -210,12 +214,14 @@ export default function GooglePayScreen() {
           disabled={!isGooglePaySupported}
           style={styles.standardButton}
           type={PlatformPay.ButtonType.GooglePayMark}
+          appearance={PlatformPay.ButtonStyle.White}
+          borderRadius={25}
           onPress={createPaymentMethod}
         />
 
         <PlatformPayButton
           disabled={!isGooglePaySupported}
-          style={styles.standardButton}
+          style={styles.buyButton}
           onPress={createToken}
         />
       </View>
@@ -255,12 +261,16 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-around',
   },
-  payButton: {
-    width: 202,
+  donateButton: {
+    width: 222,
     height: 48,
   },
   standardButton: {
     width: 112,
+    height: 48,
+  },
+  buyButton: {
+    width: 202,
     height: 48,
   },
   addToWalletButton: {

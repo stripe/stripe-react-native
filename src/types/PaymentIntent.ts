@@ -20,12 +20,14 @@ export interface Result {
   /** @deprecated Use paymentMethod.id instead. */
   paymentMethodId: string;
   paymentMethod: PaymentMethodResult | null;
-  captureMethod: 'Automatic' | 'Manual';
-  confirmationMethod: 'Automatic' | 'Manual';
+  captureMethod: CaptureMethod;
+  confirmationMethod: CaptureMethod;
   lastPaymentError: LastPaymentError | null;
   shipping: ShippingDetails | null;
   nextAction: NextAction | null;
 }
+
+export type CaptureMethod = 'Automatic' | 'Manual';
 
 export type ConfirmParams =
   | CardParams
@@ -48,7 +50,8 @@ export type ConfirmParams =
   | PayPalParams
   | AffirmParams
   | CashAppParams
-  | BacsParams;
+  | BacsParams
+  | RevolutPayParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -272,6 +275,14 @@ export type PayPalParams = {
 
 export type CashAppParams = {
   paymentMethodType: 'CashApp';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+    mandateData?: MandateData;
+  };
+};
+
+export type RevolutPayParams = {
+  paymentMethodType: 'RevolutPay';
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;

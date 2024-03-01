@@ -3,8 +3,6 @@ import type { Result as PaymentMethod } from './PaymentMethod';
 import type { Result as PaymentIntent } from './PaymentIntent';
 import type { Result as SetupIntent } from './SetupIntent';
 import type { StripeError, PlatformPayError } from './Errors';
-import type { ShippingContact as ApplePayShippingContact } from './ApplePay';
-import type { IsSupportedParams } from './GooglePay';
 
 export type ApplePaySheetError =
   | {
@@ -55,7 +53,7 @@ export type ApplePayBaseParams = {
   additionalEnabledNetworks?: Array<string>;
   /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. */
   cartItems: Array<CartSummaryItem>;
-  /** The list of fields that you need for a shipping contact in order to process the transaction. If provided, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
+  /** The list of fields that you need for a shipping contact in order to process the transaction. If you include ContactField.PostalAddress in this array, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
   requiredShippingAddressFields?: Array<ContactField>;
   /** The list of fields that you need for a billing contact in order to process the transaction. */
   requiredBillingContactFields?: Array<ContactField>;
@@ -195,11 +193,13 @@ export type GooglePayBaseParams = {
     /** Defines what address fields to collect. Defaults to BillingAddressFormat.Min */
     format?: BillingAddressFormat;
   };
+  /** An optional label to display with the amount. Google Pay may or may not display this label depending on its own internal logic. Defaults to a generic label if none is provided. */
+  label?: string;
+  /** An optional amount to display for setup intents. Google Pay may or may not display this amount depending on its own internal logic. Defaults to 0 if none is provided. Provide this value in the currency’s smallest unit. */
+  amount?: number;
 };
 
 export type GooglePayPaymentMethodParams = {
-  /** Total monetary value of the transaction. */
-  amount: number;
   /** Describes the configuration for shipping address collection in the Google Pay sheet. */
   shippingAddressConfig?: {
     /** Set to true if shipping address is required for payment. Defaults to false. */
@@ -269,7 +269,7 @@ export enum ButtonType {
   Continue = 16,
   /** Android only. A button useful for general payments. */
   Pay = 1000,
-  /** Android only. A plain white button with the Google Pay logo. Use when you show Google Pay as a payment option in your payment flows. */
+  /** Android only. The Google Pay payment button without the additional text. */
   GooglePayMark = 1001,
 }
 
@@ -358,29 +358,65 @@ export type ShippingMethod = {
   endDate?: number;
 };
 
-/** iOS only. */
-export type ShippingContact = ApplePayShippingContact;
+interface PostalAddress {
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  state?: string;
+  street?: string;
+  isoCountryCode?: string;
+  subAdministrativeArea?: string;
+  subLocality?: string;
+}
+
+interface ContactName {
+  familyName?: string;
+  namePrefix?: string;
+  nameSuffix?: string;
+  givenName?: string;
+  middleName?: string;
+  nickname?: string;
+}
+
+export interface ShippingContact {
+  emailAddress?: string;
+  name: ContactName;
+  phoneNumber?: string;
+  postalAddress: PostalAddress;
+}
 
 /** Android only. */
-export type IsGooglePaySupportedParams = IsSupportedParams;
+export type IsGooglePaySupportedParams = {
+  /** Set to true to run in a test environment with relaxed application / merchant requirements. This environment is suggested for early development and for easily testing SDK. Defaults to false. */
+  testEnv?: boolean;
+  /**
+   * If `true`, Google Pay is considered ready if the customer's Google Pay wallet
+   * has an existing payment method. Defaults to false.
+   */
+  existingPaymentMethodRequired?: boolean;
+};
 
 export type PaymentMethodResult =
   | {
       paymentMethod: PaymentMethod;
+      shippingContact?: ShippingContact;
       error?: undefined;
     }
   | {
       paymentMethod?: undefined;
+      shippingContact?: undefined;
       error: StripeError<PlatformPayError>;
     };
 
 export type TokenResult =
   | {
       token: Token;
+      shippingContact?: ShippingContact;
       error?: undefined;
     }
   | {
       token?: undefined;
+      shippingContact?: undefined;
       error: StripeError<PlatformPayError>;
     };
 

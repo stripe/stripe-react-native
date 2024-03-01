@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (deferred intent)"
+- tapOn: "Checkout"
+- extendedWaitUntil:
+    visible: "TEST MODE"
+    timeout: 150000
+- tapOn:
+    above: "+ Add"
+    optional: true
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0125123"
+- tapOn: "purchase!"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

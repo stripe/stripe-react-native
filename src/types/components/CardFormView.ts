@@ -55,7 +55,6 @@ export type DefaultValues = {
 export interface NativeProps {
   style?: StyleProp<ViewStyle>;
   autofocus?: boolean;
-  // isUserInteractionEnabledValue?: boolean;
   cardStyle?: Styles;
   /** Android only */
   placeholders?: Placeholders;
@@ -66,6 +65,7 @@ export interface NativeProps {
     event: NativeSyntheticEvent<{ focusedField: FieldName | null }>
   ): void;
   onFormComplete(event: NativeSyntheticEvent<Details>): void;
+  disabled?: boolean;
 }
 
 export interface Methods {

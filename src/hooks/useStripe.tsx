@@ -1,28 +1,21 @@
 import type {
   PaymentMethod,
   PaymentIntent,
-  ApplePay,
   PaymentSheet,
   CreatePaymentMethodResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   ConfirmPaymentResult,
   HandleNextActionResult,
+  HandleNextActionForSetupResult,
   ConfirmSetupIntentResult,
   CreateTokenForCVCUpdateResult,
-  ApplePayResult,
-  ApplePayError,
   StripeError,
   InitPaymentSheetResult,
   PresentPaymentSheetResult,
   ConfirmPaymentSheetPaymentResult,
   SetupIntent,
   CreateTokenResult,
-  PayWithGooglePayResult,
-  GooglePayInitResult,
-  GooglePay,
-  CreateGooglePayPaymentMethodResult,
-  OpenApplePaySetupResult,
   Token,
   VerifyMicrodepositsParams,
   VerifyMicrodepositsForPaymentResult,
@@ -35,30 +28,21 @@ import type {
   PlatformPay,
   PlatformPayError,
 } from '../types';
-import { useCallback, useEffect, useState } from 'react';
-import { isiOS } from '../helpers';
-import NativeStripeSdk from '../NativeStripeSdk';
+import { useCallback } from 'react';
 import {
   confirmPayment,
   createPaymentMethod,
   retrievePaymentIntent,
   retrieveSetupIntent,
-  confirmApplePayPayment,
   confirmSetupIntent,
   createTokenForCVCUpdate,
   handleNextAction,
+  handleNextActionForSetup,
   handleURLCallback,
-  presentApplePay,
-  updateApplePaySummaryItems,
   initPaymentSheet,
   presentPaymentSheet,
   confirmPaymentSheetPayment,
   createToken,
-  isGooglePaySupported,
-  initGooglePay,
-  createGooglePayPaymentMethod,
-  presentGooglePay,
-  openApplePaySetup,
   collectBankAccountForPayment,
   collectBankAccountForSetup,
   verifyMicrodepositsForPayment,
@@ -81,20 +65,6 @@ import {
  * useStripe hook
  */
 export function useStripe() {
-  const [isApplePaySupported, setApplePaySupported] = useState<boolean | null>(
-    null
-  );
-
-  useEffect(() => {
-    async function checkApplePaySupport() {
-      const isSupported =
-        isiOS && (await NativeStripeSdk.isApplePaySupported());
-      setApplePaySupported(isSupported);
-    }
-
-    checkApplePaySupport();
-  }, []);
-
   const _createPaymentMethod = useCallback(
     async (
       data: PaymentMethod.CreateParams,
@@ -137,41 +107,22 @@ export function useStripe() {
     []
   );
 
-  const _presentApplePay = useCallback(
-    async (params: ApplePay.PresentParams): Promise<ApplePayResult> => {
-      return presentApplePay(params);
-    },
-    []
-  );
-
-  const _updateApplePaySummaryItems = useCallback(
-    async (
-      summaryItems: ApplePay.CartSummaryItem[],
-      errorAddressFields: Array<{
-        field: ApplePay.AddressFields;
-        message?: string;
-      }> = []
-    ): Promise<{ error?: StripeError<ApplePayError> }> => {
-      return updateApplePaySummaryItems(summaryItems, errorAddressFields);
-    },
-    []
-  );
-
-  const _confirmApplePayPayment = useCallback(
-    async (
-      clientSecret: string
-    ): Promise<{ error?: StripeError<ApplePayError> }> => {
-      return confirmApplePayPayment(clientSecret);
-    },
-    []
-  );
-
   const _handleNextAction = useCallback(
     async (
       paymentIntentClientSecret: string,
       returnURL?: string
     ): Promise<HandleNextActionResult> => {
       return handleNextAction(paymentIntentClientSecret, returnURL);
+    },
+    []
+  );
+
+  const _handleNextActionForSetup = useCallback(
+    async (
+      setupIntentClientSecret: string,
+      returnURL?: string
+    ): Promise<HandleNextActionForSetupResult> => {
+      return handleNextActionForSetup(setupIntentClientSecret, returnURL);
     },
     []
   );
@@ -223,43 +174,6 @@ export function useStripe() {
     },
     []
   );
-
-  const _isGooglePaySupported = useCallback(
-    async (params?: GooglePay.IsSupportedParams): Promise<boolean> => {
-      return isGooglePaySupported(params);
-    },
-    []
-  );
-
-  const _initGooglePay = useCallback(
-    async (params: GooglePay.InitParams): Promise<GooglePayInitResult> => {
-      return initGooglePay(params);
-    },
-    []
-  );
-
-  const _presentGooglePay = useCallback(
-    async (
-      params: GooglePay.PresentParams
-    ): Promise<PayWithGooglePayResult> => {
-      return presentGooglePay(params);
-    },
-    []
-  );
-
-  const _createGooglePayPaymentMethod = useCallback(
-    async (
-      params: GooglePay.CreatePaymentMethodParams
-    ): Promise<CreateGooglePayPaymentMethodResult> => {
-      return createGooglePayPaymentMethod(params);
-    },
-    []
-  );
-
-  const _openApplePaySetup =
-    useCallback(async (): Promise<OpenApplePaySetupResult> => {
-      return openApplePaySetup();
-    }, []);
 
   const _collectBankAccountForPayment = useCallback(
     async (
@@ -332,7 +246,7 @@ export function useStripe() {
 
   const _isPlatformPaySupported = useCallback(
     async (params?: {
-      googlePay?: GooglePay.IsSupportedParams;
+      googlePay?: PlatformPay.IsGooglePaySupportedParams;
     }): Promise<boolean> => {
       return isPlatformPaySupported(params);
     },
@@ -406,22 +320,14 @@ export function useStripe() {
     confirmPayment: _confirmPayment,
     createPaymentMethod: _createPaymentMethod,
     handleNextAction: _handleNextAction,
-    isApplePaySupported: isApplePaySupported,
-    presentApplePay: _presentApplePay,
-    confirmApplePayPayment: _confirmApplePayPayment,
+    handleNextActionForSetup: _handleNextActionForSetup,
     confirmSetupIntent: _confirmSetupIntent,
     createTokenForCVCUpdate: _createTokenForCVCUpdate,
-    updateApplePaySummaryItems: _updateApplePaySummaryItems,
     handleURLCallback: _handleURLCallback,
     confirmPaymentSheetPayment: _confirmPaymentSheetPayment,
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
     createToken: _createToken,
-    isGooglePaySupported: _isGooglePaySupported,
-    initGooglePay: _initGooglePay,
-    presentGooglePay: _presentGooglePay,
-    createGooglePayPaymentMethod: _createGooglePayPaymentMethod,
-    openApplePaySetup: _openApplePaySetup,
     collectBankAccountForPayment: _collectBankAccountForPayment,
     collectBankAccountForSetup: _collectBankAccountForSetup,
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,

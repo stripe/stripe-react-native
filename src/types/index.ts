@@ -19,9 +19,6 @@ import * as PaymentMethod from './PaymentMethod';
 import * as PaymentSheet from './PaymentSheet';
 import * as SetupIntent from './SetupIntent';
 import * as ThreeDSecure from './ThreeDSecure';
-import * as GooglePay from './GooglePay';
-import * as ApplePayButtonComponent from './components/ApplePayButtonComponent';
-import * as GooglePayButtonComponent from './components/GooglePayButtonComponent';
 import * as AuBECSDebitFormComponent from './components/AuBECSDebitFormComponent';
 import * as CardFieldInput from './components/CardFieldInput';
 import * as CardFormView from './components/CardFormView';
@@ -36,9 +33,6 @@ export {
   PaymentSheet,
   SetupIntent,
   ThreeDSecure,
-  GooglePay,
-  ApplePayButtonComponent,
-  GooglePayButtonComponent,
   AuBECSDebitFormComponent,
   CardFieldInput,
   CardFormView,
@@ -49,7 +43,9 @@ export {
 
 export * from './PushProvisioning';
 export * from './Errors';
+export * from './CustomerSheet';
 export type { Address, BillingDetails, AddressDetails } from './Common';
+export { CardBrand } from './Common';
 
 /**
  * @ignore
@@ -112,6 +108,16 @@ export type HandleNextActionResult =
     }
   | {
       paymentIntent?: undefined;
+      error: StripeError<CardActionError>;
+    };
+
+export type HandleNextActionForSetupResult =
+  | {
+      setupIntent: SetupIntent.Result;
+      error?: undefined;
+    }
+  | {
+      setupIntent?: undefined;
       error: StripeError<CardActionError>;
     };
 

@@ -1,5 +1,5 @@
 {
-  "name": "stripe-react-native-example",
+  "name": "@stripe/stripe-react-native-example",
   "description": "Example app for @stripe/stripe-react-native",
   "version": "0.0.1",
   "private": true,
@@ -16,10 +16,9 @@
     "@react-navigation/native": "^6.0.10",
     "@react-navigation/native-stack": "^6.6.1",
     "react": "18.0.0",
-    "react-native": "0.69.7",
-    "react-native-config": "^1.4.5",
+    "react-native": "0.69.9",
     "react-native-safe-area-context": "^4.2.4",
-    "react-native-screens": "^3.13.1"
+    "react-native-screens": "^3.22.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",

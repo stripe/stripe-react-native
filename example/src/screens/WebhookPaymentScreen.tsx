@@ -4,7 +4,11 @@ import type {
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
-import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
+import {
+  CardBrand,
+  CardField,
+  useConfirmPayment,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -36,6 +40,7 @@ export default function WebhookPaymentScreen() {
   };
 
   const handlePayPress = async () => {
+    setCanPay(false);
     // 1. fetch Intent Client Secret from backend
     const clientSecret = await fetchPaymentIntentClientSecret();
 
@@ -51,7 +56,7 @@ export default function WebhookPaymentScreen() {
         postalCode: '77063',
       },
     }; // mocked data for tests
-    setCanPay(false);
+
     // 3. Confirm payment with card details
     // The rest will be done automatically using webhooks
     const { error, paymentIntent } = await confirmPayment(
@@ -90,6 +95,7 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
+        disabled={!canPay}
         postalCodeEnabled={false}
         autofocus
         placeholders={{
@@ -106,6 +112,7 @@ export default function WebhookPaymentScreen() {
         }}
         cardStyle={inputStyles}
         style={styles.cardField}
+        preferredNetworks={[CardBrand.Amex]}
       />
       <View style={styles.row}>
         <Switch

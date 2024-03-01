@@ -31,9 +31,12 @@ export type AlipayRedirectAction = {
 
 export type BoletoVoucherAction = {
   type: 'boletoVoucher';
-  expiration: number;
   voucherURL: string;
-  voucherNumber: string;
+};
+
+export type KonbiniVoucherAction = {
+  type: 'konbiniVoucher';
+  voucherURL: string;
 };
 
 export type OxxoVoucherAction = {
