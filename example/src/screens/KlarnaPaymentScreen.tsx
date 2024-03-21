@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
-import { useConfirmPayment } from '@stripe/stripe-react-native';
+import {
+  useConfirmPayment,
+  useConfirmSetupIntent,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
@@ -9,9 +12,10 @@ import { colors } from '../colors';
 export default function KlarnaPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
+  const { confirmSetupIntent, loading: setupLoading } = useConfirmSetupIntent();
 
-  const fetchPaymentIntentClientSecret = async () => {
-    const response = await fetch(`${API_URL}/create-payment-intent`, {
+  const fetchClientSecret = async (intentType: 'setup' | 'payment') => {
+    const response = await fetch(`${API_URL}/create-${intentType}-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -29,8 +33,9 @@ export default function KlarnaPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    const { clientSecret, error: clientSecretError } =
-      await fetchPaymentIntentClientSecret();
+    const { clientSecret, error: clientSecretError } = await fetchClientSecret(
+      'payment'
+    );
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
@@ -71,6 +76,56 @@ export default function KlarnaPaymentScreen() {
     }
   };
 
+  const handleSetupPress = async () => {
+    const { clientSecret, error: clientSecretError } = await fetchClientSecret(
+      'setup'
+    );
+
+    if (clientSecretError) {
+      Alert.alert(`Error`, clientSecretError);
+      return;
+    }
+
+    const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
+      paymentMethodType: 'Klarna',
+      paymentMethodData: {
+        mandateData: {
+          customerAcceptance: {
+            online: {
+              ipAddress: '1.1.1.1',
+              userAgent: 'my-agent',
+            },
+          },
+        },
+        shippingDetails: {
+          address: {
+            city: 'Houston',
+            country: 'US',
+            line1: '1459  Circle Drive',
+            state: 'Texas',
+            postalCode: '77063',
+          },
+          email: 'myemail@s.com',
+          name: 'John Doe',
+        },
+        billingDetails: {
+          email: 'stripe@test.com',
+          address: {
+            country: 'US',
+          },
+        },
+      },
+    });
+
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('Setup confirmation error', error.message);
+    } else if (setupIntent) {
+      Alert.alert('Success', `Status: ${setupIntent.status}`);
+      console.log('Success from promise', setupIntent);
+    }
+  };
+
   return (
     <PaymentScreen>
       <TextInput
@@ -87,6 +142,14 @@ export default function KlarnaPaymentScreen() {
         title="Pay"
         accessibilityLabel="Pay"
         loading={loading}
+      />
+
+      <Button
+        variant="primary"
+        onPress={handleSetupPress}
+        title="Setup"
+        accessibilityLabel="Setup"
+        loading={setupLoading}
       />
     </PaymentScreen>
   );
