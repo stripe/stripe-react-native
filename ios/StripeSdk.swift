@@ -544,6 +544,8 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             createTokenFromCard(params: params, resolver: resolve, rejecter: reject)
         case "Pii":
             createTokenFromPii(params: params, resolver: resolve, rejecter: reject)
+        case "Account":
+            createTokenFromAccount(params: params, resolver: resolve, rejecter: reject)
         default:
             resolve(Errors.createError(ErrorType.Failed, type + " type is not supported yet"))
         }
@@ -624,6 +626,39 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         cardSourceParams.currency = params["currency"] as? String
 
         STPAPIClient.shared.createToken(withCard: cardSourceParams) { token, error in
+            if let token = token {
+                resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
+            } else {
+                resolve(Errors.createError(ErrorType.Failed, error as NSError?))
+            }
+        }
+    }
+
+    func createTokenFromAccount(
+        params: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let businessType = params["businessType"] as? String
+        if (businessType != "Individual") {
+            resolve(Errors.createError(ErrorType.Failed, "businessType currently only accepts the Individual account type."))
+            return
+        }
+
+        let tosShownAndAccepted = params["tosShownAndAccepted"] as? Bool ?? false
+        let phone = params["phone"] as? String
+        let email = params["email"] as? String
+
+        let connectAccountIndividualParams = STPConnectAccountIndividualParams()
+        connectAccountIndividualParams.phone = phone
+        connectAccountIndividualParams.email = email
+
+        guard let accountParams = STPConnectAccountParams(tosShownAndAccepted: tosShownAndAccepted, company: connectAccountIndividualParams) else {
+            resolve(Errors.createError(ErrorType.Failed, "tosShownAndAccepted parameter must be true"))
+            return
+        }
+
+        STPAPIClient.shared.createToken(withConnectAccount: accountParams) { token, error in
             if let token = token {
                 resolve(Mappers.createResult("token", Mappers.mapFromToken(token: token)))
             } else {
