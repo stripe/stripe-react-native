@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+  <key>CFBundleAllowMixedLocalizations</key>
+  <string>true</string>
 	<key>CFBundleDisplayName</key>
 	<string>StripeSdk Example</string>
 	<key>CFBundleExecutable</key>
