@@ -653,7 +653,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         connectAccountIndividualParams.phone = phone
         connectAccountIndividualParams.email = email
 
-        guard let accountParams = STPConnectAccountParams(tosShownAndAccepted: tosShownAndAccepted, company: connectAccountIndividualParams) else {
+        guard let accountParams = STPConnectAccountParams(tosShownAndAccepted: tosShownAndAccepted, individual: connectAccountIndividualParams) else {
             resolve(Errors.createError(ErrorType.Failed, "tosShownAndAccepted parameter must be true"))
             return
         }
