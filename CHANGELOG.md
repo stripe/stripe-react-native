@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.37.3 - 2024-04-19
+
 **Fixes**
 
 - Fixed an issue with generating App Privacy reports.
