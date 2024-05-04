@@ -292,6 +292,29 @@ class PaymentSheetFragment(
     flowController?.confirm()
   }
 
+  fun updateIntentConfiguration(bundle: Bundle, promise: Promise){
+    val onFlowControllerConfigure = PaymentSheet.FlowController.ConfigCallback { _, _ ->
+      val result = flowController?.getPaymentOption()?.let {
+        val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
+        val imageString = getBase64FromBitmap(bitmap)
+        val option: WritableMap = WritableNativeMap()
+        option.putString("label", it.label)
+        option.putString("image", imageString)
+        createResult("paymentOption", option)
+      } ?: run {
+        WritableNativeMap()
+      }
+      promise.resolve(result)
+    }
+
+    this.intentConfiguration =  buildIntentConfiguration(bundle);
+    this.flowController?.configureWithIntentConfiguration(
+      intentConfiguration = this.intentConfiguration!!,
+      configuration = paymentSheetConfiguration,
+      callback = onFlowControllerConfigure
+    );
+  }
+
   private fun configureFlowController() {
     val onFlowControllerConfigure = PaymentSheet.FlowController.ConfigCallback { _, _ ->
       val result = flowController?.getPaymentOption()?.let {

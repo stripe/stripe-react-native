@@ -194,6 +194,42 @@ extension StripeSdk {
         }
     }
     
+    internal func updateIntentConfiguration(
+        params: NSDictionary,
+        resolve: @escaping RCTPromiseResolveBlock)
+    {
+        guard let modeParams =  params["mode"] as? NSDictionary else {
+            resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
+            return
+        }
+        if (params.object(forKey: "confirmHandler") == nil) {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide `intentConfiguration.confirmHandler` if you are not passing an intent client secret"))
+            return
+        }
+        let captureMethodString = params["captureMethod"] as? String
+        let intentConfig = buildIntentConfiguration(
+            modeParams: modeParams,
+            paymentMethodTypes: params["paymentMethodTypes"] as? [String],
+            captureMethod: mapCaptureMethod(captureMethodString)
+        )
+        self.paymentSheetFlowController?.update(intentConfiguration: intentConfig){ [weak self] error in
+            if error != nil {
+                    
+            }
+            else {
+                var result: NSDictionary? = nil
+                    if let paymentOption = self?.paymentSheetFlowController?.paymentOption {
+                        result = [
+                            "label": paymentOption.label,
+                            "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
+                        ]
+                    }
+                    resolve(Mappers.createResult("paymentOption", result))
+                }
+            }
+    }
+    
+    
     private func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {

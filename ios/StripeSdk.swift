@@ -14,7 +14,7 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
-    
+
     var urlScheme: String? = nil
     
     var confirmPaymentResolver: RCTPromiseResolveBlock? = nil
@@ -126,6 +126,14 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
         }
         
         preparePaymentSheetInstance(params: params, configuration: configuration, resolve: resolve)
+    }
+
+    @objc(updatePaymentSheet:resolver:rejecter:)
+    func updatePaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        DispatchQueue.main.async {
+            self.updateIntentConfiguration(params: params, resolve: resolve)
+        }
     }
     
     @objc(intentCreationCallback:resolver:rejecter:)
