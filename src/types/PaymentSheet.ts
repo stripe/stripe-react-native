@@ -55,6 +55,18 @@ export type SetupParams = IntentParams & {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
+  /** By default, PaymentSheet will use a dynamic ordering that optimizes payment method display for the customer.
+   *  You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
+   *  See https://stripe.com/docs/api/payment_methods/object#payment_method_object-type for the list of valid types.  You may also pass external payment methods.
+   *  - Example: ["card", "external_paypal", "klarna"]
+   *  - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
+   */
+  paymentMethodOrder?: Array<String>;
+  /** This is an experimental feature that may be removed at any time.
+   *  Defaults to true. If true, the customer can delete all saved payment methods.
+   *  If false, the customer can't delete if they only have one saved payment method remaining.
+   */
+  allowsRemovalOfLastSavedPaymentMethod?: boolean;
 };
 
 export type IntentParams =

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 class CustomerSheetUtils {
     internal class func buildCustomerSheetConfiguration(
@@ -19,7 +19,8 @@ class CustomerSheetUtils {
         merchantDisplayName: String?,
         billingDetailsCollectionConfiguration: NSDictionary?,
         defaultBillingDetails: NSDictionary?,
-        preferredNetworks: Array<Int>?
+        preferredNetworks: Array<Int>?,
+        allowsRemovalOfLastSavedPaymentMethod: Bool?
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
         config.appearance = appearance
@@ -53,6 +54,9 @@ class CustomerSheetUtils {
                                                        postalCode: address["postalCode"],
                                                             state: address["state"])
             }
+        }
+        if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
+            config.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
         return config
     }

@@ -42,6 +42,11 @@ export type CustomerSheetInitParams = {
    * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
    */
   customerAdapter?: CustomerAdapter;
+  /** This is an experimental feature that may be removed at any time.
+   *  Defaults to true. If true, the customer can delete all saved payment methods.
+   *  If false, the customer can't delete if they only have one saved payment method remaining.
+   */
+  allowsRemovalOfLastSavedPaymentMethod?: boolean;
 };
 
 export type CustomerSheetPresentParams = {
