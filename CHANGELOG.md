@@ -2,27 +2,31 @@
 
 ## Unreleased
 
+**Features**
+
+- Adds support for `paymentMethodOrder` in PaymentSheet, which provides client side sorting of payment methods.
+
 ## 0.37.3 - 2024-04-19
 
 **Fixes**
 
 - Fixed an issue with generating App Privacy reports.
-- Updated `stripe-ios` to 23.27.*
-- Updated `stripe-android` to 20.41.*
+- Updated `stripe-ios` to 23.27.\*
+- Updated `stripe-android` to 20.41.\*
 
 ## 0.37.2 - 2024-04-02
 
 **Fixes**
 
-- Updated `stripe-ios` to 23.26.*
-- Updated `stripe-android` to 20.40.*
+- Updated `stripe-ios` to 23.26.\*
+- Updated `stripe-android` to 20.40.\*
 
 ## 0.37.1 - 2024-03-15
 
 **Fixes**
 
-- Updated `stripe-ios` to 23.25.*
-- Updated `stripe-android` to 20.39.*
+- Updated `stripe-ios` to 23.25.\*
+- Updated `stripe-android` to 20.39.\*
 
 ## 0.37.0 - 2024-02-16
 
