@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: checkout
         uses: actions/checkout@v4
