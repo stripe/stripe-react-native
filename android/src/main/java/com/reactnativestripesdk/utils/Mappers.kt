@@ -513,6 +513,12 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
         nextActionMap.putString("mobileAuthUrl", it.mobileAuthUrl)
       }
     }
+    NextActionType.DisplayMultibancoDetails -> {
+      (data as? NextActionData.DisplayMultibancoDetails)?.let {
+        nextActionMap.putString("type", "multibanco")
+        nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
+      }
+    }
   }
   return nextActionMap
 }

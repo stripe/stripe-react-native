@@ -5,6 +5,7 @@
 **Features**
 
 - Adds support for `paymentMethodOrder` in PaymentSheet, which provides client side sorting of payment methods.
+- Updated `stripe-android` to 20.44.\*
 
 ## 0.37.3 - 2024-04-19
 
