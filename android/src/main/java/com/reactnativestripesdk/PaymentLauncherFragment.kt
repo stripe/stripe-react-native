@@ -284,7 +284,8 @@ class PaymentLauncherFragment(
       StripeIntent.NextActionType.DisplayOxxoDetails,
       StripeIntent.NextActionType.DisplayBoletoDetails,
       StripeIntent.NextActionType.DisplayKonbiniDetails,
-      StripeIntent.NextActionType.VerifyWithMicrodeposits -> true
+      StripeIntent.NextActionType.VerifyWithMicrodeposits,
+      StripeIntent.NextActionType.DisplayMultibancoDetails -> true
       StripeIntent.NextActionType.RedirectToUrl,
       StripeIntent.NextActionType.UseStripeSdk,
       StripeIntent.NextActionType.AlipayRedirect,

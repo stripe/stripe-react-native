@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: 14.15.0
+          node-version: 16
 
       - name: Install Dependencies
         run: |

@@ -24,7 +24,7 @@
     "run-example-android": "cd example;react-native run-android --variant=release",
     "test:e2e:ios": "bash ./scripts/run-maestro-tests ios",
     "test:e2e:android": "bash ./scripts/run-maestro-tests android",
-    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests",
+    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 15' -scheme UnitTests",
     "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
     "test-android": "maestro test -e APP_ID=com.example.reactnativestripesdk"
@@ -58,7 +58,7 @@
     "metro-react-native-babel-preset": "^0.70.3",
     "prettier": "^2.0.5",
     "react": "18.0.0",
-    "react-native": "0.69.9",
+    "react-native": "0.69.12",
     "ts-node": "^9.1.1",
     "typedoc": "^0.22.12",
     "typescript": "~4.4.4"

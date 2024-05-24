@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.*
 import com.reactnativestripesdk.customersheet.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.utils.*
+import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.customersheet.CustomerEphemeralKey
 import com.stripe.android.customersheet.CustomerSheet
@@ -28,7 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalCustomerSheetApi::class)
+@OptIn(ExperimentalCustomerSheetApi::class, ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
 class CustomerSheetFragment : Fragment() {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
@@ -67,7 +68,8 @@ class CustomerSheetFragment : Fragment() {
     val customerId = arguments?.getString("customerId")
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
     val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
-
+    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
+    val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
     if (customerId == null) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), "You must provide a value for `customerId`"))
       return
@@ -89,7 +91,11 @@ class CustomerSheetFragment : Fragment() {
       .googlePayEnabled(googlePayEnabled)
       .headerTextForSelectionScreen(headerTextForSelectionScreen)
       .preferredNetworks(mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")))
+      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod ?: true)
 
+    paymentMethodOrder?.let {
+      configuration.paymentMethodOrder(it)
+    }
     billingDetailsBundle?.let {
       configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsBundle))
     }

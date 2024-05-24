@@ -23,7 +23,8 @@ extension StripeSdk {
                 merchantDisplayName: params["merchantDisplayName"] as? String,
                 billingDetailsCollectionConfiguration: params["billingDetailsCollectionConfiguration"] as? NSDictionary,
                 defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary,
-                preferredNetworks: params["preferredNetworks"] as? Array<Int>
+                preferredNetworks: params["preferredNetworks"] as? Array<Int>,
+                allowsRemovalOfLastSavedPaymentMethod: params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool
             )
         } catch {
             resolve(

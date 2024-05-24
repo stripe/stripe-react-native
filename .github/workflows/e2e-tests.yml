@@ -9,10 +9,10 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: 14.15.0
+          node-version: 16
 
       - name: Install React Native CLI
         run: npm install react-native-cli
@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
       - name: Gradle cache
         uses: actions/cache@v2
@@ -72,10 +72,10 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -99,7 +99,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
         with:
-          node-version: 14.15.0
+          node-version: 16
 
       - name: Install React Native CLI
         run: npm install react-native-cli
