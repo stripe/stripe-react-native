@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.38.0 - 2024-05-24
+
 **Features**
 
 - Adds support for `paymentMethodOrder` in PaymentSheet, which provides client side sorting of payment methods.
