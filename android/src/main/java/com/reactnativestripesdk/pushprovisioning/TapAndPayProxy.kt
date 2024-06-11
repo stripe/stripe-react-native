@@ -28,7 +28,7 @@ object TapAndPayProxy {
 
       listTokensMethod.invoke(client) as Task<List<Any>>
     } catch (e: Exception) {
-      Log.e(TAG, "Google TapAndPay dependency not found")
+      Log.e(TAG, "There was a problem listing tokens with Google TapAndPay: " + e.message)
       null
     }
   }
@@ -39,7 +39,7 @@ object TapAndPayProxy {
       val existingFpanLastFour = getFpanLastFourMethod.invoke(token) as String
       existingFpanLastFour == newLastFour
     } catch (e: Exception) {
-      Log.e(TAG, "There was a problem finding the class com.google.android.gms.tapandpay.issuer.TokenInfo. Make sure you've included Google's TapAndPay dependency.")
+      Log.e(TAG, "There was a problem getting the FPAN with Google TapAndPay: " + e.message)
       false
     }
   }
@@ -79,7 +79,7 @@ object TapAndPayProxy {
                             token.getInt("network"),
                             REQUEST_CODE_TOKENIZE)
     } catch (e: Exception) {
-      Log.e(TAG, "Google TapAndPay dependency not found.")
+      Log.e(TAG, "There was a problem tokenizing with Google TapAndPay: " + e.message)
     }
   }
 
@@ -114,8 +114,7 @@ object TapAndPayProxy {
           "serviceProvider",
           tokenInfoClass.getMethod("getTokenServiceProvider").invoke(it) as Int)
       } catch (e: Exception) {
-        Log.e(TAG,
-          "There was a problem finding the class com.google.android.gms.tapandpay.issuer.TokenInfo. Make sure you've included Google's TapAndPay dependency.")
+        Log.e(TAG, "There was a problem mapping the token information with Google TapAndPay: " + e.message)
       }
     }
     return result
@@ -134,8 +133,7 @@ object TapAndPayProxy {
         else -> "UNKNOWN"
       }
     } catch (e: Exception) {
-      Log.e(TAG,
-            "There was a problem finding Google's TapAndPay dependency.")
+      Log.e(TAG, "There was a problem mapping the token state with Google TapAndPay: " + e.message)
       return "UNKNOWN"
     }
   }

@@ -65,7 +65,7 @@ object PushProvisioningProxy {
         )
       }
     } catch (e: Exception) {
-      Log.e(TAG, "PushProvisioning dependency not found")
+      Log.e(TAG, "There was a problem using Stripe Android PushProvisioning: " + e.message)
     }
   }
 
