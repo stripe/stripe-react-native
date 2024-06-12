@@ -105,6 +105,8 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ## Usage example
 
+For a complete example, [visit our docs](https://docs.stripe.com/payments/accept-a-payment?platform=react-native).
+
 ```tsx
 // App.ts
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -122,33 +124,39 @@ function App() {
 }
 
 // PaymentScreen.ts
-import { CardField, useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
-  const { confirmPayment } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const setup = async () => {
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: 'Example, Inc.',
+      paymentIntentClientSecret: paymentIntent, // retrieve this from your server
+    });
+    if (error) {
+      // handle error
+    }
+  };
+
+  useEffect(() => {
+    setup();
+  }, []);
+
+  const checkout = async () => {
+    const { error } = await presentPaymentSheet();
+
+    if (error) {
+      // handle error
+    } else {
+      // success
+    }
+  };
 
   return (
-    <CardField
-      postalCodeEnabled={true}
-      placeholders={{
-        number: '4242 4242 4242 4242',
-      }}
-      cardStyle={{
-        backgroundColor: '#FFFFFF',
-        textColor: '#000000',
-      }}
-      style={{
-        width: '100%',
-        height: 50,
-        marginVertical: 30,
-      }}
-      onCardChange={(cardDetails) => {
-        console.log('cardDetails', cardDetails);
-      }}
-      onFocus={(focusedField) => {
-        console.log('focusField', focusedField);
-      }}
-    />
+    <View>
+      <Button title="Checkout" onPress={checkout} />
+    </View>
   );
 }
 ```
