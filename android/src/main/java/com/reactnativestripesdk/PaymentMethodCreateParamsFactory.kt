@@ -38,6 +38,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.PayPal -> createPayPalParams()
         PaymentMethod.Type.Affirm -> createAffirmParams()
         PaymentMethod.Type.CashAppPay -> createCashAppParams()
+        PaymentMethod.Type.BacsDebit -> createBacsParams()
         PaymentMethod.Type.RevolutPay -> createRevolutPayParams()
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
@@ -91,6 +92,28 @@ class PaymentMethodCreateParamsFactory(
 
       return PaymentMethodCreateParams.create(
         sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
+        billingDetails = it
+      )
+    }
+
+    throw PaymentMethodCreateParamsException("You must provide billing details")
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createBacsParams(): PaymentMethodCreateParams {
+    billingDetailsParams?.let {
+      val accountNumber = getValOr(paymentMethodData, "accountNumber", null) ?: run {
+        throw PaymentMethodCreateParamsException("You must provide Account number")
+      }
+      val sortCode = getValOr(paymentMethodData, "sortCode", null) ?: run {
+        throw PaymentMethodCreateParamsException("You must provide Sort code")
+      }
+
+      return PaymentMethodCreateParams.create(
+        bacsDebit = PaymentMethodCreateParams.BacsDebit(
+          accountNumber = accountNumber,
+          sortCode = sortCode
+        ),
         billingDetails = it
       )
     }
@@ -236,6 +259,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.AuBecsDebit,
         PaymentMethod.Type.Klarna,
         PaymentMethod.Type.PayPal,
+        PaymentMethod.Type.BacsDebit,
         PaymentMethod.Type.CashAppPay,
         PaymentMethod.Type.RevolutPay -> {
           val params = createPaymentMethodParams(paymentMethodType)

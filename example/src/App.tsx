@@ -41,10 +41,12 @@ import PayPalScreen from './screens/PayPalScreen';
 import AffirmScreen from './screens/AffirmScreen';
 import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
+import BacsDebitPaymentScreen from './screens/BacsDebitPaymentScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -87,6 +89,7 @@ export type RootStackParamList = {
   CashAppScreen: undefined;
   AffirmScreen: undefined;
   CollectBankAccountScreen: undefined;
+  BacsDebitPaymentScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   CustomerSheetScreen: undefined;
@@ -215,6 +218,10 @@ export default function App() {
           <Stack.Screen
             name="SepaPaymentScreen"
             component={SepaPaymentScreen}
+          />
+          <Stack.Screen
+            name="BacsDebitPaymentScreen"
+            component={BacsDebitPaymentScreen}
           />
           <Stack.Screen
             name="SepaSetupFuturePaymentScreen"
