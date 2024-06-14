@@ -13,9 +13,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
     @objc var disabled: Bool = false
     @objc var preferredNetworks: Array<Int>? {
         didSet {
-            if let preferredNetworks = preferredNetworks {
-                cardForm?.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
-            }
+            setPreferredNetworks()
         }
     }
     
@@ -36,6 +34,7 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         self.cardForm = _cardForm
         self.addSubview(_cardForm)
         setStyles()
+        setPreferredNetworks()
     }
     
     @objc var cardStyle: NSDictionary = NSDictionary() {
@@ -105,6 +104,12 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         // if let disabledBackgroundColor = cardStyle["disabledBackgroundColor"] as? String {
         //     cardForm?.disabledBackgroundColor = UIColor(hexString: disabledBackgroundColor)
         // }
+    }
+    
+    func setPreferredNetworks() {
+        if let preferredNetworks = preferredNetworks {
+            cardForm?.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
+        }
     }
     
     override init(frame: CGRect) {
