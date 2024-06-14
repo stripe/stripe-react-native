@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Fixed `preferredNetworks` prop on CardForm on iOS not always being applied
+
 ## 0.38.0 - 2024-05-24
 
 **Features**
