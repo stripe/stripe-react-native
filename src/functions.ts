@@ -416,6 +416,49 @@ export const initPaymentSheet = async (
   }
 };
 
+export const updatePaymentSheet = async (
+  params: PaymentSheet.IntentConfiguration
+): Promise<InitPaymentSheetResult> => {
+  let result;
+  const confirmHandler = params.confirmHandler;
+  if (confirmHandler) {
+    confirmHandlerCallback?.remove();
+    confirmHandlerCallback = eventEmitter.addListener(
+      'onConfirmHandlerCallback',
+      ({
+        paymentMethod,
+        shouldSavePaymentMethod,
+      }: {
+        paymentMethod: PaymentMethod.Result;
+        shouldSavePaymentMethod: boolean;
+      }) => {
+        confirmHandler(
+          paymentMethod,
+          shouldSavePaymentMethod,
+          NativeStripeSdk.intentCreationCallback
+        );
+      }
+    );
+  }
+
+  try {
+    result = await NativeStripeSdk.updatePaymentSheet(params);
+
+    if (result.error) {
+      return {
+        error: result.error,
+      };
+    }
+    return {
+      paymentOption: result.paymentOption,
+    };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
 export const presentPaymentSheet = async (
   options: PaymentSheet.PresentOptions = {}
 ): Promise<PresentPaymentSheetResult> => {
