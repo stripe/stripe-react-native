@@ -43,7 +43,7 @@ class PaymentSheetFragment(
   private var confirmPromise: Promise? = null
   private var presentPromise: Promise? = null
   private var paymentSheetTimedOut = false
-  internal val paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -148,6 +148,8 @@ class PaymentSheetFragment(
       stripeSdkModule.sendEvent(context, "onConfirmHandlerCallback", params)
 
       val resultFromJavascript = paymentSheetIntentCreationCallback.await()
+      // reset the completable
+      paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
       return@CreateIntentCallback resultFromJavascript.getString("clientSecret")?.let {
         CreateIntentResult.Success(clientSecret = it)
