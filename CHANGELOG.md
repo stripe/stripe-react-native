@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.38.2 - 2024-07-19
+
 **Fixes**
 
 - Updated `stripe-ios` to 23.28.\*
