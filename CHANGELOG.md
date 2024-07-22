@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.38.3 - 2024-07-22
+
 **Fixes**
 
 - Fixed an issue on Android where `CustomerSheet` could get stuck in an error state after forwarding an error to the `intentCreationCallback`.
