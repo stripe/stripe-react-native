@@ -70,7 +70,7 @@ class PaymentSheetFragment(
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
     val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
-    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true)
+    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration = try {
