@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Fixed an issue on Android where `allowsRemovalOfLastSavedPaymentMethod` would default to `false` if not provided.
+
 ## 0.38.3 - 2024-07-22
 
 **Fixes**
