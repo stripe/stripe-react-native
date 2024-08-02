@@ -70,7 +70,7 @@ class PaymentSheetFragment(
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
     val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
-    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
+    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration = try {
@@ -201,7 +201,7 @@ class PaymentSheetFragment(
       .shippingDetails(shippingDetails)
       .billingDetailsCollectionConfiguration(billingDetailsConfig)
       .preferredNetworks(mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")))
-      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod ?: true)
+      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
     primaryButtonLabel?.let {
       configurationBuilder.primaryButtonLabel(it)
     }

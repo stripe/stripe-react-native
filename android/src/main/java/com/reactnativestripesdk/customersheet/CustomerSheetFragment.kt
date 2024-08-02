@@ -68,7 +68,7 @@ class CustomerSheetFragment : Fragment() {
     val customerId = arguments?.getString("customerId")
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
     val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
-    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
+    val allowsRemovalOfLastSavedPaymentMethod = arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
     val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
     if (customerId == null) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), "You must provide a value for `customerId`"))
@@ -91,7 +91,7 @@ class CustomerSheetFragment : Fragment() {
       .googlePayEnabled(googlePayEnabled)
       .headerTextForSelectionScreen(headerTextForSelectionScreen)
       .preferredNetworks(mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")))
-      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod ?: true)
+      .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
 
     paymentMethodOrder?.let {
       configuration.paymentMethodOrder(it)
