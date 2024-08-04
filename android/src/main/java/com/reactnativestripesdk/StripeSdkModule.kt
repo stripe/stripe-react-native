@@ -177,6 +177,16 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun updatePaymentSheet(params: ReadableMap, promise: Promise){
+    if (paymentSheetFragment == null) {
+      promise.resolve(PaymentSheetFragment.createMissingInitError())
+      return
+    }
+    val bundle = toBundleObject(params);
+    paymentSheetFragment?.updateIntentConfiguration(bundle,promise);
+  }
+
+  @ReactMethod
   fun presentPaymentSheet(options: ReadableMap, promise: Promise) {
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
