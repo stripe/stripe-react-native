@@ -881,7 +881,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun customerAdapterAttachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
     customerSheetFragment?.let {
-      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
       if (paymentMethod == null) {
         Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
         return
@@ -896,7 +896,7 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun customerAdapterDetachPaymentMethodCallback(paymentMethodJson: ReadableMap, promise: Promise) {
     customerSheetFragment?.let {
-      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap()))
+      val paymentMethod = PaymentMethod.fromJson(JSONObject(paymentMethodJson.toHashMap() as HashMap<*, *>))
       if (paymentMethod == null) {
         Log.e("StripeReactNative", "There was an error converting Payment Method JSON to a Stripe Payment Method")
         return

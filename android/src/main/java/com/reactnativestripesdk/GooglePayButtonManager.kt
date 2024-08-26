@@ -4,7 +4,7 @@ import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
-class GooglePayButtonManager : SimpleViewManager<GooglePayButtonView?>() {
+class GooglePayButtonManager : SimpleViewManager<GooglePayButtonView>() {
   override fun getName(): String {
     return REACT_CLASS
   }
