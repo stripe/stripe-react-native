@@ -20,7 +20,8 @@ class StripeSdkPackage : ReactPackage {
         CardFormViewManager(),
         GooglePayButtonManager(),
         AddToWalletButtonManager(reactContext),
-        AddressSheetViewManager()
+        AddressSheetViewManager(),
+        TestComposeViewManager()
       )
     }
 }

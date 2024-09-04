@@ -117,6 +117,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Test Compose View"
+              onPress={() => {
+                navigation.navigate('TestComposeViewScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 

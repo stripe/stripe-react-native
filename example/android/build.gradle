@@ -45,6 +45,7 @@ allprojects {
         }
         maven { url "file:/$rootDir/privateMavenRepository" }
         maven { url 'https://jitpack.io' }
+        maven { url "/Users/tjclawson/.m2/repository" }
         mavenCentral {
             // We don't want to fetch react-native from Maven Central as there are
             // older versions over there.

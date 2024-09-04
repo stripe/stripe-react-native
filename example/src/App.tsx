@@ -34,6 +34,7 @@ import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScre
 import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
 import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
+import TestComposeViewScreen from './screens/TestComposeViewScreen';
 import GooglePayScreen from './screens/GooglePayScreen';
 import ACHPaymentScreen from './screens/ACHPaymentScreen';
 import ACHSetupScreen from './screens/ACHSetupScreen';
@@ -80,6 +81,7 @@ export type RootStackParamList = {
   KlarnaPaymentScreen: undefined;
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
+  TestComposeViewScreen: undefined;
   GooglePayScreen: undefined;
   ACHPaymentScreen: undefined;
   ACHSetupScreen: undefined;
@@ -127,6 +129,10 @@ export default function App() {
           <Stack.Screen
             name="MultilineWebhookPaymentScreen"
             component={MultilineWebhookPaymentScreen}
+          />
+          <Stack.Screen
+            name="TestComposeViewScreen"
+            component={TestComposeViewScreen}
           />
           <Stack.Screen
             name="NoWebhookPaymentScreen"
