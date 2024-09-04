@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Fixed build errors on Android when using React Native 0.75.x
+
 ## 0.38.4 - 2024-08-02
 
 **Fixes**
