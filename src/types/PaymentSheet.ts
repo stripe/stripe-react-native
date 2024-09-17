@@ -271,6 +271,10 @@ export type PrimaryButtonColorConfig = {
    * @default The root `appearance.colors.primary`
    */
   background: string;
+  /** The background color used for the primary button when in the success state in PaymentSheet, represented as a hex string with format #RRGGBB or #AARRGGBB.
+   * @default green
+   */
+  successBackground: string;
   /** The color of the text for the primary button in your PaymentSheet, represented as a hex string with format #RRGGBB or #AARRGGBB.
    * @default White or black, depending on the color of the button.
    */
