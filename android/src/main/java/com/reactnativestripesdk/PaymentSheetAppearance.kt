@@ -104,6 +104,7 @@ private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.
     },
     onBackground = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.TEXT), default.onBackground),
     border = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BORDER), default.border),
+    successBackgroundColor = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND, default.successBackgroundColor),
   )
 }
 
@@ -203,5 +204,6 @@ private class PaymentSheetAppearanceKeys {
     const val PRIMARY_BUTTON = "primaryButton"
     const val TEXT = "text"
     const val BORDER = "border"
+    const val SUCCESS_BACKGROUND = "successBackground"
   }
 }
