@@ -197,7 +197,9 @@ class StripeSdk: RCTEventEmitter, STPBankSelectionViewControllerDelegate, UIAdap
             }
         }
         DispatchQueue.main.async {
-            paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIApplication.shared.windows.first(where: {
+                $0.isKeyWindow
+            })?.rootViewController ?? UIViewController()
             if let paymentSheetFlowController = self.paymentSheetFlowController {
                 paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) {
