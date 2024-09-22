@@ -71,6 +71,7 @@ function getKeys(payment_method?: string) {
       secret_key = process.env.STRIPE_SECRET_KEY_WECHAT;
       break;
     case 'paypal':
+    case 'bacs_debit':
     case 'revolut_pay':
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_UK;
       secret_key = process.env.STRIPE_SECRET_KEY_UK;

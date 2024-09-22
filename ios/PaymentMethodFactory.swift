@@ -57,6 +57,8 @@ class PaymentMethodFactory {
                 return try createAffirmPaymentMethodParams()
             case STPPaymentMethodType.cashApp:
                 return try createCashAppPaymentMethodParams()
+            case STPPaymentMethodType.bacsDebit:
+                return try createBacsPaymentMethodParams()
             case STPPaymentMethodType.revolutPay:
                 return try createRevolutPayPaymentMethodParams()
 //            case STPPaymentMethodType.weChatPay:
@@ -111,6 +113,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.affirm:
                 return nil
             case STPPaymentMethodType.cashApp:
+                return nil
+            case STPPaymentMethodType.bacsDebit:
                 return nil
             case STPPaymentMethodType.revolutPay:
                 return nil
@@ -282,6 +286,28 @@ class PaymentMethodFactory {
 
         return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: nil)
     }
+    
+    private func createBacsPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodBacsDebitParams()
+
+        guard let billingDetails = billingDetailsParams else {
+            throw PaymentMethodError.bacsPaymentMissingParams
+        }
+        
+        guard let accountNumber = self.paymentMethodData?["accountNumber"] as? String else {
+            throw PaymentMethodError.bacsPaymentMissingParams
+        }
+        
+        guard let sortCode = self.paymentMethodData?["sortCode"] as? String else {
+            throw PaymentMethodError.bacsPaymentMissingParams
+        }
+
+        params.accountNumber = accountNumber
+        params.sortCode = sortCode
+
+        return STPPaymentMethodParams(bacsDebit: params, billingDetails: billingDetails, metadata: nil)
+    }
+    
 
     private func createOXXOPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodOXXOParams()
@@ -413,6 +439,7 @@ enum PaymentMethodError: Error {
     case cardPaymentOptionsMissingParams
     case bancontactPaymentMissingParams
     case sepaPaymentMissingParams
+    case bacsPaymentMissingParams
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
     case afterpayClearpayPaymentMissingParams
@@ -440,6 +467,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .sepaPaymentMissingParams:
             return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
+        case .bacsPaymentMissingParams:
+            return NSLocalizedString("You must provide billing details, Sort code and Account number", comment: "Create payment error")
         case .epsPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .afterpayClearpayPaymentMissingParams:
