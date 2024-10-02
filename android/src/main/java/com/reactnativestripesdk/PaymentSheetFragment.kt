@@ -55,6 +55,7 @@ class PaymentSheetFragment(
     }
   }
 
+  @OptIn(ExperimentalCustomerSessionApi::class)
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
@@ -65,6 +66,7 @@ class PaymentSheetFragment(
     val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
     val customerId = arguments?.getString("customerId").orEmpty()
     val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
+    val customerSessionClientSecret = arguments?.getString("customerSessionClientSecret").orEmpty()
     val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
@@ -191,7 +193,11 @@ class PaymentSheetFragment(
       .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods ?: false)
       .defaultBillingDetails(defaultBillingDetails)
       .customer(
-        if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) PaymentSheet.CustomerConfiguration(
+        if (customerId.isNotEmpty() && customerSessionClientSecret.isNotEmpty()) PaymentSheet.CustomerConfiguration.createWithCustomerSession(
+          id = customerId,
+          clientSecret = customerSessionClientSecret
+        )
+        else if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) PaymentSheet.CustomerConfiguration(
           id = customerId,
           ephemeralKeySecret = customerEphemeralKeySecret
         ) else null

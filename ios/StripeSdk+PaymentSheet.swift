@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
@@ -96,6 +96,9 @@ extension StripeSdk {
                     return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` format does not match expected client secret formatting."), configuration: nil)
                 }
                 configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
+            }
+            else if let customerClientSecret = params["customerSessionClientSecret"] as? String {
+              configuration.customer = .init(id: customerId, customerSessionClientSecret: customerClientSecret)
             }
         }
         
