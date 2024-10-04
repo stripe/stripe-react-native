@@ -438,6 +438,9 @@ class PaymentSheetFragment(
       return if (customerSessionClientSecret.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) {
         throw PaymentSheetException("`customerEphemeralKeySecret` and `customerSessionClientSecret` cannot both be set")
       } else if (customerId.isNotEmpty() && customerSessionClientSecret.isNotEmpty()) {
+        println("YEET creating customer configuration")
+        println("YEET customerID: $customerId")
+        println("YEET customerSessionClientSecret: $customerSessionClientSecret")
         PaymentSheet.CustomerConfiguration.createWithCustomerSession(
           id = customerId,
           clientSecret = customerSessionClientSecret

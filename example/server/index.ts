@@ -541,16 +541,6 @@ app.post('/payment-sheet', async (req, res) => {
     customer_key_type?: string;
   } = req.body;
 
-  if (
-    customer_key_type !== 'legacy_ephemeral_key' &&
-    customer_key_type !== 'customer_session'
-  ) {
-    return res.send({
-      error:
-        '`customer_key_type` is not valid! Please pass either "customer_session" or "legacy_ephemeral_key"',
-    });
-  }
-
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
@@ -701,10 +691,9 @@ app.post('/payment-sheet-subscription', async (req, res) => {
             mobile_payment_element: {
               enabled: true,
               features: {
-                payment_method_save: true,
-                payment_method_remove: true,
-                payment_method_redisplay: true,
-                payment_method_save_allow_redisplay_override: true,
+                payment_method_save: 'enabled',
+                payment_method_remove: 'enabled',
+                payment_method_redisplay: 'enabled',
                 payment_method_allow_redisplay_filters: [
                   'unspecified',
                   'limited',

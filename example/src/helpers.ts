@@ -21,3 +21,15 @@ export async function fetchPublishableKey(
     return null;
   }
 }
+
+export function getClientSecretParams(
+  customerKeyType: string,
+  remainingParams: any
+): any {
+  return customerKeyType === 'customer_session'
+    ? {
+        customerSessionClientSecret:
+          remainingParams.customerSessionClientSecret,
+      }
+    : { customerEphemeralKeySecret: remainingParams.ephemeralKey };
+}

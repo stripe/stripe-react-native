@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Alert,
-  StyleProp,
-  Switch,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Alert } from 'react-native';
 import {
   AddressDetails,
   useStripe,
@@ -22,6 +14,8 @@ import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import appearance from './PaymentSheetAppearance';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
+import { getClientSecretParams } from '../helpers';
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
@@ -106,13 +100,10 @@ export default function PaymentsUICompleteScreen() {
       const { paymentIntent, customer, ...remainingParams } =
         await fetchPaymentSheetParams(customerKeyType);
 
-      const clientSecretParams =
-        customerKeyType === 'customer_session'
-          ? {
-              customerSessionClientSecret:
-                remainingParams.customerSessionClientSecret,
-            }
-          : { customerEphemeralKeySecret: remainingParams.ephemeralKey };
+      const clientSecretParams = getClientSecretParams(
+        customerKeyType,
+        remainingParams
+      );
 
       const address: Address = {
         city: 'San Francisco',
@@ -196,13 +187,10 @@ export default function PaymentsUICompleteScreen() {
           setAddressSheetVisible(true);
         }}
       />
-      <View style={SWITCH_CONTAINER_STYLE}>
-        <Text style={SWITCH_TITLE_STYLE}>Enable Customer Session</Text>
-        <Switch
-          onValueChange={toggleCustomerKeyType}
-          value={customerKeyType === 'customer_session'}
-        />
-      </View>
+      <CustomerSessionSwitch
+        onValueChange={toggleCustomerKeyType}
+        value={customerKeyType === 'customer_session'}
+      />
       <Button
         variant="primary"
         loading={loading}
@@ -284,14 +272,3 @@ export default function PaymentsUICompleteScreen() {
     </PaymentScreen>
   );
 }
-
-const SWITCH_CONTAINER_STYLE: StyleProp<ViewStyle> = {
-  flex: 1,
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-};
-
-const SWITCH_TITLE_STYLE: StyleProp<TextStyle> = {
-  marginEnd: 10,
-  textAlignVertical: 'center',
-};
