@@ -75,7 +75,9 @@ export type SetupParams =
     })
   | (SetupParamsBase & {
       customerEphemeralKeySecret?: never;
-      /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
+      /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
+       *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
+       */
       customerSessionClientSecret: string;
     })
   | SetupParamsBase;
