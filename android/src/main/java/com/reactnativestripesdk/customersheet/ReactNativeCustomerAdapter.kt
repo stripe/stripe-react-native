@@ -7,11 +7,9 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.customersheet.CustomerAdapter
-import com.stripe.android.customersheet.ExperimentalCustomerSheetApi
 import com.stripe.android.model.PaymentMethod
 import kotlinx.coroutines.CompletableDeferred
 
-@OptIn(ExperimentalCustomerSheetApi::class)
 class ReactNativeCustomerAdapter (
   private val context: ReactApplicationContext,
   private val adapter: CustomerAdapter,

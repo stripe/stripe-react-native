@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+***Features***
+- Adds support for CustomerSession in private beta [1744](https://github.com/stripe/stripe-react-native/pull/1744)
+
+***Fixes***
+* Updated `stripe-ios` to 23.30.\*
+* Updated `stripe-android` to 20.52.\*
+
 ## 0.38.6 - 2024-09-04
 
 **Fixes**
