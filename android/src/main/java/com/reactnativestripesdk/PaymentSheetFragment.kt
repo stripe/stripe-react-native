@@ -63,8 +63,6 @@ class PaymentSheetFragment(
       return
     }
     val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
-    val customerId = arguments?.getString("customerId").orEmpty()
-    val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret").orEmpty()
     val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
@@ -82,6 +80,13 @@ class PaymentSheetFragment(
     val appearance = try {
       buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
     } catch (error: PaymentSheetAppearanceException) {
+      initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+      return
+    }
+
+    val customerConfiguration = try {
+      buildCustomerConfiguration(arguments)
+    } catch (error: PaymentSheetException) {
       initPromise.resolve(createError(ErrorType.Failed.toString(), error))
       return
     }
@@ -190,12 +195,7 @@ class PaymentSheetFragment(
     val configurationBuilder = PaymentSheet.Configuration.Builder(merchantDisplayName)
       .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods ?: false)
       .defaultBillingDetails(defaultBillingDetails)
-      .customer(
-        if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) PaymentSheet.CustomerConfiguration(
-          id = customerId,
-          ephemeralKeySecret = customerEphemeralKeySecret
-        ) else null
-      )
+      .customer(customerConfiguration)
       .googlePay(googlePayConfig)
       .appearance(appearance)
       .shippingDetails(shippingDetails)
@@ -427,6 +427,28 @@ class PaymentSheetFragment(
           setupFutureUse = setupFutureUsage
         )
       }
+    }
+
+    @OptIn(ExperimentalCustomerSessionApi::class)
+    @Throws(PaymentSheetException::class)
+    private fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
+      val customerId = bundle?.getString("customerId").orEmpty()
+      val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
+      val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()
+      return if (customerSessionClientSecret.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) {
+        throw PaymentSheetException("`customerEphemeralKeySecret` and `customerSessionClientSecret` cannot both be set")
+      } else if (customerId.isNotEmpty() && customerSessionClientSecret.isNotEmpty()) {
+        PaymentSheet.CustomerConfiguration.createWithCustomerSession(
+          id = customerId,
+          clientSecret = customerSessionClientSecret
+        )
+      }
+      else if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) {
+        PaymentSheet.CustomerConfiguration(
+          id = customerId,
+          ephemeralKeySecret = customerEphemeralKeySecret
+        )
+      } else null
     }
   }
 }

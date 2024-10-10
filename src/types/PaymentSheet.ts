@@ -10,13 +10,11 @@ import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 
-export type SetupParams = IntentParams & {
+type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
-  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
-  customerEphemeralKeySecret?: string;
   /** When set to true, separates out the payment method selection & confirmation steps.
    * If true, you must call `confirmPaymentSheetPayment` on your own. Defaults to false. */
   customFlow?: boolean;
@@ -68,6 +66,21 @@ export type SetupParams = IntentParams & {
    */
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
 };
+
+export type SetupParams =
+  | (SetupParamsBase & {
+      /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+      customerEphemeralKeySecret: string;
+      customerSessionClientSecret?: never;
+    })
+  | (SetupParamsBase & {
+      customerEphemeralKeySecret?: never;
+      /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
+       *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
+       */
+      customerSessionClientSecret: string;
+    })
+  | SetupParamsBase;
 
 export type IntentParams =
   | {
