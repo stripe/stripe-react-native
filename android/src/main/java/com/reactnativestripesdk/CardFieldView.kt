@@ -220,7 +220,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   fun setOnBehalfOf(onBehalfOf: String?) {
-    mCardWidget.setOnBehalfOf(onBehalfOf)
+    mCardWidget.onBehalfOf = onBehalfOf
   }
 
   /**
