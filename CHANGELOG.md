@@ -5,6 +5,7 @@
 **Features**
 
 - Adds support for CustomerSession in private beta [1744](https://github.com/stripe/stripe-react-native/pull/1744)
+- Added `onBehalfOf` prop to CardField
 
 **Fixes**
 
