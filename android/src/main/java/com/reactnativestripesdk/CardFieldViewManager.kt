@@ -51,6 +51,11 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
     view.setCountryCode(countryCode)
   }
 
+  @ReactProp(name = "onBehalfOf")
+  fun setOnBehalfOf(view: CardFieldView, onBehalfOf: String?) {
+    view.setOnBehalfOf(onBehalfOf)
+  }
+
   @ReactProp(name = "placeholders")
   fun setPlaceHolders(view: CardFieldView, placeholders: ReadableMap) {
     view.setPlaceHolders(placeholders)

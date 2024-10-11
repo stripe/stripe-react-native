@@ -46,6 +46,8 @@ export interface Props extends AccessibilityProps {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
+  /** The account (if any) for which the funds of the intent are intended. */
+  onBehalfOf?: string;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.
    * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.

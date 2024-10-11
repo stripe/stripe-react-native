@@ -6,9 +6,9 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     @objc var onCardChange: RCTDirectEventBlock?
     @objc var onFocusChange: RCTDirectEventBlock?
     @objc var dangerouslyGetFullCardDetails: Bool = false
-    
+
     private var cardField = STPPaymentCardTextField()
-    
+
     public var cardParams: STPPaymentMethodParams? = nil
     public var cardPostalCode: String? = nil
 
@@ -17,19 +17,25 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             cardField.isUserInteractionEnabled = !disabled
         }
     }
-    
+
     @objc var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-    
+
     @objc var countryCode: String? {
         didSet {
             cardField.countryCode = countryCode
         }
     }
-    
+
+    @objc var onBehalfOf: String? {
+        didSet {
+            cardField.onBehalfOf = onBehalfOf
+        }
+    }
+
     @objc var preferredNetworks: Array<Int>? {
         didSet {
             if let preferredNetworks = preferredNetworks {
@@ -37,7 +43,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
+
     @objc var placeholders: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholders["number"] as? String {
@@ -56,7 +62,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
+
     @objc var autofocus: Bool = false {
         didSet {
             if autofocus == true {
@@ -64,7 +70,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
+
     @objc var cardStyle: NSDictionary = NSDictionary() {
         didSet {
             if let borderWidth = cardStyle["borderWidth"] as? Int {
@@ -91,7 +97,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 cardField.textErrorColor = UIColor(hexString: textErrorColor)
             }
             let fontSize = cardStyle["fontSize"] as? Int ?? 14
-            
+
             if let fontFamily = cardStyle["fontFamily"] as? String {
                 cardField.font = UIFont(name: fontFamily, size: CGFloat(fontSize)) ?? UIFont.systemFont(ofSize: CGFloat(fontSize))
             } else {
@@ -104,46 +110,46 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-        
+
         self.addSubview(cardField)
     }
-    
+
     func focus() {
         cardField.becomeFirstResponder()
     }
-    
+
     func blur() {
         cardField.resignFirstResponder()
     }
-    
+
     func clear() {
         cardField.clear()
     }
-    
+
     func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": NSNull()])
     }
-    
+
     func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "CardNumber"])
     }
-    
+
     func paymentCardTextFieldDidBeginEditingCVC(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "Cvc"])
     }
-    
+
     func paymentCardTextFieldDidBeginEditingExpiration(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "ExpiryDate"])
     }
-    
+
     func paymentCardTextFieldDidBeginEditingPostalCode(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "PostalCode"])
     }
-    
+
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
         if onCardChange != nil {
             let brand = STPCardValidator.brand(forNumber: textField.cardNumber ?? "")
@@ -180,29 +186,29 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             self.cardPostalCode = nil
         }
     }
-    
+
     override func layoutSubviews() {
         cardField.frame = self.bounds
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func paymentContext(_ paymentContext: STPPaymentContext, didFailToLoadWithError error: Error) {
         //
     }
-    
+
     func paymentContextDidChange(_ paymentContext: STPPaymentContext) {
         //
     }
-    
+
     func paymentContext(_ paymentContext: STPPaymentContext, didCreatePaymentResult paymentResult: STPPaymentResult, completion: @escaping STPPaymentStatusBlock) {
         //
     }
-    
+
     func paymentContext(_ paymentContext: STPPaymentContext, didFinishWith status: STPPaymentStatus, error: Error?) {
         //
     }
-    
+
 }

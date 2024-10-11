@@ -219,6 +219,10 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
     mCardWidget.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
   }
 
+  fun setOnBehalfOf(onBehalfOf: String?) {
+    mCardWidget.onBehalfOf = onBehalfOf
+  }
+
   /**
    * We can reliable assume that setPostalCodeEnabled is called before
    * setCountryCode because of the order of the props in CardField.tsx
