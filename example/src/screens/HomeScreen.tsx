@@ -95,6 +95,16 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI (multi-step) (deferred intent) with updates"
+              onPress={() => {
+                navigation.navigate(
+                  'PaymentSheetDeferredIntentMultiStepScreenWithUpdates'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Customer Sheet"
               onPress={() => {
                 navigation.navigate('CustomerSheetScreen');
