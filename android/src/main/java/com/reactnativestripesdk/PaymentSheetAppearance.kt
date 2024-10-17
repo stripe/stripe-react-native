@@ -161,9 +161,9 @@ private fun getFontResId(bundle: Bundle?, key: String, defaultValue: Int?, conte
 
   val fontFileName = bundle.getString(key)
           ?: throw PaymentSheetAppearanceException("$fontErrorPrefix expected String for font.$key, but received null.")
-  if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
+  if (Regex("[^a-z0-9_]").containsMatchIn(fontFileName)) {
     throw PaymentSheetAppearanceException(
-      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"
+      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters and underscores on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"
     )
   }
 
