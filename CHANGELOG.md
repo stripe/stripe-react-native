@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+**Features**
+
+- `CustomerSheet` is now generally available!
+  - If you were using `CustomerSheetBeta`, change that to `CustomerSheet`.
+  - If you were using `CustomerSheetBeta.CustomerSheet`, change that to `CustomerSheet.Component`
+
 ## 0.39.0 - 2024-10-15
 
 **Features**
