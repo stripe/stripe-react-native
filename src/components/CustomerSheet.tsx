@@ -257,7 +257,7 @@ export type Props = {
  * @returns JSX.Element
  * @category ReactComponents
  */
-function CustomerSheet({
+function Component({
   visible,
   presentationStyle,
   animationStyle,
@@ -319,8 +319,8 @@ function CustomerSheet({
 /**
  * The Customer Sheet is a prebuilt UI component that lets your customers manage their saved payment methods.
  */
-export const CustomerSheetBeta = {
-  CustomerSheet,
+export const CustomerSheet = {
+  Component,
   initialize,
   present,
   retrievePaymentOptionSelection,
