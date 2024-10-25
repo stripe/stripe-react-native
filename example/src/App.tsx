@@ -43,6 +43,7 @@ import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
+import PaymentSheetDeferredIntentMultiStepScreenWithUpdates from './screens/PaymentSheetDeferredIntentMultiStepScreenWithUpdates';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 
@@ -89,6 +90,7 @@ export type RootStackParamList = {
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
+  PaymentSheetDeferredIntentMultiStepScreenWithUpdates: undefined;
   CustomerSheetScreen: undefined;
   RevolutPayScreen: undefined;
 };
@@ -164,6 +166,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetDeferredIntentMultiStepScreen"
             component={PaymentSheetDeferredIntentMultiStepScreen}
+          />
+          <Stack.Screen
+            name="PaymentSheetDeferredIntentMultiStepScreenWithUpdates"
+            component={PaymentSheetDeferredIntentMultiStepScreenWithUpdates}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"

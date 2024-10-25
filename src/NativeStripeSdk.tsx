@@ -65,6 +65,9 @@ type NativeStripeSdkType = {
   initPaymentSheet(
     params: PaymentSheet.SetupParams
   ): Promise<InitPaymentSheetResult>;
+  updatePaymentSheet(
+    params: PaymentSheet.IntentConfiguration
+  ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
     result: PaymentSheet.IntentCreationCallbackParams
   ): void;

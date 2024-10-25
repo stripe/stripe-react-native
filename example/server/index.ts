@@ -799,14 +799,15 @@ app.post('/payment-intent-for-payment-sheet', async (req, res) => {
 
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 5099,
-      currency: 'usd',
+      amount: req.body.amount || 5099,
+      currency: req.body.currency || 'usd',
       payment_method: req.body.paymentMethodId,
       customer: req.body.customerId,
     });
 
     return res.send({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
+    console.log(e);
     return res.send({ error: e });
   }
 });

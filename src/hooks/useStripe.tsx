@@ -59,6 +59,7 @@ import {
   createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
+  updatePaymentSheet,
 } from '../functions';
 
 /**
@@ -150,6 +151,15 @@ export function useStripe() {
       params: PaymentSheet.SetupParams
     ): Promise<InitPaymentSheetResult> => {
       return initPaymentSheet(params);
+    },
+    []
+  );
+
+  const _updatePaymentSheet = useCallback(
+    async (
+      params: PaymentSheet.IntentConfiguration
+    ): Promise<InitPaymentSheetResult> => {
+      return updatePaymentSheet(params);
     },
     []
   );
@@ -327,6 +337,7 @@ export function useStripe() {
     confirmPaymentSheetPayment: _confirmPaymentSheetPayment,
     presentPaymentSheet: _presentPaymentSheet,
     initPaymentSheet: _initPaymentSheet,
+    updatePaymentSheet: _updatePaymentSheet,
     createToken: _createToken,
     collectBankAccountForPayment: _collectBankAccountForPayment,
     collectBankAccountForSetup: _collectBankAccountForSetup,
