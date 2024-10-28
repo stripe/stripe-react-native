@@ -409,7 +409,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     else
       null // Expect that payment method was attached on the server
 
-    val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
+    //    if (paymentMethodType == PaymentMethod.Type.WeChatPay) {
+    //      val appId = getValOr(params, "appId") ?: run {
+    //        promise.resolve(createError("Failed", "You must provide appId"))
+    //        return
+    //      }
+    //      payWithWeChatPay(paymentIntentClientSecret, appId, promise)
+    //
+    //      return
+    //    }
 
     val factory = PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
 

@@ -16,6 +16,7 @@ export interface Result {
   AuBecsDebit: AuBecsDebitResult;
   BacsDebit: BacsDebitResult;
   Card: CardResult;
+  Fpx: FpxResult;
   Ideal: IdealResult;
   SepaDebit: SepaDebitResult;
   Sofort: SofortResult;
@@ -35,6 +36,7 @@ export type CreateParams =
   | AuBecsDebitParams
   | SofortParams
   | GrabPayParams
+  | FPXParams
   | AfterpayClearpayParams
   | KlarnaParams
   // | WeChatPayParams
@@ -77,6 +79,11 @@ export interface IdealParams {
     bankName?: string;
     billingDetails?: BillingDetails;
   };
+}
+
+export interface FPXParams {
+  paymentMethodType: 'Fpx';
+  paymentMethodData?: { testOfflineBank?: boolean };
 }
 
 export interface AlipayParams {
@@ -240,6 +247,10 @@ export interface ThreeDSecureUsage {
   isSupported?: boolean;
 }
 
+export interface FpxResult {
+  bank?: string;
+}
+
 export interface IdealResult {
   bankIdentifierCode?: string;
   bank?: string;
@@ -278,6 +289,7 @@ export type Type =
   | 'Alipay'
   | 'GrabPay'
   | 'Ideal'
+  | 'Fpx'
   | 'CardPresent'
   | 'SepaDebit'
   | 'AuBecsDebit'

@@ -25,6 +25,8 @@ class PaymentMethodFactory {
                 return try createOXXOPaymentMethodParams()
             case STPPaymentMethodType.card:
                 return try createCardPaymentMethodParams()
+            case STPPaymentMethodType.FPX:
+                return try createFPXPaymentMethodParams()
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodParams()
             case STPPaymentMethodType.sofort:
@@ -76,6 +78,8 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.card:
                 return createCardPaymentMethodOptions()
+            case STPPaymentMethodType.FPX:
+                return nil
             case STPPaymentMethodType.sofort:
                 return nil
             case STPPaymentMethodType.alipay:
@@ -148,7 +152,7 @@ class PaymentMethodFactory {
         if let bankName = self.paymentMethodData?["bankName"] as? String {
             params.bankName = bankName
         }
-
+        
 
         return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
     }
@@ -212,6 +216,16 @@ class PaymentMethodFactory {
         paymentMethodOptions.cardOptions = cardOptions
 
         return paymentMethodOptions
+    }
+
+    private func createFPXPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodFPXParams()
+
+        if self.paymentMethodData?["testOfflineBank"] as? Bool == true {
+            params.rawBankString = "test_offline_bank"
+        }
+
+        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
     }
 
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -332,7 +346,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.klarnaPaymentMissingParams
         }
     }
-
+    
     private func createUSBankAccountPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodUSBankAccountParams()
 
@@ -354,21 +368,21 @@ class PaymentMethodFactory {
             throw PaymentMethodError.usBankAccountPaymentMissingParams
         }
     }
-
+    
     private func createPayPalPaymentMethodParams() throws -> STPPaymentMethodParams {
         return STPPaymentMethodParams(payPal: STPPaymentMethodPayPalParams(), billingDetails: billingDetailsParams, metadata: nil)
     }
-
+    
     private func createAffirmPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodAffirmParams()
         return STPPaymentMethodParams(affirm: params, metadata: nil)
     }
-
+    
     private func createCashAppPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodCashAppParams()
         return STPPaymentMethodParams(cashApp: params, billingDetails: billingDetailsParams, metadata: nil)
     }
-
+    
     private func createRevolutPayPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodRevolutPayParams()
         return STPPaymentMethodParams(revolutPay: params, billingDetails: billingDetailsParams, metadata: nil)
@@ -378,7 +392,7 @@ class PaymentMethodFactory {
         if let mandateParams = paymentMethodData?["mandateData"] as? NSDictionary {
             if let customerAcceptanceParams = mandateParams["customerAcceptance"] as? NSDictionary {
                 let mandate = STPMandateDataParams.init(customerAcceptance: STPMandateCustomerAcceptanceParams.init())
-
+                
                 mandate.customerAcceptance.type = .online
                 if let onlineParams = customerAcceptanceParams["online"] as? NSDictionary {
                     mandate.customerAcceptance.onlineParams = .init(ipAddress: onlineParams["ipAddress"] as? String ?? "", userAgent: onlineParams["userAgent"] as? String ?? "")

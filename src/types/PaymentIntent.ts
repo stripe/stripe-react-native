@@ -41,6 +41,7 @@ export type ConfirmParams =
   | AuBecsDebitParams
   | SofortParams
   | GrabPayParams
+  | FPXParams
   | AfterpayClearpayParams
   | KlarnaParams
   // | WeChatPayParams
@@ -113,6 +114,11 @@ export interface IdealParams {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
   };
+}
+
+export interface FPXParams {
+  paymentMethodType: 'Fpx';
+  paymentMethodData?: { testOfflineBank?: boolean; mandateData?: MandateData };
 }
 
 export interface AlipayParams {
