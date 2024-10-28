@@ -275,7 +275,6 @@ class Mappers {
         case STPPaymentMethodType.alipay: return "Alipay"
         case STPPaymentMethodType.grabPay: return "GrabPay"
         case STPPaymentMethodType.iDEAL: return "Ideal"
-        case STPPaymentMethodType.FPX: return "Fpx"
         case STPPaymentMethodType.cardPresent: return "CardPresent"
         case STPPaymentMethodType.SEPADebit: return "SepaDebit"
         case STPPaymentMethodType.AUBECSDebit: return "AuBecsDebit"
