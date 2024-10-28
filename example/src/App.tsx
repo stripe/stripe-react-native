@@ -64,7 +64,6 @@ export type RootStackParamList = {
   PaymentResultScreen: { url: string };
   SofortPaymentScreen: undefined;
   SofortSetupFuturePaymentScreen: undefined;
-  FPXPaymentScreen: undefined;
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   SepaPaymentScreen: undefined;
