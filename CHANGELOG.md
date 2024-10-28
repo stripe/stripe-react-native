@@ -3,7 +3,14 @@
 ## Unreleased
 
 **Breaking changes**
+
 - Removed support for FPX payments via the bank picker UI. If you'd like to accept FPX payments, we recommend using [Mobile Payment Element](https://docs.stripe.com/payments/accept-a-payment?platform=react-native). Also see the [FPX Payment guide](https://docs.stripe.com/payments/fpx/accept-a-payment?web-or-mobile=mobile) for more info on how to integrate FPX specifically.
+
+**Features**
+
+- `CustomerSheet` is now generally available!
+  - If you were using `CustomerSheetBeta`, change that to `CustomerSheet`.
+  - If you were using `CustomerSheetBeta.CustomerSheet`, change that to `CustomerSheet.Component`
 
 ## 0.39.0 - 2024-10-15
 
