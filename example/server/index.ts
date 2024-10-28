@@ -54,10 +54,6 @@ function getKeys(payment_method?: string) {
 
   switch (payment_method) {
     case 'grabpay':
-    case 'fpx':
-      publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_MY;
-      secret_key = process.env.STRIPE_SECRET_KEY_MY;
-      break;
     case 'au_becs_debit':
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_AU;
       secret_key = process.env.STRIPE_SECRET_KEY_AU;
