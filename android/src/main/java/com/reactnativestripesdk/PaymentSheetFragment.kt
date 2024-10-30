@@ -209,6 +209,10 @@ class PaymentSheetFragment(
       configurationBuilder.paymentMethodOrder(it)
     }
 
+    configurationBuilder.paymentMethodLayout(
+      mapToPaymentMethodLayout(arguments?.getString("paymentMethodLayout"))
+    )
+
     paymentSheetConfiguration = configurationBuilder.build()
 
     if (arguments?.getBoolean("customFlow") == true) {
@@ -487,6 +491,14 @@ fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConf
     "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Never
     "always" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Always
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
+  }
+}
+
+fun mapToPaymentMethodLayout(str: String?): PaymentSheet.PaymentMethodLayout {
+  return when (str) {
+    "Horizontal" -> PaymentSheet.PaymentMethodLayout.Horizontal
+    "Vertical" -> PaymentSheet.PaymentMethodLayout.Vertical
+    else -> PaymentSheet.PaymentMethodLayout.Automatic
   }
 }
 

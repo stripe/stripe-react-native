@@ -65,6 +65,11 @@ type SetupParamsBase = IntentParams & {
    *  If false, the customer can't delete if they only have one saved payment method remaining.
    */
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
+  /**
+   * Defines the layout orientations available for displaying payment methods in PaymentSheet.
+   * - Note: Defaults to `Automatic` if not set
+   */
+  paymentMethodLayout?: PaymentMethodLayout;
 };
 
 export type SetupParams =
@@ -417,3 +422,22 @@ export type SetupMode = {
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
   setupFutureUsage: FutureUsage;
 };
+
+export enum PaymentMethodLayout {
+  /**
+   * Payment methods are arranged horizontally.
+   * Users can swipe left or right to navigate through different payment methods.
+   */
+  Horizontal = 'Horizontal',
+
+  /**
+   * Payment methods are arranged vertically.
+   * Users can scroll up or down to navigate through different payment methods.
+   */
+  Vertical = 'Vertical',
+
+  /**
+   * This lets Stripe choose the best layout for payment methods in the sheet.
+   */
+  Automatic = 'Automatic',
+}

@@ -116,6 +116,15 @@ extension StripeSdk {
         if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
+      
+        switch params["paymentMethodLayout"] as? String? {
+          case "Horizontal":
+            configuration.paymentMethodLayout = .horizontal
+          case "Vertical":
+            configuration.paymentMethodLayout = .vertical
+          default:
+            configuration.paymentMethodLayout = .automatic
+        }
                 
         return (nil, configuration)
     }

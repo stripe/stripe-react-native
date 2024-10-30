@@ -283,6 +283,24 @@ dependencies {
         }
     }
     // END TODO
+
+    // TODO: Remove after upgrading react-native-screens
+    implementation ("androidx.lifecycle:lifecycle-livedata-core:2.8.7")
+      {
+      version {
+        strictly '2.7.0'
+      }
+    }
+    // END TODO
+
+    // TODO: Remove after upgrading react-native-screens
+    implementation ("androidx.fragment:fragment-ktx:1.8.5") {
+      version {
+        strictly '1.6.2'
+      }
+    }
+    // END TODO
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
