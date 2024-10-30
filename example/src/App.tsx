@@ -19,7 +19,6 @@ import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import SofortPaymentScreen from './screens/SofortPaymentScreen';
 import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
-import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
@@ -65,7 +64,6 @@ export type RootStackParamList = {
   PaymentResultScreen: { url: string };
   SofortPaymentScreen: undefined;
   SofortSetupFuturePaymentScreen: undefined;
-  FPXPaymentScreen: undefined;
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   SepaPaymentScreen: undefined;
@@ -190,7 +188,6 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
-          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
           <Stack.Screen
             name="SofortPaymentScreen"
             component={SofortPaymentScreen}

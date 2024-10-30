@@ -194,21 +194,4 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    func paymentContext(_ paymentContext: STPPaymentContext, didFailToLoadWithError error: Error) {
-        //
-    }
-
-    func paymentContextDidChange(_ paymentContext: STPPaymentContext) {
-        //
-    }
-
-    func paymentContext(_ paymentContext: STPPaymentContext, didCreatePaymentResult paymentResult: STPPaymentResult, completion: @escaping STPPaymentStatusBlock) {
-        //
-    }
-
-    func paymentContext(_ paymentContext: STPPaymentContext, didFinishWith status: STPPaymentStatus, error: Error?) {
-        //
-    }
-
 }

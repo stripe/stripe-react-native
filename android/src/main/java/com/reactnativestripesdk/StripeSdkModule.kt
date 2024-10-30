@@ -18,7 +18,6 @@ import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.*
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
-import com.stripe.android.view.AddPaymentMethodActivityStarter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -77,14 +76,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
           }
           else -> {
             dispatchActivityResultsToFragments(requestCode, resultCode, data)
-            try {
-              val result = AddPaymentMethodActivityStarter.Result.fromIntent(data)
-              if (data?.getParcelableExtra<Parcelable>("extra_activity_result") != null) {
-                onFpxPaymentMethodResult(result)
-              }
-            } catch (e: java.lang.Exception) {
-              Log.d("StripeReactNative", e.localizedMessage ?: e.toString())
-            }
           }
         }
       }
@@ -217,48 +208,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     paymentSheetFragment?.paymentSheetIntentCreationCallback?.complete(params)
-  }
-
-  private fun payWithFpx() {
-    getCurrentActivityOrResolveWithError(confirmPromise)?.let {
-      AddPaymentMethodActivityStarter(it)
-        .startForResult(AddPaymentMethodActivityStarter.Args.Builder()
-                          .setPaymentMethodType(PaymentMethod.Type.Fpx)
-                          .build()
-        )
-    }
-  }
-
-  private fun onFpxPaymentMethodResult(result: AddPaymentMethodActivityStarter.Result) {
-    when (result) {
-      is AddPaymentMethodActivityStarter.Result.Success -> {
-        if (confirmPaymentClientSecret != null && confirmPromise != null) {
-          paymentLauncherFragment = PaymentLauncherFragment.forPayment(
-            context = reactApplicationContext,
-            stripe,
-            publishableKey,
-            stripeAccountId,
-            confirmPromise!!,
-            confirmPaymentClientSecret!!,
-            ConfirmPaymentIntentParams.createWithPaymentMethodId(
-              result.paymentMethod.id!!,
-              confirmPaymentClientSecret!!
-            )
-          )
-        } else {
-          Log.e("StripeReactNative", "FPX payment failed. Promise and/or client secret is not set.")
-          confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), "FPX payment failed. Client secret is not set."))
-        }
-      }
-      is AddPaymentMethodActivityStarter.Result.Failure -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), result.exception))
-      }
-      is AddPaymentMethodActivityStarter.Result.Canceled -> {
-        confirmPromise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), "The payment has been canceled"))
-      }
-    }
-    this.confirmPaymentClientSecret = null
-    this.confirmPromise = null
   }
 
   @ReactMethod
@@ -459,15 +408,6 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       }
     else
       null // Expect that payment method was attached on the server
-
-    val testOfflineBank = getBooleanOrFalse(params, "testOfflineBank")
-
-    if (paymentMethodType == PaymentMethod.Type.Fpx && !testOfflineBank) {
-      confirmPaymentClientSecret = paymentIntentClientSecret
-      confirmPromise = promise
-      payWithFpx()
-      return
-    }
 
 //    if (paymentMethodType == PaymentMethod.Type.WeChatPay) {
 //      val appId = getValOr(params, "appId") ?: run {
