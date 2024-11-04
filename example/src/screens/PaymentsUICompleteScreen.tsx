@@ -9,6 +9,7 @@ import {
   AddressSheet,
   AddressSheetError,
   CardBrand,
+  PaymentMethodLayout,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -137,6 +138,7 @@ export default function PaymentsUICompleteScreen() {
         allowsDelayedPaymentMethods: true,
         appearance,
         primaryButtonLabel: 'purchase!',
+        paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
         ...clientSecretParams,
