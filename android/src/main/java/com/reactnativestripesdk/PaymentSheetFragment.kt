@@ -55,7 +55,6 @@ class PaymentSheetFragment(
     }
   }
 
-  @OptIn(ExperimentalPaymentMethodLayoutApi::class)
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
