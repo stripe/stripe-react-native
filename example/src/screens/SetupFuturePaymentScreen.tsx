@@ -158,7 +158,7 @@ export default function SetupFuturePaymentScreen() {
       console.log('Setup intent confirmation error', e.message);
       return;
     } else if (!paymentMethod) {
-      Alert.alert(`Something went wrong creating the payment method.`);
+      Alert.alert('Something went wrong creating the payment method.');
       return;
     }
 

@@ -4,7 +4,7 @@ import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
   useConfirmSetupIntent,
   verifyMicrodepositsForSetup,
-  VerifyMicrodepositsParams,
+  type VerifyMicrodepositsParams,
   collectBankAccountForSetup,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -50,10 +50,10 @@ export default function ACHSetupScreen() {
       if (setupIntent.status === SetupIntent.Status.Processing) {
         Alert.alert(
           'Processing',
-          `The setup has been successfully submitted and is now processing.`
+          'The setup has been successfully submitted and is now processing.'
         );
       } else if (setupIntent.status === SetupIntent.Status.Succeeded) {
-        Alert.alert('Success', `The setup was confirmed successfully!`);
+        Alert.alert('Success', 'The setup was confirmed successfully!');
       } else if (
         setupIntent.status === SetupIntent.Status.RequiresAction &&
         setupIntent?.nextAction?.type === 'verifyWithMicrodeposits'
@@ -75,7 +75,7 @@ export default function ACHSetupScreen() {
       await fetchSetupIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -98,10 +98,10 @@ export default function ACHSetupScreen() {
       if (setupIntent.status === SetupIntent.Status.Processing) {
         Alert.alert(
           'Processing',
-          `The setup has been successfully submitted and is now processing.`
+          'The setup has been successfully submitted and is now processing.'
         );
       } else if (setupIntent.status === SetupIntent.Status.Succeeded) {
-        Alert.alert('Success', `The setup was confirmed successfully!`);
+        Alert.alert('Success', 'The setup was confirmed successfully!');
       } else if (
         setupIntent.status === SetupIntent.Status.RequiresAction &&
         setupIntent?.nextAction?.type === 'verifyWithMicrodeposits'
@@ -122,7 +122,7 @@ export default function ACHSetupScreen() {
       await fetchSetupIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

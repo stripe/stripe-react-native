@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  AccessibilityProps,
+  type AccessibilityProps,
   requireNativeComponent,
-  StyleProp,
-  ViewStyle,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import type { AuBECSDebitFormComponent } from '../types';
 

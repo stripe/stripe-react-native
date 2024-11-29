@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import {
   useStripe,
-  Address,
-  BillingDetails,
+  type Address,
+  type BillingDetails,
   PaymentMethod,
   PaymentSheet,
 } from '@stripe/stripe-react-native';

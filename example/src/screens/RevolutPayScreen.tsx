@@ -38,7 +38,7 @@ export default function RevolutPayScreen() {
     );
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -72,7 +72,7 @@ export default function RevolutPayScreen() {
     );
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

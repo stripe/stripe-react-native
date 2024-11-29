@@ -3,7 +3,7 @@ import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import {
   useConfirmPayment,
   PaymentIntent,
-  BillingDetails,
+  type BillingDetails,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -38,7 +38,7 @@ export default function SofortPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -64,7 +64,7 @@ export default function SofortPaymentScreen() {
       console.log('Payment confirmation error', error.message);
     } else if (paymentIntent) {
       if (paymentIntent.status === PaymentIntent.Status.Processing) {
-        Alert.alert('Processing', `The paymentIntent is processing`);
+        Alert.alert('Processing', 'The paymentIntent is processing');
       } else {
         Alert.alert(
           'Success',

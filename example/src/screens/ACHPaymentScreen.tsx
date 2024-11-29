@@ -4,7 +4,7 @@ import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
   useConfirmPayment,
   verifyMicrodepositsForPayment,
-  VerifyMicrodepositsParams,
+  type VerifyMicrodepositsParams,
   collectBankAccountForPayment,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
@@ -52,7 +52,7 @@ export default function ACHPaymentScreen() {
       if (paymentIntent.status === PaymentIntent.Status.Processing) {
         Alert.alert(
           'Processing',
-          `The debit has been successfully submitted and is now processing.`
+          'The debit has been successfully submitted and is now processing.'
         );
       } else if (paymentIntent.status === PaymentIntent.Status.Succeeded) {
         Alert.alert(
@@ -80,7 +80,7 @@ export default function ACHPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -103,7 +103,7 @@ export default function ACHPaymentScreen() {
       if (paymentIntent.status === PaymentIntent.Status.Processing) {
         Alert.alert(
           'Processing',
-          `The debit has been successfully submitted and is now processing.`
+          'The debit has been successfully submitted and is now processing.'
         );
       } else if (paymentIntent.status === PaymentIntent.Status.Succeeded) {
         Alert.alert(
@@ -130,7 +130,7 @@ export default function ACHPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

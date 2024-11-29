@@ -200,7 +200,7 @@ app.post(
 
     if (!paymentMethods.data[0]) {
       return res.send({
-        error: `There is no associated payment method to the provided customer's e-mail`,
+        error: 'There is no associated payment method to the provided customer\'s e-mail',
       });
     }
 
@@ -282,7 +282,7 @@ app.post(
 
         if (!paymentMethods.data[0]) {
           return res.send({
-            error: `There is no associated payment method to the provided customer's e-mail`,
+            error: 'There is no associated payment method to the provided customer\'s e-mail',
           });
         }
 
@@ -412,7 +412,7 @@ app.post(
         stripeWebhookSecret
       );
     } catch (err) {
-      console.log(`⚠️  Webhook signature verification failed.`);
+      console.log('⚠️  Webhook signature verification failed.');
       return res.sendStatus(400);
     }
 
@@ -438,12 +438,12 @@ app.post(
     }
 
     if (eventType === 'setup_intent.setup_failed') {
-      console.log(`🔔  A SetupIntent has failed the to setup a PaymentMethod.`);
+      console.log('🔔  A SetupIntent has failed the to setup a PaymentMethod.');
     }
 
     if (eventType === 'setup_intent.succeeded') {
       console.log(
-        `🔔  A SetupIntent has successfully setup a PaymentMethod for future use.`
+        '🔔  A SetupIntent has successfully setup a PaymentMethod for future use.'
       );
     }
 

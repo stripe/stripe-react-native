@@ -21,6 +21,7 @@ build/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata
+**/.xcode.env.local
 *.xccheckout
 *.moved-aside
 DerivedData
@@ -39,10 +40,13 @@ android.iml
 android/build/
 android/build/reports
 example/android/app/build/reports
+cxx/
+*.keystore
+!debug.keystore
 
 # Cocoapods
 #
-example/ios/Pods
+**/Pods/
 
 # node.js
 #
@@ -50,12 +54,6 @@ node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
-
-# BUCK
-buck-out/
-\.buckd/
-android/app/libs
-android/keystores/debug.keystore
 
 # Expo
 .expo/*
@@ -71,3 +69,17 @@ docs/api-reference/
 
 # Local stripe-android dependency
 example/android/stripe-android
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*
+
+# testing
+/coverage
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

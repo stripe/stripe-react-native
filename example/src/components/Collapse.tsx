@@ -4,6 +4,7 @@ import { colors } from '../colors';
 
 interface Props {
   title: string;
+  children: React.ReactNode;
 }
 
 export const Collapse: React.FC<Props> = React.memo(({ children, title }) => {

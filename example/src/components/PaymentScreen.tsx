@@ -7,6 +7,7 @@ import { fetchPublishableKey } from '../helpers';
 interface Props {
   paymentMethod?: string;
   onInit?(): void;
+  children: React.ReactNode;
 }
 
 const PaymentScreen: React.FC<Props> = ({

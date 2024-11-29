@@ -1,4 +1,4 @@
-import { PaymentIntent, BillingDetails } from '@stripe/stripe-react-native';
+import { PaymentIntent, type BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View, Text, Switch } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
@@ -37,7 +37,7 @@ export default function SepaPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -61,7 +61,7 @@ export default function SepaPaymentScreen() {
       if (paymentIntent.status === PaymentIntent.Status.Processing) {
         Alert.alert(
           'Processing',
-          `The debit has been successfully submitted and is now processing.`
+          'The debit has been successfully submitted and is now processing.'
         );
       } else if (paymentIntent.status === PaymentIntent.Status.Succeeded) {
         Alert.alert(

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  AccessibilityProps,
+  type AccessibilityProps,
   ActivityIndicator,
   StyleSheet,
   Text,

@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  AccessibilityProps,
-  StyleProp,
-  ViewStyle,
+  type AccessibilityProps,
+  type StyleProp,
+  type ViewStyle,
   requireNativeComponent,
-  NativeSyntheticEvent,
-  ImageSourcePropType,
+  type NativeSyntheticEvent,
+  type ImageSourcePropType,
 } from 'react-native';
 import type {
   Token,

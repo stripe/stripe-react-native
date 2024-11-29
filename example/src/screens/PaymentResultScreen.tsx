@@ -19,7 +19,7 @@ export default function PaymentResultScreen({ route }: Props) {
   const { retrievePaymentIntent } = useStripe();
 
   const retrievePaymentIntentObject = useCallback(
-    async (clientSecret) => {
+    async (clientSecret: string) => {
       const { paymentIntent, error } = await retrievePaymentIntent(
         clientSecret
       );

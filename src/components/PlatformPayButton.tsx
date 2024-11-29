@@ -1,19 +1,19 @@
 import React from 'react';
 import {
-  AccessibilityProps,
-  StyleProp,
-  ViewStyle,
+  type AccessibilityProps,
+  type StyleProp,
+  type ViewStyle,
   TouchableOpacity,
   StyleSheet,
   Platform,
-  NativeSyntheticEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import {
   ButtonType,
   ButtonStyle,
-  ShippingMethod,
-  ShippingContact,
+  type ShippingMethod,
+  type ShippingContact,
 } from '../types/PlatformPay';
 import GooglePayButtonNative from './GooglePayButtonNative';
 import ApplePayButtonNative from './ApplePayButtonNative';

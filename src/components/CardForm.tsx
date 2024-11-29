@@ -7,13 +7,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  AccessibilityProps,
-  NativeSyntheticEvent,
+  type AccessibilityProps,
+  type NativeSyntheticEvent,
   requireNativeComponent,
   UIManager,
-  StyleProp,
+  type StyleProp,
   findNodeHandle,
-  ViewStyle,
+  type ViewStyle,
 } from 'react-native';
 import {
   currentlyFocusedInput,
@@ -110,7 +110,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           data.cvc = card.cvc || '';
           if (__DEV__ && onFormComplete && card.complete) {
             console.warn(
-              `[stripe-react-native] ⚠️ WARNING: You've enabled \`dangerouslyGetFullCardDetails\`, meaning full card details are being returned. Only do this if you're certain that you fulfill the necessary PCI compliance requirements. Make sure that you're not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance`
+              '[stripe-react-native] ⚠️ WARNING: You\'ve enabled `dangerouslyGetFullCardDetails`, meaning full card details are being returned. Only do this if you\'re certain that you fulfill the necessary PCI compliance requirements. Make sure that you\'re not mistakenly logging or storing full card details! See the docs for details: https://stripe.com/docs/security/guide#validating-pci-compliance'
             );
           }
         }
@@ -140,7 +140,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       blur,
     }));
 
-    const onFocusHandler = useCallback((event) => {
+    const onFocusHandler = useCallback((event: NativeSyntheticEvent<{focusedField: CardFormView.FieldName | null}>) => {
       const { focusedField } = event.nativeEvent;
       if (focusedField) {
         focusInput(inputRef.current);

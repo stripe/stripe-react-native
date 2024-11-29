@@ -36,7 +36,7 @@ export default function BancontactPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

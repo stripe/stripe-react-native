@@ -34,7 +34,7 @@ export default function P24PaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

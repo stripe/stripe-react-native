@@ -37,7 +37,7 @@ export default function CashAppScreen() {
     );
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -63,7 +63,7 @@ export default function CashAppScreen() {
     );
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 

@@ -2,9 +2,9 @@ import React from 'react';
 
 import {
   requireNativeComponent,
-  StyleProp,
+  type StyleProp,
   StyleSheet,
-  ViewStyle,
+  type ViewStyle,
   View,
 } from 'react-native';
 

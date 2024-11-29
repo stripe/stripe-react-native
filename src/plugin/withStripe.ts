@@ -1,6 +1,6 @@
 import {
   AndroidConfig,
-  ConfigPlugin,
+  type ConfigPlugin,
   createRunOncePlugin,
   IOSConfig,
   withAndroidManifest,

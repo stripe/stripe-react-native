@@ -2,7 +2,7 @@ import React from 'react';
 import {
   NativeEventEmitter,
   NativeModules,
-  EmitterSubscription,
+  type EmitterSubscription,
 } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import type {

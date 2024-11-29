@@ -1,4 +1,4 @@
-import { PaymentIntent, BillingDetails } from '@stripe/stripe-react-native';
+import { PaymentIntent, type BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
 import { useConfirmPayment } from '@stripe/stripe-react-native';
@@ -35,7 +35,7 @@ export default function OxxoPaymentScreen() {
       await fetchPaymentIntentClientSecret();
 
     if (clientSecretError) {
-      Alert.alert(`Error`, clientSecretError);
+      Alert.alert('Error', clientSecretError);
       return;
     }
 
@@ -56,7 +56,7 @@ export default function OxxoPaymentScreen() {
       if (paymentIntent.status === PaymentIntent.Status.RequiresAction) {
         Alert.alert(
           'Success',
-          `The OXXO voucher was created successfully. Awaiting payment from customer.`
+          'The OXXO voucher was created successfully. Awaiting payment from customer.'
         );
       } else {
         Alert.alert('Payment intent status:', paymentIntent.status);

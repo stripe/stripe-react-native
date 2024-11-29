@@ -6,7 +6,7 @@ import {
   createPlatformPayPaymentMethod,
   createPlatformPayToken,
   confirmPlatformPayPayment,
-  GooglePayCardToken,
+  type GooglePayCardToken,
   isPlatformPaySupported,
   PlatformPay,
   PlatformPayButton,

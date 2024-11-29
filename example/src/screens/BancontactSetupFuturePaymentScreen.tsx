@@ -1,5 +1,5 @@
 import {
-  BillingDetails,
+  type BillingDetails,
   useConfirmSetupIntent,
 } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';

@@ -80,7 +80,7 @@ function buildTestTokenParams(type: Token.Type): Token.CreateParams {
         currency: 'usd',
       };
     default:
-      throw new Error(`Unsupported token type`);
+      throw new Error('Unsupported token type');
   }
 }
 

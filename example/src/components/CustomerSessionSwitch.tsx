@@ -3,9 +3,9 @@ import {
   View,
   Text,
   Switch,
-  ViewStyle,
-  TextStyle,
-  StyleProp,
+  type ViewStyle,
+  type TextStyle,
+  type StyleProp,
 } from 'react-native';
 
 interface CustomerSessionSwitchProps {

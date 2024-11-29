@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import {
-  AddressDetails,
+  type AddressDetails,
   useStripe,
-  BillingDetails,
-  Address,
+  type BillingDetails,
+  type Address,
   PaymentSheetError,
   AddressSheet,
   AddressSheetError,

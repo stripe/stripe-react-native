@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  AccessibilityProps,
+  type AccessibilityProps,
+  type NativeSyntheticEvent,
   requireNativeComponent,
-  NativeSyntheticEvent,
 } from 'react-native';
 import type {
   PaymentSheet,
