@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Fixes**
+
+- Updated `stripe-ios` to 24.1.\*
+
 ## 0.40.0 - 2024-11-19
 
 **Breaking changes**
@@ -24,8 +28,8 @@
 
 **Fixes**
 
-* Updated `stripe-ios` to 23.30.\*
-* Updated `stripe-android` to 20.52.\*
+- Updated `stripe-ios` to 23.30.\*
+- Updated `stripe-android` to 20.52.\*
 
 ## 0.38.6 - 2024-09-04
 
