@@ -607,6 +607,9 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
+    phone = getValOr(shippingDetails, "phone") ?: "",
+    trackingNumber = getValOr(shippingDetails, "trackingNumber") ?: "",
+    carrier = getValOr(shippingDetails, "carrier") ?: "",
     address = address
   )
 }
