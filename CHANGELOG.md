@@ -4,7 +4,7 @@
 
 **Fixes**
 
-- Updated `stripe-ios` to 24.1.\*
+- Updated `stripe-ios` to 24.2.\*
 
 ## 0.40.0 - 2024-11-19
 
