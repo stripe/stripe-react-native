@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 0.41.0 - 2024-12-19
 
 **Fixes**
 
