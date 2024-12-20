@@ -548,6 +548,11 @@ class Mappers {
 
         let shipping = STPPaymentIntentShippingDetailsParams(address: shippingAddress, name: shippingDetails["name"] as? String ?? "")
 
+        // add the phone number, trackingNumber and carrie if available in the shipping details
+        shipping.phone = shippingDetails["phone"] as? String ?? ""
+        shipping.trackingNumber = shippingDetails["trackingNumber"] as? String ?? ""
+        shipping.carrier = shippingDetails["carrier"] as? String ?? ""
+
         return shipping
     }
 
