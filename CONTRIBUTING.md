@@ -8,6 +8,20 @@ We want this community to be friendly and respectful to each other. Please follo
 
 - Install the dependencies
   - `yarn bootstrap`
+  - if you are encountering this issue
+```sh
+[!] Error installing boost
+Verification checksum was incorrect, expected f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41, got 79e6d3f986444e5a80afbeccdaf2d1c1cf964baa8d766d20859d653a16c39848
+```
+you need to edit `example\node_modules\react-native\third-party-podspecs\boost.podspec` and update the checksum/sha256 to `f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41`
+  - You can also try the following set of commands in example\ios to reset your podfile
+  ```sh
+  pod cache clean --all
+  rm -rf Podfile.lock
+  pod repo update
+  pod install
+  ```
+
 - Set up env vars
   - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
 - Start the example
