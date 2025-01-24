@@ -5,8 +5,8 @@
 
 The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
 
-[!WARNING]
-This SDK is not fully compatible with React Native's [New Architecture](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here). If you are using React Native 0.76 or above, please [opt-out](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here#opt-out) from it.
+> [!WARNING]
+> This SDK is not fully compatible with React Native's [New Architecture](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here). If you are using React Native 0.76 or above, please [opt-out](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here#opt-out) from it.
 
 ## Getting started
 
