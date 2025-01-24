@@ -138,18 +138,18 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         if let clientSecret = result["clientSecret"] as? String {
             paymentSheetIntentCreationCallback(.success(clientSecret))
         } else {
-            class ConfirmationError: Error, LocalizedError {
-                private var errorMessage: String
-                init(errorMessage: String) {
-                    self.errorMessage = errorMessage
-                }
-                public var errorDescription: String? {
-                    return errorMessage
-                }
+          struct ConfirmationError: Error, LocalizedError {
+            private var errorMessage: String
+            init(errorMessage: String) {
+              self.errorMessage = errorMessage
             }
-            let errorParams = result["error"] as? NSDictionary
-            let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-            paymentSheetIntentCreationCallback(.failure(error))
+            public var errorDescription: String? {
+              return errorMessage
+            }
+          }
+          let errorParams = result["error"] as? NSDictionary
+          let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+          paymentSheetIntentCreationCallback(.failure(error))
         }
     }
 
