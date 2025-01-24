@@ -129,7 +129,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(intentCreationCallback:resolver:rejecter:)
-    func intentCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @MainActor func intentCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         guard let paymentSheetIntentCreationCallback = self.paymentSheetIntentCreationCallback else {
             resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
