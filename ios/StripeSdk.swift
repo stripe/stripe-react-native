@@ -140,9 +140,6 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         } else {
           struct ConfirmationError: Error, LocalizedError {
             private var errorMessage: String
-            init(errorMessage: String) {
-              self.errorMessage = errorMessage
-            }
             public var errorDescription: String? {
               return errorMessage
             }
