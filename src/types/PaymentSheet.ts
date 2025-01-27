@@ -10,7 +10,7 @@ import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 
-type SetupParamsBase = IntentParams & {
+export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
