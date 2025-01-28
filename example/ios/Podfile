@@ -1,3 +1,22 @@
+# Apply fix found here
+# https://github.com/boostorg/boost/issues/996#issuecomment-2574671532
+def find_and_replace_boost_url
+  pod_spec = "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  puts "Debug: Starting boost URL replacement"
+  if File.exist?(pod_spec)
+    puts "Debug: Found boost.podspec"
+    spec_content = File.read(pod_spec)
+    spec_content.gsub!(
+      'https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2',
+      'https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.bz2'
+    )
+    File.write(pod_spec, spec_content)
+    puts "Debug: Updated boost.podspec"
+  end
+end
+
+find_and_replace_boost_url
+
 platform :ios, '13.0'
 
 install! 'cocoapods', deterministic_uuids: false
