@@ -10,10 +10,12 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.FrameLayout
 import androidx.core.os.LocaleListCompat
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.facebook.react.views.text.ReactTypefaceUtils
 import com.google.android.material.shape.CornerFamily
@@ -37,7 +39,7 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   val cardDetails: MutableMap<String, Any?> = mutableMapOf("brand" to "", "last4" to "", "expiryMonth" to null, "expiryYear" to null, "postalCode" to "", "validNumber" to "Unknown", "validCVC" to "Unknown", "validExpiryDate" to "Unknown")
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
-  private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+  private var mEventDispatcher: EventDispatcher? = UIManagerHelper.getEventDispatcherForReactTag(context as ReactContext, id)
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   private var isCardValid = false
@@ -81,8 +83,10 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   private fun onChangeFocus() {
-    mEventDispatcher?.dispatchEvent(
-      CardFocusEvent(id, currentFocusedField))
+    if (id != -1 ) {
+      val event: Event<CardFocusEvent> =  CardFocusEvent(id, currentFocusedField);
+      mEventDispatcher?.dispatchEvent(event)
+    }
   }
 
   fun setCardStyle(value: ReadableMap) {
@@ -262,8 +266,10 @@ class CardFieldView(context: ThemedReactContext) : FrameLayout(context) {
   }
 
   private fun sendCardDetailsEvent() {
-    mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails))
+    if (id != -1 ) {
+      val event: Event<CardChangedEvent> =  CardChangedEvent(id, cardDetails, mCardWidget.postalCodeEnabled, isCardValid, dangerouslyGetFullCardDetails);
+      mEventDispatcher?.dispatchEvent(event)
+    }
   }
 
   private fun setListeners() {
