@@ -129,7 +129,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(intentCreationCallback:resolver:rejecter:)
-    func intentCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    @MainActor func intentCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         guard let paymentSheetIntentCreationCallback = self.paymentSheetIntentCreationCallback else {
             resolve(Errors.createError(ErrorType.Failed, "No intent creation callback was set"))
@@ -138,18 +138,18 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         if let clientSecret = result["clientSecret"] as? String {
             paymentSheetIntentCreationCallback(.success(clientSecret))
         } else {
-            class ConfirmationError: Error, LocalizedError {
-                private var errorMessage: String
-                init(errorMessage: String) {
-                    self.errorMessage = errorMessage
-                }
-                public var errorDescription: String? {
-                    return errorMessage
-                }
+          struct ConfirmationError: Error, LocalizedError {
+            private var errorMessage: String
+            init(errorMessage: String) {
+              self.errorMessage = errorMessage
             }
-            let errorParams = result["error"] as? NSDictionary
-            let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
-            paymentSheetIntentCreationCallback(.failure(error))
+            public var errorDescription: String? {
+              return errorMessage
+            }
+          }
+          let errorParams = result["error"] as? NSDictionary
+          let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+          paymentSheetIntentCreationCallback(.failure(error))
         }
     }
 
