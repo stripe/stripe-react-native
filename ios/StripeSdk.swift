@@ -71,7 +71,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     override func supportedEvents() -> [String]! {
         return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onCustomerAdapterFetchPaymentMethodsCallback", "onCustomerAdapterAttachPaymentMethodCallback",
         "onCustomerAdapterDetachPaymentMethodCallback", "onCustomerAdapterSetSelectedPaymentOptionCallback", "onCustomerAdapterFetchSelectedPaymentOptionCallback",
-        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback"]
+        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", "onFinancialConnectionsEvent"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {
@@ -733,13 +733,19 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
           connectionsReturnURL = nil
         }
 
+        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+            let mappedEvent = Mappers.financialConnectionsEventToMap(event)
+            self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+        }
+
         if (isPaymentIntent) {
             DispatchQueue.main.async {
                 STPBankAccountCollector().collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+                    onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
                         resolve(Errors.createError(ErrorType.Failed, error as NSError))
@@ -765,7 +771,8 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+                    onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
                         resolve(Errors.createError(ErrorType.Failed, error as NSError))
@@ -1040,9 +1047,15 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         if let urlScheme = urlScheme {
             returnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
         } else {
-          returnURL = nil
+            returnURL = nil
         }
-        FinancialConnections.presentForToken(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
+      
+        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+            let mappedEvent = Mappers.financialConnectionsEventToMap(event)
+            self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+        }
+      
+        FinancialConnections.presentForToken(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
     }
 
     @objc(collectFinancialConnectionsAccounts:resolver:rejecter:)
@@ -1059,9 +1072,15 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         if let urlScheme = urlScheme {
             returnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
         } else {
-          returnURL = nil
+            returnURL = nil
         }
-        FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, resolve: resolve)
+
+        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+            let mappedEvent = Mappers.financialConnectionsEventToMap(event)
+            self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+        }
+
+        FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
     }
 
     @objc(configureOrderTracking:orderIdentifier:webServiceUrl:authenticationToken:resolver:rejecter:)

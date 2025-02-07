@@ -84,7 +84,7 @@ type NativeStripeSdkType = {
   collectBankAccount(
     isPaymentIntent: boolean,
     clientSecret: string,
-    params: PaymentMethod.CollectBankAccountParams
+    params: Omit<PaymentMethod.CollectBankAccountParams, 'onEvent'>
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
   getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
   canAddCardToWallet(

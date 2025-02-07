@@ -6,6 +6,7 @@ import type {
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
 import type { Address, BillingDetails } from './Common';
+import type { FinancialConnectionsEvent } from './FinancialConnections';
 
 export interface Result {
   id: string;
@@ -313,4 +314,5 @@ export type CollectBankAccountParams = {
       email?: string;
     };
   };
+  onEvent?: (event: FinancialConnectionsEvent) => void;
 };

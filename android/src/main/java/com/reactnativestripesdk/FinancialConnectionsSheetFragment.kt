@@ -12,6 +12,7 @@ import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.mapFromToken
+import com.stripe.android.financialconnections.FinancialConnections
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
@@ -26,6 +27,18 @@ class FinancialConnectionsSheetFragment : Fragment() {
   private lateinit var context: ReactApplicationContext
   private lateinit var configuration: FinancialConnectionsSheet.Configuration
   private lateinit var mode: Mode
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+    if (stripeSdkModule != null && stripeSdkModule.eventListenerCount > 0) {
+      FinancialConnections.setEventListener { event ->
+        val params = mapFromFinancialConnectionsEvent(event)
+        stripeSdkModule.sendEvent(context, "onFinancialConnectionsEvent", params)
+      }
+    }
+  }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -53,6 +66,13 @@ class FinancialConnectionsSheetFragment : Fragment() {
         )
       }
     }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+
+    // Remove any event listener that might be set
+    FinancialConnections.clearEventListener()
   }
 
   private fun onFinancialConnectionsSheetForTokenResult(result: FinancialConnectionsSheetForTokenResult) {
