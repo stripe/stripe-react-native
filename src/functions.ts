@@ -356,6 +356,7 @@ export const verifyMicrodepositsForSetup = async (
 const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
 let confirmHandlerCallback: EmitterSubscription | null = null;
 let orderTrackingCallbackListener: EmitterSubscription | null = null;
+let financialConnectionsEventListener: EmitterSubscription | null = null;
 
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
@@ -468,9 +469,14 @@ export const collectBankAccountForPayment = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForPaymentResult> => {
-  const subscription =
-    params.onEvent &&
-    eventEmitter.addListener('onFinancialConnectionsEvent', params.onEvent);
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
 
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.collectBankAccount(
@@ -479,7 +485,7 @@ export const collectBankAccountForPayment = async (
       params
     )) as CollectBankAccountForPaymentResult;
 
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -490,7 +496,7 @@ export const collectBankAccountForPayment = async (
       paymentIntent: paymentIntent!,
     };
   } catch (error: any) {
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -501,9 +507,14 @@ export const collectBankAccountForSetup = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForSetupResult> => {
-  const subscription =
-    params.onEvent &&
-    eventEmitter.addListener('onFinancialConnectionsEvent', params.onEvent);
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
 
   try {
     const { setupIntent, error } = (await NativeStripeSdk.collectBankAccount(
@@ -512,7 +523,7 @@ export const collectBankAccountForSetup = async (
       params
     )) as CollectBankAccountForSetupResult;
 
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -523,7 +534,7 @@ export const collectBankAccountForSetup = async (
       setupIntent: setupIntent!,
     };
   } catch (error: any) {
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -541,14 +552,20 @@ export const collectBankAccountToken = async (
   clientSecret: string,
   onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
 ): Promise<FinancialConnections.TokenResult> => {
-  const subscription =
-    onEvent && eventEmitter.addListener('onFinancialConnectionsEvent', onEvent);
+  financialConnectionsEventListener?.remove();
+
+  if (onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      onEvent
+    );
+  }
 
   try {
     const { session, token, error } =
       await NativeStripeSdk.collectBankAccountToken(clientSecret);
 
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -560,7 +577,7 @@ export const collectBankAccountToken = async (
       token: token!,
     };
   } catch (error: any) {
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -578,14 +595,20 @@ export const collectFinancialConnectionsAccounts = async (
   clientSecret: string,
   onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
 ): Promise<FinancialConnections.SessionResult> => {
-  const subscription =
-    onEvent && eventEmitter.addListener('onFinancialConnectionsEvent', onEvent);
+  financialConnectionsEventListener?.remove();
+
+  if (onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      onEvent
+    );
+  }
 
   try {
     const { session, error } =
       await NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret);
 
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -596,7 +619,7 @@ export const collectFinancialConnectionsAccounts = async (
       session: session!,
     };
   } catch (error: any) {
-    subscription?.remove();
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
