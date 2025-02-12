@@ -733,9 +733,13 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
           connectionsReturnURL = nil
         }
 
-        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+        var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
+
+        if hasEventListeners {
+          onEvent = { [weak self] event in
             let mappedEvent = Mappers.financialConnectionsEventToMap(event)
             self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+          }
         }
 
         if (isPaymentIntent) {
@@ -1049,12 +1053,16 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         } else {
             returnURL = nil
         }
-      
-        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+
+        var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
+
+        if hasEventListeners {
+          onEvent = { [weak self] event in
             let mappedEvent = Mappers.financialConnectionsEventToMap(event)
             self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+          }
         }
-      
+
         FinancialConnections.presentForToken(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
     }
 
@@ -1075,9 +1083,13 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             returnURL = nil
         }
 
-        let onEvent: (FinancialConnectionsEvent) -> Void = { [weak self] event in
+        var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
+
+        if hasEventListeners {
+          onEvent = { [weak self] event in
             let mappedEvent = Mappers.financialConnectionsEventToMap(event)
             self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+          }
         }
 
         FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
