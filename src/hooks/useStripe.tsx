@@ -225,17 +225,21 @@ export function useStripe() {
   );
 
   const _collectBankAccountToken = useCallback(
-    async (clientSecret: string): Promise<FinancialConnections.TokenResult> => {
-      return collectBankAccountToken(clientSecret);
+    async (
+      clientSecret: string,
+      onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
+    ): Promise<FinancialConnections.TokenResult> => {
+      return collectBankAccountToken(clientSecret, onEvent);
     },
     []
   );
 
   const _collectFinancialConnectionsAccounts = useCallback(
     async (
-      clientSecret: string
+      clientSecret: string,
+      onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
     ): Promise<FinancialConnections.SessionResult> => {
-      return collectFinancialConnectionsAccounts(clientSecret);
+      return collectFinancialConnectionsAccounts(clientSecret, onEvent);
     },
     []
   );
