@@ -1,6 +1,10 @@
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
+export type CollectFinancialConnectionsAccountsParams = {
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
+
 export type SessionResult =
   | {
       /** The updated Financial Connections Session object. */

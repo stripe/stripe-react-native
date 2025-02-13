@@ -38,6 +38,8 @@ import {
   NativeModules,
   EmitterSubscription,
 } from 'react-native';
+import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
+import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -550,14 +552,14 @@ export const collectBankAccountForSetup = async (
  */
 export const collectBankAccountToken = async (
   clientSecret: string,
-  onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
+  params: CollectBankAccountTokenParams = {}
 ): Promise<FinancialConnections.TokenResult> => {
   financialConnectionsEventListener?.remove();
 
-  if (onEvent) {
+  if (params.onEvent) {
     financialConnectionsEventListener = eventEmitter.addListener(
       'onFinancialConnectionsEvent',
-      onEvent
+      params.onEvent
     );
   }
 
@@ -593,14 +595,14 @@ export const collectBankAccountToken = async (
  */
 export const collectFinancialConnectionsAccounts = async (
   clientSecret: string,
-  onEvent?: (event: FinancialConnections.FinancialConnectionsEvent) => void
+  params: CollectFinancialConnectionsAccountsParams = {}
 ): Promise<FinancialConnections.SessionResult> => {
   financialConnectionsEventListener?.remove();
 
-  if (onEvent) {
+  if (params.onEvent) {
     financialConnectionsEventListener = eventEmitter.addListener(
       'onFinancialConnectionsEvent',
-      onEvent
+      params.onEvent
     );
   }
 

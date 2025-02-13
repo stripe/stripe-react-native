@@ -316,3 +316,7 @@ export type CollectBankAccountParams = {
   };
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };
+
+export type CollectBankAccountTokenParams = {
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
