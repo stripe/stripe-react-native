@@ -4,9 +4,9 @@ appId: ${APP_ID}
 - tapOn: "Wallets"
 - tapOn: "Alipay"
 - assertVisible:
-    text: "E-mail"
+    id: "email-input"
 - tapOn:
-    text: "E-mail"
+    id: "email-input"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"
