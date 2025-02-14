@@ -11,6 +11,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Save"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST SETUP"
 - tapOn: "AUTHORIZE TEST SETUP"
 - assertVisible:
     text: "Success"
