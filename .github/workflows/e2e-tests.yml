@@ -72,6 +72,13 @@ jobs:
             yarn run-example-android
             yarn test:e2e:android
 
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts
+          path: /Users/runner/.maestro/tests/**
+
   test-ios:
     name: e2e-ios-test
     runs-on: macos-13
@@ -125,3 +132,10 @@ jobs:
       - name: Run tests
         run: |
           yarn test:e2e:ios
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts
+          path: /Users/runner/.maestro/tests/**
