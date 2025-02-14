@@ -20,7 +20,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "MM / YY"
     optional: true
-- inputText: "0125"
+- inputText: "0145"
 - tapOn:
     text: "CVC"
 - inputText: "123"
