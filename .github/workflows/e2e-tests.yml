@@ -10,6 +10,8 @@ jobs:
   test-android:
     name: e2e-android-test
     runs-on: macos-13
+    env:
+      MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
       - name: checkout
         uses: actions/checkout@v4
