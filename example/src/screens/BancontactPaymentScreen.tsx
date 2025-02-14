@@ -74,7 +74,6 @@ export default function BancontactPaymentScreen() {
         placeholder="E-mail"
         autoCapitalize="none"
         keyboardType="email-address"
-        testID="email-input"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />

@@ -9,20 +9,11 @@ appId: ${APP_ID}
     text: "Collect session"
     retryTapIfNoChange: false
 - tapOn: "Manually verify instead"
-- tapOn: "123456789"
-- inputText: "110000000"
-- tapOn: "Enter bank account details"
-- tapOn:
-    text: "000123456789"
-    index: 0
-- inputText: "000123456789"
-- tapOn: "Enter bank account details"
-- tapOn:
-    text: "000123456789"
-    index: 1
-- inputText: "000123456789"
-- tapOn: "Please enter a checking account."
-- tapOn: "Continue"
+- tapOn: "Use test account"
+- assertVisible:
+    text: "Not now"
+- tapOn: "Not now"
+- tapOn: "Done"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

@@ -57,7 +57,6 @@ export default function AlipayPaymentScreen() {
         autoCapitalize="none"
         placeholder="E-mail"
         keyboardType="email-address"
-        testID="email-input"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}
       />

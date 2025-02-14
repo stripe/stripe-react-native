@@ -4,9 +4,9 @@ appId: ${APP_ID}
 - tapOn: "Bank redirects"
 - tapOn: "Bancontact Payment"
 - assertVisible:
-    id: "email-input"
+    text: "E-mail"
 - tapOn:
-    id: "email-input"
+    text: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"
