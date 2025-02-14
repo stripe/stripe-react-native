@@ -8,7 +8,7 @@ appId: ${APP_ID}
     visible: "TEST MODE"
     timeout: 150000
 - tapOn:
-    above: "+ Add"
+    text: "Card"
     optional: true
 - tapOn:
     text: "Card number"

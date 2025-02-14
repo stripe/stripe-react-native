@@ -8,6 +8,9 @@ appId: ${APP_ID}
     visible: "TEST MODE"
     timeout: 150000
 - tapOn:
+    text: "Card"
+    optional: true
+- tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
 - tapOn:
