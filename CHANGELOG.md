@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+**Features**
+
+- Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument.
+
 ## 0.41.0 - 2024-12-19
 
 **Fixes**
