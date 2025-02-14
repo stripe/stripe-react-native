@@ -8,7 +8,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect session"
     retryTapIfNoChange: false
-- tapOn: "Enter account details manually instead"
+- tapOn: "Manually verify instead"
 - tapOn: "123456789"
 - inputText: "110000000"
 - tapOn: "Enter bank account details"
