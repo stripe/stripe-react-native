@@ -84,6 +84,8 @@ jobs:
   test-ios:
     name: e2e-ios-test
     runs-on: macos-13
+    env:
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: 120_000
     steps:
       - name: checkout
         uses: actions/checkout@v4
