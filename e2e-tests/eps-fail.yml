@@ -11,6 +11,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "FAIL TEST PAYMENT"
 - tapOn: "FAIL TEST PAYMENT"
 - assertVisible:
     text: .*Failed.*

@@ -12,6 +12,10 @@ appId: ${APP_ID}
     text: "Manually verify instead"
 - tapOn: "Manually verify instead"
 - tapOn: "Use test account"
+# Hide the keyboard on iOS
+- tapOn:
+    text: "Done"
+    optional: true
 - assertVisible:
     text: "Not now"
 - tapOn: "Not now"
