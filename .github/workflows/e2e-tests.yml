@@ -78,7 +78,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts
+          name: maestro-artifacts-android
           path: /Users/runner/.maestro/tests/**
 
   test-ios:
@@ -141,5 +141,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts
+          name: maestro-artifacts-ios
           path: /Users/runner/.maestro/tests/**
