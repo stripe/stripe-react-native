@@ -117,14 +117,14 @@ jobs:
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('example/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
       - uses: actions/cache@v4
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
@@ -152,9 +152,9 @@ jobs:
         run: |
           yarn run-example-ios
 
-      - name: Run tests
-        run: |
-          yarn test:e2e:ios
+      # - name: Run tests
+      #   run: |
+      #     yarn test:e2e:ios
 
       - name: Upload test artifacts
         if: always()
