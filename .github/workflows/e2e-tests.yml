@@ -105,6 +105,7 @@ jobs:
     runs-on: macos-13
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
+      MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -152,9 +153,9 @@ jobs:
         run: |
           yarn run-example-ios
 
-      # - name: Run tests
-      #   run: |
-      #     yarn test:e2e:ios
+      - name: Run tests
+        run: |
+          yarn test:e2e:ios
 
       - name: Upload test artifacts
         if: always()
