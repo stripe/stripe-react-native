@@ -9,8 +9,28 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: macos-13
+    runs-on: ubuntu-22.04
+    env:
+      MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
+      - name: Delete unnecessary tools 🔧
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: false # Don't remove Android tools
+          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
+          dotnet: true # rm -rf /usr/share/dotnet
+          haskell: true # rm -rf /opt/ghc...
+          swap-storage: true # rm -f /mnt/swapfile (4GiB)
+          docker-images: false # Takes 16s, enable if needed in the future
+          large-packages: false # includes google-cloud-sdk and it's slow
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls /dev/kvm
+
       - name: checkout
         uses: actions/checkout@v4
 
@@ -18,7 +38,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -38,13 +58,13 @@ jobs:
         run: yarn bootstrap-no-pods
 
       - name: Setup Java environment
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
       - name: Gradle cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -67,12 +87,25 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            yarn run-example-android
+            # Wait for system to settle
+            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+            # Retry once if necessary
+            yarn run-example-android || (sleep 60 && yarn run-example-android)
             yarn test:e2e:android
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts-android
+          path: /Users/runner/.maestro/tests/**
 
   test-ios:
     name: e2e-ios-test
     runs-on: macos-13
+    env:
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
+      MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -81,18 +114,18 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('example/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
@@ -123,3 +156,10 @@ jobs:
       - name: Run tests
         run: |
           yarn test:e2e:ios
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts-ios
+          path: /Users/runner/.maestro/tests/**

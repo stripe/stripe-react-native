@@ -14,6 +14,11 @@ appId: ${APP_ID}
 - assertVisible:
     text: "Use test account"
 - tapOn: "Use test account"
+# Hide the keyboard on iOS by tapping outside the text field
+- assertVisible:
+    text: "Save account with Link"
+    optional: true
+- tapOn: "Save account with Link"
 - assertVisible:
     text: "Not now"
 - tapOn: "Not now"

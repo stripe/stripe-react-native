@@ -8,14 +8,20 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect token"
     retryTapIfNoChange: false
-- tapOn: "Agree"
-- tapOn: "Test Institution"
-- tapOn: "Success"
-- tapOn: "Link account"
+- assertVisible:
+    text: "Manually verify instead"
+- tapOn: "Manually verify instead"
+- assertVisible:
+    text: "Use test account"
+- tapOn: "Use test account"
+- assertVisible:
+    text: "Not now"
+- tapOn: "Not now"
+- assertVisible:
+    text: "Done"
 - tapOn: "Done"
 - assertVisible:
     text: "Success"
-    optional: true
 - tapOn:
     text: "OK"
     optional: true

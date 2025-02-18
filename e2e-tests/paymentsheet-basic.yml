@@ -8,12 +8,16 @@ appId: ${APP_ID}
     visible: "TEST MODE"
     timeout: 150000
 - tapOn:
+    text: "Card"
+    optional: true
+- tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
 - tapOn:
     text: "MM / YY"
     optional: true
-- inputText: "0125123"
+- inputText: "0145"
+- inputText: "123"
 - tapOn: "purchase!"
 - assertVisible:
     text: "Success"

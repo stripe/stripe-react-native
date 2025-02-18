@@ -1,8 +1,10 @@
 appId: ${APP_ID}
 ---
+# TODO: Re-enable on iOS once we can enter 000-000 as the test bank.
+# Currently, 000-000 isn't recognized since the app is built in release mode.
 - launchApp
 - tapOn: "Bank Debits"
-- tapOn: "BECS Direct Debit set up"
+- tapOn: "BECS Direct Debit payment"
 - tapOn:
     text: "Name"
     optional: true
@@ -27,11 +29,11 @@ appId: ${APP_ID}
 - hideKeyboard
 - scrollUntilVisible:
     element:
-      text: "Save"
+      text: "Pay"
     direction: DOWN
 - tapOn:
-    text: "Save"
+    text: "Pay"
     retryTapIfNoChange: false
 - assertVisible:
-    text: "Success"
+    text: "Processing"
 - tapOn: "OK"
