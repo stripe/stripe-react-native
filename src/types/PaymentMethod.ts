@@ -314,9 +314,11 @@ export type CollectBankAccountParams = {
       email?: string;
     };
   };
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };
 
 export type CollectBankAccountTokenParams = {
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };

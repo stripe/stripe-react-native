@@ -547,7 +547,7 @@ export const collectBankAccountForSetup = async (
  * Use collectBankAccountToken in the [Add a Financial Connections Account to a US Custom Connect](https://stripe.com/docs/financial-connections/connect-payouts) account flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account for payouts.
  * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
- * @param onEvent An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts.
+ * @param {CollectBankAccountTokenParams} params Optional parameters.
  * @returns A promise that resolves to an object containing either `session` and `token` fields, or an error field.
  */
 export const collectBankAccountToken = async (
@@ -590,7 +590,7 @@ export const collectBankAccountToken = async (
  * Use collectFinancialConnectionsAccounts in the [Collect an account to build data-powered products](https://stripe.com/docs/financial-connections/other-data-powered-products) flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account.
  * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
- * @param onEvent An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts.
+ * @param {CollectFinancialConnectionsAccountsParams} params Optional parameters.
  * @returns A promise that resolves to an object containing either a `session` field, or an error field.
  */
 export const collectFinancialConnectionsAccounts = async (

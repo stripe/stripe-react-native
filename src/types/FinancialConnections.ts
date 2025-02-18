@@ -2,6 +2,7 @@ import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
 export type CollectFinancialConnectionsAccountsParams = {
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };
 
@@ -130,7 +131,7 @@ export enum FinancialConnectionsSheetError {
 }
 
 export type FinancialConnectionsEvent = {
-  /** The event's name. Represents the type of event that has occurred during the financial connection process. */
+  /** The event's name. Represents the type of event that has occurred during the Financial Connections process. */
   name: FinancialConnectionsEventName;
   /** Event-associated metadata. Provides further detail related to the occurred event. */
   metadata: FinancialConnectionsEventMetadata;
