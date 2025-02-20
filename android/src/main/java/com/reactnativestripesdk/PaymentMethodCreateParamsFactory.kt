@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.*
 import com.reactnativestripesdk.utils.mapToBillingDetails
+import com.reactnativestripesdk.utils.mapToMetadata
 import com.reactnativestripesdk.utils.mapToUSBankAccountHolderType
 import com.reactnativestripesdk.utils.mapToUSBankAccountType
 import com.stripe.android.model.*
@@ -13,7 +14,12 @@ class PaymentMethodCreateParamsFactory(
   private val cardFieldView: CardFieldView?,
   private val cardFormView: CardFormView?,
 ) {
-  private val billingDetailsParams = mapToBillingDetails(getMapOrNull(paymentMethodData, "billingDetails"), cardFieldView?.cardAddress ?: cardFormView?.cardAddress)
+  private val billingDetailsParams = mapToBillingDetails(
+    getMapOrNull(paymentMethodData, "billingDetails"),
+    cardFieldView?.cardAddress ?: cardFormView?.cardAddress
+  )
+  private val metadataParams: Map<String, String> =
+    mapToMetadata(getMapOrNull(paymentMethodData, "metadata"))
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createPaymentMethodParams(paymentMethodType: PaymentMethod.Type): PaymentMethodCreateParams {
@@ -53,7 +59,11 @@ class PaymentMethodCreateParamsFactory(
     val bankName = getValOr(paymentMethodData, "bankName", null)
 
     val idealParams = PaymentMethodCreateParams.Ideal(bankName)
-    return PaymentMethodCreateParams.create(ideal = idealParams, billingDetails = billingDetailsParams)
+    return PaymentMethodCreateParams.create(
+      ideal = idealParams,
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -69,14 +79,18 @@ class PaymentMethodCreateParamsFactory(
 
     return PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Sofort(country = country),
-      billingDetailsParams
+      billingDetailsParams,
+      metadata = metadataParams
     )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createBancontact(it)
+      return PaymentMethodCreateParams.createBancontact(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -91,7 +105,8 @@ class PaymentMethodCreateParamsFactory(
 
       return PaymentMethodCreateParams.create(
         sepaDebit = PaymentMethodCreateParams.SepaDebit(iban),
-        billingDetails = it
+        billingDetails = it,
+        metadata = metadataParams
       )
     }
 
@@ -101,7 +116,10 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createOXXOParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createOxxo(it)
+      return PaymentMethodCreateParams.createOxxo(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -215,11 +233,19 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  fun createParams(clientSecret: String, paymentMethodType: PaymentMethod.Type?, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+  fun createParams(
+    clientSecret: String,
+    paymentMethodType: PaymentMethod.Type?,
+    isPaymentIntent: Boolean
+  ): ConfirmStripeIntentParams {
     try {
       return when (paymentMethodType) {
         PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
-        PaymentMethod.Type.USBankAccount -> createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
+        PaymentMethod.Type.USBankAccount -> createUSBankAccountStripeIntentParams(
+          clientSecret,
+          isPaymentIntent
+        )
+
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
@@ -245,7 +271,12 @@ class PaymentMethodCreateParamsFactory(
               .createWithPaymentMethodCreateParams(
                 paymentMethodCreateParams = params,
                 clientSecret = clientSecret,
-                setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
+                setupFutureUsage = mapToPaymentIntentFutureUsage(
+                  getValOr(
+                    options,
+                    "setupFutureUsage"
+                  )
+                ),
                 mandateData = buildMandateDataParams()
               )
           } else {
@@ -256,6 +287,7 @@ class PaymentMethodCreateParamsFactory(
             )
           }
         }
+
         null -> ConfirmPaymentIntentParams.create(clientSecret)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
@@ -283,7 +315,10 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createCardStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+  private fun createCardStripeIntentParams(
+    clientSecret: String,
+    isPaymentIntent: Boolean
+  ): ConfirmStripeIntentParams {
     val paymentMethodId = getValOr(paymentMethodData, "paymentMethodId", null)
     val setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage"))
 
@@ -298,11 +333,13 @@ class PaymentMethodCreateParamsFactory(
             paymentMethodId,
             paymentMethodOptions = paymentMethodOptionParams,
             clientSecret = clientSecret,
-            setupFutureUsage = setupFutureUsage)
+            setupFutureUsage = setupFutureUsage
+          )
         else
           ConfirmSetupIntentParams.create(
             paymentMethodId,
-            clientSecret)
+            clientSecret
+          )
         )
     } else {
       val paymentMethodCreateParams = createCardPaymentMethodParams()
@@ -312,7 +349,8 @@ class PaymentMethodCreateParamsFactory(
             .createWithPaymentMethodCreateParams(
               paymentMethodCreateParams,
               clientSecret,
-              setupFutureUsage = setupFutureUsage)
+              setupFutureUsage = setupFutureUsage
+            )
         else
           ConfirmSetupIntentParams
             .create(paymentMethodCreateParams, clientSecret)
@@ -321,7 +359,10 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createUSBankAccountStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+  private fun createUSBankAccountStripeIntentParams(
+    clientSecret: String,
+    isPaymentIntent: Boolean
+  ): ConfirmStripeIntentParams {
     // If payment method data is supplied, assume they are passing in the bank details manually
     paymentMethodData?.let {
       if (billingDetailsParams?.name.isNullOrBlank()) {
@@ -356,7 +397,10 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAffirmStripeIntentParams(clientSecret: String, isPaymentIntent: Boolean): ConfirmStripeIntentParams {
+  private fun createAffirmStripeIntentParams(
+    clientSecret: String,
+    isPaymentIntent: Boolean
+  ): ConfirmStripeIntentParams {
     if (!isPaymentIntent) {
       throw PaymentMethodCreateParamsException("Affirm is not yet supported through SetupIntents.")
     }
@@ -390,12 +434,16 @@ class PaymentMethodCreateParamsFactory(
         getValOr(
           params,
           "accountType",
-          null)),
+          null
+        )
+      ),
       mapToUSBankAccountHolderType(
         getValOr(
           params,
           "accountHolderType",
-          null))
+          null
+        )
+      )
     )
 
     return PaymentMethodCreateParams.Companion.create(
@@ -409,10 +457,12 @@ class PaymentMethodCreateParamsFactory(
     getMapOrNull(paymentMethodData, "mandateData")?.let { mandateData ->
       getMapOrNull(mandateData, "customerAcceptance")?.let { customerAcceptance ->
         getMapOrNull(customerAcceptance, "online")?.let { onlineParams ->
-          return MandateDataParams(MandateDataParams.Type.Online(
-            ipAddress = getValOr(onlineParams, "ipAddress", "") ?: "",
-            userAgent = getValOr(onlineParams, "userAgent", "") ?: "",
-          ))
+          return MandateDataParams(
+            MandateDataParams.Type.Online(
+              ipAddress = getValOr(onlineParams, "ipAddress", "") ?: "",
+              userAgent = getValOr(onlineParams, "userAgent", "") ?: "",
+            )
+          )
         }
       }
     }

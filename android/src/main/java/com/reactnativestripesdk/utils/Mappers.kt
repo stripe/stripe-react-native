@@ -599,6 +599,19 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   return paymentMethodBillingDetailsBuilder.build()
 }
 
+internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? {
+  if (metadata == null) {
+    return null
+  }
+
+  val map = mutableMapOf<String, String>()
+  metadata.toHashMap().forEach { (key, value) ->
+    map[key] = value.toString()
+  }
+
+  return map.takeIf { it.isNotEmpty() }
+}
+
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
   if (shippingDetails == null) {
     return null

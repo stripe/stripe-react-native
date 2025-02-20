@@ -45,6 +45,18 @@ export default function ACHPaymentScreen() {
   const handleConfirmPress = async () => {
     const { error, paymentIntent } = await confirmPayment(secret, {
       paymentMethodType: 'USBankAccount',
+      paymentMethodData: {
+        billingDetails: {
+          name,
+          email,
+        },
+        accountNumber: '000123456789',
+        routingNumber: '110000000',
+        metadata: new Map([
+          ['name', 'John Doe'],
+          ['other_property', '1234'],
+        ]),
+      },
     });
 
     if (error) {
