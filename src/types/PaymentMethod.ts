@@ -6,6 +6,7 @@ import type {
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
 import type { Address, BillingDetails } from './Common';
+import type { FinancialConnectionsEvent } from './FinancialConnections';
 
 export interface Result {
   id: string;
@@ -313,4 +314,11 @@ export type CollectBankAccountParams = {
       email?: string;
     };
   };
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
+
+export type CollectBankAccountTokenParams = {
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
 };

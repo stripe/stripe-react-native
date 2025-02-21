@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import com.facebook.react.bridge.*
+import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.model.*
 import com.stripe.android.model.StripeIntent.NextActionType
@@ -956,4 +957,49 @@ internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardB
   return networksAsInts.mapNotNull {
     intToCardBrand[it]
   }
+}
+
+internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent): WritableMap {
+  return Arguments.createMap().apply {
+    putString("name", event.name.value)
+    putMap("metadata", event.metadata.toMap().toReadableMap())
+  }
+}
+
+private fun List<Any?>.toWritableArray(): WritableArray {
+  val writableArray = Arguments.createArray()
+
+  forEach { value ->
+    when (value) {
+      null -> writableArray.pushNull()
+      is Boolean -> writableArray.pushBoolean(value)
+      is Int -> writableArray.pushInt(value)
+      is Double -> writableArray.pushDouble(value)
+      is String -> writableArray.pushString(value)
+      is Map<*, *> -> writableArray.pushMap((value as Map<String, Any?>).toReadableMap())
+      is List<*> -> writableArray.pushArray((value as List<Any?>).toWritableArray())
+      else -> writableArray.pushString(value.toString())
+    }
+  }
+
+  return writableArray
+}
+
+private fun Map<String, Any?>.toReadableMap(): ReadableMap {
+  val writableMap = Arguments.createMap()
+
+  forEach { (key, value) ->
+    when (value) {
+      null -> writableMap.putNull(key)
+      is Boolean -> writableMap.putBoolean(key, value)
+      is Int -> writableMap.putInt(key, value)
+      is Double -> writableMap.putDouble(key, value)
+      is String -> writableMap.putString(key, value)
+      is Map<*, *> -> writableMap.putMap(key, (value as Map<String, Any?>).toReadableMap())
+      is List<*> -> writableMap.putArray(key, (value as List<Any?>).toWritableArray())
+      else -> writableMap.putString(key, value.toString())
+    }
+  }
+
+  return writableMap
 }

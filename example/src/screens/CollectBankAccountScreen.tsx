@@ -4,6 +4,7 @@ import { useFinancialConnectionsSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import type { FinancialConnectionsEvent } from 'src/types/FinancialConnections';
 
 export default function CollectBankAccountScreen() {
   const [clientSecret, setClientSecret] = React.useState('');
@@ -34,7 +35,12 @@ export default function CollectBankAccountScreen() {
 
   const handleCollectTokenPress = async () => {
     const { session, token, error } = await collectBankAccountToken(
-      clientSecret
+      clientSecret,
+      {
+        onEvent: (event: FinancialConnectionsEvent) => {
+          console.log('Event received:', event);
+        },
+      }
     );
 
     if (error) {
@@ -55,7 +61,12 @@ export default function CollectBankAccountScreen() {
 
   const handleCollectSessionPress = async () => {
     const { session, error } = await collectFinancialConnectionsAccounts(
-      clientSecret
+      clientSecret,
+      {
+        onEvent: (event: FinancialConnectionsEvent) => {
+          console.log('Event received:', event);
+        },
+      }
     );
 
     if (error) {

@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.*
@@ -14,6 +15,7 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromSetupIntentResult
+import com.stripe.android.financialconnections.FinancialConnections
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.StripeIntent
@@ -31,6 +33,18 @@ class CollectBankAccountLauncherFragment(
   private val promise: Promise
 ) : Fragment() {
   private lateinit var collectBankAccountLauncher: CollectBankAccountLauncher
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+    if (stripeSdkModule != null && stripeSdkModule.eventListenerCount > 0) {
+      FinancialConnections.setEventListener { event ->
+        val params = mapFromFinancialConnectionsEvent(event)
+        stripeSdkModule.sendEvent(context, "onFinancialConnectionsEvent", params)
+      }
+    }
+  }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View {
@@ -61,6 +75,13 @@ class CollectBankAccountLauncherFragment(
         collectParams
       )
     }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+
+    // Remove any event listener that might be set
+    FinancialConnections.clearEventListener()
   }
 
   private fun createBankAccountLauncher(): CollectBankAccountLauncher {

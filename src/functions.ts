@@ -38,6 +38,8 @@ import {
   NativeModules,
   EmitterSubscription,
 } from 'react-native';
+import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
+import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -356,6 +358,7 @@ export const verifyMicrodepositsForSetup = async (
 const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
 let confirmHandlerCallback: EmitterSubscription | null = null;
 let orderTrackingCallbackListener: EmitterSubscription | null = null;
+let financialConnectionsEventListener: EmitterSubscription | null = null;
 
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
@@ -468,12 +471,23 @@ export const collectBankAccountForPayment = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForPaymentResult> => {
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
+
   try {
     const { paymentIntent, error } = (await NativeStripeSdk.collectBankAccount(
       true,
       clientSecret,
       params
     )) as CollectBankAccountForPaymentResult;
+
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -484,6 +498,7 @@ export const collectBankAccountForPayment = async (
       paymentIntent: paymentIntent!,
     };
   } catch (error: any) {
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -494,12 +509,23 @@ export const collectBankAccountForSetup = async (
   clientSecret: string,
   params: PaymentMethod.CollectBankAccountParams
 ): Promise<CollectBankAccountForSetupResult> => {
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
+
   try {
     const { setupIntent, error } = (await NativeStripeSdk.collectBankAccount(
       false,
       clientSecret,
       params
     )) as CollectBankAccountForSetupResult;
+
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -510,6 +536,7 @@ export const collectBankAccountForSetup = async (
       setupIntent: setupIntent!,
     };
   } catch (error: any) {
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -520,14 +547,27 @@ export const collectBankAccountForSetup = async (
  * Use collectBankAccountToken in the [Add a Financial Connections Account to a US Custom Connect](https://stripe.com/docs/financial-connections/connect-payouts) account flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account for payouts.
  * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @param {CollectBankAccountTokenParams} params Optional parameters.
  * @returns A promise that resolves to an object containing either `session` and `token` fields, or an error field.
  */
 export const collectBankAccountToken = async (
-  clientSecret: string
+  clientSecret: string,
+  params: CollectBankAccountTokenParams = {}
 ): Promise<FinancialConnections.TokenResult> => {
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
+
   try {
     const { session, token, error } =
       await NativeStripeSdk.collectBankAccountToken(clientSecret);
+
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -539,6 +579,7 @@ export const collectBankAccountToken = async (
       token: token!,
     };
   } catch (error: any) {
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };
@@ -549,14 +590,27 @@ export const collectBankAccountToken = async (
  * Use collectFinancialConnectionsAccounts in the [Collect an account to build data-powered products](https://stripe.com/docs/financial-connections/other-data-powered-products) flow.
  * When called, it will load the Authentication Flow, an on-page modal UI which allows your user to securely link their external financial account.
  * @param {string} clientSecret The client_secret of the [Financial Connections Session](https://stripe.com/docs/api/financial_connections/session).
+ * @param {CollectFinancialConnectionsAccountsParams} params Optional parameters.
  * @returns A promise that resolves to an object containing either a `session` field, or an error field.
  */
 export const collectFinancialConnectionsAccounts = async (
-  clientSecret: string
+  clientSecret: string,
+  params: CollectFinancialConnectionsAccountsParams = {}
 ): Promise<FinancialConnections.SessionResult> => {
+  financialConnectionsEventListener?.remove();
+
+  if (params.onEvent) {
+    financialConnectionsEventListener = eventEmitter.addListener(
+      'onFinancialConnectionsEvent',
+      params.onEvent
+    );
+  }
+
   try {
     const { session, error } =
       await NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret);
+
+    financialConnectionsEventListener?.remove();
 
     if (error) {
       return {
@@ -567,6 +621,7 @@ export const collectFinancialConnectionsAccounts = async (
       session: session!,
     };
   } catch (error: any) {
+    financialConnectionsEventListener?.remove();
     return {
       error: createError(error),
     };

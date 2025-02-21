@@ -60,6 +60,8 @@ import {
   updatePlatformPaySheet,
   openPlatformPaySetup,
 } from '../functions';
+import type { CollectBankAccountTokenParams } from 'src/types/PaymentMethod';
+import type { CollectFinancialConnectionsAccountsParams } from 'src/types/FinancialConnections';
 
 /**
  * useStripe hook
@@ -225,17 +227,21 @@ export function useStripe() {
   );
 
   const _collectBankAccountToken = useCallback(
-    async (clientSecret: string): Promise<FinancialConnections.TokenResult> => {
-      return collectBankAccountToken(clientSecret);
+    async (
+      clientSecret: string,
+      params?: CollectBankAccountTokenParams
+    ): Promise<FinancialConnections.TokenResult> => {
+      return collectBankAccountToken(clientSecret, params);
     },
     []
   );
 
   const _collectFinancialConnectionsAccounts = useCallback(
     async (
-      clientSecret: string
+      clientSecret: string,
+      params?: CollectFinancialConnectionsAccountsParams
     ): Promise<FinancialConnections.SessionResult> => {
-      return collectFinancialConnectionsAccounts(clientSecret);
+      return collectFinancialConnectionsAccounts(clientSecret, params);
     },
     []
   );
