@@ -600,16 +600,7 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
 }
 
 internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? {
-  if (metadata == null) {
-    return null
-  }
-
-  val map = mutableMapOf<String, String>()
-  metadata.toHashMap().forEach { (key, value) ->
-    map[key] = value.toString()
-  }
-
-  return map.takeIf { it.isNotEmpty() }
+  return metadata?.toHashMap()?.mapValues { it.value.toString() }
 }
 
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
