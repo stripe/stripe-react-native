@@ -4,7 +4,11 @@
 
 **Features**
 
-- Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument.
+- Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument. This includes the following methods, both when used directly or via `useStripe` or `useFinancialConnectionsSheet`:
+  - `collectBankAccountForPayment`
+  - `collectBankAccountForSetup`
+  - `collectBankAccountToken`
+  - `collectFinancialConnectionsAccounts`
 
 ## 0.41.0 - 2024-12-19
 
