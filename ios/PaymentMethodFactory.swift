@@ -7,6 +7,7 @@ class PaymentMethodFactory {
     var paymentMethodOptions: NSDictionary? = nil
     var cardFieldView: CardFieldView? = nil
     var cardFormView: CardFormView? = nil
+    var metadata: [String: String]? = nil
 
     init(paymentMethodData: NSDictionary?, options: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
         self.paymentMethodData = paymentMethodData
@@ -14,6 +15,7 @@ class PaymentMethodFactory {
         self.paymentMethodOptions = options
         self.cardFieldView = cardFieldView
         self.cardFormView = cardFormView
+        self.metadata = paymentMethodData?["metadata"] as? [String: String]
     }
 
     func createParams(paymentMethodType: STPPaymentMethodType) throws -> STPPaymentMethodParams? {
@@ -124,7 +126,7 @@ class PaymentMethodFactory {
 
 //    private func createWeChatPayPaymentMethodParams() throws -> STPPaymentMethodParams {
 //        let params = STPPaymentMethodWeChatPayParams()
-//        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: nil)
+//        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: metadata)
 //    }
 //
 
@@ -152,22 +154,22 @@ class PaymentMethodFactory {
         if let bankName = self.paymentMethodData?["bankName"] as? String {
             params.bankName = bankName
         }
-        
 
-        return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: nil)
+
+      return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createGrabpayPaymentMethodParams() -> STPPaymentMethodParams {
         let params = STPPaymentMethodGrabPayParams()
 
-        return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: nil)
+      return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
         if let token = paymentMethodData?["token"] as? String {
             let methodParams = STPPaymentMethodCardParams()
             methodParams.token = token
-            return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: nil)
+          return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: metadata)
         }
 
         if let params = cardFieldView?.cardParams as? STPPaymentMethodParams {
@@ -197,7 +199,7 @@ class PaymentMethodFactory {
                     billingDetailsParams?.address?.country = address.country
                 }
             }
-            return STPPaymentMethodParams(card: params, billingDetails: billingDetailsParams, metadata: nil)
+            return STPPaymentMethodParams(card: params, billingDetails: billingDetailsParams, metadata: metadata)
         }
 
         throw PaymentMethodError.cardPaymentMissingParams
@@ -225,11 +227,11 @@ class PaymentMethodFactory {
             params.rawBankString = "test_offline_bank"
         }
 
-        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: nil)
+      return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {
-        return STPPaymentMethodParams(alipay: STPPaymentMethodAlipayParams(), billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(alipay: STPPaymentMethodAlipayParams(), billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createP24PaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -239,7 +241,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.p24PaymentMissingParams
         }
 
-        return STPPaymentMethodParams(przelewy24: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(przelewy24: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createAlipayPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
@@ -255,7 +257,7 @@ class PaymentMethodFactory {
         let params = STPPaymentMethodSofortParams()
         params.country = country
 
-        return STPPaymentMethodParams(sofort: params, billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(sofort: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createBancontactPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -265,7 +267,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.bancontactPaymentMissingParams
         }
 
-        return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createSepaPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -280,7 +282,7 @@ class PaymentMethodFactory {
 
         params.iban = iban
 
-        return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(sepaDebit: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createOXXOPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -290,7 +292,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.bancontactPaymentMissingParams
         }
 
-        return STPPaymentMethodParams(oxxo: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(oxxo: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createGiropayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -300,7 +302,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.giropayPaymentMissingParams
         }
 
-        return STPPaymentMethodParams(giropay: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(giropay: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createEPSPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -310,7 +312,7 @@ class PaymentMethodFactory {
             throw PaymentMethodError.epsPaymentMissingParams
         }
 
-        return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(eps: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createBECSDebitPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -324,7 +326,7 @@ class PaymentMethodFactory {
         params.accountNumber = formDetails?["accountNumber"] as? String
         params.bsbNumber = formDetails?["bsbNumber"] as? String
 
-        return STPPaymentMethodParams(aubecsDebit: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(aubecsDebit: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createAfterpayClearpayPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -334,19 +336,19 @@ class PaymentMethodFactory {
             throw PaymentMethodError.afterpayClearpayPaymentMissingParams
         }
 
-        return STPPaymentMethodParams(afterpayClearpay: params, billingDetails: billingDetails, metadata: nil)
+        return STPPaymentMethodParams(afterpayClearpay: params, billingDetails: billingDetails, metadata: metadata)
     }
 
     private func createKlarnaPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodKlarnaParams()
 
         if let billingDetails = billingDetailsParams, billingDetails.address?.country != nil, billingDetails.email != nil {
-            return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: nil)
+            return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: metadata)
         } else {
             throw PaymentMethodError.klarnaPaymentMissingParams
         }
     }
-    
+
     private func createUSBankAccountPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodUSBankAccountParams()
 
@@ -363,36 +365,36 @@ class PaymentMethodFactory {
         params.accountType = Mappers.mapToUSBankAccountType(type: self.paymentMethodData?["accountType"] as? String)
 
         if let billingDetails = billingDetailsParams, billingDetails.name != nil {
-            return STPPaymentMethodParams(usBankAccount: params, billingDetails: billingDetails, metadata: nil)
+            return STPPaymentMethodParams(usBankAccount: params, billingDetails: billingDetails, metadata: metadata)
         } else {
             throw PaymentMethodError.usBankAccountPaymentMissingParams
         }
     }
-    
+
     private func createPayPalPaymentMethodParams() throws -> STPPaymentMethodParams {
-        return STPPaymentMethodParams(payPal: STPPaymentMethodPayPalParams(), billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(payPal: STPPaymentMethodPayPalParams(), billingDetails: billingDetailsParams, metadata: metadata)
     }
-    
+
     private func createAffirmPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodAffirmParams()
-        return STPPaymentMethodParams(affirm: params, metadata: nil)
+        return STPPaymentMethodParams(affirm: params, metadata: metadata)
     }
-    
+
     private func createCashAppPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodCashAppParams()
-        return STPPaymentMethodParams(cashApp: params, billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(cashApp: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
-    
+
     private func createRevolutPayPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodRevolutPayParams()
-        return STPPaymentMethodParams(revolutPay: params, billingDetails: billingDetailsParams, metadata: nil)
+        return STPPaymentMethodParams(revolutPay: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     func createMandateData() -> STPMandateDataParams? {
         if let mandateParams = paymentMethodData?["mandateData"] as? NSDictionary {
             if let customerAcceptanceParams = mandateParams["customerAcceptance"] as? NSDictionary {
                 let mandate = STPMandateDataParams.init(customerAcceptance: STPMandateCustomerAcceptanceParams.init())
-                
+
                 mandate.customerAcceptance.type = .online
                 if let onlineParams = customerAcceptanceParams["online"] as? NSDictionary {
                     mandate.customerAcceptance.onlineParams = .init(ipAddress: onlineParams["ipAddress"] as? String ?? "", userAgent: onlineParams["userAgent"] as? String ?? "")
