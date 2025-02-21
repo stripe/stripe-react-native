@@ -18,7 +18,7 @@ class PaymentMethodCreateParamsFactory(
     getMapOrNull(paymentMethodData, "billingDetails"),
     cardFieldView?.cardAddress ?: cardFormView?.cardAddress
   )
-  private val metadataParams: Map<String, String> =
+  private val metadataParams: Map<String, String>? =
     mapToMetadata(getMapOrNull(paymentMethodData, "metadata"))
 
   @Throws(PaymentMethodCreateParamsException::class)
