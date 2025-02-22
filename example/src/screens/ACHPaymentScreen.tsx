@@ -96,8 +96,8 @@ export default function ACHPaymentScreen() {
           name: 'David Wallace',
         },
         metadata: {
-          random: 'John Doe',
-          other_property: '1234',
+          order_id: '1234',
+          description: 'Test order',
         },
       },
     });
