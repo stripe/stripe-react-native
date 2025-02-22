@@ -600,6 +600,7 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
 }
 
 internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? {
+  Log.d("StripeSdk", "mapToMetadata: $metadata")
   return metadata?.toHashMap()?.mapValues { it.value.toString() }
 }
 

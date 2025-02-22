@@ -128,7 +128,10 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createGiropayParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createGiropay(it)
+      return PaymentMethodCreateParams.createGiropay(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -137,7 +140,10 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createEps(it)
+      return PaymentMethodCreateParams.createEps(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -152,7 +158,10 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createP24Params(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createP24(it)
+      return PaymentMethodCreateParams.createP24(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -162,14 +171,18 @@ class PaymentMethodCreateParamsFactory(
   private fun createFpxParams(): PaymentMethodCreateParams {
     val bank = getBooleanOrFalse(paymentMethodData, "testOfflineBank").let { "test_offline_bank" }
     return PaymentMethodCreateParams.create(
-      PaymentMethodCreateParams.Fpx(bank)
+      PaymentMethodCreateParams.Fpx(bank),
+      metadata = metadataParams
     )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAfterpayClearpayParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createAfterpayClearpay(it)
+      return PaymentMethodCreateParams.createAfterpayClearpay(
+        billingDetails = it,
+        metadata = metadataParams
+      )
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -196,7 +209,8 @@ class PaymentMethodCreateParamsFactory(
         bsbNumber = bsbNumber,
         accountNumber = accountNumber
       ),
-      billingDetails = billingDetails
+      billingDetails = billingDetails,
+      metadata = metadataParams
     )
   }
 
@@ -209,27 +223,41 @@ class PaymentMethodCreateParamsFactory(
       throw PaymentMethodCreateParamsException("Klarna requires that you provide the following billing details: email, country")
     }
 
-    return PaymentMethodCreateParams.createKlarna(billingDetailsParams)
+    return PaymentMethodCreateParams.createKlarna(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalParams(): PaymentMethodCreateParams {
-    return PaymentMethodCreateParams.createPayPal(null)
+    return PaymentMethodCreateParams.createPayPal(
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAffirmParams(): PaymentMethodCreateParams {
-    return PaymentMethodCreateParams.createAffirm(billingDetailsParams)
+    return PaymentMethodCreateParams.createAffirm(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createCashAppParams(): PaymentMethodCreateParams {
-    return PaymentMethodCreateParams.createCashAppPay(billingDetailsParams)
+    return PaymentMethodCreateParams.createCashAppPay(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createRevolutPayParams(): PaymentMethodCreateParams {
-    return PaymentMethodCreateParams.createRevolutPay(billingDetailsParams)
+    return PaymentMethodCreateParams.createRevolutPay(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -385,7 +413,8 @@ class PaymentMethodCreateParamsFactory(
       return if (isPaymentIntent) {
         ConfirmPaymentIntentParams.create(
           clientSecret = clientSecret,
-          paymentMethodType = PaymentMethod.Type.USBankAccount
+          paymentMethodType = PaymentMethod.Type.USBankAccount,
+
         )
       } else {
         ConfirmSetupIntentParams.create(
@@ -412,7 +441,7 @@ class PaymentMethodCreateParamsFactory(
         paymentMethodCreateParams = params,
         clientSecret = clientSecret,
         setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
-        mandateData = buildMandateDataParams()
+        mandateData = buildMandateDataParams(),
       )
   }
 
@@ -449,7 +478,7 @@ class PaymentMethodCreateParamsFactory(
     return PaymentMethodCreateParams.Companion.create(
       usBankAccount,
       billingDetailsParams,
-      null
+      metadataParams
     )
   }
 
