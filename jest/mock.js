@@ -108,6 +108,7 @@ const mockFunctions = {
     details: null,
     error: null,
   })),
+  getIssuingApiVersion: jest.fn(async () => ''),
   isCardInWallet: jest.fn(async () => ({
     isInWallet: false,
     token: {},

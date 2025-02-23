@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Breaking changes**
+
+- `Constants.API_VERSIONS.ISSUING` has been removed, please use the asynchronous `getIssuingApiVersion` method instead. This should improve app startup time. [#1502](https://github.com/stripe/stripe-react-native/pull/1502)
+
 **Features**
 
 - Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument. This includes the following methods, both when used directly or via `useStripe` or `useFinancialConnectionsSheet`:

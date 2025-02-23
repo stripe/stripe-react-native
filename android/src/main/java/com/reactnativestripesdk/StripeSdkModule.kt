@@ -117,9 +117,15 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     hashMapOf(
       "API_VERSIONS" to hashMapOf(
         "CORE" to ApiVersion.API_VERSION_CODE,
-        "ISSUING" to PushProvisioningProxy.getApiVersion(),
       )
     )
+
+  @ReactMethod
+  fun getIssuingApiVersion(promise: Promise) {
+    promise.resolve(
+      PushProvisioningProxy.getApiVersion()
+    )
+  }
 
   @ReactMethod
   fun initialise(params: ReadableMap, promise: Promise) {

@@ -48,6 +48,7 @@ import {
   verifyMicrodepositsForPayment,
   verifyMicrodepositsForSetup,
   canAddCardToWallet,
+  getIssuingApiVersion,
   collectBankAccountToken,
   collectFinancialConnectionsAccounts,
   resetPaymentSheetCustomer,
@@ -226,6 +227,10 @@ export function useStripe() {
     []
   );
 
+  const _getIssuingApiVersion = useCallback(async (): Promise<string> => {
+    return getIssuingApiVersion();
+  }, []);
+
   const _collectBankAccountToken = useCallback(
     async (
       clientSecret: string,
@@ -339,6 +344,7 @@ export function useStripe() {
     verifyMicrodepositsForPayment: _verifyMicrodepositsForPayment,
     verifyMicrodepositsForSetup: _verifyMicrodepositsForSetup,
     canAddCardToWallet: _canAddCardToWallet,
+    getIssuingApiVersion: _getIssuingApiVersion,
     collectBankAccountToken: _collectBankAccountToken,
     collectFinancialConnectionsAccounts: _collectFinancialConnectionsAccounts,
     /**
