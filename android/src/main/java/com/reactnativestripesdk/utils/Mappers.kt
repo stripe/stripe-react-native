@@ -599,6 +599,10 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   return paymentMethodBillingDetailsBuilder.build()
 }
 
+internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? {
+  return metadata?.toHashMap()?.mapValues { it.value.toString() }
+}
+
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
   if (shippingDetails == null) {
     return null

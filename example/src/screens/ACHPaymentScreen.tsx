@@ -95,6 +95,10 @@ export default function ACHPaymentScreen() {
         billingDetails: {
           name: 'David Wallace',
         },
+        metadata: {
+          order_id: '1234',
+          description: 'Test order',
+        },
       },
     });
 
