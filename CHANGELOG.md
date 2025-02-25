@@ -11,7 +11,7 @@
   - `collectBankAccountForSetup`
   - `collectBankAccountToken`
   - `collectFinancialConnectionsAccounts`
-- Added ability to pass `metadata` to `PaymentMethod.ConfirmParams` and PaymentMethod.CreateParams`
+- Added ability to pass `metadata` to `PaymentMethod.ConfirmParams` and `PaymentMethod.CreateParams`
 
 ## 0.41.0 - 2024-12-19
 
