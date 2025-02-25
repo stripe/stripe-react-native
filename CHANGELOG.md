@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.42.0 - 2025-02-25
+
 **Features**
 
 - Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument. This includes the following methods, both when used directly or via `useStripe` or `useFinancialConnectionsSheet`:
@@ -9,6 +11,7 @@
   - `collectBankAccountForSetup`
   - `collectBankAccountToken`
   - `collectFinancialConnectionsAccounts`
+- Added ability to pass `metadata` to `PaymentMethod.ConfirmParams` and PaymentMethod.CreateParams`
 
 ## 0.41.0 - 2024-12-19
 
