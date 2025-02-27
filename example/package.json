@@ -13,6 +13,7 @@
     "start": "react-native start",
     "build:server": "babel --watch server --out-dir ./server-dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
     "start:server": "yarn build:server & nodemon ./server-dist/index.js",
+    "typescript": "tsc --noEmit",
     "postinstall": "patch-package"
   },
   "dependencies": {
