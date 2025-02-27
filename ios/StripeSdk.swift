@@ -730,38 +730,24 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         if let urlScheme = urlScheme {
             connectionsReturnURL = Mappers.mapToFinancialConnectionsReturnURL(urlScheme: urlScheme)
         } else {
-          connectionsReturnURL = nil
+            connectionsReturnURL = nil
         }
 
         var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
 
         if hasEventListeners {
-          onEvent = { [weak self] event in
-            let mappedEvent = Mappers.financialConnectionsEventToMap(event)
-            self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
-          }
+            onEvent = { [weak self] event in
+              let mappedEvent = Mappers.financialConnectionsEventToMap(event)
+              self?.sendEvent(withName: "onFinancialConnectionsEvent", body: mappedEvent)
+            }
         }
 
-        let style: STPBankAccountCollectorUserInterfaceStyle = {
-          if let styleString = params["style"] as? String {
-            switch styleString {
-            case "always_dark":
-              return .alwaysDark
-            case "always_light":
-              return .alwaysLight
-            default:
-              return .automatic
-            }
-          } else {
-            return .automatic
-          }
-        }()
-
+        let style = STPBankAccountCollectorUserInterfaceStyle(from: params)
+        let bankAccountCollector = STPBankAccountCollector(style: style)
 
         if (isPaymentIntent) {
             DispatchQueue.main.async {
-              STPBankAccountCollector(style: style)
-                .collectBankAccountForPayment(
+                bankAccountCollector.collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
@@ -788,8 +774,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             }
         } else {
             DispatchQueue.main.async {
-              STPBankAccountCollector(style: style)
-                .collectBankAccountForSetup(
+                bankAccountCollector.collectBankAccountForSetup(
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
@@ -1055,7 +1040,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         resolve(["isInWallet": PushProvisioningUtils.getPassLocation(last4: last4) != nil])
     }
 
-  @objc(collectBankAccountToken:params:resolver:rejecter:)
+    @objc(collectBankAccountToken:params:resolver:rejecter:)
     func collectBankAccountToken(
         clientSecret: String,
         params: NSDictionary,
@@ -1073,26 +1058,8 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             returnURL = nil
         }
 
-        let configuration: FinancialConnectionsSheet.Configuration = {
-          let style: FinancialConnectionsSheet.Configuration.UserInterfaceStyle = {
-            if let styleString = params["style"] as? String {
-              switch styleString {
-              case "always_dark":
-                return .alwaysDark
-              case "always_light":
-                return .alwaysLight
-              default:
-                return .automatic
-              }
-            } else {
-              return .automatic
-            }
-          }()
-          return FinancialConnectionsSheet.Configuration(style: style)
-        }()
-
+        let configuration = FinancialConnectionsSheet.Configuration(from: params)
         var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
-
 
         if hasEventListeners {
           onEvent = { [weak self] event in
@@ -1128,24 +1095,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             returnURL = nil
         }
 
-        let configuration: FinancialConnectionsSheet.Configuration = {
-          let style: FinancialConnectionsSheet.Configuration.UserInterfaceStyle = {
-            if let styleString = params["style"] as? String {
-              switch styleString {
-              case "always_dark":
-                return .alwaysDark
-              case "always_light":
-                return .alwaysLight
-              default:
-                return .automatic
-              }
-            } else {
-              return .automatic
-            }
-          }()
-          return FinancialConnectionsSheet.Configuration(style: style)
-        }()
-
+        let configuration = FinancialConnectionsSheet.Configuration(from: params)
         var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
 
         if hasEventListeners {
@@ -1244,5 +1194,47 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
 extension StripeSdk: STPAuthenticationContext {
     func authenticationPresentingViewController() -> UIViewController {
         return findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+    }
+}
+
+extension STPBankAccountCollectorUserInterfaceStyle {
+    init(from params: NSDictionary) {
+        guard let styleString = params["style"] as? String else {
+            self = .automatic
+            return
+        }
+
+        switch styleString {
+        case "automatic":
+            self = .automatic
+        case "alwaysLight":
+            self = .alwaysLight
+        case "alwaysDark":
+            self = .alwaysDark
+        default:
+            self = .automatic
+        }
+    }
+}
+
+extension FinancialConnectionsSheet.Configuration {
+    init(from params: NSDictionary) {
+        let style: FinancialConnectionsSheet.Configuration.UserInterfaceStyle = {
+            guard let styleString = params["style"] as? String else {
+                return .automatic
+            }
+
+            switch styleString {
+            case "automatic":
+                return .automatic
+            case "alwaysLight":
+                return .alwaysLight
+            case "alwaysDark":
+                return .alwaysDark
+            default:
+                return .automatic
+            }
+        }()
+        self.init(style: style)
     }
 }
