@@ -64,6 +64,7 @@ android/keystores/debug.keystore
 lib/
 
 dist/
+server-dist/
 .env
 
 # Docs

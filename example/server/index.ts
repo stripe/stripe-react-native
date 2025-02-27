@@ -31,6 +31,25 @@ app.use(
   }
 );
 
+app.use(
+  (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ): void => {
+    console.log('Request <-', req.path, req.body);
+
+    const originalJson = res.json;
+    // @ts-ignore
+    res.json = (body: any) => {
+      console.log('Response ->', req.path, body);
+      originalJson.call(res, body);
+    };
+
+    next();
+  }
+);
+
 // tslint:disable-next-line: interface-name
 const itemIdToPrice: { [id: string]: number } = {
   'id-1': 1400,
@@ -88,7 +107,7 @@ app.get(
   (req: express.Request, res: express.Response): express.Response<any> => {
     const { publishable_key } = getKeys(req.query.paymentMethod as string);
 
-    return res.send({ publishableKey: publishable_key });
+    return res.json({ publishableKey: publishable_key });
   }
 );
 
@@ -548,79 +567,83 @@ app.post('/payment-sheet', async (req, res) => {
     typescript: true,
   });
 
-  const customers = await stripe.customers.list();
+  try {
+    const customers = await stripe.customers.list();
 
-  // Here, we're getting latest customer only for example purposes.
-  const customer = customers.data[0];
+    // Here, we're getting latest customer only for example purposes.
+    const customer = customers.data[0];
 
-  if (!customer) {
-    return res.send({
-      error: 'You have no customer created',
-    });
-  }
+    if (!customer) {
+      return res.send({
+        error: 'You have no customer created',
+      });
+    }
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 5099,
-    currency: 'usd',
-    customer: customer.id,
-    // Edit the following to support different payment methods in your PaymentSheet
-    // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
-    payment_method_types: [
-      'card',
-      // 'ideal',
-      // 'sepa_debit',
-      // 'sofort',
-      // 'bancontact',
-      // 'p24',
-      // 'giropay',
-      // 'eps',
-      // 'afterpay_clearpay',
-      // 'klarna',
-      // 'us_bank_account',
-    ],
-  });
-
-  if (customer_key_type === 'legacy_ephemeral_key') {
-    const ephemeralKey = await stripe.ephemeralKeys.create(
-      { customer: customer.id },
-      { apiVersion: '2023-10-16' }
-    );
-
-    return res.json({
-      paymentIntent: paymentIntent.client_secret,
-      ephemeralKey: ephemeralKey.secret,
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 5099,
+      currency: 'usd',
       customer: customer.id,
+      // Edit the following to support different payment methods in your PaymentSheet
+      // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
+      payment_method_types: [
+        'card',
+        // 'ideal',
+        // 'sepa_debit',
+        // 'sofort',
+        // 'bancontact',
+        // 'p24',
+        // 'giropay',
+        // 'eps',
+        // 'afterpay_clearpay',
+        // 'klarna',
+        // 'us_bank_account',
+      ],
     });
-  } else {
-    const customerSessionClientSecret = await stripe.customerSessions.create(
-      {
+
+    if (customer_key_type === 'legacy_ephemeral_key') {
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: customer.id },
+        { apiVersion: '2023-10-16' }
+      );
+
+      return res.json({
+        paymentIntent: paymentIntent.client_secret,
+        ephemeralKey: ephemeralKey.secret,
         customer: customer.id,
-        components: {
-          // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
-          // @ts-ignore
-          mobile_payment_element: {
-            enabled: true,
-            features: {
-              payment_method_save: 'disabled',
-              payment_method_remove: 'enabled',
-              payment_method_redisplay: 'enabled',
-              payment_method_allow_redisplay_filters: [
-                'unspecified',
-                'limited',
-                'always',
-              ],
+      });
+    } else {
+      const customerSessionClientSecret = await stripe.customerSessions.create(
+        {
+          customer: customer.id,
+          components: {
+            // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
+            // @ts-ignore
+            mobile_payment_element: {
+              enabled: true,
+              features: {
+                payment_method_save: 'disabled',
+                payment_method_remove: 'enabled',
+                payment_method_redisplay: 'enabled',
+                payment_method_allow_redisplay_filters: [
+                  'unspecified',
+                  'limited',
+                  'always',
+                ],
+              },
             },
           },
         },
-      },
-      { apiVersion: '2023-10-16' }
-    );
+        { apiVersion: '2023-10-16' }
+      );
 
-    return res.json({
-      paymentIntent: paymentIntent.client_secret,
-      customerSessionClientSecret: customerSessionClientSecret.client_secret,
-      customer: customer.id,
-    });
+      return res.json({
+        paymentIntent: paymentIntent.client_secret,
+        customerSessionClientSecret: customerSessionClientSecret.client_secret,
+        customer: customer.id,
+      });
+    }
+  } catch (ex) {
+    return res.send({ error: ex });
   }
 });
 
@@ -648,75 +671,81 @@ app.post('/payment-sheet-subscription', async (req, res) => {
     typescript: true,
   });
 
-  const customers = await stripe.customers.list();
+  try {
+    const customers = await stripe.customers.list();
 
-  // Here, we're getting latest customer only for example purposes.
-  const customer = customers.data[0];
+    // Here, we're getting latest customer only for example purposes.
+    const customer = customers.data[0];
 
-  if (!customer) {
-    return res.send({
-      error: 'You have no customer created',
-    });
-  }
-
-  const subscription = await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
-    trial_period_days: 3,
-  });
-
-  if (typeof subscription.pending_setup_intent === 'string') {
-    const setupIntent = await stripe.setupIntents.retrieve(
-      subscription.pending_setup_intent
-    );
-
-    if (customer_key_type === 'legacy_ephemeral_key') {
-      const ephemeralKey = await stripe.ephemeralKeys.create(
-        { customer: customer.id },
-        { apiVersion: '2023-10-16' }
-      );
-
-      return res.json({
-        setupIntent: setupIntent.client_secret,
-        ephemeralKey: ephemeralKey.secret,
-        customer: customer.id,
-      });
-    } else {
-      const customerSessionClientSecret = await stripe.customerSessions.create(
-        {
-          customer: customer.id,
-          components: {
-            // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
-            // @ts-ignore
-            mobile_payment_element: {
-              enabled: true,
-              features: {
-                payment_method_save: 'enabled',
-                payment_method_remove: 'enabled',
-                payment_method_redisplay: 'enabled',
-                payment_method_allow_redisplay_filters: [
-                  'unspecified',
-                  'limited',
-                  'always',
-                ],
-              },
-            },
-          },
-        },
-        { apiVersion: '2023-10-16' }
-      );
-
-      return res.json({
-        setupIntent: setupIntent.client_secret,
-        customerSessionClientSecret: customerSessionClientSecret.client_secret,
-        customer: customer.id,
+    if (!customer) {
+      return res.send({
+        error: 'You have no customer created',
       });
     }
-  } else {
-    throw new Error(
-      'Expected response type string, but received: ' +
-        typeof subscription.pending_setup_intent
-    );
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
+      trial_period_days: 3,
+    });
+
+    if (typeof subscription.pending_setup_intent === 'string') {
+      const setupIntent = await stripe.setupIntents.retrieve(
+        subscription.pending_setup_intent
+      );
+
+      if (customer_key_type === 'legacy_ephemeral_key') {
+        const ephemeralKey = await stripe.ephemeralKeys.create(
+          { customer: customer.id },
+          { apiVersion: '2023-10-16' }
+        );
+
+        return res.json({
+          setupIntent: setupIntent.client_secret,
+          ephemeralKey: ephemeralKey.secret,
+          customer: customer.id,
+        });
+      } else {
+        const customerSessionClientSecret =
+          await stripe.customerSessions.create(
+            {
+              customer: customer.id,
+              components: {
+                // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
+                // @ts-ignore
+                mobile_payment_element: {
+                  enabled: true,
+                  features: {
+                    payment_method_save: 'enabled',
+                    payment_method_remove: 'enabled',
+                    payment_method_redisplay: 'enabled',
+                    payment_method_allow_redisplay_filters: [
+                      'unspecified',
+                      'limited',
+                      'always',
+                    ],
+                  },
+                },
+              },
+            },
+            { apiVersion: '2023-10-16' }
+          );
+
+        return res.json({
+          setupIntent: setupIntent.client_secret,
+          customerSessionClientSecret:
+            customerSessionClientSecret.client_secret,
+          customer: customer.id,
+        });
+      }
+    } else {
+      throw new Error(
+        'Expected response type string, but received: ' +
+          typeof subscription.pending_setup_intent
+      );
+    }
+  } catch (ex) {
+    return res.send({ error: ex });
   }
 });
 

@@ -124,7 +124,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const onFocusHandler = useCallback(
-      (event) => {
+      (event: CardFieldInput.OnFocusChangeEvent) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
           focusInput(inputRef.current);

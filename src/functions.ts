@@ -121,9 +121,8 @@ export const retrieveSetupIntent = async (
   clientSecret: string
 ): Promise<RetrieveSetupIntentResult> => {
   try {
-    const { setupIntent, error } = await NativeStripeSdk.retrieveSetupIntent(
-      clientSecret
-    );
+    const { setupIntent, error } =
+      await NativeStripeSdk.retrieveSetupIntent(clientSecret);
     if (error) {
       return {
         error,
@@ -271,9 +270,8 @@ export const createTokenForCVCUpdate = async (
   cvc: string
 ): Promise<CreateTokenForCVCUpdateResult> => {
   try {
-    const { tokenId, error } = await NativeStripeSdk.createTokenForCVCUpdate(
-      cvc
-    );
+    const { tokenId, error } =
+      await NativeStripeSdk.createTokenForCVCUpdate(cvc);
     if (error) {
       return {
         error,
@@ -423,9 +421,8 @@ export const presentPaymentSheet = async (
   options: PaymentSheet.PresentOptions = {}
 ): Promise<PresentPaymentSheetResult> => {
   try {
-    const { paymentOption, error } = await NativeStripeSdk.presentPaymentSheet(
-      options
-    );
+    const { paymentOption, error } =
+      await NativeStripeSdk.presentPaymentSheet(options);
     if (error) {
       return {
         error,
@@ -665,9 +662,8 @@ export const isCardInWallet = async (params: {
   cardLastFour: string;
 }): Promise<IsCardInWalletResult> => {
   try {
-    const { isInWallet, token, error } = await NativeStripeSdk.isCardInWallet(
-      params
-    );
+    const { isInWallet, token, error } =
+      await NativeStripeSdk.isCardInWallet(params);
 
     if (error) {
       return {

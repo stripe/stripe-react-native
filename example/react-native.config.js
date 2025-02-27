@@ -1,7 +1,19 @@
+const project = (() => {
+  try {
+    const { configureProjects } = require('react-native-test-app');
+    return configureProjects({
+      android: {
+        sourceDir: 'android',
+      },
+      ios: {
+        sourceDir: 'ios',
+      },
+    });
+  } catch (_) {
+    return undefined;
+  }
+})();
+
 module.exports = {
-  project: {
-    ios: {},
-    android: {},
-  },
-  assets: ['./src/assets/fonts'],
+  ...(project ? { project } : undefined),
 };

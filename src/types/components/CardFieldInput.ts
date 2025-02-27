@@ -51,6 +51,12 @@ export interface Placeholders {
   postalCode?: string;
 }
 
+export type OnFocusChangeEvent = NativeSyntheticEvent<{
+  focusedField: FieldName | null;
+}>;
+
+export type OnCardChangeEvent = NativeSyntheticEvent<Details>;
+
 /**
  * @ignore
  */
@@ -60,10 +66,8 @@ export interface NativeProps {
   postalCodeEnabled?: boolean;
   autofocus?: boolean;
   countryCode: string | null;
-  onCardChange(event: NativeSyntheticEvent<Details>): void;
-  onFocusChange(
-    event: NativeSyntheticEvent<{ focusedField: FieldName | null }>
-  ): void;
+  onCardChange(event: OnCardChangeEvent): void;
+  onFocusChange(event: OnFocusChangeEvent): void;
   cardStyle?: Styles;
   placeholders?: Placeholders;
   disabled?: boolean;
