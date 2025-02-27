@@ -2,6 +2,8 @@ import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
 export type CollectFinancialConnectionsAccountsParams = {
+  /** Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: FinancialConnectionsStyle;
   /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };
@@ -192,4 +194,13 @@ export enum FinancialConnectionsEventErrorCode {
   SessionExpired = 'session_expired',
   /** The hCaptcha challenge failed. */
   FailedBotDetection = 'failed_bot_detection',
+}
+
+export enum FinancialConnectionsStyle {
+  /** (default) Financial Connections will automatically switch between light and dark mode compatible colors based on device settings. */
+  Automatic = 'automatic',
+  /** Financial Connections will always use colors appropriate for light mode UI. */
+  AlwaysLight = 'always_light',
+  /** Financial Connections will always use colors appropriate for dark mode UI. */
+  AlwaysDark = 'always_dark',
 }
