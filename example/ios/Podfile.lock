@@ -1692,6 +1692,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
+  - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1903,6 +1904,6 @@ SPEC CHECKSUMS:
   StripeUICore: 17a4f3adb81ae05ab885e1b353022a430176eab1
   Yoga: 8a90b50af67eaa9fe94fd03e550bfeab06096873
 
-PODFILE CHECKSUM: 9f7f3191041e9d9e1a9eca4287967e9d87440101
+PODFILE CHECKSUM: 75d811f4bce5dd14b94d67c55c0c576f09ebb587
 
 COCOAPODS: 1.16.2

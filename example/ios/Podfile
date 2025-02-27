@@ -6,4 +6,6 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
-use_test_app! :hermes_enabled => true
+use_test_app! :hermes_enabled => true do |target|
+  pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
+end
