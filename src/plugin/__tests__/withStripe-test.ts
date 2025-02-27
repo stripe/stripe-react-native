@@ -83,9 +83,8 @@ describe('setApplePayEntitlement', () => {
 
 describe('setGooglePayMetaData', () => {
   it(`Properly sets GooglePay metadata in AndroidManifest to true, then removes it when set to false`, async () => {
-    let androidManifestJson = await readAndroidManifestAsync(
-      sampleManifestPath
-    );
+    let androidManifestJson =
+      await readAndroidManifestAsync(sampleManifestPath);
     androidManifestJson = setGooglePayMetaData(true, androidManifestJson);
     let mainApplication = getMainApplicationOrThrow(androidManifestJson);
     if (!mainApplication['meta-data']) {

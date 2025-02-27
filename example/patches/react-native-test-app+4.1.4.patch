@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-test-app/android/android-manifest.js b/node_modules/react-native-test-app/android/android-manifest.js
+index d7b3a65..7bb2014 100644
+--- a/node_modules/react-native-test-app/android/android-manifest.js
++++ b/node_modules/react-native-test-app/android/android-manifest.js
+@@ -98,6 +98,17 @@ function generateAndroidManifest(appManifestPath, manifestOutput, fs = nodefs) {
+     }
+   }
+ 
++  // https://developer.android.com/guide/topics/manifest/meta-data-element
++  const metaData = android.metaData;
++  if (Array.isArray(metaData)) {
++    const names = ["android:name"];
++    const attributes = ["android:value"];
++    const entries = toXML(metaData, names, attributes, attributeNamePrefix);
++    if (entries.length > 0) {
++      manifest.application["meta-data"] = entries;
++    }
++  }
++
+   const builder = new XMLBuilder(xmlOptions);
+   fs.mkdirSync(path.dirname(manifestOutput), { recursive: true, mode: 0o755 });
+   fs.writeFileSync(manifestOutput, builder.build(xml));

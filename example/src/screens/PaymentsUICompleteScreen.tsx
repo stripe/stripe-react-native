@@ -100,6 +100,7 @@ export default function PaymentsUICompleteScreen() {
     async (shippingDetails?: AddressDetails) => {
       const { paymentIntent, customer, ...remainingParams } =
         await fetchPaymentSheetParams(customerKeyType);
+      console.log(paymentIntent);
 
       const clientSecretParams = getClientSecretParams(
         customerKeyType,

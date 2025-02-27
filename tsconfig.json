@@ -8,7 +8,6 @@
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["ES6"],
@@ -28,5 +27,8 @@
       "node",
       "jest"
     ]
-  }
+  },
+  "include": [
+    "src"
+  ]
 }

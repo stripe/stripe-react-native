@@ -58,9 +58,8 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     setLoading(true);
 
     try {
-      const { customer, ...remainingParams } = await fetchPaymentSheetParams(
-        customerKeyType
-      );
+      const { customer, ...remainingParams } =
+        await fetchPaymentSheetParams(customerKeyType);
 
       const clientSecretParams = getClientSecretParams(
         customerKeyType,
