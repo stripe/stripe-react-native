@@ -1592,6 +1592,14 @@ PODS:
     - StripePayments (~> 24.4.0)
     - StripePaymentSheet (~> 24.4.0)
     - StripePaymentsUI (~> 24.4.0)
+  - stripe-react-native/Tests (0.42.0):
+    - React-Core
+    - Stripe (~> 24.4.0)
+    - StripeApplePay (~> 24.4.0)
+    - StripeFinancialConnections (~> 24.4.0)
+    - StripePayments (~> 24.4.0)
+    - StripePaymentSheet (~> 24.4.0)
+    - StripePaymentsUI (~> 24.4.0)
   - StripeApplePay (24.4.1):
     - StripeCore (= 24.4.1)
   - StripeCore (24.4.1)
@@ -1691,6 +1699,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
+  - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1928,7 +1937,7 @@ SPEC CHECKSUMS:
   RNScreens: c11a9eb1e6df43890cd572ba68805b123defe8d1
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: 47046d05bfd12885bb46332bbec6257b616a3672
-  stripe-react-native: 58c3216b9ea445532aef33890f4aa541040f6ed9
+  stripe-react-native: 0209c53b754f129db95d2fb6c8626065a1c03fe6
   StripeApplePay: e2adcc71d7a0a07e9de85e871eacf55ecce546a9
   StripeCore: a2c2f331cf2e105aaadda60416cf405da2d5232b
   StripeFinancialConnections: 466325a1bf3c1a95a1898453098207d5d605ff58
@@ -1938,6 +1947,6 @@ SPEC CHECKSUMS:
   StripeUICore: f11561a53f81e210398b4f1bd75f1e87b101197d
   Yoga: 9b7fb56e7b08cde60e2153344fa6afbd88e5d99f
 
-PODFILE CHECKSUM: 9f7f3191041e9d9e1a9eca4287967e9d87440101
+PODFILE CHECKSUM: 75d811f4bce5dd14b94d67c55c0c576f09ebb587
 
 COCOAPODS: 1.16.2
