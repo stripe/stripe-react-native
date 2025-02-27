@@ -9,7 +9,7 @@ on:
 jobs:
   test-ios:
     name: unit-test-ios
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - name: checkout
         uses: actions/checkout@v4
