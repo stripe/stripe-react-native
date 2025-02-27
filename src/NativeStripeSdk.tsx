@@ -33,6 +33,7 @@ import type {
   CustomerPaymentOption,
   CustomerAdapter,
 } from './types';
+import type { CollectBankAccountTokenParams } from 'src/types/PaymentMethod';
 
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
@@ -94,10 +95,12 @@ type NativeStripeSdkType = {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;
   collectBankAccountToken(
-    clientSecret: string
+    clientSecret: string,
+    params: CollectBankAccountTokenParams
   ): Promise<FinancialConnections.TokenResult>;
   collectFinancialConnectionsAccounts(
-    clientSecret: string
+    clientSecret: string,
+    params: FinancialConnections.CollectFinancialConnectionsAccountsParams
   ): Promise<FinancialConnections.SessionResult>;
   resetPaymentSheetCustomer(): Promise<null>;
   isPlatformPaySupported(params: {
