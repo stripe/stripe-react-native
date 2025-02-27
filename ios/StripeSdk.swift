@@ -742,9 +742,26 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
           }
         }
 
+        let style: STPBankAccountCollectorUserInterfaceStyle = {
+          if let styleString = params["style"] as? String {
+            switch styleString {
+            case "always_dark":
+              return .alwaysDark
+            case "always_light":
+              return .alwaysLight
+            default:
+              return .automatic
+            }
+          } else {
+            return .automatic
+          }
+        }()
+
+
         if (isPaymentIntent) {
             DispatchQueue.main.async {
-                STPBankAccountCollector().collectBankAccountForPayment(
+              STPBankAccountCollector(style: style)
+                .collectBankAccountForPayment(
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
@@ -771,7 +788,8 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             }
         } else {
             DispatchQueue.main.async {
-                STPBankAccountCollector().collectBankAccountForSetup(
+              STPBankAccountCollector(style: style)
+                .collectBankAccountForSetup(
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
@@ -1037,9 +1055,10 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
         resolve(["isInWallet": PushProvisioningUtils.getPassLocation(last4: last4) != nil])
     }
 
-    @objc(collectBankAccountToken:resolver:rejecter:)
+  @objc(collectBankAccountToken:params:resolver:rejecter:)
     func collectBankAccountToken(
         clientSecret: String,
+        params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
@@ -1054,7 +1073,26 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             returnURL = nil
         }
 
+        let configuration: FinancialConnectionsSheet.Configuration = {
+          let style: FinancialConnectionsSheet.Configuration.UserInterfaceStyle = {
+            if let styleString = params["style"] as? String {
+              switch styleString {
+              case "always_dark":
+                return .alwaysDark
+              case "always_light":
+                return .alwaysLight
+              default:
+                return .automatic
+              }
+            } else {
+              return .automatic
+            }
+          }()
+          return FinancialConnectionsSheet.Configuration(style: style)
+        }()
+
         var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
+
 
         if hasEventListeners {
           onEvent = { [weak self] event in
@@ -1063,12 +1101,19 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
           }
         }
 
-        FinancialConnections.presentForToken(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
+        FinancialConnections.presentForToken(
+          withClientSecret: clientSecret,
+          returnURL: returnURL,
+          configuration: configuration,
+          onEvent: onEvent,
+          resolve: resolve
+        )
     }
 
-    @objc(collectFinancialConnectionsAccounts:resolver:rejecter:)
+    @objc(collectFinancialConnectionsAccounts:params:resolver:rejecter:)
     func collectFinancialConnectionsAccounts(
         clientSecret: String,
+        params: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
@@ -1083,6 +1128,24 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
             returnURL = nil
         }
 
+        let configuration: FinancialConnectionsSheet.Configuration = {
+          let style: FinancialConnectionsSheet.Configuration.UserInterfaceStyle = {
+            if let styleString = params["style"] as? String {
+              switch styleString {
+              case "always_dark":
+                return .alwaysDark
+              case "always_light":
+                return .alwaysLight
+              default:
+                return .automatic
+              }
+            } else {
+              return .automatic
+            }
+          }()
+          return FinancialConnectionsSheet.Configuration(style: style)
+        }()
+
         var onEvent: ((FinancialConnectionsEvent) -> Void)? = nil
 
         if hasEventListeners {
@@ -1092,7 +1155,13 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
           }
         }
 
-        FinancialConnections.present(withClientSecret: clientSecret, returnURL: returnURL, onEvent: onEvent, resolve: resolve)
+        FinancialConnections.present(
+          withClientSecret: clientSecret,
+          returnURL: returnURL,
+          configuration: configuration,
+          onEvent: onEvent,
+          resolve: resolve
+        )
     }
 
     @objc(configureOrderTracking:orderIdentifier:webServiceUrl:authenticationToken:resolver:rejecter:)
