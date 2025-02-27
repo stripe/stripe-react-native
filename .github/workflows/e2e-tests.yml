@@ -102,7 +102,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-13
+    runs-on: macos-15
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
