@@ -1,14 +1,13 @@
 package com.reactnativestripesdk.pushprovisioning
 
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.BridgeReactContext
 import org.junit.Assert.*
 import org.junit.Test
 
 class PushProvisioningProxyTest {
-  private val reactApplicationContext = ReactApplicationContext(
-    ApplicationProvider.getApplicationContext<Context>()
+  private val reactApplicationContext = BridgeReactContext(
+    ApplicationProvider.getApplicationContext()
   )
 
   @Test
