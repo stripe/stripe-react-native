@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
@@ -80,7 +80,7 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           arch: x86_64
           target: google_apis
           force-avd-creation: false
