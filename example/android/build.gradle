@@ -37,6 +37,7 @@ allprojects {
                 throw new GradleException("Could not find `react-native`");
             }())
         }
+        maven { url "file:/$rootDir/privateMavenRepository" }
         mavenCentral()
         google()
     }
