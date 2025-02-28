@@ -156,7 +156,7 @@ export default function ACHPaymentScreen() {
             email,
           },
         },
-        style: FinancialConnections.FinancialConnectionsStyle.AlwaysLight,
+        style: 'alwaysLight',
         onEvent: onEvent,
       }
     );
