@@ -14,13 +14,15 @@ class FinancialConnections {
     internal static func present(
         withClientSecret: String,
         returnURL: String? = nil,
+        configuration: FinancialConnectionsSheet.Configuration? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
     ) -> Void {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
               financialConnectionsSessionClientSecret: withClientSecret,
-              returnURL: returnURL
+              returnURL: returnURL,
+              configuration: configuration ?? .init()
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.present(
@@ -41,13 +43,15 @@ class FinancialConnections {
     internal static func presentForToken(
         withClientSecret: String,
         returnURL: String? = nil,
+        configuration: FinancialConnectionsSheet.Configuration? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
     ) -> Void {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
               financialConnectionsSessionClientSecret: withClientSecret,
-              returnURL: returnURL
+              returnURL: returnURL,
+              configuration: configuration ?? .init()
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.presentForToken(
