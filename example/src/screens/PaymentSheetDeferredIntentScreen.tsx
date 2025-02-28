@@ -84,9 +84,8 @@ export default function PaymentSheetDeferredIntentScreen() {
 
   const initialisePaymentSheet = useCallback(
     async (shippingDetails?: AddressDetails) => {
-      const { customer, ...remainingParams } = await fetchPaymentSheetParams(
-        customerKeyType
-      );
+      const { customer, ...remainingParams } =
+        await fetchPaymentSheetParams(customerKeyType);
 
       const clientSecretParams = getClientSecretParams(
         customerKeyType,

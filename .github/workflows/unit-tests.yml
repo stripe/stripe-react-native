@@ -9,7 +9,7 @@ on:
 jobs:
   test-ios:
     name: unit-test-ios
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -34,12 +34,9 @@ jobs:
             ${{ runner.os }}-pods-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
-
-      - name: Install React Native CLI
-        run: npm install react-native-cli
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn bootstrap
@@ -49,8 +46,17 @@ jobs:
 
   test-android:
     name: unit-test-android
-    runs-on: macos-13
+    runs-on: ubuntu-24.04
     steps:
+      # Enable KVM to be able to use hardware accelerated emulators.
+      # https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls /dev/kvm
+
       - name: checkout
         uses: actions/checkout@v4
 
@@ -67,12 +73,9 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
-
-      - name: Install React Native CLI
-        run: npm install react-native-cli
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
@@ -94,7 +97,7 @@ jobs:
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           arch: x86_64
           profile: Galaxy Nexus
           target: google_apis
