@@ -1,4 +1,4 @@
-import { FinancialConnections, SetupIntent } from '@stripe/stripe-react-native';
+import { SetupIntent } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 import {
@@ -138,7 +138,7 @@ export default function ACHSetupScreen() {
             email,
           },
         },
-        style: FinancialConnections.FinancialConnectionsStyle.Automatic,
+        style: 'automatic',
       }
     );
 

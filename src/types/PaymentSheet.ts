@@ -1,4 +1,9 @@
-import type { BillingDetails, AddressDetails, CardBrand } from './Common';
+import type {
+  BillingDetails,
+  AddressDetails,
+  CardBrand,
+  UserInterfaceStyle,
+} from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
   ButtonType,
@@ -23,7 +28,7 @@ export type SetupParamsBase = IntentParams & {
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
   googlePay?: GooglePayParams;
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
-  style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+  style?: UserInterfaceStyle;
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
