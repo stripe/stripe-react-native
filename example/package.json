@@ -12,7 +12,7 @@
     "mkdist": "node -e \"require('node:fs').mkdirSync('dist', { recursive: true, mode: 0o755 })\"",
     "start": "react-native start",
     "build:server": "babel --watch server --out-dir ./server-dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
-    "start:server": "yarn build:server & nodemon ./server-dist/index.js",
+    "start:server": "yarn build:server & nodemon -w server-dist server-dist/index.js",
     "typescript": "tsc --noEmit",
     "postinstall": "patch-package"
   },
