@@ -1527,7 +1527,7 @@ PODS:
     - React-logger (= 0.78.0)
     - React-perflogger (= 0.78.0)
     - React-utils (= 0.78.0)
-  - ReactNativeHost (0.5.3):
+  - ReactNativeHost (0.5.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1549,7 +1549,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - ReactTestApp-DevSupport (4.1.4):
+  - ReactTestApp-DevSupport (4.2.1):
     - React-Core
     - React-jsi
   - ReactTestApp-Resources (1.0.0-dev)
