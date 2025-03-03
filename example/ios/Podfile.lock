@@ -1527,7 +1527,7 @@ PODS:
     - React-logger (= 0.78.0)
     - React-perflogger (= 0.78.0)
     - React-utils (= 0.78.0)
-  - ReactNativeHost (0.5.3):
+  - ReactNativeHost (0.5.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1549,7 +1549,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - ReactTestApp-DevSupport (4.1.4):
+  - ReactTestApp-DevSupport (4.2.1):
     - React-Core
     - React-jsi
   - ReactTestApp-Resources (1.0.0-dev)
@@ -1930,8 +1930,8 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: a1fb08dfdc7ebc387b2e54cfc9decd283ed821d8
   ReactCodegen: 008c319179d681a6a00966edfc67fda68f9fbb2e
   ReactCommon: 0c097b53f03d6bf166edbcd0915da32f3015dd90
-  ReactNativeHost: b6daec6aff5d4b10b47b711137b335bf0f35b9bb
-  ReactTestApp-DevSupport: efb9e949517dbbfded34b1a3acee76934fe81545
+  ReactNativeHost: e147df87506869f1e9d877f133fdb4c67e742eb7
+  ReactTestApp-DevSupport: 881bdd4c9f703cf611e46715b8a5f27b2ff15e5d
   ReactTestApp-Resources: 49fb7249af8203b9c74fd85de8c6f5bbb77a41df
   RNCPicker: 124b4fb5859ba1a3fd53a91e16d1e7a0fc016e59
   RNScreens: c11a9eb1e6df43890cd572ba68805b123defe8d1

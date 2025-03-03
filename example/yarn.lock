@@ -1601,17 +1601,17 @@
     "@rnx-kit/tools-react-native" "^2.0.0"
     "@rnx-kit/tools-workspaces" "^0.2.0"
 
-"@rnx-kit/react-native-host@^0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@rnx-kit/react-native-host/-/react-native-host-0.5.3.tgz#e35daa043e2a8f0cc7c0773e2615bf42f3c7be7a"
-  integrity sha512-k8XLTNnGnlEe2XHbIEVlg++m1/XfIVvnHCT3lATsoDfxAeGLBn/dVrdFivFIhdzlkYpYcDGKV5vujsEN+4GAWw==
+"@rnx-kit/react-native-host@^0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/react-native-host/-/react-native-host-0.5.4.tgz#0134ba6e55fd9f9b74923da37ee09c827af9923f"
+  integrity sha512-O+SFSKBL5873ZWB+7CFG6z8H5EBeYcBlgehBf15t+5Jmn25Wu/gHadxHewJ1gBm0X4a3AZtdby/FkaxHFzeKgg==
 
 "@rnx-kit/tools-node@^3.0.0":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@rnx-kit/tools-node/-/tools-node-3.0.2.tgz#9993e86ee3f06af71662eae75ffdb07b8d7313c5"
   integrity sha512-nz0kq7FxJ89Vh5NLHZjmexl3sdGeoPaPZMSWQhW6g9JzryGVdU+CyLQtQbajtwaDMQB2qH/IqpmOzAxNFr5pgg==
 
-"@rnx-kit/tools-react-native@^2.0.0", "@rnx-kit/tools-react-native@^2.0.2":
+"@rnx-kit/tools-react-native@^2.0.0", "@rnx-kit/tools-react-native@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@rnx-kit/tools-react-native/-/tools-react-native-2.1.0.tgz#ea6301932544a24349fcf722b38d565f6e399abd"
   integrity sha512-F18Pn28Ligw3RyNKzXtSRZudWQ5R3JFywyWwqcUY+UFmjBjhekdIceHM/SXNZOJgkj21RRgXaIJy1gpaJtT0Jw==
@@ -4365,13 +4365,13 @@ react-native-screens@^4.9.1:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-test-app@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/react-native-test-app/-/react-native-test-app-4.2.0.tgz#f56a458266c2387b13b0caaf305d7c7d5af236fd"
-  integrity sha512-h8bD+10kZGM3k96Use59Y0o2B1/I7AaHhPZ2zeZOqEWGx7dLeN7Zxk8QKofNtEr/8YTlDh9PdI5nTWdA0Fpf+A==
+react-native-test-app@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/react-native-test-app/-/react-native-test-app-4.2.1.tgz#de82628d9ad34302d42507d23ac59c5aa4f461d6"
+  integrity sha512-GlSF1ec8ZcWSsKplT5c2HQJ9MK80yIgl8Z/EazDzyDkf2Hvgv/VQmRRUk/91qnSNaDWqddUXokk0CK2ukcXbRQ==
   dependencies:
-    "@rnx-kit/react-native-host" "^0.5.3"
-    "@rnx-kit/tools-react-native" "^2.0.2"
+    "@rnx-kit/react-native-host" "^0.5.4"
+    "@rnx-kit/tools-react-native" "^2.1.0"
     ajv "^8.0.0"
     cliui "^8.0.0"
     fast-xml-parser "^4.0.0"
