@@ -8,7 +8,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import com.facebook.react.uimanager.ThemedReactContext
 
-class StripeContainerView(private val context: ThemedReactContext) : FrameLayout(context) {
+class StripeContainerView(
+  private val context: ThemedReactContext,
+) : FrameLayout(context) {
   private var keyboardShouldPersistTapsValue: Boolean = true
 
   init {
