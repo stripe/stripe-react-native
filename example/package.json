@@ -45,7 +45,7 @@
     "express": "^4.21.2",
     "nodemon": "^3.1.9",
     "patch-package": "^8.0.0",
-    "react-native-test-app": "^4.1.4",
+    "react-native-test-app": "^4.2.0",
     "react-test-renderer": "19.0.0",
     "stripe": "^14.18.0",
     "typescript": "5.7.3"
