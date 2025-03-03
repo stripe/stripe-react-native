@@ -1,0 +1,46 @@
+buildscript {
+  // Buildscript is evaluated before everything else so we can't use getExtOrDefault
+  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeSdk_kotlinVersion']
+
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:7.3.1'
+    // noinspection DifferentKotlinGradleVersion
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+def getExtOrDefault(name, defaultValue) {
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : defaultValue
+}
+
+android {
+  namespace "com.stripe.rnt"
+
+  compileSdkVersion getExtOrDefault('compileSdkVersion', 30)
+
+  defaultConfig {
+    minSdkVersion getExtOrDefault('minSdkVersion', 16)
+    targetSdkVersion getExtOrDefault('targetSdkVersion', 28)
+    versionCode 1
+    versionName "1.0"
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+dependencies {
+  implementation 'com.facebook.react:react-native:+'
+  implementation 'com.stripe:stripe-android-issuing-push-provisioning:1.1.0'
+  implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.0'
+}

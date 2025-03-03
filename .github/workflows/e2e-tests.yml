@@ -9,7 +9,7 @@ on:
 jobs:
   test-android:
     name: e2e-android-test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     steps:
@@ -24,6 +24,8 @@ jobs:
           docker-images: false # Takes 16s, enable if needed in the future
           large-packages: false # includes google-cloud-sdk and it's slow
 
+      # Enable KVM to be able to use hardware accelerated emulators.
+      # https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
       - name: Enable KVM group perms
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -47,9 +49,9 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install React Native CLI
         run: npm install react-native-cli
@@ -80,7 +82,7 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -90,7 +92,7 @@ jobs:
             # Wait for system to settle
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             # Retry once if necessary
-            yarn run-example-android || (sleep 60 && yarn run-example-android)
+            yarn run-example-android:release || (sleep 60 && yarn run-example-android:release)
             yarn test:e2e:android
 
       - name: Upload test artifacts
@@ -102,7 +104,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-13
+    runs-on: macos-15
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
@@ -130,9 +132,9 @@ jobs:
             ${{ runner.os }}-pods-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install React Native CLI
         run: npm install react-native-cli
@@ -151,7 +153,7 @@ jobs:
 
       - name: Build iOS App
         run: |
-          yarn run-example-ios
+          yarn run-example-ios:release
 
       - name: Run tests
         run: |

@@ -4,7 +4,7 @@ import { useFinancialConnectionsSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import type { FinancialConnectionsEvent } from 'src/types/FinancialConnections';
+import type { FinancialConnectionsEvent } from '@stripe/stripe-react-native/src/types/FinancialConnections';
 
 export default function CollectBankAccountScreen() {
   const [clientSecret, setClientSecret] = React.useState('');

@@ -7,6 +7,7 @@ import { fetchPublishableKey } from '../helpers';
 interface Props {
   paymentMethod?: string;
   onInit?(): void;
+  children?: React.ReactNode;
 }
 
 const PaymentScreen: React.FC<Props> = ({
@@ -23,7 +24,7 @@ const PaymentScreen: React.FC<Props> = ({
         await initStripe({
           publishableKey,
           merchantIdentifier: 'merchant.com.stripe.react.native',
-          urlScheme: 'stripe-example',
+          urlScheme: 'com.stripe.react.native',
           setReturnUrlSchemeOnAndroid: true,
         });
         setLoading(false);
