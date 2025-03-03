@@ -10,7 +10,7 @@ internal class CardFormCompleteEvent(
   private val cardDetails: MutableMap<String, Any>?,
   private val complete: Boolean,
   private val dangerouslyGetFullCardDetails: Boolean,
-) : Event<CardChangedEvent>(surfaceId, viewTag) {
+) : Event<CardChangeEvent>(surfaceId, viewTag) {
   override fun getEventName() = EVENT_NAME
 
   override fun getEventData(): WritableMap? {

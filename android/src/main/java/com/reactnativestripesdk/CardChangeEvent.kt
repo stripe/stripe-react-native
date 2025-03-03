@@ -4,14 +4,14 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 
-internal class CardChangedEvent(
+internal class CardChangeEvent(
   surfaceId: Int,
   viewTag: Int,
   private val cardDetails: MutableMap<String, Any?>,
   private val postalCodeEnabled: Boolean,
   private val complete: Boolean,
   private val dangerouslyGetFullCardDetails: Boolean,
-) : Event<CardChangedEvent>(surfaceId, viewTag) {
+) : Event<CardChangeEvent>(surfaceId, viewTag) {
   override fun getEventName(): String = EVENT_NAME
 
   override fun getEventData(): WritableMap? {

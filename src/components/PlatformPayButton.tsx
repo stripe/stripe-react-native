@@ -15,8 +15,8 @@ import {
   ShippingMethod,
   ShippingContact,
 } from '../types/PlatformPay';
-import GooglePayButtonNative from './GooglePayButtonNative';
 import ApplePayButtonNative from './ApplePayButtonNative';
+import NativeGooglePayButton from '../specs/NativeGooglePayButton';
 
 /**
  *  PlatformPayButton Component Props
@@ -162,7 +162,7 @@ export function PlatformPayButton({
           {...props}
         />
       ) : (
-        <GooglePayButtonNative
+        <NativeGooglePayButton
           type={type}
           appearance={appearance}
           borderRadius={borderRadius}
