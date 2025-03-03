@@ -33,7 +33,6 @@ import type {
   CustomerPaymentOption,
   CustomerAdapter,
 } from './types';
-import type { CollectBankAccountTokenParams } from 'src/types/PaymentMethod';
 
 type NativeStripeSdkType = {
   initialise(params: InitialiseParams): Promise<void>;
@@ -96,7 +95,7 @@ type NativeStripeSdkType = {
   }): Promise<IsCardInWalletResult>;
   collectBankAccountToken(
     clientSecret: string,
-    params: CollectBankAccountTokenParams
+    params: PaymentMethod.CollectBankAccountTokenParams
   ): Promise<FinancialConnections.TokenResult>;
   collectFinancialConnectionsAccounts(
     clientSecret: string,
