@@ -2,22 +2,21 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.common.MapBuilder
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
+@ReactModule(name = CardFieldViewManager.REACT_CLASS)
 class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
-  override fun getName() = "CardField"
+  override fun getName() = REACT_CLASS
 
   private var reactContextRef: ThemedReactContext? = null
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
-    MapBuilder.of(
-      CardFocusEvent.EVENT_NAME,
-      MapBuilder.of("registrationName", "onFocusChange"),
-      CardChangedEvent.EVENT_NAME,
-      MapBuilder.of("registrationName", "onCardChange"),
+  override fun getExportedCustomDirectEventTypeConstants() =
+    mutableMapOf(
+      CardFocusEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFocusChange"),
+      CardChangedEvent.EVENT_NAME to mutableMapOf("registrationName" to "onCardChange"),
     )
 
   override fun receiveCommand(
@@ -106,7 +105,8 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {
-    val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
+    val stripeSdkModule: StripeSdkModule? =
+      reactContext.getNativeModule(StripeSdkModule::class.java)
     val view = CardFieldView(reactContext)
 
     reactContextRef = reactContext
@@ -118,8 +118,13 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
   override fun onDropViewInstance(view: CardFieldView) {
     super.onDropViewInstance(view)
 
-    val stripeSdkModule: StripeSdkModule? = reactContextRef?.getNativeModule(StripeSdkModule::class.java)
+    val stripeSdkModule: StripeSdkModule? =
+      reactContextRef?.getNativeModule(StripeSdkModule::class.java)
     stripeSdkModule?.cardFieldView = null
     reactContextRef = null
+  }
+
+  companion object {
+    const val REACT_CLASS = "CardField"
   }
 }

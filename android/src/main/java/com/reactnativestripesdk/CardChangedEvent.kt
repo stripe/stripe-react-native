@@ -3,22 +3,18 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardChangedEvent constructor(
+internal class CardChangedEvent(
+  surfaceId: Int,
   viewTag: Int,
   private val cardDetails: MutableMap<String, Any?>,
   private val postalCodeEnabled: Boolean,
   private val complete: Boolean,
   private val dangerouslyGetFullCardDetails: Boolean,
-) : Event<CardChangedEvent>(viewTag) {
+) : Event<CardChangedEvent>(surfaceId, viewTag) {
   override fun getEventName(): String = EVENT_NAME
 
-  override fun dispatch(rctEventEmitter: RCTEventEmitter) {
-    rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())
-  }
-
-  private fun serializeEventData(): WritableMap {
+  override fun getEventData(): WritableMap? {
     val eventData = Arguments.createMap()
     eventData.putString("brand", cardDetails["brand"]?.toString())
     eventData.putString("last4", cardDetails["last4"]?.toString())
@@ -53,6 +49,6 @@ internal class CardChangedEvent constructor(
   }
 
   companion object {
-    const val EVENT_NAME = "onCardChange"
+    const val EVENT_NAME = "topCardChange"
   }
 }

@@ -13,8 +13,7 @@ import androidx.core.os.LocaleListCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -36,8 +35,9 @@ import com.stripe.android.view.CardInputWidget
 import com.stripe.android.view.CardValidCallback
 import com.stripe.android.view.StripeEditText
 
+@SuppressLint("ViewConstructor")
 class CardFieldView(
-  context: ThemedReactContext,
+  private val context: ThemedReactContext,
 ) : FrameLayout(context) {
   private var mCardWidget: CardInputWidget = CardInputWidget(context)
   private val cardInputWidgetBinding = StripeCardInputWidgetBinding.bind(mCardWidget)
@@ -54,8 +54,6 @@ class CardFieldView(
     )
   var cardParams: PaymentMethodCreateParams.Card? = null
   var cardAddress: Address? = null
-  private var mEventDispatcher: EventDispatcher? =
-    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   private var isCardValid = false
@@ -99,9 +97,9 @@ class CardFieldView(
   }
 
   private fun onChangeFocus() {
-    mEventDispatcher?.dispatchEvent(
-      CardFocusEvent(id, currentFocusedField),
-    )
+    UIManagerHelper
+      .getEventDispatcherForReactTag(context, id)
+      ?.dispatchEvent(CardFocusEvent(context.surfaceId, id, currentFocusedField))
   }
 
   fun setCardStyle(value: ReadableMap) {
@@ -294,15 +292,18 @@ class CardFieldView(
   }
 
   private fun sendCardDetailsEvent() {
-    mEventDispatcher?.dispatchEvent(
-      CardChangedEvent(
-        id,
-        cardDetails,
-        mCardWidget.postalCodeEnabled,
-        isCardValid,
-        dangerouslyGetFullCardDetails,
-      ),
-    )
+    UIManagerHelper
+      .getEventDispatcherForReactTag(context, id)
+      ?.dispatchEvent(
+        CardChangedEvent(
+          context.surfaceId,
+          id,
+          cardDetails,
+          mCardWidget.postalCodeEnabled,
+          isCardValid,
+          dangerouslyGetFullCardDetails,
+        ),
+      )
   }
 
   private fun setListeners() {
@@ -479,6 +480,7 @@ class CardFieldView(
     )
   }
 
+  @SuppressLint("RestrictedApi")
   private fun setPostalCodeFilter(countryCode: CountryCode) {
     cardInputWidgetBinding.postalCodeEditText.filters =
       arrayOf(
