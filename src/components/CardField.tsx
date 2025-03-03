@@ -9,10 +9,7 @@ import React, {
 import {
   AccessibilityProps,
   NativeSyntheticEvent,
-  requireNativeComponent,
-  UIManager,
   StyleProp,
-  findNodeHandle,
   ViewStyle,
 } from 'react-native';
 import {
@@ -21,9 +18,10 @@ import {
   registerInput,
   unregisterInput,
 } from '../helpers';
-
-const CardFieldNative =
-  requireNativeComponent<CardFieldInput.NativeProps>('CardField');
+import NativeCardField, {
+  Commands,
+  FocusChangeEvent,
+} from '../specs/NativeCardField';
 
 /**
  *  Card Field Component Props
@@ -83,8 +81,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       onBlur,
       cardStyle,
       placeholders,
+      autofocus,
       postalCodeEnabled,
-      countryCode,
+      disabled,
+      dangerouslyGetFullCardDetails,
       ...props
     },
     ref
@@ -124,7 +124,7 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const onFocusHandler = useCallback(
-      (event: CardFieldInput.OnFocusChangeEvent) => {
+      (event: NativeSyntheticEvent<FocusChangeEvent>) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
           focusInput(inputRef.current);
@@ -137,27 +137,15 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const focus = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'focus' as any,
-        []
-      );
+      Commands.focus(inputRef.current);
     };
 
     const blur = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'blur' as any,
-        []
-      );
+      Commands.blur(inputRef.current);
     };
 
     const clear = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'clear' as any,
-        []
-      );
+      Commands.clear(inputRef.current);
     };
 
     useImperativeHandle(ref, () => ({
@@ -181,12 +169,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     }, [inputRef]);
 
     return (
-      <CardFieldNative
+      <NativeCardField
         ref={inputRef}
         onCardChange={onCardChangeHandler}
         onFocusChange={onFocusHandler}
-        postalCodeEnabled={postalCodeEnabled ?? true}
-        countryCode={countryCode ?? null}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           borderColor: cardStyle?.borderColor,
@@ -205,6 +191,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
           cvc: placeholders?.cvc,
           postalCode: placeholders?.postalCode,
         }}
+        autofocus={autofocus ?? false}
+        postalCodeEnabled={postalCodeEnabled ?? true}
+        disabled={disabled ?? false}
+        dangerouslyGetFullCardDetails={dangerouslyGetFullCardDetails ?? false}
         {...props}
       />
     );
