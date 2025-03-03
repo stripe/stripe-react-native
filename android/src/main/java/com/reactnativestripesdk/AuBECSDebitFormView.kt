@@ -17,9 +17,12 @@ import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.BecsDebitWidget
 import com.stripe.android.view.StripeEditText
 
-class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout(context) {
+class AuBECSDebitFormView(
+  private val context: ThemedReactContext,
+) : FrameLayout(context) {
   private lateinit var becsDebitWidget: BecsDebitWidget
-  private var mEventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+  private var mEventDispatcher: EventDispatcher? =
+    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var formStyle: ReadableMap? = null
 
   fun setCompanyName(name: String?) {
@@ -73,50 +76,44 @@ class AuBECSDebitFormView(private val context: ThemedReactContext) : FrameLayout
       (binding.nameEditText).textSize = it.toFloat()
     }
 
-    becsDebitWidget.background = MaterialShapeDrawable(
-      ShapeAppearanceModel()
-        .toBuilder()
-        .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
-        .build()
-    ).also { shape ->
-      shape.strokeWidth = 0.0f
-      shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
-      shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
-      borderWidth?.let {
-        shape.strokeWidth = (it * 2).toFloat()
+    becsDebitWidget.background =
+      MaterialShapeDrawable(
+        ShapeAppearanceModel()
+          .toBuilder()
+          .setAllCorners(CornerFamily.ROUNDED, (borderRadius * 2).toFloat())
+          .build(),
+      ).also { shape ->
+        shape.strokeWidth = 0.0f
+        shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
+        shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+        borderWidth?.let { shape.strokeWidth = (it * 2).toFloat() }
+        borderColor?.let { shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it)) }
+        backgroundColor?.let {
+          shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
+        }
       }
-      borderColor?.let {
-        shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
-      }
-      backgroundColor?.let {
-        shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
-      }
-    }
   }
-
 
   fun onFormChanged(params: PaymentMethodCreateParams) {
     val billingDetails = params.toParamMap()["billing_details"] as HashMap<*, *>
     val auBecsDebit = params.toParamMap()["au_becs_debit"] as HashMap<*, *>
 
-    val formDetails: MutableMap<String, Any> = mutableMapOf(
-      "accountNumber" to auBecsDebit["account_number"] as String,
-      "bsbNumber" to auBecsDebit["bsb_number"] as String,
-      "name" to billingDetails["name"] as String,
-      "email" to billingDetails["email"] as String
-    )
+    val formDetails: MutableMap<String, Any> =
+      mutableMapOf(
+        "accountNumber" to auBecsDebit["account_number"] as String,
+        "bsbNumber" to auBecsDebit["bsb_number"] as String,
+        "name" to billingDetails["name"] as String,
+        "email" to billingDetails["email"] as String,
+      )
 
-    mEventDispatcher?.dispatchEvent(
-      FormCompleteEvent(id, formDetails))
+    mEventDispatcher?.dispatchEvent(FormCompleteEvent(id, formDetails))
   }
 
   private fun setListeners() {
     becsDebitWidget.validParamsCallback =
       object : BecsDebitWidget.ValidParamsCallback {
         override fun onInputChanged(isValid: Boolean) {
-          becsDebitWidget.params?.let { params ->
-            onFormChanged(params)
-          }
+          becsDebitWidget.params?.let { params -> onFormChanged(params) }
         }
       }
   }

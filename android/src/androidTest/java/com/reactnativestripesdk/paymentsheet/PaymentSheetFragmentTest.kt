@@ -8,49 +8,45 @@ import org.junit.Assert
 import org.junit.Test
 
 class PaymentSheetFragmentTest {
-
   @Test
   fun buildGooglePayConfig() {
-    val config = PaymentSheetFragment.buildGooglePayConfig(
-      bundleOf(
-        "merchantCountryCode" to "US",
-        "currencyCode" to "USD",
-        "testEnv" to true,
-        "buttonType" to 4
+    val config =
+      PaymentSheetFragment.buildGooglePayConfig(
+        bundleOf(
+          "merchantCountryCode" to "US",
+          "currencyCode" to "USD",
+          "testEnv" to true,
+          "buttonType" to 4,
+        ),
       )
-    )
     Assert.assertEquals(
       config,
       PaymentSheet.GooglePayConfiguration(
         environment = PaymentSheet.GooglePayConfiguration.Environment.Test,
         countryCode = "US",
         currencyCode = "USD",
-        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Donate
-      )
+        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Donate,
+      ),
     )
   }
 
   @Test
   fun buildGooglePayConfig_returnsNull() {
-    val config = PaymentSheetFragment.buildGooglePayConfig(
-      null
-    )
+    val config = PaymentSheetFragment.buildGooglePayConfig(null)
     Assert.assertNull(config)
   }
 
   @Test
   fun buildGooglePayConfig_defaultsToCorrectValues() {
-    val config = PaymentSheetFragment.buildGooglePayConfig(
-      Bundle.EMPTY
-    )
+    val config = PaymentSheetFragment.buildGooglePayConfig(Bundle.EMPTY)
     Assert.assertEquals(
       config,
       PaymentSheet.GooglePayConfiguration(
         environment = PaymentSheet.GooglePayConfiguration.Environment.Production,
         countryCode = "",
         currencyCode = "",
-        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Pay
-      )
+        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Pay,
+      ),
     )
   }
 }

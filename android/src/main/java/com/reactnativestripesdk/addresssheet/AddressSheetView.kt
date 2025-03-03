@@ -3,7 +3,6 @@ package com.reactnativestripesdk.addresssheet
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -18,10 +17,12 @@ import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
-import com.stripe.android.paymentsheet.addresselement.AddressLauncherResult
 
-class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(context) {
-  private var eventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+class AddressSheetView(
+  private val context: ThemedReactContext,
+) : FrameLayout(context) {
+  private var eventDispatcher: EventDispatcher? =
+    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var isVisible = false
   private var appearanceParams: ReadableMap? = null
   private var defaultAddress: AddressDetails? = null
@@ -34,13 +35,13 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
 
   private fun onSubmit(params: WritableMap) {
     eventDispatcher?.dispatchEvent(
-      AddressSheetEvent(id, AddressSheetEvent.EventType.OnSubmit, params)
+      AddressSheetEvent(id, AddressSheetEvent.EventType.OnSubmit, params),
     )
   }
 
   private fun onError(params: WritableMap?) {
     eventDispatcher?.dispatchEvent(
-      AddressSheetEvent(id, AddressSheetEvent.EventType.OnError, params)
+      AddressSheetEvent(id, AddressSheetEvent.EventType.OnError, params),
     )
   }
 
@@ -48,18 +49,22 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
     if (newVisibility && !isVisible) {
       launchAddressSheet()
     } else if (!newVisibility && isVisible) {
-      Log.w("StripeReactNative", "Programmatically dismissing the Address Sheet is not supported on Android.")
+      Log.w(
+        "StripeReactNative",
+        "Programmatically dismissing the Address Sheet is not supported on Android.",
+      )
     }
     isVisible = newVisibility
   }
 
   private fun launchAddressSheet() {
-    val appearance = try {
-      buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
-    } catch (error: PaymentSheetAppearanceException) {
-      onError(createError(ErrorType.Failed.toString(), error))
-      return
-    }
+    val appearance =
+      try {
+        buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
+      } catch (error: PaymentSheetAppearanceException) {
+        onError(createError(ErrorType.Failed.toString(), error))
+        return
+      }
     AddressLauncherFragment().presentAddressSheet(
       context,
       appearance,
@@ -69,7 +74,7 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
       sheetTitle,
       googlePlacesApiKey,
       autocompleteCountries,
-      additionalFields
+      additionalFields,
     ) { error, address ->
       if (address != null) {
         onSubmit(buildResult(address))
@@ -113,18 +118,15 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
   }
 
   companion object {
-    internal fun buildAddressDetails(bundle: Bundle): AddressDetails {
-      return AddressDetails(
+    internal fun buildAddressDetails(bundle: Bundle): AddressDetails =
+      AddressDetails(
         name = bundle.getString("name"),
         address = buildAddress(bundle.getBundle("address")),
         phoneNumber = bundle.getString("phone"),
         isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
       )
-    }
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails {
-      return buildAddressDetails(toBundleObject(map))
-    }
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
 
     internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
       if (bundle == null) {
@@ -136,25 +138,24 @@ class AddressSheetView(private val context: ThemedReactContext) : FrameLayout(co
         line1 = bundle.getString("line1"),
         line2 = bundle.getString("line2"),
         state = bundle.getString("state"),
-        postalCode = bundle.getString("postalCode")
+        postalCode = bundle.getString("postalCode"),
       )
     }
 
-    internal fun getFieldConfiguration(key: String?): AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration {
-      return when (key) {
+    internal fun getFieldConfiguration(key: String?): AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration =
+      when (key) {
         "hidden" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
         "optional" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.OPTIONAL
         "required" -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED
         else -> AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
       }
-    }
 
     internal fun buildAdditionalFieldsConfiguration(params: ReadableMap): AddressLauncher.AdditionalFieldsConfiguration {
       val phoneConfiguration = getFieldConfiguration(params.getString("phoneNumber"))
 
       return AddressLauncher.AdditionalFieldsConfiguration(
         phone = phoneConfiguration,
-        checkboxLabel = params.getString("checkboxLabel")
+        checkboxLabel = params.getString("checkboxLabel"),
       )
     }
 

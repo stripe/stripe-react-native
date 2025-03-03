@@ -9,22 +9,27 @@ import com.facebook.react.uimanager.annotations.ReactProp
 class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
   override fun getName() = "AuBECSDebitForm"
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
-    return MapBuilder.of(
-      FormCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCompleteAction"))
-  }
+  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+    MapBuilder.of(
+      FormCompleteEvent.EVENT_NAME,
+      MapBuilder.of("registrationName", "onCompleteAction"),
+    )
 
   @ReactProp(name = "companyName")
-  fun setCompanyName(view: AuBECSDebitFormView, name: String?) {
+  fun setCompanyName(
+    view: AuBECSDebitFormView,
+    name: String?,
+  ) {
     view.setCompanyName(name)
   }
 
   @ReactProp(name = "formStyle")
-  fun setFormStyle(view: AuBECSDebitFormView, style: ReadableMap) {
+  fun setFormStyle(
+    view: AuBECSDebitFormView,
+    style: ReadableMap,
+  ) {
     view.setFormStyle(style)
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView {
-    return AuBECSDebitFormView(reactContext)
-  }
+  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView = AuBECSDebitFormView(reactContext)
 }

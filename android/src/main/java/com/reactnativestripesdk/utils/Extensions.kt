@@ -32,6 +32,7 @@ fun Fragment.removeFragment(context: ReactApplicationContext) {
   }
 }
 
-fun ReadableMap.getBooleanOr(key: String, default: Boolean): Boolean {
-  return if (this.hasKey(key)) this.getBoolean(key) else default
-}
+fun ReadableMap.getBooleanOr(
+  key: String,
+  default: Boolean,
+): Boolean = if (this.hasKey(key)) this.getBoolean(key) else default
