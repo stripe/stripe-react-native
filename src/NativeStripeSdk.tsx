@@ -94,10 +94,12 @@ type NativeStripeSdkType = {
     cardLastFour: string;
   }): Promise<IsCardInWalletResult>;
   collectBankAccountToken(
-    clientSecret: string
+    clientSecret: string,
+    params: PaymentMethod.CollectBankAccountTokenParams
   ): Promise<FinancialConnections.TokenResult>;
   collectFinancialConnectionsAccounts(
-    clientSecret: string
+    clientSecret: string,
+    params: FinancialConnections.CollectFinancialConnectionsAccountsParams
   ): Promise<FinancialConnections.SessionResult>;
   resetPaymentSheetCustomer(): Promise<null>;
   isPlatformPaySupported(params: {
