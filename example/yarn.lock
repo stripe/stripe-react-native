@@ -4365,10 +4365,10 @@ react-native-screens@^4.9.1:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-test-app@^4.1.4:
-  version "4.1.4"
-  resolved "https://registry.yarnpkg.com/react-native-test-app/-/react-native-test-app-4.1.4.tgz#093543af08e3608de623e93e40323b550afff8aa"
-  integrity sha512-gqwfKOFCE4pOOLYX6gYe3zf/3hPvTRSF4zS+8guE5x6d3rnto50uOl4ftRkpDi8J41cYszpzFv9pi+UWEahfBw==
+react-native-test-app@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-test-app/-/react-native-test-app-4.2.0.tgz#f56a458266c2387b13b0caaf305d7c7d5af236fd"
+  integrity sha512-h8bD+10kZGM3k96Use59Y0o2B1/I7AaHhPZ2zeZOqEWGx7dLeN7Zxk8QKofNtEr/8YTlDh9PdI5nTWdA0Fpf+A==
   dependencies:
     "@rnx-kit/react-native-host" "^0.5.3"
     "@rnx-kit/tools-react-native" "^2.0.2"
