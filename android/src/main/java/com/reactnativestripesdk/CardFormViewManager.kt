@@ -1,86 +1,82 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.CardFormManagerDelegate
+import com.facebook.react.viewmanagers.CardFormManagerInterface
+import com.reactnativestripesdk.utils.asMapOrNull
 
 @ReactModule(name = CardFormViewManager.REACT_CLASS)
-class CardFormViewManager : SimpleViewManager<CardFormView>() {
+class CardFormViewManager :
+  SimpleViewManager<CardFormView>(),
+  CardFormManagerInterface<CardFormView> {
+  private val delegate = CardFormManagerDelegate(this)
+  private var reactContextRef: ThemedReactContext? = null
+
   override fun getName() = REACT_CLASS
 
-  private var reactContextRef: ThemedReactContext? = null
+  override fun getDelegate() = delegate
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
-      CardFocusEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFocusChange"),
+      CardFocusChangeEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFocusChange"),
       CardFormCompleteEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFormComplete"),
     )
 
-  override fun receiveCommand(
-    root: CardFormView,
-    commandId: String?,
-    args: ReadableArray?,
-  ) {
-    when (commandId) {
-      "focus" -> root.requestFocusFromJS()
-      "blur" -> root.requestBlurFromJS()
-      "clear" -> root.requestClearFromJS()
-    }
-  }
-
   @ReactProp(name = "dangerouslyGetFullCardDetails")
-  fun setDangerouslyGetFullCardDetails(
+  override fun setDangerouslyGetFullCardDetails(
     view: CardFormView,
-    dangerouslyGetFullCardDetails: Boolean = false,
+    dangerouslyGetFullCardDetails: Boolean,
   ) {
     view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
   }
 
   @ReactProp(name = "postalCodeEnabled")
-  fun setPostalCodeEnabled(
+  override fun setPostalCodeEnabled(
     view: CardFormView,
-    postalCodeEnabled: Boolean = false,
+    postalCodeEnabled: Boolean,
   ) {
     view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
   @ReactProp(name = "placeholders")
-  fun setPlaceHolders(
+  override fun setPlaceholders(
     view: CardFormView,
-    placeholders: ReadableMap,
+    placeholders: Dynamic,
   ) {
-    view.setPlaceHolders(placeholders)
+    view.setPlaceHolders(placeholders.asMapOrNull())
   }
 
   @ReactProp(name = "autofocus")
-  fun setAutofocus(
+  override fun setAutofocus(
     view: CardFormView,
-    autofocus: Boolean = false,
+    autofocus: Boolean,
   ) {
     view.setAutofocus(autofocus)
   }
 
   @ReactProp(name = "cardStyle")
-  fun setCardStyle(
+  override fun setCardStyle(
     view: CardFormView,
-    cardStyle: ReadableMap,
+    cardStyle: Dynamic,
   ) {
-    view.setCardStyle(cardStyle)
+    view.setCardStyle(cardStyle.asMapOrNull())
   }
 
   @ReactProp(name = "defaultValues")
-  fun setDefaultValues(
+  override fun setDefaultValues(
     view: CardFormView,
-    defaults: ReadableMap,
+    defaults: Dynamic,
   ) {
-    view.setDefaultValues(defaults)
+    view.setDefaultValues(defaults.asMapOrNull())
   }
 
   @ReactProp(name = "disabled")
-  fun setDisabled(
+  override fun setDisabled(
     view: CardFormView,
     isDisabled: Boolean,
   ) {
@@ -88,7 +84,7 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
   }
 
   @ReactProp(name = "preferredNetworks")
-  fun setPreferredNetworks(
+  override fun setPreferredNetworks(
     view: CardFormView,
     preferredNetworks: ReadableArray?,
   ) {
@@ -114,6 +110,16 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
       reactContextRef?.getNativeModule(StripeSdkModule::class.java)
     stripeSdkModule?.cardFormView = null
     reactContextRef = null
+  }
+
+  // Native commands
+
+  override fun blur(view: CardFormView) {
+    view.requestBlurFromJS()
+  }
+
+  override fun focus(view: CardFormView) {
+    view.requestFocusFromJS()
   }
 
   companion object {

@@ -19,7 +19,7 @@ import com.stripe.android.model.PaymentMethodOptionsParams
 
 class PaymentMethodCreateParamsFactory(
   private val paymentMethodData: ReadableMap?,
-  private val options: ReadableMap,
+  private val options: ReadableMap?,
   private val cardFieldView: CardFieldView?,
   private val cardFormView: CardFormView?,
 ) {
@@ -267,6 +267,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.USBankAccount ->
           createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
+
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
@@ -304,6 +305,7 @@ class PaymentMethodCreateParamsFactory(
             )
           }
         }
+
         null -> ConfirmPaymentIntentParams.create(clientSecret)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
