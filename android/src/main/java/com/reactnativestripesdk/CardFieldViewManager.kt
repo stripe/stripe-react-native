@@ -1,108 +1,31 @@
 package com.reactnativestripesdk
 
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.CardFieldManagerDelegate
+import com.facebook.react.viewmanagers.CardFieldManagerInterface
+import com.reactnativestripesdk.utils.asMapOrNull
 
 @ReactModule(name = CardFieldViewManager.REACT_CLASS)
-class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
+class CardFieldViewManager :
+  SimpleViewManager<CardFieldView>(),
+  CardFieldManagerInterface<CardFieldView> {
+  private val delegate = CardFieldManagerDelegate(this)
+  private var reactContextRef: ThemedReactContext? = null
+
   override fun getName() = REACT_CLASS
 
-  private var reactContextRef: ThemedReactContext? = null
+  override fun getDelegate() = delegate
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
-      CardFocusEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFocusChange"),
-      CardChangedEvent.EVENT_NAME to mutableMapOf("registrationName" to "onCardChange"),
+      CardFocusChangeEvent.EVENT_NAME to mutableMapOf("registrationName" to "onFocusChange"),
+      CardChangeEvent.EVENT_NAME to mutableMapOf("registrationName" to "onCardChange"),
     )
-
-  override fun receiveCommand(
-    root: CardFieldView,
-    commandId: String?,
-    args: ReadableArray?,
-  ) {
-    when (commandId) {
-      "focus" -> root.requestFocusFromJS()
-      "blur" -> root.requestBlurFromJS()
-      "clear" -> root.requestClearFromJS()
-    }
-  }
-
-  @ReactProp(name = "dangerouslyGetFullCardDetails")
-  fun setDangerouslyGetFullCardDetails(
-    view: CardFieldView,
-    dangerouslyGetFullCardDetails: Boolean = false,
-  ) {
-    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
-  }
-
-  @ReactProp(name = "postalCodeEnabled")
-  fun setPostalCodeEnabled(
-    view: CardFieldView,
-    postalCodeEnabled: Boolean = true,
-  ) {
-    view.setPostalCodeEnabled(postalCodeEnabled)
-  }
-
-  @ReactProp(name = "autofocus")
-  fun setAutofocus(
-    view: CardFieldView,
-    autofocus: Boolean = false,
-  ) {
-    view.setAutofocus(autofocus)
-  }
-
-  @ReactProp(name = "cardStyle")
-  fun setCardStyle(
-    view: CardFieldView,
-    cardStyle: ReadableMap,
-  ) {
-    view.setCardStyle(cardStyle)
-  }
-
-  @ReactProp(name = "countryCode")
-  fun setCountryCode(
-    view: CardFieldView,
-    countryCode: String?,
-  ) {
-    view.setCountryCode(countryCode)
-  }
-
-  @ReactProp(name = "onBehalfOf")
-  fun setOnBehalfOf(
-    view: CardFieldView,
-    onBehalfOf: String?,
-  ) {
-    view.setOnBehalfOf(onBehalfOf)
-  }
-
-  @ReactProp(name = "placeholders")
-  fun setPlaceHolders(
-    view: CardFieldView,
-    placeholders: ReadableMap,
-  ) {
-    view.setPlaceHolders(placeholders)
-  }
-
-  @ReactProp(name = "disabled")
-  fun setDisabled(
-    view: CardFieldView,
-    isDisabled: Boolean,
-  ) {
-    view.setDisabled(isDisabled)
-  }
-
-  @ReactProp(name = "preferredNetworks")
-  fun setPreferredNetworks(
-    view: CardFieldView,
-    preferredNetworks: ReadableArray?,
-  ) {
-    val networks = preferredNetworks?.toArrayList()?.filterIsInstance<Int>()?.let { ArrayList(it) }
-    view.setPreferredNetworks(networks)
-  }
 
   override fun createViewInstance(reactContext: ThemedReactContext): CardFieldView {
     val stripeSdkModule: StripeSdkModule? =
@@ -122,6 +45,93 @@ class CardFieldViewManager : SimpleViewManager<CardFieldView>() {
       reactContextRef?.getNativeModule(StripeSdkModule::class.java)
     stripeSdkModule?.cardFieldView = null
     reactContextRef = null
+  }
+
+  @ReactProp(name = "dangerouslyGetFullCardDetails")
+  override fun setDangerouslyGetFullCardDetails(
+    view: CardFieldView,
+    dangerouslyGetFullCardDetails: Boolean,
+  ) {
+    view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
+  }
+
+  @ReactProp(name = "postalCodeEnabled")
+  override fun setPostalCodeEnabled(
+    view: CardFieldView,
+    postalCodeEnabled: Boolean,
+  ) {
+    view.setPostalCodeEnabled(postalCodeEnabled)
+  }
+
+  @ReactProp(name = "autofocus")
+  override fun setAutofocus(
+    view: CardFieldView,
+    autofocus: Boolean,
+  ) {
+    view.setAutofocus(autofocus)
+  }
+
+  @ReactProp(name = "cardStyle")
+  override fun setCardStyle(
+    view: CardFieldView,
+    cardStyle: Dynamic,
+  ) {
+    view.setCardStyle(cardStyle.asMapOrNull())
+  }
+
+  @ReactProp(name = "countryCode")
+  override fun setCountryCode(
+    view: CardFieldView,
+    countryCode: String?,
+  ) {
+    view.setCountryCode(countryCode)
+  }
+
+  @ReactProp(name = "onBehalfOf")
+  override fun setOnBehalfOf(
+    view: CardFieldView,
+    onBehalfOf: String?,
+  ) {
+    view.setOnBehalfOf(onBehalfOf)
+  }
+
+  @ReactProp(name = "placeholders")
+  override fun setPlaceholders(
+    view: CardFieldView,
+    placeholders: Dynamic,
+  ) {
+    view.setPlaceHolders(placeholders.asMapOrNull())
+  }
+
+  @ReactProp(name = "disabled")
+  override fun setDisabled(
+    view: CardFieldView,
+    isDisabled: Boolean,
+  ) {
+    view.setDisabled(isDisabled)
+  }
+
+  @ReactProp(name = "preferredNetworks")
+  override fun setPreferredNetworks(
+    view: CardFieldView,
+    preferredNetworks: ReadableArray?,
+  ) {
+    val networks = preferredNetworks?.toArrayList()?.filterIsInstance<Int>()?.let { ArrayList(it) }
+    view.setPreferredNetworks(networks)
+  }
+
+  // Native commands
+
+  override fun blur(view: CardFieldView) {
+    view.requestBlurFromJS()
+  }
+
+  override fun focus(view: CardFieldView) {
+    view.requestFocusFromJS()
+  }
+
+  override fun clear(view: CardFieldView) {
+    view.requestClearFromJS()
   }
 
   companion object {

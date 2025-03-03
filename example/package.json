@@ -50,6 +50,11 @@
     "stripe": "^14.18.0",
     "typescript": "5.7.3"
   },
+  "eslintConfig": {
+    "rules": {
+      "react-native/no-inline-styles": "off"
+    }
+  },
   "engines": {
     "node": ">=18"
   }

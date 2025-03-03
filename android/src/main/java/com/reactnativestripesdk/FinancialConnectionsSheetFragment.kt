@@ -44,11 +44,9 @@ class FinancialConnectionsSheetFragment : Fragment() {
     super.onCreate(savedInstanceState)
 
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-    if (stripeSdkModule != null && stripeSdkModule.eventListenerCount > 0) {
-      FinancialConnections.setEventListener { event ->
-        val params = mapFromFinancialConnectionsEvent(event)
-        stripeSdkModule.sendEvent(context, "onFinancialConnectionsEvent", params)
-      }
+    FinancialConnections.setEventListener { event ->
+      val params = mapFromFinancialConnectionsEvent(event)
+      stripeSdkModule?.emitOnFinancialConnectionsEvent(params)
     }
   }
 
@@ -70,6 +68,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
             ::onFinancialConnectionsSheetForTokenResult,
           ).present(configuration = configuration)
       }
+
       Mode.ForSession -> {
         FinancialConnectionsSheet
           .create(this, ::onFinancialConnectionsSheetForDataResult)
@@ -90,9 +89,11 @@ class FinancialConnectionsSheetFragment : Fragment() {
       is FinancialConnectionsSheetForTokenResult.Canceled -> {
         promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
+
       is FinancialConnectionsSheetForTokenResult.Failed -> {
         promise.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
+
       is FinancialConnectionsSheetForTokenResult.Completed -> {
         promise.resolve(createTokenResult(result))
         (context.currentActivity as? FragmentActivity)
@@ -109,9 +110,11 @@ class FinancialConnectionsSheetFragment : Fragment() {
       is FinancialConnectionsSheetResult.Canceled -> {
         promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
+
       is FinancialConnectionsSheetResult.Failed -> {
         promise.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
+
       is FinancialConnectionsSheetResult.Completed -> {
         promise.resolve(
           WritableNativeMap().also {

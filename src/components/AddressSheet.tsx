@@ -1,17 +1,12 @@
 import React from 'react';
-import {
-  AccessibilityProps,
-  requireNativeComponent,
-  NativeSyntheticEvent,
-} from 'react-native';
+import { AccessibilityProps } from 'react-native';
 import type {
   PaymentSheet,
   AddressDetails,
   StripeError,
   AddressSheetError,
 } from '../types';
-
-const AddressSheetNative = requireNativeComponent<any>('AddressSheetView');
+import NativeAddressSheet from '../specs/NativeAddressSheet';
 
 /**
  *  Props
@@ -73,16 +68,10 @@ export type CollectAddressResult = Required<AddressDetails>;
  */
 export function AddressSheet({ onSubmit, onError, ...props }: Props) {
   return (
-    <AddressSheetNative
+    <NativeAddressSheet
       {...props}
-      onSubmitAction={(value: NativeSyntheticEvent<CollectAddressResult>) =>
-        onSubmit(value.nativeEvent)
-      }
-      onErrorAction={(
-        value: NativeSyntheticEvent<{
-          error: StripeError<AddressSheetError>;
-        }>
-      ) => onError(value.nativeEvent.error)}
+      onSubmitAction={(event) => onSubmit(event.nativeEvent.result)}
+      onErrorAction={(event) => onError(event.nativeEvent.error)}
     />
   );
 }

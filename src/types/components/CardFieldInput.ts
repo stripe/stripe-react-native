@@ -3,12 +3,7 @@ import type { CardBrand } from '../Token';
 
 export type FieldName = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
-export enum ValidationState {
-  Valid = 'Valid',
-  Invalid = 'Invalid',
-  Incomplete = 'Incomplete',
-  Unknown = 'Unknown',
-}
+export type ValidationState = 'Valid' | 'Invalid' | 'Incomplete' | 'Unknown';
 
 export interface Details {
   last4: string;
@@ -55,14 +50,13 @@ export type OnFocusChangeEvent = NativeSyntheticEvent<{
   focusedField: FieldName | null;
 }>;
 
-export type OnCardChangeEvent = NativeSyntheticEvent<Details>;
+export type OnCardChangeEvent = NativeSyntheticEvent<{ card: Details }>;
 
 /**
  * @ignore
  */
 export interface NativeProps {
   style?: StyleProp<ViewStyle>;
-  value?: Partial<Details>;
   postalCodeEnabled?: boolean;
   autofocus?: boolean;
   countryCode: string | null;

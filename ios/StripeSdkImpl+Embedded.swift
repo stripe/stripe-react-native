@@ -8,13 +8,13 @@
 import Foundation
 @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 
-@objc(StripeSdk)
-extension StripeSdk {
+@objc(StripeSdkImpl)
+extension StripeSdkImpl {
   
   // MARK: Public API wrappers
   
   @objc(createEmbeddedPaymentElement:configuration:resolver:rejecter:)
-  func createEmbeddedPaymentElement(intentConfig: NSDictionary,
+  public func createEmbeddedPaymentElement(intentConfig: NSDictionary,
                                     configuration: NSDictionary,
                                     resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -44,7 +44,7 @@ extension StripeSdk {
           intentConfiguration: intentConfig,
           configuration: configuration
         )
-        embeddedPaymentElement.delegate = self
+        embeddedPaymentElement.delegate = embeddedInstanceDelegate
         embeddedPaymentElement.presentingViewController = RCTPresentedViewController()
         self.embeddedInstance = embeddedPaymentElement
 
@@ -52,25 +52,22 @@ extension StripeSdk {
         resolve(nil)
 
         // publish initial state
-        embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
-        embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
+        embeddedInstanceDelegate.embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
+        embeddedInstanceDelegate.embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
       } catch {
         // 1) still resolve the promise so JS hook can finish loading
         resolve(nil)
 
         // 2) emit a loading‐failed event with the error message
         let msg = error.localizedDescription
-        self.sendEvent(
-          withName: "embeddedPaymentElementLoadingFailed",
-          body: ["message": msg]
-        )
+        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
       }
     }
     
   }
   
   @objc(confirmEmbeddedPaymentElement:rejecter:)
-  func confirmEmbeddedPaymentElement(resolver resolve: @escaping RCTPromiseResolveBlock,
+  public func confirmEmbeddedPaymentElement(resolver resolve: @escaping RCTPromiseResolveBlock,
                                      rejecter reject: @escaping RCTPromiseRejectBlock) {
     embeddedInstance?.presentingViewController = RCTPresentedViewController()
     embeddedInstance?.confirm { result in
@@ -92,7 +89,7 @@ extension StripeSdk {
   }
   
   @objc(updateEmbeddedPaymentElement:resolver:rejecter:)
-  func updateEmbeddedPaymentElement(
+  public func updateEmbeddedPaymentElement(
     intentConfig: NSDictionary,
     resolver resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
@@ -126,10 +123,7 @@ extension StripeSdk {
       case .canceled:
         resolve(["status": "canceled"])
       case .failed(let error):
-        self.sendEvent(
-          withName: "embeddedPaymentElementLoadingFailed",
-          body: ["message": error.localizedDescription]
-        )
+        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": error.localizedDescription])
         // We don't resolve with an error b/c loading errors are handled via the embeddedPaymentElementLoadingFailed event
         resolve(nil)
       }
@@ -137,7 +131,7 @@ extension StripeSdk {
   }
 
   @objc(clearEmbeddedPaymentOption)
-  func clearEmbeddedPaymentOption() {
+  public func clearEmbeddedPaymentOption() {
     DispatchQueue.main.async {
       self.embeddedInstance?.clearPaymentOption()
     }
@@ -147,27 +141,31 @@ extension StripeSdk {
 
 // MARK: EmbeddedPaymentElementDelegate
 
-extension StripeSdk: EmbeddedPaymentElementDelegate {
+class StripeSdkEmbeddedPaymentElementDelegate: EmbeddedPaymentElementDelegate {
+  weak var sdkImpl: StripeSdkImpl?
+
+  init(sdkImpl: StripeSdkImpl) {
+    self.sdkImpl = sdkImpl
+  }
+
   func embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: StripePaymentSheet.EmbeddedPaymentElement) {
     let newHeight = embeddedPaymentElement.view.systemLayoutSizeFitting(CGSize(width: embeddedPaymentElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-    
-    self.sendEvent(withName: "embeddedPaymentElementDidUpdateHeight",
-                   body: ["height": newHeight])
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementDidUpdateHeight(["height": newHeight])
   }
   
   func embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: EmbeddedPaymentElement) {
     let displayDataDict = embeddedPaymentElement.paymentOption?.toDictionary()
-    self.sendEvent(withName: "embeddedPaymentElementDidUpdatePaymentOption", body: ["paymentOption": displayDataDict])
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementDidUpdatePaymentOption(["paymentOption": displayDataDict as Any])
   }
   
   func embeddedPaymentElementWillPresent(embeddedPaymentElement: EmbeddedPaymentElement) {
-    self.sendEvent(withName: "embeddedPaymentElementWillPresent", body: nil)
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementWillPresent()
   }
 }
 
 // MARK: Config parsing
 
-extension StripeSdk {
+extension StripeSdkImpl {
   @nonobjc
   internal func buildEmbeddedPaymentElementConfiguration(
     params: NSDictionary
@@ -199,7 +197,7 @@ extension StripeSdk {
     }
     
     if let linkParams = params["link"] as? NSDictionary {
-      let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+      let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
       configuration.link = PaymentSheet.LinkConfiguration(display: display)
     }
     
@@ -220,10 +218,10 @@ extension StripeSdk {
     }
     
     if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
-      configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
-      configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
-      configuration.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
-      configuration.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+      configuration.billingDetailsCollectionConfiguration.name = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+      configuration.billingDetailsCollectionConfiguration.phone = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+      configuration.billingDetailsCollectionConfiguration.email = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+      configuration.billingDetailsCollectionConfiguration.address = StripeSdkImpl.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
       configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
     }
     
@@ -303,7 +301,7 @@ extension StripeSdk {
           }
           
           // Send the result back to JS via an event.
-          self.sendEvent(withName: "embeddedPaymentElementFormSheetConfirmComplete", body: resultDict)
+          self.emitter?.emitEmbeddedPaymentElementFormSheetConfirmComplete(resultDict)
         }
       } else if actionType == "continue" {
         configuration.formSheetAction = .continue
@@ -318,7 +316,7 @@ extension StripeSdk {
         configuration.rowSelectionBehavior = .immediateAction { [weak self] in
           // Send an event back to JS to notify that a row has been selected.
           // Replace the event name and body details as needed.
-          self?.sendEvent(withName: "embeddedPaymentElementRowSelectionImmediateAction", body: [:])
+          self?.emitter?.emitEmbeddedPaymentElementRowSelectionImmediateAction()
         }
       }
     }

@@ -8,7 +8,7 @@
 import Foundation
 @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) import StripePaymentSheet
 
-extension StripeSdk {
+extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
             params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
@@ -40,7 +40,7 @@ extension StripeSdk {
 
         if let linkParams = params["link"] as? NSDictionary {
             do {
-              let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+              let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
               configuration.link = PaymentSheet.LinkConfiguration(display: display)
             } catch {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
@@ -64,10 +64,10 @@ extension StripeSdk {
         }
 
         if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
-            configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
-            configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
-            configuration.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
-            configuration.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+            configuration.billingDetailsCollectionConfiguration.name = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+            configuration.billingDetailsCollectionConfiguration.phone = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+            configuration.billingDetailsCollectionConfiguration.email = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+            configuration.billingDetailsCollectionConfiguration.address = StripeSdkImpl.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
             configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
         }
 
@@ -147,7 +147,7 @@ extension StripeSdk {
     ) {
         self.paymentSheetFlowController = nil
 
-        func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
+        func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdkImpl?) {
             switch result {
             case .failure(let error):
                 resolve(Errors.createError(ErrorType.Failed, error as NSError))
@@ -306,15 +306,11 @@ extension StripeSdk {
             mode: mode,
             paymentMethodTypes: paymentMethodTypes,
             confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
-                if (self.hasEventListeners) {
-                    self.paymentSheetIntentCreationCallback = intentCreationCallback
-                    self.sendEvent(withName: "onConfirmHandlerCallback", body: [
-                        "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
-                        "shouldSavePaymentMethod": shouldSavePaymentMethod
-                    ])
-                } else {
-                    RCTMakeAndLogError("Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
-                }
+                self.paymentSheetIntentCreationCallback = intentCreationCallback
+                self.emitter?.emitOnConfirmHandlerCallback([
+                    "paymentMethod": Mappers.mapFromPaymentMethod(paymentMethod) ?? NSNull(),
+                    "shouldSavePaymentMethod": shouldSavePaymentMethod
+                ])
             })
     }
 
@@ -332,12 +328,8 @@ extension StripeSdk {
             return request
         }, authorizationResultHandler: { result, completion in
             if applePayParams.object(forKey: "setOrderTracking") != nil {
-                if (self.hasEventListeners) {
-                    self.orderTrackingHandler = (result, completion)
-                    self.sendEvent(withName: "onOrderTrackingCallback", body: [:])
-                } else {
-                    RCTMakeAndLogError("Order tracking is enabled, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues", nil, nil)
-                }
+                self.orderTrackingHandler = (result, completion)
+                self.emitter?.emitOnOrderTrackingCallback()
             } else {
                 completion(result)
             }

@@ -17,15 +17,12 @@ class EmbeddedPaymentElementView: RCTViewManager {
   }
   
   override func view() -> UIView! {
-    return EmbeddedPaymentElementContainerView(frame: .zero, stripeSdk: bridge.module(forName: "StripeSdk") as! StripeSdk)
+    return EmbeddedPaymentElementContainerView(frame: .zero)
   }
 }
 
 class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
-  private let stripeSdk: StripeSdk
-
-  init(frame: CGRect, stripeSdk: StripeSdk) {
-    self.stripeSdk = stripeSdk
+  override init(frame: CGRect) {
     super.init(frame: frame)
     backgroundColor = .clear
     attachPaymentElementIfAvailable()
@@ -36,7 +33,7 @@ class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
   }
 
   private func attachPaymentElementIfAvailable() {
-    guard let embeddedElement = stripeSdk.embeddedInstance else { return }
+      guard let embeddedElement = StripeSdkImpl.shared.embeddedInstance else { return }
     let paymentElementView = embeddedElement.view
     addSubview(paymentElementView)
     paymentElementView.translatesAutoresizingMaskIntoConstraints = false

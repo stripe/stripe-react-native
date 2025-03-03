@@ -1,6 +1,6 @@
 import { createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
-import NativeStripeSdk from './NativeStripeSdk';
+import NativeStripeSdk from './specs/NativeStripeSdkModule';
 import type {
   PlatformPayError,
   ConfirmPaymentResult,
@@ -32,14 +32,10 @@ import type {
   FinancialConnections,
   PlatformPay,
 } from './types';
-import {
-  Platform,
-  NativeEventEmitter,
-  NativeModules,
-  EmitterSubscription,
-} from 'react-native';
+import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
+import { addListener } from './events';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -353,10 +349,9 @@ export const verifyMicrodepositsForSetup = async (
   }
 };
 
-const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
-let confirmHandlerCallback: EmitterSubscription | null = null;
-let orderTrackingCallbackListener: EmitterSubscription | null = null;
-let financialConnectionsEventListener: EmitterSubscription | null = null;
+let confirmHandlerCallback: EventSubscription | null = null;
+let orderTrackingCallbackListener: EventSubscription | null = null;
+let financialConnectionsEventListener: EventSubscription | null = null;
 
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
@@ -365,15 +360,9 @@ export const initPaymentSheet = async (
   const confirmHandler = params?.intentConfiguration?.confirmHandler;
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
-    confirmHandlerCallback = eventEmitter.addListener(
+    confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
-      ({
-        paymentMethod,
-        shouldSavePaymentMethod,
-      }: {
-        paymentMethod: PaymentMethod.Result;
-        shouldSavePaymentMethod: boolean;
-      }) => {
+      ({ paymentMethod, shouldSavePaymentMethod }) => {
         confirmHandler(
           paymentMethod,
           shouldSavePaymentMethod,
@@ -386,7 +375,7 @@ export const initPaymentSheet = async (
   const orderTrackingCallback = params?.applePay?.setOrderTracking;
   if (orderTrackingCallback) {
     orderTrackingCallbackListener?.remove();
-    orderTrackingCallbackListener = eventEmitter.addListener(
+    orderTrackingCallbackListener = addListener(
       'onOrderTrackingCallback',
       () => {
         orderTrackingCallback(NativeStripeSdk.configureOrderTracking);
@@ -471,7 +460,7 @@ export const collectBankAccountForPayment = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = eventEmitter.addListener(
+    financialConnectionsEventListener = addListener(
       'onFinancialConnectionsEvent',
       params.onEvent
     );
@@ -509,7 +498,7 @@ export const collectBankAccountForSetup = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = eventEmitter.addListener(
+    financialConnectionsEventListener = addListener(
       'onFinancialConnectionsEvent',
       params.onEvent
     );
@@ -554,7 +543,7 @@ export const collectBankAccountToken = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = eventEmitter.addListener(
+    financialConnectionsEventListener = addListener(
       'onFinancialConnectionsEvent',
       params.onEvent
     );
@@ -597,7 +586,7 @@ export const collectFinancialConnectionsAccounts = async (
   financialConnectionsEventListener?.remove();
 
   if (params.onEvent) {
-    financialConnectionsEventListener = eventEmitter.addListener(
+    financialConnectionsEventListener = addListener(
       'onFinancialConnectionsEvent',
       params.onEvent
     );

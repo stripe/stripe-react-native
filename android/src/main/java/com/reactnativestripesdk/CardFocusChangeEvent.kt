@@ -4,11 +4,11 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 
-internal class CardFocusEvent(
+internal class CardFocusChangeEvent(
   surfaceId: Int,
   viewTag: Int,
   private val focusField: String?,
-) : Event<CardFocusEvent>(surfaceId, viewTag) {
+) : Event<CardFocusChangeEvent>(surfaceId, viewTag) {
   override fun getEventName() = EVENT_NAME
 
   override fun getEventData(): WritableMap? {

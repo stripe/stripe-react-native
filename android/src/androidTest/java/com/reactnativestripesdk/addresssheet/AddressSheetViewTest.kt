@@ -178,7 +178,7 @@ class AddressSheetViewTest {
         ),
       )
 
-    val expected =
+    val result =
       WritableNativeMap().also {
         it.putString("name", testName)
         it.putMap(
@@ -194,6 +194,11 @@ class AddressSheetViewTest {
         )
         it.putString("phone", testPhone)
         it.putBoolean("isCheckboxSelected", true)
+      }
+
+    val expected =
+      WritableNativeMap().also {
+        it.putMap("result", result)
       }
 
     Assert.assertEquals(expected, received)

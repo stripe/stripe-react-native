@@ -60,8 +60,8 @@ import {
   updatePlatformPaySheet,
   openPlatformPaySetup,
 } from '../functions';
-import type { CollectBankAccountTokenParams } from 'src/types/PaymentMethod';
-import type { CollectFinancialConnectionsAccountsParams } from 'src/types/FinancialConnections';
+import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
+import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
 
 /**
  * useStripe hook
