@@ -7,10 +7,16 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.wallet.*
-import com.reactnativestripesdk.utils.*
+import com.google.android.gms.wallet.AutoResolveHelper
+import com.google.android.gms.wallet.PaymentData
+import com.google.android.gms.wallet.PaymentDataRequest
+import com.google.android.gms.wallet.Wallet
+import com.google.android.gms.wallet.WalletConstants
+import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
+import com.reactnativestripesdk.utils.mapFromShippingContact
 import com.reactnativestripesdk.utils.mapFromToken
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.GooglePayJsonFactory
@@ -19,60 +25,82 @@ import com.stripe.android.model.GooglePayResult
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.PaymentMethodCreateParams
 import org.json.JSONObject
-import java.util.*
+import java.util.Locale
 
 class GooglePayRequestHelper {
   companion object {
     internal const val LOAD_PAYMENT_DATA_REQUEST_CODE = 414243
 
-    internal fun createPaymentRequest(activity: FragmentActivity, factory: GooglePayJsonFactory, googlePayParams: ReadableMap): Task<PaymentData> {
+    internal fun createPaymentRequest(
+      activity: FragmentActivity,
+      factory: GooglePayJsonFactory,
+      googlePayParams: ReadableMap,
+    ): Task<PaymentData> {
       val transactionInfo = buildTransactionInfo(googlePayParams)
-      val merchantInfo = GooglePayJsonFactory.MerchantInfo(googlePayParams.getString("merchantName").orEmpty())
-      val billingAddressParameters = buildBillingAddressParameters(googlePayParams.getMap("billingAddressConfig"))
-      val shippingAddressParameters = buildShippingAddressParameters(googlePayParams.getMap("shippingAddressConfig"))
+      val merchantInfo =
+        GooglePayJsonFactory.MerchantInfo(googlePayParams.getString("merchantName").orEmpty())
+      val billingAddressParameters =
+        buildBillingAddressParameters(googlePayParams.getMap("billingAddressConfig"))
+      val shippingAddressParameters =
+        buildShippingAddressParameters(googlePayParams.getMap("shippingAddressConfig"))
 
-      val request = factory.createPaymentDataRequest(
-        transactionInfo = transactionInfo,
-        merchantInfo = merchantInfo,
-        billingAddressParameters = billingAddressParameters,
-        shippingAddressParameters = shippingAddressParameters,
-        isEmailRequired = googlePayParams.getBooleanOr("isEmailRequired", false),
-        allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true)
-      )
+      val request =
+        factory.createPaymentDataRequest(
+          transactionInfo = transactionInfo,
+          merchantInfo = merchantInfo,
+          billingAddressParameters = billingAddressParameters,
+          shippingAddressParameters = shippingAddressParameters,
+          isEmailRequired = googlePayParams.getBooleanOr("isEmailRequired", false),
+          allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true),
+        )
 
-      val walletOptions =  Wallet.WalletOptions.Builder()
-        .setEnvironment(if (googlePayParams.getBoolean("testEnv")) WalletConstants.ENVIRONMENT_TEST else WalletConstants.ENVIRONMENT_PRODUCTION)
-        .build()
-      return Wallet.getPaymentsClient(activity, walletOptions).loadPaymentData(PaymentDataRequest.fromJson(request.toString()))
+      val walletOptions =
+        Wallet.WalletOptions
+          .Builder()
+          .setEnvironment(
+            if (googlePayParams.getBoolean("testEnv")) {
+              WalletConstants.ENVIRONMENT_TEST
+            } else {
+              WalletConstants.ENVIRONMENT_PRODUCTION
+            },
+          ).build()
+      return Wallet
+        .getPaymentsClient(activity, walletOptions)
+        .loadPaymentData(PaymentDataRequest.fromJson(request.toString()))
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun buildShippingAddressParameters(params: ReadableMap?): GooglePayJsonFactory.ShippingAddressParameters {
       val isPhoneNumberRequired = params?.getBooleanOr("isPhoneNumberRequired", false)
       val isRequired = params?.getBooleanOr("isRequired", false)
-      val allowedCountryCodes = if (params?.hasKey("allowedCountryCodes") == true)
-        params.getArray("allowedCountryCodes")?.toArrayList()?.toSet() as? Set<String> else null
+      val allowedCountryCodes =
+        if (params?.hasKey("allowedCountryCodes") == true) {
+          params.getArray("allowedCountryCodes")?.toArrayList()?.toSet() as? Set<String>
+        } else {
+          null
+        }
 
       return GooglePayJsonFactory.ShippingAddressParameters(
         isRequired = isRequired ?: false,
         allowedCountryCodes = allowedCountryCodes ?: Locale.getISOCountries().toSet(),
-        phoneNumberRequired = isPhoneNumberRequired ?: false
+        phoneNumberRequired = isPhoneNumberRequired ?: false,
       )
     }
 
     private fun buildBillingAddressParameters(params: ReadableMap?): GooglePayJsonFactory.BillingAddressParameters {
       val isRequired = params?.getBooleanOr("isRequired", false)
       val isPhoneNumberRequired = params?.getBooleanOr("isPhoneNumberRequired", false)
-      val format = when (params?.getString("format").orEmpty()) {
-        "FULL" -> GooglePayJsonFactory.BillingAddressParameters.Format.Full
-        "MIN" -> GooglePayJsonFactory.BillingAddressParameters.Format.Min
-        else -> GooglePayJsonFactory.BillingAddressParameters.Format.Min
-      }
+      val format =
+        when (params?.getString("format").orEmpty()) {
+          "FULL" -> GooglePayJsonFactory.BillingAddressParameters.Format.Full
+          "MIN" -> GooglePayJsonFactory.BillingAddressParameters.Format.Min
+          else -> GooglePayJsonFactory.BillingAddressParameters.Format.Min
+        }
 
       return GooglePayJsonFactory.BillingAddressParameters(
         isRequired = isRequired ?: false,
         format = format,
-        isPhoneNumberRequired = isPhoneNumberRequired ?: false
+        isPhoneNumberRequired = isPhoneNumberRequired ?: false,
       )
     }
 
@@ -88,19 +116,24 @@ class GooglePayRequestHelper {
         countryCode = countryCode,
         totalPrice = amount,
         totalPriceLabel = label,
-        checkoutOption = GooglePayJsonFactory.TransactionInfo.CheckoutOption.Default
+        checkoutOption = GooglePayJsonFactory.TransactionInfo.CheckoutOption.Default,
       )
     }
 
-    internal fun createPaymentMethod(request: Task<PaymentData>, activity: FragmentActivity) {
-      AutoResolveHelper.resolveTask(
-        request,
-        activity,
-        LOAD_PAYMENT_DATA_REQUEST_CODE
-      )
+    internal fun createPaymentMethod(
+      request: Task<PaymentData>,
+      activity: FragmentActivity,
+    ) {
+      AutoResolveHelper.resolveTask(request, activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
     }
 
-    internal fun handleGooglePaymentMethodResult(resultCode: Int, data: Intent?, stripe: Stripe, forToken: Boolean, promise: Promise) {
+    internal fun handleGooglePaymentMethodResult(
+      resultCode: Int,
+      data: Intent?,
+      stripe: Stripe,
+      forToken: Boolean,
+      promise: Promise,
+    ) {
       when (resultCode) {
         Activity.RESULT_OK -> {
           data?.let { intent ->
@@ -114,7 +147,9 @@ class GooglePayRequestHelper {
           }
         }
         Activity.RESULT_CANCELED -> {
-          promise.resolve(createError(ErrorType.Canceled.toString(), "The payment has been canceled"))
+          promise.resolve(
+            createError(ErrorType.Canceled.toString(), "The payment has been canceled"),
+          )
         }
         AutoResolveHelper.RESULT_ERROR -> {
           AutoResolveHelper.getStatusFromIntent(data)?.let {
@@ -124,30 +159,38 @@ class GooglePayRequestHelper {
       }
     }
 
-    private fun resolveWithPaymentMethod(paymentData: PaymentData, stripe: Stripe, promise: Promise) {
+    private fun resolveWithPaymentMethod(
+      paymentData: PaymentData,
+      stripe: Stripe,
+      promise: Promise,
+    ) {
       val paymentInformation = JSONObject(paymentData.toJson())
       val promiseResult = WritableNativeMap()
       stripe.createPaymentMethod(
         PaymentMethodCreateParams.createFromGooglePay(paymentInformation),
-        callback = object : ApiResultCallback<PaymentMethod> {
-          override fun onError(e: Exception) {
-            promise.resolve(createError("Failed", e))
-          }
-
-          override fun onSuccess(result: PaymentMethod) {
-            promiseResult.putMap("paymentMethod", mapFromPaymentMethod(result))
-            GooglePayResult.fromJson(paymentInformation).let {
-              if (it.shippingInformation != null) {
-                promiseResult.putMap("shippingContact", mapFromShippingContact(it))
-              }
+        callback =
+          object : ApiResultCallback<PaymentMethod> {
+            override fun onError(e: Exception) {
+              promise.resolve(createError("Failed", e))
             }
-            promise.resolve(promiseResult)
-          }
-        }
+
+            override fun onSuccess(result: PaymentMethod) {
+              promiseResult.putMap("paymentMethod", mapFromPaymentMethod(result))
+              GooglePayResult.fromJson(paymentInformation).let {
+                if (it.shippingInformation != null) {
+                  promiseResult.putMap("shippingContact", mapFromShippingContact(it))
+                }
+              }
+              promise.resolve(promiseResult)
+            }
+          },
       )
     }
 
-    private fun resolveWithToken(paymentData: PaymentData, promise: Promise) {
+    private fun resolveWithToken(
+      paymentData: PaymentData,
+      promise: Promise,
+    ) {
       val paymentInformation = JSONObject(paymentData.toJson())
       val googlePayResult = GooglePayResult.fromJson(paymentInformation)
       val promiseResult = WritableNativeMap()
@@ -157,10 +200,12 @@ class GooglePayRequestHelper {
           promiseResult.putMap("shippingContact", mapFromShippingContact(googlePayResult))
         }
         promise.resolve(promiseResult)
-      } ?: run {
-        promise.resolve(createError("Failed", "Unexpected response from Google Pay. No token was found."))
       }
+        ?: run {
+          promise.resolve(
+            createError("Failed", "Unexpected response from Google Pay. No token was found."),
+          )
+        }
     }
   }
 }
-

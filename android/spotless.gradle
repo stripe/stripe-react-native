@@ -1,0 +1,19 @@
+apply plugin: 'com.diffplug.spotless'
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+
+spotless {
+    kotlin {
+        target 'src/**/*.kt'
+        ktlint("1.5.0")
+        trimTrailingWhitespace()
+        indentWithSpaces()
+        endWithNewline()
+    }
+}

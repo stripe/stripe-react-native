@@ -2,13 +2,14 @@ package com.reactnativestripesdk.pushprovisioning
 
 import androidx.test.core.app.ApplicationProvider
 import com.facebook.react.bridge.BridgeReactContext
-import org.junit.Assert.*
+import org.junit.Assert
 import org.junit.Test
 
 class PushProvisioningProxyTest {
-  private val reactApplicationContext = BridgeReactContext(
-    ApplicationProvider.getApplicationContext()
-  )
+  private val reactApplicationContext =
+    BridgeReactContext(
+      ApplicationProvider.getApplicationContext(),
+    )
 
   @Test
   fun getApiVersion() {
@@ -18,22 +19,22 @@ class PushProvisioningProxyTest {
      * isn't worth it. Once the push provisioning library is split into it's own SDK, we can
      * add back this test. (it should equal "2019-09-09" if the dependency is included).
      */
-    assertEquals(
+    Assert.assertEquals(
       "",
-      PushProvisioningProxy.getApiVersion()
+      PushProvisioningProxy.getApiVersion(),
     )
   }
 
   @Test
   fun isNFCEnabled() {
-    assertEquals(
+    Assert.assertEquals(
       false,
-      PushProvisioningProxy.isNFCEnabled(reactApplicationContext)
+      PushProvisioningProxy.isNFCEnabled(reactApplicationContext),
     )
   }
 
   @Test
   fun isTokenInWallet() {
-    assertEquals(TapAndPayProxy.isTokenInWallet({}, "4242"), false)
+    Assert.assertEquals(TapAndPayProxy.isTokenInWallet({}, "4242"), false)
   }
 }

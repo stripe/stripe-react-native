@@ -11,23 +11,24 @@ import org.junit.Before
 import org.junit.Test
 
 class MappersTest {
-  private val reactApplicationContext = BridgeReactContext(
-    ApplicationProvider.getApplicationContext()
-  )
+  private val reactApplicationContext =
+    BridgeReactContext(
+      ApplicationProvider.getApplicationContext(),
+    )
 
   @Before
-  fun setup(){
+  fun setup() {
     SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
   }
 
-
   @Test
   fun createCanAddCardResult_NoStatus() {
-    val result = createCanAddCardResult(
-      true,
-      null,
-      null
-    )
+    val result =
+      createCanAddCardResult(
+        true,
+        null,
+        null,
+      )
     Assert.assertNotNull(result.getMap("details"))
     Assert.assertNull(result.getMap("details")?.getString("status"))
     Assert.assertNull(result.getMap("details")?.getMap("token"))
@@ -36,11 +37,12 @@ class MappersTest {
 
   @Test
   fun createCanAddCardResult_WithToken() {
-    val result = createCanAddCardResult(
-      true,
-      "CARD_ALREADY_EXISTS",
-      WritableNativeMap().also { it.putString("key", "value") }
-    )
+    val result =
+      createCanAddCardResult(
+        true,
+        "CARD_ALREADY_EXISTS",
+        WritableNativeMap().also { it.putString("key", "value") },
+      )
     Assert.assertTrue(result.getBoolean("canAddCard"))
     val details = result.getMap("details")
     Assert.assertEquals(details?.getString("status"), "CARD_ALREADY_EXISTS")
@@ -49,11 +51,12 @@ class MappersTest {
 
   @Test
   fun createCanAddCardResult_UnsupportedDevice() {
-    val result = createCanAddCardResult(
-      false,
-      "UNSUPPORTED_DEVICE",
-      null
-    )
+    val result =
+      createCanAddCardResult(
+        false,
+        "UNSUPPORTED_DEVICE",
+        null,
+      )
     Assert.assertFalse(result.getBoolean("canAddCard"))
     val details = result.getMap("details")
     Assert.assertEquals(details?.getString("status"), "UNSUPPORTED_DEVICE")
@@ -62,15 +65,15 @@ class MappersTest {
 
   @Test
   fun createCanAddCardResult_MissingConfiguration() {
-    val result = createCanAddCardResult(
-      false,
-      "MISSING_CONFIGURATION",
-      null
-    )
+    val result =
+      createCanAddCardResult(
+        false,
+        "MISSING_CONFIGURATION",
+        null,
+      )
     Assert.assertFalse(result.getBoolean("canAddCard"))
     val details = result.getMap("details")
     Assert.assertEquals(details?.getString("status"), "MISSING_CONFIGURATION")
     Assert.assertNull(details?.getMap("token"))
   }
 }
-

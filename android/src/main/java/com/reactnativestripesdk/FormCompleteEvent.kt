@@ -4,10 +4,11 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class FormCompleteEvent constructor(viewTag: Int, private val formDetails: MutableMap<String, Any>) : Event<FormCompleteEvent>(viewTag) {
-  override fun getEventName(): String {
-    return EVENT_NAME
-  }
+internal class FormCompleteEvent constructor(
+  viewTag: Int,
+  private val formDetails: MutableMap<String, Any>,
+) : Event<FormCompleteEvent>(viewTag) {
+  override fun getEventName(): String = EVENT_NAME
 
   override fun dispatch(rctEventEmitter: RCTEventEmitter) {
     rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())

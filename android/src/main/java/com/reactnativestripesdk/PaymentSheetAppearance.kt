@@ -3,11 +3,13 @@ package com.reactnativestripesdk
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import com.facebook.react.bridge.ReactContext
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentsheet.PaymentSheet
 
-fun buildPaymentSheetAppearance(userParams: Bundle?, context: Context): PaymentSheet.Appearance {
+fun buildPaymentSheetAppearance(
+  userParams: Bundle?,
+  context: Context,
+): PaymentSheet.Appearance {
   val colorParams = userParams?.getBundle(PaymentSheetAppearanceKeys.COLORS)
   val lightColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
   val darkColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
@@ -17,58 +19,138 @@ fun buildPaymentSheetAppearance(userParams: Bundle?, context: Context): PaymentS
     colorsLight = buildColors(lightColorParams, PaymentSheet.Colors.defaultLight),
     colorsDark = buildColors(darkColorParams, PaymentSheet.Colors.defaultDark),
     shapes = buildShapes(userParams?.getBundle(PaymentSheetAppearanceKeys.SHAPES)),
-    primaryButton = buildPrimaryButton(userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON), context)
+    primaryButton =
+      buildPrimaryButton(
+        userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
+        context,
+      ),
   )
 }
 
-private fun buildTypography(fontParams: Bundle?, context: Context): PaymentSheet.Typography {
+private fun buildTypography(
+  fontParams: Bundle?,
+  context: Context,
+): PaymentSheet.Typography {
   val scale = getDoubleOrNull(fontParams, PaymentSheetAppearanceKeys.SCALE)
-  val resId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, PaymentSheet.Typography.default.fontResId, context)
+  val resId =
+    getFontResId(
+      fontParams,
+      PaymentSheetAppearanceKeys.FAMILY,
+      PaymentSheet.Typography.default.fontResId,
+      context,
+    )
   return PaymentSheet.Typography.default.copy(
     sizeScaleFactor = scale?.toFloat() ?: PaymentSheet.Typography.default.sizeScaleFactor,
-    fontResId = resId
+    fontResId = resId,
   )
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun colorFromHexOrDefault(hexString: String?, default: Int): Int {
-  return hexString?.trim()?.replace("#","")?.let {
+private fun colorFromHexOrDefault(
+  hexString: String?,
+  default: Int,
+): Int {
+  return hexString?.trim()?.replace("#", "")?.let {
     if (it.length == 6 || it.length == 8) {
       return Color.parseColor("#$it")
-    } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
-  } ?: run {
-    return default
+    } else {
+      throw PaymentSheetAppearanceException(
+        "Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it",
+      )
+    }
   }
+    ?: run {
+      return default
+    }
 }
 
-private fun buildColors(colorParams: Bundle?, default: PaymentSheet.Colors): PaymentSheet.Colors {
+private fun buildColors(
+  colorParams: Bundle?,
+  default: PaymentSheet.Colors,
+): PaymentSheet.Colors {
   if (colorParams == null) {
     return default
   }
 
   return default.copy(
-    primary = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY), default.primary),
-    surface = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND), default.surface),
-    component = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND), default.component),
-    componentBorder = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BORDER), default.componentBorder),
-    componentDivider = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_DIVIDER), default.componentDivider),
-    onComponent = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_TEXT), default.onComponent),
-    onSurface = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY_TEXT), default.onSurface),
-    subtitle = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.SECONDARY_TEXT), default.subtitle),
-    placeholderText = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT), default.placeholderText),
-    appBarIcon = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.ICON), default.appBarIcon),
-    error = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.ERROR), default.error),
+    primary =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY),
+        default.primary,
+      ),
+    surface =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND),
+        default.surface,
+      ),
+    component =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND),
+        default.component,
+      ),
+    componentBorder =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BORDER),
+        default.componentBorder,
+      ),
+    componentDivider =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_DIVIDER),
+        default.componentDivider,
+      ),
+    onComponent =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_TEXT),
+        default.onComponent,
+      ),
+    onSurface =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY_TEXT),
+        default.onSurface,
+      ),
+    subtitle =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.SECONDARY_TEXT),
+        default.subtitle,
+      ),
+    placeholderText =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT),
+        default.placeholderText,
+      ),
+    appBarIcon =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.ICON),
+        default.appBarIcon,
+      ),
+    error =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.ERROR),
+        default.error,
+      ),
   )
 }
 
-private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes {
-  return PaymentSheet.Shapes.default.copy(
-    cornerRadiusDp = getFloatOr(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS, PaymentSheet.Shapes.default.cornerRadiusDp),
-    borderStrokeWidthDp = getFloatOr(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH, PaymentSheet.Shapes.default.borderStrokeWidthDp)
+private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
+  PaymentSheet.Shapes.default.copy(
+    cornerRadiusDp =
+      getFloatOr(
+        shapeParams,
+        PaymentSheetAppearanceKeys.BORDER_RADIUS,
+        PaymentSheet.Shapes.default.cornerRadiusDp,
+      ),
+    borderStrokeWidthDp =
+      getFloatOr(
+        shapeParams,
+        PaymentSheetAppearanceKeys.BORDER_WIDTH,
+        PaymentSheet.Shapes.default.borderStrokeWidthDp,
+      ),
   )
-}
 
-private fun buildPrimaryButton(params: Bundle?, context: Context): PaymentSheet.PrimaryButton {
+private fun buildPrimaryButton(
+  params: Bundle?,
+  context: Context,
+): PaymentSheet.PrimaryButton {
   if (params == null) {
     return PaymentSheet.PrimaryButton()
   }
@@ -80,34 +162,61 @@ private fun buildPrimaryButton(params: Bundle?, context: Context): PaymentSheet.
   val darkColorParams = colorParams.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
 
   return PaymentSheet.PrimaryButton(
-    colorsLight = buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight),
-    colorsDark = buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark),
-    shape = PaymentSheet.PrimaryButtonShape(
-      cornerRadiusDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS),
-      borderStrokeWidthDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH),
-    ),
-    typography = PaymentSheet.PrimaryButtonTypography(
-      fontResId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, null, context)
-    )
+    colorsLight =
+      buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight),
+    colorsDark =
+      buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark),
+    shape =
+      PaymentSheet.PrimaryButtonShape(
+        cornerRadiusDp =
+          getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS),
+        borderStrokeWidthDp =
+          getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH),
+      ),
+    typography =
+      PaymentSheet.PrimaryButtonTypography(
+        fontResId =
+          getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, null, context),
+      ),
   )
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.PrimaryButtonColors): PaymentSheet.PrimaryButtonColors {
-  return PaymentSheet.PrimaryButtonColors(
-    background = colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND)?.trim()?.replace("#", "")?.let {
-      if (it.length == 6 || it.length == 8) {
-        Color.parseColor("#$it")
-      } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
-    } ?: run {
-      null
-    },
-    onBackground = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.TEXT), default.onBackground),
-    border = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BORDER), default.border),
+private fun buildPrimaryButtonColors(
+  colorParams: Bundle,
+  default: PaymentSheet.PrimaryButtonColors,
+): PaymentSheet.PrimaryButtonColors =
+  PaymentSheet.PrimaryButtonColors(
+    background =
+      colorParams
+        .getString(PaymentSheetAppearanceKeys.BACKGROUND)
+        ?.trim()
+        ?.replace("#", "")
+        ?.let {
+          if (it.length == 6 || it.length == 8) {
+            Color.parseColor("#$it")
+          } else {
+            throw PaymentSheetAppearanceException(
+              "Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it",
+            )
+          }
+        } ?: run { null },
+    onBackground =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.TEXT),
+        default.onBackground,
+      ),
+    border =
+      colorFromHexOrDefault(
+        colorParams.getString(PaymentSheetAppearanceKeys.BORDER),
+        default.border,
+      ),
   )
-}
 
-private fun getDoubleOrNull(bundle: Bundle?, key: String): Double? {
+private fun getDoubleOrNull(
+  bundle: Bundle?,
+  key: String,
+): Double? {
   if (bundle?.containsKey(key) == true) {
     val valueOfUnknownType = bundle.get(key)
     if (valueOfUnknownType is Double) {
@@ -122,7 +231,11 @@ private fun getDoubleOrNull(bundle: Bundle?, key: String): Double? {
   return null
 }
 
-private fun getFloatOr(bundle: Bundle?, key: String, defaultValue: Float): Float {
+private fun getFloatOr(
+  bundle: Bundle?,
+  key: String,
+  defaultValue: Float,
+): Float {
   if (bundle?.containsKey(key) == true) {
     val valueOfUnknownType = bundle.get(key)
     if (valueOfUnknownType is Float) {
@@ -137,7 +250,10 @@ private fun getFloatOr(bundle: Bundle?, key: String, defaultValue: Float): Float
   return defaultValue
 }
 
-private fun getFloatOrNull(bundle: Bundle?, key: String): Float? {
+private fun getFloatOrNull(
+  bundle: Bundle?,
+  key: String,
+): Float? {
   if (bundle?.containsKey(key) == true) {
     val valueOfUnknownType = bundle.get(key)
     if (valueOfUnknownType is Float) {
@@ -153,17 +269,25 @@ private fun getFloatOrNull(bundle: Bundle?, key: String): Float? {
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun getFontResId(bundle: Bundle?, key: String, defaultValue: Int?, context: Context): Int? {
+private fun getFontResId(
+  bundle: Bundle?,
+  key: String,
+  defaultValue: Int?,
+  context: Context,
+): Int? {
   val fontErrorPrefix = "Encountered an error when setting a custom font:"
   if (bundle?.containsKey(key) != true) {
     return defaultValue
   }
 
-  val fontFileName = bundle.getString(key)
-          ?: throw PaymentSheetAppearanceException("$fontErrorPrefix expected String for font.$key, but received null.")
+  val fontFileName =
+    bundle.getString(key)
+      ?: throw PaymentSheetAppearanceException(
+        "$fontErrorPrefix expected String for font.$key, but received null.",
+      )
   if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
     throw PaymentSheetAppearanceException(
-      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"
+      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font",
     )
   }
 

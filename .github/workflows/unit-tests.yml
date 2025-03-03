@@ -94,6 +94,9 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
+      - name: Check code formatting
+        run: yarn format:android:check
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

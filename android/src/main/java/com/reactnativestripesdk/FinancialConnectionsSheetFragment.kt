@@ -7,20 +7,32 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.facebook.react.bridge.*
-import com.reactnativestripesdk.utils.*
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
+import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
+import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapFromToken
 import com.stripe.android.financialconnections.FinancialConnections
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
 import com.stripe.android.financialconnections.FinancialConnectionsSheetResult
-import com.stripe.android.financialconnections.model.*
+import com.stripe.android.financialconnections.model.Balance
+import com.stripe.android.financialconnections.model.BalanceRefresh
+import com.stripe.android.financialconnections.model.FinancialConnectionsAccount
+import com.stripe.android.financialconnections.model.FinancialConnectionsAccountList
+import com.stripe.android.financialconnections.model.FinancialConnectionsSession
 
 class FinancialConnectionsSheetFragment : Fragment() {
   enum class Mode {
-    ForToken, ForSession
+    ForToken,
+    ForSession,
   }
 
   private lateinit var promise: Promise
@@ -40,30 +52,28 @@ class FinancialConnectionsSheetFragment : Fragment() {
     }
   }
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                            savedInstanceState: Bundle?): View {
-    return FrameLayout(requireActivity()).also {
-      it.visibility = View.GONE
-    }
-  }
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+  override fun onViewCreated(
+    view: View,
+    savedInstanceState: Bundle?,
+  ) {
     when (mode) {
       Mode.ForToken -> {
-        FinancialConnectionsSheet.createForBankAccountToken(
-          this,
-          ::onFinancialConnectionsSheetForTokenResult
-        ).present(
-          configuration = configuration
-        )
+        FinancialConnectionsSheet
+          .createForBankAccountToken(
+            this,
+            ::onFinancialConnectionsSheetForTokenResult,
+          ).present(configuration = configuration)
       }
       Mode.ForSession -> {
-        FinancialConnectionsSheet.create(
-          this,
-          ::onFinancialConnectionsSheetForDataResult
-        ).present(
-          configuration = configuration
-        )
+        FinancialConnectionsSheet
+          .create(this, ::onFinancialConnectionsSheetForDataResult)
+          .present(configuration = configuration)
       }
     }
   }
@@ -76,75 +86,86 @@ class FinancialConnectionsSheetFragment : Fragment() {
   }
 
   private fun onFinancialConnectionsSheetForTokenResult(result: FinancialConnectionsSheetForTokenResult) {
-    when(result) {
+    when (result) {
       is FinancialConnectionsSheetForTokenResult.Canceled -> {
-        promise.resolve(
-          createError(ErrorType.Canceled.toString(), "The flow has been canceled")
-        )
+        promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
       is FinancialConnectionsSheetForTokenResult.Failed -> {
-        promise.resolve(
-          createError(ErrorType.Failed.toString(), result.error)
-        )
+        promise.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
       is FinancialConnectionsSheetForTokenResult.Completed -> {
         promise.resolve(createTokenResult(result))
-        (context.currentActivity as? FragmentActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+        (context.currentActivity as? FragmentActivity)
+          ?.supportFragmentManager
+          ?.beginTransaction()
+          ?.remove(this)
+          ?.commitAllowingStateLoss()
       }
     }
   }
 
   private fun onFinancialConnectionsSheetForDataResult(result: FinancialConnectionsSheetResult) {
-    when(result) {
+    when (result) {
       is FinancialConnectionsSheetResult.Canceled -> {
-        promise.resolve(
-          createError(ErrorType.Canceled.toString(), "The flow has been canceled")
-        )
+        promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
       is FinancialConnectionsSheetResult.Failed -> {
-        promise.resolve(
-          createError(ErrorType.Failed.toString(), result.error)
-        )
+        promise.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
       is FinancialConnectionsSheetResult.Completed -> {
         promise.resolve(
-            WritableNativeMap().also {
-              it.putMap("session", mapFromSession(result.financialConnectionsSession))
-            }
+          WritableNativeMap().also {
+            it.putMap("session", mapFromSession(result.financialConnectionsSession))
+          },
         )
-        (context.currentActivity as? FragmentActivity)?.supportFragmentManager?.beginTransaction()?.remove(this)?.commitAllowingStateLoss()
+        (context.currentActivity as? FragmentActivity)
+          ?.supportFragmentManager
+          ?.beginTransaction()
+          ?.remove(this)
+          ?.commitAllowingStateLoss()
       }
     }
   }
 
-  fun presentFinancialConnectionsSheet(clientSecret: String, mode: Mode, publishableKey: String, stripeAccountId: String?, promise: Promise, context: ReactApplicationContext) {
+  fun presentFinancialConnectionsSheet(
+    clientSecret: String,
+    mode: Mode,
+    publishableKey: String,
+    stripeAccountId: String?,
+    promise: Promise,
+    context: ReactApplicationContext,
+  ) {
     this.promise = promise
     this.context = context
     this.mode = mode
-    this.configuration = FinancialConnectionsSheet.Configuration(
-      financialConnectionsSessionClientSecret = clientSecret,
-      publishableKey = publishableKey,
-      stripeAccountId = stripeAccountId,
-    )
+    this.configuration =
+      FinancialConnectionsSheet.Configuration(
+        financialConnectionsSessionClientSecret = clientSecret,
+        publishableKey = publishableKey,
+        stripeAccountId = stripeAccountId,
+      )
 
     (context.currentActivity as? FragmentActivity)?.let {
       attemptToCleanupPreviousFragment(it)
       commitFragmentAndStartFlow(it)
-    } ?: run {
-      promise.resolve(createMissingActivityError())
-      return
     }
+      ?: run {
+        promise.resolve(createMissingActivityError())
+        return
+      }
   }
 
   private fun attemptToCleanupPreviousFragment(currentActivity: FragmentActivity) {
-    currentActivity.supportFragmentManager.beginTransaction()
+    currentActivity.supportFragmentManager
+      .beginTransaction()
       .remove(this)
       .commitAllowingStateLoss()
   }
 
   private fun commitFragmentAndStartFlow(currentActivity: FragmentActivity) {
     try {
-      currentActivity.supportFragmentManager.beginTransaction()
+      currentActivity.supportFragmentManager
+        .beginTransaction()
         .add(this, TAG)
         .commit()
     } catch (error: IllegalStateException) {
@@ -155,12 +176,11 @@ class FinancialConnectionsSheetFragment : Fragment() {
   companion object {
     internal const val TAG = "financial_connections_sheet_launch_fragment"
 
-    private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap {
-      return WritableNativeMap().also {
+    private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap =
+      WritableNativeMap().also {
         it.putMap("session", mapFromSession(result.financialConnectionsSession))
         it.putMap("token", mapFromToken(result.token))
       }
-    }
 
     private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
       val session = WritableNativeMap()
@@ -186,8 +206,19 @@ class FinancialConnectionsSheetFragment : Fragment() {
         map.putMap("balanceRefresh", mapFromAccountBalanceRefresh(account.balanceRefresh))
         map.putString("category", mapFromCategory(account.category))
         map.putString("subcategory", mapFromSubcategory(account.subcategory))
-        map.putArray("permissions", (account.permissions?.map { permission -> mapFromPermission(permission) })?.toReadableArray())
-        map.putArray("supportedPaymentMethodTypes", (account.supportedPaymentMethodTypes.map { type -> mapFromSupportedPaymentMethodTypes(type) }).toReadableArray())
+        map.putArray(
+          "permissions",
+          (account.permissions?.map { permission -> mapFromPermission(permission) })
+            ?.toReadableArray(),
+        )
+        map.putArray(
+          "supportedPaymentMethodTypes",
+          (
+            account.supportedPaymentMethodTypes.map { type ->
+              mapFromSupportedPaymentMethodTypes(type)
+            }
+          ).toReadableArray(),
+        )
         results.pushMap(map)
       }
       return results
@@ -212,8 +243,8 @@ class FinancialConnectionsSheetFragment : Fragment() {
       return map
     }
 
-    private fun mapFromCashAvailable(balance: Balance): WritableNativeMap {
-      return WritableNativeMap().also { cashMap ->
+    private fun mapFromCashAvailable(balance: Balance): WritableNativeMap =
+      WritableNativeMap().also { cashMap ->
         WritableNativeMap().also { availableMap ->
           balance.cash?.available?.entries?.let { entries ->
             for (entry in entries) {
@@ -223,10 +254,9 @@ class FinancialConnectionsSheetFragment : Fragment() {
           cashMap.putMap("available", availableMap)
         }
       }
-    }
 
-    private fun mapFromCreditUsed(balance: Balance): WritableNativeMap {
-      return WritableNativeMap().also { creditMap ->
+    private fun mapFromCreditUsed(balance: Balance): WritableNativeMap =
+      WritableNativeMap().also { creditMap ->
         WritableNativeMap().also { usedMap ->
           balance.credit?.used?.entries?.let { entries ->
             for (entry in entries) {
@@ -236,7 +266,6 @@ class FinancialConnectionsSheetFragment : Fragment() {
           creditMap.putMap("used", usedMap)
         }
       }
-    }
 
     private fun mapFromAccountBalanceRefresh(balanceRefresh: BalanceRefresh?): WritableMap? {
       if (balanceRefresh == null) {
@@ -248,27 +277,25 @@ class FinancialConnectionsSheetFragment : Fragment() {
       return map
     }
 
-    private fun mapFromStatus(status: FinancialConnectionsAccount.Status): String {
-      return when (status) {
+    private fun mapFromStatus(status: FinancialConnectionsAccount.Status): String =
+      when (status) {
         FinancialConnectionsAccount.Status.ACTIVE -> "active"
         FinancialConnectionsAccount.Status.DISCONNECTED -> "disconnected"
         FinancialConnectionsAccount.Status.INACTIVE -> "inactive"
         FinancialConnectionsAccount.Status.UNKNOWN -> "unparsable"
       }
-    }
 
-    private fun mapFromCategory(category: FinancialConnectionsAccount.Category): String {
-      return when (category) {
+    private fun mapFromCategory(category: FinancialConnectionsAccount.Category): String =
+      when (category) {
         FinancialConnectionsAccount.Category.CASH -> "cash"
         FinancialConnectionsAccount.Category.CREDIT -> "credit"
         FinancialConnectionsAccount.Category.INVESTMENT -> "investment"
         FinancialConnectionsAccount.Category.OTHER -> "other"
         FinancialConnectionsAccount.Category.UNKNOWN -> "unparsable"
       }
-    }
 
-    private fun mapFromSubcategory(subcategory: FinancialConnectionsAccount.Subcategory): String {
-      return when (subcategory) {
+    private fun mapFromSubcategory(subcategory: FinancialConnectionsAccount.Subcategory): String =
+      when (subcategory) {
         FinancialConnectionsAccount.Subcategory.CHECKING -> "checking"
         FinancialConnectionsAccount.Subcategory.CREDIT_CARD -> "creditCard"
         FinancialConnectionsAccount.Subcategory.LINE_OF_CREDIT -> "lineOfCredit"
@@ -277,10 +304,9 @@ class FinancialConnectionsSheetFragment : Fragment() {
         FinancialConnectionsAccount.Subcategory.SAVINGS -> "savings"
         FinancialConnectionsAccount.Subcategory.UNKNOWN -> "unparsable"
       }
-    }
 
-    private fun mapFromPermission(permission: FinancialConnectionsAccount.Permissions): String {
-      return when (permission) {
+    private fun mapFromPermission(permission: FinancialConnectionsAccount.Permissions): String =
+      when (permission) {
         FinancialConnectionsAccount.Permissions.PAYMENT_METHOD -> "paymentMethod"
         FinancialConnectionsAccount.Permissions.BALANCES -> "balances"
         FinancialConnectionsAccount.Permissions.OWNERSHIP -> "ownership"
@@ -289,33 +315,29 @@ class FinancialConnectionsSheetFragment : Fragment() {
         FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
         FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
       }
-    }
 
-    private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String {
-      return when (type) {
+    private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String =
+      when (type) {
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.US_BANK_ACCOUNT -> "usBankAccount"
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.LINK -> "link"
         FinancialConnectionsAccount.SupportedPaymentMethodTypes.UNKNOWN -> "unparsable"
       }
-    }
 
-    private fun mapFromBalanceType(type: Balance.Type): String {
-      return when (type) {
+    private fun mapFromBalanceType(type: Balance.Type): String =
+      when (type) {
         Balance.Type.CASH -> "cash"
         Balance.Type.CREDIT -> "credit"
         Balance.Type.UNKNOWN -> "unparsable"
       }
-    }
 
-    private fun mapFromBalanceRefreshStatus(status: BalanceRefresh.BalanceRefreshStatus?): String {
-      return when (status) {
+    private fun mapFromBalanceRefreshStatus(status: BalanceRefresh.BalanceRefreshStatus?): String =
+      when (status) {
         BalanceRefresh.BalanceRefreshStatus.SUCCEEDED -> "succeeded"
         BalanceRefresh.BalanceRefreshStatus.FAILED -> "failed"
         BalanceRefresh.BalanceRefreshStatus.PENDING -> "pending"
         BalanceRefresh.BalanceRefreshStatus.UNKNOWN -> "unparsable"
         null -> "null"
       }
-    }
   }
 }
 
