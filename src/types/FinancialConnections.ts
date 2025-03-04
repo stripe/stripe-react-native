@@ -1,7 +1,10 @@
+import type { UserInterfaceStyle } from './Common';
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
 
 export type CollectFinancialConnectionsAccountsParams = {
+  /** iOS Only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
   /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
   onEvent?: (event: FinancialConnectionsEvent) => void;
 };

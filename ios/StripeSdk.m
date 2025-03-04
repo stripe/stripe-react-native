@@ -170,11 +170,13 @@ RCT_EXTERN_METHOD(
                   )
 RCT_EXTERN_METHOD(
                   collectBankAccountToken:(NSString *)clientSecret
+                  params:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
 RCT_EXTERN_METHOD(
                   collectFinancialConnectionsAccounts:(NSString *)clientSecret
+                  params:(NSDictionary *)params
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
