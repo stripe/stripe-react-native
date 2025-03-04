@@ -156,6 +156,7 @@ export default function ACHPaymentScreen() {
             email,
           },
         },
+        style: 'alwaysLight',
         onEvent: onEvent,
       }
     );

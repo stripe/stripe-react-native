@@ -565,7 +565,7 @@ export const collectBankAccountToken = async (
 
   try {
     const { session, token, error } =
-      await NativeStripeSdk.collectBankAccountToken(clientSecret);
+      await NativeStripeSdk.collectBankAccountToken(clientSecret, params);
 
     financialConnectionsEventListener?.remove();
 
@@ -608,7 +608,10 @@ export const collectFinancialConnectionsAccounts = async (
 
   try {
     const { session, error } =
-      await NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret);
+      await NativeStripeSdk.collectFinancialConnectionsAccounts(
+        clientSecret,
+        params
+      );
 
     financialConnectionsEventListener?.remove();
 
