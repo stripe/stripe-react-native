@@ -12,6 +12,7 @@ import com.facebook.soloader.SoLoader;
 import com.example.reactnativestripesdk.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.ArrayList;
 import com.reactnativestripesdk.StripeSdkPackage;
 
 public class MainApplication extends Application implements ReactApplication {
@@ -58,6 +59,20 @@ public class MainApplication extends Application implements ReactApplication {
     ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager()); // Remove this line if you don't want Flipper enabled
+  }
+
+  private ArrayList<Class> runningActivities = new ArrayList<>();
+
+  public void addActivityToStack (Class cls) {
+    if (!runningActivities.contains(cls)) runningActivities.add(cls);
+  }
+
+  public void removeActivityFromStack (Class cls) {
+    if (runningActivities.contains(cls)) runningActivities.remove(cls);
+  }
+
+  public boolean isActivityInBackStack (Class cls) {
+    return runningActivities.contains(cls);
   }
 
   /**
