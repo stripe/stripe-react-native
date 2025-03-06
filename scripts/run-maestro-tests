@@ -20,7 +20,7 @@ if [ "$PLATFORM" == "ios" ]; then
   APPID="com.stripe.react.native"
   allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/ios-only/*.yml)
 else
-  APPID="com.example.reactnativestripesdk"
+  APPID="com.stripe.react.native"
   allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/android-only/*.yml)
 fi
 

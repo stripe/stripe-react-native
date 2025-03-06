@@ -1,12 +1,11 @@
-package com.reactnativestripesdk.paymentsheet
+package com.reactnativestripesdk.addresssheet
 
-import android.content.Context
 import androidx.core.os.bundleOf
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -15,8 +14,8 @@ import org.junit.Before
 import org.junit.Test
 
 class AddressSheetViewTest {
-  private val reactApplicationContext = ReactApplicationContext(
-    ApplicationProvider.getApplicationContext<Context>()
+  private val reactApplicationContext = BridgeReactContext(
+    ApplicationProvider.getApplicationContext()
   )
   private val testCity = "testCity"
   private val testCountry = "testCountry"
@@ -29,7 +28,7 @@ class AddressSheetViewTest {
 
   @Before
   fun setup(){
-    SoLoader.init(reactApplicationContext, false)
+    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
   }
 
   @Test

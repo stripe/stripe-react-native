@@ -19,6 +19,7 @@ Pod::Spec.new do |s|
   s.exclude_files = 'ios/Tests/'
 
   s.test_spec 'Tests' do |test_spec|
+    test_spec.platforms    = { ios: '15.1' }
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 

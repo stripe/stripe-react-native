@@ -33,9 +33,8 @@ export default function KlarnaPaymentScreen() {
   };
 
   const handlePayPress = async () => {
-    const { clientSecret, error: clientSecretError } = await fetchClientSecret(
-      'payment'
-    );
+    const { clientSecret, error: clientSecretError } =
+      await fetchClientSecret('payment');
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
@@ -77,9 +76,8 @@ export default function KlarnaPaymentScreen() {
   };
 
   const handleSetupPress = async () => {
-    const { clientSecret, error: clientSecretError } = await fetchClientSecret(
-      'setup'
-    );
+    const { clientSecret, error: clientSecretError } =
+      await fetchClientSecret('setup');
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);

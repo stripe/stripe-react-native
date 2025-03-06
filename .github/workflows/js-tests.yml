@@ -1,12 +1,14 @@
-name: Generate docs
+name: Unit Tests
 
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: ['**']
 
 jobs:
-  generate-docs:
-    name: generate-docs
+  js-tests:
+    name: js-tests
     runs-on: ubuntu-24.04
     steps:
       - name: checkout
@@ -30,16 +32,17 @@ jobs:
           node-version: 20
 
       - name: Install Dependencies
-        run: |
-          yarn example && yarn
+        run: yarn bootstrap-no-pods
 
-      - name: Build docs
-        run: yarn docs
+      - name: Run typescript
+        run: yarn typescript
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.DOCS_GITHUB_SECRET }}
-          publish_dir: ./docs
-          commit_message: 'docs: update'
-          force_orphan: true
+      - name: Run eslint
+        run: yarn lint
+
+      - name: Run jest tests
+        run: yarn test
+
+      - name: Run example typescript
+        run: yarn typescript
+        working-directory: example

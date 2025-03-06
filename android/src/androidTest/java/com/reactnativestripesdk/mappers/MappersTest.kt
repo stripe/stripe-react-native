@@ -1,9 +1,9 @@
 package com.reactnativestripesdk.mappers
 
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import org.junit.Assert
@@ -11,13 +11,13 @@ import org.junit.Before
 import org.junit.Test
 
 class MappersTest {
-  private val reactApplicationContext = ReactApplicationContext(
-    ApplicationProvider.getApplicationContext<Context>()
+  private val reactApplicationContext = BridgeReactContext(
+    ApplicationProvider.getApplicationContext()
   )
 
   @Before
   fun setup(){
-    SoLoader.init(reactApplicationContext, false)
+    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
   }
 
 
