@@ -82,7 +82,7 @@ jobs:
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 29
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -104,7 +104,7 @@ jobs:
 
   test-ios:
     name: e2e-ios-test
-    runs-on: macos-15
+    runs-on: macos-13
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
