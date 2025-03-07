@@ -5,6 +5,7 @@ import {
   IOSConfig,
   withAndroidManifest,
   withEntitlementsPlist,
+  withAppBuildGradle,
 } from '@expo/config-plugins';
 
 const {
@@ -22,6 +23,7 @@ type StripePluginProps = {
    */
   merchantIdentifier: string | string[];
   enableGooglePay: boolean;
+  enableGooglePlacesSdk: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
@@ -94,14 +96,23 @@ export const withNoopSwiftFile: ConfigPlugin = (config) => {
 
 const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { enableGooglePay = false }
+  { enableGooglePay = false, enableGooglePlacesSdk = false }
 ) => {
-  return withAndroidManifest(expoConfig, (config) => {
+  expoConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = setGooglePayMetaData(
       enableGooglePay,
       config.modResults
     );
 
+    return config;
+  });
+
+  return withAppBuildGradle(expoConfig, (config) => {
+    if (enableGooglePlacesSdk) {
+      config.modResults.contents = addGooglePlacesSdk(
+        config.modResults.contents
+      );
+    }
     return config;
   });
 };
@@ -136,6 +147,36 @@ export function setGooglePayMetaData(
   }
 
   return modResults;
+}
+
+/**
+ * Adds the following to app/build.gradle:
+ *
+ * dependencies {
+ *  implementation 'com.google.android.libraries.places:places:2.6.0'
+ *  ...
+ * }
+ */
+export function addGooglePlacesSdk(buildGradle: string) {
+  const dependency = 'com.google.android.libraries.places:places:2.6.0';
+
+  if (buildGradle.includes(dependency)) {
+    return buildGradle;
+  }
+
+  const impl = `implementation '${dependency}'`;
+
+  if (buildGradle.includes('dependencies {')) {
+    return buildGradle.replace(
+      'dependencies {',
+      `dependencies {
+        // Added by @stripe/stripe-react-native
+        ${impl}
+      `
+    );
+  } else {
+    return buildGradle;
+  }
 }
 
 export default createRunOncePlugin(withStripe, pkg.name, pkg.version);
