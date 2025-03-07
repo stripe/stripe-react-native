@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.pushprovisioning
 
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -16,10 +17,10 @@ import com.bumptech.glide.request.target.Target
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.utils.createError
 
+@SuppressLint("ViewConstructor")
 class AddToWalletButtonView(
   private val context: ThemedReactContext,
   private val requestManager: RequestManager,
@@ -29,8 +30,6 @@ class AddToWalletButtonView(
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
 
-  private var eventDispatcher: EventDispatcher? =
-    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var loadedSource: Any? = null
   private var heightOverride: Int = 0
   private var widthOverride: Int = 0
@@ -177,6 +176,6 @@ class AddToWalletButtonView(
   }
 
   fun dispatchEvent(error: WritableMap?) {
-    eventDispatcher?.dispatchEvent(AddToWalletCompleteEvent(id, error))
+    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(AddToWalletCompleteEvent(context.surfaceId, id, error))
   }
 }

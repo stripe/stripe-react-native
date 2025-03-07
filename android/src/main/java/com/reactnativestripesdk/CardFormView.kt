@@ -12,8 +12,7 @@ import androidx.core.view.setMargins
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.views.text.ReactTypefaceUtils
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -33,13 +32,12 @@ import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardFormView
 import com.stripe.android.view.CardInputListener
 
+@SuppressLint("ViewConstructor")
 class CardFormView(
-  context: ThemedReactContext,
+  private val context: ThemedReactContext,
 ) : FrameLayout(context) {
   private var cardForm: CardFormView =
     CardFormView(context, null, com.stripe.android.R.style.StripeCardFormView_Borderless)
-  private var mEventDispatcher: EventDispatcher? =
-    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var dangerouslyGetFullCardDetails: Boolean = false
   private var currentFocusedField: String? = null
   var cardParams: PaymentMethodCreateParams.Card? = null
@@ -136,9 +134,9 @@ class CardFormView(
   }
 
   private fun onChangeFocus() {
-    mEventDispatcher?.dispatchEvent(
-      CardFocusEvent(id, currentFocusedField),
-    )
+    UIManagerHelper
+      .getEventDispatcherForReactTag(context, id)
+      ?.dispatchEvent(CardFocusEvent(context.surfaceId, id, currentFocusedField))
   }
 
   @SuppressLint("RestrictedApi")
@@ -264,9 +262,17 @@ class CardFormView(
             cardDetails["cvc"] = cardParamsMap["cvc"] as String
           }
 
-          mEventDispatcher?.dispatchEvent(
-            CardFormCompleteEvent(id, cardDetails, isValid, dangerouslyGetFullCardDetails),
-          )
+          UIManagerHelper
+            .getEventDispatcherForReactTag(context, id)
+            ?.dispatchEvent(
+              CardFormCompleteEvent(
+                context.surfaceId,
+                id,
+                cardDetails,
+                isValid,
+                dangerouslyGetFullCardDetails,
+              ),
+            )
 
           cardAddress =
             Address
@@ -282,9 +288,17 @@ class CardFormView(
       } else {
         cardParams = null
         cardAddress = null
-        mEventDispatcher?.dispatchEvent(
-          CardFormCompleteEvent(id, null, isValid, dangerouslyGetFullCardDetails),
-        )
+        UIManagerHelper
+          .getEventDispatcherForReactTag(context, id)
+          ?.dispatchEvent(
+            CardFormCompleteEvent(
+              context.surfaceId,
+              id,
+              null,
+              isValid,
+              dangerouslyGetFullCardDetails,
+            ),
+          )
       }
     }
 

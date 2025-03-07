@@ -1,18 +1,19 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.common.MapBuilder
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
+@ReactModule(name = AuBECSDebitFormViewManager.REACT_CLASS)
 class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
-  override fun getName() = "AuBECSDebitForm"
+  override fun getName() = REACT_CLASS
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
-    MapBuilder.of(
-      FormCompleteEvent.EVENT_NAME,
-      MapBuilder.of("registrationName", "onCompleteAction"),
+    mutableMapOf(
+      FormCompleteEvent.EVENT_NAME to
+        mutableMapOf("registrationName" to "onCompleteAction"),
     )
 
   @ReactProp(name = "companyName")
@@ -32,4 +33,8 @@ class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView = AuBECSDebitFormView(reactContext)
+
+  companion object {
+    const val REACT_CLASS = "AuBECSDebitForm"
+  }
 }

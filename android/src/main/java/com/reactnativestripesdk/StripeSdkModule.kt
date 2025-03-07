@@ -70,7 +70,7 @@ import org.json.JSONObject
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
 ) : ReactContextBaseJavaModule(reactContext) {
-  override fun getName(): String = "StripeSdk"
+  override fun getName(): String = NAME
 
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
@@ -80,8 +80,6 @@ class StripeSdkModule(
   private var stripeAccountId: String? = null
   private var urlScheme: String? = null
 
-  private var confirmPromise: Promise? = null
-  private var confirmPaymentClientSecret: String? = null
   private var createPlatformPayPaymentMethodPromise: Promise? = null
   private var platformPayUsesDeprecatedTokenFlow = false
 

@@ -2,21 +2,17 @@ package com.reactnativestripesdk.pushprovisioning
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class AddToWalletCompleteEvent constructor(
+internal class AddToWalletCompleteEvent(
+  surfaceId: Int,
   viewTag: Int,
   private val error: WritableMap?,
-) : Event<AddToWalletCompleteEvent>(viewTag) {
+) : Event<AddToWalletCompleteEvent>(surfaceId, viewTag) {
   override fun getEventName(): String = EVENT_NAME
 
-  override fun dispatch(rctEventEmitter: RCTEventEmitter) {
-    rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())
-  }
-
-  private fun serializeEventData(): WritableMap? = error
+  override fun getEventData() = error
 
   companion object {
-    const val EVENT_NAME = "onCompleteAction"
+    const val EVENT_NAME = "topCompleteAction"
   }
 }

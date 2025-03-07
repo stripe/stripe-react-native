@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
@@ -7,8 +8,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.uimanager.ThemedReactContext
-import com.facebook.react.uimanager.UIManagerModule
-import com.facebook.react.uimanager.events.EventDispatcher
+import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
@@ -18,11 +18,10 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
 
+@SuppressLint("ViewConstructor")
 class AddressSheetView(
   private val context: ThemedReactContext,
 ) : FrameLayout(context) {
-  private var eventDispatcher: EventDispatcher? =
-    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var isVisible = false
   private var appearanceParams: ReadableMap? = null
   private var defaultAddress: AddressDetails? = null
@@ -34,14 +33,14 @@ class AddressSheetView(
   private var additionalFields: AddressLauncher.AdditionalFieldsConfiguration? = null
 
   private fun onSubmit(params: WritableMap) {
-    eventDispatcher?.dispatchEvent(
-      AddressSheetEvent(id, AddressSheetEvent.EventType.OnSubmit, params),
+    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(
+      AddressSheetEvent(context.surfaceId, id, AddressSheetEvent.EventType.OnSubmit, params),
     )
   }
 
   private fun onError(params: WritableMap?) {
-    eventDispatcher?.dispatchEvent(
-      AddressSheetEvent(id, AddressSheetEvent.EventType.OnError, params),
+    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(
+      AddressSheetEvent(context.surfaceId, id, AddressSheetEvent.EventType.OnError, params),
     )
   }
 

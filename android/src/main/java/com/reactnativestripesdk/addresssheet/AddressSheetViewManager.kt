@@ -2,20 +2,21 @@ package com.reactnativestripesdk.addresssheet
 
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.common.MapBuilder
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 
+@ReactModule(name = AddressSheetViewManager.REACT_CLASS)
 class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
-  override fun getName() = "AddressSheetView"
+  override fun getName() = REACT_CLASS
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
-    MapBuilder.of(
-      AddressSheetEvent.ON_SUBMIT,
-      MapBuilder.of("registrationName", "onSubmitAction"),
-      AddressSheetEvent.ON_ERROR,
-      MapBuilder.of("registrationName", "onErrorAction"),
+  override fun getExportedCustomDirectEventTypeConstants() =
+    mutableMapOf(
+      AddressSheetEvent.ON_SUBMIT to
+        mutableMapOf("registrationName" to "onSubmitAction"),
+      AddressSheetEvent.ON_ERROR to
+        mutableMapOf("registrationName" to "onErrorAction"),
     )
 
   @ReactProp(name = "visible")
@@ -91,4 +92,8 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): AddressSheetView = AddressSheetView(reactContext)
+
+  companion object {
+    const val REACT_CLASS = "AddressSheetView"
+  }
 }

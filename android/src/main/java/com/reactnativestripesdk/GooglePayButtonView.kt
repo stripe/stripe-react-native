@@ -13,6 +13,7 @@ import com.google.android.gms.wallet.button.PayButton
 import com.stripe.android.GooglePayJsonFactory
 import org.json.JSONArray
 
+@SuppressLint("ViewConstructor")
 class GooglePayButtonView(
   private val context: ThemedReactContext,
 ) : FrameLayout(context) {
