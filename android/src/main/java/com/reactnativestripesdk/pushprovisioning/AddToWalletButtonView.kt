@@ -20,14 +20,17 @@ import com.facebook.react.uimanager.UIManagerModule
 import com.facebook.react.uimanager.events.EventDispatcher
 import com.reactnativestripesdk.utils.createError
 
-
-class AddToWalletButtonView(private val context: ThemedReactContext, private val requestManager: RequestManager) : AppCompatImageView(context) {
+class AddToWalletButtonView(
+  private val context: ThemedReactContext,
+  private val requestManager: RequestManager,
+) : AppCompatImageView(context) {
   private var cardDetails: ReadableMap? = null
   private var ephemeralKey: String? = null
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
 
-  private var eventDispatcher: EventDispatcher? = context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
+  private var eventDispatcher: EventDispatcher? =
+    context.getNativeModule(UIManagerModule::class.java)?.eventDispatcher
   private var loadedSource: Any? = null
   private var heightOverride: Int = 0
   private var widthOverride: Int = 0
@@ -42,17 +45,26 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
           this,
           cardDescription,
           ephemeralKey,
-          token)
-      } ?: run {
-        dispatchEvent(
-          createError("Failed", "Missing parameters. `ephemeralKey` must be supplied in the props to <AddToWalletButton />")
+          token,
         )
       }
-    } ?: run {
-      dispatchEvent(
-        createError("Failed", "Missing parameters. `cardDetails.cardDescription` must be supplied in the props to <AddToWalletButton />")
-      )
+        ?: run {
+          dispatchEvent(
+            createError(
+              "Failed",
+              "Missing parameters. `ephemeralKey` must be supplied in the props to <AddToWalletButton />",
+            ),
+          )
+        }
     }
+      ?: run {
+        dispatchEvent(
+          createError(
+            "Failed",
+            "Missing parameters. `cardDetails.cardDescription` must be supplied in the props to <AddToWalletButton />",
+          ),
+        )
+      }
     return true
   }
 
@@ -78,23 +90,38 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
 
       requestManager
         .load(sourceToLoad)
-        .addListener(object : RequestListener<Drawable> {
-          override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
-            dispatchEvent(
-              createError("Failed", "Failed to load the source from $sourceToLoad")
-            )
-            return true
-          }
-          override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
-            setImageDrawable(
-              RippleDrawable(
-                ColorStateList.valueOf(Color.parseColor("#e0e0e0")),
-                resource,
-                null))
-            return true
-          }
-        })
-        .centerCrop()
+        .addListener(
+          object : RequestListener<Drawable> {
+            override fun onLoadFailed(
+              e: GlideException?,
+              model: Any?,
+              target: Target<Drawable>?,
+              isFirstResource: Boolean,
+            ): Boolean {
+              dispatchEvent(
+                createError("Failed", "Failed to load the source from $sourceToLoad"),
+              )
+              return true
+            }
+
+            override fun onResourceReady(
+              resource: Drawable?,
+              model: Any?,
+              target: Target<Drawable>?,
+              dataSource: DataSource?,
+              isFirstResource: Boolean,
+            ): Boolean {
+              setImageDrawable(
+                RippleDrawable(
+                  ColorStateList.valueOf(Color.parseColor("#e0e0e0")),
+                  resource,
+                  null,
+                ),
+              )
+              return true
+            }
+          },
+        ).centerCrop()
         .override((widthOverride * scale).toInt(), (heightOverride * scale).toInt())
         .into(this)
     }
@@ -113,7 +140,12 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
     return null
   }
 
-  override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+  override fun onSizeChanged(
+    w: Int,
+    h: Int,
+    oldw: Int,
+    oldh: Int,
+  ) {
     super.onSizeChanged(w, h, oldw, oldh)
     if (w > 0 && h > 0) {
       heightOverride = h
@@ -145,11 +177,6 @@ class AddToWalletButtonView(private val context: ThemedReactContext, private val
   }
 
   fun dispatchEvent(error: WritableMap?) {
-    eventDispatcher?.dispatchEvent(
-      AddToWalletCompleteEvent(
-        id,
-        error
-      )
-    )
+    eventDispatcher?.dispatchEvent(AddToWalletCompleteEvent(id, error))
   }
 }

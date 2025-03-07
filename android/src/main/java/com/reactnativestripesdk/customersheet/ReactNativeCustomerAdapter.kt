@@ -3,14 +3,13 @@ package com.reactnativestripesdk.customersheet
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.model.PaymentMethod
 import kotlinx.coroutines.CompletableDeferred
 
-class ReactNativeCustomerAdapter (
+class ReactNativeCustomerAdapter(
   private val context: ReactApplicationContext,
   private val adapter: CustomerAdapter,
   private val overridesFetchPaymentMethods: Boolean,
@@ -18,7 +17,7 @@ class ReactNativeCustomerAdapter (
   private val overridesDetachPaymentMethod: Boolean,
   private val overridesSetSelectedPaymentOption: Boolean,
   private val overridesFetchSelectedPaymentOption: Boolean,
-  private val overridesSetupIntentClientSecretForCustomerAttach: Boolean
+  private val overridesSetupIntentClientSecretForCustomerAttach: Boolean,
 ) : CustomerAdapter by adapter {
   internal var fetchPaymentMethodsCallback: CompletableDeferred<List<PaymentMethod>>? = null
   internal var attachPaymentMethodCallback: CompletableDeferred<PaymentMethod>? = null
@@ -44,9 +43,7 @@ class ReactNativeCustomerAdapter (
     if (overridesAttachPaymentMethod) {
       CompletableDeferred<PaymentMethod>().also {
         attachPaymentMethodCallback = it
-        val params = Arguments.createMap().also {
-          it.putString("paymentMethodId", paymentMethodId)
-        }
+        val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
         emitEvent("onCustomerAdapterAttachPaymentMethodCallback", params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
@@ -60,9 +57,7 @@ class ReactNativeCustomerAdapter (
     if (overridesDetachPaymentMethod) {
       CompletableDeferred<PaymentMethod>().also {
         detachPaymentMethodCallback = it
-        val params = Arguments.createMap().also {
-          it.putString("paymentMethodId", paymentMethodId)
-        }
+        val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
         emitEvent("onCustomerAdapterDetachPaymentMethodCallback", params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
@@ -76,9 +71,7 @@ class ReactNativeCustomerAdapter (
     if (overridesSetSelectedPaymentOption) {
       CompletableDeferred<Unit>().also {
         setSelectedPaymentOptionCallback = it
-        val params = Arguments.createMap().also {
-          it.putString("paymentOption", paymentOption?.id)
-        }
+        val params = Arguments.createMap().also { it.putString("paymentOption", paymentOption?.id) }
         emitEvent("onCustomerAdapterSetSelectedPaymentOptionCallback", params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
@@ -99,7 +92,7 @@ class ReactNativeCustomerAdapter (
             CustomerAdapter.PaymentOption.fromId(resultFromJavascript)
           } else {
             null
-          }
+          },
         )
       }
     }
@@ -111,7 +104,10 @@ class ReactNativeCustomerAdapter (
     if (overridesSetupIntentClientSecretForCustomerAttach) {
       CompletableDeferred<String>().also {
         setupIntentClientSecretForCustomerAttachCallback = it
-        emitEvent("onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", Arguments.createMap())
+        emitEvent(
+          "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback",
+          Arguments.createMap(),
+        )
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -120,17 +116,18 @@ class ReactNativeCustomerAdapter (
     return adapter.setupIntentClientSecretForCustomerAttach()
   }
 
-  private fun emitEvent(eventName: String, params: WritableMap) {
+  private fun emitEvent(
+    eventName: String,
+    params: WritableMap,
+  ) {
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
       Log.e(
         "StripeReactNative",
-        "Tried to call $eventName, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"
+        "Tried to call $eventName, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
       )
     }
 
     stripeSdkModule?.sendEvent(context, eventName, params)
   }
 }
-
-

@@ -12,13 +12,19 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
 
   private var reactContextRef: ThemedReactContext? = null
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
-    return MapBuilder.of(
-      CardFocusEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFocusChange"),
-      CardFormCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onFormComplete"))
-  }
+  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+    MapBuilder.of(
+      CardFocusEvent.EVENT_NAME,
+      MapBuilder.of("registrationName", "onFocusChange"),
+      CardFormCompleteEvent.EVENT_NAME,
+      MapBuilder.of("registrationName", "onFormComplete"),
+    )
 
-  override fun receiveCommand(root: CardFormView, commandId: String?, args: ReadableArray?) {
+  override fun receiveCommand(
+    root: CardFormView,
+    commandId: String?,
+    args: ReadableArray?,
+  ) {
     when (commandId) {
       "focus" -> root.requestFocusFromJS()
       "blur" -> root.requestBlurFromJS()
@@ -27,42 +33,66 @@ class CardFormViewManager : SimpleViewManager<CardFormView>() {
   }
 
   @ReactProp(name = "dangerouslyGetFullCardDetails")
-  fun setDangerouslyGetFullCardDetails(view: CardFormView, dangerouslyGetFullCardDetails: Boolean = false) {
+  fun setDangerouslyGetFullCardDetails(
+    view: CardFormView,
+    dangerouslyGetFullCardDetails: Boolean = false,
+  ) {
     view.setDangerouslyGetFullCardDetails(dangerouslyGetFullCardDetails)
   }
 
   @ReactProp(name = "postalCodeEnabled")
-  fun setPostalCodeEnabled(view: CardFormView, postalCodeEnabled: Boolean = false) {
+  fun setPostalCodeEnabled(
+    view: CardFormView,
+    postalCodeEnabled: Boolean = false,
+  ) {
     view.setPostalCodeEnabled(postalCodeEnabled)
   }
 
-   @ReactProp(name = "placeholders")
-   fun setPlaceHolders(view: CardFormView, placeholders: ReadableMap) {
-     view.setPlaceHolders(placeholders)
-   }
+  @ReactProp(name = "placeholders")
+  fun setPlaceHolders(
+    view: CardFormView,
+    placeholders: ReadableMap,
+  ) {
+    view.setPlaceHolders(placeholders)
+  }
 
   @ReactProp(name = "autofocus")
-  fun setAutofocus(view: CardFormView, autofocus: Boolean = false) {
+  fun setAutofocus(
+    view: CardFormView,
+    autofocus: Boolean = false,
+  ) {
     view.setAutofocus(autofocus)
   }
 
   @ReactProp(name = "cardStyle")
-  fun setCardStyle(view: CardFormView, cardStyle: ReadableMap) {
+  fun setCardStyle(
+    view: CardFormView,
+    cardStyle: ReadableMap,
+  ) {
     view.setCardStyle(cardStyle)
   }
 
   @ReactProp(name = "defaultValues")
-  fun setDefaultValues(view: CardFormView, defaults: ReadableMap) {
+  fun setDefaultValues(
+    view: CardFormView,
+    defaults: ReadableMap,
+  ) {
     view.setDefaultValues(defaults)
   }
 
   @ReactProp(name = "disabled")
-  fun setDisabled(view: CardFormView, isDisabled: Boolean) {
+  fun setDisabled(
+    view: CardFormView,
+    isDisabled: Boolean,
+  ) {
     view.setDisabled(isDisabled)
   }
 
   @ReactProp(name = "preferredNetworks")
-  fun setPreferredNetworks(view: CardFormView, preferredNetworks: ReadableArray?) {
+  fun setPreferredNetworks(
+    view: CardFormView,
+    preferredNetworks: ReadableArray?,
+  ) {
     val networks = preferredNetworks?.toArrayList()?.filterIsInstance<Int>()?.let { ArrayList(it) }
     view.setPreferredNetworks(networks)
   }

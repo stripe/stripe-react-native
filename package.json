@@ -29,7 +29,9 @@
     "test:unit:ios": "xcodebuild test -workspace example/ios/example.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 16' -scheme stripe-react-native-Unit-Tests",
     "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
-    "test-android": "maestro test -e APP_ID=com.stripe.react.native"
+    "test-android": "maestro test -e APP_ID=com.stripe.react.native",
+    "format:android:check": "cd android && ./gradlew spotlessCheck",
+    "format:android:write": "cd android && ./gradlew spotlessApply"
   },
   "keywords": [
     "react-native",
