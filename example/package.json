@@ -11,10 +11,10 @@
     "ios": "react-native run-ios",
     "mkdist": "node -e \"require('node:fs').mkdirSync('dist', { recursive: true, mode: 0o755 })\"",
     "start": "react-native start",
-    "build:server": "babel --watch server --out-dir ./server-dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
-    "start:server": "yarn build:server & nodemon -w server-dist server-dist/index.js",
+    "build:server": "babel server --out-dir ./server-dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
+    "start:server": "yarn build:server --watch & nodemon -w server-dist server-dist/index.js",
     "typescript": "tsc --noEmit",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && yarn build:server"
   },
   "dependencies": {
     "@react-native-picker/picker": "^2.11.0",
