@@ -162,11 +162,13 @@ class PaymentSheetFragment(
                 ),
               )
             }
+
             is PaymentSheetResult.Failed -> {
               resolvePaymentResult(
                 createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error),
               )
             }
+
             is PaymentSheetResult.Completed -> {
               resolvePaymentResult(WritableNativeMap())
               // Remove the fragment now, we can be sure it won't be needed again if an intent is
@@ -182,22 +184,13 @@ class PaymentSheetFragment(
     val createIntentCallback =
       CreateIntentCallback { paymentMethod, shouldSavePaymentMethod ->
         val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-        if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
-          return@CreateIntentCallback CreateIntentResult.Failure(
-            cause =
-              Exception(
-                "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-              ),
-            displayMessage = "An unexpected error occurred",
-          )
-        }
         val params =
           Arguments.createMap().apply {
             putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
             putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
           }
 
-        stripeSdkModule.sendEvent(context, "onConfirmHandlerCallback", params)
+        stripeSdkModule?.emitOnConfirmHandlerCallback(params)
 
         val resultFromJavascript = paymentSheetIntentCreationCallback.await()
         // reset the completable
@@ -222,7 +215,7 @@ class PaymentSheetFragment(
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
+        billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
       )
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
@@ -348,7 +341,8 @@ class PaymentSheetFragment(
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {}
+        ) {
+        }
 
         override fun onActivityDestroyed(activity: Activity) {
           paymentSheetActivity = null
@@ -467,11 +461,11 @@ class PaymentSheetFragment(
 
       return PaymentSheet.GooglePayConfiguration(
         environment =
-          if (testEnv) {
-            PaymentSheet.GooglePayConfiguration.Environment.Test
-          } else {
-            PaymentSheet.GooglePayConfiguration.Environment.Production
-          },
+        if (testEnv) {
+          PaymentSheet.GooglePayConfiguration.Environment.Test
+        } else {
+          PaymentSheet.GooglePayConfiguration.Environment.Production
+        },
         countryCode = countryCode,
         currencyCode = currencyCode,
         amount = amount,
@@ -494,8 +488,8 @@ class PaymentSheetFragment(
       return PaymentSheet.IntentConfiguration(
         mode = buildIntentConfigurationMode(modeParams),
         paymentMethodTypes =
-          intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList()
-            ?: emptyList(),
+        intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList()
+          ?: emptyList(),
       )
     }
 
@@ -610,6 +604,7 @@ fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollect
   when (str) {
     "automatic" ->
       PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+
     "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Never
     "full" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic

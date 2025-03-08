@@ -1,4 +1,4 @@
-package com.reactnativestripesdk
+package com.reactnativestripesdk.customersheet
 
 import android.app.Activity
 import android.app.Application
@@ -17,7 +17,12 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.reactnativestripesdk.customersheet.ReactNativeCustomerAdapter
+import com.reactnativestripesdk.ReactNativeCustomerAdapter
+import com.reactnativestripesdk.buildPaymentSheetAppearance
+import com.reactnativestripesdk.getBase64FromBitmap
+import com.reactnativestripesdk.getBitmapFromDrawable
+import com.reactnativestripesdk.mapToAddressCollectionMode
+import com.reactnativestripesdk.mapToCollectionMode
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
@@ -165,9 +170,11 @@ class CustomerSheetFragment : Fragment() {
       is CustomerSheetResult.Failed -> {
         presentPromise.resolve(createError(ErrorType.Failed.toString(), result.exception))
       }
+
       is CustomerSheetResult.Selected -> {
         promiseResult = createPaymentOptionResult(result.selection)
       }
+
       is CustomerSheetResult.Canceled -> {
         promiseResult = createPaymentOptionResult(result.selection)
         promiseResult.putMap(
@@ -217,7 +224,8 @@ class CustomerSheetFragment : Fragment() {
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {}
+        ) {
+        }
 
         override fun onActivityDestroyed(activity: Activity) {
           customerSheetActivity = null
@@ -259,9 +267,11 @@ class CustomerSheetFragment : Fragment() {
           is CustomerSheetResult.Failed -> {
             promise.resolve(createError(ErrorType.Failed.toString(), result.exception))
           }
+
           is CustomerSheetResult.Selected -> {
             promiseResult = createPaymentOptionResult(result.selection)
           }
+
           is CustomerSheetResult.Canceled -> {
             promiseResult = createPaymentOptionResult(result.selection)
             promiseResult.putMap(
@@ -351,18 +361,18 @@ class CustomerSheetFragment : Fragment() {
         context = context,
         adapter = customerAdapter,
         overridesFetchPaymentMethods =
-          customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
+        customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
         overridesAttachPaymentMethod =
-          customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
+        customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
         overridesDetachPaymentMethod =
-          customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
+        customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
         overridesSetSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
+        customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
         overridesFetchSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
+        customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
         overridesSetupIntentClientSecretForCustomerAttach =
-          customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach")
-            ?: false,
+        customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach")
+          ?: false,
       )
     }
 
@@ -374,6 +384,7 @@ class CustomerSheetFragment : Fragment() {
           paymentOptionResult =
             buildResult(selection.paymentOption.label, selection.paymentOption.icon(), null)
         }
+
         is PaymentOptionSelection.PaymentMethod -> {
           paymentOptionResult =
             buildResult(
@@ -382,6 +393,7 @@ class CustomerSheetFragment : Fragment() {
               selection.paymentMethod,
             )
         }
+
         null -> {}
       }
 

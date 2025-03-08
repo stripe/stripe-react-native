@@ -49,6 +49,10 @@ export type CustomerSheetInitParams = {
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
 };
 
+export type CustomerSheetInitResult = {
+  error?: StripeError<CustomerSheetError>;
+};
+
 export type CustomerSheetPresentParams = {
   /** Controls how the modal is presented (after animation). iOS only. Defaults to `popover`. See https://developer.apple.com/documentation/uikit/uimodalpresentationstyle for more info. */
   presentationStyle?:
@@ -116,7 +120,7 @@ export interface CustomerAdapter {
   /** Creates a SetupIntent configured to attach a new payment method to a customer,
    * then returns the client secret for the created SetupIntent.
    */
-  setupIntentClientSecretForCustomerAttach?(): Promise<String>;
+  setupIntentClientSecretForCustomerAttach?(): Promise<string>;
 }
 
 export type CustomerPaymentOption =

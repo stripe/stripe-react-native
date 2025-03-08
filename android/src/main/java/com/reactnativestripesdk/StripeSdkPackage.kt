@@ -34,7 +34,7 @@ class StripeSdkPackage : BaseReactPackage() {
           true,
           reactModule.needsEagerInit,
           reactModule.isCxxModule,
-          false,
+          BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
         )
     }
     return ReactModuleInfoProvider { reactModuleInfoMap }
