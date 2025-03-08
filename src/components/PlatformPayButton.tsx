@@ -8,7 +8,7 @@ import {
   Platform,
   NativeSyntheticEvent,
 } from 'react-native';
-import NativeStripeSdk from '../NativeStripeSdk';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   ButtonType,
   ButtonStyle,

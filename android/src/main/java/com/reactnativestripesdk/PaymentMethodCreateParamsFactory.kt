@@ -19,7 +19,7 @@ import com.stripe.android.model.PaymentMethodOptionsParams
 
 class PaymentMethodCreateParamsFactory(
   private val paymentMethodData: ReadableMap?,
-  private val options: ReadableMap,
+  private val options: ReadableMap?,
   private val cardFieldView: CardFieldView?,
   private val cardFormView: CardFormView?,
 ) {
@@ -77,7 +77,8 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createAlipayParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createAlipay()
+  private fun createAlipayParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createAlipay()
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSofortParams(): PaymentMethodCreateParams {
@@ -206,10 +207,10 @@ class PaymentMethodCreateParamsFactory(
 
     return PaymentMethodCreateParams.create(
       auBecsDebit =
-        PaymentMethodCreateParams.AuBecsDebit(
-          bsbNumber = bsbNumber,
-          accountNumber = accountNumber,
-        ),
+      PaymentMethodCreateParams.AuBecsDebit(
+        bsbNumber = bsbNumber,
+        accountNumber = accountNumber,
+      ),
       billingDetails = billingDetails,
       metadata = metadataParams,
     )
@@ -233,7 +234,8 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
+  private fun createPayPalParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAffirmParams(): PaymentMethodCreateParams =
@@ -267,6 +269,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Card -> createCardStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.USBankAccount ->
           createUSBankAccountStripeIntentParams(clientSecret, isPaymentIntent)
+
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
@@ -285,7 +288,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.PayPal,
         PaymentMethod.Type.CashAppPay,
         PaymentMethod.Type.RevolutPay,
-        -> {
+          -> {
           val params = createPaymentMethodParams(paymentMethodType)
 
           return if (isPaymentIntent) {
@@ -293,7 +296,7 @@ class PaymentMethodCreateParamsFactory(
               paymentMethodCreateParams = params,
               clientSecret = clientSecret,
               setupFutureUsage =
-                mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
+              mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
               mandateData = buildMandateDataParams(),
             )
           } else {
@@ -304,6 +307,7 @@ class PaymentMethodCreateParamsFactory(
             )
           }
         }
+
         null -> ConfirmPaymentIntentParams.create(clientSecret)
         else -> {
           throw Exception("This paymentMethodType is not supported yet")
@@ -354,7 +358,7 @@ class PaymentMethodCreateParamsFactory(
         } else {
           ConfirmSetupIntentParams.create(paymentMethodId, clientSecret)
         }
-      )
+        )
     } else {
       val paymentMethodCreateParams = createCardPaymentMethodParams()
       return (
@@ -367,7 +371,7 @@ class PaymentMethodCreateParamsFactory(
         } else {
           ConfirmSetupIntentParams.create(paymentMethodCreateParams, clientSecret)
         }
-      )
+        )
     }
   }
 
