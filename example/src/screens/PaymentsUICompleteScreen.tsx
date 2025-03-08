@@ -7,7 +7,6 @@ import {
   Address,
   PaymentSheetError,
   AddressSheet,
-  AddressSheetError,
   CardBrand,
   PaymentMethodLayout,
 } from '@stripe/stripe-react-native';
@@ -234,7 +233,7 @@ export default function PaymentsUICompleteScreen() {
           await initialisePaymentSheet(result);
         }}
         onError={(err) => {
-          if (err.code === AddressSheetError.Failed) {
+          if (err.code === 'Failed') {
             Alert.alert('There was an error.', 'Check the logs for details.');
             console.log(err?.localizedMessage);
           }

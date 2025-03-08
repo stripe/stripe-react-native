@@ -6,10 +6,17 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.AddressSheetViewManagerDelegate
+import com.facebook.react.viewmanagers.AddressSheetViewManagerInterface
 
 @ReactModule(name = AddressSheetViewManager.REACT_CLASS)
-class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
+class AddressSheetViewManager : SimpleViewManager<AddressSheetView>(),
+  AddressSheetViewManagerInterface<AddressSheetView> {
+  private val delegate = AddressSheetViewManagerDelegate(this)
+
   override fun getName() = REACT_CLASS
+
+  override fun getDelegate() = delegate
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
@@ -20,7 +27,7 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
     )
 
   @ReactProp(name = "visible")
-  fun setVisible(
+  override fun setVisible(
     view: AddressSheetView,
     visibility: Boolean,
   ) {
@@ -28,70 +35,81 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>() {
   }
 
   @ReactProp(name = "appearance")
-  fun setAppearance(
+  override fun setAppearance(
     view: AddressSheetView,
-    appearance: ReadableMap,
+    appearance: ReadableMap?,
   ) {
     view.setAppearance(appearance)
   }
 
   @ReactProp(name = "defaultValues")
-  fun setDefaultValues(
+  override fun setDefaultValues(
     view: AddressSheetView,
-    defaults: ReadableMap,
+    defaults: ReadableMap?,
   ) {
     view.setDefaultValues(defaults)
   }
 
   @ReactProp(name = "additionalFields")
-  fun setAdditionalFields(
+  override fun setAdditionalFields(
     view: AddressSheetView,
-    fields: ReadableMap,
+    fields: ReadableMap?,
   ) {
     view.setAdditionalFields(fields)
   }
 
   @ReactProp(name = "allowedCountries")
-  fun setAllowedCountries(
+  override fun setAllowedCountries(
     view: AddressSheetView,
-    countries: ReadableArray,
+    countries: ReadableArray?,
   ) {
-    view.setAllowedCountries(countries.toArrayList().filterIsInstance<String>())
+    view.setAllowedCountries(countries?.toArrayList()?.filterIsInstance<String>())
   }
 
   @ReactProp(name = "autocompleteCountries")
-  fun setAutocompleteCountries(
+  override fun setAutocompleteCountries(
     view: AddressSheetView,
-    countries: ReadableArray,
+    countries: ReadableArray?,
   ) {
-    view.setAutocompleteCountries(countries.toArrayList().filterIsInstance<String>())
+    view.setAutocompleteCountries(countries?.toArrayList()?.filterIsInstance<String>())
   }
 
   @ReactProp(name = "primaryButtonTitle")
-  fun setPrimaryButtonTitle(
+  override fun setPrimaryButtonTitle(
     view: AddressSheetView,
-    title: String,
+    title: String?,
   ) {
     view.setPrimaryButtonTitle(title)
   }
 
   @ReactProp(name = "sheetTitle")
-  fun setSheetTitle(
+  override fun setSheetTitle(
     view: AddressSheetView,
-    title: String,
+    title: String?,
   ) {
     view.setSheetTitle(title)
   }
 
   @ReactProp(name = "googlePlacesApiKey")
-  fun setGooglePlacesApiKey(
+  override fun setGooglePlacesApiKey(
     view: AddressSheetView,
-    key: String,
+    key: String?,
   ) {
     view.setGooglePlacesApiKey(key)
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddressSheetView = AddressSheetView(reactContext)
+  @ReactProp(name = "presentationStyle")
+  override fun setPresentationStyle(view: AddressSheetView, value: String?) {
+    // noop iOS only.
+  }
+
+  @ReactProp(name = "animationStyle")
+  override fun setAnimationStyle(view: AddressSheetView, value: String?) {
+    // noop iOS only.
+  }
+
+  override fun createViewInstance(reactContext: ThemedReactContext): AddressSheetView =
+    AddressSheetView(reactContext)
 
   companion object {
     const val REACT_CLASS = "AddressSheetView"

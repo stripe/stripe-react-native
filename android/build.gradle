@@ -103,6 +103,14 @@ android {
   buildFeatures {
     viewBinding true
   }
+
+  sourceSets.main {
+    java {
+      if (!isNewArchitectureEnabled()) {
+        srcDirs += ["src/oldarch/java"]
+      }
+    }
+  }
 }
 
 repositories {

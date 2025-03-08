@@ -84,35 +84,35 @@ class AddressSheetView(
     }
   }
 
-  fun setAppearance(appearanceParams: ReadableMap) {
+  fun setAppearance(appearanceParams: ReadableMap?) {
     this.appearanceParams = appearanceParams
   }
 
-  fun setDefaultValues(defaults: ReadableMap) {
-    defaultAddress = buildAddressDetails(defaults)
+  fun setDefaultValues(defaults: ReadableMap?) {
+    defaultAddress = defaults?.let { buildAddressDetails(it) }
   }
 
-  fun setAdditionalFields(fields: ReadableMap) {
-    additionalFields = buildAdditionalFieldsConfiguration(fields)
+  fun setAdditionalFields(fields: ReadableMap?) {
+    additionalFields = fields?.let { buildAdditionalFieldsConfiguration(it) }
   }
 
-  fun setAllowedCountries(countries: List<String>) {
-    allowedCountries = countries.toSet()
+  fun setAllowedCountries(countries: List<String>?) {
+    allowedCountries = countries?.toSet() ?: emptySet()
   }
 
-  fun setAutocompleteCountries(countries: List<String>) {
-    autocompleteCountries = countries.toSet()
+  fun setAutocompleteCountries(countries: List<String>?) {
+    autocompleteCountries = countries?.toSet() ?: emptySet()
   }
 
-  fun setPrimaryButtonTitle(title: String) {
+  fun setPrimaryButtonTitle(title: String?) {
     buttonTitle = title
   }
 
-  fun setSheetTitle(title: String) {
+  fun setSheetTitle(title: String?) {
     sheetTitle = title
   }
 
-  fun setGooglePlacesApiKey(key: String) {
+  fun setGooglePlacesApiKey(key: String?) {
     googlePlacesApiKey = key
   }
 
@@ -125,7 +125,8 @@ class AddressSheetView(
         isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
       )
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails =
+      buildAddressDetails(toBundleObject(map))
 
     internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
       if (bundle == null) {
