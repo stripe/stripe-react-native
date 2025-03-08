@@ -1,82 +1,59 @@
-import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import type { HostComponent, ViewProps } from 'react-native';
 import type {
   DirectEventHandler,
-  Int32,
-  UnsafeMixed,
   WithDefault,
 } from 'react-native/Libraries/Types/CodegenTypes';
-import type { ViewProps, HostComponent } from 'react-native';
+import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNativeComponent';
+import type { AddressSheetError, PaymentSheet, StripeError } from '../types';
+import type { UnsafeMixed } from './utils';
 
-interface AddressDetails {
+type AddressDetails = Readonly<{
   name?: string;
-  address?: {
+  address?: Readonly<{
     city?: string;
     country?: string;
     line1?: string;
     line2?: string;
     postalCode?: string;
     state?: string;
-  };
+  }>;
   phone?: string;
   isCheckboxSelected?: boolean;
-}
+}>;
 
-interface CollectedAddressDetailsEvent {
+type CollectedAddressDetailsEvent = Readonly<{
   name: string;
-  address: {
+  address: Readonly<{
     city?: string;
     country?: string;
     line1?: string;
     line2?: string;
     postalCode?: string;
     state?: string;
-  };
+  }>;
   phone: string;
   isCheckboxSelected: boolean;
-}
+}>;
 
-interface AddressSheetErrorEvent {
-  error: {
-    code: 'Failed' | 'Canceled';
-    message: string;
-    localizedMessage?: string;
-    declineCode?: string;
-    stripeErrorCode?: string;
-    type?:
-      | 'api_connection_error'
-      | 'api_error'
-      | 'authentication_error'
-      | 'card_error'
-      | 'idempotency_error'
-      | 'invalid_request_error'
-      | 'rate_limit_error';
-  };
-}
+type AddressSheetErrorEvent = Readonly<{
+  error: UnsafeMixed<StripeError<AddressSheetError>>;
+}>;
 
-interface AddressSheetAppearance {
-  font?: {};
-  colors?: UnsafeMixed;
-  shapes?: {
-    borderRadius?: Int32;
-    borderWidth?: Int32;
-    shadow?: {};
-  };
-  primaryButton?: {};
-}
+type PresentationStyle =
+  | 'fullscreen'
+  | 'popover'
+  | 'pageSheet'
+  | 'formSheet'
+  | 'automatic'
+  | 'overFullScreen';
+
+type AnimationStyle = 'flip' | 'curl' | 'slide' | 'dissolve';
 
 export interface NativeProps extends ViewProps {
   visible: boolean;
-  presentationStyle?: WithDefault<
-    | 'fullscreen'
-    | 'popover'
-    | 'pageSheet'
-    | 'formSheet'
-    | 'automatic'
-    | 'overFullScreen',
-    'popover'
-  >;
-  animationStyle?: WithDefault<'flip' | 'curl' | 'slide' | 'dissolve', 'slide'>;
-  appearance?: AddressSheetAppearance;
+  presentationStyle?: WithDefault<PresentationStyle, 'popover'>;
+  animationStyle?: WithDefault<AnimationStyle, 'slide'>;
+  appearance?: UnsafeMixed<PaymentSheet.AppearanceParams>;
   defaultValues?: AddressDetails;
   additionalFields?: {
     phoneNumber?: WithDefault<'hidden' | 'optional' | 'required', 'required'>;

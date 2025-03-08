@@ -5,21 +5,15 @@ import type {
 } from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 import type { ViewProps, HostComponent } from 'react-native';
+import type { UnsafeMixed } from './utils';
+import type { CardBrand } from '../types/Token';
 
 interface FormCompleteEvent {
   last4: string;
   expiryMonth: Int32;
   expiryYear: Int32;
   postalCode?: string;
-  brand:
-    | 'AmericanExpress'
-    | 'DinersClub'
-    | 'Discover'
-    | 'JCB'
-    | 'MasterCard'
-    | 'UnionPay'
-    | 'Visa'
-    | 'Unknown';
+  brand: UnsafeMixed<CardBrand>;
   complete: boolean;
   country: string;
   number?: string;
@@ -30,7 +24,7 @@ export interface FocusChangeEvent {
   focusedField: 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode' | null;
 }
 
-interface CardFormStyle {
+type CardFormStyle = Readonly<{
   backgroundColor?: string;
   borderWidth?: Int32;
   borderColor?: string;
@@ -41,18 +35,18 @@ interface CardFormStyle {
   cursorColor?: string;
   textErrorColor?: string;
   fontFamily?: string;
-}
+}>;
 
-interface CardFormPlaceholders {
+type CardFormPlaceholders = Readonly<{
   number?: string;
   expiration?: string;
   cvc?: string;
   postalCode?: string;
-}
+}>;
 
-interface CardFormDefaultValues {
+type CardFormDefaultValues = Readonly<{
   countryCode?: string;
-}
+}>;
 
 export interface NativeProps extends ViewProps {
   autofocus: boolean;

@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
@@ -37,9 +38,9 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>(),
   @ReactProp(name = "appearance")
   override fun setAppearance(
     view: AddressSheetView,
-    appearance: ReadableMap?,
+    appearance: Dynamic,
   ) {
-    view.setAppearance(appearance)
+    view.setAppearance(appearance.asMap())
   }
 
   @ReactProp(name = "defaultValues")
