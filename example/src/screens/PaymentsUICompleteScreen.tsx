@@ -1,21 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import {
-  AddressDetails,
-  useStripe,
-  BillingDetails,
   Address,
-  PaymentSheetError,
+  AddressDetails,
   AddressSheet,
+  AddressSheetError,
+  BillingDetails,
   CardBrand,
   PaymentMethodLayout,
+  PaymentSheetError,
+  useStripe,
 } from '@stripe/stripe-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import Button from '../components/Button';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import appearance from './PaymentSheetAppearance';
-import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { getClientSecretParams } from '../helpers';
+import appearance from './PaymentSheetAppearance';
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
@@ -233,7 +234,7 @@ export default function PaymentsUICompleteScreen() {
           await initialisePaymentSheet(result);
         }}
         onError={(err) => {
-          if (err.code === 'Failed') {
+          if (err.code === AddressSheetError.Failed) {
             Alert.alert('There was an error.', 'Check the logs for details.');
             console.log(err?.localizedMessage);
           }

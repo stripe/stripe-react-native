@@ -5,35 +5,29 @@ import type {
 } from 'react-native/Libraries/Types/CodegenTypes';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 import type { ViewProps, HostComponent } from 'react-native';
+import type { UnsafeMixed } from './utils';
+import type { CardBrand } from '../types/Token';
+import type { ValidationState } from '../types/components/CardFieldInput';
 
-interface CardChangeEvent {
+type CardChangeEvent = Readonly<{
   last4: string;
   expiryMonth: Int32;
   expiryYear: Int32;
   postalCode?: string;
-  brand:
-    | 'AmericanExpress'
-    | 'DinersClub'
-    | 'Discover'
-    | 'JCB'
-    | 'MasterCard'
-    | 'UnionPay'
-    | 'Visa'
-    | 'Unknown';
+  brand: UnsafeMixed<CardBrand>;
   complete: boolean;
-  // Sadly codegen doesn't support type aliases here.
-  validExpiryDate: 'Valid' | 'Invalid' | 'Incomplete' | 'Unknown';
-  validCVC: 'Valid' | 'Invalid' | 'Incomplete' | 'Unknown';
-  validNumber: 'Valid' | 'Invalid' | 'Incomplete' | 'Unknown';
+  validExpiryDate: UnsafeMixed<ValidationState>;
+  validCVC: UnsafeMixed<ValidationState>;
+  validNumber: UnsafeMixed<ValidationState>;
   number?: string;
   cvc?: string;
-}
+}>;
 
-export interface FocusChangeEvent {
+export type FocusChangeEvent = Readonly<{
   focusedField: 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode' | null;
-}
+}>;
 
-interface CardFieldStyle {
+type CardFieldStyle = Readonly<{
   borderWidth?: Int32;
   backgroundColor?: string;
   borderColor?: string;
@@ -44,14 +38,14 @@ interface CardFieldStyle {
   cursorColor?: string;
   textErrorColor?: string;
   fontFamily?: string;
-}
+}>;
 
-interface CardFieldPlaceholders {
+type CardFieldPlaceholders = Readonly<{
   number?: string;
   expiration?: string;
   cvc?: string;
   postalCode?: string;
-}
+}>;
 
 export interface NativeProps extends ViewProps {
   autofocus: boolean;
@@ -64,7 +58,7 @@ export interface NativeProps extends ViewProps {
   onFocusChange?: DirectEventHandler<FocusChangeEvent>;
   placeholders: CardFieldPlaceholders;
   postalCodeEnabled: boolean;
-  preferredNetworks?: Int32[];
+  preferredNetworks?: ReadonlyArray<Int32>;
 }
 
 type ComponentType = HostComponent<NativeProps>;
