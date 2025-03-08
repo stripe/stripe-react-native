@@ -1566,7 +1566,7 @@
   dependencies:
     color "^4.2.3"
 
-"@react-navigation/native-stack@^7.2.1":
+"@react-navigation/native-stack@^7.2.0":
   version "7.2.1"
   resolved "https://registry.yarnpkg.com/@react-navigation/native-stack/-/native-stack-7.2.1.tgz#0d89e13999520a3b05de742ff1f6745b9e981870"
   integrity sha512-zqC6DVpO4pFZrl+8JuIgV8qk+AGdTuv+hJ5EHePmzs9gYSUrDpw6LahFCiXshwBvi9LinIw9Do7mtnQK2Q8AGA==
@@ -1574,7 +1574,7 @@
     "@react-navigation/elements" "^2.2.6"
     warn-once "^0.1.1"
 
-"@react-navigation/native@^7.0.15":
+"@react-navigation/native@^7.0.14":
   version "7.0.15"
   resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-7.0.15.tgz#683f7e41c27c0728ca0f254825c960e97b0e5983"
   integrity sha512-72PabJJ8VY3GM8i/DCutFW+ATED96ZV6NH+bW+ry1EL0ZFGHoie96H+KzTqktsrUbBw1rd9KXbEQhBQgo0N7iQ==
