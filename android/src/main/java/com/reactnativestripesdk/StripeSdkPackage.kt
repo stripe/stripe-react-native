@@ -11,7 +11,7 @@ import com.reactnativestripesdk.addresssheet.AddressSheetViewManager
 import com.reactnativestripesdk.pushprovisioning.AddToWalletButtonManager
 
 // Fool autolinking for older versions that do not support BaseReactPackage.
-// public class SafeAreaContextPackage implements ReactPackage {
+// public class StripeSdkPackage implements ReactPackage {
 class StripeSdkPackage : BaseReactPackage() {
   override fun getModule(
     name: String,
