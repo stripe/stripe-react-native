@@ -46,9 +46,9 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>(),
   @ReactProp(name = "defaultValues")
   override fun setDefaultValues(
     view: AddressSheetView,
-    defaults: ReadableMap?,
+    defaults: Dynamic,
   ) {
-    view.setDefaultValues(defaults)
+    view.setDefaultValues(defaults.asMap())
   }
 
   @ReactProp(name = "additionalFields")

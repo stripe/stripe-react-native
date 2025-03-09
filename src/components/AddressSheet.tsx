@@ -70,7 +70,7 @@ export function AddressSheet({ onSubmit, onError, ...props }: Props) {
   return (
     <NativeAddressSheet
       {...props}
-      onSubmitAction={(event) => onSubmit(event.nativeEvent)}
+      onSubmitAction={(event) => onSubmit(event.nativeEvent.result)}
       onErrorAction={(event) => onError(event.nativeEvent.error)}
     />
   );
