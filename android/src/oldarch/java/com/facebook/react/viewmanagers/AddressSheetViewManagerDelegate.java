@@ -11,6 +11,7 @@ package com.facebook.react.viewmanagers;
 
 import android.view.View;
 import androidx.annotation.Nullable;
+import com.facebook.react.bridge.DynamicFromObject;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.BaseViewManager;
@@ -34,10 +35,10 @@ public class AddressSheetViewManagerDelegate<T extends View, U extends BaseViewM
         mViewManager.setAnimationStyle(view, (String) value);
         break;
       case "appearance":
-        mViewManager.setAppearance(view, (ReadableMap) value);
+        mViewManager.setAppearance(view, new DynamicFromObject(value));
         break;
       case "defaultValues":
-        mViewManager.setDefaultValues(view, (ReadableMap) value);
+        mViewManager.setDefaultValues(view, new DynamicFromObject(value));
         break;
       case "additionalFields":
         mViewManager.setAdditionalFields(view, (ReadableMap) value);

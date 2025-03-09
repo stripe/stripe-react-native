@@ -11,6 +11,7 @@ package com.facebook.react.viewmanagers;
 
 import android.view.View;
 import androidx.annotation.Nullable;
+import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
@@ -19,8 +20,8 @@ public interface AddressSheetViewManagerInterface<T extends View> extends ViewMa
   void setVisible(T view, boolean value);
   void setPresentationStyle(T view, @Nullable String value);
   void setAnimationStyle(T view, @Nullable String value);
-  void setAppearance(T view, @Nullable ReadableMap value);
-  void setDefaultValues(T view, @Nullable ReadableMap value);
+  void setAppearance(T view, Dynamic value);
+  void setDefaultValues(T view, Dynamic value);
   void setAdditionalFields(T view, @Nullable ReadableMap value);
   void setAllowedCountries(T view, @Nullable ReadableArray value);
   void setAutocompleteCountries(T view, @Nullable ReadableArray value);
