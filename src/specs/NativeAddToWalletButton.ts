@@ -30,9 +30,9 @@ export interface NativeProps extends ViewProps {
   androidAssetSource: ImageSource;
   testEnv?: boolean;
   cardDetails: CardDetails;
-  token: UnsafeMixed<GooglePayCardToken>;
+  token?: UnsafeMixed<GooglePayCardToken> | null;
   ephemeralKey: UnsafeMixed<object>;
-  onComplete?: DirectEventHandler<AddToWalletButtonCompleteEvent>;
+  onCompleteAction?: DirectEventHandler<AddToWalletButtonCompleteEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;
