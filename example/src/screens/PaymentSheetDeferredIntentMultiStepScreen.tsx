@@ -85,7 +85,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
         customFlow: true,
         merchantDisplayName: 'Example Inc.',
         style: 'automatic',
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
         ...clientSecretParams,
         intentConfiguration: {
