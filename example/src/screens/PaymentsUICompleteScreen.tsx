@@ -132,7 +132,7 @@ export default function PaymentsUICompleteScreen() {
           merchantCountryCode: 'US',
           testEnv: true,
         },
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         allowsDelayedPaymentMethods: true,

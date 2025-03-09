@@ -68,7 +68,7 @@ export default function CustomerSheetScreen() {
       setupIntentClientSecret,
       customerEphemeralKeySecret,
       customerId,
-      returnURL: 'stripe-example://stripe-redirect',
+      returnURL: 'com.stripe.react.native://stripe-redirect',
       removeSavedPaymentMethodMessage:
         'Are you sure you wanna remove this payment method? 😿',
       style: 'alwaysLight',
@@ -141,7 +141,7 @@ export default function CustomerSheetScreen() {
           setupIntentClientSecret={setupIntent}
           customerEphemeralKeySecret={ephemeralKeySecret}
           customerId={customer}
-          returnURL={'stripe-example://stripe-redirect'}
+          returnURL={'com.stripe.react.native://stripe-redirect'}
           onResult={({ error, paymentOption, paymentMethod }) => {
             setCustomerSheetVisible(false);
             if (error) {
