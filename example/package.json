@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "build:android": "npm run mkdist && react-native bundle --entry-file index.js --platform android --dev true --bundle-output dist/main.android.jsbundle --assets-dest dist/res",
-    "build:ios": "npm run mkdist && react-native bundle --entry-file index.js --platform ios --dev true --bundle-output dist/main.ios.jsbundle --assets-dest dist",
+    "build:android": "npm run mkdist && react-native bundle --entry-file index.js --platform android --dev false --bundle-output dist/main.android.jsbundle --assets-dest dist/res",
+    "build:ios": "npm run mkdist && react-native bundle --entry-file index.js --platform ios --dev false --bundle-output dist/main.ios.jsbundle --assets-dest dist",
     "install-pods": "pod install --project-directory=ios",
     "ios": "react-native run-ios",
     "mkdist": "node -e \"require('node:fs').mkdirSync('dist', { recursive: true, mode: 0o755 })\"",

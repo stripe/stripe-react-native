@@ -38,7 +38,6 @@ import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
-import com.stripe.android.paymentsheet.ExperimentalPaymentMethodLayoutApi
 import com.stripe.android.paymentsheet.PaymentOptionCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
@@ -69,7 +68,6 @@ class PaymentSheetFragment(
     savedInstanceState: Bundle?,
   ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
 
-  @OptIn(ExperimentalPaymentMethodLayoutApi::class)
   override fun onViewCreated(
     view: View,
     savedInstanceState: Bundle?,
