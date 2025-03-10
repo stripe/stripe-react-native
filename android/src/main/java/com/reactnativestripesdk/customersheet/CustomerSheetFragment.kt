@@ -120,6 +120,7 @@ class CustomerSheetFragment : Fragment() {
         .preferredNetworks(
           mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
     billingDetailsBundle?.let {

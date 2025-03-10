@@ -119,6 +119,10 @@ export default function PaymentSheetDeferredIntentScreen() {
         defaultShippingDetails: shippingDetails,
         allowsDelayedPaymentMethods: true,
         primaryButtonLabel: 'purchase!',
+        cardBrandAcceptance: {
+          filter: PaymentSheet.CardBrandAcceptanceFilter.Disallowed,
+          brands: [PaymentSheet.CardBrandCategory.Amex],
+        },
         intentConfiguration: {
           confirmHandler: async (
             paymentMethod: PaymentMethod.Result,

@@ -75,6 +75,13 @@ export type SetupParamsBase = IntentParams & {
    * - Note: Defaults to `Automatic` if not set
    */
   paymentMethodLayout?: PaymentMethodLayout;
+  /**
+   * By default, PaymentSheet will accept all supported cards by Stripe.
+   * You can specify card brands PaymentSheet should block or allow payment for by providing an array of those card brands.
+   * Note: This is only a client-side solution.
+   * Note: Card brand filtering is not currently supported in Link.
+   */
+  cardBrandAcceptance?: CardBrandAcceptance;
 };
 
 export type SetupParams =
@@ -446,3 +453,51 @@ export enum PaymentMethodLayout {
    */
   Automatic = 'Automatic',
 }
+
+/** Card brand categories that can be allowed or disallowed */
+export enum CardBrandCategory {
+  /** Visa branded cards */
+  Visa = 'visa',
+  /** Mastercard branded cards */
+  Mastercard = 'mastercard',
+  /** American Express branded cards */
+  Amex = 'amex',
+  /**
+   * Discover branded cards
+   * Note: Encompasses all of Discover Global Network (Discover, Diners, JCB, UnionPay, Elo)
+   */
+  Discover = 'discover',
+}
+
+/** Filter types for card brand acceptance */
+export enum CardBrandAcceptanceFilter {
+  /** Accept all card brands supported by Stripe */
+  All = 'all',
+  /** Accept only the specified card brands */
+  Allowed = 'allowed',
+  /** Accept all card brands except the specified ones */
+  Disallowed = 'disallowed',
+}
+
+/** Options to block certain card brands on the client */
+export type CardBrandAcceptance =
+  | {
+      /** Accept all card brands supported by Stripe */
+      filter: CardBrandAcceptanceFilter.All;
+    }
+  | {
+      /** Accept only the specified card brands */
+      filter: CardBrandAcceptanceFilter.Allowed;
+      /** List of card brands to accept
+       * Note: Any card brands that do not map to a CardBrandCategory will be blocked when using an allow list
+       */
+      brands: CardBrandCategory[];
+    }
+  | {
+      /** Accept all card brands except the specified ones */
+      filter: CardBrandAcceptanceFilter.Disallowed;
+      /** List of card brands to block
+       * Note: Any card brands that do not map to a CardBrandCategory will be accepted when using a disallow list
+       */
+      brands: CardBrandCategory[];
+    };
