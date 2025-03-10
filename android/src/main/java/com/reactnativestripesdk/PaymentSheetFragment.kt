@@ -656,13 +656,11 @@ fun mapToCardBrandAcceptance(params: Bundle?): PaymentSheet.CardBrandAcceptance 
   }
 }
 
-fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? {
-  return when (brand) {
+fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? =
+  when (brand) {
     "visa" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Visa
     "mastercard" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Mastercard
     "amex" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Amex
     "discover" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Discover
     else -> null
   }
-}
-
