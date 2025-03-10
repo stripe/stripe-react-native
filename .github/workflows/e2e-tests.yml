@@ -83,6 +83,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
+          emulator-build: 11237101
           arch: x86_64
           target: google_apis
           force-avd-creation: false
@@ -140,7 +141,13 @@ jobs:
         run: npm install react-native-cli
 
       - name: Install Dependencies
-        run: yarn bootstrap
+        run: yarn bootstrap-no-pods
+
+      - name: Generate bundle
+        run: yarn example build:ios
+
+      - name: Install Pods
+        run: yarn pods
 
       - name: Install Maestro CLI
         run: |
