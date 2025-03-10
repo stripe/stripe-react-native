@@ -427,7 +427,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
       )
       it.putString("last4", paymentMethod.usBankAccount?.last4)
       it.putString("bankName", paymentMethod.usBankAccount?.bankName)
-      it.putString("linkedAccount", paymentMethod.usBankAccount?.linkedAccount)
+      it.putString("linkedAccount", paymentMethod.usBankAccount?.financialConnectionsAccount)
       it.putString("fingerprint", paymentMethod.usBankAccount?.fingerprint)
       it.putString("preferredNetworks", paymentMethod.usBankAccount?.networks?.preferred)
       it.putArray(
