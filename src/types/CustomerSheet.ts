@@ -47,6 +47,14 @@ export type CustomerSheetInitParams = {
    *  If false, the customer can't delete if they only have one saved payment method remaining.
    */
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
+
+  /**
+   * By default, CustomerSheet will accept all supported cards by Stripe.
+   * You can specify card brands CustomerSheet should block or allow payment for by providing an array of those card brands.
+   * Note: This is only a client-side solution.
+   * Note: Card brand filtering is not currently supported in Link.
+   */
+    cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
 };
 
 export type CustomerSheetPresentParams = {

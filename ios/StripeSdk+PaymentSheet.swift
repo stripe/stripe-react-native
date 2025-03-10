@@ -6,14 +6,14 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(STP) import StripePaymentSheet
+@_spi(CardBrandFilteringBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
             params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
         var configuration = PaymentSheet.Configuration()
-        
+
         configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
 
         if let appearanceParams = params["appearance"] as? NSDictionary {
@@ -37,7 +37,7 @@ extension StripeSdk {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
             }
         }
-        
+
         if let merchantDisplayName = params["merchantDisplayName"] as? String {
             configuration.merchantDisplayName = merchantDisplayName
         }
@@ -49,11 +49,11 @@ extension StripeSdk {
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
-        
+
         if let removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String {
             configuration.removeSavedPaymentMethodMessage = removeSavedPaymentMethodMessage
         }
-        
+
         if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
             configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
             configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
@@ -77,19 +77,19 @@ extension StripeSdk {
             }
 
         }
-        
+
         if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
             configuration.shippingDetails = {
                 return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
             }
         }
-        
+
         if #available(iOS 13.0, *) {
             if let style = params["style"] as? String {
                 configuration.style = Mappers.mapToUserInterfaceStyle(style)
             }
         }
-        
+
         if let customerId = params["customerId"] as? String {
             if let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String {
                 if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {
@@ -98,29 +98,33 @@ extension StripeSdk {
                 configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
             }
         }
-        
+
         if let preferredNetworksAsInts = params["preferredNetworks"] as? Array<Int> {
             configuration.preferredNetworks = preferredNetworksAsInts.map(Mappers.intToCardBrand).compactMap { $0 }
         }
-        
+
         if let allowsRemovalOfLastSavedPaymentMethod = params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
-        
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
-                
+
+        if let cardBrandAcceptanceDict = options["cardBrandAcceptance"] as? [String: Any] {
+            configuration.cardBrandAcceptance = parseCardBrandAcceptance(cardBrandAcceptanceDict)
+        }
+
         return (nil, configuration)
     }
-    
+
     internal func preparePaymentSheetInstance(
         params: NSDictionary,
         configuration: PaymentSheet.Configuration,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
         self.paymentSheetFlowController = nil
-        
+
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
             switch result {
             case .failure(let error):
@@ -187,7 +191,7 @@ extension StripeSdk {
                 paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
                 captureMethod: mapCaptureMethod(captureMethodString)
             )
-            
+
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(intentConfiguration: intentConfig, configuration: configuration) { [weak self] result in
                     handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
@@ -201,7 +205,7 @@ extension StripeSdk {
             }
         }
     }
-    
+
     private func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {
@@ -213,7 +217,48 @@ extension StripeSdk {
         }
         return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
     }
-    
+
+    private func parseCardBrandAcceptance(_ dict: [String: Any]) -> PaymentSheet.CardBrandAcceptance {
+      if let type = dict["type"] as? String {
+          switch type {
+          case "all":
+              return .all
+          case "allowed":
+              if let brandsArray = dict["brands"] as? [String] {
+                  let brands = brandsArray.compactMap { brandString -> PaymentSheet.CardBrandAcceptance.BrandCategory? in
+                      return mapBrandCategory(brandString)
+                  }
+                  return .allowed(brands: brands)
+              }
+          case "disallowed":
+              if let brandsArray = dict["brands"] as? [String] {
+                  let brands = brandsArray.compactMap { brandString -> PaymentSheet.CardBrandAcceptance.BrandCategory? in
+                      return mapBrandCategory(brandString)
+                  }
+                  return .disallowed(brands: brands)
+              }
+          default:
+              break
+          }
+      }
+      return .all // Default to .all if parsing fails
+    }
+
+  private func mapBrandCategory(_ brandString: String) -> PaymentSheet.CardBrandAcceptance.BrandCategory? {
+      switch brandString {
+      case "visa":
+          return .visa
+      case "mastercard":
+          return .mastercard
+      case "amex":
+          return .amex
+      case "discoverGlobalNetwork":
+          return .discoverGlobalNetwork
+      default:
+          return nil
+      }
+  }
+
     private func buildIntentConfiguration(
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
@@ -251,7 +296,7 @@ extension StripeSdk {
                 }
             })
     }
-    
+
     private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
         if (applePayParams["request"] == nil) {
             return nil
@@ -277,7 +322,7 @@ extension StripeSdk {
             }
         })
     }
-    
+
     internal static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
         switch str {
         case "automatic":
@@ -290,7 +335,7 @@ extension StripeSdk {
             return .automatic
         }
     }
-    
+
     internal static func mapToAddressCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
         switch str {
         case "automatic":
