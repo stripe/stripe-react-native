@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -84,35 +85,35 @@ class AddressSheetView(
     }
   }
 
-  fun setAppearance(appearanceParams: ReadableMap) {
+  fun setAppearance(appearanceParams: ReadableMap?) {
     this.appearanceParams = appearanceParams
   }
 
-  fun setDefaultValues(defaults: ReadableMap) {
-    defaultAddress = buildAddressDetails(defaults)
+  fun setDefaultValues(defaults: ReadableMap?) {
+    defaultAddress = defaults?.let { buildAddressDetails(it) }
   }
 
-  fun setAdditionalFields(fields: ReadableMap) {
-    additionalFields = buildAdditionalFieldsConfiguration(fields)
+  fun setAdditionalFields(fields: ReadableMap?) {
+    additionalFields = fields?.let { buildAdditionalFieldsConfiguration(it) }
   }
 
-  fun setAllowedCountries(countries: List<String>) {
-    allowedCountries = countries.toSet()
+  fun setAllowedCountries(countries: List<String>?) {
+    allowedCountries = countries?.toSet() ?: emptySet()
   }
 
-  fun setAutocompleteCountries(countries: List<String>) {
-    autocompleteCountries = countries.toSet()
+  fun setAutocompleteCountries(countries: List<String>?) {
+    autocompleteCountries = countries?.toSet() ?: emptySet()
   }
 
-  fun setPrimaryButtonTitle(title: String) {
+  fun setPrimaryButtonTitle(title: String?) {
     buttonTitle = title
   }
 
-  fun setSheetTitle(title: String) {
+  fun setSheetTitle(title: String?) {
     sheetTitle = title
   }
 
-  fun setGooglePlacesApiKey(key: String) {
+  fun setGooglePlacesApiKey(key: String?) {
     googlePlacesApiKey = key
   }
 
@@ -125,7 +126,8 @@ class AddressSheetView(
         isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
       )
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails =
+      buildAddressDetails(toBundleObject(map))
 
     internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
       if (bundle == null) {
@@ -159,20 +161,21 @@ class AddressSheetView(
     }
 
     internal fun buildResult(addressDetails: AddressDetails): WritableMap {
-      val result = WritableNativeMap()
-      result.putString("name", addressDetails.name)
-      WritableNativeMap().let {
-        it.putString("city", addressDetails.address?.city)
-        it.putString("country", addressDetails.address?.country)
-        it.putString("line1", addressDetails.address?.line1)
-        it.putString("line2", addressDetails.address?.line2)
-        it.putString("postalCode", addressDetails.address?.postalCode)
-        it.putString("state", addressDetails.address?.state)
-        result.putMap("address", it)
+      return WritableNativeMap().apply {
+        putMap("result", WritableNativeMap().apply {
+          putString("name", addressDetails.name)
+          putMap("address", WritableNativeMap().apply {
+            putString("city", addressDetails.address?.city)
+            putString("country", addressDetails.address?.country)
+            putString("line1", addressDetails.address?.line1)
+            putString("line2", addressDetails.address?.line2)
+            putString("postalCode", addressDetails.address?.postalCode)
+            putString("state", addressDetails.address?.state)
+          })
+          putString("phone", addressDetails.phoneNumber)
+          putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
+        })
       }
-      result.putString("phone", addressDetails.phoneNumber)
-      result.putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
-      return result
     }
   }
 }
