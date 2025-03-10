@@ -32,6 +32,20 @@
     "metaData": [{
       "android:name": "com.google.android.gms.wallet.api.enabled",
       "android:value": "true"
-    }]
+    }],
+    "signingConfigs": {
+      "debug": {
+        "keyAlias": "androiddebugkey",
+        "keyPassword": "android",
+        "storeFile": "debug.keystore",
+        "storePassword": "android"
+      },
+      "release": {
+        "keyAlias": "androiddebugkey",
+        "keyPassword": "android",
+        "storeFile": "debug.keystore",
+        "storePassword": "android"
+      }
+    }
   }
 }
