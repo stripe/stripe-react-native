@@ -256,6 +256,8 @@ class PaymentSheetFragment(
         .preferredNetworks(
           mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
+
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 
@@ -627,3 +629,40 @@ fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureM
     "AutomaticAsync" -> PaymentSheet.IntentConfiguration.CaptureMethod.AutomaticAsync
     else -> PaymentSheet.IntentConfiguration.CaptureMethod.Automatic
   }
+
+fun mapToCardBrandAcceptance(params: Bundle?): PaymentSheet.CardBrandAcceptance {
+  val cardBrandAcceptanceParams = params?.getBundle("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
+  val filter = cardBrandAcceptanceParams.getString("filter") ?: return PaymentSheet.CardBrandAcceptance.all()
+
+  return when (filter) {
+    "all" -> PaymentSheet.CardBrandAcceptance.all()
+    "allowed" -> {
+      val brands = cardBrandAcceptanceParams.getStringArrayList("brands") ?: return PaymentSheet.CardBrandAcceptance.all()
+      val brandCategories = brands.mapNotNull { mapToCardBrandCategory(it) }
+      if (brandCategories.isEmpty()) {
+        return PaymentSheet.CardBrandAcceptance.all()
+      }
+      PaymentSheet.CardBrandAcceptance.allowed(brandCategories)
+    }
+    "disallowed" -> {
+      val brands = cardBrandAcceptanceParams.getStringArrayList("brands") ?: return PaymentSheet.CardBrandAcceptance.all()
+      val brandCategories = brands.mapNotNull { mapToCardBrandCategory(it) }
+      if (brandCategories.isEmpty()) {
+        return PaymentSheet.CardBrandAcceptance.all()
+      }
+      PaymentSheet.CardBrandAcceptance.disallowed(brandCategories)
+    }
+    else -> PaymentSheet.CardBrandAcceptance.all()
+  }
+}
+
+fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? {
+  return when (brand) {
+    "visa" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Visa
+    "mastercard" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Mastercard
+    "amex" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Amex
+    "discover" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Discover
+    else -> null
+  }
+}
+
