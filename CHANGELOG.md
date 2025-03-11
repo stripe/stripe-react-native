@@ -11,6 +11,8 @@
 
 - Updated `stripe-ios` to 24.7.\*
 - Updated `stripe-android` to 21.6.\*
+- Supports React Native 0.78
+- Compatible with new architecture when bridgeless mode is disabled
 
 ## 0.42.0 - 2025-02-25
 
