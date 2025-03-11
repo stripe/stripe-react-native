@@ -26,6 +26,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetErrorType
 import com.reactnativestripesdk.utils.PaymentSheetException
@@ -62,6 +63,7 @@ class PaymentSheetFragment(
   private var presentPromise: Promise? = null
   private var paymentSheetTimedOut = false
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  private var keepJsAwake: KeepJsAwakeTask? = null
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -142,7 +144,7 @@ class PaymentSheetFragment(
                 )
               }
             }
-        presentPromise?.resolve(result)
+        resolvePresentPromise(result)
       }
 
     val paymentResultCallback =
@@ -300,7 +302,8 @@ class PaymentSheetFragment(
   }
 
   fun present(promise: Promise) {
-    this.presentPromise = promise
+    keepJsAwake = KeepJsAwakeTask(context).apply { start() }
+    presentPromise = promise
     if (paymentSheet != null) {
       if (!paymentIntentClientSecret.isNullOrEmpty()) {
         paymentSheet?.presentWithPaymentIntent(
@@ -423,11 +426,16 @@ class PaymentSheetFragment(
     }
   }
 
+  private fun resolvePresentPromise(value: Any?) {
+    keepJsAwake?.stop()
+    presentPromise?.resolve(value)
+  }
+
   private fun resolvePaymentResult(map: WritableMap) {
     confirmPromise?.let {
       it.resolve(map)
       confirmPromise = null
-    } ?: run { presentPromise?.resolve(map) }
+    } ?: run { resolvePresentPromise(map) }
   }
 
   companion object {

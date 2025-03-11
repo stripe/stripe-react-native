@@ -3,8 +3,6 @@ import {
   NativeEventEmitter,
   NativeModules,
   EmitterSubscription,
-  AppRegistry,
-  Platform,
 } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import type {
@@ -15,22 +13,6 @@ import type {
   StripeError,
   CustomerAdapter,
 } from '../types';
-
-// On Android when the activity is paused, JS timers are paused,
-// which causes network requests to hang indefinitely on new arch.
-// To work around this, we register a headless task that will keep
-// the JS runtime running while the customer sheet is open.
-// This task is started and stopped by the native module.
-if (Platform.OS === 'android') {
-  function stripeCustomerSheetHeadlessTask() {
-    return new Promise<void>(() => {});
-  }
-
-  AppRegistry.registerHeadlessTask(
-    'StripeCustomerSheetTask',
-    () => stripeCustomerSheetHeadlessTask
-  );
-}
 
 const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
 let fetchPaymentMethodsCallback: EmitterSubscription | null = null;

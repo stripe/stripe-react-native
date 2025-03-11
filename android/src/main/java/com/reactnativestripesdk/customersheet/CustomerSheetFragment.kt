@@ -15,14 +15,12 @@ import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.jstasks.HeadlessJsTaskConfig
-import com.facebook.react.jstasks.HeadlessJsTaskContext
 import com.reactnativestripesdk.customersheet.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -46,7 +44,7 @@ class CustomerSheetFragment : Fragment() {
   internal var context: ReactApplicationContext? = null
   internal var initPromise: Promise? = null
   private var presentPromise: Promise? = null
-  private var taskId: Int? = null
+  private var keepJsAwake: KeepJsAwakeTask? = null
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -162,11 +160,9 @@ class CustomerSheetFragment : Fragment() {
       is CustomerSheetResult.Failed -> {
         resolvePresentPromise(createError(ErrorType.Failed.toString(), result.exception))
       }
-
       is CustomerSheetResult.Selected -> {
         promiseResult = createPaymentOptionResult(result.selection)
       }
-
       is CustomerSheetResult.Canceled -> {
         promiseResult = createPaymentOptionResult(result.selection)
         promiseResult.putMap(
@@ -182,7 +178,7 @@ class CustomerSheetFragment : Fragment() {
     timeout: Long?,
     promise: Promise,
   ) {
-    startHeadlessTask()
+    keepJsAwake = context?.let { KeepJsAwakeTask(it).apply { start() } }
     presentPromise = promise
     if (timeout != null) {
       presentWithTimeout(timeout)
@@ -214,8 +210,7 @@ class CustomerSheetFragment : Fragment() {
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {
-        }
+        ) {}
 
         override fun onActivityDestroyed(activity: Activity) {
           customerSheetActivity = null
@@ -257,11 +252,9 @@ class CustomerSheetFragment : Fragment() {
           is CustomerSheetResult.Failed -> {
             promise.resolve(createError(ErrorType.Failed.toString(), result.exception))
           }
-
           is CustomerSheetResult.Selected -> {
             promiseResult = createPaymentOptionResult(result.selection)
           }
-
           is CustomerSheetResult.Canceled -> {
             promiseResult = createPaymentOptionResult(result.selection)
             promiseResult.putMap(
@@ -286,32 +279,9 @@ class CustomerSheetFragment : Fragment() {
           Log.e("StripeReactNative", "No promise found for CustomerSheet.present")
           return
         }
-    stopHeadlessTask()
+    keepJsAwake?.stop()
+    keepJsAwake = null
     presentPromise.resolve(value)
-  }
-
-  private fun startHeadlessTask() {
-    val context = context ?: return
-    val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
-
-    UiThreadUtil.runOnUiThread {
-      val taskConfig =
-        HeadlessJsTaskConfig(
-          "StripeCustomerSheetTask",
-          Arguments.createMap(),
-          0,
-          true,
-        )
-      taskId = headlessJsTaskContext.startTask(taskConfig)
-    }
-  }
-
-  private fun stopHeadlessTask() {
-    val context = context ?: return
-    val taskId = taskId ?: return
-    val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
-    headlessJsTaskContext.finishTask(taskId)
-    this.taskId = null
   }
 
   companion object {
@@ -409,7 +379,6 @@ class CustomerSheetFragment : Fragment() {
           paymentOptionResult =
             buildResult(selection.paymentOption.label, selection.paymentOption.icon(), null)
         }
-
         is PaymentOptionSelection.PaymentMethod -> {
           paymentOptionResult =
             buildResult(
@@ -418,7 +387,6 @@ class CustomerSheetFragment : Fragment() {
               selection.paymentMethod,
             )
         }
-
         null -> {}
       }
 
