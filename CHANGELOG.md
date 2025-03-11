@@ -2,10 +2,19 @@
 
 ## Unreleased
 
+## 0.43.0 - 2025-03-11
+
 **Features**
 
-- `StripeFinancialConnections` now supports dark mode on iOS, and will automatically adapt to the device's theme. [Learn more](https://docs.stripe.com/financial-connections/other-data-powered-products?platform=react-native#connections-customize-react-native) about configuring appearance settings.
+- Financial Connections now supports dark mode, and will automatically adapt to the device's theme. [Learn more](https://docs.stripe.com/financial-connections/other-data-powered-products?platform=react-native#connections-customize-react-native) about configuring appearance settings.
 - Added card brand filtering to PaymentSheet and CustomerSheet to specify allowed or blocked card brands. [1857](https://github.com/stripe/stripe-react-native/pull/1857)
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.7.\*
+- Updated `stripe-android` to 21.6.\*
+- Supports React Native 0.78
+- Compatible with new architecture when bridgeless mode is disabled
 
 ## 0.42.0 - 2025-02-25
 
