@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.43.0 - 2025-03-11
+
 **Features**
 
 - Financial Connections now supports dark mode on iOS, and will automatically adapt to the device's theme. [Learn more](https://docs.stripe.com/financial-connections/other-data-powered-products?platform=react-native#connections-customize-react-native) about configuring appearance settings.
