@@ -20,6 +20,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.customersheet.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -43,6 +44,7 @@ class CustomerSheetFragment : Fragment() {
   internal var context: ReactApplicationContext? = null
   internal var initPromise: Promise? = null
   private var presentPromise: Promise? = null
+  private var keepJsAwake: KeepJsAwakeTask? = null
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -154,17 +156,10 @@ class CustomerSheetFragment : Fragment() {
   }
 
   private fun handleResult(result: CustomerSheetResult) {
-    val presentPromise =
-      presentPromise
-        ?: run {
-          Log.e("StripeReactNative", "No promise found for CustomerSheet.present")
-          return
-        }
-
     var promiseResult = Arguments.createMap()
     when (result) {
       is CustomerSheetResult.Failed -> {
-        presentPromise.resolve(createError(ErrorType.Failed.toString(), result.exception))
+        resolvePresentPromise(createError(ErrorType.Failed.toString(), result.exception))
       }
       is CustomerSheetResult.Selected -> {
         promiseResult = createPaymentOptionResult(result.selection)
@@ -177,24 +172,22 @@ class CustomerSheetFragment : Fragment() {
         )
       }
     }
-    presentPromise.resolve(promiseResult)
+    resolvePresentPromise(promiseResult)
   }
 
   fun present(
     timeout: Long?,
     promise: Promise,
   ) {
+    keepJsAwake = context?.let { KeepJsAwakeTask(it).apply { start() } }
     presentPromise = promise
     if (timeout != null) {
-      presentWithTimeout(timeout, promise)
+      presentWithTimeout(timeout)
     }
-    customerSheet?.present() ?: run { promise.resolve(createMissingInitError()) }
+    customerSheet?.present() ?: run { resolvePresentPromise(createMissingInitError()) }
   }
 
-  private fun presentWithTimeout(
-    timeout: Long,
-    promise: Promise,
-  ) {
+  private fun presentWithTimeout(timeout: Long) {
     var customerSheetActivity: Activity? = null
     var activities: MutableList<Activity> = mutableListOf()
     val activityLifecycleCallbacks =
@@ -243,7 +236,7 @@ class CustomerSheetFragment : Fragment() {
       ?.application
       ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
-    customerSheet?.present() ?: run { promise.resolve(createMissingInitError()) }
+    customerSheet?.present() ?: run { resolvePresentPromise(createMissingInitError()) }
   }
 
   internal fun retrievePaymentOptionSelection(promise: Promise) {
@@ -278,6 +271,18 @@ class CustomerSheetFragment : Fragment() {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
       }
     }
+  }
+
+  private fun resolvePresentPromise(value: Any?) {
+    val presentPromise =
+      presentPromise
+        ?: run {
+          Log.e("StripeReactNative", "No promise found for CustomerSheet.present")
+          return
+        }
+    keepJsAwake?.stop()
+    keepJsAwake = null
+    presentPromise.resolve(value)
   }
 
   companion object {
