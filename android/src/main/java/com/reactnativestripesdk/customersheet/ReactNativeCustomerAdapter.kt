@@ -1,16 +1,14 @@
-package com.reactnativestripesdk.customersheet
+// This needs to be in the same package as StripeSdkModule to access protected methods.
+package com.reactnativestripesdk
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.WritableMap
-import com.reactnativestripesdk.StripeSdkModule
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.model.PaymentMethod
 import kotlinx.coroutines.CompletableDeferred
 
 class ReactNativeCustomerAdapter(
-  private val context: ReactApplicationContext,
+  val context: ReactApplicationContext,
   private val adapter: CustomerAdapter,
   private val overridesFetchPaymentMethods: Boolean,
   private val overridesAttachPaymentMethod: Boolean,
@@ -19,6 +17,8 @@ class ReactNativeCustomerAdapter(
   private val overridesFetchSelectedPaymentOption: Boolean,
   private val overridesSetupIntentClientSecretForCustomerAttach: Boolean,
 ) : CustomerAdapter by adapter {
+  private val stripeSdkModule = context.getNativeModule(StripeSdkModule::class.java)
+
   internal var fetchPaymentMethodsCallback: CompletableDeferred<List<PaymentMethod>>? = null
   internal var attachPaymentMethodCallback: CompletableDeferred<PaymentMethod>? = null
   internal var detachPaymentMethodCallback: CompletableDeferred<PaymentMethod>? = null
@@ -30,7 +30,7 @@ class ReactNativeCustomerAdapter(
     if (overridesFetchPaymentMethods) {
       CompletableDeferred<List<PaymentMethod>>().also {
         fetchPaymentMethodsCallback = it
-        emitEvent("onCustomerAdapterFetchPaymentMethodsCallback", Arguments.createMap())
+        stripeSdkModule?.emitOnCustomerAdapterFetchPaymentMethodsCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -44,7 +44,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<PaymentMethod>().also {
         attachPaymentMethodCallback = it
         val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
-        emitEvent("onCustomerAdapterAttachPaymentMethodCallback", params)
+        stripeSdkModule?.emitOnCustomerAdapterAttachPaymentMethodCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -58,7 +58,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<PaymentMethod>().also {
         detachPaymentMethodCallback = it
         val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
-        emitEvent("onCustomerAdapterDetachPaymentMethodCallback", params)
+        stripeSdkModule?.emitOnCustomerAdapterDetachPaymentMethodCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -72,7 +72,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<Unit>().also {
         setSelectedPaymentOptionCallback = it
         val params = Arguments.createMap().also { it.putString("paymentOption", paymentOption?.id) }
-        emitEvent("onCustomerAdapterSetSelectedPaymentOptionCallback", params)
+        stripeSdkModule?.emitOnCustomerAdapterSetSelectedPaymentOptionCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -85,7 +85,7 @@ class ReactNativeCustomerAdapter(
     if (overridesFetchSelectedPaymentOption) {
       CompletableDeferred<String?>().also {
         fetchSelectedPaymentOptionCallback = it
-        emitEvent("onCustomerAdapterFetchSelectedPaymentOptionCallback", Arguments.createMap())
+        stripeSdkModule?.emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(
           if (resultFromJavascript != null) {
@@ -104,30 +104,12 @@ class ReactNativeCustomerAdapter(
     if (overridesSetupIntentClientSecretForCustomerAttach) {
       CompletableDeferred<String>().also {
         setupIntentClientSecretForCustomerAttachCallback = it
-        emitEvent(
-          "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback",
-          Arguments.createMap(),
-        )
+        stripeSdkModule?.emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
     }
 
     return adapter.setupIntentClientSecretForCustomerAttach()
-  }
-
-  private fun emitEvent(
-    eventName: String,
-    params: WritableMap,
-  ) {
-    val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-    if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
-      Log.e(
-        "StripeReactNative",
-        "Tried to call $eventName, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-      )
-    }
-
-    stripeSdkModule?.sendEvent(context, eventName, params)
   }
 }

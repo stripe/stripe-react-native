@@ -88,7 +88,7 @@ export default function PaymentsUICustomScreen() {
         merchantDisplayName: 'Example Inc.',
         style: 'automatic',
         googlePay: { merchantCountryCode: 'US', testEnv: true },
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
         ...clientSecretParams,
       });
