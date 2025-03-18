@@ -22,6 +22,7 @@ import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
 import com.reactnativestripesdk.mapToAddressCollectionMode
+import com.reactnativestripesdk.mapToCardBrandAcceptance
 import com.reactnativestripesdk.mapToCollectionMode
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
@@ -367,18 +368,18 @@ class CustomerSheetFragment : Fragment() {
         context = context,
         adapter = customerAdapter,
         overridesFetchPaymentMethods =
-        customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
+          customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
         overridesAttachPaymentMethod =
-        customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
+          customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
         overridesDetachPaymentMethod =
-        customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
+          customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
         overridesSetSelectedPaymentOption =
-        customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
+          customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
         overridesFetchSelectedPaymentOption =
-        customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
+          customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
         overridesSetupIntentClientSecretForCustomerAttach =
-        customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach")
-          ?: false,
+          customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach")
+            ?: false,
       )
     }
 
