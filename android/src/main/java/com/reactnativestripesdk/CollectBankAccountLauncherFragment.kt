@@ -38,10 +38,10 @@ class CollectBankAccountLauncherFragment(
     super.onCreate(savedInstanceState)
 
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-    if (stripeSdkModule != null && stripeSdkModule.eventListenerCount > 0) {
+    if (stripeSdkModule != null) {
       FinancialConnections.setEventListener { event ->
         val params = mapFromFinancialConnectionsEvent(event)
-        stripeSdkModule.sendEvent(context, "onFinancialConnectionsEvent", params)
+        stripeSdkModule.emitOnFinancialConnectionsEvent(params)
       }
     }
   }
@@ -108,11 +108,13 @@ class CollectBankAccountLauncherFragment(
             )
           }
         }
+
         is CollectBankAccountResult.Cancelled -> {
           promise.resolve(
             createError(ErrorType.Canceled.toString(), "Bank account collection was canceled."),
           )
         }
+
         is CollectBankAccountResult.Failed -> {
           promise.resolve(createError(ErrorType.Failed.toString(), result.error))
         }

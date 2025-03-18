@@ -65,8 +65,8 @@ class CardFormView(
     cardFormViewBinding.postalCodeContainer.visibility = visibility
   }
 
-  fun setDefaultValues(defaults: ReadableMap) {
-    setCountry(defaults.getString("countryCode"))
+  fun setDefaultValues(defaults: ReadableMap?) {
+    setCountry(defaults?.getString("countryCode"))
   }
 
   fun setDisabled(isDisabled: Boolean) {
@@ -86,7 +86,7 @@ class CardFormView(
     setPostalCodeFilter()
   }
 
-  fun setPlaceHolders(value: ReadableMap) {
+  fun setPlaceHolders(value: ReadableMap?) {
     val numberPlaceholder = getValOr(value, "number", null)
     val expirationPlaceholder = getValOr(value, "expiration", null)
     val cvcPlaceholder = getValOr(value, "cvc", null)
@@ -136,11 +136,11 @@ class CardFormView(
   private fun onChangeFocus() {
     UIManagerHelper
       .getEventDispatcherForReactTag(context, id)
-      ?.dispatchEvent(CardFocusEvent(context.surfaceId, id, currentFocusedField))
+      ?.dispatchEvent(CardFocusChangeEvent(context.surfaceId, id, currentFocusedField))
   }
 
   @SuppressLint("RestrictedApi")
-  fun setCardStyle(value: ReadableMap) {
+  fun setCardStyle(value: ReadableMap?) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
     val borderWidth = getIntOrNull(value, "borderWidth")

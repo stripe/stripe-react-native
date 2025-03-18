@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useStripe } from './useStripe';
-import type { CollectFinancialConnectionsAccountsParams } from 'src/types/FinancialConnections';
-import type { CollectBankAccountTokenParams } from 'src/types/PaymentMethod';
+import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
+import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 
 /**
  * React hook for accessing functions on the Financial Connections sheet.
