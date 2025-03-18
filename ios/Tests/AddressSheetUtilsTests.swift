@@ -18,7 +18,7 @@ class AddressSheetUtilsTests: XCTestCase {
     let testState = "testState"
     let testName = "testName"
     let testPhone = "testPhone"
-    
+
     func test_buildDefaultValues_whenPassedNil() throws {
         let result = AddressSheetUtils.buildDefaultValues(params: nil)
         XCTAssertEqual(
@@ -34,7 +34,7 @@ class AddressSheetUtilsTests: XCTestCase {
             result.isCheckboxSelected, nil
         )
     }
-    
+
     func test_buildDefaultValues_whenPassedValues() throws {
         let result = AddressSheetUtils.buildDefaultValues(
             params: ["name": testName,
@@ -55,7 +55,7 @@ class AddressSheetUtilsTests: XCTestCase {
             result.isCheckboxSelected, true
         )
     }
-    
+
     func test_buildAddressDetails_whenPassedNil() throws {
         let result = AddressSheetUtils.buildAddressDetails(params: nil)
         XCTAssertEqual(
@@ -74,7 +74,7 @@ class AddressSheetUtilsTests: XCTestCase {
             result.isCheckboxSelected, nil
         )
     }
-    
+
     func test_buildAddressDetails_whenPassedValues() throws {
         let result = AddressSheetUtils.buildAddressDetails(
             params: ["name": testName,
@@ -82,7 +82,7 @@ class AddressSheetUtilsTests: XCTestCase {
                      "address": ["city": testCity],
                      "isCheckboxSelected": true]
         )
-        
+
         XCTAssertEqual(
             result.address.city, testCity
         )
@@ -99,10 +99,10 @@ class AddressSheetUtilsTests: XCTestCase {
             result.isCheckboxSelected, true
         )
     }
-    
+
     func test_buildAddress_forPaymentSheet_whenPassedNil() throws {
         let result: PaymentSheet.Address = AddressSheetUtils.buildAddress(params: nil)
-        
+
         XCTAssertEqual(
             result.city, nil
         )
@@ -122,12 +122,12 @@ class AddressSheetUtilsTests: XCTestCase {
             result.state, nil
         )
     }
-    
+
     func test_buildAddress_forPaymentSheet_whenPassedValues() throws {
         let result: PaymentSheet.Address = AddressSheetUtils.buildAddress(
             params: ["city": testCity, "country": testCountry, "line1": testLine1, "line2": testLine2, "postalCode": testPostalCode, "state": testState]
         )
-        
+
         XCTAssertEqual(
             result.city, testCity
         )
@@ -147,10 +147,10 @@ class AddressSheetUtilsTests: XCTestCase {
             result.state, testState
         )
     }
-    
+
     func test_buildAddress_forAddressViewController_whenPassedNil() throws {
         let result: AddressViewController.AddressDetails.Address = AddressSheetUtils.buildAddress(params: nil)
-        
+
         XCTAssertEqual(
             result.city, nil
         )
@@ -170,12 +170,12 @@ class AddressSheetUtilsTests: XCTestCase {
             result.state, nil
         )
     }
-    
+
     func test_buildAddress_forAddressViewController_whenPassedValues() throws {
         let result: AddressViewController.AddressDetails.Address = AddressSheetUtils.buildAddress(
             params: ["city": testCity, "country": testCountry, "line1": testLine1, "line2": testLine2, "postalCode": testPostalCode, "state": testState]
         )
-        
+
         XCTAssertEqual(
             result.city, testCity
         )
@@ -195,10 +195,10 @@ class AddressSheetUtilsTests: XCTestCase {
             result.state, testState
         )
     }
-    
+
     func test_buildAdditionalFieldsConfiguration_whenPassedNil() throws {
         let result = AddressSheetUtils.buildAdditionalFieldsConfiguration(params: nil)
-        
+
         XCTAssertEqual(
             result.phone, .hidden
         )
@@ -206,13 +206,13 @@ class AddressSheetUtilsTests: XCTestCase {
             result.checkboxLabel, nil
         )
     }
-    
+
     func test_buildAdditionalFieldsConfiguration_whenPassedValues() throws {
         let testCheckboxLabel = "testCheckboxLabel"
         let result = AddressSheetUtils.buildAdditionalFieldsConfiguration(
             params: ["name": "hidden", "phoneNumber": "optional", "checkboxLabel": testCheckboxLabel]
         )
-        
+
         XCTAssertEqual(
             result.phone, .optional
         )
@@ -220,29 +220,29 @@ class AddressSheetUtilsTests: XCTestCase {
             result.checkboxLabel, testCheckboxLabel
         )
     }
-    
+
     func test_getFieldConfiguration() throws {
         XCTAssertEqual(
             AddressSheetUtils.getFieldConfiguration(input: nil, default: .hidden), .hidden
         )
-        
+
         XCTAssertEqual(
             AddressSheetUtils.getFieldConfiguration(input: "optional", default: .hidden), .optional
         )
-        
+
         XCTAssertEqual(
             AddressSheetUtils.getFieldConfiguration(input: "required", default: .hidden), .required
         )
-        
+
         XCTAssertEqual(
             AddressSheetUtils.getFieldConfiguration(input: "hidden", default: .hidden), .hidden
         )
-        
+
         XCTAssertEqual(
             AddressSheetUtils.getFieldConfiguration(input: "hidden", default: .optional), .hidden
         )
     }
-    
+
     func test_buildResult() throws {
         let input = AddressViewController.AddressDetails(
             address: AddressViewController.AddressDetails.Address(
@@ -252,22 +252,24 @@ class AddressSheetUtilsTests: XCTestCase {
             phone: testPhone,
             isCheckboxSelected: true
         )
-        
+
         XCTAssertEqual(
             AddressSheetUtils.buildResult(address: input) as NSDictionary,
             [
-                "name": testName,
-                "phone": testPhone,
-                "isCheckboxSelected": true,
-                "address": [
-                    "city": testCity,
-                    "country": testCountry,
-                    "line1": testLine1,
-                    "line2": testLine2,
-                    "postalCode": testPostalCode,
-                    "state": testState
-                ]
-            ] as NSDictionary
+                "result": [
+                    "name": testName,
+                    "phone": testPhone,
+                    "isCheckboxSelected": true,
+                    "address": [
+                        "city": testCity,
+                        "country": testCountry,
+                        "line1": testLine1,
+                        "line2": testLine2,
+                        "postalCode": testPostalCode,
+                        "state": testState
+                    ]
+                ] as NSDictionary
+            ]
         )
     }
 }
