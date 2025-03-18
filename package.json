@@ -145,6 +145,9 @@
     "android": {
       "javaPackageName": "com.reactnativestripesdk"
     },
+    "ios": {
+      "componentProvider": {}
+    },
     "name": "rnstripe",
     "type": "all",
     "jsSrcsDir": "./src/specs"

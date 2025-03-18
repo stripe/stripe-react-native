@@ -93,8 +93,8 @@ class AddressSheetUtils {
                 ],
                 "phone": address.phone ?? NSNull(),
                 "isCheckboxSelected": address.isCheckboxSelected ?? NSNull(),
-            ]
-        ] as [AnyHashable : Any]
+            ] as [AnyHashable : Any]
+        ]
     }
 
 }
