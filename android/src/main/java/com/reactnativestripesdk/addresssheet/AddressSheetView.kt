@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -126,8 +125,7 @@ class AddressSheetView(
         isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
       )
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails =
-      buildAddressDetails(toBundleObject(map))
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
 
     internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
       if (bundle == null) {
@@ -160,22 +158,27 @@ class AddressSheetView(
       )
     }
 
-    internal fun buildResult(addressDetails: AddressDetails): WritableMap {
-      return WritableNativeMap().apply {
-        putMap("result", WritableNativeMap().apply {
-          putString("name", addressDetails.name)
-          putMap("address", WritableNativeMap().apply {
-            putString("city", addressDetails.address?.city)
-            putString("country", addressDetails.address?.country)
-            putString("line1", addressDetails.address?.line1)
-            putString("line2", addressDetails.address?.line2)
-            putString("postalCode", addressDetails.address?.postalCode)
-            putString("state", addressDetails.address?.state)
-          })
-          putString("phone", addressDetails.phoneNumber)
-          putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
-        })
+    internal fun buildResult(addressDetails: AddressDetails): WritableMap =
+      WritableNativeMap().apply {
+        putMap(
+          "result",
+          WritableNativeMap().apply {
+            putString("name", addressDetails.name)
+            putMap(
+              "address",
+              WritableNativeMap().apply {
+                putString("city", addressDetails.address?.city)
+                putString("country", addressDetails.address?.country)
+                putString("line1", addressDetails.address?.line1)
+                putString("line2", addressDetails.address?.line2)
+                putString("postalCode", addressDetails.address?.postalCode)
+                putString("state", addressDetails.address?.state)
+              },
+            )
+            putString("phone", addressDetails.phoneNumber)
+            putBoolean("isCheckboxSelected", addressDetails.isCheckboxSelected ?: false)
+          },
+        )
       }
-    }
   }
 }

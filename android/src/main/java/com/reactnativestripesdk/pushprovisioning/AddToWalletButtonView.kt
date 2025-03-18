@@ -176,7 +176,8 @@ class AddToWalletButtonView(
   }
 
   fun dispatchEvent(error: WritableMap?) {
-    UIManagerHelper.getEventDispatcherForReactTag(context, id)
+    UIManagerHelper
+      .getEventDispatcherForReactTag(context, id)
       ?.dispatchEvent(AddToWalletCompleteEvent(context.surfaceId, id, error))
   }
 }

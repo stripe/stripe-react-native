@@ -11,7 +11,8 @@ import com.facebook.react.viewmanagers.AddressSheetViewManagerDelegate
 import com.facebook.react.viewmanagers.AddressSheetViewManagerInterface
 
 @ReactModule(name = AddressSheetViewManager.REACT_CLASS)
-class AddressSheetViewManager : SimpleViewManager<AddressSheetView>(),
+class AddressSheetViewManager :
+  SimpleViewManager<AddressSheetView>(),
   AddressSheetViewManagerInterface<AddressSheetView> {
   private val delegate = AddressSheetViewManagerDelegate(this)
 
@@ -100,17 +101,22 @@ class AddressSheetViewManager : SimpleViewManager<AddressSheetView>(),
   }
 
   @ReactProp(name = "presentationStyle")
-  override fun setPresentationStyle(view: AddressSheetView, value: String?) {
+  override fun setPresentationStyle(
+    view: AddressSheetView,
+    value: String?,
+  ) {
     // noop iOS only.
   }
 
   @ReactProp(name = "animationStyle")
-  override fun setAnimationStyle(view: AddressSheetView, value: String?) {
+  override fun setAnimationStyle(
+    view: AddressSheetView,
+    value: String?,
+  ) {
     // noop iOS only.
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddressSheetView =
-    AddressSheetView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AddressSheetView = AddressSheetView(reactContext)
 
   companion object {
     const val REACT_CLASS = "AddressSheetView"

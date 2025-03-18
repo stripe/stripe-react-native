@@ -215,7 +215,7 @@ class PaymentSheetFragment(
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-        billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
+          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
       )
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
@@ -469,11 +469,11 @@ class PaymentSheetFragment(
 
       return PaymentSheet.GooglePayConfiguration(
         environment =
-        if (testEnv) {
-          PaymentSheet.GooglePayConfiguration.Environment.Test
-        } else {
-          PaymentSheet.GooglePayConfiguration.Environment.Production
-        },
+          if (testEnv) {
+            PaymentSheet.GooglePayConfiguration.Environment.Test
+          } else {
+            PaymentSheet.GooglePayConfiguration.Environment.Production
+          },
         countryCode = countryCode,
         currencyCode = currencyCode,
         amount = amount,
@@ -496,8 +496,8 @@ class PaymentSheetFragment(
       return PaymentSheet.IntentConfiguration(
         mode = buildIntentConfigurationMode(modeParams),
         paymentMethodTypes =
-        intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList()
-          ?: emptyList(),
+          intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList()
+            ?: emptyList(),
       )
     }
 

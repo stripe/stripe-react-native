@@ -220,7 +220,7 @@ class FinancialConnectionsSheetFragment : Fragment() {
             account.supportedPaymentMethodTypes.map { type ->
               mapFromSupportedPaymentMethodTypes(type)
             }
-            ).toReadableArray(),
+          ).toReadableArray(),
         )
         results.pushMap(map)
       }

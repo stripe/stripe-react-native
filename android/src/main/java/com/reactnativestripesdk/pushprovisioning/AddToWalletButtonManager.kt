@@ -75,12 +75,18 @@ class AddToWalletButtonManager(
   }
 
   @ReactProp(name = "iOSButtonStyle")
-  override fun setIOSButtonStyle(view: AddToWalletButtonView, value: String?) {
+  override fun setIOSButtonStyle(
+    view: AddToWalletButtonView,
+    value: String?,
+  ) {
     // noop, iOS only.
   }
 
   @ReactProp(name = "testEnv")
-  override fun setTestEnv(view: AddToWalletButtonView, value: Boolean) {
+  override fun setTestEnv(
+    view: AddToWalletButtonView,
+    value: Boolean,
+  ) {
     // noop, iOS only.
   }
 

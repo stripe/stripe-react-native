@@ -9,7 +9,8 @@ import com.facebook.react.viewmanagers.AuBECSDebitFormManagerDelegate
 import com.facebook.react.viewmanagers.AuBECSDebitFormManagerInterface
 
 @ReactModule(name = AuBECSDebitFormViewManager.REACT_CLASS)
-class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>(),
+class AuBECSDebitFormViewManager :
+  SimpleViewManager<AuBECSDebitFormView>(),
   AuBECSDebitFormManagerInterface<AuBECSDebitFormView> {
   private val delegate = AuBECSDebitFormManagerDelegate(this)
 
@@ -39,8 +40,7 @@ class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>(),
     view.setFormStyle(style)
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView =
-    AuBECSDebitFormView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView = AuBECSDebitFormView(reactContext)
 
   companion object {
     const val REACT_CLASS = "AuBECSDebitForm"

@@ -8,7 +8,8 @@ import com.facebook.react.viewmanagers.StripeContainerManagerDelegate
 import com.facebook.react.viewmanagers.StripeContainerManagerInterface
 
 @ReactModule(name = StripeContainerManager.REACT_CLASS)
-class StripeContainerManager : ViewGroupManager<StripeContainerView>(),
+class StripeContainerManager :
+  ViewGroupManager<StripeContainerView>(),
   StripeContainerManagerInterface<StripeContainerView> {
   private val delegate = StripeContainerManagerDelegate(this)
 
@@ -24,8 +25,7 @@ class StripeContainerManager : ViewGroupManager<StripeContainerView>(),
     view.setKeyboardShouldPersistTaps(keyboardShouldPersistTaps)
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext) =
-    StripeContainerView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext) = StripeContainerView(reactContext)
 
   companion object {
     const val REACT_CLASS = "StripeContainer"

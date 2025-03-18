@@ -174,13 +174,14 @@ class StripeSdkModule(
   }
 
   @SuppressLint("RestrictedApi")
-  override fun getTypedExportedConstants() = mapOf(
-    "API_VERSIONS" to
-      mapOf(
-        "CORE" to ApiVersion.API_VERSION_CODE,
-        "ISSUING" to PushProvisioningProxy.getApiVersion(),
-      ),
-  )
+  override fun getTypedExportedConstants() =
+    mapOf(
+      "API_VERSIONS" to
+        mapOf(
+          "CORE" to ApiVersion.API_VERSION_CODE,
+          "ISSUING" to PushProvisioningProxy.getApiVersion(),
+        ),
+    )
 
   @ReactMethod
   override fun initialise(
@@ -310,16 +311,16 @@ class StripeSdkModule(
       stripe.createPaymentMethod(
         paymentMethodCreateParams,
         callback =
-        object : ApiResultCallback<PaymentMethod> {
-          override fun onError(e: Exception) {
-            promise.resolve(createError("Failed", e))
-          }
+          object : ApiResultCallback<PaymentMethod> {
+            override fun onError(e: Exception) {
+              promise.resolve(createError("Failed", e))
+            }
 
-          override fun onSuccess(result: PaymentMethod) {
-            val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
-            promise.resolve(createResult("paymentMethod", paymentMethodMap))
-          }
-        },
+            override fun onSuccess(result: PaymentMethod) {
+              val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
+              promise.resolve(createResult("paymentMethod", paymentMethodMap))
+            }
+          },
       )
     } catch (error: PaymentMethodCreateParamsException) {
       promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), error))
@@ -471,18 +472,18 @@ class StripeSdkModule(
     stripe.createCvcUpdateToken(
       cvc,
       callback =
-      object : ApiResultCallback<Token> {
-        override fun onSuccess(result: Token) {
-          val tokenId = result.id
-          val res = WritableNativeMap()
-          res.putString("tokenId", tokenId)
-          promise.resolve(res)
-        }
+        object : ApiResultCallback<Token> {
+          override fun onSuccess(result: Token) {
+            val tokenId = result.id
+            val res = WritableNativeMap()
+            res.putString("tokenId", tokenId)
+            promise.resolve(res)
+          }
 
-        override fun onError(e: Exception) {
-          promise.resolve(createError("Failed", e))
-        }
-      },
+          override fun onError(e: Exception) {
+            promise.resolve(createError("Failed", e))
+          }
+        },
     )
   }
 
@@ -1230,7 +1231,10 @@ class StripeSdkModule(
     }
   }
 
-  override fun handleURLCallback(url: String, promise: Promise) {
+  override fun handleURLCallback(
+    url: String,
+    promise: Promise,
+  ) {
     // noop, iOS only.
   }
 
@@ -1243,7 +1247,7 @@ class StripeSdkModule(
     orderIdentifier: String,
     webServiceUrl: String,
     authenticationToken: String,
-    promise: Promise
+    promise: Promise,
   ) {
     // noop, iOS only.
   }
@@ -1256,7 +1260,7 @@ class StripeSdkModule(
     summaryItems: ReadableArray?,
     shippingMethods: ReadableArray?,
     errors: ReadableArray?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     // noop, iOS only.
   }
