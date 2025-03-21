@@ -84,6 +84,7 @@ class PaymentSheetFragment(
     }
     val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
     val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
+    val linkConfig = buildLinkConfig(arguments?.getBundle("link"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
@@ -486,6 +487,26 @@ class PaymentSheetFragment(
         label = label,
         buttonType = buttonType,
       )
+    }
+
+    internal fun buildLinkConfig(params: Bundle?): PaymentSheet.LinkConfiguration {
+      if (params == null) {
+        return PaymentSheet.LinkConfiguration()
+      }
+
+      val display = mapStringToLinkDisplay(params.getString("display"))
+
+      return PaymentSheet.LinkConfiguration(
+        display: display,
+      )
+    }
+
+    private fun mapStringToLinkDisplay(value: String?): PaymentSheet.LinkConfiguration.Display {
+      return when (value) {
+        "automatic" -> PaymentSheet.LinkConfiguration.Display.Automatic
+        "never" -> PaymentSheet.LinkConfiguration.Display.Never
+        else -> PaymentSheet.LinkConfiguration.Display.Automatic
+      }
     }
 
     @Throws(PaymentSheetException::class)
