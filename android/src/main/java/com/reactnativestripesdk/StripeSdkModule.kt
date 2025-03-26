@@ -57,6 +57,7 @@ import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -1262,6 +1263,77 @@ class StripeSdkModule(
     }
     promise?.resolve(createMissingActivityError())
     return null
+  }
+
+  /**
+   * Custom
+   */
+
+  private fun extractPaymentMethodCreateParams(options: ReadableMap, token: String?): PaymentMethodCreateParams {
+    val cardParams = getMapOrNull(options, "card")
+    val billingDetailsParams = getMapOrNull(options, "billingDetails")
+    val addressParams = getMapOrNull(billingDetailsParams, "address")
+    val address = mapToAddress(addressParams, null)
+    val billingDetails = PaymentMethod.BillingDetails.Builder()
+        .setAddress(address)
+        .setEmail(getValOr(billingDetailsParams, "email"))
+        .setName(getValOr(billingDetailsParams, "name"))
+        .setPhone(getValOr(billingDetailsParams, "phone"))
+        .build()
+    val card = if (token != null) {
+        PaymentMethodCreateParams.Card.create(token)
+      } else {
+        PaymentMethodCreateParams.Card.Builder()
+          .setCvc(cardParams?.getString("cvc"))
+          .setExpiryMonth(cardParams?.getInt("expMonth"))
+          .setExpiryYear(cardParams?.getInt("expYear"))
+          .setNumber(cardParams?.getString("number"))
+          .build()
+      }
+    return PaymentMethodCreateParams.create(
+      card,
+      billingDetails,
+    )
+  }
+
+  @ReactMethod
+  fun createPaymentMethodCustomNative(params: ReadableMap, promise: Promise) {
+    val billingDetailsParams = getMapOrNull(params, "billingDetails")
+    val addressParams = getMapOrNull(billingDetailsParams, "address")
+    val cardParamsMap = getMapOrNull(params, "card")
+    val cardParams = CardParams(
+      number = getValOr(cardParamsMap, "number") as String,
+      expMonth = cardParamsMap?.getInt("expMonth") ?: 0,
+      expYear = cardParamsMap?.getInt("expYear") ?: 0,
+      cvc = getValOr(cardParamsMap, "cvc", null) as String,
+      address = mapToAddress(addressParams, null),
+      name = getValOr(billingDetailsParams, "name"),
+    )
+
+    CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
+        val token = stripe.createCardTokenSynchronous(
+          cardParams = cardParams,
+          stripeAccountId = stripeAccountId,
+        )
+        val pmcp = extractPaymentMethodCreateParams(params, token.id)
+        stripe.createPaymentMethod(
+          paymentMethodCreateParams = pmcp,
+          callback = object : ApiResultCallback<PaymentMethod> {
+            override fun onError(e: Exception) {
+              promise.resolve(createError("Failed", e))
+            }
+
+            override fun onSuccess(result: PaymentMethod) {
+              val paymentMethodMap: WritableMap = mapFromPaymentMethod(result)
+              promise.resolve(createResult("paymentMethod", paymentMethodMap))
+            }
+          }
+        )
+      }.onFailure {
+        promise.resolve(createError("Failed", it))
+      }
+    }
   }
 
   companion object {

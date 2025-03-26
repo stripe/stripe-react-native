@@ -152,6 +152,9 @@ type NativeStripeSdkType = {
   customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
     clientSecret: String
   ): Promise<void>;
+  createPaymentMethodCustomNative(
+    params: PaymentMethod.CreateParams
+  ): Promise<CreatePaymentMethodResult>;
 };
 
 const { StripeSdk } = NativeModules;

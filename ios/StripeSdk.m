@@ -241,4 +241,9 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
+RCT_EXTERN_METHOD(
+                  createPaymentMethodCustomNative:(NSDictionary *)params
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
 @end
