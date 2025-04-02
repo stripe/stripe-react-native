@@ -82,6 +82,11 @@ export type SetupParamsBase = IntentParams & {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: CardBrandAcceptance;
+
+  /** (Private Preview) This parameter is expected to be removed once we GA this feature
+   * When using customerSessions, allow users to update their saved cards
+   */
+  updatePaymentMethodEnabled?: boolean;
 };
 
 export type SetupParams =

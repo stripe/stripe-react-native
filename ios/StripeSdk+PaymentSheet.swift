@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(UpdatePaymentMethodBeta) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
@@ -112,7 +112,11 @@ extension StripeSdk {
         if let allowsRemovalOfLastSavedPaymentMethod = params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
-        
+
+        if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
+            configuration.updatePaymentMethodEnabled = updatePaymentMethodEnabled
+        }
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
             configuration.paymentMethodOrder = paymentMethodOrder
         }

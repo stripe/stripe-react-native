@@ -141,6 +141,7 @@ export default function PaymentsUICompleteScreen() {
         paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
+        updatePaymentMethodEnabled: true,
         ...clientSecretParams,
       });
       if (!error) {
