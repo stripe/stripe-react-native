@@ -26,9 +26,18 @@ appId: ${APP_ID}
 - inputText: "123"
 - scrollUntilVisible:
     element:
-      id: primary_button
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Continue" # iOS
+    optional: true
 - tapOn:
-    id: primary_button
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "Continue" # iOS
+    optional: true
 - tapOn:
     text: .*Buy.*4242
 - assertVisible:

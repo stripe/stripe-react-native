@@ -19,7 +19,11 @@ appId: ${APP_ID}
 - inputText: "0145"
 - inputText: "123"
 - tapOn:
-    id: primary_button
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "purchase!" # iOS
+    optional: true
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
