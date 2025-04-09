@@ -22,6 +22,7 @@ if (project == rootProject) {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-parcelize'
 //apply plugin: 'kotlin-android-extensions'
 
 def getExtOrDefault(name) {
