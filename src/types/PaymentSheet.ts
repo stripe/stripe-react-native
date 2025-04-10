@@ -27,6 +27,8 @@ export type SetupParamsBase = IntentParams & {
   applePay?: ApplePayParams;
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
   googlePay?: GooglePayParams;
+  /** Configuration for Link */
+  link?: LinkParams;
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
   style?: UserInterfaceStyle;
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
@@ -160,6 +162,21 @@ export type GooglePayParams = {
    * for more information on button types. */
   buttonType?: ButtonType;
 };
+
+export type LinkParams = {
+  /** Display configuration for Link */
+  display?: LinkDisplay;
+};
+
+/**
+ * Display configuration for Link
+ */
+export enum LinkDisplay {
+  /** Link will be displayed when available. */
+  AUTOMATIC = 'automatic',
+  /** Link will never be displayed. */
+  NEVER = 'never',
+}
 
 /**
  * Used to customize the appearance of your PaymentSheet

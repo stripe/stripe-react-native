@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+**Features**
+
+- Added `LinkParams` to allow control over Link in PaymentSheet.
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.11.\*
+- Updated `stripe-android` to 21.9.\*
+
 ## 0.43.0 - 2025-03-11
 
 **Features**
