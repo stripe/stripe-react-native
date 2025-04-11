@@ -126,7 +126,7 @@ extension StripeSdk {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
 
-      if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
+        if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
             configuration.updatePaymentMethodEnabled = updatePaymentMethodEnabled
         }
         switch params["paymentMethodLayout"] as? String? {

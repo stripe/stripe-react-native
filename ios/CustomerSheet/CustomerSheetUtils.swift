@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(STP) @_spi(UpdatePaymentMethodBeta) import StripePaymentSheet
 
 class CustomerSheetUtils {
     internal class func buildCustomerSheetConfiguration(
@@ -21,6 +21,7 @@ class CustomerSheetUtils {
         defaultBillingDetails: NSDictionary?,
         preferredNetworks: Array<Int>?,
         allowsRemovalOfLastSavedPaymentMethod: Bool?,
+        updatePaymentMethodEnabled: Bool?,
         cardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
@@ -59,10 +60,13 @@ class CustomerSheetUtils {
         if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
             config.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
+        if let updatePaymentMethodEnabled = updatePaymentMethodEnabled {
+          config.updatePaymentMethodEnabled = updatePaymentMethodEnabled
+        }
         config.cardBrandAcceptance = cardBrandAcceptance
         return config
     }
-    
+
     internal class func buildStripeCustomerAdapter(
         customerId: String,
         ephemeralKeySecret: String,
@@ -79,7 +83,7 @@ class CustomerSheetUtils {
                 stripeSdk: stripeSdk
             )
         }
-        
+
         if let setupIntentClientSecret = setupIntentClientSecret {
             return StripeCustomerAdapter(
                 customerEphemeralKeyProvider: {
@@ -97,7 +101,7 @@ class CustomerSheetUtils {
             }
         )
     }
-    
+
     internal class func buildCustomerAdapterOverride(
         customerAdapter: NSDictionary,
         customerId: String,
@@ -153,7 +157,7 @@ class CustomerSheetUtils {
         }
     }
 
-    
+
     internal class func buildPaymentOptionResult(label: String, imageData: String?, paymentMethod: STPPaymentMethod?) -> NSMutableDictionary {
         let result: NSMutableDictionary = [:]
         let paymentOption: NSMutableDictionary = [:]
@@ -167,7 +171,7 @@ class CustomerSheetUtils {
         }
         return result
     }
-    
+
     internal class func interpretResult(result: CustomerSheet.CustomerSheetResult) -> NSDictionary {
         var payload: NSMutableDictionary = [:]
         switch result {

@@ -47,6 +47,10 @@ export type CustomerSheetInitParams = {
    *  If false, the customer can't delete if they only have one saved payment method remaining.
    */
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
+  /** (Private Preview) This parameter is expected to be removed once we GA this feature
+   * When using customerSessions, allow users to update their saved cards
+   */
+  updatePaymentMethodEnabled?: boolean;
   /**
    * By default, CustomerSheet will accept all supported cards by Stripe.
    * You can specify card brands CustomerSheet should block or allow payment for by providing an array of those card brands.
