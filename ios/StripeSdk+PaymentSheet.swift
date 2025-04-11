@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(UpdatePaymentMethodBeta) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
@@ -126,6 +126,9 @@ extension StripeSdk {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
 
+        if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
+            configuration.updatePaymentMethodEnabled = updatePaymentMethodEnabled
+        }
         switch params["paymentMethodLayout"] as? String? {
           case "Horizontal":
             configuration.paymentMethodLayout = .horizontal
