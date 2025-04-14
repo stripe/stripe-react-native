@@ -9,16 +9,22 @@ appId: ${APP_ID}
     text: "Collect session"
     retryTapIfNoChange: false
 - assertVisible:
-    text: "Manually verify instead"
-- tapOn: "Manually verify instead"
+    text: "Agree and continue"
+- tapOn: "Agree and continue"
 - assertVisible:
-    text: "Use test account"
-- tapOn: "Use test account"
-# Hide the keyboard on iOS by tapping outside the text field
+    text: "Test Institution"
+- tapOn: "Test Institution"
+- extendedWaitUntil:
+    # wait for the auth flow to finish
+    visible: "Select account"
+    timeout: 60000
 - assertVisible:
-    text: "Save account with Link"
+    text: "Connect account"
+- tapOn: "Connect account"
+- tapOn:
+    # Hide the keyboard if it shows up
+    text: "Done"
     optional: true
-- tapOn: "Save account with Link"
 - assertVisible:
     text: "Not now"
 - tapOn: "Not now"
