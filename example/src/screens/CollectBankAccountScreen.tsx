@@ -82,7 +82,7 @@ export default function CollectBankAccountScreen() {
   };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen paymentMethod="us_bank_account">
       <Button
         variant="primary"
         onPress={handleCollectTokenPress}
