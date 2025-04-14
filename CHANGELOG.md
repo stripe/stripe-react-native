@@ -10,6 +10,7 @@
 
 - Updated `stripe-ios` to 24.11.\*
 - Updated `stripe-android` to 21.10.\*
+- Fixed an issue where launching a Financial Connections flow would fail on Android.
 
 ## 0.43.0 - 2025-03-11
 
