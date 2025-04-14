@@ -1033,6 +1033,7 @@ class StripeSdkModule(
   @ReactMethod
   fun collectBankAccountToken(
     clientSecret: String,
+    params: ReadableMap,
     promise: Promise,
   ) {
     if (!::stripe.isInitialized) {
@@ -1054,6 +1055,7 @@ class StripeSdkModule(
   @ReactMethod
   fun collectFinancialConnectionsAccounts(
     clientSecret: String,
+    params: ReadableMap,
     promise: Promise,
   ) {
     if (!::stripe.isInitialized) {
