@@ -6,14 +6,14 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(UpdatePaymentMethodBeta) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
             params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
         var configuration = PaymentSheet.Configuration()
-        
+
         configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
 
         if let appearanceParams = params["appearance"] as? NSDictionary {
@@ -37,7 +37,16 @@ extension StripeSdk {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
             }
         }
-        
+
+        if let linkParams = params["link"] as? NSDictionary {
+            do {
+              let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+              configuration.link = PaymentSheet.LinkConfiguration(display: display)
+            } catch {
+                return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
+            }
+        }
+
         if let merchantDisplayName = params["merchantDisplayName"] as? String {
             configuration.merchantDisplayName = merchantDisplayName
         }
@@ -49,11 +58,11 @@ extension StripeSdk {
         if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
             configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
         }
-        
+
         if let removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String {
             configuration.removeSavedPaymentMethodMessage = removeSavedPaymentMethodMessage
         }
-        
+
         if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
             configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
             configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
@@ -77,19 +86,19 @@ extension StripeSdk {
             }
 
         }
-        
+
         if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
             configuration.shippingDetails = {
                 return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
             }
         }
-        
+
         if #available(iOS 13.0, *) {
             if let style = params["style"] as? String {
                 configuration.style = Mappers.mapToUserInterfaceStyle(style)
             }
         }
-        
+
         if let customerId = params["customerId"] as? String {
             var customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
             var customerClientSecret = params["customerSessionClientSecret"] as? String
@@ -104,19 +113,22 @@ extension StripeSdk {
                 configuration.customer = .init(id: customerId, customerSessionClientSecret: customerClientSecret)
             }
         }
-        
+
         if let preferredNetworksAsInts = params["preferredNetworks"] as? Array<Int> {
             configuration.preferredNetworks = preferredNetworksAsInts.map(Mappers.intToCardBrand).compactMap { $0 }
         }
-        
+
         if let allowsRemovalOfLastSavedPaymentMethod = params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
-        
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
-      
+
+        if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
+            configuration.updatePaymentMethodEnabled = updatePaymentMethodEnabled
+        }
         switch params["paymentMethodLayout"] as? String? {
           case "Horizontal":
             configuration.paymentMethodLayout = .horizontal
@@ -125,19 +137,19 @@ extension StripeSdk {
           default:
             configuration.paymentMethodLayout = .automatic
         }
-      
+
         configuration.cardBrandAcceptance = computeCardBrandAcceptance(params: params)
-                
+
         return (nil, configuration)
     }
-    
+
     internal func preparePaymentSheetInstance(
         params: NSDictionary,
         configuration: PaymentSheet.Configuration,
         resolve: @escaping RCTPromiseResolveBlock
     ) {
         self.paymentSheetFlowController = nil
-        
+
         func handlePaymentSheetFlowControllerResult(result: Result<PaymentSheet.FlowController, Error>, stripeSdk: StripeSdk?) {
             switch result {
             case .failure(let error):
@@ -204,7 +216,7 @@ extension StripeSdk {
                 paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
                 captureMethod: mapCaptureMethod(captureMethodString)
             )
-            
+
             if params["customFlow"] as? Bool == true {
                 PaymentSheet.FlowController.create(intentConfiguration: intentConfig, configuration: configuration) { [weak self] result in
                     handlePaymentSheetFlowControllerResult(result: result, stripeSdk: self)
@@ -218,7 +230,7 @@ extension StripeSdk {
             }
         }
     }
-  
+
     internal func computeCardBrandAcceptance(params: NSDictionary) -> PaymentSheet.CardBrandAcceptance {
       if let cardBrandAcceptanceParams = params["cardBrandAcceptance"] as? NSDictionary {
           if let filter = cardBrandAcceptanceParams["filter"] as? String {
@@ -240,10 +252,10 @@ extension StripeSdk {
               }
           }
       }
-      
+
       return .all
     }
-  
+
     private func mapToCardBrandCategory(brand: String) -> PaymentSheet.CardBrandAcceptance.BrandCategory? {
         switch brand {
         case "visa":
@@ -258,7 +270,7 @@ extension StripeSdk {
             return nil
         }
     }
-    
+
     private func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {
@@ -270,7 +282,7 @@ extension StripeSdk {
         }
         return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
     }
-    
+
     private func buildIntentConfiguration(
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
@@ -308,7 +320,7 @@ extension StripeSdk {
                 }
             })
     }
-    
+
     private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
         if (applePayParams["request"] == nil) {
             return nil
@@ -334,7 +346,7 @@ extension StripeSdk {
             }
         })
     }
-    
+
     internal static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {
         switch str {
         case "automatic":
@@ -347,7 +359,7 @@ extension StripeSdk {
             return .automatic
         }
     }
-    
+
     internal static func mapToAddressCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode {
         switch str {
         case "automatic":
@@ -356,6 +368,17 @@ extension StripeSdk {
             return .never
         case "full":
             return .full
+        default:
+            return .automatic
+        }
+    }
+
+    internal static func mapToLinkDisplay(value: String?) -> PaymentSheet.LinkConfiguration.Display {
+        switch value {
+        case "automatic":
+            return .automatic
+        case "never":
+            return .never
         default:
             return .automatic
         }

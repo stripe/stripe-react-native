@@ -1578,50 +1578,50 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - Stripe (24.7.0):
-    - StripeApplePay (= 24.7.0)
-    - StripeCore (= 24.7.0)
-    - StripePayments (= 24.7.0)
-    - StripePaymentsUI (= 24.7.0)
-    - StripeUICore (= 24.7.0)
-  - stripe-react-native (0.42.0):
+  - Stripe (24.11.0):
+    - StripeApplePay (= 24.11.0)
+    - StripeCore (= 24.11.0)
+    - StripePayments (= 24.11.0)
+    - StripePaymentsUI (= 24.11.0)
+    - StripeUICore (= 24.11.0)
+  - stripe-react-native (0.43.0):
     - React-Core
-    - Stripe (~> 24.7.0)
-    - StripeApplePay (~> 24.7.0)
-    - StripeFinancialConnections (~> 24.7.0)
-    - StripePayments (~> 24.7.0)
-    - StripePaymentSheet (~> 24.7.0)
-    - StripePaymentsUI (~> 24.7.0)
-  - stripe-react-native/Tests (0.42.0):
+    - Stripe (~> 24.11.0)
+    - StripeApplePay (~> 24.11.0)
+    - StripeFinancialConnections (~> 24.11.0)
+    - StripePayments (~> 24.11.0)
+    - StripePaymentSheet (~> 24.11.0)
+    - StripePaymentsUI (~> 24.11.0)
+  - stripe-react-native/Tests (0.43.0):
     - React-Core
-    - Stripe (~> 24.7.0)
-    - StripeApplePay (~> 24.7.0)
-    - StripeFinancialConnections (~> 24.7.0)
-    - StripePayments (~> 24.7.0)
-    - StripePaymentSheet (~> 24.7.0)
-    - StripePaymentsUI (~> 24.7.0)
-  - StripeApplePay (24.7.0):
-    - StripeCore (= 24.7.0)
-  - StripeCore (24.7.0)
-  - StripeFinancialConnections (24.7.0):
-    - StripeCore (= 24.7.0)
-    - StripeUICore (= 24.7.0)
-  - StripePayments (24.7.0):
-    - StripeCore (= 24.7.0)
-    - StripePayments/Stripe3DS2 (= 24.7.0)
-  - StripePayments/Stripe3DS2 (24.7.0):
-    - StripeCore (= 24.7.0)
-  - StripePaymentSheet (24.7.0):
-    - StripeApplePay (= 24.7.0)
-    - StripeCore (= 24.7.0)
-    - StripePayments (= 24.7.0)
-    - StripePaymentsUI (= 24.7.0)
-  - StripePaymentsUI (24.7.0):
-    - StripeCore (= 24.7.0)
-    - StripePayments (= 24.7.0)
-    - StripeUICore (= 24.7.0)
-  - StripeUICore (24.7.0):
-    - StripeCore (= 24.7.0)
+    - Stripe (~> 24.11.0)
+    - StripeApplePay (~> 24.11.0)
+    - StripeFinancialConnections (~> 24.11.0)
+    - StripePayments (~> 24.11.0)
+    - StripePaymentSheet (~> 24.11.0)
+    - StripePaymentsUI (~> 24.11.0)
+  - StripeApplePay (24.11.0):
+    - StripeCore (= 24.11.0)
+  - StripeCore (24.11.0)
+  - StripeFinancialConnections (24.11.0):
+    - StripeCore (= 24.11.0)
+    - StripeUICore (= 24.11.0)
+  - StripePayments (24.11.0):
+    - StripeCore (= 24.11.0)
+    - StripePayments/Stripe3DS2 (= 24.11.0)
+  - StripePayments/Stripe3DS2 (24.11.0):
+    - StripeCore (= 24.11.0)
+  - StripePaymentSheet (24.11.0):
+    - StripeApplePay (= 24.11.0)
+    - StripeCore (= 24.11.0)
+    - StripePayments (= 24.11.0)
+    - StripePaymentsUI (= 24.11.0)
+  - StripePaymentsUI (24.11.0):
+    - StripeCore (= 24.11.0)
+    - StripePayments (= 24.11.0)
+    - StripeUICore (= 24.11.0)
+  - StripeUICore (24.11.0):
+    - StripeCore (= 24.11.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1865,11 +1865,11 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
+  DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 6fe148afcef2e3213e484758e3459609d40d57f5
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
+  glog: 3d02b25ca00c2d456734d0bcff864cbc62f6ae1a
   hermes-engine: b417d2b2aee3b89b58e63e23a51e02be91dc876d
   RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: b2eecf2d60216df56bc5e6be5f063826d3c1ee35
@@ -1936,17 +1936,17 @@ SPEC CHECKSUMS:
   RNCPicker: 4f6d5e8d107064be32dfc8f1bcb5a3741135db0b
   RNScreens: de623eecde9991bf75034b80ff5b05b014f0ffdf
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Stripe: 8a03a78bfa16b197f9fac51e42670ac563b34388
-  stripe-react-native: b3451e35244c335ab0ad77659f128c514d96b8e4
-  StripeApplePay: 3c1b43d9b5130f6b714863bf8c9482c24168ab27
-  StripeCore: 4955c2af14446db04818ad043d19d8f97b73c5fa
-  StripeFinancialConnections: 8cf97b04c2f354879a2a5473126efac38f11f406
-  StripePayments: 91820845bece6117809bcfdcaef39c84c2b4cae5
-  StripePaymentSheet: 1810187cbdbc73410b8fb86cecafaaa41c1481fc
-  StripePaymentsUI: 326376e23caa369d1f58041bdb858c89c2b17ed4
-  StripeUICore: 17a4f3adb81ae05ab885e1b353022a430176eab1
+  Stripe: a220ccdb4a5c0d65d56edeb6fd65cd71d09f78b3
+  stripe-react-native: 48c6c6eecde5db921313eb0e9eea444b6ffd0dbb
+  StripeApplePay: ae19e44ac95dcf1424badd68d3ef33ed9c403d6f
+  StripeCore: a966111af14ffff257fe3fb39a2ae380f8e0d500
+  StripeFinancialConnections: 8d705d965a13180d6e7326e1fcc3102ea22b976c
+  StripePayments: f0f97463eb26aeddc1d392c1a619094cc173f36f
+  StripePaymentSheet: c03d6c76a0603bef9085e48f9a958f5caaef3a45
+  StripePaymentsUI: 2a299b9438df7c1e0ff00147e6f403c8cf94bae9
+  StripeUICore: a0dcd51c079e0db61e13b95142ff88367f63a619
   Yoga: 9b7fb56e7b08cde60e2153344fa6afbd88e5d99f
 
 PODFILE CHECKSUM: 07143717076b55d29f3c245358c0026c3df220ef
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

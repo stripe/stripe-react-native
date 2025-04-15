@@ -25,6 +25,7 @@ extension StripeSdk {
                 defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary,
                 preferredNetworks: params["preferredNetworks"] as? Array<Int>,
                 allowsRemovalOfLastSavedPaymentMethod: params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool,
+                updatePaymentMethodEnabled: params["updatePaymentMethodEnabled"] as? Bool,
                 cardBrandAcceptance: computeCardBrandAcceptance(params: params)
             )
         } catch {
