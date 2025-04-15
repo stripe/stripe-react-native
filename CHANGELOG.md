@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.44.0 - 2025-04-15
+
 **Features**
 
 - Added `LinkParams` to allow control over Link in PaymentSheet.
