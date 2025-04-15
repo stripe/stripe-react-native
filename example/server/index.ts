@@ -94,6 +94,11 @@ function getKeys(payment_method?: string) {
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_UK;
       secret_key = process.env.STRIPE_SECRET_KEY_UK;
       break;
+    case 'us_bank_account':
+      publishable_key =
+        process.env.STRIPE_PUBLISHABLE_KEY_FINANCIAL_CONNECTIONS;
+      secret_key = process.env.STRIPE_SECRET_KEY_FINANCIAL_CONNECTIONS;
+      break;
     default:
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY;
       secret_key = process.env.STRIPE_SECRET_KEY;
@@ -793,7 +798,7 @@ app.post('/issuing-card-details', async (req, res) => {
 });
 
 app.post('/financial-connections-sheet', async (_, res) => {
-  const { secret_key } = getKeys();
+  const { secret_key } = getKeys('us_bank_account');
 
   const stripe = new Stripe(secret_key as string, {
     apiVersion: '2023-10-16',

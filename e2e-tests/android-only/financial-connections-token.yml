@@ -18,8 +18,9 @@ appId: ${APP_ID}
     text: "Not now"
 - tapOn: "Not now"
 - assertVisible:
-    text: "Done"
-- tapOn: "Done"
+    id: "done_button"
+- tapOn:
+    id: "done_button"
 - assertVisible:
     text: "Success"
 - tapOn:
