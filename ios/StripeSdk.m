@@ -246,4 +246,9 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
+RCT_EXTERN_METHOD(
+                  possibleBrands:(NSString *)cardNumber
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject
+                  )
 @end

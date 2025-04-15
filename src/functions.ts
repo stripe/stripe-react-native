@@ -888,3 +888,7 @@ export const createPaymentMethodCustom = async (
 ): Promise<CreatePaymentMethodResult> => {
   return await NativeStripeSdk.createPaymentMethodCustomNative(params);
 };
+
+export const possibleBrands = async (cardNumber: string): Promise<string[]> => {
+  return await NativeStripeSdk.possibleBrands(cardNumber);
+};

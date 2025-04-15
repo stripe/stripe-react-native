@@ -155,6 +155,7 @@ type NativeStripeSdkType = {
   createPaymentMethodCustomNative(
     params: PaymentMethod.CreateParams
   ): Promise<CreatePaymentMethodResult>;
+  possibleBrands(cardNumber: string): Promise<string[]>;
 };
 
 const { StripeSdk } = NativeModules;
