@@ -60,6 +60,7 @@ android {
 
   buildFeatures {
     viewBinding true
+    compose true
   }
 }
 
@@ -164,4 +165,9 @@ dependencies {
   androidTestImplementation "androidx.test:core:1.4.0"
   androidTestImplementation 'androidx.test:runner:1.1.0'
   androidTestImplementation "org.mockito:mockito-core:3.+"
+
+  api platform("androidx.compose:compose-bom:2023.03.00")
+  api "androidx.compose.ui:ui"
+  api "androidx.compose.ui:ui-viewbinding"
+  debugImplementation "androidx.compose.ui:ui-tooling"
 }
