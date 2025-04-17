@@ -46,38 +46,96 @@ export type EmbeddedPaymentElementUpdateResult =
   | { status: 'failed'; error: Error };
 
 /**
- * Information about the currently selected payment option.
- * You might store an image, label, billingDetails, etc.
+ * Contains details about a payment method that can be displayed to the customer in the embedded payment element UI.
  */
 export interface PaymentOptionDisplayData {
+  /**
+   * An image representing the payment method, such as a VISA logo or Apple Pay icon.
+   */
   image: ImageSourcePropType;
+  /**
+   * A user-facing label for the payment method, like "Apple Pay" or "•••• 4242" for a card.
+   */
   label: string;
+  /**
+   * Optional billing details associated with the payment method, such as name, email, or address.
+   */
   billingDetails?: BillingDetails;
+  /**
+   * A string identifier for the type of payment method.
+   * Stripe values: https://stripe.com/docs/api/payment_methods/object#payment_method_object-type
+   * External methods: https://stripe.com/docs/payments/external-payment-methods?platform=ios#available-external-payment-methods
+   * Apple Pay: "apple_pay"
+   */
   paymentMethodType: string;
+  /**
+   * Optional base64-encoded regulatory mandate text.
+   * If `embeddedViewDisplaysMandateText = false`, this must be shown near the buy button in a tappable view that supports links.
+   */
   mandateText?: string;
 }
 
 /**
- * If the embedded element wants to open a form sheet, it can either confirm inside it
- * or return to you to .confirm() yourself.
+ * Describes the action performed when the bottom button in the embedded payment form sheet is tapped.
+ * The embedded view may show payment method options such as "Card". When selected, a form sheet appears
+ * for customers to input their payment details. At the bottom of that form sheet is a button.
+ * This type determines what tapping that button does:
+ * - In the `confirm` case, the button says “Pay” or “Set up” and triggers confirmation of the payment or setup intent inside the sheet.
+ * - In the `continue` case, the button says “Continue” and simply dismisses the sheet. The payment or setup is then confirmed outside the sheet, typically in your app.
  */
 export type EmbeddedFormSheetAction =
   | {
+      /**
+       * The button says “Pay” or “Set up”. When tapped, it confirms the payment or setup directly within the form sheet.
+       * @param result - Callback invoked with the result of the confirmation. You can use this to show a success message or handle errors.
+       */
       type: 'confirm';
       onFormSheetConfirmComplete?: (
         result: EmbeddedPaymentElementResult
       ) => void;
     }
   | {
+      /**
+       * The button says “Continue”. When tapped, the form sheet closes without confirming anything.
+       * Use this when you want to handle confirmation elsewhere in your app after the customer has filled in their details.
+       */
       type: 'continue';
     };
 
+/**
+ * Describes how row selections are handled in the `EmbeddedPaymentElement` view.
+ *
+ * When customers select a payment option (like a card), your app can either:
+ * - Wait for the customer to manually confirm by tapping a button (`default` behavior), or
+ * - Immediately perform an action as soon as the option is selected (`immediateAction` behavior).
+ */
 export type RowSelectionBehavior =
-  | { type: 'default' }
-  | { type: 'immediateAction'; didSelectPaymentOption: () => void };
+  | {
+      /**
+       * Default behavior.
+       * When a customer selects a payment option, they must tap a separate button to continue or confirm the payment.
+       * This is the recommended and most flexible integration pattern.
+       */
+      type: 'default';
+    }
+  | {
+      /**
+       * Immediate action behavior.
+       * When a customer selects a payment option, `didSelectPaymentOption` is triggered right away.
+       * This allows you to immediately perform an action—such as navigating back to the checkout screen or confirming payment—without waiting for a separate button tap.
+       * ⚠️ Note: Some payment options (e.g., Apple Pay, saved payment methods) are not available in this mode if `formSheetAction` is set to `'confirm'`.
+       */
+      type: 'immediateAction';
+
+      /**
+       * Callback triggered immediately when a payment option is selected.
+       * Implement this to handle immediate flow transitions (e.g., confirmation or navigation).
+       */
+      didSelectPaymentOption: () => void;
+    };
 
 /**
- * Configuration object (subset of EmbeddedPaymentElementConfiguration.Configuration).
+ * Configuration object (subset of EmbeddedPaymentElement.Configuration).
  */
 export interface EmbeddedPaymentElementConfiguration {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -92,14 +150,14 @@ export interface EmbeddedPaymentElementConfiguration {
   link?: PaymentSheetTypes.LinkParams;
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
   style?: UserInterfaceStyle;
-  /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
+  /** A URL that redirects back to your app that EmbeddedPaymentElement can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
   billingDetailsCollectionConfiguration?: PaymentSheetTypes.BillingDetailsCollectionConfiguration;
   /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with the values provided. */
   defaultBillingDetails?: BillingDetails;
   /**
-   * The shipping information for the customer. If set, PaymentSheet will pre-populate the form fields with the values provided.
+   * The shipping information for the customer. If set, EmbeddedPaymentElement will pre-populate the form fields with the values provided.
    * This is used to display a "Billing address is same as shipping" checkbox if `defaultBillingDetails` is not provided.
    * If `name` and `line1` are populated, it's also [attached to the PaymentIntent](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-shipping) during payment.
    */
@@ -112,7 +170,7 @@ export interface EmbeddedPaymentElementConfiguration {
    * for notifications on whether a payment has succeeded or not.
    */
   allowsDelayedPaymentMethods?: boolean;
-  /** Customizes the appearance of PaymentSheet */
+  /** Customizes the appearance of EmbeddedPaymentElement */
   appearance?: PaymentSheetTypes.AppearanceParams;
   /** The label to use for the primary button. If not set, Payment Sheet will display suitable default labels for payment and setup intents. */
   primaryButtonLabel?: string;
@@ -121,8 +179,8 @@ export interface EmbeddedPaymentElementConfiguration {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
-  /** By default, PaymentSheet will use a dynamic ordering that optimizes payment method display for the customer.
-   *  You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
+  /** By default, EmbeddedPaymentElement will use a dynamic ordering that optimizes payment method display for the customer.
+   *  You can override the default order in which payment methods are displayed in EmbeddedPaymentElement with a list of payment method types.
    *  See https://stripe.com/docs/api/payment_methods/object#payment_method_object-type for the list of valid types.  You may also pass external payment methods.
    *  - Example: ["card", "external_paypal", "klarna"]
    *  - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
@@ -134,8 +192,8 @@ export interface EmbeddedPaymentElementConfiguration {
    */
   allowsRemovalOfLastSavedPaymentMethod?: boolean;
   /**
-   * By default, PaymentSheet will accept all supported cards by Stripe.
-   * You can specify card brands PaymentSheet should block or allow payment for by providing an array of those card brands.
+   * By default, EmbeddedPaymentElement will accept all supported cards by Stripe.
+   * You can specify card brands EmbeddedPaymentElement should block or allow payment for by providing an array of those card brands.
    * Note: This is only a client-side solution.
    * Note: Card brand filtering is not currently supported in Link.
    */
@@ -144,26 +202,37 @@ export interface EmbeddedPaymentElementConfiguration {
    * When using customerSessions, allow users to update their saved cards
    */
   updatePaymentMethodEnabled?: boolean;
-
-  // Embedded APIs
+  /** The view can display payment methods like “Card” that, when tapped, open a sheet where customers enter their payment method details.
+   * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs.
+   */
   formSheetAction?: EmbeddedFormSheetAction;
+  /** Controls whether the view displays mandate text at the bottom for payment methods that require it. If set to `false`, your integration must display `PaymentOptionDisplayData.mandateText` to the customer near your “Buy” button to comply with regulations.
+   * Note: This doesn't affect mandates displayed in the form sheet.
+   */
   embeddedViewDisplaysMandateText?: boolean;
+  /**
+   * Determines the behavior when a row  is selected. Defaults to `.default`.
+   */
   rowSelectionBehavior?: RowSelectionBehavior;
 }
 
 export interface EmbeddedPaymentElement {
   /**
-   * Update the payment element when your price or currency changes.
-   * Cancels any previous in-flight update. Returns final result.
+   * Call this when the intent configuration changes (e.g., amount or currency).
+   * Cancels any in-progress update. Ensures the correct payment methods are shown and fields are collected.
+   * If the selected payment option becomes invalid, it may be cleared.
+   * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
    */
   update(
     intentConfiguration: PaymentSheetTypes.IntentConfiguration
   ): Promise<EmbeddedPaymentElementUpdateResult>;
 
   /**
-   * Confirm the payment or setup.
-   * Wait for any in-flight update to finish, do 3DS, etc.
-   * Returns final success/fail/canceled.
+   * Confirm the payment or setup intent.
+   * Waits for any in-progress `update()` call to finish before proceeding.
+   * May present authentication flows (e.g., 3DS) if required.
+   * Requires the most recent `update()` call to have succeeded.
+   * Returns the final result: success, failure, or cancellation.
    */
   confirm(): Promise<EmbeddedPaymentElementResult>;
 
@@ -172,6 +241,14 @@ export interface EmbeddedPaymentElement {
 }
 
 interface StripeEmbeddedNativeModule {
+  /**
+   * Asynchronously creates and initializes an EmbeddedPaymentElement.
+   * Loads the customer’s payment methods, default selection, and prepares the UI.
+   * @param intentConfig Configuration describing the future PaymentIntent or SetupIntent to be confirmed.
+   * @param configuration UI and customer config for the embedded payment sheet (e.g., business name, customer ID).
+   * @returns An object containing the currently selected payment option, or `null` if none is selected.
+   * @throws An error if the element failed to load.
+   */
   createEmbeddedPaymentElement: (
     intentConfig: PaymentSheetTypes.IntentConfiguration,
     configuration: EmbeddedPaymentElementConfiguration
@@ -179,12 +256,20 @@ interface StripeEmbeddedNativeModule {
     paymentOption: PaymentOptionDisplayData | null;
   }>;
 
+  /**
+   * Confirm the payment or setup intent.
+   * Waits for any in-progress `update()` call to finish before proceeding.
+   * May present authentication flows (e.g., 3DS) if required.
+   * Requires the most recent `update()` call to have succeeded.
+   * Returns the final result: success, failure, or cancellation.
+   */
   updateEmbeddedPaymentElement: (
     intentConfig: PaymentSheetTypes.IntentConfiguration
   ) => Promise<EmbeddedPaymentElementUpdateResult>;
 
   confirmEmbeddedPaymentElement: () => Promise<EmbeddedPaymentElementResult>;
 
+  /** Clear the currently selected payment option (reset to null). */
   clearEmbeddedPaymentOption: () => void;
 }
 
