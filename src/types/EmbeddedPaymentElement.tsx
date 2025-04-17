@@ -1,5 +1,3 @@
-// EmbeddedPaymentElement.ts
-
 import {
   requireNativeComponent,
   NativeModules,
@@ -15,18 +13,27 @@ import type {
 } from './Common';
 import type { PaymentMethod } from '.';
 import * as PaymentSheetTypes from './PaymentSheet';
-import type {
-  ImageSourcePropType,
-  StyleProp,
-  ViewProps,
-  ViewStyle,
-} from 'react-native';
+import type { ImageSourcePropType, ViewProps } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
-import { forwardRef, useEffect, useState } from 'react';
+import {
+  forwardRef,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import React from 'react';
 
+// Native bridge imports
 const { StripeSdk } = NativeModules;
-const NativeStripeEmbedded: StripeEmbeddedNativeModule = StripeSdk;
+const NativeStripeEmbedded = StripeSdk;
+const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
 
 /**
  * The final result of a confirm call.
@@ -216,64 +223,17 @@ export interface EmbeddedPaymentElementConfiguration {
   rowSelectionBehavior?: RowSelectionBehavior;
 }
 
-export interface EmbeddedPaymentElement {
+// -----------------------------------------------------------------------------
+// Embedded API
+// -----------------------------------------------------------------------------
+
+class EmbeddedPaymentElement {
   /**
    * Call this when the intent configuration changes (e.g., amount or currency).
    * Cancels any in-progress update. Ensures the correct payment methods are shown and fields are collected.
    * If the selected payment option becomes invalid, it may be cleared.
    * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
    */
-  update(
-    intentConfiguration: PaymentSheetTypes.IntentConfiguration
-  ): Promise<EmbeddedPaymentElementUpdateResult>;
-
-  /**
-   * Confirm the payment or setup intent.
-   * Waits for any in-progress `update()` call to finish before proceeding.
-   * May present authentication flows (e.g., 3DS) if required.
-   * Requires the most recent `update()` call to have succeeded.
-   * Returns the final result: success, failure, or cancellation.
-   */
-  confirm(): Promise<EmbeddedPaymentElementResult>;
-
-  /** Clear the currently selected payment option (reset to null). */
-  clearPaymentOption(): void;
-}
-
-interface StripeEmbeddedNativeModule {
-  /**
-   * Asynchronously creates and initializes an EmbeddedPaymentElement.
-   * Loads the customer’s payment methods, default selection, and prepares the UI.
-   * @param intentConfig Configuration describing the future PaymentIntent or SetupIntent to be confirmed.
-   * @param configuration UI and customer config for the embedded payment sheet (e.g., business name, customer ID).
-   * @returns An object containing the currently selected payment option, or `null` if none is selected.
-   * @throws An error if the element failed to load.
-   */
-  createEmbeddedPaymentElement: (
-    intentConfig: PaymentSheetTypes.IntentConfiguration,
-    configuration: EmbeddedPaymentElementConfiguration
-  ) => Promise<{
-    paymentOption: PaymentOptionDisplayData | null;
-  }>;
-
-  /**
-   * Confirm the payment or setup intent.
-   * Waits for any in-progress `update()` call to finish before proceeding.
-   * May present authentication flows (e.g., 3DS) if required.
-   * Requires the most recent `update()` call to have succeeded.
-   * Returns the final result: success, failure, or cancellation.
-   */
-  updateEmbeddedPaymentElement: (
-    intentConfig: PaymentSheetTypes.IntentConfiguration
-  ) => Promise<EmbeddedPaymentElementUpdateResult>;
-
-  confirmEmbeddedPaymentElement: () => Promise<EmbeddedPaymentElementResult>;
-
-  /** Clear the currently selected payment option (reset to null). */
-  clearEmbeddedPaymentOption: () => void;
-}
-
-class EmbeddedPaymentElementImpl implements EmbeddedPaymentElement {
   async update(
     intentConfig: PaymentSheetTypes.IntentConfiguration
   ): Promise<EmbeddedPaymentElementUpdateResult> {
@@ -282,24 +242,31 @@ class EmbeddedPaymentElementImpl implements EmbeddedPaymentElement {
     return result;
   }
 
+  /**
+   * Confirm the payment or setup intent.
+   * Waits for any in-progress `update()` call to finish before proceeding.
+   * May present authentication flows (e.g., 3DS) if required.
+   * Requires the most recent `update()` call to have succeeded.
+   * Returns the final result: success, failure, or cancellation.
+   */
   async confirm(): Promise<EmbeddedPaymentElementResult> {
     const result = await NativeStripeEmbedded.confirmEmbeddedPaymentElement();
     return result;
   }
 
+  /** Clear the currently selected payment option (reset to null). */
   clearPaymentOption(): void {
     NativeStripeEmbedded.clearEmbeddedPaymentOption();
   }
 }
 
-const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+// -----------------------------------------------------------------------------
+// JS Factory: createEmbeddedPaymentElement
+// -----------------------------------------------------------------------------
 let confirmHandlerCallback: EmitterSubscription | null = null;
 let formSheetActionConfirmCallback: EmitterSubscription | null = null;
 let rowSelectionImmediateActionCallback: EmitterSubscription | null = null;
 
-/**
- * Creates a new EmbeddedPaymentElement instance, returning a JS object.
- */
 export async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
@@ -359,102 +326,130 @@ export async function createEmbeddedPaymentElement(
     intentConfig,
     configuration
   );
-  return new EmbeddedPaymentElementImpl();
+  return new EmbeddedPaymentElement();
 }
 
-export const NativeEmbeddedPaymentElementView =
-  requireNativeComponent<NativeProps>('EmbeddedPaymentElementView');
-
-const embeddedEventEmitter = new NativeEventEmitter(StripeSdk);
-
-interface EmbeddedPaymentElementDidUpdateHeightEvent {
-  height: number;
-}
-
-export interface EmbeddedPaymentElementWillPresentEvent {}
-
-export interface EmbeddedPaymentElementDidUpdatePaymentOptionEvent {
-  paymentOption?: PaymentOptionDisplayData | null;
-}
-
-/**
- * Called when the embedded Payment Element changes its height.
- */
-function onEmbeddedPaymentElementDidUpdateHeight(
-  listener: (event: EmbeddedPaymentElementDidUpdateHeightEvent) => void
-): EmitterSubscription {
-  return embeddedEventEmitter.addListener(
-    'embeddedPaymentElementDidUpdateHeight',
-    listener
-  );
-}
-
-/**
- * Called just before the Payment Element presents a form sheet.
- */
-export function onEmbeddedPaymentElementWillPresent(
-  listener: (event: EmbeddedPaymentElementWillPresentEvent) => void
-): EmitterSubscription {
-  return embeddedEventEmitter.addListener(
-    'embeddedPaymentElementWillPresent',
-    listener
-  );
-}
-
-/**
- * Called whenever the Payment Element’s selected payment method changes.
- */
-export function onEmbeddedPaymentElementDidUpdatePaymentOption(
-  listener: (event: EmbeddedPaymentElementDidUpdatePaymentOptionEvent) => void
-): EmitterSubscription {
-  return embeddedEventEmitter.addListener(
-    'embeddedPaymentElementDidUpdatePaymentOption',
-    listener
-  );
-}
-
-interface Props {
-  /** Any styles the merchant wants; width, margin, etc. */
-  style?: StyleProp<ViewStyle>;
-  /**
-   * If false we will *not* manage the height and will emit the
-   * `embeddedPaymentElementDidUpdateHeight` event exactly as today.
-   * Defaults to true.
-   */
-  manageHeight?: boolean;
-  /**
-   * Animate height changes with LayoutAnimation.  Defaults to true.
-   * Merchants can disable or supply their own animations.
-   */
-  animate?: boolean;
-}
-
+// -----------------------------------------------------------------------------
+// React Native View wrapper
+// -----------------------------------------------------------------------------
 export const EmbeddedPaymentElementView = forwardRef<
-  React.ElementRef<typeof NativeEmbeddedPaymentElementView>,
-  Props
->(({ manageHeight = true, animate = true, style }, ref) => {
-  const [height, setHeight] = useState<number>(0);
-
+  React.ElementRef<typeof RNEmbeddedPaymentElementView>,
+  ViewProps & { manageHeight?: boolean; animate?: boolean }
+>(({ manageHeight = true, animate = true, style, ...props }, ref) => {
+  const [height, setHeight] = useState(0);
   useEffect(() => {
     if (!manageHeight) return;
-    const sub = onEmbeddedPaymentElementDidUpdateHeight(
-      ({ height: newHeight }) => {
-        if (animate) {
+    const sub = eventEmitter.addListener(
+      'embeddedPaymentElementDidUpdateHeight',
+      ({ height: newH }) => {
+        if (animate)
           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        }
-        setHeight(newHeight);
+        setHeight(newH);
       }
     );
     return () => sub.remove();
   }, [manageHeight, animate]);
 
-  const mergedStyle: StyleProp<ViewStyle> = manageHeight
-    ? [{ width: '100%', height }, style]
-    : style;
-
-  return <NativeEmbeddedPaymentElementView ref={ref} style={mergedStyle} />;
+  return (
+    <RNEmbeddedPaymentElementView
+      {...props}
+      ref={ref}
+      style={[manageHeight ? { width: '100%', height } : {}, style]}
+    />
+  );
 });
 
-type NativeProps = ViewProps & {
-  /* any extra native‑only props / events */
-};
+const RNEmbeddedPaymentElementView = requireNativeComponent<ViewProps>(
+  'EmbeddedPaymentElementView'
+);
+
+// -----------------------------------------------------------------------------
+// Hook: useEmbeddedPaymentElement
+// -----------------------------------------------------------------------------
+export interface UseEmbeddedPaymentElementResult {
+  view: ReactElement | null;
+  paymentOption: PaymentOptionDisplayData | null;
+  confirm: () => Promise<EmbeddedPaymentElementResult>;
+  update: (
+    intentConfig: PaymentSheetTypes.IntentConfiguration
+  ) => Promise<EmbeddedPaymentElementUpdateResult>;
+  clear: () => void;
+}
+
+export function useEmbeddedPaymentElement(
+  intentConfig: PaymentSheetTypes.IntentConfiguration,
+  configuration: EmbeddedPaymentElementConfiguration
+): UseEmbeddedPaymentElementResult {
+  const elementRef = useRef<EmbeddedPaymentElement | null>(null);
+  const [element, setElement] = useState<EmbeddedPaymentElement | null>(null);
+  const [paymentOption, setPaymentOption] =
+    useState<PaymentOptionDisplayData | null>(null);
+  const [height, setHeight] = useState(0);
+  const viewRef =
+    useRef<React.ElementRef<typeof RNEmbeddedPaymentElementView>>(null);
+
+  // init
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const el = await createEmbeddedPaymentElement(
+        intentConfig,
+        configuration
+      );
+      if (!active) return;
+      elementRef.current = el;
+      setElement(el);
+    })();
+    return () => {
+      active = false;
+      elementRef.current?.clearPaymentOption();
+      elementRef.current = null;
+      setElement(null);
+    };
+  }, [intentConfig, configuration]);
+
+  // payment option updates
+  useEffect(() => {
+    if (!element) return;
+    const sub = eventEmitter.addListener(
+      'embeddedPaymentElementDidUpdatePaymentOption',
+      ({ paymentOption: opt }) => setPaymentOption(opt ?? null)
+    );
+    return () => sub.remove();
+  }, [element]);
+
+  // height updates
+  useEffect(() => {
+    if (!element) return;
+    const sub = eventEmitter.addListener(
+      'embeddedPaymentElementDidUpdateHeight',
+      ({ height: h }) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setHeight(h);
+      }
+    );
+    return () => sub.remove();
+  }, [element]);
+
+  // render view
+  const view = useMemo(() => {
+    if (!element) return null;
+    return (
+      <RNEmbeddedPaymentElementView
+        ref={viewRef}
+        style={{ width: '100%', height }}
+      />
+    );
+  }, [element, height]);
+
+  // actions
+  const confirm = useCallback(() => elementRef.current!.confirm(), []);
+  const update = useCallback(
+    (cfg: PaymentSheetTypes.IntentConfiguration) =>
+      elementRef.current!.update(cfg),
+    []
+  );
+  const clear = useCallback(() => elementRef.current!.clearPaymentOption(), []);
+
+  return { view, paymentOption, confirm, update, clear };
+}
