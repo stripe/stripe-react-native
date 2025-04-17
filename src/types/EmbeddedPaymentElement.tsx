@@ -151,10 +151,6 @@ export interface EmbeddedPaymentElementConfiguration {
   rowSelectionBehavior?: RowSelectionBehavior;
 }
 
-/* -----------------------------------------------------------------------
- * (2) The JS object that user code calls to do .update(), .confirm(), etc.
- * ----------------------------------------------------------------------*/
-
 export interface EmbeddedPaymentElement {
   /**
    * Update the payment element when your price or currency changes.
