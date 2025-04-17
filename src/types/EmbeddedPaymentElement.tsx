@@ -266,7 +266,7 @@ let confirmHandlerCallback: EmitterSubscription | null = null;
 let formSheetActionConfirmCallback: EmitterSubscription | null = null;
 let rowSelectionImmediateActionCallback: EmitterSubscription | null = null;
 
-export async function createEmbeddedPaymentElement(
+async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
