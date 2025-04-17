@@ -5,6 +5,7 @@ import {
   NativeModules,
   NativeEventEmitter,
   EmitterSubscription,
+  LayoutAnimation,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -12,10 +13,17 @@ import type {
   UserInterfaceStyle,
   CardBrand,
 } from './Common';
-import type { PaymentMethod } from '../types';
+import type { PaymentMethod } from '.';
 import * as PaymentSheetTypes from './PaymentSheet';
-import type { ImageSourcePropType } from 'react-native';
+import type {
+  ImageSourcePropType,
+  StyleProp,
+  ViewProps,
+  ViewStyle,
+} from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
+import { forwardRef, useEffect, useState } from 'react';
+import React from 'react';
 
 const { StripeSdk } = NativeModules;
 const NativeStripeEmbedded: StripeEmbeddedNativeModule = StripeSdk;
@@ -284,27 +292,8 @@ export async function createEmbeddedPaymentElement(
   return new EmbeddedPaymentElementImpl();
 }
 
-/* -----------------------------------------------------------------------
- * (6) The “view” component that shows the embedded UI in the layout
- * ----------------------------------------------------------------------*/
-
-// /**
-//  * Props for the view.
-//  * If you want to pass any config from JS to native for immediate layout changes,
-//  * define them here with @ReactProp in the native manager.
-//  */
-// export interface EmbeddedPaymentElementViewProps {
-//   style?: StyleProp<ViewStyle>;
-//   // Possibly other props, e.g. "someColor?: string" ...
-// }
-
-/**
- * The native component name must match the manager name in iOS/Android.
- */
-const COMPONENT_NAME = 'EmbeddedPaymentElementView';
-
-export const EmbeddedPaymentElementView =
-  requireNativeComponent(COMPONENT_NAME);
+export const NativeEmbeddedPaymentElementView =
+  requireNativeComponent<NativeProps>('EmbeddedPaymentElementView');
 
 /* -----------------------------------------------------------------------
  * (7) (Optional) We can expose an EventEmitter if the native side
@@ -324,7 +313,7 @@ export interface EmbeddedPaymentElementDidUpdatePaymentOptionEvent {
 }
 
 /**
- * Called when the embedded Payment Element changes its intrinsic height.
+ * Called when the embedded Payment Element changes its height.
  */
 export function onEmbeddedPaymentElementDidUpdateHeight(
   listener: (event: EmbeddedPaymentElementDidUpdateHeightEvent) => void
@@ -358,3 +347,49 @@ export function onEmbeddedPaymentElementDidUpdatePaymentOption(
     listener
   );
 }
+
+interface Props {
+  /** Any styles the merchant wants; width, margin, etc. */
+  style?: StyleProp<ViewStyle>;
+  /**
+   * If false we will *not* manage the height and will emit the
+   * `embeddedPaymentElementDidUpdateHeight` event exactly as today.
+   * Defaults to true.
+   */
+  manageHeight?: boolean;
+  /**
+   * Animate height changes with LayoutAnimation.  Defaults to true.
+   * Merchants can disable or supply their own animations.
+   */
+  animate?: boolean;
+}
+
+export const EmbeddedPaymentElementView = forwardRef<
+  React.ElementRef<typeof NativeEmbeddedPaymentElementView>,
+  Props
+>(({ manageHeight = true, animate = true, style }, ref) => {
+  const [height, setHeight] = useState<number>(0);
+
+  useEffect(() => {
+    if (!manageHeight) return;
+    const sub = onEmbeddedPaymentElementDidUpdateHeight(
+      ({ height: newHeight }) => {
+        if (animate) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        }
+        setHeight(newHeight);
+      }
+    );
+    return () => sub.remove();
+  }, [manageHeight, animate]);
+
+  const mergedStyle: StyleProp<ViewStyle> = manageHeight
+    ? [{ width: '100%', height }, style]
+    : style;
+
+  return <NativeEmbeddedPaymentElementView ref={ref} style={mergedStyle} />;
+});
+
+type NativeProps = ViewProps & {
+  /* any extra native‑only props / events */
+};

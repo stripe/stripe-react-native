@@ -12,7 +12,6 @@ import {
   EmbeddedPaymentElementConfiguration,
   IntentCreationCallbackParams,
   PaymentMethod,
-  onEmbeddedPaymentElementDidUpdateHeight,
   onEmbeddedPaymentElementDidUpdatePaymentOption,
   PaymentOptionDisplayData,
   EmbeddedPaymentElementResult,
@@ -30,7 +29,6 @@ export default function EmbeddedPaymentElementScreen() {
   const [customerKeyType, setCustomerKeyType] = useState<string>(
     'legacy_ephemeral_key'
   );
-  const [dynamicHeight, setDynamicHeight] = useState(0);
   const [paymentOption, setPaymentOption] =
     useState<PaymentOptionDisplayData | null>(null);
 
@@ -269,12 +267,6 @@ export default function EmbeddedPaymentElementScreen() {
   };
 
   useEffect(() => {
-    const heightSubscription = onEmbeddedPaymentElementDidUpdateHeight(
-      (event) => {
-        setDynamicHeight(event.height);
-      }
-    );
-
     const paymentOptionSubscription =
       onEmbeddedPaymentElementDidUpdatePaymentOption((event) => {
         if (event.paymentOption) {
@@ -286,10 +278,9 @@ export default function EmbeddedPaymentElementScreen() {
 
     // Cleanup: remove the subscription when unmounted
     return () => {
-      heightSubscription.remove();
       paymentOptionSubscription.remove();
     };
-  }, [customerKeyType, initialiseEmbeddedPaymentElement]);
+  }, [customerKeyType]);
 
   return (
     <PaymentScreen onInit={initialiseEmbeddedPaymentElement}>
@@ -299,11 +290,11 @@ export default function EmbeddedPaymentElementScreen() {
       />
       {embeddedElement && (
         <EmbeddedPaymentElementView
-          style={{ width: '100%', height: dynamicHeight }}
+          style={{ width: '100%', marginVertical: 16 }}
         />
       )}
       {paymentOption && (
-        <View style={{ marginVertical: 8, paddingVertical: 16 }}>
+        <View style={{ paddingBottom: 16 }}>
           {paymentOption.image && (
             <Image
               style={{ width: 60, height: 60 }}

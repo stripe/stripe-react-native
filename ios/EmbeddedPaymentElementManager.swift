@@ -16,9 +16,6 @@ extension StripeSdk {
                                     configuration: NSDictionary,
                                     resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
-    
-    // TODO: Implement the real creation logic by parsing `intentConfig` and `configuration`.
-    
     guard let modeParams =  intentConfig["mode"] as? NSDictionary else {
       resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
       return
@@ -56,6 +53,7 @@ extension StripeSdk {
   @objc(confirmEmbeddedPaymentElement:rejecter:)
   func confirmEmbeddedPaymentElement(resolver resolve: @escaping RCTPromiseResolveBlock,
                                      rejecter reject: @escaping RCTPromiseRejectBlock) {
+    embeddedInstance?.presentingViewController = RCTPresentedViewController()
     embeddedInstance?.confirm { result in
       switch result {
       case .completed:
@@ -266,40 +264,24 @@ extension StripeSdk: EmbeddedPaymentElementDelegate {
 @objc(EmbeddedPaymentElementView)
 class EmbeddedPaymentElementView: RCTViewManager {
   
-  // Typically we need main queue for UI
   override static func requiresMainQueueSetup() -> Bool {
     return true
   }
   
   override func view() -> UIView! {
-    // Return our container view that attaches the embedded element
-    
     return EmbeddedPaymentElementContainerView(frame: .zero, stripeSdk: bridge.module(forName: "StripeSdk") as! StripeSdk)
   }
 }
 
-//// EmbeddedPaymentElementContainerView.swift
-
-import UIKit
-@_spi(STP) import StripePaymentSheet
 class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
-
   private let tapGesture = UITapGestureRecognizer()
-
   private let stripeSdk: StripeSdk
 
-  
   init(frame: CGRect, stripeSdk: StripeSdk) {
     self.stripeSdk = stripeSdk
     super.init(frame: frame)
     backgroundColor = .clear
     attachPaymentElementIfAvailable()
-
-    // 1. Configure the gesture recognizer
-    tapGesture.cancelsTouchesInView = false  // lets subviews also receive the touch
-    tapGesture.delegate = self
-    tapGesture.addTarget(self, action: #selector(handleContainerTap(_:)))
-    addGestureRecognizer(tapGesture)
   }
 
   required init?(coder: NSCoder) {
@@ -318,40 +300,6 @@ class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
       paymentElementView.rightAnchor.constraint(equalTo: rightAnchor),
       paymentElementView.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
-  }
-
-  // 2. Handle tap
-  @objc private func handleContainerTap(_ gesture: UITapGestureRecognizer) {
-    guard gesture.state == .ended else { return }
-
-    // (a) Find the topmost view controller — you can implement however you like
-    let topVC = findTopViewController()
-    
-    // (b) Assign it to the embeddedPaymentElement’s presentingViewController
-    stripeSdk.embeddedInstance?.presentingViewController = RCTPresentedViewController()
-
-    // (c) The subviews will still get the tap because cancelsTouchesInView = false
-  }
-
-  // 3. (Optional) If you need to allow subviews’ own gesture recognizers to act simultaneously
-  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-    return true
-  }
-
-  /// Here’s a bare-bones topVC finder that walks presented & nav stacks.
-  private func findTopViewController(
-    _ base: UIViewController? = UIApplication.shared.delegate?.window??.rootViewController
-  ) -> UIViewController? {
-    guard let base = base else { return nil }
-    if let nav = base as? UINavigationController {
-      return findTopViewController(nav.visibleViewController)
-    } else if let tab = base as? UITabBarController, let selected = tab.selectedViewController {
-      return findTopViewController(selected)
-    } else if let presented = base.presentedViewController {
-      return findTopViewController(presented)
-    }
-    return base
   }
 }
 
