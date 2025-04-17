@@ -1,6 +1,6 @@
 import PassKit
 import Stripe
-import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 import StripeFinancialConnections
 import Foundation
 
@@ -60,6 +60,8 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
 
+    var embeddedInstance: EmbeddedPaymentElement? = nil
+  
     var hasEventListeners = false
     override func startObserving() {
         hasEventListeners = true
@@ -71,7 +73,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     override func supportedEvents() -> [String]! {
         return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onCustomerAdapterFetchPaymentMethodsCallback", "onCustomerAdapterAttachPaymentMethodCallback",
         "onCustomerAdapterDetachPaymentMethodCallback", "onCustomerAdapterSetSelectedPaymentOptionCallback", "onCustomerAdapterFetchSelectedPaymentOptionCallback",
-        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", "onFinancialConnectionsEvent"]
+        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", "onFinancialConnectionsEvent", "embeddedPaymentElementDidUpdateHeight", "embeddedPaymentElementWillPresent", "embeddedPaymentElementDidUpdatePaymentOption", "embeddedPaymentElementFormSheetConfirmComplete", "embeddedPaymentElementRowSelectionImmediateAction"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {

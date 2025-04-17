@@ -4,7 +4,7 @@
 //
 //  Created by Charles Cruzan on 5/11/22.
 //
-import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 
 internal class PaymentSheetAppearance {
     class func buildAppearanceFromParams(userParams: NSDictionary?) throws -> PaymentSheet.Appearance {
@@ -26,6 +26,11 @@ internal class PaymentSheetAppearance {
         }
         if let primaryButtonParams = userParams[PaymentSheetAppearanceKeys.PRIMARY_BUTTON] as? NSDictionary {
             appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams)
+        }
+      
+      
+        if let embeddedPaymentElementParams = userParams[PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT] as? NSDictionary {
+          appearance.embeddedPaymentElement = try buildEmbeddedPaymentElement(params: embeddedPaymentElementParams)
         }
         
         return appearance
@@ -151,12 +156,145 @@ internal class PaymentSheetAppearance {
             return lightColor
         }
     }
+  
+  private class func buildEmbeddedPaymentElement(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement {
+          var embedded = PaymentSheet.Appearance.EmbeddedPaymentElement()
+
+          if let rowParams = params[PaymentSheetAppearanceKeys.ROW] as? NSDictionary {
+              embedded.row = try buildEmbeddedRow(params: rowParams)
+          }
+
+          return embedded
+      }
+
+      private class func buildEmbeddedRow(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row {
+        var row = PaymentSheet.Appearance.default.embeddedPaymentElement.row
+
+          if let styleString = params[PaymentSheetAppearanceKeys.STYLE] as? String {
+              switch styleString {
+              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_RADIO:
+                  row.style = .flatWithRadio
+              case PaymentSheetAppearanceKeys.ROW_STYLE_FLOATING_BUTTON:
+                  row.style = .floatingButton
+              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_CHECKMARK:
+                  row.style = .flatWithCheckmark
+              default:
+                  throw PaymentSheetAppearanceError.invalidRowStyle(styleString)
+              }
+          }
+
+          if let additionalInsets = params[PaymentSheetAppearanceKeys.ADDITIONAL_INSETS] as? CGFloat {
+              row.additionalInsets = additionalInsets
+          }
+
+          if let flatParams = params[PaymentSheetAppearanceKeys.FLAT] as? NSDictionary {
+              row.flat = try buildEmbeddedFlat(params: flatParams)
+          }
+
+          if let floatingParams = params[PaymentSheetAppearanceKeys.FLOATING] as? NSDictionary {
+              row.floating = try buildEmbeddedFloating(params: floatingParams)
+          }
+
+          return row
+      }
+
+      private class func buildEmbeddedFlat(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat {
+          var flat = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat
+          
+          if let thickness = params[PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS] as? CGFloat {
+              flat.separatorThickness = thickness
+          }
+
+          // Pass `params` as both light/dark since nested colors don't support modes separately here
+          if let color = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SEPARATOR_COLOR, lightParams: params, darkParams: params) {
+              flat.separatorColor = color
+          }
+
+          if let insetsParams = params[PaymentSheetAppearanceKeys.SEPARATOR_INSETS] as? NSDictionary {
+              flat.separatorInsets = try buildEdgeInsets(params: insetsParams)
+          }
+
+          if let topEnabled = params[PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED] as? Bool {
+              flat.topSeparatorEnabled = topEnabled
+          }
+
+          if let bottomEnabled = params[PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED] as? Bool {
+              flat.bottomSeparatorEnabled = bottomEnabled
+          }
+
+          if let radioParams = params[PaymentSheetAppearanceKeys.RADIO] as? NSDictionary {
+              flat.radio = try buildEmbeddedRadio(params: radioParams)
+          }
+
+          if let checkmarkParams = params[PaymentSheetAppearanceKeys.CHECKMARK] as? NSDictionary {
+              flat.checkmark = try buildEmbeddedCheckmark(params: checkmarkParams)
+          }
+
+          return flat
+      }
+
+      private class func buildEmbeddedRadio(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Radio {
+          var radio = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.radio
+
+          // Pass `params` as both light/dark
+          if let selectedColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SELECTED_COLOR, lightParams: params, darkParams: params) {
+              radio.selectedColor = selectedColor
+          }
+
+          if let unselectedColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.UNSELECTED_COLOR, lightParams: params, darkParams: params) {
+              radio.unselectedColor = unselectedColor
+          }
+
+          return radio
+      }
+
+      private class func buildEmbeddedCheckmark(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Checkmark {
+        var checkmark = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.checkmark
+
+          // Pass `params` as both light/dark
+          if let color = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SHADOW_COLOR, lightParams: params, darkParams: params) { // Reusing SHADOW_COLOR key as it's "color"
+              checkmark.color = color
+          }
+
+          return checkmark
+      }
+
+      private class func buildEmbeddedFloating(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Floating {
+          var floating = PaymentSheet.Appearance.default.embeddedPaymentElement.row.floating
+
+          if let spacing = params[PaymentSheetAppearanceKeys.SPACING] as? CGFloat {
+              floating.spacing = spacing
+          }
+
+          return floating
+      }
+
+      private class func buildEdgeInsets(params: NSDictionary) throws -> UIEdgeInsets {
+          guard let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat,
+                let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat,
+                let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat,
+                let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat else {
+              // Allow partial definitions by defaulting missing values to 0
+              let topValue = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? 0
+              let leftValue = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
+              let bottomValue = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
+              let rightValue = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
+              // Check if at least one value was provided to avoid returning zero insets unintentionally
+              if params.count == 0 {
+                   throw PaymentSheetAppearanceError.invalidEdgeInsets
+              }
+              return UIEdgeInsets(top: topValue, left: leftValue, bottom: bottomValue, right: rightValue)
+          }
+          return UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+      }
 }
 
 enum PaymentSheetAppearanceError : Error {
     case missingFont(String)
     case missingAppearanceMode
     case unexpectedHexStringLength(String)
+    case invalidRowStyle(String)
+    case invalidEdgeInsets
 }
     
 extension PaymentSheetAppearanceError: LocalizedError {
@@ -168,6 +306,10 @@ extension PaymentSheetAppearanceError: LocalizedError {
             return NSLocalizedString("Failed to set Payment Sheet appearance. When providing 'colors.light' or 'colors.dark', you must provide both.", comment: "Failed to set colors")
         case .unexpectedHexStringLength(let hexString):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
+        case .invalidRowStyle(let styleString):
+            return NSLocalizedString("Failed to set Payment Sheet appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark'.", comment: "Invalid row style string")
+        case .invalidEdgeInsets:
+            return NSLocalizedString("Failed to set Payment Sheet appearance. Invalid edge insets object. Expected an object with 'top', 'left', 'bottom', 'right' number properties.", comment: "Invalid edge insets object")
         }
     }
 }
@@ -207,4 +349,30 @@ private struct PaymentSheetAppearanceKeys {
     static let PRIMARY_BUTTON = "primaryButton"
     static let TEXT = "text"
     static let BORDER = "border"
+  
+    static let EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
+    static let ROW = "row"
+    static let STYLE = "style"
+    static let ADDITIONAL_INSETS = "additionalInsets"
+    static let FLAT = "flat"
+    static let FLOATING = "floating"
+    static let SEPARATOR_THICKNESS = "separatorThickness"
+    static let SEPARATOR_COLOR = "separatorColor"
+    static let SEPARATOR_INSETS = "separatorInsets"
+    static let TOP_SEPARATOR_ENABLED = "topSeparatorEnabled"
+    static let BOTTOM_SEPARATOR_ENABLED = "bottomSeparatorEnabled"
+    static let RADIO = "radio"
+    static let SELECTED_COLOR = "selectedColor"
+    static let UNSELECTED_COLOR = "unselectedColor"
+    static let CHECKMARK = "checkmark"
+    static let SPACING = "spacing"
+    static let TOP = "top"
+    static let LEFT = "left"
+    static let BOTTOM = "bottom"
+    static let RIGHT = "right"
+
+    // Row Style Enum Values (match TS string enum values)
+    static let ROW_STYLE_FLAT_WITH_RADIO = "flatWithRadio"
+    static let ROW_STYLE_FLOATING_BUTTON = "floatingButton"
+    static let ROW_STYLE_FLAT_WITH_CHECKMARK = "flatWithCheckmark"
 }
