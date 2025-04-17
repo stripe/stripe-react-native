@@ -76,6 +76,50 @@ extension StripeSdk {
     }
   }
   
+  @objc(updateEmbeddedPaymentElement:resolver:rejecter:)
+  func updateEmbeddedPaymentElement(
+    intentConfig: NSDictionary,
+    resolver resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let modeParams = intentConfig["mode"] as? NSDictionary else {
+      resolve(Errors.createError(
+        ErrorType.Failed,
+        "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"
+      ))
+      return
+    }
+    let captureMethodString = intentConfig["captureMethod"] as? String
+    let intentConfiguration = buildIntentConfiguration(
+      modeParams: modeParams,
+      paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
+      captureMethod: mapCaptureMethod(captureMethodString)
+    )
+
+    Task {
+      guard let updateResult = await self.embeddedInstance?.update(intentConfiguration: intentConfiguration) else {
+        resolve(Errors.createError(
+          ErrorType.Failed,
+          "No EmbeddedPaymentElement instance — did you call create first?"
+        ))
+        return
+      }
+
+      switch updateResult {
+      case .succeeded:
+        resolve(["status": "succeeded"])
+      case .canceled:
+        resolve(["status": "canceled"])
+      case .failed(let error):
+        print(error.localizedDescription)
+        resolve([
+          "status": "failed",
+          "error": error.localizedDescription
+        ])
+      }
+    }
+  }
+
   @objc(clearEmbeddedPaymentOption)
   func clearEmbeddedPaymentOption() {
     DispatchQueue.main.async {
