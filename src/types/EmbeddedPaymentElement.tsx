@@ -28,10 +28,6 @@ import React from 'react';
 const { StripeSdk } = NativeModules;
 const NativeStripeEmbedded: StripeEmbeddedNativeModule = StripeSdk;
 
-/* -----------------------------------------------------------------------
- * (1) Type Definitions
- * ----------------------------------------------------------------------*/
-
 /**
  * The final result of a confirm call.
  * Typically: payment succeeded (“completed”), canceled, or failed with error.
@@ -179,10 +175,6 @@ export interface EmbeddedPaymentElement {
   clearPaymentOption(): void;
 }
 
-/* -----------------------------------------------------------------------
- * (3) The bridging interface. On the native side, you implement these.
- * ----------------------------------------------------------------------*/
-
 interface StripeEmbeddedNativeModule {
   createEmbeddedPaymentElement: (
     intentConfig: PaymentSheetTypes.IntentConfiguration,
@@ -219,9 +211,6 @@ class EmbeddedPaymentElementImpl implements EmbeddedPaymentElement {
   }
 }
 
-/* -----------------------------------------------------------------------
- * (5) The official function to create an instance.
- * ----------------------------------------------------------------------*/
 const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
 let confirmHandlerCallback: EmitterSubscription | null = null;
 let formSheetActionConfirmCallback: EmitterSubscription | null = null;
@@ -294,11 +283,6 @@ export async function createEmbeddedPaymentElement(
 
 export const NativeEmbeddedPaymentElementView =
   requireNativeComponent<NativeProps>('EmbeddedPaymentElementView');
-
-/* -----------------------------------------------------------------------
- * (7) (Optional) We can expose an EventEmitter if the native side
- *     triggers height changes, updated paymentOptions, etc.
- * ----------------------------------------------------------------------*/
 
 const embeddedEventEmitter = new NativeEventEmitter(StripeSdk);
 
