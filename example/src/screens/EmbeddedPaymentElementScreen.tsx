@@ -73,6 +73,10 @@ export default function EmbeddedPaymentElementScreen() {
     }
   };
 
+  const clearPaymentOption = () => {
+    embeddedElement?.clearPaymentOption();
+  };
+
   const initialiseEmbeddedPaymentElement = useCallback(
     async (shippingDetails?: AddressDetails) => {
       const { customer, ...remainingParams } =
@@ -315,6 +319,13 @@ export default function EmbeddedPaymentElementScreen() {
         disabled={!embeddedElement}
         title={embeddedElement && !loading ? 'Pay' : 'Loading...'}
         onPress={handlePayment}
+      />
+      <Button
+        variant="default"
+        loading={loading}
+        disabled={!embeddedElement}
+        title="Clear payment option"
+        onPress={clearPaymentOption}
       />
     </PaymentScreen>
   );

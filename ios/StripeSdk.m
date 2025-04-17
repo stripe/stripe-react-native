@@ -248,6 +248,7 @@ RCT_EXTERN_METHOD(createEmbeddedPaymentElement:(NSDictionary *)intentConfig
                   rejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(confirmEmbeddedPaymentElement:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(clearEmbeddedPaymentOption)
 @end
 
 @interface RCT_EXTERN_MODULE(EmbeddedPaymentElementView, RCTViewManager)

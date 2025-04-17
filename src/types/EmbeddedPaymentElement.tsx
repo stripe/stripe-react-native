@@ -81,7 +81,7 @@ export type RowSelectionBehavior =
   | { type: 'immediateAction'; didSelectPaymentOption: () => void };
 
 /**
- * Configuration object (subset of PaymentSheet.Configuration).
+ * Configuration object (subset of EmbeddedPaymentElementConfiguration.Configuration).
  */
 export interface EmbeddedPaymentElementConfiguration {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
