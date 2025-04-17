@@ -16,7 +16,6 @@ buildscript {
     }
 
     dependencies {
-        classpath 'org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.21'
         getReactNativeDependencies().each { dependency ->
             classpath(dependency)
         }
