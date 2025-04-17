@@ -52,8 +52,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
             "image": imageBase64,
             "label": label,
             "billingDetails": billingDetailsDict,
-            "paymentMethodType": paymentMethodType,
-            "mandateText": mandateTextString
+            "paymentMethodType": paymentMethodType
         ]
     }
 }

@@ -74,11 +74,6 @@ export interface PaymentOptionDisplayData {
    * Apple Pay: "apple_pay"
    */
   paymentMethodType: string;
-  /**
-   * Optional base64-encoded regulatory mandate text.
-   * If `embeddedViewDisplaysMandateText = false`, this must be shown near the buy button in a tappable view that supports links.
-   */
-  mandateText?: string;
 }
 
 /**
@@ -204,18 +199,10 @@ export interface EmbeddedPaymentElementConfiguration {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: PaymentSheetTypes.CardBrandAcceptance;
-  /** (Private Preview) This parameter is expected to be removed once we GA this feature
-   * When using customerSessions, allow users to update their saved cards
-   */
-  updatePaymentMethodEnabled?: boolean;
   /** The view can display payment methods like “Card” that, when tapped, open a sheet where customers enter their payment method details.
    * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs.
    */
   formSheetAction?: EmbeddedFormSheetAction;
-  /** Controls whether the view displays mandate text at the bottom for payment methods that require it. If set to `false`, your integration must display `PaymentOptionDisplayData.mandateText` to the customer near your “Buy” button to comply with regulations.
-   * Note: This doesn't affect mandates displayed in the form sheet.
-   */
-  embeddedViewDisplaysMandateText?: boolean;
   /**
    * Determines the behavior when a row  is selected. Defaults to `.default`.
    */
