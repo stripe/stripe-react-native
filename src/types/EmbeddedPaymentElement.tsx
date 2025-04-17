@@ -16,7 +16,6 @@ import * as PaymentSheetTypes from './PaymentSheet';
 import type { ImageSourcePropType, ViewProps } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import {
-  forwardRef,
   ReactElement,
   useCallback,
   useEffect,
@@ -332,33 +331,6 @@ export async function createEmbeddedPaymentElement(
 // -----------------------------------------------------------------------------
 // React Native View wrapper
 // -----------------------------------------------------------------------------
-export const EmbeddedPaymentElementView = forwardRef<
-  React.ElementRef<typeof RNEmbeddedPaymentElementView>,
-  ViewProps & { manageHeight?: boolean; animate?: boolean }
->(({ manageHeight = true, animate = true, style, ...props }, ref) => {
-  const [height, setHeight] = useState(0);
-  useEffect(() => {
-    if (!manageHeight) return;
-    const sub = eventEmitter.addListener(
-      'embeddedPaymentElementDidUpdateHeight',
-      ({ height: newH }) => {
-        if (animate)
-          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setHeight(newH);
-      }
-    );
-    return () => sub.remove();
-  }, [manageHeight, animate]);
-
-  return (
-    <RNEmbeddedPaymentElementView
-      {...props}
-      ref={ref}
-      style={[manageHeight ? { width: '100%', height } : {}, style]}
-    />
-  );
-});
-
 const RNEmbeddedPaymentElementView = requireNativeComponent<ViewProps>(
   'EmbeddedPaymentElementView'
 );
