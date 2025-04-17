@@ -367,7 +367,7 @@ export const NativeEmbeddedPaymentElementView =
 
 const embeddedEventEmitter = new NativeEventEmitter(StripeSdk);
 
-export interface EmbeddedPaymentElementDidUpdateHeightEvent {
+interface EmbeddedPaymentElementDidUpdateHeightEvent {
   height: number;
 }
 
@@ -380,7 +380,7 @@ export interface EmbeddedPaymentElementDidUpdatePaymentOptionEvent {
 /**
  * Called when the embedded Payment Element changes its height.
  */
-export function onEmbeddedPaymentElementDidUpdateHeight(
+function onEmbeddedPaymentElementDidUpdateHeight(
   listener: (event: EmbeddedPaymentElementDidUpdateHeightEvent) => void
 ): EmitterSubscription {
   return embeddedEventEmitter.addListener(
