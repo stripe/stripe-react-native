@@ -1,6 +1,7 @@
 package com.reactnativestripesdk
 
 import android.content.Context
+import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -26,15 +27,22 @@ import androidx.lifecycle.lifecycleScope
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.reactnativestripesdk.utils.mapFromPaymentMethod
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
+import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
 class EmbeddedPaymentElementView(
@@ -53,17 +61,59 @@ class EmbeddedPaymentElementView(
 
   private val reactContext get() = context as ReactContext
   private val events = Channel<Event>(Channel.UNLIMITED)
-  private var lastReportedHeight = 0
 
   private val builder by lazy {
     EmbeddedPaymentElement.Builder(
-      createIntentCallback = { _, _ -> error("Not implemented" ) },
-      resultCallback       = { result ->
+      createIntentCallback = { paymentMethod, shouldSavePaymentMethod ->
+        val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
+        if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
+          CreateIntentResult.Failure(
+            cause = Exception(
+              "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues"
+            ),
+            displayMessage = "An unexpected error occurred"
+          )
+        } else {
+          val params = Arguments.createMap().apply {
+            putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+            putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
+          }
+
+          stripeSdkModule.sendEvent(reactContext, "onConfirmHandlerCallback", params)
+
+          val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
+          // reset the completable
+          stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
+
+          resultFromJavascript.getString("clientSecret")?.let {
+            CreateIntentResult.Success(clientSecret = it)
+          } ?: run {
+            val errorMap = resultFromJavascript.getMap("error")
+            CreateIntentResult.Failure(
+              cause = Exception(errorMap?.getString("message")),
+              displayMessage = errorMap?.getString("localizedMessage")
+            )
+          }
+        }
+      },
+      resultCallback = { result ->
         val map = Arguments.createMap().apply {
+          when (result) {
+            is EmbeddedPaymentElement.Result.Completed -> {
+              putString("status", "completed")
+            }
+            is EmbeddedPaymentElement.Result.Canceled -> {
+              putString("status", "canceled")
+            }
+            is EmbeddedPaymentElement.Result.Failed -> {
+              putString("status", "failed")
+              putString("error", result.error.message ?: "Unknown error")
+            }
+          }
         }
         reactContext
           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-          .emit("onFormSheetConfirmComplete", map)
+          .emit("embeddedPaymentElementFormSheetConfirmComplete", map)
       }
     )
   }
@@ -71,10 +121,6 @@ class EmbeddedPaymentElementView(
   @Composable
   override fun Content() {
     val embedded = rememberEmbeddedPaymentElement(builder)
-    val hostView = LocalView.current             // the ComposeView instance
-
-    // State to track the last emitted height to avoid redundant events if height doesn't change
-    var configured by remember { mutableStateOf(false) }
 
     // collect events: configure, confirm
     LaunchedEffect(Unit) {
@@ -89,11 +135,10 @@ class EmbeddedPaymentElementView(
 
             when (result) {
               is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
-                configured = true
+                reportHeightChange(300)
               }
-
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
-                // TODO
+                // TODO send errors back to Javascript
               }
             }
           }
@@ -105,28 +150,7 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    LaunchedEffect(configured) {
-      if (configured) {
-        hostView.requestLayout()
-      }
-    }
-
-    val scrollState = rememberScrollState()
-
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .verticalScroll(scrollState)
-        .onGloballyPositioned { coordinates ->
-          val height = coordinates.size.height
-          if (height != lastReportedHeight && height > 0) {
-            lastReportedHeight = height
-            reportHeightChange(height)
-          }
-        }
-    ) {
-      embedded.Content()
-    }
+    embedded.Content()
   }
 
   private fun reportHeightChange(height: Int) {
@@ -146,9 +170,11 @@ class EmbeddedPaymentElementView(
     }
     events.trySend(Event.Configure(config, intentConfig))
   }
+
   fun confirm() {
     findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
       events.send(Event.Confirm)
     }
   }
+
 }

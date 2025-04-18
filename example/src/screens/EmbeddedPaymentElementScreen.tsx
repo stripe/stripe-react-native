@@ -206,7 +206,7 @@ export default function EmbeddedPaymentElementScreen() {
           else callback({ clientSecret });
         },
         mode: { amount: 6099, currencyCode: 'USD' },
-        paymentMethodTypes: ['card', 'klarna'],
+        paymentMethodTypes: ['card', 'klarna', 'cashapp'],
       };
 
       setElementConfig(uiConfig);

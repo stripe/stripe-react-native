@@ -61,6 +61,7 @@ import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,6 +91,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var eventListenerCount = 0
+  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -281,6 +283,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    embeddedIntentCreationCallback.complete(params);
+
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
       return

@@ -6,6 +6,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -28,7 +29,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
 
   override fun needsCustomLayoutForChildren(): Boolean = true
 
-  // 1️⃣ Receive your configuration from JS
   @ReactProp(name = "configuration")
   fun setConfiguration(view: EmbeddedPaymentElementView, cfg: ReadableMap) {
     val elementConfig = parseElementConfiguration(cfg)
@@ -43,7 +43,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     }
   }
 
-  // 2️⃣ Receive your PaymentSheet IntentConfiguration from JS
   @ReactProp(name = "intentConfiguration")
   fun setIntentConfiguration(view: EmbeddedPaymentElementView, cfg: ReadableMap) {
     val intentConfig = parseIntentConfiguration(cfg)
@@ -53,13 +52,11 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     }
   }
 
-  // 3️⃣ Imperative call from JS: flip this prop to `true` to trigger `.confirm()`
   @ReactProp(name = "confirm", defaultBoolean = false)
   fun setConfirm(view: EmbeddedPaymentElementView, confirm: Boolean) {
     if (confirm) view.confirm()
   }
 
-  // 4️⃣ Expose the two events your view emits
   override fun getExportedCustomDirectEventTypeConstants() = mapOf(
     "onPaymentOptionChange" to mapOf("registrationName" to "onPaymentOptionChange"),
     "onFormSheetConfirmComplete" to mapOf("registrationName" to "onFormSheetConfirmComplete"),
@@ -67,8 +64,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     "embeddedPaymentElementDidUpdateHeight" to mapOf("registrationName" to "embeddedPaymentElementDidUpdateHeight")
   )
 
-  // ────────────────────────
-  // You’ll need to write these two parsers yourself:
   private fun parseElementConfiguration(map: ReadableMap): EmbeddedPaymentElement.Configuration {
     val configuration = EmbeddedPaymentElement.Configuration.Builder("My Store")
       .allowsDelayedPaymentMethods(true)
@@ -77,18 +72,7 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
   }
 
   private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
-    val paymentIntentConfig = PaymentSheet.IntentConfiguration(
-      mode = PaymentSheet.IntentConfiguration.Mode.Payment(
-        amount = 1099,       // e.g. $10.99
-        currency = "usd"
-      ),
-      paymentMethodTypes = listOf(
-        "card",
-        "link",
-        "us_bank_account",
-        "affirm"
-      )
-    )
-    return paymentIntentConfig
+    val intentConfig = PaymentSheetFragment.buildIntentConfiguration(toBundleObject(map))
+    return intentConfig ?: throw IllegalArgumentException("IntentConfiguration is null")
   }
 }

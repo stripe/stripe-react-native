@@ -509,7 +509,7 @@ class PaymentSheetFragment(
       }
 
     @Throws(PaymentSheetException::class)
-    private fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
+    fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
       if (intentConfigurationParams == null) {
         return null
       }

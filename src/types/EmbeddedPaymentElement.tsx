@@ -1,9 +1,11 @@
+/* eslint-disable react-native/no-inline-styles */
 import {
   requireNativeComponent,
   NativeModules,
   NativeEventEmitter,
   EmitterSubscription,
   LayoutAnimation,
+  Platform,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -23,6 +25,7 @@ import {
   useRef,
   useState,
 } from 'react';
+
 import React from 'react';
 
 // Native bridge imports
@@ -257,6 +260,19 @@ async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
+  setupConfirmHandlers(intentConfig, configuration);
+
+  await NativeStripeEmbedded.createEmbeddedPaymentElement(
+    intentConfig,
+    configuration
+  );
+  return new EmbeddedPaymentElement();
+}
+
+function setupConfirmHandlers(
+  intentConfig: PaymentSheetTypes.IntentConfiguration,
+  configuration: EmbeddedPaymentElementConfiguration
+) {
   const confirmHandler = intentConfig.confirmHandler;
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
@@ -307,20 +323,32 @@ async function createEmbeddedPaymentElement(
       );
     }
   }
-
-  await NativeStripeEmbedded.createEmbeddedPaymentElement(
-    intentConfig,
-    configuration
-  );
-  return new EmbeddedPaymentElement();
 }
 
 // -----------------------------------------------------------------------------
-// React Native View wrapper
+// React Native View wrappers
 // -----------------------------------------------------------------------------
-const RNEmbeddedPaymentElementView = requireNativeComponent<ViewProps>(
+const RNEmbeddedPaymentElementViewIOS = requireNativeComponent<ViewProps>(
   'EmbeddedPaymentElementView'
 );
+
+type AndroidProps = ViewProps & {
+  configuration: EmbeddedPaymentElementConfiguration;
+  intentConfiguration: PaymentSheetTypes.IntentConfiguration;
+  onPaymentOptionChange?: (e: {
+    nativeEvent: PaymentOptionDisplayData;
+  }) => void;
+  onFormSheetConfirmComplete?: (e: {
+    nativeEvent: EmbeddedPaymentElementResult;
+  }) => void;
+  onEmbeddedPaymentElementDidUpdateHeight?: (e: {
+    nativeEvent: { height: number };
+  }) => void;
+};
+const RNEmbeddedPaymentElementViewAndroid =
+  Platform.OS === 'android'
+    ? requireNativeComponent<AndroidProps>('StripeEmbeddedPaymentElementView')
+    : null;
 
 // -----------------------------------------------------------------------------
 // Hook: useEmbeddedPaymentElement
@@ -339,16 +367,22 @@ export function useEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): UseEmbeddedPaymentElementResult {
+  const isAndroid = Platform.OS === 'android';
   const elementRef = useRef<EmbeddedPaymentElement | null>(null);
   const [element, setElement] = useState<EmbeddedPaymentElement | null>(null);
   const [paymentOption, setPaymentOption] =
     useState<PaymentOptionDisplayData | null>(null);
-  const [height, setHeight] = useState(0);
-  const viewRef =
-    useRef<React.ElementRef<typeof RNEmbeddedPaymentElementView>>(null);
+  const [height, setHeight] = useState<number | undefined>();
+  const viewRef = useRef<any>(null);
 
   // init
   useEffect(() => {
+    if (isAndroid) {
+      if (configuration && intentConfig) {
+        setupConfirmHandlers(intentConfig, configuration);
+      }
+      return;
+    }
     let active = true;
     (async () => {
       const el = await createEmbeddedPaymentElement(
@@ -365,44 +399,72 @@ export function useEmbeddedPaymentElement(
       elementRef.current = null;
       setElement(null);
     };
-  }, [intentConfig, configuration]);
+  }, [intentConfig, configuration, isAndroid]);
 
-  // payment option updates
   useEffect(() => {
-    if (!element) return;
     const sub = eventEmitter.addListener(
       'embeddedPaymentElementDidUpdatePaymentOption',
       ({ paymentOption: opt }) => setPaymentOption(opt ?? null)
     );
     return () => sub.remove();
-  }, [element]);
+  });
 
   // height updates
   useEffect(() => {
-    if (!element) return;
     const sub = eventEmitter.addListener(
       'embeddedPaymentElementDidUpdateHeight',
       ({ height: h }) => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setHeight(h);
+        // ignore zero
+        if (h > 0) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setHeight(h);
+        }
       }
     );
     return () => sub.remove();
-  }, [element]);
+  }, []);
 
   // render view
   const view = useMemo(() => {
+    if (isAndroid && configuration && intentConfig) {
+      return (
+        RNEmbeddedPaymentElementViewAndroid && (
+          <RNEmbeddedPaymentElementViewAndroid
+            ref={viewRef}
+            style={[{ width: '100%', height: height }]}
+            configuration={configuration}
+            intentConfiguration={intentConfig}
+            onPaymentOptionChange={({ nativeEvent }) =>
+              setPaymentOption(nativeEvent)
+            }
+            onFormSheetConfirmComplete={({ nativeEvent }) => {
+              // bubble up to any handler
+              console.log(nativeEvent);
+            }}
+            onEmbeddedPaymentElementDidUpdateHeight={({ nativeEvent }) => {
+              setHeight(nativeEvent.height);
+            }}
+          />
+        )
+      );
+    }
     if (!element) return null;
     return (
-      <RNEmbeddedPaymentElementView
+      <RNEmbeddedPaymentElementViewIOS
         ref={viewRef}
         style={{ width: '100%', height }}
       />
     );
-  }, [element, height]);
+  }, [configuration, element, height, intentConfig, isAndroid]);
 
   // actions
-  const confirm = useCallback(() => elementRef.current!.confirm(), []);
+  const confirm = useCallback(() => {
+    if (isAndroid) {
+      // setConfirmFlag((f) => !f);
+      // return Promise.resolve({ status: 'completed' } as any);
+    }
+    return elementRef.current!.confirm();
+  }, [isAndroid]);
   const update = useCallback(
     (cfg: PaymentSheetTypes.IntentConfiguration) =>
       elementRef.current!.update(cfg),
