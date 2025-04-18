@@ -2,7 +2,7 @@ import type {
   CardFieldInput,
   BillingDetails,
 } from '@stripe/stripe-react-native';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Switch } from 'react-native';
 import {
   CardBrand,
@@ -85,6 +85,8 @@ export default function WebhookPaymentScreen() {
     setCanPay(true);
   };
 
+  const ref = useRef<CardFieldInput.Methods>(null);
+
   return (
     <PaymentScreen>
       <TextInput
@@ -95,6 +97,7 @@ export default function WebhookPaymentScreen() {
         style={styles.input}
       />
       <CardField
+        ref={ref}
         disabled={!canPay}
         postalCodeEnabled={false}
         autofocus
@@ -110,10 +113,36 @@ export default function WebhookPaymentScreen() {
         onFocus={(focusedField) => {
           console.log('focusField', focusedField);
         }}
+        onBlur={() => {
+          console.log('blurField');
+        }}
         cardStyle={inputStyles}
         style={styles.cardField}
         preferredNetworks={[CardBrand.Amex]}
       />
+      <View style={[styles.row, styles.rowWithGap]}>
+        <Button
+          variant="default"
+          onPress={() => {
+            ref.current?.focus();
+          }}
+          title="Focus"
+        />
+        <Button
+          variant="default"
+          onPress={() => {
+            ref.current?.blur();
+          }}
+          title="Blur"
+        />
+        <Button
+          variant="default"
+          onPress={() => {
+            ref.current?.clear();
+          }}
+          title="Clear"
+        />
+      </View>
       <View style={styles.row}>
         <Switch
           onValueChange={(value) => setSaveCard(value)}
@@ -143,6 +172,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  rowWithGap: {
+    gap: 16,
   },
   text: {
     marginLeft: 12,

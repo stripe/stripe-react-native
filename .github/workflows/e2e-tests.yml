@@ -103,7 +103,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-android
-          path: /Users/runner/.maestro/tests/**
+          path: e2e-artifacts
+          include-hidden-files: true
 
   test-ios:
     name: e2e-ios-test
@@ -174,4 +175,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-ios
-          path: /Users/runner/.maestro/tests/**
+          path: e2e-artifacts
+          include-hidden-files: true

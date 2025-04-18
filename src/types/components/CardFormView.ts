@@ -53,7 +53,7 @@ export type OnFocusChangeEvent = NativeSyntheticEvent<{
   focusedField: FieldName | null;
 }>;
 
-export type OnFormCompleteEvent = NativeSyntheticEvent<Details>;
+export type OnFormCompleteEvent = NativeSyntheticEvent<{ card: Details }>;
 
 /**
  * @ignore

@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
@@ -7,16 +8,14 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
+import com.reactnativestripesdk.customersheet.CustomerSheetFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.CreateTokenErrorType
@@ -69,9 +68,7 @@ import org.json.JSONObject
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
-) : ReactContextBaseJavaModule(reactContext) {
-  override fun getName(): String = NAME
-
+) : NativeStripeSdkModuleSpec(reactContext) {
   var cardFieldView: CardFieldView? = null
   var cardFormView: CardFormView? = null
 
@@ -88,8 +85,6 @@ class StripeSdkModule(
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
   private var customerSheetFragment: CustomerSheetFragment? = null
-
-  internal var eventListenerCount = 0
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -176,17 +171,18 @@ class StripeSdkModule(
     )
   }
 
-  override fun getConstants(): MutableMap<String, Any> =
-    hashMapOf(
+  @SuppressLint("RestrictedApi")
+  override fun getTypedExportedConstants() =
+    mapOf(
       "API_VERSIONS" to
-        hashMapOf(
+        mapOf(
           "CORE" to ApiVersion.API_VERSION_CODE,
           "ISSUING" to PushProvisioningProxy.getApiVersion(),
         ),
     )
 
   @ReactMethod
-  fun initialise(
+  override fun initialise(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -217,7 +213,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun initPaymentSheet(
+  override fun initPaymentSheet(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -240,7 +236,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun presentPaymentSheet(
+  override fun presentPaymentSheet(
     options: ReadableMap,
     promise: Promise,
   ) {
@@ -261,7 +257,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun confirmPaymentSheetPayment(promise: Promise) {
+  override fun confirmPaymentSheetPayment(promise: Promise) {
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
       return
@@ -271,13 +267,13 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun resetPaymentSheetCustomer(promise: Promise) {
+  override fun resetPaymentSheetCustomer(promise: Promise) {
     PaymentSheet.resetCustomer(context = reactApplicationContext)
     promise.resolve(null)
   }
 
   @ReactMethod
-  fun intentCreationCallback(
+  override fun intentCreationCallback(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -290,7 +286,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun createPaymentMethod(
+  override fun createPaymentMethod(
     data: ReadableMap,
     options: ReadableMap,
     promise: Promise,
@@ -330,7 +326,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun createToken(
+  override fun createToken(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -467,7 +463,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun createTokenForCVCUpdate(
+  override fun createTokenForCVCUpdate(
     cvc: String,
     promise: Promise,
   ) {
@@ -490,8 +486,9 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun handleNextAction(
+  override fun handleNextAction(
     paymentIntentClientSecret: String,
+    returnUrl: String?,
     promise: Promise,
   ) {
     paymentLauncherFragment =
@@ -506,8 +503,9 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun handleNextActionForSetup(
+  override fun handleNextActionForSetup(
     setupIntentClientSecret: String,
+    returnUrl: String?,
     promise: Promise,
   ) {
     paymentLauncherFragment =
@@ -541,10 +539,10 @@ class StripeSdkModule(
 //  }
 
   @ReactMethod
-  fun confirmPayment(
+  override fun confirmPayment(
     paymentIntentClientSecret: String,
     params: ReadableMap?,
-    options: ReadableMap,
+    options: ReadableMap?,
     promise: Promise,
   ) {
     val paymentMethodData = getMapOrNull(params, "paymentMethodData")
@@ -604,7 +602,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun retrievePaymentIntent(
+  override fun retrievePaymentIntent(
     clientSecret: String,
     promise: Promise,
   ) {
@@ -615,7 +613,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun retrieveSetupIntent(
+  override fun retrieveSetupIntent(
     clientSecret: String,
     promise: Promise,
   ) {
@@ -626,7 +624,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun confirmSetupIntent(
+  override fun confirmSetupIntent(
     setupIntentClientSecret: String,
     params: ReadableMap,
     options: ReadableMap,
@@ -677,7 +675,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun isPlatformPaySupported(
+  override fun isPlatformPaySupported(
     params: ReadableMap?,
     promise: Promise,
   ) {
@@ -703,7 +701,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun confirmPlatformPay(
+  override fun confirmPlatformPay(
     clientSecret: String,
     params: ReadableMap,
     isPaymentIntent: Boolean,
@@ -799,7 +797,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun createPlatformPayPaymentMethod(
+  override fun createPlatformPayPaymentMethod(
     params: ReadableMap,
     usesDeprecatedTokenFlow: Boolean,
     promise: Promise,
@@ -828,7 +826,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun canAddCardToWallet(
+  override fun canAddCardToWallet(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -862,7 +860,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun isCardInWallet(
+  override fun isCardInWallet(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -886,7 +884,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun collectBankAccount(
+  override fun collectBankAccount(
     isPaymentIntent: Boolean,
     clientSecret: String,
     params: ReadableMap,
@@ -946,7 +944,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun verifyMicrodeposits(
+  override fun verifyMicrodeposits(
     isPaymentIntent: Boolean,
     clientSecret: String,
     params: ReadableMap,
@@ -1031,7 +1029,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun collectBankAccountToken(
+  override fun collectBankAccountToken(
     clientSecret: String,
     params: ReadableMap,
     promise: Promise,
@@ -1053,7 +1051,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun collectFinancialConnectionsAccounts(
+  override fun collectFinancialConnectionsAccounts(
     clientSecret: String,
     params: ReadableMap,
     promise: Promise,
@@ -1075,7 +1073,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun initCustomerSheet(
+  override fun initCustomerSheet(
     params: ReadableMap,
     customerAdapterOverrides: ReadableMap,
     promise: Promise,
@@ -1107,7 +1105,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun presentCustomerSheet(
+  override fun presentCustomerSheet(
     params: ReadableMap,
     promise: Promise,
   ) {
@@ -1121,14 +1119,14 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun retrieveCustomerSheetPaymentOptionSelection(promise: Promise) {
+  override fun retrieveCustomerSheetPaymentOptionSelection(promise: Promise) {
     customerSheetFragment?.retrievePaymentOptionSelection(promise) ?: run {
       promise.resolve(CustomerSheetFragment.createMissingInitError())
     }
   }
 
   @ReactMethod
-  fun customerAdapterFetchPaymentMethodsCallback(
+  override fun customerAdapterFetchPaymentMethodsCallback(
     paymentMethodJsonObjects: ReadableArray,
     promise: Promise,
   ) {
@@ -1152,7 +1150,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun customerAdapterAttachPaymentMethodCallback(
+  override fun customerAdapterAttachPaymentMethodCallback(
     paymentMethodJson: ReadableMap,
     promise: Promise,
   ) {
@@ -1174,7 +1172,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun customerAdapterDetachPaymentMethodCallback(
+  override fun customerAdapterDetachPaymentMethodCallback(
     paymentMethodJson: ReadableMap,
     promise: Promise,
   ) {
@@ -1196,7 +1194,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun customerAdapterSetSelectedPaymentOptionCallback(promise: Promise) {
+  override fun customerAdapterSetSelectedPaymentOptionCallback(promise: Promise) {
     customerSheetFragment?.let {
       it.customerAdapter?.setSelectedPaymentOptionCallback?.complete(Unit)
     } ?: run {
@@ -1206,7 +1204,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun customerAdapterFetchSelectedPaymentOptionCallback(
+  override fun customerAdapterFetchSelectedPaymentOptionCallback(
     paymentOption: String?,
     promise: Promise,
   ) {
@@ -1219,7 +1217,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
+  override fun customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
     clientSecret: String,
     promise: Promise,
   ) {
@@ -1231,27 +1229,38 @@ class StripeSdkModule(
     }
   }
 
-  @ReactMethod
-  fun addListener(eventName: String) {
-    eventListenerCount++
-  }
-
-  @ReactMethod
-  fun removeListeners(count: Int) {
-    eventListenerCount -= count
-    if (eventListenerCount < 0) {
-      eventListenerCount = 0
-    }
-  }
-
-  internal fun sendEvent(
-    reactContext: ReactContext,
-    eventName: String,
-    params: WritableMap,
+  override fun handleURLCallback(
+    url: String,
+    promise: Promise,
   ) {
-    reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(eventName, params)
+    // noop, iOS only.
+  }
+
+  override fun openApplePaySetup(promise: Promise) {
+    // noop, iOS only.
+  }
+
+  override fun configureOrderTracking(
+    orderTypeIdentifier: String,
+    orderIdentifier: String,
+    webServiceUrl: String,
+    authenticationToken: String,
+    promise: Promise,
+  ) {
+    // noop, iOS only.
+  }
+
+  override fun dismissPlatformPay(promise: Promise?) {
+    // noop, iOS only.
+  }
+
+  override fun updatePlatformPaySheet(
+    summaryItems: ReadableArray?,
+    shippingMethods: ReadableArray?,
+    errors: ReadableArray?,
+    promise: Promise?,
+  ) {
+    // noop, iOS only.
   }
 
   /**
@@ -1267,6 +1276,6 @@ class StripeSdkModule(
   }
 
   companion object {
-    const val NAME = "StripeSdk"
+    const val NAME = NativeStripeSdkModuleSpec.NAME
   }
 }

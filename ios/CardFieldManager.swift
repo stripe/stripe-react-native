@@ -3,10 +3,7 @@ import Foundation
 @objc(CardFieldManager)
 class CardFieldManager: RCTViewManager {
     override func view() -> UIView! {
-        let cardField = CardFieldView()
-        let stripeSdk = bridge.module(forName: "StripeSdk") as? StripeSdk
-        stripeSdk?.cardFieldView = cardField;
-        return cardField
+        return CardFieldView()
     }
     
     @objc func focus(_ reactTag: NSNumber) {

@@ -1,16 +1,7 @@
 import React from 'react';
-import {
-  AccessibilityProps,
-  requireNativeComponent,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { AccessibilityProps, StyleProp, ViewStyle } from 'react-native';
+import NativeAuBECSDebitForm from '../specs/NativeAuBECSDebitForm';
 import type { AuBECSDebitFormComponent } from '../types';
-
-const AuBECSDebitFormNative =
-  requireNativeComponent<AuBECSDebitFormComponent.NativeProps>(
-    'AuBECSDebitForm'
-  );
 
 /**
  *  BECS Debit Form Component Props
@@ -45,7 +36,7 @@ export function AuBECSDebitForm({
   ...props
 }: Props) {
   return (
-    <AuBECSDebitFormNative
+    <NativeAuBECSDebitForm
       onCompleteAction={(value) => onComplete(value.nativeEvent)}
       companyName={companyName}
       formStyle={{ ...formStyle }}

@@ -73,9 +73,11 @@ export default function AuBECSDebitPaymentScreen() {
     <PaymentScreen paymentMethod="au_becs_debit">
       <AuBECSDebitForm
         style={styles.form}
-        onComplete={(value) => setFormDetails(value)}
+        onComplete={(value) => {
+          console.log('Completed form', value);
+          setFormDetails(value);
+        }}
         companyName="company"
-        // eslint-disable-next-line react-native/no-inline-styles
         formStyle={{ fontSize: 20 }}
       />
 
