@@ -98,12 +98,18 @@ jobs:
             yarn run-example-android:release || (sleep 60 && yarn run-example-android:release)
             yarn test:e2e:android
 
+      - name: Debug
+        if: always()
+        run: |
+          ls -a .
+          la -a e2e-artifacts
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-android
-          path: e2e-artifacts/.maestro
+          path: e2e-artifacts
+          include-hidden-files: true
 
   test-ios:
     name: e2e-ios-test
@@ -174,4 +180,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-ios
-          path: e2e-artifacts/.maestro
+          path: e2e-artifacts
+          include-hidden-files: true
