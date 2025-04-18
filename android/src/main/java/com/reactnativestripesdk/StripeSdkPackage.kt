@@ -20,5 +20,6 @@ class StripeSdkPackage : ReactPackage {
       GooglePayButtonManager(),
       AddToWalletButtonManager(reactContext),
       AddressSheetViewManager(),
+      StripeEmbeddedPaymentElementViewManager(),
     )
 }

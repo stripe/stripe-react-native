@@ -30,3 +30,6 @@ export * from './types/index';
 
 export * from './components/CustomerSheet';
 export type { Props as CustomerSheetProps } from './components/CustomerSheet';
+
+export * from './types/EmbeddedPaymentElement';
+export * from './types/PaymentSheet';
