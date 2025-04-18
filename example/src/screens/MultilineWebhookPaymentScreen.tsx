@@ -115,6 +115,21 @@ export default function MultilineWebhookPaymentScreen() {
           countryCode: 'US',
         }}
       />
+      <View style={styles.row}>
+        <Switch
+          onValueChange={(value) => setSaveCard(value)}
+          value={saveCard}
+        />
+        <Text style={styles.text}>Save card during payment</Text>
+      </View>
+      <Button
+        variant="primary"
+        onPress={handlePayPress}
+        title="Pay"
+        accessibilityLabel="Pay"
+        disabled={!isComplete}
+        loading={loading}
+      />
       <View style={[styles.row, styles.rowWithGap]}>
         <Button
           variant="default"
@@ -131,21 +146,6 @@ export default function MultilineWebhookPaymentScreen() {
           title="Blur"
         />
       </View>
-      <View style={styles.row}>
-        <Switch
-          onValueChange={(value) => setSaveCard(value)}
-          value={saveCard}
-        />
-        <Text style={styles.text}>Save card during payment</Text>
-      </View>
-      <Button
-        variant="primary"
-        onPress={handlePayPress}
-        title="Pay"
-        accessibilityLabel="Pay"
-        disabled={!isComplete}
-        loading={loading}
-      />
     </PaymentScreen>
   );
 }

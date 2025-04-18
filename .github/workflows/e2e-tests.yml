@@ -98,11 +98,6 @@ jobs:
             yarn run-example-android:release || (sleep 60 && yarn run-example-android:release)
             yarn test:e2e:android
 
-      - name: Debug
-        if: always()
-        run: |
-          ls -a .
-          la -a e2e-artifacts
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
