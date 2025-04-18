@@ -42,6 +42,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
+import toWritableMap
 
 
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
@@ -146,6 +147,23 @@ class EmbeddedPaymentElementView(
           is Event.Confirm -> {
             embedded.confirm()
           }
+        }
+      }
+    }
+
+    LaunchedEffect(embedded) {
+      embedded.paymentOption.collect { opt ->
+        // only send when we have a map
+        opt?.toWritableMap()?.let { optMap ->
+          // wrap it in a payload under "paymentOption"
+          val payload = Arguments.createMap().apply {
+            // TODO put "image" in optMap
+            putMap("paymentOption", optMap)
+          }
+
+          reactContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+            .emit("embeddedPaymentElementDidUpdatePaymentOption", payload)
         }
       }
     }

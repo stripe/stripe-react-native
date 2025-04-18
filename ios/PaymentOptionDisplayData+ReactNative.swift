@@ -17,9 +17,6 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
             return data.base64EncodedString()
         }()
         
-        // Convert NSAttributedString to a plain string
-        let mandateTextString = mandateText?.string ?? ""
-        
         // Convert BillingDetails to a dictionary
         let billingDetailsDict: [String: Any] = {
             guard let billing = billingDetails else {

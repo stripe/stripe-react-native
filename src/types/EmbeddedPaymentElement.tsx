@@ -434,15 +434,9 @@ export function useEmbeddedPaymentElement(
             style={[{ width: '100%', height: height }]}
             configuration={configuration}
             intentConfiguration={intentConfig}
-            onPaymentOptionChange={({ nativeEvent }) =>
-              setPaymentOption(nativeEvent)
-            }
             onFormSheetConfirmComplete={({ nativeEvent }) => {
               // bubble up to any handler
               console.log(nativeEvent);
-            }}
-            onEmbeddedPaymentElementDidUpdateHeight={({ nativeEvent }) => {
-              setHeight(nativeEvent.height);
             }}
           />
         )
