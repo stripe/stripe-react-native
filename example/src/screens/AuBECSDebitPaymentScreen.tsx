@@ -78,7 +78,6 @@ export default function AuBECSDebitPaymentScreen() {
           setFormDetails(value);
         }}
         companyName="company"
-        // // eslint-disable-next-line react-native/no-inline-styles
         formStyle={{ fontSize: 20 }}
       />
 
