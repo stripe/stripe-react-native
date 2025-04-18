@@ -103,7 +103,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-android
-          path: e2e-artifacts
+          path: e2e-artifacts/.maestro
 
   test-ios:
     name: e2e-ios-test
@@ -174,4 +174,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts-ios
-          path: e2e-artifacts
+          path: e2e-artifacts/.maestro
