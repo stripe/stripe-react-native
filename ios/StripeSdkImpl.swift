@@ -9,8 +9,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
   
     @objc public weak var emitter: StripeSdkEmitter? = nil
-    var cardFieldView: CardFieldView? = nil
-    var cardFormView: CardFormView? = nil
+    weak var cardFieldView: CardFieldView? = nil
+    weak var cardFormView: CardFormView? = nil
 
     var merchantIdentifier: String? = nil
 

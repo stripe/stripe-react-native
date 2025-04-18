@@ -40,7 +40,7 @@ extension StripeSdkImpl {
 
         if let linkParams = params["link"] as? NSDictionary {
             do {
-              let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+              let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
               configuration.link = PaymentSheet.LinkConfiguration(display: display)
             } catch {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)

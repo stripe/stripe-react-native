@@ -117,7 +117,7 @@ public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         cardField.delegate = self
 
         self.addSubview(cardField)
-      
+
         StripeSdkImpl.shared.cardFieldView = self
     }
 

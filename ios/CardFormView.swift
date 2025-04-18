@@ -124,7 +124,7 @@ public class CardFormView: UIView, STPCardFormViewDelegate {
 
         StripeSdkImpl.shared.cardFormView = self
     }
-    
+
     override public func layoutSubviews() {
         cardForm?.frame = self.bounds
     }
