@@ -16,6 +16,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.uimanager.UIBlock
+import com.facebook.react.uimanager.UIManagerModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
@@ -1246,6 +1248,24 @@ class StripeSdkModule(
     if (eventListenerCount < 0) {
       eventListenerCount = 0
     }
+  }
+
+  @ReactMethod
+  fun confirmEmbeddedPaymentElement(viewTag: Int, promise: Promise) {
+    reactApplicationContext
+      .getNativeModule(UIManagerModule::class.java)
+      ?.addUIBlock(UIBlock { nativeViewHierarchyManager ->
+        val view = nativeViewHierarchyManager.resolveView(viewTag)
+        if (view is EmbeddedPaymentElementView) {
+          view.confirm()
+          promise.resolve(null)
+        } else {
+          promise.reject(
+            "E_INVALID_VIEW",
+            "Expected an EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}"
+          )
+        }
+      })
   }
 
   internal fun sendEvent(

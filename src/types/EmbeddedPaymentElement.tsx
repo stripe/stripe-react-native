@@ -6,6 +6,7 @@ import {
   EmitterSubscription,
   LayoutAnimation,
   Platform,
+  findNodeHandle,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -435,11 +436,29 @@ export function useEmbeddedPaymentElement(
     );
   }, [configuration, element, height, intentConfig, isAndroid]);
 
-  // actions
-  const confirm = useCallback(() => {
+  // Other APIs
+  const confirm = useCallback((): Promise<EmbeddedPaymentElementResult> => {
     if (isAndroid) {
-      // TODO Android
+      const tag = findNodeHandle(viewRef.current);
+      if (tag == null) {
+        return Promise.reject(new Error('Could not find Android view handle'));
+      }
+      // 1) Call into the native module
+      return StripeSdk.confirmEmbeddedPaymentElement(tag).then(() => {
+        // 2) Wait for the event
+        return new Promise<EmbeddedPaymentElementResult>((resolve) => {
+          const sub = eventEmitter.addListener(
+            'embeddedPaymentElementFormSheetConfirmComplete',
+            (result: EmbeddedPaymentElementResult) => {
+              sub.remove();
+              resolve(result);
+            }
+          );
+        });
+      });
     }
+
+    // iOS: just proxy to the native hook
     return elementRef.current!.confirm();
   }, [isAndroid]);
   const update = useCallback(

@@ -52,11 +52,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     }
   }
 
-  @ReactProp(name = "confirm", defaultBoolean = false)
-  fun setConfirm(view: EmbeddedPaymentElementView, confirm: Boolean) {
-    if (confirm) view.confirm()
-  }
-
   override fun getExportedCustomDirectEventTypeConstants() = mapOf(
     "embeddedPaymentElementDidUpdatePaymentOption" to mapOf("registrationName" to "embeddedPaymentElementDidUpdatePaymentOption"),
     "embeddedPaymentElementDidConfigure" to mapOf("registrationName" to "embeddedPaymentElementDidConfigure"),
