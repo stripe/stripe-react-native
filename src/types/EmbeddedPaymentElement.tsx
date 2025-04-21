@@ -335,12 +335,6 @@ const RNEmbeddedPaymentElementViewIOS = requireNativeComponent<ViewProps>(
 type AndroidProps = ViewProps & {
   configuration: EmbeddedPaymentElementConfiguration;
   intentConfiguration: PaymentSheetTypes.IntentConfiguration;
-  onPaymentOptionChange?: (e: {
-    nativeEvent: PaymentOptionDisplayData;
-  }) => void;
-  onFormSheetConfirmComplete?: (e: {
-    nativeEvent: EmbeddedPaymentElementResult;
-  }) => void;
   onEmbeddedPaymentElementDidUpdateHeight?: (e: {
     nativeEvent: { height: number };
   }) => void;
@@ -377,12 +371,6 @@ export function useEmbeddedPaymentElement(
 
   // init
   useEffect(() => {
-    if (isAndroid) {
-      if (configuration && intentConfig) {
-        setupConfirmHandlers(intentConfig, configuration);
-      }
-      return;
-    }
     let active = true;
     (async () => {
       const el = await createEmbeddedPaymentElement(
@@ -434,10 +422,6 @@ export function useEmbeddedPaymentElement(
             style={[{ width: '100%', height: height }]}
             configuration={configuration}
             intentConfiguration={intentConfig}
-            onFormSheetConfirmComplete={({ nativeEvent }) => {
-              // bubble up to any handler
-              console.log(nativeEvent);
-            }}
           />
         )
       );
@@ -454,8 +438,7 @@ export function useEmbeddedPaymentElement(
   // actions
   const confirm = useCallback(() => {
     if (isAndroid) {
-      // setConfirmFlag((f) => !f);
-      // return Promise.resolve({ status: 'completed' } as any);
+      // TODO Android
     }
     return elementRef.current!.confirm();
   }, [isAndroid]);
@@ -464,7 +447,7 @@ export function useEmbeddedPaymentElement(
       elementRef.current!.update(cfg),
     []
   );
-  const clear = useCallback(() => elementRef.current!.clearPaymentOption(), []);
+  const clear = useCallback(() => elementRef.current!.clearPaymentOption(), []); // TODO Android
 
   return { view, paymentOption, confirm, update, clear };
 }

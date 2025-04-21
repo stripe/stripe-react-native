@@ -59,7 +59,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
 
   override fun getExportedCustomDirectEventTypeConstants() = mapOf(
     "embeddedPaymentElementDidUpdatePaymentOption" to mapOf("registrationName" to "embeddedPaymentElementDidUpdatePaymentOption"),
-    "onFormSheetConfirmComplete" to mapOf("registrationName" to "onFormSheetConfirmComplete"),
     "embeddedPaymentElementDidConfigure" to mapOf("registrationName" to "embeddedPaymentElementDidConfigure"),
     "embeddedPaymentElementDidUpdateHeight" to mapOf("registrationName" to "embeddedPaymentElementDidUpdateHeight")
   )

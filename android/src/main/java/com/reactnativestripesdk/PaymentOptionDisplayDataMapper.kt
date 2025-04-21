@@ -15,32 +15,6 @@ import java.io.ByteArrayOutputStream
 fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap {
   val map = Arguments.createMap()
 
-//  val imageBase64 = image
-//    // if it's a Compose ImageBitmap, convert to Android Bitmap
-//    ?.asAndroidBitmap()
-//    ?.let { bmp: Bitmap ->
-//      ByteArrayOutputStream().use {
-//        bmp.compress(Bitmap.CompressFormat.PNG, 100, it)
-//        Base64.encodeToString(it.toByteArray(), Base64.NO_WRAP)
-//      }
-//    } ?: ""
-//  map.putString("image", imageBase64)
-
-  // create a 1×1 black bitmap
-  val bmp = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).apply {
-    // fill it with solid black
-    eraseColor(android.graphics.Color.BLACK)
-  }
-
-// encode to Base64 PNG
-  val imageBase64 = ByteArrayOutputStream().use { stream ->
-    bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
-    Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
-  }
-  
-  map.putString("image", imageBase64)
-
-
   map.putString("label", label)
   map.putString("paymentMethodType", paymentMethodType)
 
