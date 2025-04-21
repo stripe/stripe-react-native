@@ -7,6 +7,7 @@ import {
   LayoutAnimation,
   Platform,
   findNodeHandle,
+  ViewProps,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -16,7 +17,6 @@ import type {
 } from './Common';
 import type { PaymentMethod } from '.';
 import * as PaymentSheetTypes from './PaymentSheet';
-import type { ImageSourcePropType, ViewProps } from 'react-native';
 import NativeStripeSdk from '../NativeStripeSdk';
 import {
   ReactElement,
@@ -51,10 +51,6 @@ export type EmbeddedPaymentElementResult =
  * Contains details about a payment method that can be displayed to the customer in the embedded payment element UI.
  */
 export interface PaymentOptionDisplayData {
-  /**
-   * An image representing the payment method, such as a VISA logo or Apple Pay icon.
-   */
-  image: ImageSourcePropType;
   /**
    * A user-facing label for the payment method, like "Apple Pay" or "•••• 4242" for a card.
    */
