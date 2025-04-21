@@ -73,7 +73,7 @@ class StripeSdk: RCTEventEmitter, UIAdaptivePresentationControllerDelegate {
     override func supportedEvents() -> [String]! {
         return ["onOrderTrackingCallback", "onConfirmHandlerCallback", "onCustomerAdapterFetchPaymentMethodsCallback", "onCustomerAdapterAttachPaymentMethodCallback",
         "onCustomerAdapterDetachPaymentMethodCallback", "onCustomerAdapterSetSelectedPaymentOptionCallback", "onCustomerAdapterFetchSelectedPaymentOptionCallback",
-        "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", "onFinancialConnectionsEvent", "embeddedPaymentElementDidUpdateHeight", "embeddedPaymentElementWillPresent", "embeddedPaymentElementDidUpdatePaymentOption", "embeddedPaymentElementFormSheetConfirmComplete", "embeddedPaymentElementRowSelectionImmediateAction"]
+                "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", "onFinancialConnectionsEvent", "embeddedPaymentElementDidUpdateHeight", "embeddedPaymentElementWillPresent", "embeddedPaymentElementDidUpdatePaymentOption", "embeddedPaymentElementFormSheetConfirmComplete", "embeddedPaymentElementRowSelectionImmediateAction", "embeddedPaymentElementLoadingFailed"]
     }
 
     @objc override static func requiresMainQueueSetup() -> Bool {

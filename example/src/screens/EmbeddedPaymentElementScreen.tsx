@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import { Alert, View, Text, Image } from 'react-native';
 import Button from '../components/Button';
@@ -216,10 +217,8 @@ export default function EmbeddedPaymentElementScreen() {
   );
 
   // Hook into Stripe element
-  const { view, paymentOption, confirm, clear } = useEmbeddedPaymentElement(
-    intentConfig!,
-    elementConfig!
-  );
+  const { view, paymentOption, confirm, clear, loadingError } =
+    useEmbeddedPaymentElement(intentConfig!, elementConfig!);
 
   // Payment action
   const handlePay = React.useCallback(async () => {
@@ -236,6 +235,15 @@ export default function EmbeddedPaymentElementScreen() {
           setCustomerKeyType(val ? 'customer_session' : 'legacy_ephemeral_key')
         }
       />
+
+      {loadingError && (
+        <View style={{ padding: 12, backgroundColor: '#fee', margin: 8 }}>
+          <Text style={{ color: '#900', fontWeight: '600' }}>
+            Failed to load payment form:
+          </Text>
+          <Text style={{ color: '#900' }}>{loadingError.message}</Text>
+        </View>
+      )}
 
       {view}
 

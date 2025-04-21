@@ -140,7 +140,16 @@ class EmbeddedPaymentElementView(
                 reportHeightChange(300)
               }
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
-                // TODO send errors back to Javascript
+                // send the error back to JS
+                val err = result.error
+                val msg = err.localizedMessage ?: err.toString()
+                // build a RN map
+                val payload = Arguments.createMap().apply {
+                  putString("message", msg)
+                }
+                reactContext
+                  .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                  .emit("embeddedPaymentElementLoadingFailed", payload)
               }
             }
           }

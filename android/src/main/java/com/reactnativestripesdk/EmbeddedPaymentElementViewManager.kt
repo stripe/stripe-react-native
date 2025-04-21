@@ -52,12 +52,6 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     }
   }
 
-  override fun getExportedCustomDirectEventTypeConstants() = mapOf(
-    "embeddedPaymentElementDidUpdatePaymentOption" to mapOf("registrationName" to "embeddedPaymentElementDidUpdatePaymentOption"),
-    "embeddedPaymentElementDidConfigure" to mapOf("registrationName" to "embeddedPaymentElementDidConfigure"),
-    "embeddedPaymentElementDidUpdateHeight" to mapOf("registrationName" to "embeddedPaymentElementDidUpdateHeight")
-  )
-
   private fun parseElementConfiguration(map: ReadableMap): EmbeddedPaymentElement.Configuration {
     val configuration = EmbeddedPaymentElement.Configuration.Builder("My Store")
       .allowsDelayedPaymentMethods(true)

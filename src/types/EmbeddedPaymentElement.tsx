@@ -48,14 +48,6 @@ export type EmbeddedPaymentElementResult =
   | { status: 'failed'; error: Error };
 
 /**
- * The result of an update call.
- */
-export type EmbeddedPaymentElementUpdateResult =
-  | { status: 'succeeded' }
-  | { status: 'canceled' }
-  | { status: 'failed'; error: Error };
-
-/**
  * Contains details about a payment method that can be displayed to the customer in the embedded payment element UI.
  */
 export interface PaymentOptionDisplayData {
@@ -224,9 +216,7 @@ class EmbeddedPaymentElement {
    * If the selected payment option becomes invalid, it may be cleared.
    * Returns the final result of the update; earlier in-flight updates will return `{ status: 'canceled' }`.
    */
-  async update(
-    intentConfig: PaymentSheetTypes.IntentConfiguration
-  ): Promise<EmbeddedPaymentElementUpdateResult> {
+  async update(intentConfig: PaymentSheetTypes.IntentConfiguration) {
     const result =
       await NativeStripeEmbedded.updateEmbeddedPaymentElement(intentConfig);
     return result;
@@ -352,10 +342,10 @@ export interface UseEmbeddedPaymentElementResult {
   view: ReactElement | null;
   paymentOption: PaymentOptionDisplayData | null;
   confirm: () => Promise<EmbeddedPaymentElementResult>;
-  update: (
-    intentConfig: PaymentSheetTypes.IntentConfiguration
-  ) => Promise<EmbeddedPaymentElementUpdateResult>;
+  update: (intentConfig: PaymentSheetTypes.IntentConfiguration) => void;
   clear: () => void;
+  /** Any error encountered during creation/update, or null */
+  loadingError: Error | null;
 }
 
 export function useEmbeddedPaymentElement(
@@ -369,6 +359,7 @@ export function useEmbeddedPaymentElement(
     useState<PaymentOptionDisplayData | null>(null);
   const [height, setHeight] = useState<number | undefined>();
   const viewRef = useRef<any>(null);
+  const [loadingError, setLoadingError] = useState<Error | null>(null);
 
   // init
   useEffect(() => {
@@ -408,6 +399,17 @@ export function useEmbeddedPaymentElement(
           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
           setHeight(h);
         }
+      }
+    );
+    return () => sub.remove();
+  }, []);
+
+  // Listen for loading failures
+  useEffect(() => {
+    const sub = eventEmitter.addListener(
+      'embeddedPaymentElementLoadingFailed',
+      (nativeError: { message: string }) => {
+        setLoadingError(new Error(nativeError.message));
       }
     );
     return () => sub.remove();
@@ -481,5 +483,5 @@ export function useEmbeddedPaymentElement(
     return Promise.resolve();
   }, [isAndroid]);
 
-  return { view, paymentOption, confirm, update, clear };
+  return { view, paymentOption, confirm, update, clear, loadingError };
 }

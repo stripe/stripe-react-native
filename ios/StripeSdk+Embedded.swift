@@ -39,17 +39,34 @@ extension StripeSdk {
     }
     
     Task {
-      let embeddedPaymentElement = try await EmbeddedPaymentElement.create(intentConfiguration: intentConfig, configuration: configuration)
-      embeddedPaymentElement.delegate = self
-      embeddedPaymentElement.presentingViewController = RCTPresentedViewController()
-      self.embeddedInstance = embeddedPaymentElement
-      
-      resolve(nil)
-      
-      // Publish initial state
-      embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
-      embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
+      do {
+        let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
+          intentConfiguration: intentConfig,
+          configuration: configuration
+        )
+        embeddedPaymentElement.delegate = self
+        embeddedPaymentElement.presentingViewController = RCTPresentedViewController()
+        self.embeddedInstance = embeddedPaymentElement
+
+        // success: resolve promise
+        resolve(nil)
+
+        // publish initial state
+        embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
+        embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
+      } catch {
+        // 1) still resolve the promise so JS hook can finish loading
+        resolve(nil)
+
+        // 2) emit a loading‐failed event with the error message
+        let msg = error.localizedDescription
+        self.sendEvent(
+          withName: "embeddedPaymentElementLoadingFailed",
+          body: ["message": msg]
+        )
+      }
     }
+    
   }
   
   @objc(confirmEmbeddedPaymentElement:rejecter:)
@@ -66,8 +83,6 @@ extension StripeSdk {
         resolve(["status": "canceled"])
       case .failed(let error):
         // Return an object with { status: 'failed', error }
-        // Since you can't directly bridge a Swift Error object into JS,
-        // commonly you pass along the localizedDescription or similar.
         resolve([
           "status": "failed",
           "error": error.localizedDescription
@@ -111,11 +126,12 @@ extension StripeSdk {
       case .canceled:
         resolve(["status": "canceled"])
       case .failed(let error):
-        print(error.localizedDescription)
-        resolve([
-          "status": "failed",
-          "error": error.localizedDescription
-        ])
+        self.sendEvent(
+          withName: "embeddedPaymentElementLoadingFailed",
+          body: ["message": error.localizedDescription]
+        )
+        // Settle promise so it doesn’t hang
+        resolve(nil)
       }
     }
   }
