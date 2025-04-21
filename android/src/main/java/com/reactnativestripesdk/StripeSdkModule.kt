@@ -1252,20 +1252,12 @@ class StripeSdkModule(
 
   @ReactMethod
   fun confirmEmbeddedPaymentElement(viewTag: Int, promise: Promise) {
-    reactApplicationContext
-      .getNativeModule(UIManagerModule::class.java)
-      ?.addUIBlock(UIBlock { nativeViewHierarchyManager ->
-        val view = nativeViewHierarchyManager.resolveView(viewTag)
-        if (view is EmbeddedPaymentElementView) {
-          view.confirm()
-          promise.resolve(null)
-        } else {
-          promise.reject(
-            "E_INVALID_VIEW",
-            "Expected an EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}"
-          )
-        }
-      })
+    performOnEmbeddedView(viewTag, promise) { confirm() }
+  }
+
+  @ReactMethod
+  fun clearEmbeddedPaymentOption(viewTag: Int, promise: Promise) {
+    performOnEmbeddedView(viewTag, promise) { clearPaymentOption() }
   }
 
   internal fun sendEvent(
@@ -1276,6 +1268,32 @@ class StripeSdkModule(
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(eventName, params)
+  }
+
+  private fun performOnEmbeddedView(
+    viewTag: Int,
+    promise: Promise,
+    action: EmbeddedPaymentElementView.() -> Unit
+  ) {
+    val uiManager = reactApplicationContext
+      .getNativeModule(UIManagerModule::class.java)
+      ?: run {
+        promise.reject("E_UI_MANAGER", "UIManagerModule not available")
+        return
+      }
+
+    uiManager.addUIBlock(UIBlock { nativeViewHierarchyManager ->
+      val view = nativeViewHierarchyManager.resolveView(viewTag)
+      if (view is EmbeddedPaymentElementView) {
+        view.action()
+        promise.resolve(null)
+      } else {
+        promise.reject(
+          "E_INVALID_VIEW",
+          "Expected EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}"
+        )
+      }
+    })
   }
 
   /**

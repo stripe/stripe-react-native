@@ -55,6 +55,7 @@ class EmbeddedPaymentElementView(
       val intentConfiguration: PaymentSheet.IntentConfiguration,
     ) : Event
     data object Confirm : Event
+    data object ClearPaymentOption: Event
   }
 
   var latestIntentConfig: PaymentSheet.IntentConfiguration? = null
@@ -147,26 +148,26 @@ class EmbeddedPaymentElementView(
           is Event.Confirm -> {
             embedded.confirm()
           }
+          is Event.ClearPaymentOption -> {
+            embedded.clearPaymentOption()
+          }
         }
       }
     }
 
     LaunchedEffect(embedded) {
       embedded.paymentOption.collect { opt ->
-        // only send when we have a map
-        opt?.toWritableMap()?.let { optMap ->
-          // wrap it in a payload under "paymentOption"
-          val payload = Arguments.createMap().apply {
-            // TODO put "image" in optMap
-            putMap("paymentOption", optMap)
-          }
+        val optMap = opt?.toWritableMap()
+        val payload = Arguments.createMap().apply {
+          // TODO: image
+          putMap("paymentOption", optMap)
+        }
 
           reactContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
             .emit("embeddedPaymentElementDidUpdatePaymentOption", payload)
         }
       }
-    }
 
     embedded.Content()
   }
@@ -192,6 +193,12 @@ class EmbeddedPaymentElementView(
   fun confirm() {
     findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
       events.send(Event.Confirm)
+    }
+  }
+
+  fun clearPaymentOption() {
+    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+      events.send(Event.ClearPaymentOption)
     }
   }
 

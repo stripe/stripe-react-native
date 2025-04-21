@@ -466,7 +466,20 @@ export function useEmbeddedPaymentElement(
       elementRef.current!.update(cfg),
     []
   );
-  const clear = useCallback(() => elementRef.current!.clearPaymentOption(), []); // TODO Android
+  const clear = useCallback((): Promise<void> => {
+    if (isAndroid) {
+      const tag = findNodeHandle(viewRef.current);
+      if (tag == null) {
+        return Promise.reject(new Error('Unable to find Android view handle'));
+      }
+      // call your @ReactMethod clearEmbeddedPaymentOption
+      return StripeSdk.clearEmbeddedPaymentOption(tag);
+    }
+
+    // iOS: clear on the element instance
+    elementRef.current!.clearPaymentOption();
+    return Promise.resolve();
+  }, [isAndroid]);
 
   return { view, paymentOption, confirm, update, clear };
 }
