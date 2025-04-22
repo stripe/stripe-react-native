@@ -335,15 +335,42 @@ const RNEmbeddedPaymentElementViewAndroid =
 // Hook: useEmbeddedPaymentElement
 // -----------------------------------------------------------------------------
 export interface UseEmbeddedPaymentElementResult {
+  // A view that displays payment methods. It can present a sheet to collect more details or display saved payment methods.
   view: ReactElement | null;
+  /**
+   * Contains information about the customer's selected payment option.
+   * Use this to display the payment option in your own UI
+   */
   paymentOption: PaymentOptionDisplayData | null;
+  /**
+   * Completes the payment or setup.
+   * @returns {Promise} The result of the payment after any presented view controllers are dismissed.
+   * @note This method requires that the last call to `update` succeeded. If the last `update` call failed, this call will fail. If this method is called while a call to `update` is in progress, it waits until the `update` call completes.
+   */
   confirm: () => Promise<EmbeddedPaymentElementResult>;
+  /**
+   * Call this method when the IntentConfiguration values you used to initialize `EmbeddedPaymentElement` (amount, currency, etc.) change.
+   * This ensures the appropriate payment methods are displayed, collect the right fields, etc.
+   * @param {Object} intentConfiguration - An updated IntentConfiguration.
+   * @throws {Error} Sets loadingError if the update fails.
+   * @note Upon completion, `paymentOption` may become null if it's no longer available.
+   * @note If you call `update` while a previous call to `update` is still in progress, the previous call is canceled.
+   */
   update: (intentConfig: PaymentSheetTypes.IntentConfiguration) => void;
-  clear: () => void;
-  /** Any error encountered during creation/update, or null */
+  // Sets the currently selected payment option to null
+  clearPaymentOption: () => void;
+  // Any error encountered during creation/update, or null
   loadingError: Error | null;
 }
 
+/**
+ * An asynchronous failable initializer
+ * Loads the Customer's payment methods, their default payment method, etc.
+ * @param {Object} intentConfiguration - Information about the PaymentIntent or SetupIntent you will create later to complete the confirmation.
+ * @param {Object} configuration - Configuration for the PaymentSheet. e.g. your business name, customer details, etc.
+ * @returns {EmbeddedPaymentElement|null} A valid EmbeddedPaymentElement instance if successful, null otherwise.
+ * @description If loading fails, this function sets the loadingError state variable instead of throwing an error.
+ */
 export function useEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
@@ -357,7 +384,7 @@ export function useEmbeddedPaymentElement(
   const viewRef = useRef<any>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
 
-  // init
+  // Create embedded payment element
   useEffect(() => {
     let active = true;
     (async () => {
@@ -385,7 +412,7 @@ export function useEmbeddedPaymentElement(
     return () => sub.remove();
   });
 
-  // height updates
+  // Listen for height changes
   useEffect(() => {
     const sub = eventEmitter.addListener(
       'embeddedPaymentElementDidUpdateHeight',
@@ -411,7 +438,7 @@ export function useEmbeddedPaymentElement(
     return () => sub.remove();
   }, []);
 
-  // render view
+  // Render the embedded view
   const view = useMemo(() => {
     if (isAndroid && configuration && intentConfig) {
       return (
@@ -464,13 +491,12 @@ export function useEmbeddedPaymentElement(
       elementRef.current!.update(cfg),
     []
   );
-  const clear = useCallback((): Promise<void> => {
+  const clearPaymentOption = useCallback((): Promise<void> => {
     if (isAndroid) {
       const tag = findNodeHandle(viewRef.current);
       if (tag == null) {
         return Promise.reject(new Error('Unable to find Android view handle'));
       }
-      // call your @ReactMethod clearEmbeddedPaymentOption
       return StripeSdk.clearEmbeddedPaymentOption(tag);
     }
 
@@ -479,5 +505,12 @@ export function useEmbeddedPaymentElement(
     return Promise.resolve();
   }, [isAndroid]);
 
-  return { view, paymentOption, confirm, update, clear, loadingError };
+  return {
+    view,
+    paymentOption,
+    confirm,
+    update,
+    clearPaymentOption,
+    loadingError,
+  };
 }

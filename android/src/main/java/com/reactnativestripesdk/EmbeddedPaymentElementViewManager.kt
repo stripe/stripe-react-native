@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.facebook.react.bridge.ReadableArray
@@ -62,6 +63,7 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     }
   }
 
+  @SuppressLint("RestrictedApi")
   @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
   private fun parseElementConfiguration(map: ReadableMap, context: Context): EmbeddedPaymentElement.Configuration {
     val merchantDisplayName = map.getString("merchantDisplayName").orEmpty()
@@ -124,9 +126,20 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
     val primaryButtonLabel = map.getString("primaryButtonLabel")
     val paymentMethodOrder = map.getStringArrayList("paymentMethodOrder")
 
+    val formSheetAction = map.getMap("formSheetAction")
+      ?.getString("type")
+      ?.let { type ->
+        when (type) {
+          "confirm"  -> EmbeddedPaymentElement.FormSheetAction.Confirm
+          else       -> EmbeddedPaymentElement.FormSheetAction.Continue
+        }
+      }
+      ?: EmbeddedPaymentElement.FormSheetAction.Continue
+
     val configurationBuilder =
       EmbeddedPaymentElement.Configuration
         .Builder(merchantDisplayName)
+        .formSheetAction(formSheetAction)
         .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods ?: false)
         .defaultBillingDetails(defaultBillingDetails)
         .customer(customerConfiguration)
