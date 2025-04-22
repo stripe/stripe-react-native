@@ -1,38 +1,15 @@
 package com.reactnativestripesdk
 
 import android.content.Context
-import android.view.ViewGroup
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
-import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
@@ -124,7 +101,7 @@ class EmbeddedPaymentElementView(
   override fun Content() {
     val embedded = rememberEmbeddedPaymentElement(builder)
 
-    // collect events: configure, confirm
+    // collect events: configure, confirm, clear
     LaunchedEffect(Unit) {
       events.consumeAsFlow().collect { ev ->
         when (ev) {
@@ -137,7 +114,7 @@ class EmbeddedPaymentElementView(
 
             when (result) {
               is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
-                reportHeightChange(300)
+                reportHeightChange(450)
               }
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
                 // send the error back to JS
@@ -168,7 +145,7 @@ class EmbeddedPaymentElementView(
       embedded.paymentOption.collect { opt ->
         val optMap = opt?.toWritableMap()
         val payload = Arguments.createMap().apply {
-          // TODO: image
+          // TODO: image?
           putMap("paymentOption", optMap)
         }
 
@@ -190,7 +167,7 @@ class EmbeddedPaymentElementView(
       .emit("embeddedPaymentElementDidUpdateHeight", params)
   }
 
-  // APIs called by props
+  // APIs
   fun configure(config: EmbeddedPaymentElement.Configuration,
                 intentConfig: PaymentSheet.IntentConfiguration) {
     findViewTreeLifecycleOwner()?.lifecycleScope?.launch {

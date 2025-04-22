@@ -509,7 +509,7 @@ class PaymentSheetFragment(
       }
 
     @Throws(PaymentSheetException::class)
-    fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
+    internal fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
       if (intentConfigurationParams == null) {
         return null
       }
@@ -556,7 +556,7 @@ class PaymentSheetFragment(
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
-    private fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
+    fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
       val customerId = bundle?.getString("customerId").orEmpty()
       val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
       val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()

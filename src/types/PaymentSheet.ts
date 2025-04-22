@@ -209,7 +209,7 @@ export type AppearanceParams = RecursivePartial<{
   primaryButton: PrimaryButtonConfig;
 
   /** Describes the appearance of the Embedded Mobile Payment Element */
-  embeddedPaymentElement: EmbeddedPaymentElementConfig;
+  embeddedPaymentElement: EmbeddedPaymentElementAppearance;
 }>;
 
 export type FontConfig = {
@@ -335,6 +335,9 @@ export type PrimaryButtonColorConfig = {
   border: string;
 };
 
+/** A color that’s either a single hex or a light/dark pair */
+export type ThemedColor = string | { light: string; dark: string };
+
 /** Represents edge insets */
 export interface EdgeInsetsConfig {
   top?: number;
@@ -358,12 +361,12 @@ export interface RadioConfig {
   /** The color of the radio button when selected, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The root appearance.colors.primary
    */
-  selectedColor?: string;
+  selectedColor?: ThemedColor;
 
   /** The color of the radio button when unselected, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The root appearance.colors.componentBorder
    */
-  unselectedColor?: string;
+  unselectedColor?: ThemedColor;
 }
 
 /** Describes the appearance of the checkmark */
@@ -371,7 +374,7 @@ export interface CheckmarkConfig {
   /** The color of the checkmark when selected, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The root appearance.colors.primary
    */
-  color?: string;
+  color?: ThemedColor;
 }
 
 /** Describes the appearance of the flat style row */
@@ -384,7 +387,7 @@ export interface FlatConfig {
   /** The color of the separator line between rows, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The root appearance.colors.componentBorder
    */
-  separatorColor?: string;
+  separatorColor?: ThemedColor;
 
   /** The insets of the separator line between rows.
    * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
@@ -438,7 +441,7 @@ export interface RowConfig {
 }
 
 /** Describes the appearance of the Embedded Mobile Payment Element */
-export interface EmbeddedPaymentElementConfig {
+export interface EmbeddedPaymentElementAppearance {
   /** Describes the appearance of the row in the Embedded Mobile Payment Element */
   row?: RowConfig;
 }

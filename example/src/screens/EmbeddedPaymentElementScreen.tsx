@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import { Alert, View, Text, Image } from 'react-native';
+import { Alert, View, Text } from 'react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
@@ -143,8 +143,13 @@ export default function EmbeddedPaymentElementScreen() {
         embeddedPaymentElement: {
           row: {
             style: RowStyle.FloatingButton,
-            floating: {
-              spacing: 12,
+            flat: {
+              separatorColor: { light: '#FF0000', dark: '#0000FF' },
+              checkmark: { color: { light: '#FF0000', dark: '#0000FF' } },
+              radio: {
+                selectedColor: { light: '#FF0000', dark: '#0000FF' },
+                unselectedColor: { light: '#FF0000', dark: '#0000FF' },
+              },
             },
           },
         },
@@ -251,13 +256,6 @@ export default function EmbeddedPaymentElementScreen() {
         <Text style={{ fontSize: 16, fontWeight: '600' }}>
           {paymentOption?.label ?? 'No option'}
         </Text>
-        {paymentOption?.image && (
-          <Image
-            source={{ uri: `data:image/png;base64,${paymentOption.image}` }}
-            style={{ width: 60, height: 60 }}
-            resizeMode="contain"
-          />
-        )}
       </View>
 
       <Button
