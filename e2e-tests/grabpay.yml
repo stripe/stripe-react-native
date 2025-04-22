@@ -11,6 +11,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible: "AUTHORIZE TEST PAYMENT"
+    timeout: 30000
+    label: Wait for page to load
 - assertVisible:
     text: "AUTHORIZE TEST PAYMENT"
 - tapOn: "AUTHORIZE TEST PAYMENT"
