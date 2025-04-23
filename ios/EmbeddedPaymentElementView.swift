@@ -22,7 +22,6 @@ class EmbeddedPaymentElementView: RCTViewManager {
 }
 
 class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
-  private let tapGesture = UITapGestureRecognizer()
   private let stripeSdk: StripeSdk
 
   init(frame: CGRect, stripeSdk: StripeSdk) {
