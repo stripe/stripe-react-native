@@ -199,12 +199,8 @@ extension StripeSdk {
     }
     
     if let linkParams = params["link"] as? NSDictionary {
-      do {
-        let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
-        configuration.link = PaymentSheet.LinkConfiguration(display: display)
-      } catch {
-        return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
-      }
+      let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+      configuration.link = PaymentSheet.LinkConfiguration(display: display)
     }
     
     if let merchantDisplayName = params["merchantDisplayName"] as? String {
@@ -260,8 +256,8 @@ extension StripeSdk {
     }
     
     if let customerId = params["customerId"] as? String {
-      var customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
-      var customerClientSecret = params["customerSessionClientSecret"] as? String
+      let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
+      let customerClientSecret = params["customerSessionClientSecret"] as? String
       if let customerEphemeralKeySecret, let customerClientSecret {
         return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` and `customerSessionClientSecret cannot both be set"), configuration: nil)
       } else if let customerEphemeralKeySecret {
