@@ -222,7 +222,7 @@ export default function EmbeddedPaymentElementScreen() {
   );
 
   // Hook into Stripe element
-  const { view, paymentOption, confirm, clear, loadingError } =
+  const { embeddedPaymentElementView, paymentOption, confirm, loadingError } =
     useEmbeddedPaymentElement(intentConfig!, elementConfig!);
 
   // Payment action
@@ -250,7 +250,7 @@ export default function EmbeddedPaymentElementScreen() {
         </View>
       )}
 
-      {view}
+      {embeddedPaymentElementView}
 
       <View style={{ paddingVertical: 16 }}>
         <Text style={{ fontSize: 16, fontWeight: '600' }}>

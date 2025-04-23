@@ -336,7 +336,7 @@ const RNEmbeddedPaymentElementViewAndroid =
 // -----------------------------------------------------------------------------
 export interface UseEmbeddedPaymentElementResult {
   // A view that displays payment methods. It can present a sheet to collect more details or display saved payment methods.
-  view: ReactElement | null;
+  embeddedPaymentElementView: ReactElement | null;
   /**
    * Contains information about the customer's selected payment option.
    * Use this to display the payment option in your own UI
@@ -439,7 +439,7 @@ export function useEmbeddedPaymentElement(
   }, []);
 
   // Render the embedded view
-  const view = useMemo(() => {
+  const embeddedPaymentElementView = useMemo(() => {
     if (isAndroid && configuration && intentConfig) {
       return (
         RNEmbeddedPaymentElementViewAndroid && (
@@ -506,7 +506,7 @@ export function useEmbeddedPaymentElement(
   }, [isAndroid]);
 
   return {
-    view,
+    embeddedPaymentElementView,
     paymentOption,
     confirm,
     update,
