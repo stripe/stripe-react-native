@@ -12,6 +12,7 @@ buildscript {
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
+    classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
   }
 }
 
@@ -23,6 +24,7 @@ if (project == rootProject) {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 //apply plugin: 'kotlin-android-extensions'
 
 def getExtOrDefault(name) {
@@ -60,6 +62,7 @@ android {
 
   buildFeatures {
     viewBinding true
+    compose true
   }
 }
 
@@ -164,4 +167,9 @@ dependencies {
   androidTestImplementation "androidx.test:core:1.4.0"
   androidTestImplementation 'androidx.test:runner:1.1.0'
   androidTestImplementation "org.mockito:mockito-core:3.+"
+
+  implementation "androidx.compose.ui:ui:1.7.8"
+  implementation "androidx.compose.material:material:1.7.8"
+  implementation "androidx.compose.ui:ui-tooling-preview:1.7.8"
+  debugImplementation "androidx.compose.ui:ui-tooling:1.7.8"
 }
