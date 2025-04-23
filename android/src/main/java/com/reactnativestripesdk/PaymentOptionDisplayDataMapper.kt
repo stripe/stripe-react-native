@@ -1,11 +1,7 @@
-import android.graphics.Bitmap
-import android.util.Base64
-import androidx.compose.ui.graphics.asAndroidBitmap
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
-import java.io.ByteArrayOutputStream
 
 /**
  * Serialize Stripe's PaymentOptionDisplayData into a WritableMap
@@ -20,19 +16,21 @@ fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap
 
   val billingMap = Arguments.createMap()
   billingDetails?.let { bd ->
-    bd.name?.let  { billingMap.putString("name", it) }
+    bd.name?.let { billingMap.putString("name", it) }
     bd.email?.let { billingMap.putString("email", it) }
     bd.phone?.let { billingMap.putString("phone", it) }
 
     bd.address?.let { addr ->
-      Arguments.createMap().apply {
-        putString("city", addr.city)
-        putString("country", addr.country)
-        putString("line1", addr.line1)
-        putString("line2", addr.line2)
-        putString("postalCode", addr.postalCode)
-        putString("state", addr.state)
-      }.also { billingMap.putMap("address", it) }
+      Arguments
+        .createMap()
+        .apply {
+          putString("city", addr.city)
+          putString("country", addr.country)
+          putString("line1", addr.line1)
+          putString("line2", addr.line2)
+          putString("postalCode", addr.postalCode)
+          putString("state", addr.state)
+        }.also { billingMap.putMap("address", it) }
     }
   }
   map.putMap("billingDetails", billingMap)

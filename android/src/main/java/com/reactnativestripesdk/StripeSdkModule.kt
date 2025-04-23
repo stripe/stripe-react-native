@@ -285,7 +285,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    embeddedIntentCreationCallback.complete(params);
+    embeddedIntentCreationCallback.complete(params)
 
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
@@ -1251,12 +1251,18 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun confirmEmbeddedPaymentElement(viewTag: Int, promise: Promise) {
+  fun confirmEmbeddedPaymentElement(
+    viewTag: Int,
+    promise: Promise,
+  ) {
     performOnEmbeddedView(viewTag, promise) { confirm() }
   }
 
   @ReactMethod
-  fun clearEmbeddedPaymentOption(viewTag: Int, promise: Promise) {
+  fun clearEmbeddedPaymentOption(
+    viewTag: Int,
+    promise: Promise,
+  ) {
     performOnEmbeddedView(viewTag, promise) { clearPaymentOption() }
   }
 
@@ -1273,27 +1279,30 @@ class StripeSdkModule(
   private fun performOnEmbeddedView(
     viewTag: Int,
     promise: Promise,
-    action: EmbeddedPaymentElementView.() -> Unit
+    action: EmbeddedPaymentElementView.() -> Unit,
   ) {
-    val uiManager = reactApplicationContext
-      .getNativeModule(UIManagerModule::class.java)
-      ?: run {
-        promise.reject("E_UI_MANAGER", "UIManagerModule not available")
-        return
-      }
+    val uiManager =
+      reactApplicationContext
+        .getNativeModule(UIManagerModule::class.java)
+        ?: run {
+          promise.reject("E_UI_MANAGER", "UIManagerModule not available")
+          return
+        }
 
-    uiManager.addUIBlock(UIBlock { nativeViewHierarchyManager ->
-      val view = nativeViewHierarchyManager.resolveView(viewTag)
-      if (view is EmbeddedPaymentElementView) {
-        view.action()
-        promise.resolve(null)
-      } else {
-        promise.reject(
-          "E_INVALID_VIEW",
-          "Expected EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}"
-        )
-      }
-    })
+    uiManager.addUIBlock(
+      UIBlock { nativeViewHierarchyManager ->
+        val view = nativeViewHierarchyManager.resolveView(viewTag)
+        if (view is EmbeddedPaymentElementView) {
+          view.action()
+          promise.resolve(null)
+        } else {
+          promise.reject(
+            "E_INVALID_VIEW",
+            "Expected EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}",
+          )
+        }
+      },
+    )
   }
 
   /**

@@ -34,14 +34,17 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
   override fun createViewInstance(ctx: ThemedReactContext): EmbeddedPaymentElementView =
     EmbeddedPaymentElementView(ctx).apply {
       setViewCompositionStrategy(
-        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
       )
     }
 
   override fun needsCustomLayoutForChildren(): Boolean = true
 
   @ReactProp(name = "configuration")
-  fun setConfiguration(view: EmbeddedPaymentElementView, cfg: ReadableMap) {
+  fun setConfiguration(
+    view: EmbeddedPaymentElementView,
+    cfg: ReadableMap,
+  ) {
     val elementConfig = parseElementConfiguration(cfg, view.context)
     view.latestElementConfig = elementConfig
     // if intentConfig is already set, configure immediately:
@@ -55,7 +58,10 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
   }
 
   @ReactProp(name = "intentConfiguration")
-  fun setIntentConfiguration(view: EmbeddedPaymentElementView, cfg: ReadableMap) {
+  fun setIntentConfiguration(
+    view: EmbeddedPaymentElementView,
+    cfg: ReadableMap,
+  ) {
     val intentConfig = parseIntentConfiguration(cfg)
     view.latestIntentConfig = intentConfig
     view.latestElementConfig?.let { elemCfg ->
@@ -65,7 +71,10 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
 
   @SuppressLint("RestrictedApi")
   @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
-  private fun parseElementConfiguration(map: ReadableMap, context: Context): EmbeddedPaymentElement.Configuration {
+  private fun parseElementConfiguration(
+    map: ReadableMap,
+    context: Context,
+  ): EmbeddedPaymentElement.Configuration {
     val merchantDisplayName = map.getString("merchantDisplayName").orEmpty()
     val allowsDelayedPaymentMethods = map.getBoolean("allowsDelayedPaymentMethods")
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
@@ -116,25 +125,28 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-        billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
+          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod") ?: false,
       )
-    val allowsRemovalOfLastSavedPaymentMethod = if (map.hasKey("allowsRemovalOfLastSavedPaymentMethod")) {
-      map.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
-    } else {
-      true
-    }
+    val allowsRemovalOfLastSavedPaymentMethod =
+      if (map.hasKey("allowsRemovalOfLastSavedPaymentMethod")) {
+        map.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
+      } else {
+        true
+      }
     val primaryButtonLabel = map.getString("primaryButtonLabel")
     val paymentMethodOrder = map.getStringArrayList("paymentMethodOrder")
 
-    val formSheetAction = map.getMap("formSheetAction")
-      ?.getString("type")
-      ?.let { type ->
-        when (type) {
-          "confirm"  -> EmbeddedPaymentElement.FormSheetAction.Confirm
-          else       -> EmbeddedPaymentElement.FormSheetAction.Continue
+    val formSheetAction =
+      map
+        .getMap("formSheetAction")
+        ?.getString("type")
+        ?.let { type ->
+          when (type) {
+            "confirm" -> EmbeddedPaymentElement.FormSheetAction.Confirm
+            else -> EmbeddedPaymentElement.FormSheetAction.Continue
+          }
         }
-      }
-      ?: EmbeddedPaymentElement.FormSheetAction.Continue
+        ?: EmbeddedPaymentElement.FormSheetAction.Continue
 
     val configurationBuilder =
       EmbeddedPaymentElement.Configuration
@@ -149,11 +161,11 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
         .preferredNetworks(
           mapToPreferredNetworks(
-            map.getIntegerArrayList("preferredNetworks")
-              ?.let { ArrayList(it) }
-          )
-        )
-        .allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+            map
+              .getIntegerArrayList("preferredNetworks")
+              ?.let { ArrayList(it) },
+          ),
+        ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(toBundleObject(map)))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
