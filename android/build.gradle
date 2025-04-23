@@ -18,7 +18,7 @@ buildscript {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
     // only use this old compose-compiler plugin when Kotlin <= 2.0
-    if (kotlinMajor <= 2) {
+    if (kotlinMajor >= 2) {
       classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
     }
   }
@@ -38,7 +38,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
 // Only apply the compose plugin if we have the old compose-compiler on the classpath
-if (kotlinMajor <= 2) {
+if (kotlinMajor >= 2) {
   apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 }
 //apply plugin: 'kotlin-android-extensions'
