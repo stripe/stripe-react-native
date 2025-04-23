@@ -556,7 +556,7 @@ class PaymentSheetFragment(
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
-    internal un buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
+    internal fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
       val customerId = bundle?.getString("customerId").orEmpty()
       val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
       val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()
