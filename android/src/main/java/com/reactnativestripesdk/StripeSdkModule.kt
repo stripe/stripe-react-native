@@ -16,6 +16,8 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.uimanager.UIBlock
+import com.facebook.react.uimanager.UIManagerModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
@@ -61,6 +63,7 @@ import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,6 +93,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var eventListenerCount = 0
+  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -281,6 +285,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    embeddedIntentCreationCallback.complete(params);
+
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
       return
@@ -1244,6 +1250,16 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  fun confirmEmbeddedPaymentElement(viewTag: Int, promise: Promise) {
+    performOnEmbeddedView(viewTag, promise) { confirm() }
+  }
+
+  @ReactMethod
+  fun clearEmbeddedPaymentOption(viewTag: Int, promise: Promise) {
+    performOnEmbeddedView(viewTag, promise) { clearPaymentOption() }
+  }
+
   internal fun sendEvent(
     reactContext: ReactContext,
     eventName: String,
@@ -1252,6 +1268,32 @@ class StripeSdkModule(
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(eventName, params)
+  }
+
+  private fun performOnEmbeddedView(
+    viewTag: Int,
+    promise: Promise,
+    action: EmbeddedPaymentElementView.() -> Unit
+  ) {
+    val uiManager = reactApplicationContext
+      .getNativeModule(UIManagerModule::class.java)
+      ?: run {
+        promise.reject("E_UI_MANAGER", "UIManagerModule not available")
+        return
+      }
+
+    uiManager.addUIBlock(UIBlock { nativeViewHierarchyManager ->
+      val view = nativeViewHierarchyManager.resolveView(viewTag)
+      if (view is EmbeddedPaymentElementView) {
+        view.action()
+        promise.resolve(null)
+      } else {
+        promise.reject(
+          "E_INVALID_VIEW",
+          "Expected EmbeddedPaymentElementView, got ${view?.javaClass?.simpleName}"
+        )
+      }
+    })
   }
 
   /**
