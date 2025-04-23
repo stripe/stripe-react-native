@@ -1,5 +1,6 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTViewManager.h>
 
 @interface RCT_EXTERN_MODULE(StripeSdk, RCTEventEmitter)
 
@@ -241,4 +242,17 @@ RCT_EXTERN_METHOD(
                   resolver: (RCTPromiseResolveBlock)resolve
                   rejecter: (RCTPromiseRejectBlock)reject
                   )
+RCT_EXTERN_METHOD(createEmbeddedPaymentElement:(NSDictionary *)intentConfig
+                  configuration:(NSDictionary *)configuration
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(confirmEmbeddedPaymentElement:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(updateEmbeddedPaymentElement:(NSDictionary *)intentConfig
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(clearEmbeddedPaymentOption)
+@end
+
+@interface RCT_EXTERN_MODULE(EmbeddedPaymentElementView, RCTViewManager)
 @end
