@@ -1,6 +1,12 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeSdk_kotlinVersion']
+  def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
+  def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
+  def composeCompilerPluginVersion = kotlinMajor >= 2
+    ? '1.9.10'              // last “old” plugin that actually exists
+    : kotlin_version         // match the Kotlin version
 
   repositories {
     google()
@@ -15,7 +21,7 @@ buildscript {
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
-    classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
+    classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$composeCompilerPluginVersion"
   }
 }
 
