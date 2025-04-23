@@ -1,7 +1,8 @@
 buildscript {
+  // Buildscript is evaluated before everything else so we can't use getExtOrDefault
   def kotlin_version = rootProject.ext.has('kotlinVersion')
-  ? rootProject.ext.get('kotlinVersion')
-  : project.properties['StripeSdk_kotlinVersion']
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
 
   def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
 
@@ -28,7 +29,9 @@ if (project == rootProject) {
     return
 }
 
-def kotlin_version = getExtOrDefault('kotlinVersion')
+def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
 def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
 
 apply plugin: 'com.android.library'
