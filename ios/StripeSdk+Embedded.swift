@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(UpdatePaymentMethodBeta) @_spi(STP) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 
 @objc(StripeSdk)
 extension StripeSdk {
@@ -286,9 +286,6 @@ extension StripeSdk {
       configuration.paymentMethodOrder = paymentMethodOrder
     }
     
-    if let updatePaymentMethodEnabled = params["updatePaymentMethodEnabled"] as? Bool {
-      configuration.updatePaymentMethodEnabled = updatePaymentMethodEnabled
-    }
     configuration.cardBrandAcceptance = computeCardBrandAcceptance(params: params)
     
     if let formSheetActionParams = params["formSheetAction"] as? NSDictionary,
