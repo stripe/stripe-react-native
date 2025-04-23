@@ -1,6 +1,11 @@
 # CHANGELOG
-
 ## Unreleased
+
+**Fixes**
+- Updated `stripe-ios` to 24.12.\*
+- Updated `stripe-android` to 21.11.\*
+
+## 0.44.0 - 2025-04-15
 
 **Features**
 
