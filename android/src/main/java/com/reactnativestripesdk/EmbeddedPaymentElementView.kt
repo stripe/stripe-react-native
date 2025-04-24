@@ -152,7 +152,6 @@ class EmbeddedPaymentElementView(
         val optMap = opt?.toWritableMap()
         val payload =
           Arguments.createMap().apply {
-            // TODO: image?
             putMap("paymentOption", optMap)
           }
 
