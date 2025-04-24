@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) import StripePaymentSheet
 
 extension StripeSdk {
     internal func buildPaymentSheetConfiguration(
@@ -268,7 +268,7 @@ extension StripeSdk {
         }
     }
 
-    private func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
+    func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {
             case "Automatic": return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
@@ -280,7 +280,7 @@ extension StripeSdk {
         return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
     }
 
-    private func buildIntentConfiguration(
+    func buildIntentConfiguration(
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod
@@ -318,7 +318,7 @@ extension StripeSdk {
             })
     }
 
-    private func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
+    func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
         if (applePayParams["request"] == nil) {
             return nil
         }
