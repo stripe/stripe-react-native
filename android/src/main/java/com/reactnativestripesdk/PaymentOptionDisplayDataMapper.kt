@@ -9,10 +9,9 @@ import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
  * that can be sent over the RN bridge.
  */
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
-fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap {
-  return Arguments.createMap().apply {
-    putString("label",            label)
+fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap =
+  Arguments.createMap().apply {
+    putString("label", label)
     putString("paymentMethodType", paymentMethodType)
-    putMap("billingDetails",      mapFromPaymentSheetBillingDetails(billingDetails))
+    putMap("billingDetails", mapFromPaymentSheetBillingDetails(billingDetails))
   }
-}
