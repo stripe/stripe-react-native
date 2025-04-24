@@ -158,13 +158,13 @@ internal class PaymentSheetAppearance {
     }
   
   private class func buildEmbeddedPaymentElementAppearance(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement {
-          var embedded = PaymentSheet.Appearance.EmbeddedPaymentElement()
+          var embeddedAppearance = PaymentSheet.Appearance.EmbeddedPaymentElement()
 
           if let rowParams = params[PaymentSheetAppearanceKeys.ROW] as? NSDictionary {
-              embedded.row = try buildEmbeddedRow(params: rowParams)
+            embeddedAppearance.row = try buildEmbeddedRow(params: rowParams)
           }
 
-          return embedded
+          return embeddedAppearance
       }
 
       private class func buildEmbeddedRow(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row {
