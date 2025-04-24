@@ -43,8 +43,8 @@ class EmbeddedPaymentElementContainerView: UIView, UIGestureRecognizerDelegate {
 
     NSLayoutConstraint.activate([
       paymentElementView.topAnchor.constraint(equalTo: topAnchor),
-      paymentElementView.leftAnchor.constraint(equalTo: leftAnchor),
-      paymentElementView.rightAnchor.constraint(equalTo: rightAnchor),
+      paymentElementView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      paymentElementView.trailingAnchor.constraint(equalTo: trailingAnchor),
       paymentElementView.bottomAnchor.constraint(equalTo: bottomAnchor),
     ])
   }
