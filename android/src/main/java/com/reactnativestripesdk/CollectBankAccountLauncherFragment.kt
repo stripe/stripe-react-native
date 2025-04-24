@@ -1,14 +1,9 @@
 package com.reactnativestripesdk
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
@@ -23,19 +18,18 @@ import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.payments.bankaccount.CollectBankAccountLauncher
 import com.stripe.android.payments.bankaccount.navigation.CollectBankAccountResult
 
-class CollectBankAccountLauncherFragment(
-  private val context: ReactApplicationContext,
-  private val publishableKey: String,
-  private val stripeAccountId: String?,
-  private val clientSecret: String,
-  private val isPaymentIntent: Boolean,
-  private val collectParams: CollectBankAccountConfiguration.USBankAccount,
-  private val promise: Promise,
-) : Fragment() {
+class CollectBankAccountLauncherFragment : StripeFragment() {
+  private lateinit var context: ReactApplicationContext
+  private lateinit var publishableKey: String
+  private var stripeAccountId: String? = null
+  private lateinit var clientSecret: String
+  private var isPaymentIntent: Boolean = false
+  private lateinit var collectParams: CollectBankAccountConfiguration.USBankAccount
+  private lateinit var promise: Promise
   private lateinit var collectBankAccountLauncher: CollectBankAccountLauncher
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+  override fun prepare() {
+    collectBankAccountLauncher = createBankAccountLauncher()
 
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     if (stripeSdkModule != null && stripeSdkModule.eventListenerCount > 0) {
@@ -44,23 +38,6 @@ class CollectBankAccountLauncherFragment(
         stripeSdkModule.sendEvent(context, "onFinancialConnectionsEvent", params)
       }
     }
-  }
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    collectBankAccountLauncher = createBankAccountLauncher()
-
-    return FrameLayout(requireActivity()).also { it.visibility = View.GONE }
-  }
-
-  override fun onViewCreated(
-    view: View,
-    savedInstanceState: Bundle?,
-  ) {
-    super.onViewCreated(view, savedInstanceState)
 
     if (isPaymentIntent) {
       collectBankAccountLauncher.presentWithPaymentIntent(
@@ -122,5 +99,25 @@ class CollectBankAccountLauncherFragment(
 
   companion object {
     internal const val TAG = "collect_bank_account_launcher_fragment"
+
+    fun create(
+      context: ReactApplicationContext,
+      publishableKey: String,
+      stripeAccountId: String? = null,
+      clientSecret: String,
+      isPaymentIntent: Boolean,
+      collectParams: CollectBankAccountConfiguration.USBankAccount,
+      promise: Promise,
+    ): CollectBankAccountLauncherFragment {
+      val instance = CollectBankAccountLauncherFragment()
+      instance.context = context
+      instance.publishableKey = publishableKey
+      instance.stripeAccountId = stripeAccountId
+      instance.clientSecret = clientSecret
+      instance.isPaymentIntent = isPaymentIntent
+      instance.collectParams = collectParams
+      instance.promise = promise
+      return instance
+    }
   }
 }

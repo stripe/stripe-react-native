@@ -7,11 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -22,6 +17,7 @@ import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
@@ -38,7 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
-class CustomerSheetFragment : Fragment() {
+class CustomerSheetFragment : StripeFragment() {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
   internal var context: ReactApplicationContext? = null
@@ -46,18 +42,7 @@ class CustomerSheetFragment : Fragment() {
   private var presentPromise: Promise? = null
   private var keepJsAwake: KeepJsAwakeTask? = null
 
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
-
-  override fun onViewCreated(
-    view: View,
-    savedInstanceState: Bundle?,
-  ) {
-    super.onViewCreated(view, savedInstanceState)
-
+  override fun prepare() {
     val context =
       context
         ?: run {
@@ -188,7 +173,6 @@ class CustomerSheetFragment : Fragment() {
   }
 
   private fun presentWithTimeout(timeout: Long) {
-    var customerSheetActivity: Activity? = null
     var activities: MutableList<Activity> = mutableListOf()
     val activityLifecycleCallbacks =
       object : Application.ActivityLifecycleCallbacks {
@@ -196,7 +180,6 @@ class CustomerSheetFragment : Fragment() {
           activity: Activity,
           savedInstanceState: Bundle?,
         ) {
-          customerSheetActivity = activity
           activities.add(activity)
         }
 
@@ -214,7 +197,6 @@ class CustomerSheetFragment : Fragment() {
         ) {}
 
         override fun onActivityDestroyed(activity: Activity) {
-          customerSheetActivity = null
           activities = mutableListOf()
           context?.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
         }
