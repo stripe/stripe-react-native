@@ -1,5 +1,6 @@
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import com.reactnativestripesdk.utils.mapFromPaymentSheetBillingDetails
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 
@@ -9,31 +10,9 @@ import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
  */
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
 fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap {
-  val map = Arguments.createMap()
-
-  map.putString("label", label)
-  map.putString("paymentMethodType", paymentMethodType)
-
-  val billingMap = Arguments.createMap()
-  billingDetails?.let { bd ->
-    bd.name?.let { billingMap.putString("name", it) }
-    bd.email?.let { billingMap.putString("email", it) }
-    bd.phone?.let { billingMap.putString("phone", it) }
-
-    bd.address?.let { addr ->
-      Arguments
-        .createMap()
-        .apply {
-          putString("city", addr.city)
-          putString("country", addr.country)
-          putString("line1", addr.line1)
-          putString("line2", addr.line2)
-          putString("postalCode", addr.postalCode)
-          putString("state", addr.state)
-        }.also { billingMap.putMap("address", it) }
-    }
+  return Arguments.createMap().apply {
+    putString("label",            label)
+    putString("paymentMethodType", paymentMethodType)
+    putMap("billingDetails",      mapFromPaymentSheetBillingDetails(billingDetails))
   }
-  map.putMap("billingDetails", billingMap)
-
-  return map
 }
