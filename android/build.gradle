@@ -183,7 +183,4 @@ dependencies {
   androidTestImplementation "org.mockito:mockito-core:3.+"
 
   implementation "androidx.compose.ui:ui:1.7.8"
-  implementation "androidx.compose.material:material:1.7.8"
-  implementation "androidx.compose.ui:ui-tooling-preview:1.7.8"
-  debugImplementation "androidx.compose.ui:ui-tooling:1.7.8"
 }
