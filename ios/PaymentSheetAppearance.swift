@@ -339,9 +339,9 @@ extension PaymentSheetAppearanceError: LocalizedError {
         case .unexpectedHexStringLength(let hexString):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
         case .invalidRowStyle(let styleString):
-            return NSLocalizedString("Failed to set Payment Sheet appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark'.", comment: "Invalid row style string")
+            return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark'.", comment: "Invalid row style string")
         case .invalidEdgeInsets:
-            return NSLocalizedString("Failed to set Payment Sheet appearance. Invalid edge insets object. Expected an object with 'top', 'left', 'bottom', 'right' number properties.", comment: "Invalid edge insets object")
+            return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid edge insets object. Expected an object with 'top', 'left', 'bottom', 'right' number properties.", comment: "Invalid edge insets object")
         }
     }
 }
