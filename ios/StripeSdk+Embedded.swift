@@ -258,7 +258,7 @@ extension StripeSdk {
     if let customerId = params["customerId"] as? String {
       let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
       let customerClientSecret = params["customerSessionClientSecret"] as? String
-      if let customerEphemeralKeySecret, let customerClientSecret {
+      if customerEphemeralKeySecret != nil && customerClientSecret != nil {
         return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` and `customerSessionClientSecret cannot both be set"), configuration: nil)
       } else if let customerEphemeralKeySecret {
         if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {

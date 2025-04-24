@@ -281,44 +281,39 @@ internal class PaymentSheetAppearance {
       }
 
       private class func buildEdgeInsets(params: NSDictionary) throws -> UIEdgeInsets {
-          guard let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat,
-                let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat,
-                let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat,
-                let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat else {
-              // Allow partial definitions by defaulting missing values to 0
-              let topValue = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? 0
-              let leftValue = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
-              let bottomValue = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
-              let rightValue = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
-              // Check if at least one value was provided to avoid returning zero insets unintentionally
-              if params.count == 0 {
-                   throw PaymentSheetAppearanceError.invalidEdgeInsets
-              }
-              return UIEdgeInsets(top: topValue, left: leftValue, bottom: bottomValue, right: rightValue)
-          }
-          return UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
-      }
+          let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? 0
+          let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
+          let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
+          let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
+          
+          return UIEdgeInsets(
+            top: top,
+            left: left,
+            bottom: bottom,
+            right: right
+          )
+       }
   
-    private class func dynamicColor(
-      from hexDict: [String: String],
-      default defaultColor: UIColor
-    ) -> UIColor {
-      return UIColor(
-        dynamicProvider: { traitCollection in
-          if traitCollection.userInterfaceStyle == .dark,
-             let darkHex = hexDict[PaymentSheetAppearanceKeys.DARK] {
-            return .init(
-              hexString: darkHex
-            )
-          }
-          if let lightHex = hexDict[PaymentSheetAppearanceKeys.LIGHT] {
-            return .init(
-              hexString: lightHex
-            )
-          }
-          return defaultColor
-        })
-    }
+      private class func dynamicColor(
+        from hexDict: [String: String],
+        default defaultColor: UIColor
+      ) -> UIColor {
+        return UIColor(
+          dynamicProvider: { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark,
+               let darkHex = hexDict[PaymentSheetAppearanceKeys.DARK] {
+              return .init(
+                hexString: darkHex
+              )
+            }
+            if let lightHex = hexDict[PaymentSheetAppearanceKeys.LIGHT] {
+              return .init(
+                hexString: lightHex
+              )
+            }
+            return defaultColor
+          })
+      }
 }
 
 enum PaymentSheetAppearanceError : Error {
@@ -326,7 +321,6 @@ enum PaymentSheetAppearanceError : Error {
     case missingAppearanceMode
     case unexpectedHexStringLength(String)
     case invalidRowStyle(String)
-    case invalidEdgeInsets
 }
     
 extension PaymentSheetAppearanceError: LocalizedError {
@@ -340,8 +334,6 @@ extension PaymentSheetAppearanceError: LocalizedError {
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
         case .invalidRowStyle(let styleString):
             return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark'.", comment: "Invalid row style string")
-        case .invalidEdgeInsets:
-            return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid edge insets object. Expected an object with 'top', 'left', 'bottom', 'right' number properties.", comment: "Invalid edge insets object")
         }
     }
 }
