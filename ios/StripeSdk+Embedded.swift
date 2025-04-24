@@ -18,11 +18,11 @@ extension StripeSdk {
                                     configuration: NSDictionary,
                                     resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
-    guard let modeParams =  intentConfig["mode"] as? NSDictionary else {
+    guard let modeParams = intentConfig["mode"] as? NSDictionary else {
       resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
       return
     }
-    if (intentConfig.object(forKey: "confirmHandler") == nil) {
+    if intentConfig.object(forKey: "confirmHandler") == nil {
       resolve(Errors.createError(ErrorType.Failed, "You must provide `intentConfiguration.confirmHandler` if you are not passing an intent client secret"))
       return
     }
@@ -130,7 +130,7 @@ extension StripeSdk {
           withName: "embeddedPaymentElementLoadingFailed",
           body: ["message": error.localizedDescription]
         )
-        // Settle promise so it doesn’t hang
+        // We don't resolve with an error b/c loading errors are handled via the embeddedPaymentElementLoadingFailed event
         resolve(nil)
       }
     }
