@@ -2,6 +2,10 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element: "Card element only"
+    direction: DOWN
+    timeout: 5000
 - tapOn: "Card element only"
 - assertVisible:
     text: "E-mail"
