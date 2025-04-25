@@ -3,7 +3,12 @@ import type { CardBrand } from '../Token';
 
 export type FieldName = 'CardNumber' | 'Cvc' | 'ExpiryDate' | 'PostalCode';
 
-export type ValidationState = 'Valid' | 'Invalid' | 'Incomplete' | 'Unknown';
+export enum ValidationState {
+  Valid = 'Valid',
+  Invalid = 'Invalid',
+  Incomplete = 'Incomplete',
+  Unknown = 'Unknown',
+}
 
 export interface Details {
   last4: string;

@@ -11,8 +11,8 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   CustomerAdapter,
+  CustomerSheetError,
   CustomerSheetInitParams,
-  CustomerSheetInitResult,
   CustomerSheetPresentParams,
   CustomerSheetResult,
   FinancialConnections,
@@ -30,11 +30,16 @@ import type {
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
   SetupIntent,
+  StripeError,
   Token,
   VerifyMicrodepositsParams,
 } from '../types';
 import type { UnsafeObject } from './utils';
 import { FinancialConnectionsEvent } from '../types/FinancialConnections';
+
+type CustomerSheetInitResult = UnsafeObject<{
+  error?: StripeError<CustomerSheetError>;
+}>;
 
 export interface Spec extends TurboModule {
   initialise(params: UnsafeObject<InitialiseParams>): Promise<void>;
@@ -69,7 +74,7 @@ export interface Spec extends TurboModule {
   ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
     result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
-  ): Promise<Object>; // TODO:
+  ): Promise<void>;
   presentPaymentSheet(
     options: UnsafeObject<PaymentSheet.PresentOptions>
   ): Promise<PresentPaymentSheetResult>;

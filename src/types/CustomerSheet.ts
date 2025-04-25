@@ -56,10 +56,6 @@ export type CustomerSheetInitParams = {
   cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
 };
 
-export type CustomerSheetInitResult = {
-  error?: StripeError<CustomerSheetError>;
-};
-
 export type CustomerSheetPresentParams = {
   /** Controls how the modal is presented (after animation). iOS only. Defaults to `popover`. See https://developer.apple.com/documentation/uikit/uimodalpresentationstyle for more info. */
   presentationStyle?:

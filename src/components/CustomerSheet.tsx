@@ -6,7 +6,8 @@ import type {
   CustomerSheetPresentParams,
   CustomerSheetResult,
   CustomerAdapter,
-  CustomerSheetInitResult,
+  StripeError,
+  CustomerSheetError,
 } from '../types';
 import { addListener } from '../events';
 
@@ -21,7 +22,9 @@ let setupIntentClientSecretForCustomerAttachCallback: EventSubscription | null =
 /** Initialize an instance of Customer Sheet with your desired configuration. */
 const initialize = async (
   params: CustomerSheetInitParams
-): Promise<CustomerSheetInitResult> => {
+): Promise<{
+  error?: StripeError<CustomerSheetError>;
+}> => {
   let customerAdapterOverrides = {};
   if (params.customerAdapter) {
     customerAdapterOverrides = configureCustomerAdapterEventListeners(
