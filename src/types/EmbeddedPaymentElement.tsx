@@ -332,6 +332,17 @@ export function useEmbeddedPaymentElement(
   const viewRef = useRef<any>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
 
+  function getElementOrThrow(ref: {
+    current: EmbeddedPaymentElement | null;
+  }): EmbeddedPaymentElement {
+    if (!ref.current) {
+      throw new Error(
+        'EmbeddedPaymentElement is not ready yet – wait until it finishes loading before calling this API.'
+      );
+    }
+    return ref.current;
+  }
+
   // Create embedded payment element
   useEffect(() => {
     let active = true;
@@ -432,11 +443,11 @@ export function useEmbeddedPaymentElement(
     }
 
     // iOS: just proxy to the native hook
-    return elementRef.current!.confirm();
+    return getElementOrThrow(elementRef).confirm();
   }, [isAndroid]);
   const update = useCallback(
     (cfg: PaymentSheetTypes.IntentConfiguration) =>
-      elementRef.current!.update(cfg),
+      getElementOrThrow(elementRef).update(cfg),
     []
   );
   const clearPaymentOption = useCallback((): Promise<void> => {
@@ -449,7 +460,7 @@ export function useEmbeddedPaymentElement(
     }
 
     // iOS: clear on the element instance
-    elementRef.current!.clearPaymentOption();
+    getElementOrThrow(elementRef).clearPaymentOption();
     return Promise.resolve();
   }, [isAndroid]);
 
