@@ -11,8 +11,6 @@ appId: ${APP_ID}
 - tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
-- tapOn:
-    text: "MM / YY"
 - inputText: "0145"
 - inputText: "123"
 - tapOn: "Pay $60.99"
