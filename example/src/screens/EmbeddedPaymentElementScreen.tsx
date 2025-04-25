@@ -175,10 +175,6 @@ export default function EmbeddedPaymentElementScreen() {
             else Alert.alert('Cancelled');
           },
         },
-        rowSelectionBehavior: {
-          type: 'immediateAction',
-          didSelectPaymentOption: () => console.log('Option selected'),
-        },
         appearance,
       };
 
