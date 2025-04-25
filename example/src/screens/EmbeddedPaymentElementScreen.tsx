@@ -218,8 +218,13 @@ export default function EmbeddedPaymentElementScreen() {
   );
 
   // Hook into Stripe element
-  const { embeddedPaymentElementView, paymentOption, confirm, loadingError } =
-    useEmbeddedPaymentElement(intentConfig!, elementConfig!);
+  const {
+    embeddedPaymentElementView,
+    paymentOption,
+    confirm,
+    clearPaymentOption,
+    loadingError,
+  } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
 
   // Payment action
   const handlePay = React.useCallback(async () => {
@@ -264,7 +269,7 @@ export default function EmbeddedPaymentElementScreen() {
       <Button
         variant="default"
         title="Clear"
-        onPress={clear}
+        onPress={clearPaymentOption}
         disabled={!paymentOption}
       />
     </PaymentScreen>
