@@ -203,6 +203,9 @@ export type AppearanceParams = RecursivePartial<{
   };
   /** Describes the appearance of the primary "Pay" button at the bottom of your Payment Sheet */
   primaryButton: PrimaryButtonConfig;
+
+  /** Describes the appearance of the Embedded Mobile Payment Element */
+  embeddedPaymentElement: EmbeddedPaymentElementAppearance;
 }>;
 
 export type FontConfig = {
@@ -327,6 +330,117 @@ export type PrimaryButtonColorConfig = {
    */
   border: string;
 };
+
+/** A color that’s either a single hex or a light/dark pair */
+export type ThemedColor = string | { light: string; dark: string };
+
+/** Represents edge insets */
+export interface EdgeInsetsConfig {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  right?: number;
+}
+
+/** Display styles for rows in the Embedded Mobile Payment Element */
+export enum RowStyle {
+  /** A flat style with radio buttons */
+  FlatWithRadio = 'flatWithRadio',
+  /** A floating button style */
+  FloatingButton = 'floatingButton',
+  /** A flat style with a checkmark */
+  FlatWithCheckmark = 'flatWithCheckmark',
+}
+
+/** Describes the appearance of the radio button */
+export interface RadioConfig {
+  /** The color of the radio button when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  selectedColor?: ThemedColor;
+
+  /** The color of the radio button when unselected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  unselectedColor?: ThemedColor;
+}
+
+/** Describes the appearance of the checkmark */
+export interface CheckmarkConfig {
+  /** The color of the checkmark when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  color?: ThemedColor;
+}
+
+/** Describes the appearance of the flat style row */
+export interface FlatConfig {
+  /** The thickness of the separator line between rows.
+   * @default 1.0
+   */
+  separatorThickness?: number;
+
+  /** The color of the separator line between rows, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  separatorColor?: ThemedColor;
+
+  /** The insets of the separator line between rows.
+   * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark and RowStyle.FloatingButton
+   */
+  separatorInsets?: EdgeInsetsConfig;
+
+  /** Determines if the top separator is visible at the top of the Element.
+   * @default true
+   */
+  topSeparatorEnabled?: boolean;
+
+  /** Determines if the bottom separator is visible at the bottom of the Element.
+   * @default true
+   */
+  bottomSeparatorEnabled?: boolean;
+
+  /** Appearance settings for the radio button (used when RowStyle is FlatWithRadio) */
+  radio?: RadioConfig;
+
+  /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
+  checkmark?: CheckmarkConfig;
+}
+
+/** Describes the appearance of the floating button style payment method row */
+export interface FloatingConfig {
+  /** The spacing between payment method rows.
+   * @default 12.0
+   */
+  spacing?: number;
+}
+
+/** Describes the appearance of the row in the Embedded Mobile Payment Element */
+export interface RowConfig {
+  /** The display style of the row.
+   * @default RowStyle.FlatWithRadio
+   */
+  style?: RowStyle;
+
+  /** Additional vertical insets applied to a payment method row.
+   * Increasing this value increases the height of each row.
+   * @default 6.0
+   */
+  additionalInsets?: number;
+
+  /** Appearance settings for the flat style row */
+  flat?: FlatConfig;
+
+  /** Appearance settings for the floating button style row */
+  floating?: FloatingConfig;
+}
+
+/** Describes the appearance of the Embedded Mobile Payment Element */
+export interface EmbeddedPaymentElementAppearance {
+  /** Describes the appearance of the row in the Embedded Mobile Payment Element */
+  row?: RowConfig;
+}
 
 type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
