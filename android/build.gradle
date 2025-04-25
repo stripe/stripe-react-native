@@ -1,6 +1,10 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeSdk_kotlinVersion']
+  def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
+
+  def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
 
   repositories {
     google()
@@ -12,6 +16,10 @@ buildscript {
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
+    // only use this old compose-compiler plugin when Kotlin >= 2.0
+    if (kotlinMajor >= 2) {
+      classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
+    }
   }
 }
 
@@ -20,9 +28,18 @@ if (project == rootProject) {
     return
 }
 
+def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
+def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
+// Only apply the compose plugin if we have the old compose-compiler on the classpath
+if (kotlinMajor >= 2) {
+  apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+}
 //apply plugin: 'kotlin-android-extensions'
 
 def getExtOrDefault(name) {
@@ -60,6 +77,7 @@ android {
 
   buildFeatures {
     viewBinding true
+    compose true
   }
 }
 
@@ -133,7 +151,6 @@ repositories {
   }
 }
 
-def kotlin_version = getExtOrDefault('kotlinVersion')
 def stripe_version = getExtOrDefault('stripeVersion')
 
 dependencies {
@@ -164,4 +181,6 @@ dependencies {
   androidTestImplementation "androidx.test:core:1.4.0"
   androidTestImplementation 'androidx.test:runner:1.1.0'
   androidTestImplementation "org.mockito:mockito-core:3.+"
+
+  implementation "androidx.compose.ui:ui:1.7.8"
 }

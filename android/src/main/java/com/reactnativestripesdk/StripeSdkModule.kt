@@ -14,8 +14,11 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.common.annotations.UnstableReactNativeAPI
+import com.facebook.react.fabric.FabricUIManager
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
@@ -61,6 +64,7 @@ import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,6 +94,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var eventListenerCount = 0
+  internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -281,6 +286,8 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    embeddedIntentCreationCallback.complete(params)
+
     if (paymentSheetFragment == null) {
       promise.resolve(PaymentSheetFragment.createMissingInitError())
       return
@@ -1244,6 +1251,22 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  fun confirmEmbeddedPaymentElement(
+    viewTag: Int,
+    promise: Promise,
+  ) {
+    performOnEmbeddedView(viewTag, promise) { confirm() }
+  }
+
+  @ReactMethod
+  fun clearEmbeddedPaymentOption(
+    viewTag: Int,
+    promise: Promise,
+  ) {
+    performOnEmbeddedView(viewTag, promise) { clearPaymentOption() }
+  }
+
   internal fun sendEvent(
     reactContext: ReactContext,
     eventName: String,
@@ -1252,6 +1275,36 @@ class StripeSdkModule(
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(eventName, params)
+  }
+
+  @OptIn(UnstableReactNativeAPI::class)
+  private fun performOnEmbeddedView(
+    viewTag: Int,
+    promise: Promise,
+    action: EmbeddedPaymentElementView.() -> Unit,
+  ) {
+    val uiManager =
+      UIManagerHelper
+        .getUIManagerForReactTag(
+          reactApplicationContext as ReactContext,
+          viewTag,
+        ) as? FabricUIManager
+        ?: return promise.reject("E_UI_MANAGER", "UIManager not available")
+
+    val block =
+      com.facebook.react.fabric.interop.UIBlock { resolver ->
+        (resolver.resolveView(viewTag) as? EmbeddedPaymentElementView)
+          ?.apply {
+            action()
+            promise.resolve(null)
+          }
+          ?: promise.reject(
+            "E_INVALID_VIEW",
+            "Expected EmbeddedPaymentElementView, got ${resolver.resolveView(viewTag)?.javaClass?.simpleName}",
+          )
+      }
+
+    uiManager.addUIBlock(block)
   }
 
   /**
