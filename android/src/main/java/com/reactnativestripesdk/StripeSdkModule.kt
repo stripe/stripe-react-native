@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -16,7 +17,6 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.common.annotations.UnstableReactNativeAPI
 import com.facebook.react.fabric.FabricUIManager
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.customersheet.CustomerSheetFragment
@@ -1238,45 +1238,42 @@ class StripeSdkModule(
     }
   }
 
-<<<<<<< HEAD
   @ReactMethod
-  fun addListener(eventName: String) {
-    eventListenerCount++
-  }
-
-  @ReactMethod
-  fun removeListeners(count: Int) {
-    eventListenerCount -= count
-    if (eventListenerCount < 0) {
-      eventListenerCount = 0
-    }
-  }
-
-  @ReactMethod
-  fun confirmEmbeddedPaymentElement(
-    viewTag: Int,
+  override fun createEmbeddedPaymentElement(
+    intentConfig: ReadableMap,
+    configuration: ReadableMap,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag, promise) { confirm() }
+    // TODO:
   }
 
   @ReactMethod
-  fun clearEmbeddedPaymentOption(
-    viewTag: Int,
+  override fun confirmEmbeddedPaymentElement(
+    viewTag: Double,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag, promise) { clearPaymentOption() }
+    performOnEmbeddedView(viewTag.toInt(), promise) { confirm() }
   }
 
-  internal fun sendEvent(
-    reactContext: ReactContext,
-    eventName: String,
-    params: WritableMap,
-=======
+  @ReactMethod
+  override fun updateEmbeddedPaymentElement(
+    intentConfig: ReadableMap,
+    promise: Promise,
+  ) {
+    // TODO:
+  }
+
+  @ReactMethod
+  override fun clearEmbeddedPaymentOption(
+    viewTag: Double,
+    promise: Promise,
+  ) {
+    performOnEmbeddedView(viewTag.toInt(), promise) { clearPaymentOption() }
+  }
+
   override fun handleURLCallback(
     url: String,
     promise: Promise,
->>>>>>> f7c4ec4 (Implement new arch)
   ) {
     // noop, iOS only.
   }

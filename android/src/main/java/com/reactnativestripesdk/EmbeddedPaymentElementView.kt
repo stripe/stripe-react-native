@@ -8,7 +8,6 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
@@ -45,37 +44,38 @@ class EmbeddedPaymentElementView(
   private val builder by lazy {
     EmbeddedPaymentElement.Builder(
       createIntentCallback = { paymentMethod, shouldSavePaymentMethod ->
-        val stripeSdkModule: StripeSdkModule? = reactContext.getNativeModule(StripeSdkModule::class.java)
-        if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
-          CreateIntentResult.Failure(
-            cause =
-              Exception(
-                "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-              ),
-            displayMessage = "An unexpected error occurred",
-          )
-        } else {
-          val params =
-            Arguments.createMap().apply {
-              putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
-              putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
-            }
-
-          stripeSdkModule.sendEvent(reactContext, "onConfirmHandlerCallback", params)
-
-          val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
-          // reset the completable
-          stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
-
-          resultFromJavascript.getString("clientSecret")?.let {
-            CreateIntentResult.Success(clientSecret = it)
-          } ?: run {
-            val errorMap = resultFromJavascript.getMap("error")
-            CreateIntentResult.Failure(
-              cause = Exception(errorMap?.getString("message")),
-              displayMessage = errorMap?.getString("localizedMessage"),
+        val stripeSdkModule =
+          try {
+            requireStripeSdkModule()
+          } catch (ex: IllegalArgumentException) {
+            return@Builder CreateIntentResult.Failure(
+              cause =
+                Exception(
+                  "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                ),
+              displayMessage = "An unexpected error occurred",
             )
           }
+        val params =
+          Arguments.createMap().apply {
+            putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+            putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
+          }
+
+        stripeSdkModule.emitOnConfirmHandlerCallback(params)
+
+        val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
+        // reset the completable
+        stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
+
+        resultFromJavascript.getString("clientSecret")?.let {
+          CreateIntentResult.Success(clientSecret = it)
+        } ?: run {
+          val errorMap = resultFromJavascript.getMap("error")
+          CreateIntentResult.Failure(
+            cause = Exception(errorMap?.getString("message")),
+            displayMessage = errorMap?.getString("localizedMessage"),
+          )
         }
       },
       resultCallback = { result ->
@@ -94,9 +94,7 @@ class EmbeddedPaymentElementView(
               }
             }
           }
-        reactContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-          .emit("embeddedPaymentElementFormSheetConfirmComplete", map)
+        requireStripeSdkModule().emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
       },
     )
   }
@@ -130,9 +128,7 @@ class EmbeddedPaymentElementView(
                   Arguments.createMap().apply {
                     putString("message", msg)
                   }
-                reactContext
-                  .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                  .emit("embeddedPaymentElementLoadingFailed", payload)
+                requireStripeSdkModule().emitEmbeddedPaymentElementLoadingFailed(payload)
               }
             }
           }
@@ -154,10 +150,7 @@ class EmbeddedPaymentElementView(
           Arguments.createMap().apply {
             putMap("paymentOption", optMap)
           }
-
-        reactContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-          .emit("embeddedPaymentElementDidUpdatePaymentOption", payload)
+        requireStripeSdkModule().emitEmbeddedPaymentElementDidUpdatePaymentOption(payload)
       }
     }
 
@@ -169,9 +162,7 @@ class EmbeddedPaymentElementView(
       Arguments.createMap().apply {
         putInt("height", height)
       }
-    reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("embeddedPaymentElementDidUpdateHeight", params)
+    requireStripeSdkModule().emitEmbeddedPaymentElementDidUpdateHeight(params)
   }
 
   // APIs
@@ -196,4 +187,6 @@ class EmbeddedPaymentElementView(
       events.send(Event.ClearPaymentOption)
     }
   }
+
+  private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
 }

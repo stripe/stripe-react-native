@@ -105,7 +105,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(initPaymentSheet:resolver:rejecter:)
-  public func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+    public func initPaymentSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         let (error, configuration) = buildPaymentSheetConfiguration(params: params)
         guard let configuration = configuration else {
@@ -142,7 +142,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)
-  public func confirmPaymentSheetPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
+    public func confirmPaymentSheetPayment(resolver resolve: @escaping RCTPromiseResolveBlock,
                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
             if (self.paymentSheetFlowController != nil) {
@@ -164,14 +164,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(resetPaymentSheetCustomer:rejecter:)
-  public func resetPaymentSheetCustomer(resolver resolve: @escaping RCTPromiseResolveBlock,
+    public func resetPaymentSheetCustomer(resolver resolve: @escaping RCTPromiseResolveBlock,
                                    rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         PaymentSheet.resetCustomer()
         resolve(nil)
     }
 
     @objc(presentPaymentSheet:resolver:rejecter:)
-  public func presentPaymentSheet(options: NSDictionary,
+    public func presentPaymentSheet(options: NSDictionary,
                              resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         var paymentSheetViewController: UIViewController?
@@ -221,7 +221,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(createTokenForCVCUpdate:resolver:rejecter:)
-  public func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func createTokenForCVCUpdate(cvc: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let cvc = cvc else {
             resolve(Errors.createError(ErrorType.Failed, "You must provide CVC"))
             return;
@@ -238,7 +238,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(confirmSetupIntent:data:options:resolver:rejecter:)
-  public func confirmSetupIntent (setupIntentClientSecret: String, params: NSDictionary,
+    public func confirmSetupIntent (setupIntentClientSecret: String, params: NSDictionary,
                              options: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         let paymentMethodData = params["paymentMethodData"] as? NSDictionary

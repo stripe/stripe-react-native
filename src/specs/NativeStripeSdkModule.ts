@@ -1,6 +1,9 @@
 import { TurboModuleRegistry } from 'react-native';
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
-import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
+import type {
+  EventEmitter,
+  Int32,
+} from 'react-native/Libraries/Types/CodegenTypes';
 import type {
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
@@ -34,8 +37,13 @@ import type {
   Token,
   VerifyMicrodepositsParams,
 } from '../types';
+import type {
+  EmbeddedPaymentElementConfiguration,
+  EmbeddedPaymentElementResult,
+} from '../types/EmbeddedPaymentElement';
+import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
+import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
-import { FinancialConnectionsEvent } from '../types/FinancialConnections';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -165,6 +173,17 @@ export interface Spec extends TurboModule {
   customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
     clientSecret: string
   ): Promise<void>;
+  createEmbeddedPaymentElement(
+    intentConfig: UnsafeObject<IntentConfiguration>,
+    configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
+  ): Promise<void>;
+  confirmEmbeddedPaymentElement(
+    viewTag: Int32
+  ): Promise<EmbeddedPaymentElementResult>;
+  updateEmbeddedPaymentElement(
+    intentConfig: UnsafeObject<IntentConfiguration>
+  ): Promise<void>;
+  clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
 
   // Events
   onConfirmHandlerCallback: EventEmitter<{

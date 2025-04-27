@@ -367,33 +367,37 @@ RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent
                                    rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(createEmbeddedPaymentElement:(NSDictionary *)intentConfig
-                                 configuration:(NSDictionary *)configuration
-                                      resolver:(RCTPromiseResolveBlock)resolve
-                                      rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(createEmbeddedPaymentElement:(nonnull NSDictionary *)intentConfig
+                                 configuration:(nonnull NSDictionary *)configuration
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared createEmbeddedPaymentElement:intentConfig
                                        configuration:configuration
-                                            resolver:resolve
-                                            rejecter:reject];
+                                             resolve:resolve
+                                              reject:reject];
 }
 
-RCT_EXPORT_METHOD(confirmEmbeddedPaymentElement:(RCTPromiseResolveBlock)resolve
-                                       rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(confirmEmbeddedPaymentElement:(NSInteger)viewTag
+                                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                         reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared confirmEmbeddedPaymentElement:resolve rejecter:reject];
+  [StripeSdkImpl.shared confirmEmbeddedPaymentElement:resolve reject:reject];
 }
 
 RCT_EXPORT_METHOD(updateEmbeddedPaymentElement:(NSDictionary *)intentConfig
-                                      resolver:(RCTPromiseResolveBlock)resolve
-                                      rejecter:(RCTPromiseRejectBlock)reject)
+                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared updateEmbeddedPaymentElement:intentConfig resolver:resolve rejecter:reject];
+  [StripeSdkImpl.shared updateEmbeddedPaymentElement:intentConfig resolve:resolve reject:reject];
 }
 
-RCT_EXPORT_METHOD(clearEmbeddedPaymentOption)
+RCT_EXPORT_METHOD(clearEmbeddedPaymentOption:(NSInteger)viewTag
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared clearEmbeddedPaymentOption];
+  resolve(nil);
 }
 
 /* clang-format on */

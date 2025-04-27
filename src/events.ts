@@ -32,7 +32,11 @@ type Events =
   | 'onCustomerAdapterDetachPaymentMethodCallback'
   | 'onCustomerAdapterSetSelectedPaymentOptionCallback'
   | 'onCustomerAdapterFetchSelectedPaymentOptionCallback'
-  | 'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback';
+  | 'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback'
+  | 'embeddedPaymentElementFormSheetConfirmComplete'
+  | 'embeddedPaymentElementDidUpdatePaymentOption'
+  | 'embeddedPaymentElementDidUpdateHeight'
+  | 'embeddedPaymentElementLoadingFailed';
 
 export function addListener<EventT extends Events>(
   event: EventT,

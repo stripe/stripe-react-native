@@ -91,6 +91,30 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
     invoke("onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback");
   }
 
+  protected final void emitEmbeddedPaymentElementDidUpdateHeight(ReadableMap value) {
+    invoke("embeddedPaymentElementDidUpdateHeight", value);
+  }
+
+  protected final void emitEmbeddedPaymentElementWillPresent() {
+    invoke("embeddedPaymentElementWillPresent");
+  }
+
+  protected final void emitEmbeddedPaymentElementDidUpdatePaymentOption(ReadableMap value) {
+    invoke("embeddedPaymentElementDidUpdatePaymentOption", value);
+  }
+
+  protected final void emitEmbeddedPaymentElementFormSheetConfirmComplete(ReadableMap value) {
+    invoke("embeddedPaymentElementFormSheetConfirmComplete", value);
+  }
+
+  protected final void emitEmbeddedPaymentElementRowSelectionImmediateAction() {
+    invoke("embeddedPaymentElementRowSelectionImmediateAction");
+  }
+
+  protected final void emitEmbeddedPaymentElementLoadingFailed(ReadableMap value) {
+    invoke("embeddedPaymentElementLoadingFailed", value);
+  }
+
   @ReactMethod
   @DoNotStrip
   public abstract void initialise(ReadableMap params, Promise promise);
@@ -268,4 +292,20 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void customerAdapterSetupIntentClientSecretForCustomerAttachCallback(String clientSecret, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void createEmbeddedPaymentElement(ReadableMap intentConfig, ReadableMap configuration, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void confirmEmbeddedPaymentElement(double viewTag, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void updateEmbeddedPaymentElement(ReadableMap intentConfig, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void clearEmbeddedPaymentOption(double viewTag, Promise promise);
 }
