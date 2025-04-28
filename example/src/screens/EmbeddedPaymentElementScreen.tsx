@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
 import { Alert, View, Text } from 'react-native';
 import Button from '../components/Button';
@@ -20,8 +19,11 @@ import {
   AppearanceParams,
   RowStyle,
 } from '@stripe/stripe-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function EmbeddedPaymentElementScreen() {
+  const navigation = useNavigation();
+
   // Local UI state
   const [loading, setLoading] = React.useState(false);
   const [customerKeyType, setCustomerKeyType] = React.useState<
@@ -241,7 +243,21 @@ export default function EmbeddedPaymentElementScreen() {
           setCustomerKeyType(val ? 'customer_session' : 'legacy_ephemeral_key')
         }
       />
-
+      <View style={{ flexDirection: 'row', gap: 20, marginBottom: 10 }}>
+        <Button
+          variant="default"
+          title="Clear"
+          onPress={clearPaymentOption}
+          disabled={!paymentOption}
+        />
+        <Button
+          variant="default"
+          title="Open screen"
+          onPress={() => {
+            navigation.navigate('HomeScreen');
+          }}
+        />
+      </View>
       {loadingError && (
         <View style={{ padding: 12, backgroundColor: '#fee', margin: 8 }}>
           <Text style={{ color: '#900', fontWeight: '600' }}>
@@ -264,12 +280,6 @@ export default function EmbeddedPaymentElementScreen() {
         title="Pay"
         onPress={handlePay}
         loading={loading}
-        disabled={!paymentOption}
-      />
-      <Button
-        variant="default"
-        title="Clear"
-        onPress={clearPaymentOption}
         disabled={!paymentOption}
       />
     </PaymentScreen>

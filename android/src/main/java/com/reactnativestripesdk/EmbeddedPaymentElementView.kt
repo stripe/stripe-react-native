@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.AbstractComposeView
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
@@ -23,7 +22,7 @@ import toWritableMap
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
 class EmbeddedPaymentElementView(
   context: Context,
-) : AbstractComposeView(context) {
+) : StripeAbstractComposeView(context) {
   private sealed interface Event {
     data class Configure(
       val configuration: EmbeddedPaymentElement.Configuration,
