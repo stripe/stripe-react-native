@@ -1,6 +1,5 @@
 package com.reactnativestripesdk.customersheet
 
-import com.reactnativestripesdk.CustomerSheetFragment
 import org.junit.Test
 
 class CustomerSheetFragmentTest {
