@@ -1,13 +1,9 @@
 /* eslint-disable react-native/no-inline-styles */
 import {
-  requireNativeComponent,
-  NativeModules,
-  NativeEventEmitter,
-  EmitterSubscription,
   LayoutAnimation,
   Platform,
   findNodeHandle,
-  ViewProps,
+  EventSubscription,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -17,7 +13,7 @@ import type {
 } from './Common';
 import type { PaymentMethod } from '.';
 import * as PaymentSheetTypes from './PaymentSheet';
-import NativeStripeSdk from '../NativeStripeSdk';
+import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
 import {
   ReactElement,
   useCallback,
@@ -28,11 +24,8 @@ import {
 } from 'react';
 
 import React from 'react';
-
-// Native bridge imports
-const { StripeSdk } = NativeModules;
-const NativeStripeEmbedded = StripeSdk;
-const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
+import { addListener } from '../events';
+import NativeEmbeddedPaymentElement from '../specs/NativeEmbeddedPaymentElement';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -178,7 +171,7 @@ class EmbeddedPaymentElement {
    */
   async update(intentConfig: PaymentSheetTypes.IntentConfiguration) {
     const result =
-      await NativeStripeEmbedded.updateEmbeddedPaymentElement(intentConfig);
+      await NativeStripeSdkModule.updateEmbeddedPaymentElement(intentConfig);
     return result;
   }
 
@@ -190,21 +183,22 @@ class EmbeddedPaymentElement {
    * Returns the final result: success, failure, or cancellation.
    */
   async confirm(): Promise<EmbeddedPaymentElementResult> {
-    const result = await NativeStripeEmbedded.confirmEmbeddedPaymentElement();
+    const result =
+      await NativeStripeSdkModule.confirmEmbeddedPaymentElement(-1);
     return result;
   }
 
   /** Clear the currently selected payment option (reset to null). */
   clearPaymentOption(): void {
-    NativeStripeEmbedded.clearEmbeddedPaymentOption();
+    NativeStripeSdkModule.clearEmbeddedPaymentOption(-1);
   }
 }
 
 // -----------------------------------------------------------------------------
 // JS Factory: createEmbeddedPaymentElement
 // -----------------------------------------------------------------------------
-let confirmHandlerCallback: EmitterSubscription | null = null;
-let formSheetActionConfirmCallback: EmitterSubscription | null = null;
+let confirmHandlerCallback: EventSubscription | null = null;
+let formSheetActionConfirmCallback: EventSubscription | null = null;
 
 async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
@@ -212,7 +206,7 @@ async function createEmbeddedPaymentElement(
 ): Promise<EmbeddedPaymentElement> {
   setupConfirmHandlers(intentConfig, configuration);
 
-  await NativeStripeEmbedded.createEmbeddedPaymentElement(
+  await NativeStripeSdkModule.createEmbeddedPaymentElement(
     intentConfig,
     configuration
   );
@@ -226,7 +220,7 @@ function setupConfirmHandlers(
   const confirmHandler = intentConfig.confirmHandler;
   if (confirmHandler) {
     confirmHandlerCallback?.remove();
-    confirmHandlerCallback = eventEmitter.addListener(
+    confirmHandlerCallback = addListener(
       'onConfirmHandlerCallback',
       ({
         paymentMethod,
@@ -238,7 +232,7 @@ function setupConfirmHandlers(
         confirmHandler(
           paymentMethod,
           shouldSavePaymentMethod,
-          NativeStripeSdk.intentCreationCallback
+          NativeStripeSdkModule.intentCreationCallback
         );
       }
     );
@@ -249,7 +243,7 @@ function setupConfirmHandlers(
       configuration.formSheetAction.onFormSheetConfirmComplete;
     if (confirmFormSheetHandler) {
       formSheetActionConfirmCallback?.remove();
-      formSheetActionConfirmCallback = eventEmitter.addListener(
+      formSheetActionConfirmCallback = addListener(
         'embeddedPaymentElementFormSheetConfirmComplete',
         (result: EmbeddedPaymentElementResult) => {
           // Pass the result back to the formSheetAction handler
@@ -259,25 +253,6 @@ function setupConfirmHandlers(
     }
   }
 }
-
-// -----------------------------------------------------------------------------
-// React Native View wrappers
-// -----------------------------------------------------------------------------
-const RNEmbeddedPaymentElementViewIOS = requireNativeComponent<ViewProps>(
-  'EmbeddedPaymentElementView'
-);
-
-type AndroidProps = ViewProps & {
-  configuration: EmbeddedPaymentElementConfiguration;
-  intentConfiguration: PaymentSheetTypes.IntentConfiguration;
-  onEmbeddedPaymentElementDidUpdateHeight?: (e: {
-    nativeEvent: { height: number };
-  }) => void;
-};
-const RNEmbeddedPaymentElementViewAndroid =
-  Platform.OS === 'android'
-    ? requireNativeComponent<AndroidProps>('StripeEmbeddedPaymentElementView')
-    : null;
 
 // -----------------------------------------------------------------------------
 // Hook: useEmbeddedPaymentElement
@@ -361,10 +336,10 @@ export function useEmbeddedPaymentElement(
       elementRef.current = null;
       setElement(null);
     };
-  }, [intentConfig, configuration, isAndroid]);
+  }, [intentConfig, configuration]);
 
   useEffect(() => {
-    const sub = eventEmitter.addListener(
+    const sub = addListener(
       'embeddedPaymentElementDidUpdatePaymentOption',
       ({ paymentOption: opt }) => setPaymentOption(opt ?? null)
     );
@@ -373,7 +348,7 @@ export function useEmbeddedPaymentElement(
 
   // Listen for height changes
   useEffect(() => {
-    const sub = eventEmitter.addListener(
+    const sub = addListener(
       'embeddedPaymentElementDidUpdateHeight',
       ({ height: h }) => {
         // ignore zero
@@ -388,7 +363,7 @@ export function useEmbeddedPaymentElement(
 
   // Listen for loading failures
   useEffect(() => {
-    const sub = eventEmitter.addListener(
+    const sub = addListener(
       'embeddedPaymentElementLoadingFailed',
       (nativeError: { message: string }) => {
         setLoadingError(new Error(nativeError.message));
@@ -401,21 +376,21 @@ export function useEmbeddedPaymentElement(
   const embeddedPaymentElementView = useMemo(() => {
     if (isAndroid && configuration && intentConfig) {
       return (
-        RNEmbeddedPaymentElementViewAndroid && (
-          <RNEmbeddedPaymentElementViewAndroid
-            ref={viewRef}
-            style={[{ width: '100%', height: height }]}
-            configuration={configuration}
-            intentConfiguration={intentConfig}
-          />
-        )
+        <NativeEmbeddedPaymentElement
+          ref={viewRef}
+          style={[{ width: '100%', height: height }]}
+          configuration={configuration}
+          intentConfiguration={intentConfig}
+        />
       );
     }
     if (!element) return null;
     return (
-      <RNEmbeddedPaymentElementViewIOS
+      <NativeEmbeddedPaymentElement
         ref={viewRef}
         style={{ width: '100%', height }}
+        configuration={configuration}
+        intentConfiguration={intentConfig}
       />
     );
   }, [configuration, element, height, intentConfig, isAndroid]);
@@ -428,18 +403,20 @@ export function useEmbeddedPaymentElement(
         return Promise.reject(new Error('Could not find Android view handle'));
       }
       // 1) Call into the native module
-      return StripeSdk.confirmEmbeddedPaymentElement(tag).then(() => {
-        // 2) Wait for the event
-        return new Promise<EmbeddedPaymentElementResult>((resolve) => {
-          const sub = eventEmitter.addListener(
-            'embeddedPaymentElementFormSheetConfirmComplete',
-            (result: EmbeddedPaymentElementResult) => {
-              sub.remove();
-              resolve(result);
-            }
-          );
-        });
-      });
+      return NativeStripeSdkModule.confirmEmbeddedPaymentElement(tag).then(
+        () => {
+          // 2) Wait for the event
+          return new Promise<EmbeddedPaymentElementResult>((resolve) => {
+            const sub = addListener(
+              'embeddedPaymentElementFormSheetConfirmComplete',
+              (result: EmbeddedPaymentElementResult) => {
+                sub.remove();
+                resolve(result);
+              }
+            );
+          });
+        }
+      );
     }
 
     // iOS: just proxy to the native hook
@@ -456,7 +433,7 @@ export function useEmbeddedPaymentElement(
       if (tag == null) {
         return Promise.reject(new Error('Unable to find Android view handle'));
       }
-      return StripeSdk.clearEmbeddedPaymentOption(tag);
+      return NativeStripeSdkModule.clearEmbeddedPaymentOption(tag);
     }
 
     // iOS: clear on the element instance

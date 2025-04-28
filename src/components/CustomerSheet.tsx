@@ -1,32 +1,30 @@
 import React from 'react';
-import {
-  NativeEventEmitter,
-  NativeModules,
-  EmitterSubscription,
-} from 'react-native';
-import NativeStripeSdk from '../NativeStripeSdk';
+import { EventSubscription } from 'react-native';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import type {
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
   CustomerSheetResult,
-  CustomerSheetError,
-  StripeError,
   CustomerAdapter,
+  StripeError,
+  CustomerSheetError,
 } from '../types';
+import { addListener } from '../events';
 
-const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
-let fetchPaymentMethodsCallback: EmitterSubscription | null = null;
-let attachPaymentMethodCallback: EmitterSubscription | null = null;
-let detachPaymentMethodCallback: EmitterSubscription | null = null;
-let setSelectedPaymentOptionCallback: EmitterSubscription | null = null;
-let fetchSelectedPaymentOptionCallback: EmitterSubscription | null = null;
-let setupIntentClientSecretForCustomerAttachCallback: EmitterSubscription | null =
+let fetchPaymentMethodsCallback: EventSubscription | null = null;
+let attachPaymentMethodCallback: EventSubscription | null = null;
+let detachPaymentMethodCallback: EventSubscription | null = null;
+let setSelectedPaymentOptionCallback: EventSubscription | null = null;
+let fetchSelectedPaymentOptionCallback: EventSubscription | null = null;
+let setupIntentClientSecretForCustomerAttachCallback: EventSubscription | null =
   null;
 
 /** Initialize an instance of Customer Sheet with your desired configuration. */
 const initialize = async (
   params: CustomerSheetInitParams
-): Promise<{ error?: StripeError<CustomerSheetError> }> => {
+): Promise<{
+  error?: StripeError<CustomerSheetError>;
+}> => {
   let customerAdapterOverrides = {};
   if (params.customerAdapter) {
     customerAdapterOverrides = configureCustomerAdapterEventListeners(
@@ -55,7 +53,7 @@ const configureCustomerAdapterEventListeners = (
 ): { [Property in keyof CustomerAdapter]: boolean } => {
   if (customerAdapter.fetchPaymentMethods) {
     fetchPaymentMethodsCallback?.remove();
-    fetchPaymentMethodsCallback = eventEmitter.addListener(
+    fetchPaymentMethodsCallback = addListener(
       'onCustomerAdapterFetchPaymentMethodsCallback',
       async () => {
         if (customerAdapter.fetchPaymentMethods) {
@@ -74,9 +72,9 @@ const configureCustomerAdapterEventListeners = (
 
   if (customerAdapter.attachPaymentMethod) {
     attachPaymentMethodCallback?.remove();
-    attachPaymentMethodCallback = eventEmitter.addListener(
+    attachPaymentMethodCallback = addListener(
       'onCustomerAdapterAttachPaymentMethodCallback',
-      async ({ paymentMethodId }: { paymentMethodId: string }) => {
+      async ({ paymentMethodId }) => {
         if (customerAdapter.attachPaymentMethod) {
           const paymentMethod =
             await customerAdapter.attachPaymentMethod(paymentMethodId);
@@ -94,9 +92,9 @@ const configureCustomerAdapterEventListeners = (
 
   if (customerAdapter.detachPaymentMethod) {
     detachPaymentMethodCallback?.remove();
-    detachPaymentMethodCallback = eventEmitter.addListener(
+    detachPaymentMethodCallback = addListener(
       'onCustomerAdapterDetachPaymentMethodCallback',
-      async ({ paymentMethodId }: { paymentMethodId: string }) => {
+      async ({ paymentMethodId }) => {
         if (customerAdapter.detachPaymentMethod) {
           const paymentMethod =
             await customerAdapter.detachPaymentMethod(paymentMethodId);
@@ -114,9 +112,9 @@ const configureCustomerAdapterEventListeners = (
 
   if (customerAdapter.setSelectedPaymentOption) {
     setSelectedPaymentOptionCallback?.remove();
-    setSelectedPaymentOptionCallback = eventEmitter.addListener(
+    setSelectedPaymentOptionCallback = addListener(
       'onCustomerAdapterSetSelectedPaymentOptionCallback',
-      async ({ paymentOption }: { paymentOption: string }) => {
+      async ({ paymentOption }) => {
         if (customerAdapter.setSelectedPaymentOption) {
           await customerAdapter.setSelectedPaymentOption(paymentOption);
           await NativeStripeSdk.customerAdapterSetSelectedPaymentOptionCallback();
@@ -131,7 +129,7 @@ const configureCustomerAdapterEventListeners = (
 
   if (customerAdapter.fetchSelectedPaymentOption) {
     fetchSelectedPaymentOptionCallback?.remove();
-    fetchSelectedPaymentOptionCallback = eventEmitter.addListener(
+    fetchSelectedPaymentOptionCallback = addListener(
       'onCustomerAdapterFetchSelectedPaymentOptionCallback',
       async () => {
         if (customerAdapter.fetchSelectedPaymentOption) {
@@ -151,7 +149,7 @@ const configureCustomerAdapterEventListeners = (
 
   if (customerAdapter.setupIntentClientSecretForCustomerAttach) {
     setupIntentClientSecretForCustomerAttachCallback?.remove();
-    setupIntentClientSecretForCustomerAttachCallback = eventEmitter.addListener(
+    setupIntentClientSecretForCustomerAttachCallback = addListener(
       'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback',
       async () => {
         if (customerAdapter.setupIntentClientSecretForCustomerAttach) {

@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
@@ -10,6 +11,8 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerDelegate
+import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerInterface
 import com.reactnativestripesdk.PaymentSheetFragment.Companion.buildCustomerConfiguration
 import com.reactnativestripesdk.PaymentSheetFragment.Companion.buildGooglePayConfig
 import com.reactnativestripesdk.addresssheet.AddressSheetView
@@ -23,13 +26,19 @@ import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
-@ReactModule(name = StripeEmbeddedPaymentElementViewManager.NAME)
-class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPaymentElementView>() {
+@ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
+class EmbeddedPaymentElementViewManager :
+  ViewGroupManager<EmbeddedPaymentElementView>(),
+  EmbeddedPaymentElementViewManagerInterface<EmbeddedPaymentElementView> {
   companion object {
-    const val NAME = "StripeEmbeddedPaymentElementView"
+    const val NAME = "EmbeddedPaymentElementView"
   }
 
+  private val delegate = EmbeddedPaymentElementViewManagerDelegate(this)
+
   override fun getName() = NAME
+
+  override fun getDelegate() = delegate
 
   override fun createViewInstance(ctx: ThemedReactContext): EmbeddedPaymentElementView =
     EmbeddedPaymentElementView(ctx).apply {
@@ -41,11 +50,11 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
   override fun needsCustomLayoutForChildren(): Boolean = true
 
   @ReactProp(name = "configuration")
-  fun setConfiguration(
+  override fun setConfiguration(
     view: EmbeddedPaymentElementView,
-    cfg: ReadableMap,
+    cfg: Dynamic,
   ) {
-    val elementConfig = parseElementConfiguration(cfg, view.context)
+    val elementConfig = parseElementConfiguration(cfg.asMap(), view.context)
     view.latestElementConfig = elementConfig
     // if intentConfig is already set, configure immediately:
     view.latestIntentConfig?.let { intentCfg ->
@@ -58,11 +67,11 @@ class StripeEmbeddedPaymentElementViewManager : ViewGroupManager<EmbeddedPayment
   }
 
   @ReactProp(name = "intentConfiguration")
-  fun setIntentConfiguration(
+  override fun setIntentConfiguration(
     view: EmbeddedPaymentElementView,
-    cfg: ReadableMap,
+    cfg: Dynamic,
   ) {
-    val intentConfig = parseIntentConfiguration(cfg)
+    val intentConfig = parseIntentConfiguration(cfg.asMap())
     view.latestIntentConfig = intentConfig
     view.latestElementConfig?.let { elemCfg ->
       view.configure(elemCfg, intentConfig)

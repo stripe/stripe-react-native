@@ -8,16 +8,16 @@
 import Foundation
 @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 
-@objc(StripeSdk)
-extension StripeSdk {
-  
+@objc(StripeSdkImpl)
+extension StripeSdkImpl {
+
   // MARK: Public API wrappers
-  
-  @objc(createEmbeddedPaymentElement:configuration:resolver:rejecter:)
-  func createEmbeddedPaymentElement(intentConfig: NSDictionary,
-                                    configuration: NSDictionary,
-                                    resolver resolve: @escaping RCTPromiseResolveBlock,
-                                    rejecter reject: @escaping RCTPromiseRejectBlock) {
+
+  @objc(createEmbeddedPaymentElement:configuration:resolve:reject:)
+  public func createEmbeddedPaymentElement(intentConfig: NSDictionary,
+                                           configuration: NSDictionary,
+                                           resolve: @escaping RCTPromiseResolveBlock,
+                                           reject: @escaping RCTPromiseRejectBlock) {
     guard let modeParams = intentConfig["mode"] as? NSDictionary else {
       resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
       return
@@ -32,19 +32,19 @@ extension StripeSdk {
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
       captureMethod: mapCaptureMethod(captureMethodString)
     )
-    
+
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
       resolve(Errors.createError(ErrorType.Failed, "Invalid configuration"))
       return
     }
-    
+
     Task {
       do {
         let embeddedPaymentElement = try await EmbeddedPaymentElement.create(
           intentConfiguration: intentConfig,
           configuration: configuration
         )
-        embeddedPaymentElement.delegate = self
+        embeddedPaymentElement.delegate = embeddedInstanceDelegate
         embeddedPaymentElement.presentingViewController = RCTPresentedViewController()
         self.embeddedInstance = embeddedPaymentElement
 
@@ -52,26 +52,23 @@ extension StripeSdk {
         resolve(nil)
 
         // publish initial state
-        embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
-        embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
+        embeddedInstanceDelegate.embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: embeddedPaymentElement)
+        embeddedInstanceDelegate.embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: embeddedPaymentElement)
       } catch {
         // 1) still resolve the promise so JS hook can finish loading
         resolve(nil)
 
         // 2) emit a loading‐failed event with the error message
         let msg = error.localizedDescription
-        self.sendEvent(
-          withName: "embeddedPaymentElementLoadingFailed",
-          body: ["message": msg]
-        )
+        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
       }
     }
-    
+
   }
-  
-  @objc(confirmEmbeddedPaymentElement:rejecter:)
-  func confirmEmbeddedPaymentElement(resolver resolve: @escaping RCTPromiseResolveBlock,
-                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+
+  @objc(confirmEmbeddedPaymentElement:reject:)
+  public func confirmEmbeddedPaymentElement(resolve: @escaping RCTPromiseResolveBlock,
+                                            reject: @escaping RCTPromiseRejectBlock) {
     embeddedInstance?.presentingViewController = RCTPresentedViewController()
     embeddedInstance?.confirm { result in
       switch result {
@@ -90,12 +87,12 @@ extension StripeSdk {
       }
     }
   }
-  
-  @objc(updateEmbeddedPaymentElement:resolver:rejecter:)
-  func updateEmbeddedPaymentElement(
+
+  @objc(updateEmbeddedPaymentElement:resolve:reject:)
+  public func updateEmbeddedPaymentElement(
     intentConfig: NSDictionary,
-    resolver resolve: @escaping RCTPromiseResolveBlock,
-    rejecter reject: @escaping RCTPromiseRejectBlock
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
   ) {
     guard let modeParams = intentConfig["mode"] as? NSDictionary else {
       resolve(Errors.createError(
@@ -126,10 +123,7 @@ extension StripeSdk {
       case .canceled:
         resolve(["status": "canceled"])
       case .failed(let error):
-        self.sendEvent(
-          withName: "embeddedPaymentElementLoadingFailed",
-          body: ["message": error.localizedDescription]
-        )
+        self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": error.localizedDescription])
         // We don't resolve with an error b/c loading errors are handled via the embeddedPaymentElementLoadingFailed event
         resolve(nil)
       }
@@ -137,45 +131,49 @@ extension StripeSdk {
   }
 
   @objc(clearEmbeddedPaymentOption)
-  func clearEmbeddedPaymentOption() {
+  public func clearEmbeddedPaymentOption() {
     DispatchQueue.main.async {
       self.embeddedInstance?.clearPaymentOption()
     }
   }
-  
+
 }
 
 // MARK: EmbeddedPaymentElementDelegate
 
-extension StripeSdk: EmbeddedPaymentElementDelegate {
+class StripeSdkEmbeddedPaymentElementDelegate: EmbeddedPaymentElementDelegate {
+  weak var sdkImpl: StripeSdkImpl?
+
+  init(sdkImpl: StripeSdkImpl) {
+    self.sdkImpl = sdkImpl
+  }
+
   func embeddedPaymentElementDidUpdateHeight(embeddedPaymentElement: StripePaymentSheet.EmbeddedPaymentElement) {
     let newHeight = embeddedPaymentElement.view.systemLayoutSizeFitting(CGSize(width: embeddedPaymentElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-    
-    self.sendEvent(withName: "embeddedPaymentElementDidUpdateHeight",
-                   body: ["height": newHeight])
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementDidUpdateHeight(["height": newHeight])
   }
-  
+
   func embeddedPaymentElementDidUpdatePaymentOption(embeddedPaymentElement: EmbeddedPaymentElement) {
     let displayDataDict = embeddedPaymentElement.paymentOption?.toDictionary()
-    self.sendEvent(withName: "embeddedPaymentElementDidUpdatePaymentOption", body: ["paymentOption": displayDataDict])
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementDidUpdatePaymentOption(["paymentOption": displayDataDict as Any])
   }
-  
+
   func embeddedPaymentElementWillPresent(embeddedPaymentElement: EmbeddedPaymentElement) {
-    self.sendEvent(withName: "embeddedPaymentElementWillPresent", body: nil)
+    self.sdkImpl?.emitter?.emitEmbeddedPaymentElementWillPresent()
   }
 }
 
 // MARK: Config parsing
 
-extension StripeSdk {
+extension StripeSdkImpl {
   @nonobjc
   internal func buildEmbeddedPaymentElementConfiguration(
     params: NSDictionary
   ) -> (error: NSDictionary?, configuration: EmbeddedPaymentElement.Configuration?) {
     var configuration = EmbeddedPaymentElement.Configuration()
-    
+
     configuration.primaryButtonLabel = params["primaryButtonLabel"] as? String
-    
+
     if let appearanceParams = params["appearance"] as? NSDictionary {
       do {
         configuration.appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearanceParams)
@@ -183,7 +181,7 @@ extension StripeSdk {
         return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
       }
     }
-    
+
     if let applePayParams = params["applePay"] as? NSDictionary {
       do {
         configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
@@ -197,41 +195,41 @@ extension StripeSdk {
         return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
       }
     }
-    
+
     if let linkParams = params["link"] as? NSDictionary {
-      let display = StripeSdk.mapToLinkDisplay(value: linkParams["display"] as? String)
+      let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
       configuration.link = PaymentSheet.LinkConfiguration(display: display)
     }
-    
+
     if let merchantDisplayName = params["merchantDisplayName"] as? String {
       configuration.merchantDisplayName = merchantDisplayName
     }
-    
+
     if let returnURL = params["returnURL"] as? String {
       configuration.returnURL = returnURL
     }
-    
+
     if let allowsDelayedPaymentMethods = params["allowsDelayedPaymentMethods"] as? Bool {
       configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
     }
-    
+
     if let removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String {
       configuration.removeSavedPaymentMethodMessage = removeSavedPaymentMethodMessage
     }
-    
+
     if let billingConfigParams = params["billingDetailsCollectionConfiguration"] as? [String: Any?] {
-      configuration.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
-      configuration.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
-      configuration.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
-      configuration.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+      configuration.billingDetailsCollectionConfiguration.name = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+      configuration.billingDetailsCollectionConfiguration.phone = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+      configuration.billingDetailsCollectionConfiguration.email = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+      configuration.billingDetailsCollectionConfiguration.address = StripeSdkImpl.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
       configuration.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
     }
-    
+
     if let defaultBillingDetails = params["defaultBillingDetails"] as? [String: Any?] {
       configuration.defaultBillingDetails.name = defaultBillingDetails["name"] as? String
       configuration.defaultBillingDetails.email = defaultBillingDetails["email"] as? String
       configuration.defaultBillingDetails.phone = defaultBillingDetails["phone"] as? String
-      
+
       if let address = defaultBillingDetails["address"] as? [String: String] {
         configuration.defaultBillingDetails.address = .init(city: address["city"],
                                                             country: address["country"],
@@ -240,21 +238,21 @@ extension StripeSdk {
                                                             postalCode: address["postalCode"],
                                                             state: address["state"])
       }
-      
+
     }
-    
+
     if let defaultShippingDetails = params["defaultShippingDetails"] as? NSDictionary {
       configuration.shippingDetails = {
         return AddressSheetUtils.buildAddressDetails(params: defaultShippingDetails)
       }
     }
-    
+
     if #available(iOS 13.0, *) {
       if let style = params["style"] as? String {
         configuration.style = Mappers.mapToUserInterfaceStyle(style)
       }
     }
-    
+
     if let customerId = params["customerId"] as? String {
       let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
       let customerClientSecret = params["customerSessionClientSecret"] as? String
@@ -269,21 +267,21 @@ extension StripeSdk {
         configuration.customer = .init(id: customerId, customerSessionClientSecret: customerClientSecret)
       }
     }
-    
+
     if let preferredNetworksAsInts = params["preferredNetworks"] as? Array<Int> {
       configuration.preferredNetworks = preferredNetworksAsInts.map(Mappers.intToCardBrand).compactMap { $0 }
     }
-    
+
     if let allowsRemovalOfLastSavedPaymentMethod = params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool {
       configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
     }
-    
+
     if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
       configuration.paymentMethodOrder = paymentMethodOrder
     }
-    
+
     configuration.cardBrandAcceptance = computeCardBrandAcceptance(params: params)
-    
+
     if let formSheetActionParams = params["formSheetAction"] as? NSDictionary,
        let actionType = formSheetActionParams["type"] as? String {
       if actionType == "confirm" {
@@ -301,15 +299,15 @@ extension StripeSdk {
               "error": error.localizedDescription
             ]
           }
-          
+
           // Send the result back to JS via an event.
-          self.sendEvent(withName: "embeddedPaymentElementFormSheetConfirmComplete", body: resultDict)
+          self.emitter?.emitEmbeddedPaymentElementFormSheetConfirmComplete(resultDict)
         }
       } else if actionType == "continue" {
         configuration.formSheetAction = .continue
       }
     }
-    
+
     if let rowSelectionBehaviorParams = params["rowSelectionBehavior"] as? NSDictionary,
        let behaviorType = rowSelectionBehaviorParams["type"] as? String {
       if behaviorType == "default" {
@@ -318,12 +316,12 @@ extension StripeSdk {
         configuration.rowSelectionBehavior = .immediateAction { [weak self] in
           // Send an event back to JS to notify that a row has been selected.
           // Replace the event name and body details as needed.
-          self?.sendEvent(withName: "embeddedPaymentElementRowSelectionImmediateAction", body: [:])
+          self?.emitter?.emitEmbeddedPaymentElementRowSelectionImmediateAction()
         }
       }
     }
-    
+
     return (nil, configuration)
   }
-  
+
 }
