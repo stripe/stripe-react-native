@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) @_spi(STP) @_spi(UpdatePaymentMethodBeta) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 class CustomerSheetUtils {
     internal class func buildCustomerSheetConfiguration(
@@ -21,7 +21,6 @@ class CustomerSheetUtils {
         defaultBillingDetails: NSDictionary?,
         preferredNetworks: Array<Int>?,
         allowsRemovalOfLastSavedPaymentMethod: Bool?,
-        updatePaymentMethodEnabled: Bool?,
         cardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
@@ -38,10 +37,10 @@ class CustomerSheetUtils {
             config.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
         }
         if let billingConfigParams = billingDetailsCollectionConfiguration {
-            config.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
-            config.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
-            config.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
-            config.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+            config.billingDetailsCollectionConfiguration.name = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+            config.billingDetailsCollectionConfiguration.phone = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+            config.billingDetailsCollectionConfiguration.email = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+            config.billingDetailsCollectionConfiguration.address = StripeSdkImpl.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
             config.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
         }
         if let defaultBillingDetails = defaultBillingDetails {
@@ -60,19 +59,16 @@ class CustomerSheetUtils {
         if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
             config.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
-        if let updatePaymentMethodEnabled = updatePaymentMethodEnabled {
-          config.updatePaymentMethodEnabled = updatePaymentMethodEnabled
-        }
         config.cardBrandAcceptance = cardBrandAcceptance
         return config
     }
-
+    
     internal class func buildStripeCustomerAdapter(
         customerId: String,
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
         customerAdapter: NSDictionary,
-        stripeSdk: StripeSdk
+        stripeSdk: StripeSdkImpl
     ) -> StripeCustomerAdapter {
         if (customerAdapter.count > 0) {
             return buildCustomerAdapterOverride(
@@ -83,7 +79,7 @@ class CustomerSheetUtils {
                 stripeSdk: stripeSdk
             )
         }
-
+        
         if let setupIntentClientSecret = setupIntentClientSecret {
             return StripeCustomerAdapter(
                 customerEphemeralKeyProvider: {
@@ -101,13 +97,13 @@ class CustomerSheetUtils {
             }
         )
     }
-
+    
     internal class func buildCustomerAdapterOverride(
         customerAdapter: NSDictionary,
         customerId: String,
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
-        stripeSdk: StripeSdk
+        stripeSdk: StripeSdkImpl
     ) -> StripeCustomerAdapter {
         return ReactNativeCustomerAdapter(
             fetchPaymentMethods: customerAdapter["fetchPaymentMethods"] as? Bool ?? false,
@@ -157,7 +153,7 @@ class CustomerSheetUtils {
         }
     }
 
-
+    
     internal class func buildPaymentOptionResult(label: String, imageData: String?, paymentMethod: STPPaymentMethod?) -> NSMutableDictionary {
         let result: NSMutableDictionary = [:]
         let paymentOption: NSMutableDictionary = [:]
@@ -171,7 +167,7 @@ class CustomerSheetUtils {
         }
         return result
     }
-
+    
     internal class func interpretResult(result: CustomerSheet.CustomerSheetResult) -> NSDictionary {
         var payload: NSMutableDictionary = [:]
         switch result {

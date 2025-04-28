@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import {
-  AddressDetails,
-  useStripe,
-  BillingDetails,
   Address,
-  PaymentSheetError,
+  AddressDetails,
   AddressSheet,
   AddressSheetError,
+  BillingDetails,
   CardBrand,
   PaymentMethodLayout,
+  PaymentSheetError,
+  useStripe,
 } from '@stripe/stripe-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import Button from '../components/Button';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import appearance from './PaymentSheetAppearance';
-import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { getClientSecretParams } from '../helpers';
+import appearance from './PaymentSheetAppearance';
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
@@ -132,7 +132,7 @@ export default function PaymentsUICompleteScreen() {
           merchantCountryCode: 'US',
           testEnv: true,
         },
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         allowsDelayedPaymentMethods: true,
@@ -141,7 +141,6 @@ export default function PaymentsUICompleteScreen() {
         paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
-        updatePaymentMethodEnabled: true,
         ...clientSecretParams,
       });
       if (!error) {

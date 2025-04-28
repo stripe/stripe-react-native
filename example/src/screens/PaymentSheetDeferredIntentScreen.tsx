@@ -114,7 +114,7 @@ export default function PaymentSheetDeferredIntentScreen() {
         merchantDisplayName: 'Example Inc.',
         applePay: { merchantCountryCode: 'US' },
         style: 'automatic',
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         allowsDelayedPaymentMethods: true,

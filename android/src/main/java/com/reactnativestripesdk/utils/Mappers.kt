@@ -199,6 +199,27 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
+internal fun mapFromPaymentSheetBillingDetails(billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?): WritableMap {
+  val details = Arguments.createMap()
+  details.putString("name", billing?.name)
+  details.putString("email", billing?.email)
+  details.putString("phone", billing?.phone)
+
+  // map the nested address
+  val addrMap = Arguments.createMap()
+  billing?.address?.let { a ->
+    addrMap.putString("city", a.city)
+    addrMap.putString("country", a.country)
+    addrMap.putString("line1", a.line1)
+    addrMap.putString("line2", a.line2)
+    addrMap.putString("postalCode", a.postalCode)
+    addrMap.putString("state", a.state)
+  }
+  details.putMap("address", addrMap)
+
+  return details
+}
+
 internal fun mapTokenType(type: Token.Type): String =
   when (type) {
     Token.Type.Account -> "Account"

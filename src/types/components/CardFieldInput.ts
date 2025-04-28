@@ -55,14 +55,13 @@ export type OnFocusChangeEvent = NativeSyntheticEvent<{
   focusedField: FieldName | null;
 }>;
 
-export type OnCardChangeEvent = NativeSyntheticEvent<Details>;
+export type OnCardChangeEvent = NativeSyntheticEvent<{ card: Details }>;
 
 /**
  * @ignore
  */
 export interface NativeProps {
   style?: StyleProp<ViewStyle>;
-  value?: Partial<Details>;
   postalCodeEnabled?: boolean;
   autofocus?: boolean;
   countryCode: string | null;

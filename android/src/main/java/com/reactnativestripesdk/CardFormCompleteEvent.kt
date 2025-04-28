@@ -10,29 +10,30 @@ internal class CardFormCompleteEvent(
   private val cardDetails: MutableMap<String, Any>?,
   private val complete: Boolean,
   private val dangerouslyGetFullCardDetails: Boolean,
-) : Event<CardChangedEvent>(surfaceId, viewTag) {
+) : Event<CardChangeEvent>(surfaceId, viewTag) {
   override fun getEventName() = EVENT_NAME
 
   override fun getEventData(): WritableMap? {
-    val eventData = Arguments.createMap()
+    val cardData = Arguments.createMap()
 
-    if (cardDetails == null) {
-      return eventData
+    if (cardDetails != null) {
+      cardData.putString("brand", cardDetails["brand"]?.toString())
+      cardData.putString("last4", cardDetails["last4"]?.toString())
+      cardData.putString("country", cardDetails["country"]?.toString())
+      cardData.putInt("expiryMonth", cardDetails["expiryMonth"] as Int)
+      cardData.putInt("expiryYear", cardDetails["expiryYear"] as Int)
+      cardData.putBoolean("complete", complete)
+      cardData.putString("postalCode", cardDetails["postalCode"]?.toString())
+
+      if (dangerouslyGetFullCardDetails) {
+        cardData.putString("number", cardDetails["number"]?.toString()?.replace(" ", ""))
+        cardData.putString("cvc", cardDetails["cvc"]?.toString())
+      }
     }
-    eventData.putString("brand", cardDetails["brand"]?.toString())
-    eventData.putString("last4", cardDetails["last4"]?.toString())
-    eventData.putString("country", cardDetails["country"]?.toString())
-    eventData.putInt("expiryMonth", cardDetails["expiryMonth"] as Int)
-    eventData.putInt("expiryYear", cardDetails["expiryYear"] as Int)
-    eventData.putBoolean("complete", complete)
-    eventData.putString("postalCode", cardDetails["postalCode"]?.toString())
 
-    if (dangerouslyGetFullCardDetails) {
-      eventData.putString("number", cardDetails["number"]?.toString()?.replace(" ", ""))
-      eventData.putString("cvc", cardDetails["cvc"]?.toString())
+    return Arguments.createMap().apply {
+      putMap("card", cardData)
     }
-
-    return eventData
   }
 
   companion object {

@@ -148,11 +148,13 @@ class PaymentSheetFragment : StripeFragment() {
                 ),
               )
             }
+
             is PaymentSheetResult.Failed -> {
               resolvePaymentResult(
                 createError(PaymentSheetErrorType.Failed.toString(), paymentResult.error),
               )
             }
+
             is PaymentSheetResult.Completed -> {
               resolvePaymentResult(WritableNativeMap())
               // Remove the fragment now, we can be sure it won't be needed again if an intent is
@@ -168,22 +170,13 @@ class PaymentSheetFragment : StripeFragment() {
     val createIntentCallback =
       CreateIntentCallback { paymentMethod, shouldSavePaymentMethod ->
         val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-        if (stripeSdkModule == null || stripeSdkModule.eventListenerCount == 0) {
-          return@CreateIntentCallback CreateIntentResult.Failure(
-            cause =
-              Exception(
-                "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-              ),
-            displayMessage = "An unexpected error occurred",
-          )
-        }
         val params =
           Arguments.createMap().apply {
             putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
             putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
           }
 
-        stripeSdkModule.sendEvent(context, "onConfirmHandlerCallback", params)
+        stripeSdkModule?.emitOnConfirmHandlerCallback(params)
 
         val resultFromJavascript = paymentSheetIntentCreationCallback.await()
         // reset the completable
@@ -337,7 +330,8 @@ class PaymentSheetFragment : StripeFragment() {
         override fun onActivitySaveInstanceState(
           activity: Activity,
           outState: Bundle,
-        ) {}
+        ) {
+        }
 
         override fun onActivityDestroyed(activity: Activity) {
           paymentSheetActivity = null
@@ -506,7 +500,7 @@ class PaymentSheetFragment : StripeFragment() {
       }
 
     @Throws(PaymentSheetException::class)
-    private fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
+    internal fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
       if (intentConfigurationParams == null) {
         return null
       }
@@ -553,7 +547,7 @@ class PaymentSheetFragment : StripeFragment() {
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
-    private fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
+    internal fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
       val customerId = bundle?.getString("customerId").orEmpty()
       val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
       val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()
@@ -635,6 +629,7 @@ fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollect
   when (str) {
     "automatic" ->
       PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
+
     "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Never
     "full" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic

@@ -5,8 +5,10 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 
 fun View.showSoftKeyboard() {
   post {
@@ -36,3 +38,5 @@ fun ReadableMap.getBooleanOr(
   key: String,
   default: Boolean,
 ): Boolean = if (this.hasKey(key)) this.getBoolean(key) else default
+
+fun Dynamic.asMapOrNull(): ReadableMap? = if (this.type == ReadableType.Map) this.asMap() else null

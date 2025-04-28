@@ -9,21 +9,21 @@ import Foundation
 import Stripe
 
 @objc(AddToWalletButtonView)
-class AddToWalletButtonView: UIView {
+public class AddToWalletButtonView: UIView {
     var pushProvisioningContext: STPPushProvisioningContext? = nil
     var addToWalletButton: PKAddPassButton? = nil
 
-    @objc var testEnv: Bool = false
-    @objc var iOSButtonStyle: NSString?
-    @objc var cardDetails: NSDictionary?
-    @objc var ephemeralKey: NSDictionary?
-    @objc var onCompleteAction: RCTDirectEventBlock?
+    @objc public var testEnv: Bool = false
+    @objc public var iOSButtonStyle: NSString?
+    @objc public var cardDetails: NSDictionary?
+    @objc public var ephemeralKey: NSDictionary?
+    @objc public var onCompleteAction: RCTDirectEventBlock?
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    override func didSetProps(_ changedProps: [String]!) {
+  
+    @objc public func didSetProps() {
         if let addToWalletButton = addToWalletButton {
             addToWalletButton.removeFromSuperview()
         }
@@ -36,6 +36,12 @@ class AddToWalletButtonView: UIView {
             addToWalletButton.addTarget(self, action: #selector(beginPushProvisioning), for: .touchUpInside)
             self.addSubview(addToWalletButton)
         }
+    }
+
+    public override func didSetProps(_ changedProps: [String]!) {
+        // This is only called on old arch, for new arch didSetProps() will be called
+        // by the view component.
+        self.didSetProps()
     }
 
     @objc func beginPushProvisioning() {
@@ -87,11 +93,11 @@ class AddToWalletButtonView: UIView {
         vc.present(controller!, animated: true, completion: nil)
     }
     
-    override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
     }
     
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         if let addToWalletButton = self.addToWalletButton {
             addToWalletButton.frame = self.bounds
         }
@@ -100,13 +106,13 @@ class AddToWalletButtonView: UIView {
 
 
 extension AddToWalletButtonView: PKAddPaymentPassViewControllerDelegate {
-    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, generateRequestWithCertificateChain certificates: [Data], nonce: Data, nonceSignature: Data, completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
+    public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, generateRequestWithCertificateChain certificates: [Data], nonce: Data, nonceSignature: Data, completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
         self.pushProvisioningContext = STPPushProvisioningContext(keyProvider: self)
 
         self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
     }
 
-    func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
+    public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
         if let error = error as NSError? {
             onCompleteAction!(
                 Errors.createError(
@@ -125,7 +131,7 @@ extension AddToWalletButtonView: PKAddPaymentPassViewControllerDelegate {
 
 
 extension AddToWalletButtonView: STPIssuingCardEphemeralKeyProvider {
-    func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
+    public func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
         if let ephemeralKey = self.ephemeralKey as? [AnyHashable : Any] {
             completion(ephemeralKey, nil)
         } else {

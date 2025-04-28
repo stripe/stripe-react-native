@@ -8,8 +8,8 @@
 import Foundation
 import Stripe
 
-extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayContextDelegate {
-    func paymentAuthorizationViewController(
+extension StripeSdkImpl : PKPaymentAuthorizationViewControllerDelegate, STPApplePayContextDelegate {
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didAuthorizePayment payment: PKPayment,
         handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
@@ -51,7 +51,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func paymentAuthorizationViewControllerDidFinish(
+    public func paymentAuthorizationViewControllerDidFinish(
         _ controller: PKPaymentAuthorizationViewController
     ) {
         if (applePaymentMethodFlowCanBeCanceled) {
@@ -72,7 +72,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
     }
     
     @available(iOS 15.0, *)
-    func paymentAuthorizationViewController(
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didChangeCouponCode couponCode: String,
         handler completion: @escaping (PKPaymentRequestCouponCodeUpdate) -> Void
@@ -91,7 +91,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func paymentAuthorizationViewController(
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didSelect shippingMethod: PKShippingMethod,
         handler completion: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
@@ -106,7 +106,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func paymentAuthorizationViewController(
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didSelectShippingContact contact: PKContact,
         handler completion: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
@@ -125,7 +125,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func applePayContext(
+    public func applePayContext(
         _ context: STPApplePayContext,
         didSelect shippingMethod: PKShippingMethod,
         handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
@@ -140,7 +140,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func applePayContext(
+    public func applePayContext(
         _ context: STPApplePayContext,
         didSelectShippingContact contact: PKContact,
         handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
@@ -159,7 +159,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-    func applePayContext(
+    public func applePayContext(
         _ context: STPApplePayContext,
         didCreatePaymentMethod paymentMethod: STPPaymentMethod,
         paymentInformation: PKPayment,
@@ -175,20 +175,20 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
     }
     
-   func applePayContext(
-       _ context: STPApplePayContext,
-       willCompleteWithResult authorizationResult: PKPaymentAuthorizationResult,
-       handler: @escaping (PKPaymentAuthorizationResult) -> Void
-   ) {
-       if let callback = self.platformPayOrderTrackingJSCallback {
-           self.orderTrackingHandler = (authorizationResult, handler)
-           callback(nil)
-       } else {
-           handler(authorizationResult)
-       }
-   }
+    public func applePayContext(
+        _ context: STPApplePayContext,
+        willCompleteWithResult authorizationResult: PKPaymentAuthorizationResult,
+        handler: @escaping (PKPaymentAuthorizationResult) -> Void
+    ) {
+        if let callback = self.platformPayOrderTrackingJSCallback {
+            self.orderTrackingHandler = (authorizationResult, handler)
+            callback(nil)
+        } else {
+            handler(authorizationResult)
+        }
+    }
     
-    func applePayContext(
+    public func applePayContext(
         _ context: STPApplePayContext,
         didCompleteWith status: STPPaymentStatus,
         error: Error?

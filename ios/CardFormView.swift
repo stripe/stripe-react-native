@@ -2,22 +2,23 @@ import Foundation
 import UIKit
 import Stripe
 
-class CardFormView: UIView, STPCardFormViewDelegate {
+@objc(CardFormView)
+public class CardFormView: UIView, STPCardFormViewDelegate {
     public var cardForm: STPCardFormView?
     
     public var cardParams: STPPaymentMethodCardParams? = nil
     
-    @objc var dangerouslyGetFullCardDetails: Bool = false
-    @objc var onFormComplete: RCTDirectEventBlock?
-    @objc var autofocus: Bool = false
-    @objc var disabled: Bool = false
-    @objc var preferredNetworks: Array<Int>? {
+    @objc public var dangerouslyGetFullCardDetails: Bool = false
+    @objc public var onFormComplete: RCTDirectEventBlock?
+    @objc public var autofocus: Bool = false
+    @objc public var disabled: Bool = false
+    @objc public var preferredNetworks: Array<Int>? {
         didSet {
             setPreferredNetworks()
         }
     }
-    
-    override func didSetProps(_ changedProps: [String]!) {
+  
+    @objc public func didSetProps() {
         if let cardForm = self.cardForm {
             cardForm.removeFromSuperview()
         }
@@ -37,13 +38,19 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         setPreferredNetworks()
     }
     
-    @objc var cardStyle: NSDictionary = NSDictionary() {
+    override public func didSetProps(_ changedProps: [String]!) {
+        // This is only called on old arch, for new arch didSetProps() will be called
+        // by the view component.
+        self.didSetProps()
+    }
+    
+    @objc public var cardStyle: NSDictionary = NSDictionary() {
         didSet {
             setStyles()
         }
     }
     
-    func cardFormView(_ form: STPCardFormView, didChangeToStateComplete complete: Bool) {
+    public func cardFormView(_ form: STPCardFormView, didChangeToStateComplete complete: Bool) {
         if onFormComplete != nil {
             let brand = STPCardValidator.brand(forNumber: cardForm?.cardParams?.card?.number ?? "")
             var cardData: [String: Any?] = [
@@ -65,15 +72,15 @@ class CardFormView: UIView, STPCardFormViewDelegate {
             } else {
                 self.cardParams = nil
             }
-            onFormComplete!(cardData as [AnyHashable : Any])
+            onFormComplete!(["card": cardData as [AnyHashable : Any]])
         }
     }
     
-    func focus() {
+    @objc public func focus() {
         let _ = cardForm?.becomeFirstResponder()
     }
     
-    func blur() {
+    @objc public func blur() {
         let _ = cardForm?.resignFirstResponder()
     }
     
@@ -112,11 +119,13 @@ class CardFormView: UIView, STPCardFormViewDelegate {
         }
     }
     
-    override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
+
+        StripeSdkImpl.shared.cardFormView = self
     }
-    
-    override func layoutSubviews() {
+
+    override public func layoutSubviews() {
         cardForm?.frame = self.bounds
     }
     

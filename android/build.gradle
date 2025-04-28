@@ -1,6 +1,10 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : project.properties['StripeSdk_kotlinVersion']
+  def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
+
+  def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
 
   repositories {
     google()
@@ -12,18 +16,17 @@ buildscript {
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
+    // only use this old compose-compiler plugin when Kotlin >= 2.0
+    if (kotlinMajor >= 2) {
+      classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
+    }
   }
 }
 
 if (project == rootProject) {
-    apply from: 'spotless.gradle'
-    return
+  apply from: 'spotless.gradle'
+  return
 }
-
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-parcelize'
-//apply plugin: 'kotlin-android-extensions'
 
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['StripeSdk_' + name]
@@ -33,8 +36,59 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeSdk_' + name]).toInteger()
 }
 
+def isNewArchitectureEnabled() {
+  // To opt-in for the New Architecture, you can either:
+  // - Set `newArchEnabled` to true inside the `gradle.properties` file
+  // - Invoke gradle with `-newArchEnabled=true`
+  // - Set an environment variable `ORG_GRADLE_PROJECT_newArchEnabled=true`
+  return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+}
+
+def reactNativeArchitectures() {
+  def value = project.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : [
+    "armeabi-v7a",
+    "x86",
+    "x86_64",
+    "arm64-v8a"
+  ]
+}
+
+def kotlin_version = rootProject.ext.has('kotlinVersion')
+    ? rootProject.ext.get('kotlinVersion')
+    : project.properties['StripeSdk_kotlinVersion']
+def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-parcelize'
+// Only apply the compose plugin if we have the old compose-compiler on the classpath
+if (kotlinMajor >= 2) {
+  apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+}
+//apply plugin: 'kotlin-android-extensions'
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: 'com.facebook.react'
+}
+
 android {
+  namespace "com.reactnativestripesdk"
+  buildFeatures {
+    buildConfig true
+  }
+
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+
+  // Used to override the NDK path/version on internal CI or by allowing
+  // users to customize the NDK path/version from their root project (e.g. for M1 support)
+  if (rootProject.hasProperty("ndkPath")) {
+    ndkPath rootProject.ext.ndkPath
+  }
+  if (rootProject.hasProperty("ndkVersion")) {
+    ndkVersion rootProject.ext.ndkVersion
+  }
+
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault('minSdkVersion')
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
@@ -43,6 +97,11 @@ android {
     vectorDrawables.useSupportLibrary = true
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     consumerProguardFiles 'proguard-rules.txt'
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+    ndk {
+      abiFilters(*reactNativeArchitectures())
+    }
   }
 
   buildTypes {
@@ -50,9 +109,11 @@ android {
       minifyEnabled false
     }
   }
+
   lintOptions {
     disable 'GradleCompatible'
   }
+
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
@@ -60,6 +121,15 @@ android {
 
   buildFeatures {
     viewBinding true
+    compose true
+  }
+
+  sourceSets.main {
+    java {
+      if (!isNewArchitectureEnabled()) {
+        srcDirs += ["src/oldarch/java"]
+      }
+    }
   }
 }
 
@@ -75,8 +145,8 @@ repositories {
     defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
   } else {
     defaultDir = new File(
-            projectDir,
-            '/../../../node_modules/react-native/android'
+      projectDir,
+      '/../../../node_modules/react-native/android'
     )
   }
 
@@ -96,13 +166,13 @@ repositories {
       parentDir = parentDir.parentFile
 
       def androidSourcesDir = new File(
-              parentDir,
-              'node_modules/react-native'
+        parentDir,
+        'node_modules/react-native'
       )
 
       def androidPrebuiltBinaryDir = new File(
-              parentDir,
-              'node_modules/react-native/android'
+        parentDir,
+        'node_modules/react-native/android'
       )
 
       if (androidPrebuiltBinaryDir.exists()) {
@@ -127,13 +197,12 @@ repositories {
 
   if (!found) {
     throw new GradleException(
-            "${project.name}: unable to locate React Native android sources. " +
-                    "Ensure you have you installed React Native as a dependency in your project and try again."
+      "${project.name}: unable to locate React Native android sources. " +
+        "Ensure you have you installed React Native as a dependency in your project and try again."
     )
   }
 }
 
-def kotlin_version = getExtOrDefault('kotlinVersion')
 def stripe_version = getExtOrDefault('stripeVersion')
 
 dependencies {
@@ -145,7 +214,7 @@ dependencies {
   implementation("com.stripe:stripe-android:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'
   }
-  implementation ("com.stripe:financial-connections:$stripe_version") {
+  implementation("com.stripe:financial-connections:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'
   }
   implementation('androidx.emoji2:emoji2:1.3.0').force // Avoid using 1.4.0 since that requires targetSdkVersion 34
@@ -164,4 +233,6 @@ dependencies {
   androidTestImplementation "androidx.test:core:1.4.0"
   androidTestImplementation 'androidx.test:runner:1.1.0'
   androidTestImplementation "org.mockito:mockito-core:3.+"
+
+  implementation "androidx.compose.ui:ui:1.7.8"
 }

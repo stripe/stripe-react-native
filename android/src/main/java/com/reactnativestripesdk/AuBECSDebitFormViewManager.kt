@@ -1,14 +1,23 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.AuBECSDebitFormManagerDelegate
+import com.facebook.react.viewmanagers.AuBECSDebitFormManagerInterface
+import com.reactnativestripesdk.utils.asMapOrNull
 
 @ReactModule(name = AuBECSDebitFormViewManager.REACT_CLASS)
-class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
+class AuBECSDebitFormViewManager :
+  SimpleViewManager<AuBECSDebitFormView>(),
+  AuBECSDebitFormManagerInterface<AuBECSDebitFormView> {
+  private val delegate = AuBECSDebitFormManagerDelegate(this)
+
   override fun getName() = REACT_CLASS
+
+  override fun getDelegate() = delegate
 
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
     mutableMapOf(
@@ -17,7 +26,7 @@ class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
     )
 
   @ReactProp(name = "companyName")
-  fun setCompanyName(
+  override fun setCompanyName(
     view: AuBECSDebitFormView,
     name: String?,
   ) {
@@ -25,11 +34,11 @@ class AuBECSDebitFormViewManager : SimpleViewManager<AuBECSDebitFormView>() {
   }
 
   @ReactProp(name = "formStyle")
-  fun setFormStyle(
+  override fun setFormStyle(
     view: AuBECSDebitFormView,
-    style: ReadableMap,
+    style: Dynamic,
   ) {
-    view.setFormStyle(style)
+    view.setFormStyle(style.asMapOrNull())
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): AuBECSDebitFormView = AuBECSDebitFormView(reactContext)

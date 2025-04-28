@@ -159,11 +159,11 @@ class AddToWalletButtonView(
     requestManager.clear(this)
   }
 
-  fun setSourceMap(map: ReadableMap) {
+  fun setSourceMap(map: ReadableMap?) {
     sourceMap = map
   }
 
-  fun setCardDetails(detailsMap: ReadableMap) {
+  fun setCardDetails(detailsMap: ReadableMap?) {
     cardDetails = detailsMap
   }
 
@@ -176,6 +176,8 @@ class AddToWalletButtonView(
   }
 
   fun dispatchEvent(error: WritableMap?) {
-    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(AddToWalletCompleteEvent(context.surfaceId, id, error))
+    UIManagerHelper
+      .getEventDispatcherForReactTag(context, id)
+      ?.dispatchEvent(AddToWalletCompleteEvent(context.surfaceId, id, error))
   }
 }

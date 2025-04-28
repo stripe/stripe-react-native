@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import NativeStripeSdk from '../NativeStripeSdk';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
