@@ -300,6 +300,7 @@ export function useEmbeddedPaymentElement(
 ): UseEmbeddedPaymentElementResult {
   const isAndroid = Platform.OS === 'android';
   const elementRef = useRef<EmbeddedPaymentElement | null>(null);
+  const [element, setElement] = useState<EmbeddedPaymentElement | null>(null);
   const [paymentOption, setPaymentOption] =
     useState<PaymentOptionDisplayData | null>(null);
   const [height, setHeight] = useState<number | undefined>();
@@ -327,13 +328,15 @@ export function useEmbeddedPaymentElement(
       );
       if (!active) return;
       elementRef.current = el;
+      setElement(el);
     })();
     return () => {
       active = false;
       elementRef.current?.clearPaymentOption();
       elementRef.current = null;
+      setElement(null);
     };
-  }, [intentConfig, configuration, isAndroid]);
+  }, [intentConfig, configuration]);
 
   useEffect(() => {
     const sub = addListener(
@@ -371,7 +374,7 @@ export function useEmbeddedPaymentElement(
 
   // Render the embedded view
   const embeddedPaymentElementView = useMemo(() => {
-    if (configuration && intentConfig) {
+    if (isAndroid && configuration && intentConfig) {
       return (
         <NativeEmbeddedPaymentElement
           ref={viewRef}
@@ -381,8 +384,16 @@ export function useEmbeddedPaymentElement(
         />
       );
     }
-    return null;
-  }, [configuration, height, intentConfig]);
+    if (!element) return null;
+    return (
+      <NativeEmbeddedPaymentElement
+        ref={viewRef}
+        style={{ width: '100%', height }}
+        configuration={configuration}
+        intentConfiguration={intentConfig}
+      />
+    );
+  }, [configuration, element, height, intentConfig, isAndroid]);
 
   // Other APIs
   const confirm = useCallback((): Promise<EmbeddedPaymentElementResult> => {
