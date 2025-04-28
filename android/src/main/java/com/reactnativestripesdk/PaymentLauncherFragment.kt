@@ -208,17 +208,15 @@ class PaymentLauncherFragment : StripeFragment() {
     PaymentLauncher.create(this, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
-          if (paymentIntentClientSecret != null) {
-            retrievePaymentIntent(paymentIntentClientSecret!!, stripeAccountId)
-          } else if (handleNextActionPaymentIntentClientSecret != null) {
-            retrievePaymentIntent(handleNextActionPaymentIntentClientSecret!!, stripeAccountId)
-          } else if (setupIntentClientSecret != null) {
-            retrieveSetupIntent(setupIntentClientSecret!!, stripeAccountId)
-          } else if (handleNextActionSetupIntentClientSecret != null) {
-            retrieveSetupIntent(handleNextActionSetupIntentClientSecret!!, stripeAccountId)
-          } else {
-            throw Exception("Failed to create Payment Launcher. No client secret provided.")
-          }
+          paymentIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: handleNextActionPaymentIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: setupIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: handleNextActionSetupIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: throw Exception("Failed to create Payment Launcher. No client secret provided.")
         }
         is PaymentResult.Canceled -> {
           promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
