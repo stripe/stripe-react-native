@@ -209,13 +209,13 @@ class PaymentLauncherFragment : StripeFragment() {
       when (paymentResult) {
         is PaymentResult.Completed -> {
           paymentIntentClientSecret?.let {
-            retrievePaymentIntent(it, stripeAccountId)
+            retrieveSetupIntent(it, stripeAccountId)
           } ?: handleNextActionPaymentIntentClientSecret?.let {
-            retrievePaymentIntent(it, stripeAccountId)
+            retrieveSetupIntent(it, stripeAccountId)
           } ?: setupIntentClientSecret?.let {
-            retrievePaymentIntent(it, stripeAccountId)
+            retrieveSetupIntent(it, stripeAccountId)
           } ?: handleNextActionSetupIntentClientSecret?.let {
-            retrievePaymentIntent(it, stripeAccountId)
+            retrieveSetupIntent(it, stripeAccountId)
           } ?: throw Exception("Failed to create Payment Launcher. No client secret provided.")
         }
         is PaymentResult.Canceled -> {
