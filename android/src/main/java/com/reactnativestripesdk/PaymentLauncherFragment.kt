@@ -209,9 +209,9 @@ class PaymentLauncherFragment : StripeFragment() {
       when (paymentResult) {
         is PaymentResult.Completed -> {
           paymentIntentClientSecret?.let {
-            retrieveSetupIntent(it, stripeAccountId)
+            retrievePaymentIntent(it, stripeAccountId)
           } ?: handleNextActionPaymentIntentClientSecret?.let {
-            retrieveSetupIntent(it, stripeAccountId)
+            retrievePaymentIntent(it, stripeAccountId)
           } ?: setupIntentClientSecret?.let {
             retrieveSetupIntent(it, stripeAccountId)
           } ?: handleNextActionSetupIntentClientSecret?.let {
