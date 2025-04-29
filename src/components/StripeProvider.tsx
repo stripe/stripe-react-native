@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 
-import NativeStripeSdk from '../NativeStripeSdk';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
+import { AppRegistry, Platform } from 'react-native';
 
 const EXPO_PARTNER_ID = 'pp_partner_JBN7LkABco2yUu';
 
@@ -27,6 +28,22 @@ const appInfo: AppInfo = {
 };
 
 export const initStripe = async (params: InitStripeParams): Promise<void> => {
+  // On Android when the activity is paused, JS timers are paused,
+  // which causes network requests to hang indefinitely on new arch.
+  // To work around this, we register a headless task that will keep
+  // the JS runtime running while the Stripe UI is opened.
+  // This task is started and stopped by the native module.
+  if (Platform.OS === 'android') {
+    function stripeHeadlessTask() {
+      return new Promise<void>(() => {});
+    }
+
+    AppRegistry.registerHeadlessTask(
+      'StripeKeepJsAwakeTask',
+      () => stripeHeadlessTask
+    );
+  }
+
   const extendedParams: InitialiseParams = { ...params, appInfo };
   NativeStripeSdk.initialise(extendedParams);
 };

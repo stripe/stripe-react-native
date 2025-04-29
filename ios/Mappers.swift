@@ -1050,4 +1050,27 @@ class Mappers {
             return nil
         }
     }
+
+    class func financialConnectionsEventToMap(_ event: FinancialConnectionsEvent) -> [String: Any] {
+      var metadata: [String: Any] = [:]
+
+      if let manualEntry = event.metadata.manualEntry {
+        metadata["manualEntry"] = manualEntry
+      }
+
+      if let institutionName = event.metadata.institutionName {
+        metadata["institutionName"] = institutionName
+      }
+
+      if let errorCode = event.metadata.errorCode {
+        metadata["errorCode"] = errorCode.rawValue
+      }
+
+      let mappedEvent: [String: Any] = [
+        "name": event.name.rawValue,
+        "metadata": metadata
+      ]
+
+      return mappedEvent
+    }
 }

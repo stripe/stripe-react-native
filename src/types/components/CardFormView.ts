@@ -49,6 +49,12 @@ export type DefaultValues = {
   countryCode?: string;
 };
 
+export type OnFocusChangeEvent = NativeSyntheticEvent<{
+  focusedField: FieldName | null;
+}>;
+
+export type OnFormCompleteEvent = NativeSyntheticEvent<{ card: Details }>;
+
 /**
  * @ignore
  */
@@ -61,10 +67,8 @@ export interface NativeProps {
   /** Android only */
   defaultValues?: DefaultValues;
   // postalCodeEnabled: boolean;
-  onFocusChange(
-    event: NativeSyntheticEvent<{ focusedField: FieldName | null }>
-  ): void;
-  onFormComplete(event: NativeSyntheticEvent<Details>): void;
+  onFocusChange(event: OnFocusChangeEvent): void;
+  onFormComplete(event: OnFormCompleteEvent): void;
   disabled?: boolean;
 }
 

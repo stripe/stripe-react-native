@@ -2,16 +2,27 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.content.Context
 import com.bumptech.glide.Glide
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.common.MapBuilder
+import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import com.facebook.react.viewmanagers.AddToWalletButtonManagerDelegate
+import com.facebook.react.viewmanagers.AddToWalletButtonManagerInterface
+import com.reactnativestripesdk.utils.asMapOrNull
 
-
-class AddToWalletButtonManager(applicationContext: Context) : SimpleViewManager<AddToWalletButtonView?>() {
+@ReactModule(name = AddToWalletButtonManager.REACT_CLASS)
+class AddToWalletButtonManager(
+  applicationContext: Context,
+) : SimpleViewManager<AddToWalletButtonView>(),
+  AddToWalletButtonManagerInterface<AddToWalletButtonView> {
+  private val delegate = AddToWalletButtonManagerDelegate(this)
   private val requestManager = Glide.with(applicationContext)
-  override fun getName() = "AddToWalletButton"
+
+  override fun getName() = REACT_CLASS
+
+  override fun getDelegate() = delegate
 
   override fun onDropViewInstance(view: AddToWalletButtonView) {
     view.onDropViewInstance()
@@ -23,33 +34,64 @@ class AddToWalletButtonManager(applicationContext: Context) : SimpleViewManager<
     view.onAfterUpdateTransaction()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView {
-    return AddToWalletButtonView(reactContext, requestManager)
-  }
+  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView =
+    AddToWalletButtonView(reactContext, requestManager)
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
-    return MapBuilder.of(
-      AddToWalletCompleteEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCompleteAction")
+  override fun getExportedCustomDirectEventTypeConstants() =
+    mutableMapOf(
+      AddToWalletCompleteEvent.EVENT_NAME to
+        mutableMapOf("registrationName" to "onCompleteAction"),
     )
-  }
 
   @ReactProp(name = "androidAssetSource")
-  fun source(view: AddToWalletButtonView, source: ReadableMap) {
+  override fun setAndroidAssetSource(
+    view: AddToWalletButtonView,
+    source: ReadableMap?,
+  ) {
     view.setSourceMap(source)
   }
 
   @ReactProp(name = "cardDetails")
-  fun cardDetails(view: AddToWalletButtonView, cardDetails: ReadableMap) {
-    view.setCardDetails(cardDetails)
+  override fun setCardDetails(
+    view: AddToWalletButtonView,
+    cardDetails: Dynamic,
+  ) {
+    view.setCardDetails(cardDetails.asMapOrNull())
   }
 
   @ReactProp(name = "ephemeralKey")
-  fun ephemeralKey(view: AddToWalletButtonView, ephemeralKey: ReadableMap) {
-    view.setEphemeralKey(ephemeralKey)
+  override fun setEphemeralKey(
+    view: AddToWalletButtonView,
+    ephemeralKey: Dynamic,
+  ) {
+    view.setEphemeralKey(ephemeralKey.asMap())
   }
 
   @ReactProp(name = "token")
-  fun token(view: AddToWalletButtonView, token: ReadableMap?) {
-    view.setToken(token)
+  override fun setToken(
+    view: AddToWalletButtonView,
+    token: Dynamic,
+  ) {
+    view.setToken(token.asMap())
+  }
+
+  @ReactProp(name = "iOSButtonStyle")
+  override fun setIOSButtonStyle(
+    view: AddToWalletButtonView,
+    value: String?,
+  ) {
+    // noop, iOS only.
+  }
+
+  @ReactProp(name = "testEnv")
+  override fun setTestEnv(
+    view: AddToWalletButtonView,
+    value: Boolean,
+  ) {
+    // noop, iOS only.
+  }
+
+  companion object {
+    const val REACT_CLASS = "AddToWalletButton"
   }
 }

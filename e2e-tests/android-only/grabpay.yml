@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Wallets"
+- tapOn: "GrabPay"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST PAYMENT"
+- tapOn: "AUTHORIZE TEST PAYMENT"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

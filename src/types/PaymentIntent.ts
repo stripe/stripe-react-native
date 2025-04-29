@@ -88,6 +88,10 @@ export type MandateData = {
   };
 };
 
+type MetaData = {
+  [key: string]: string;
+};
+
 export type CardParams =
   | {
       paymentMethodType: 'Card';
@@ -95,6 +99,7 @@ export type CardParams =
         token?: string;
         billingDetails?: BillingDetails;
         mandateData?: MandateData;
+        metadata?: MetaData;
       };
     }
   | {
@@ -104,6 +109,7 @@ export type CardParams =
         cvc?: string;
         billingDetails?: BillingDetails;
         mandateData?: MandateData;
+        metadata?: MetaData;
       };
     };
 
@@ -113,18 +119,24 @@ export interface IdealParams {
     bankName?: string;
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
 export interface FPXParams {
   paymentMethodType: 'Fpx';
-  paymentMethodData?: { testOfflineBank?: boolean; mandateData?: MandateData };
+  paymentMethodData?: {
+    testOfflineBank?: boolean;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
 }
 
 export interface AlipayParams {
   paymentMethodType: 'Alipay';
   paymentMethodData?: {
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -133,6 +145,7 @@ export interface OxxoParams {
   paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -142,6 +155,7 @@ export interface SofortParams {
     country: string;
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 export interface GrabPayParams {
@@ -149,6 +163,7 @@ export interface GrabPayParams {
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -157,6 +172,7 @@ export interface BancontactParams {
   paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -166,6 +182,7 @@ export interface SepaParams {
     iban: string;
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -174,6 +191,7 @@ export interface GiropayParams {
   paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -183,6 +201,7 @@ export interface AfterpayClearpayParams {
     shippingDetails: BillingDetails;
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -194,6 +213,7 @@ export type KlarnaParams = {
     } & BillingDetails;
     shippingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -202,6 +222,7 @@ export interface EpsParams {
   paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -210,6 +231,7 @@ export interface P24Params {
   paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -219,6 +241,7 @@ export interface WeChatPayParams {
     appId: string;
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 }
 
@@ -234,6 +257,7 @@ export type AffirmParams = {
     shippingDetails?: BillingDetails;
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -252,6 +276,7 @@ export type USBankAccountParams = {
     /** Defaults to Checking */
     accountType?: BankAcccountType;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -260,6 +285,7 @@ export type PayPalParams = {
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -268,6 +294,7 @@ export type CashAppParams = {
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -276,6 +303,7 @@ export type RevolutPayParams = {
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };
 
@@ -287,5 +315,6 @@ export type CollectBankAccountParams = {
       email?: string;
     };
     mandateData?: MandateData;
+    metadata?: MetaData;
   };
 };

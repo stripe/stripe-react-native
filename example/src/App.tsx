@@ -19,7 +19,6 @@ import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import SofortPaymentScreen from './screens/SofortPaymentScreen';
 import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
-import FPXPaymentScreen from './screens/FPXPaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
@@ -43,6 +42,7 @@ import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
 import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
+import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 
@@ -65,7 +65,6 @@ export type RootStackParamList = {
   PaymentResultScreen: { url: string };
   SofortPaymentScreen: undefined;
   SofortSetupFuturePaymentScreen: undefined;
-  FPXPaymentScreen: undefined;
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   SepaPaymentScreen: undefined;
@@ -89,6 +88,7 @@ export type RootStackParamList = {
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
+  EmbeddedPaymentElementScreen: undefined;
   CustomerSheetScreen: undefined;
   RevolutPayScreen: undefined;
 };
@@ -166,6 +166,10 @@ export default function App() {
             component={PaymentSheetDeferredIntentMultiStepScreen}
           />
           <Stack.Screen
+            name="EmbeddedPaymentElementScreen"
+            component={EmbeddedPaymentElementScreen}
+          />
+          <Stack.Screen
             name="PaymentsUICustomScreen"
             component={PaymentsUICustomScreen}
           />
@@ -190,7 +194,6 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
-          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
           <Stack.Screen
             name="SofortPaymentScreen"
             component={SofortPaymentScreen}

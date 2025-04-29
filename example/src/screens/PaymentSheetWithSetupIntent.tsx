@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import { getClientSecretParams } from '../helpers';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 
 export default function PaymentSheetWithSetupIntent() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -11,21 +13,39 @@ export default function PaymentSheetWithSetupIntent() {
   const [loading, setLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string>();
 
-  const fetchPaymentSheetParams = async () => {
+  const [customerKeyType, setCustomerKeyType] = useState<string>(
+    'legacy_ephemeral_key'
+  );
+
+  const fetchPaymentSheetParams = async (customer_key_type: string) => {
     const response = await fetch(`${API_URL}/payment-sheet-subscription`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        customer_key_type,
+      }),
     });
-    const { setupIntent, ephemeralKey, customer } = await response.json();
-    setClientSecret(setupIntent);
 
-    return {
-      setupIntent,
-      ephemeralKey,
-      customer,
-    };
+    if (customer_key_type === 'customer_session') {
+      const { setupIntent, customerSessionClientSecret, customer } =
+        await response.json();
+      setClientSecret(setupIntent);
+      return {
+        setupIntent,
+        customerSessionClientSecret,
+        customer,
+      };
+    } else {
+      const { setupIntent, ephemeralKey, customer } = await response.json();
+      setClientSecret(setupIntent);
+      return {
+        setupIntent,
+        ephemeralKey,
+        customer,
+      };
+    }
   };
 
   const openPaymentSheet = async () => {
@@ -52,15 +72,22 @@ export default function PaymentSheetWithSetupIntent() {
     setLoading(false);
   };
 
-  const initialisePaymentSheet = async () => {
-    const { setupIntent, ephemeralKey, customer } =
-      await fetchPaymentSheetParams();
+  const initialisePaymentSheet = useCallback(async () => {
+    const { setupIntent, customer, ...remainingParams } =
+      await fetchPaymentSheetParams(customerKeyType);
+
+    const clientSecretParams = getClientSecretParams(
+      customerKeyType,
+      remainingParams
+    );
+
+    console.log(clientSecretParams);
 
     const startDate = Math.floor(Date.now() / 1000);
     const endDate = Math.floor((Date.now() + 60 * 60 * 24 * 365 * 1000) / 1000);
     const { error } = await initPaymentSheet({
       customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
+      ...clientSecretParams,
       setupIntentClientSecret: setupIntent,
       merchantDisplayName: 'Example Inc.',
       applePay: {
@@ -82,7 +109,7 @@ export default function PaymentSheetWithSetupIntent() {
         merchantCountryCode: 'US',
         testEnv: true,
       },
-      returnURL: 'stripe-example://stripe-redirect',
+      returnURL: 'com.stripe.react.native://stripe-redirect',
       allowsDelayedPaymentMethods: true,
     });
     if (!error) {
@@ -98,12 +125,29 @@ export default function PaymentSheetWithSetupIntent() {
         error.message
       );
     }
+  }, [customerKeyType, initPaymentSheet]);
+
+  const toggleCustomerKeyType = (value: boolean) => {
+    if (value) {
+      setCustomerKeyType('customer_session');
+    } else {
+      setCustomerKeyType('legacy_ephemeral_key');
+    }
   };
+
+  useEffect(() => {
+    setPaymentSheetEnabled(false);
+    initialisePaymentSheet().catch((err) => console.log(err));
+  }, [customerKeyType, initialisePaymentSheet]);
 
   return (
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
+      <CustomerSessionSwitch
+        value={customerKeyType === 'customer_session'}
+        onValueChange={toggleCustomerKeyType}
+      />
       <Button
         variant="primary"
         loading={loading}

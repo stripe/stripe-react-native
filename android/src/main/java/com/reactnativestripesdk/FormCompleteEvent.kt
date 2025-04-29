@@ -1,19 +1,17 @@
 package com.reactnativestripesdk
+
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class FormCompleteEvent constructor(viewTag: Int, private val formDetails: MutableMap<String, Any>) : Event<FormCompleteEvent>(viewTag) {
-  override fun getEventName(): String {
-    return EVENT_NAME
-  }
+internal class FormCompleteEvent(
+  surfaceId: Int,
+  viewTag: Int,
+  private val formDetails: MutableMap<String, Any>,
+) : Event<FormCompleteEvent>(surfaceId, viewTag) {
+  override fun getEventName() = EVENT_NAME
 
-  override fun dispatch(rctEventEmitter: RCTEventEmitter) {
-    rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())
-  }
-
-  private fun serializeEventData(): WritableMap {
+  override fun getEventData(): WritableMap? {
     val eventData = Arguments.createMap()
     eventData.putString("accountNumber", formDetails["accountNumber"].toString())
     eventData.putString("bsbNumber", formDetails["bsbNumber"].toString())
@@ -24,6 +22,6 @@ internal class FormCompleteEvent constructor(viewTag: Int, private val formDetai
   }
 
   companion object {
-    const val EVENT_NAME = "onCompleteAction"
+    const val EVENT_NAME = "topCompleteAction"
   }
 }

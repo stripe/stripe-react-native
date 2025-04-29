@@ -12,6 +12,7 @@ lib/typescript/example/
 android/src/androidTest/
 android/src/test/
 android/build/
+android/bin/
 
 ios/Tests/
 

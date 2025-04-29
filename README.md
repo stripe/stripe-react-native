@@ -5,6 +5,9 @@
 
 The Stripe React Native SDK allows you to build delightful payment experiences in your native Android and iOS apps using React Native. We provide powerful and customizable UI screens and elements that can be used out-of-the-box to collect your users' payment details.
 
+> [!WARNING]
+> Until we support React Native's [New Architecture](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here), if you are using React Native 0.76 or higher, we recommend [opting out](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here#opt-out) of it.
+
 ## Getting started
 
 Get started with our [📚 integration guides](https://stripe.com/docs/payments/accept-a-payment?platform=react-native) and [example project](./CONTRIBUTING.md#running-the-example-app), or [📘 browse the SDK reference](https://stripe.dev/stripe-react-native).
@@ -105,6 +108,8 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ## Usage example
 
+For a complete example, [visit our docs](https://docs.stripe.com/payments/accept-a-payment?platform=react-native).
+
 ```tsx
 // App.ts
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -122,33 +127,39 @@ function App() {
 }
 
 // PaymentScreen.ts
-import { CardField, useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
-  const { confirmPayment } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const setup = async () => {
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: 'Example, Inc.',
+      paymentIntentClientSecret: paymentIntent, // retrieve this from your server
+    });
+    if (error) {
+      // handle error
+    }
+  };
+
+  useEffect(() => {
+    setup();
+  }, []);
+
+  const checkout = async () => {
+    const { error } = await presentPaymentSheet();
+
+    if (error) {
+      // handle error
+    } else {
+      // success
+    }
+  };
 
   return (
-    <CardField
-      postalCodeEnabled={true}
-      placeholders={{
-        number: '4242 4242 4242 4242',
-      }}
-      cardStyle={{
-        backgroundColor: '#FFFFFF',
-        textColor: '#000000',
-      }}
-      style={{
-        width: '100%',
-        height: 50,
-        marginVertical: 30,
-      }}
-      onCardChange={(cardDetails) => {
-        console.log('cardDetails', cardDetails);
-      }}
-      onFocus={(focusedField) => {
-        console.log('focusField', focusedField);
-      }}
-    />
+    <View>
+      <Button title="Checkout" onPress={checkout} />
+    </View>
   );
 }
 ```

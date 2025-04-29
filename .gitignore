@@ -64,6 +64,7 @@ android/keystores/debug.keystore
 lib/
 
 dist/
+server-dist/
 .env
 
 # Docs
@@ -71,3 +72,6 @@ docs/api-reference/
 
 # Local stripe-android dependency
 example/android/stripe-android
+
+# e2e tests
+e2e-artifacts/

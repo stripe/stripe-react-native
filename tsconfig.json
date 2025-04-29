@@ -1,14 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@stripe/stripe-react-native": ["./src/index"]
-    },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["ES6"],
@@ -28,5 +23,8 @@
       "node",
       "jest"
     ]
-  }
+  },
+  "include": [
+    "src"
+  ]
 }

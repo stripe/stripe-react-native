@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) import StripePaymentSheet
+@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
 
 class CustomerSheetUtils {
     internal class func buildCustomerSheetConfiguration(
@@ -19,7 +19,9 @@ class CustomerSheetUtils {
         merchantDisplayName: String?,
         billingDetailsCollectionConfiguration: NSDictionary?,
         defaultBillingDetails: NSDictionary?,
-        preferredNetworks: Array<Int>?
+        preferredNetworks: Array<Int>?,
+        allowsRemovalOfLastSavedPaymentMethod: Bool?,
+        cardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
         config.appearance = appearance
@@ -35,10 +37,10 @@ class CustomerSheetUtils {
             config.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
         }
         if let billingConfigParams = billingDetailsCollectionConfiguration {
-            config.billingDetailsCollectionConfiguration.name = StripeSdk.mapToCollectionMode(str: billingConfigParams["name"] as? String)
-            config.billingDetailsCollectionConfiguration.phone = StripeSdk.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
-            config.billingDetailsCollectionConfiguration.email = StripeSdk.mapToCollectionMode(str: billingConfigParams["email"] as? String)
-            config.billingDetailsCollectionConfiguration.address = StripeSdk.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
+            config.billingDetailsCollectionConfiguration.name = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["name"] as? String)
+            config.billingDetailsCollectionConfiguration.phone = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["phone"] as? String)
+            config.billingDetailsCollectionConfiguration.email = StripeSdkImpl.mapToCollectionMode(str: billingConfigParams["email"] as? String)
+            config.billingDetailsCollectionConfiguration.address = StripeSdkImpl.mapToAddressCollectionMode(str: billingConfigParams["address"] as? String)
             config.billingDetailsCollectionConfiguration.attachDefaultsToPaymentMethod = billingConfigParams["attachDefaultsToPaymentMethod"] as? Bool == true
         }
         if let defaultBillingDetails = defaultBillingDetails {
@@ -54,6 +56,10 @@ class CustomerSheetUtils {
                                                             state: address["state"])
             }
         }
+        if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
+            config.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
+        }
+        config.cardBrandAcceptance = cardBrandAcceptance
         return config
     }
     
@@ -62,7 +68,7 @@ class CustomerSheetUtils {
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
         customerAdapter: NSDictionary,
-        stripeSdk: StripeSdk
+        stripeSdk: StripeSdkImpl
     ) -> StripeCustomerAdapter {
         if (customerAdapter.count > 0) {
             return buildCustomerAdapterOverride(
@@ -97,7 +103,7 @@ class CustomerSheetUtils {
         customerId: String,
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
-        stripeSdk: StripeSdk
+        stripeSdk: StripeSdkImpl
     ) -> StripeCustomerAdapter {
         return ReactNativeCustomerAdapter(
             fetchPaymentMethods: customerAdapter["fetchPaymentMethods"] as? Bool ?? false,

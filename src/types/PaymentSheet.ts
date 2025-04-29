@@ -1,4 +1,9 @@
-import type { BillingDetails, AddressDetails, CardBrand } from './Common';
+import type {
+  BillingDetails,
+  AddressDetails,
+  CardBrand,
+  UserInterfaceStyle,
+} from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
   ButtonType,
@@ -10,13 +15,11 @@ import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
 
-export type SetupParams = IntentParams & {
+export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
-  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
-  customerEphemeralKeySecret?: string;
   /** When set to true, separates out the payment method selection & confirmation steps.
    * If true, you must call `confirmPaymentSheetPayment` on your own. Defaults to false. */
   customFlow?: boolean;
@@ -24,8 +27,10 @@ export type SetupParams = IntentParams & {
   applePay?: ApplePayParams;
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
   googlePay?: GooglePayParams;
+  /** Configuration for Link */
+  link?: LinkParams;
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
-  style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+  style?: UserInterfaceStyle;
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
@@ -55,7 +60,46 @@ export type SetupParams = IntentParams & {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
+  /** By default, PaymentSheet will use a dynamic ordering that optimizes payment method display for the customer.
+   *  You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
+   *  See https://stripe.com/docs/api/payment_methods/object#payment_method_object-type for the list of valid types.  You may also pass external payment methods.
+   *  - Example: ["card", "external_paypal", "klarna"]
+   *  - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
+   */
+  paymentMethodOrder?: Array<String>;
+  /** This is an experimental feature that may be removed at any time.
+   *  Defaults to true. If true, the customer can delete all saved payment methods.
+   *  If false, the customer can't delete if they only have one saved payment method remaining.
+   */
+  allowsRemovalOfLastSavedPaymentMethod?: boolean;
+  /**
+   * Defines the layout orientations available for displaying payment methods in PaymentSheet.
+   * - Note: Defaults to `Automatic` if not set
+   */
+  paymentMethodLayout?: PaymentMethodLayout;
+  /**
+   * By default, PaymentSheet will accept all supported cards by Stripe.
+   * You can specify card brands PaymentSheet should block or allow payment for by providing an array of those card brands.
+   * Note: This is only a client-side solution.
+   * Note: Card brand filtering is not currently supported in Link.
+   */
+  cardBrandAcceptance?: CardBrandAcceptance;
 };
+
+export type SetupParams =
+  | (SetupParamsBase & {
+      /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+      customerEphemeralKeySecret: string;
+      customerSessionClientSecret?: never;
+    })
+  | (SetupParamsBase & {
+      customerEphemeralKeySecret?: never;
+      /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
+       *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
+       */
+      customerSessionClientSecret: string;
+    })
+  | SetupParamsBase;
 
 export type IntentParams =
   | {
@@ -119,6 +163,21 @@ export type GooglePayParams = {
   buttonType?: ButtonType;
 };
 
+export type LinkParams = {
+  /** Display configuration for Link */
+  display?: LinkDisplay;
+};
+
+/**
+ * Display configuration for Link
+ */
+export enum LinkDisplay {
+  /** Link will be displayed when available. */
+  AUTOMATIC = 'automatic',
+  /** Link will never be displayed. */
+  NEVER = 'never',
+}
+
 /**
  * Used to customize the appearance of your PaymentSheet
  */
@@ -144,6 +203,9 @@ export type AppearanceParams = RecursivePartial<{
   };
   /** Describes the appearance of the primary "Pay" button at the bottom of your Payment Sheet */
   primaryButton: PrimaryButtonConfig;
+
+  /** Describes the appearance of the Embedded Mobile Payment Element */
+  embeddedPaymentElement: EmbeddedPaymentElementAppearance;
 }>;
 
 export type FontConfig = {
@@ -269,12 +331,123 @@ export type PrimaryButtonColorConfig = {
   border: string;
 };
 
+/** A color that’s either a single hex or a light/dark pair */
+export type ThemedColor = string | { light: string; dark: string };
+
+/** Represents edge insets */
+export interface EdgeInsetsConfig {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  right?: number;
+}
+
+/** Display styles for rows in the Embedded Mobile Payment Element */
+export enum RowStyle {
+  /** A flat style with radio buttons */
+  FlatWithRadio = 'flatWithRadio',
+  /** A floating button style */
+  FloatingButton = 'floatingButton',
+  /** A flat style with a checkmark */
+  FlatWithCheckmark = 'flatWithCheckmark',
+}
+
+/** Describes the appearance of the radio button */
+export interface RadioConfig {
+  /** The color of the radio button when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  selectedColor?: ThemedColor;
+
+  /** The color of the radio button when unselected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  unselectedColor?: ThemedColor;
+}
+
+/** Describes the appearance of the checkmark */
+export interface CheckmarkConfig {
+  /** The color of the checkmark when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  color?: ThemedColor;
+}
+
+/** Describes the appearance of the flat style row */
+export interface FlatConfig {
+  /** The thickness of the separator line between rows.
+   * @default 1.0
+   */
+  separatorThickness?: number;
+
+  /** The color of the separator line between rows, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  separatorColor?: ThemedColor;
+
+  /** The insets of the separator line between rows.
+   * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark and RowStyle.FloatingButton
+   */
+  separatorInsets?: EdgeInsetsConfig;
+
+  /** Determines if the top separator is visible at the top of the Element.
+   * @default true
+   */
+  topSeparatorEnabled?: boolean;
+
+  /** Determines if the bottom separator is visible at the bottom of the Element.
+   * @default true
+   */
+  bottomSeparatorEnabled?: boolean;
+
+  /** Appearance settings for the radio button (used when RowStyle is FlatWithRadio) */
+  radio?: RadioConfig;
+
+  /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
+  checkmark?: CheckmarkConfig;
+}
+
+/** Describes the appearance of the floating button style payment method row */
+export interface FloatingConfig {
+  /** The spacing between payment method rows.
+   * @default 12.0
+   */
+  spacing?: number;
+}
+
+/** Describes the appearance of the row in the Embedded Mobile Payment Element */
+export interface RowConfig {
+  /** The display style of the row.
+   * @default RowStyle.FlatWithRadio
+   */
+  style?: RowStyle;
+
+  /** Additional vertical insets applied to a payment method row.
+   * Increasing this value increases the height of each row.
+   * @default 6.0
+   */
+  additionalInsets?: number;
+
+  /** Appearance settings for the flat style row */
+  flat?: FlatConfig;
+
+  /** Appearance settings for the floating button style row */
+  floating?: FloatingConfig;
+}
+
+/** Describes the appearance of the Embedded Mobile Payment Element */
+export interface EmbeddedPaymentElementAppearance {
+  /** Describes the appearance of the row in the Embedded Mobile Payment Element */
+  row?: RowConfig;
+}
+
 type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
     : T[P] extends object
-    ? RecursivePartial<T[P]>
-    : T[P];
+      ? RecursivePartial<T[P]>
+      : T[P];
 };
 export interface PaymentOption {
   label: string;
@@ -392,3 +565,70 @@ export type SetupMode = {
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
   setupFutureUsage: FutureUsage;
 };
+
+export enum PaymentMethodLayout {
+  /**
+   * Payment methods are arranged horizontally.
+   * Users can swipe left or right to navigate through different payment methods.
+   */
+  Horizontal = 'Horizontal',
+
+  /**
+   * Payment methods are arranged vertically.
+   * Users can scroll up or down to navigate through different payment methods.
+   */
+  Vertical = 'Vertical',
+
+  /**
+   * This lets Stripe choose the best layout for payment methods in the sheet.
+   */
+  Automatic = 'Automatic',
+}
+
+/** Card brand categories that can be allowed or disallowed */
+export enum CardBrandCategory {
+  /** Visa branded cards */
+  Visa = 'visa',
+  /** Mastercard branded cards */
+  Mastercard = 'mastercard',
+  /** American Express branded cards */
+  Amex = 'amex',
+  /**
+   * Discover branded cards
+   * Note: Encompasses all of Discover Global Network (Discover, Diners, JCB, UnionPay, Elo)
+   */
+  Discover = 'discover',
+}
+
+/** Filter types for card brand acceptance */
+export enum CardBrandAcceptanceFilter {
+  /** Accept all card brands supported by Stripe */
+  All = 'all',
+  /** Accept only the specified card brands */
+  Allowed = 'allowed',
+  /** Accept all card brands except the specified ones */
+  Disallowed = 'disallowed',
+}
+
+/** Options to block certain card brands on the client */
+export type CardBrandAcceptance =
+  | {
+      /** Accept all card brands supported by Stripe */
+      filter: CardBrandAcceptanceFilter.All;
+    }
+  | {
+      /** Accept only the specified card brands */
+      filter: CardBrandAcceptanceFilter.Allowed;
+      /** List of card brands to accept
+       * Note: Any card brands that do not map to a CardBrandCategory will be blocked when using an allow list
+       */
+      brands: CardBrandCategory[];
+    }
+  | {
+      /** Accept all card brands except the specified ones */
+      filter: CardBrandAcceptanceFilter.Disallowed;
+      /** List of card brands to block
+       * Note: Any card brands that do not map to a CardBrandCategory will be accepted when using a disallow list
+       */
+      brands: CardBrandCategory[];
+    };

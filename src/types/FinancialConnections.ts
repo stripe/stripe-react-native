@@ -1,5 +1,13 @@
+import type { UserInterfaceStyle } from './Common';
 import type { BankAccount } from './Token';
 import type { StripeError } from './Errors';
+
+export type CollectFinancialConnectionsAccountsParams = {
+  /** iOS Only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
 
 export type SessionResult =
   | {
@@ -123,4 +131,68 @@ export type BalanceRefreshStatus = 'failed' | 'pending' | 'succeeded';
 export enum FinancialConnectionsSheetError {
   Failed = 'Failed',
   Canceled = 'Canceled',
+}
+
+export type FinancialConnectionsEvent = {
+  /** The event's name. Represents the type of event that has occurred during the Financial Connections process. */
+  name: FinancialConnectionsEventName;
+  /** Event-associated metadata. Provides further detail related to the occurred event. */
+  metadata: FinancialConnectionsEventMetadata;
+};
+
+export enum FinancialConnectionsEventName {
+  /** Invoked when the sheet successfully opens. */
+  Open = 'open',
+  /** Invoked when the manual entry flow is initiated. */
+  ManualEntryInitiated = 'manual_entry_initiated',
+  /** Invoked when "Agree and continue" is selected on the consent pane. */
+  ConsentAcquired = 'consent_acquired',
+  /** Invoked when the search bar is selected, the user inputs search terms, and receives an API response. */
+  SearchInitiated = 'search_initiated',
+  /** Invoked when an institution is selected, either from featured institutions or search results. */
+  InstitutionSelected = 'institution_selected',
+  /** Invoked when the authorization is successfully completed. */
+  InstitutionAuthorized = 'institution_authorized',
+  /** Invoked when accounts are selected and "confirm" is selected. */
+  AccountsSelected = 'accounts_selected',
+  /** Invoked when the flow is completed and selected accounts are correctly connected to the payment instrument. */
+  Success = 'success',
+  /** Invoked when an error is encountered. Refer to error codes for more details. */
+  Error = 'error',
+  /** Invoked when the flow is cancelled, typically by the user pressing the "X" button. */
+  Cancel = 'cancel',
+  /** Invoked when the modal is launched in an external browser. After this event, no other events will be sent until the completion of the browser session. */
+  FlowLaunchedInBrowser = 'flow_launched_in_browser',
+}
+
+export type FinancialConnectionsEventMetadata = {
+  /** A Boolean value that indicates if the user completed the process through the manual entry flow. */
+  manualEntry?: boolean;
+  /** A String value containing the name of the institution that the user selected. */
+  institutionName?: string;
+  /** An ErrorCode value representing the type of error that occurred. */
+  errorCode?: FinancialConnectionsEventErrorCode;
+};
+
+export enum FinancialConnectionsEventErrorCode {
+  /** The system could not retrieve account numbers for selected accounts. */
+  AccountNumbersUnavailable = 'account_numbers_unavailable',
+  /** The system could not retrieve accounts for the selected institution. */
+  AccountsUnavailable = 'accounts_unavailable',
+  /** For payment flows, no debitable account was available at the selected institution. */
+  NoDebitableAccount = 'no_debitable_account',
+  /** Authorization with the selected institution has failed. */
+  AuthorizationFailed = 'authorization_failed',
+  /** The selected institution is down for expected maintenance. */
+  InstitutionUnavailablePlanned = 'institution_unavailable_planned',
+  /** The selected institution is unexpectedly down. */
+  InstitutionUnavailableUnplanned = 'institution_unavailable_unplanned',
+  /** A timeout occurred while communicating with our partner or downstream institutions. */
+  InstitutionTimeout = 'institution_timeout',
+  /** An unexpected error occurred, either in an API call or on the client-side. */
+  UnexpectedError = 'unexpected_error',
+  /** The client secret that powers the session has expired. */
+  SessionExpired = 'session_expired',
+  /** The hCaptcha challenge failed. */
+  FailedBotDetection = 'failed_bot_detection',
 }

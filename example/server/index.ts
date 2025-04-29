@@ -31,6 +31,25 @@ app.use(
   }
 );
 
+app.use(
+  (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ): void => {
+    console.log('Request <-', req.path, req.body);
+
+    const originalJson = res.json;
+    // @ts-ignore
+    res.json = (body: any) => {
+      console.log('Response ->', req.path, body);
+      originalJson.call(res, body);
+    };
+
+    next();
+  }
+);
+
 // tslint:disable-next-line: interface-name
 const itemIdToPrice: { [id: string]: number } = {
   'id-1': 1400,
@@ -75,6 +94,11 @@ function getKeys(payment_method?: string) {
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY_UK;
       secret_key = process.env.STRIPE_SECRET_KEY_UK;
       break;
+    case 'us_bank_account':
+      publishable_key =
+        process.env.STRIPE_PUBLISHABLE_KEY_FINANCIAL_CONNECTIONS;
+      secret_key = process.env.STRIPE_SECRET_KEY_FINANCIAL_CONNECTIONS;
+      break;
     default:
       publishable_key = process.env.STRIPE_PUBLISHABLE_KEY;
       secret_key = process.env.STRIPE_SECRET_KEY;
@@ -88,7 +112,7 @@ app.get(
   (req: express.Request, res: express.Response): express.Response<any> => {
     const { publishable_key } = getKeys(req.query.paymentMethod as string);
 
-    return res.send({ publishableKey: publishable_key });
+    return res.json({ publishableKey: publishable_key });
   }
 );
 
@@ -117,7 +141,7 @@ app.post(
     const { secret_key } = getKeys(payment_method_types[0]);
 
     const stripe = new Stripe(secret_key as string, {
-      apiVersion: '2022-11-15',
+      apiVersion: '2023-10-16',
       typescript: true,
     });
 
@@ -177,7 +201,7 @@ app.post(
     const { secret_key } = getKeys();
 
     const stripe = new Stripe(secret_key as string, {
-      apiVersion: '2022-11-15',
+      apiVersion: '2023-10-16',
       typescript: true,
     });
     const customers = await stripe.customers.list({
@@ -255,7 +279,7 @@ app.post(
     const { secret_key } = getKeys();
 
     const stripe = new Stripe(secret_key as string, {
-      apiVersion: '2022-11-15',
+      apiVersion: '2023-10-16',
       typescript: true,
     });
 
@@ -344,7 +368,7 @@ app.post('/create-setup-intent', async (req, res) => {
   const { secret_key } = getKeys(payment_method_types[0]);
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
   const customer = await stripe.customers.create({ email });
@@ -401,7 +425,7 @@ app.post(
     const { secret_key } = getKeys();
 
     const stripe = new Stripe(secret_key as string, {
-      apiVersion: '2022-11-15',
+      apiVersion: '2023-10-16',
       typescript: true,
     });
     // console.log('webhook!', req);
@@ -464,7 +488,7 @@ app.post('/charge-card-off-session', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -534,100 +558,199 @@ app.post('/charge-card-off-session', async (req, res) => {
 // This example sets up an endpoint using the Express framework.
 // Watch this video to get started: https://youtu.be/rPR2aJ6XnAc.
 
-app.post('/payment-sheet', async (_, res) => {
+app.post('/payment-sheet', async (req, res) => {
+  const {
+    customer_key_type,
+  }: {
+    customer_key_type?: string;
+  } = req.body;
+
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
-  const customers = await stripe.customers.list();
+  try {
+    const customers = await stripe.customers.list();
 
-  // Here, we're getting latest customer only for example purposes.
-  const customer = customers.data[0];
+    // Here, we're getting latest customer only for example purposes.
+    const customer = customers.data[0];
 
-  if (!customer) {
-    return res.send({
-      error: 'You have no customer created',
+    if (!customer) {
+      return res.send({
+        error: 'You have no customer created',
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 5099,
+      currency: 'usd',
+      customer: customer.id,
+      // Edit the following to support different payment methods in your PaymentSheet
+      // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
+      payment_method_types: [
+        'card',
+        // 'ideal',
+        // 'sepa_debit',
+        // 'sofort',
+        // 'bancontact',
+        // 'p24',
+        // 'giropay',
+        // 'eps',
+        // 'afterpay_clearpay',
+        // 'klarna',
+        // 'us_bank_account',
+      ],
     });
-  }
 
-  const ephemeralKey = await stripe.ephemeralKeys.create(
-    { customer: customer.id },
-    { apiVersion: '2022-11-15' }
-  );
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 5099,
-    currency: 'usd',
-    customer: customer.id,
-    // Edit the following to support different payment methods in your PaymentSheet
-    // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
-    payment_method_types: [
-      'card',
-      // 'ideal',
-      // 'sepa_debit',
-      // 'sofort',
-      // 'bancontact',
-      // 'p24',
-      // 'giropay',
-      // 'eps',
-      // 'afterpay_clearpay',
-      // 'klarna',
-      // 'us_bank_account',
-    ],
-  });
-  return res.json({
-    paymentIntent: paymentIntent.client_secret,
-    ephemeralKey: ephemeralKey.secret,
-    customer: customer.id,
-  });
+    if (customer_key_type === 'legacy_ephemeral_key') {
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: customer.id },
+        { apiVersion: '2023-10-16' }
+      );
+
+      return res.json({
+        paymentIntent: paymentIntent.client_secret,
+        ephemeralKey: ephemeralKey.secret,
+        customer: customer.id,
+      });
+    } else {
+      const customerSessionClientSecret = await stripe.customerSessions.create(
+        {
+          customer: customer.id,
+          components: {
+            // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
+            // @ts-ignore
+            mobile_payment_element: {
+              enabled: true,
+              features: {
+                payment_method_save: 'disabled',
+                payment_method_remove: 'enabled',
+                payment_method_redisplay: 'enabled',
+                payment_method_allow_redisplay_filters: [
+                  'unspecified',
+                  'limited',
+                  'always',
+                ],
+              },
+            },
+          },
+        },
+        { apiVersion: '2023-10-16' }
+      );
+
+      return res.json({
+        paymentIntent: paymentIntent.client_secret,
+        customerSessionClientSecret: customerSessionClientSecret.client_secret,
+        customer: customer.id,
+      });
+    }
+  } catch (ex) {
+    return res.send({ error: ex });
+  }
 });
 
-app.post('/payment-sheet-subscription', async (_, res) => {
-  const { secret_key } = getKeys();
+app.post('/payment-sheet-subscription', async (req, res) => {
+  const {
+    customer_key_type,
+  }: {
+    customer_key_type?: string;
+  } = req.body;
 
-  const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
-    typescript: true,
-  });
-
-  const customers = await stripe.customers.list();
-
-  // Here, we're getting latest customer only for example purposes.
-  const customer = customers.data[0];
-
-  if (!customer) {
+  if (
+    customer_key_type !== 'legacy_ephemeral_key' &&
+    customer_key_type !== 'customer_session'
+  ) {
     return res.send({
-      error: 'You have no customer created',
+      error:
+        '`customer_key_type` is not valid! Please pass either "customer_session" or "legacy_ephemeral_key"',
     });
   }
 
-  const ephemeralKey = await stripe.ephemeralKeys.create(
-    { customer: customer.id },
-    { apiVersion: '2022-11-15' }
-  );
-  const subscription = await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
-    trial_period_days: 3,
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
   });
 
-  if (typeof subscription.pending_setup_intent === 'string') {
-    const setupIntent = await stripe.setupIntents.retrieve(
-      subscription.pending_setup_intent
-    );
+  try {
+    const customers = await stripe.customers.list();
 
-    return res.json({
-      setupIntent: setupIntent.client_secret,
-      ephemeralKey: ephemeralKey.secret,
+    // Here, we're getting latest customer only for example purposes.
+    const customer = customers.data[0];
+
+    if (!customer) {
+      return res.send({
+        error: 'You have no customer created',
+      });
+    }
+
+    const subscription = await stripe.subscriptions.create({
       customer: customer.id,
+      items: [{ price: 'price_1L3hcFLu5o3P18Zp9GDQEnqe' }],
+      trial_period_days: 3,
     });
-  } else {
-    throw new Error(
-      'Expected response type string, but received: ' +
-        typeof subscription.pending_setup_intent
-    );
+
+    if (typeof subscription.pending_setup_intent === 'string') {
+      const setupIntent = await stripe.setupIntents.retrieve(
+        subscription.pending_setup_intent
+      );
+
+      if (customer_key_type === 'legacy_ephemeral_key') {
+        const ephemeralKey = await stripe.ephemeralKeys.create(
+          { customer: customer.id },
+          { apiVersion: '2023-10-16' }
+        );
+
+        return res.json({
+          setupIntent: setupIntent.client_secret,
+          ephemeralKey: ephemeralKey.secret,
+          customer: customer.id,
+        });
+      } else {
+        const customerSessionClientSecret =
+          await stripe.customerSessions.create(
+            {
+              customer: customer.id,
+              components: {
+                // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
+                // @ts-ignore
+                mobile_payment_element: {
+                  enabled: true,
+                  features: {
+                    payment_method_save: 'enabled',
+                    payment_method_remove: 'enabled',
+                    payment_method_redisplay: 'enabled',
+                    payment_method_allow_redisplay_filters: [
+                      'unspecified',
+                      'limited',
+                      'always',
+                    ],
+                  },
+                },
+              },
+            },
+            { apiVersion: '2023-10-16' }
+          );
+
+        return res.json({
+          setupIntent: setupIntent.client_secret,
+          customerSessionClientSecret:
+            customerSessionClientSecret.client_secret,
+          customer: customer.id,
+        });
+      }
+    } else {
+      throw new Error(
+        'Expected response type string, but received: ' +
+          typeof subscription.pending_setup_intent
+      );
+    }
+  } catch (ex) {
+    return res.send({ error: ex });
   }
 });
 
@@ -655,7 +778,7 @@ app.post('/issuing-card-details', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -675,10 +798,10 @@ app.post('/issuing-card-details', async (req, res) => {
 });
 
 app.post('/financial-connections-sheet', async (_, res) => {
-  const { secret_key } = getKeys();
+  const { secret_key } = getKeys('us_bank_account');
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -704,7 +827,7 @@ app.post('/payment-intent-for-payment-sheet', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -726,7 +849,7 @@ app.post('/customer-sheet', async (_, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -754,7 +877,7 @@ app.post('/fetch-payment-methods', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 
@@ -771,7 +894,7 @@ app.post('/attach-payment-method', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
   console.log({ customer: req.body.customerId });
@@ -789,7 +912,7 @@ app.post('/detach-payment-method', async (req, res) => {
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2023-10-16',
     typescript: true,
   });
 

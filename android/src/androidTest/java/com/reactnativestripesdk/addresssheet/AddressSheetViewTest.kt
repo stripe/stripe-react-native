@@ -1,12 +1,11 @@
-package com.reactnativestripesdk.paymentsheet
+package com.reactnativestripesdk.addresssheet
 
-import android.content.Context
 import androidx.core.os.bundleOf
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -15,9 +14,10 @@ import org.junit.Before
 import org.junit.Test
 
 class AddressSheetViewTest {
-  private val reactApplicationContext = ReactApplicationContext(
-    ApplicationProvider.getApplicationContext<Context>()
-  )
+  private val reactApplicationContext =
+    BridgeReactContext(
+      ApplicationProvider.getApplicationContext(),
+    )
   private val testCity = "testCity"
   private val testCountry = "testCountry"
   private val testLine1 = "testLine1"
@@ -28,15 +28,16 @@ class AddressSheetViewTest {
   private val testPhone = "testPhone"
 
   @Before
-  fun setup(){
-    SoLoader.init(reactApplicationContext, false)
+  fun setup() {
+    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
   }
 
   @Test
   fun buildAddressDetails_Default() {
-    val addressDetails = AddressSheetView.buildAddressDetails(
-      bundleOf()
-    )
+    val addressDetails =
+      AddressSheetView.buildAddressDetails(
+        bundleOf(),
+      )
     Assert.assertNull(addressDetails.address)
     Assert.assertNull(addressDetails.name)
     Assert.assertFalse(addressDetails.isCheckboxSelected ?: false)
@@ -45,17 +46,19 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAddressDetails_Custom() {
-    val addressDetails = AddressSheetView.buildAddressDetails(
-      bundleOf(
-        "name" to testName,
-        "phone" to testPhone,
-        "isCheckboxSelected" to true,
-        "address" to bundleOf(
-          "city" to testCity,
-          "line1" to testLine1,
+    val addressDetails =
+      AddressSheetView.buildAddressDetails(
+        bundleOf(
+          "name" to testName,
+          "phone" to testPhone,
+          "isCheckboxSelected" to true,
+          "address" to
+            bundleOf(
+              "city" to testCity,
+              "line1" to testLine1,
+            ),
         ),
       )
-    )
     Assert.assertEquals(addressDetails.address?.city, testCity)
     Assert.assertEquals(addressDetails.address?.line1, testLine1)
     Assert.assertEquals(addressDetails.name, testName)
@@ -65,9 +68,10 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAddress_Default() {
-    val address = AddressSheetView.buildAddress(
-      bundleOf()
-    )
+    val address =
+      AddressSheetView.buildAddress(
+        bundleOf(),
+      )
     Assert.assertNull(address?.city)
     Assert.assertNull(address?.country)
     Assert.assertNull(address?.state)
@@ -78,16 +82,17 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAddress_Custom() {
-    val address = AddressSheetView.buildAddress(
-      bundleOf(
-        "city" to testCity,
-        "line1" to testLine1,
-        "country" to testCountry,
-        "postalCode" to testPostalCode,
-        "line2" to testLine2,
-        "state" to testState,
+    val address =
+      AddressSheetView.buildAddress(
+        bundleOf(
+          "city" to testCity,
+          "line1" to testLine1,
+          "country" to testCountry,
+          "postalCode" to testPostalCode,
+          "line2" to testLine2,
+          "state" to testState,
+        ),
       )
-    )
     Assert.assertEquals(address?.city, testCity)
     Assert.assertEquals(address?.line1, testLine1)
     Assert.assertEquals(address?.line2, testLine2)
@@ -100,22 +105,22 @@ class AddressSheetViewTest {
   fun getFieldConfiguration() {
     Assert.assertEquals(
       AddressSheetView.getFieldConfiguration("hidden"),
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN,
     )
 
     Assert.assertEquals(
       AddressSheetView.getFieldConfiguration("required"),
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
     )
 
     Assert.assertEquals(
       AddressSheetView.getFieldConfiguration("optional"),
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.OPTIONAL
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.OPTIONAL,
     )
 
     Assert.assertEquals(
       AddressSheetView.getFieldConfiguration("anything"),
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN,
     )
   }
 
@@ -125,7 +130,7 @@ class AddressSheetViewTest {
 
     Assert.assertEquals(
       result.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN,
     )
 
     Assert.assertNull(result.checkboxLabel)
@@ -134,55 +139,67 @@ class AddressSheetViewTest {
   @Test
   fun buildAdditionalFieldsConfiguration_Custom() {
     val label = "custom label"
-    val params = WritableNativeMap().also {
-      it.putString("phoneNumber", "required")
-      it.putString("checkboxLabel", label)
-    }
+    val params =
+      WritableNativeMap().also {
+        it.putString("phoneNumber", "required")
+        it.putString("checkboxLabel", label)
+      }
 
     val received = AddressSheetView.buildAdditionalFieldsConfiguration(params)
 
     Assert.assertEquals(
       received.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED
+      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
     )
 
     Assert.assertEquals(
       received.checkboxLabel,
-      label
+      label,
     )
   }
 
   @Test
   fun buildResult() {
-    val received = AddressSheetView.buildResult(
-      AddressDetails(
-        name = testName,
-        address = PaymentSheet.Address(
-          city = testCity,
-          state = testState,
-          country = testCountry,
-          line2 = testLine2,
-          line1 = testLine1,
-          postalCode = testPostalCode
+    val received =
+      AddressSheetView.buildResult(
+        AddressDetails(
+          name = testName,
+          address =
+            PaymentSheet.Address(
+              city = testCity,
+              state = testState,
+              country = testCountry,
+              line2 = testLine2,
+              line1 = testLine1,
+              postalCode = testPostalCode,
+            ),
+          phoneNumber = testPhone,
+          isCheckboxSelected = true,
         ),
-        phoneNumber = testPhone,
-        isCheckboxSelected = true
       )
-    )
 
-    val expected = WritableNativeMap().also {
-      it.putString("name", testName)
-      it.putMap("address", WritableNativeMap().also {
-        it.putString("city", testCity)
-        it.putString("country", testCountry)
-        it.putString("state", testState)
-        it.putString("line1", testLine1)
-        it.putString("line2", testLine2)
-        it.putString("postalCode", testPostalCode)
-      })
-      it.putString("phone", testPhone)
-      it.putBoolean("isCheckboxSelected", true)
-    }
+    val result =
+      WritableNativeMap().also {
+        it.putString("name", testName)
+        it.putMap(
+          "address",
+          WritableNativeMap().also {
+            it.putString("city", testCity)
+            it.putString("country", testCountry)
+            it.putString("state", testState)
+            it.putString("line1", testLine1)
+            it.putString("line2", testLine2)
+            it.putString("postalCode", testPostalCode)
+          },
+        )
+        it.putString("phone", testPhone)
+        it.putBoolean("isCheckboxSelected", true)
+      }
+
+    val expected =
+      WritableNativeMap().also {
+        it.putMap("result", result)
+      }
 
     Assert.assertEquals(expected, received)
   }

@@ -3,10 +3,7 @@ import Foundation
 @objc(CardFormManager)
 class CardFormManager: RCTViewManager {
     override func view() -> UIView! {
-        let cardForm = CardFormView()
-        let stripeSdk = bridge.module(forName: "StripeSdk") as? StripeSdk
-        stripeSdk?.cardFormView = cardForm;
-        return cardForm
+        return CardFormView()
     }
     
     override class func requiresMainQueueSetup() -> Bool {

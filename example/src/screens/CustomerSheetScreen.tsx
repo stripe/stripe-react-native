@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, Image, StyleSheet, Switch, Text, View } from 'react-native';
-import { CustomerSheetBeta } from '@stripe/stripe-react-native';
+import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -64,11 +64,11 @@ export default function CustomerSheetScreen() {
       address: address,
     };
 
-    const { error } = await CustomerSheetBeta.initialize({
+    const { error } = await CustomerSheet.initialize({
       setupIntentClientSecret,
       customerEphemeralKeySecret,
       customerId,
-      returnURL: 'stripe-example://stripe-redirect',
+      returnURL: 'com.stripe.react.native://stripe-redirect',
       removeSavedPaymentMethodMessage:
         'Are you sure you wanna remove this payment method? 😿',
       style: 'alwaysLight',
@@ -87,7 +87,7 @@ export default function CustomerSheetScreen() {
       error: retrievalError,
       paymentOption,
       paymentMethod,
-    } = await CustomerSheetBeta.retrievePaymentOptionSelection();
+    } = await CustomerSheet.retrievePaymentOptionSelection();
     if (retrievalError) {
       Alert.alert(retrievalError.code, retrievalError.localizedMessage);
     }
@@ -107,7 +107,7 @@ export default function CustomerSheetScreen() {
       setCustomerSheetVisible(true);
     } else {
       const { error, paymentOption, paymentMethod } =
-        await CustomerSheetBeta.present();
+        await CustomerSheet.present();
       if (error) {
         Alert.alert(error.code, error.localizedMessage);
       }
@@ -136,12 +136,12 @@ export default function CustomerSheetScreen() {
         }}
       />
       {useComponent && customerAdapter && (
-        <CustomerSheetBeta.CustomerSheet
+        <CustomerSheet.Component
           visible={customerSheetVisible}
           setupIntentClientSecret={setupIntent}
           customerEphemeralKeySecret={ephemeralKeySecret}
           customerId={customer}
-          returnURL={'stripe-example://stripe-redirect'}
+          returnURL={'com.stripe.react.native://stripe-redirect'}
           onResult={({ error, paymentOption, paymentMethod }) => {
             setCustomerSheetVisible(false);
             if (error) {

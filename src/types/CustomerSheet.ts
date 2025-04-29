@@ -42,6 +42,18 @@ export type CustomerSheetInitParams = {
    * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
    */
   customerAdapter?: CustomerAdapter;
+  /** This is an experimental feature that may be removed at any time.
+   *  Defaults to true. If true, the customer can delete all saved payment methods.
+   *  If false, the customer can't delete if they only have one saved payment method remaining.
+   */
+  allowsRemovalOfLastSavedPaymentMethod?: boolean;
+  /**
+   * By default, CustomerSheet will accept all supported cards by Stripe.
+   * You can specify card brands CustomerSheet should block or allow payment for by providing an array of those card brands.
+   * Note: This is only a client-side solution.
+   * Note: Card brand filtering is not currently supported in Link.
+   */
+  cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
 };
 
 export type CustomerSheetPresentParams = {
@@ -111,7 +123,7 @@ export interface CustomerAdapter {
   /** Creates a SetupIntent configured to attach a new payment method to a customer,
    * then returns the client secret for the created SetupIntent.
    */
-  setupIntentClientSecretForCustomerAttach?(): Promise<String>;
+  setupIntentClientSecretForCustomerAttach?(): Promise<string>;
 }
 
 export type CustomerPaymentOption =

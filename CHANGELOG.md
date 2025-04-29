@@ -1,18 +1,138 @@
 # CHANGELOG
-
 ## Unreleased
+
+**Fixes**
+- Updated `stripe-ios` to 24.12.\*
+- Updated `stripe-android` to 21.11.\*
+
+## 0.44.0 - 2025-04-15
+
+**Features**
+
+- Added `LinkParams` to allow control over Link in PaymentSheet.
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.11.\*
+- Updated `stripe-android` to 21.10.\*
+- Fixed an issue where launching a Financial Connections flow would fail on Android.
+
+## 0.43.0 - 2025-03-11
+
+**Features**
+
+- Financial Connections now supports dark mode, and will automatically adapt to the device's theme. [Learn more](https://docs.stripe.com/financial-connections/other-data-powered-products?platform=react-native#connections-customize-react-native) about configuring appearance settings.
+- Added card brand filtering to PaymentSheet and CustomerSheet to specify allowed or blocked card brands. [1857](https://github.com/stripe/stripe-react-native/pull/1857)
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.7.\*
+- Updated `stripe-android` to 21.6.\*
+- Supports React Native 0.78
+- Compatible with new architecture when bridgeless mode is disabled
+
+## 0.42.0 - 2025-02-25
+
+**Features**
+
+- Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument. This includes the following methods, both when used directly or via `useStripe` or `useFinancialConnectionsSheet`:
+  - `collectBankAccountForPayment`
+  - `collectBankAccountForSetup`
+  - `collectBankAccountToken`
+  - `collectFinancialConnectionsAccounts`
+- Added ability to pass `metadata` to `PaymentMethod.ConfirmParams` and `PaymentMethod.CreateParams`
+
+## 0.41.0 - 2024-12-19
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.2.\*
+
+## 0.40.0 - 2024-11-19
+
+**Breaking changes**
+
+- Removed support for FPX payments via the bank picker UI. If you'd like to accept FPX payments, we recommend using [Mobile Payment Element](https://docs.stripe.com/payments/accept-a-payment?platform=react-native). Also see the [FPX Payment guide](https://docs.stripe.com/payments/fpx/accept-a-payment?web-or-mobile=mobile) for more info on how to integrate FPX specifically.
+
+**Features**
+
+- `CustomerSheet` is now generally available!
+  - If you were using `CustomerSheetBeta`, change that to `CustomerSheet`.
+  - If you were using `CustomerSheetBeta.CustomerSheet`, change that to `CustomerSheet.Component`
+- Enabled vertical mode
+
+## 0.39.0 - 2024-10-15
+
+**Features**
+
+- Adds support for CustomerSession in private beta [1744](https://github.com/stripe/stripe-react-native/pull/1744)
+- Added `onBehalfOf` prop to CardField
+
+**Fixes**
+
+- Updated `stripe-ios` to 23.30.\*
+- Updated `stripe-android` to 20.52.\*
+
+## 0.38.6 - 2024-09-04
+
+**Fixes**
+
+- Fixed build errors on Android when using React Native 0.75.x
+
+## 0.38.4 - 2024-08-02
+
+**Fixes**
+
+- Fixed an issue on Android where `allowsRemovalOfLastSavedPaymentMethod` would default to `false` if not provided.
+
+## 0.38.3 - 2024-07-22
+
+**Fixes**
+
+- Fixed an issue on Android where `CustomerSheet` could get stuck in an error state after forwarding an error to the `intentCreationCallback`.
+
+## 0.38.2 - 2024-07-19
+
+**Fixes**
+
+- Updated `stripe-ios` to 23.28.\*
+- Updated `stripe-android` to 20.48.\*
+
+## 0.38.1 - 2024-06-28
+
+**Fixes**
+
+- Fixed `preferredNetworks` prop on CardForm on iOS not always being applied
+- Updated `stripe-android` to 20.47.3
+
+## 0.38.0 - 2024-05-24
+
+**Features**
+
+- Adds support for `paymentMethodOrder` in PaymentSheet, which provides client side sorting of payment methods.
+- Updated `stripe-android` to 20.44.\*
+
+## 0.37.3 - 2024-04-19
+
+**Fixes**
+
+- Fixed an issue with generating App Privacy reports.
+- Updated `stripe-ios` to 23.27.\*
+- Updated `stripe-android` to 20.41.\*
 
 ## 0.37.2 - 2024-04-02
 
 **Fixes**
 
-- Native library updates.
+- Updated `stripe-ios` to 23.26.\*
+- Updated `stripe-android` to 20.40.\*
 
 ## 0.37.1 - 2024-03-15
 
 **Fixes**
 
-- Native library updates.
+- Updated `stripe-ios` to 23.25.\*
+- Updated `stripe-android` to 20.39.\*
 
 ## 0.37.0 - 2024-02-16
 

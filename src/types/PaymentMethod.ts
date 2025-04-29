@@ -5,7 +5,8 @@ import type {
   BankAcccountType,
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
-import type { Address, BillingDetails } from './Common';
+import type { Address, BillingDetails, UserInterfaceStyle } from './Common';
+import type { FinancialConnectionsEvent } from './FinancialConnections';
 
 export interface Result {
   id: string;
@@ -313,4 +314,15 @@ export type CollectBankAccountParams = {
       email?: string;
     };
   };
+  /** iOS only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
+
+export type CollectBankAccountTokenParams = {
+  /** iOS only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
 };

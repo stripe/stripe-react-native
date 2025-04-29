@@ -9,16 +9,16 @@ on:
 jobs:
   test-ios:
     name: unit-test-ios
-    runs-on: macos-12
+    runs-on: macos-15
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -26,7 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: example/ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
@@ -34,12 +34,9 @@ jobs:
             ${{ runner.os }}-pods-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 14.15.0
-
-      - name: Install React Native CLI
-        run: npm install react-native-cli
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn bootstrap
@@ -49,16 +46,25 @@ jobs:
 
   test-android:
     name: unit-test-android
-    runs-on: macos-latest
+    runs-on: ubuntu-24.04
     steps:
+      # Enable KVM to be able to use hardware accelerated emulators.
+      # https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls /dev/kvm
+
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -67,12 +73,9 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v4
         with:
-          node-version: 14.15.0
-
-      - name: Install React Native CLI
-        run: npm install react-native-cli
+          node-version: 20
 
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
@@ -81,20 +84,23 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '11'
+          java-version: '17'
 
       - name: Gradle cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
+      - name: Check code formatting
+        run: yarn format:android:check
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           arch: x86_64
           profile: Galaxy Nexus
           target: google_apis

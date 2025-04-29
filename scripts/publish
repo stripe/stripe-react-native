@@ -131,16 +131,20 @@ yarn -s install --frozen-lockfile
 echo "Running tests"
 yarn -s run test
 
+BRANCH_NAME=release-branch-$RANDOM
+git checkout -b "$BRANCH_NAME"
+
 echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
-yarn -s version --$RELEASE_TYPE
+yarn -s version --"$RELEASE_TYPE"
 
 echo "Publishing release"
 yarn -s --ignore-scripts publish --non-interactive --access=public
+echo "Published to npm!"
 
 echo "Pushing git commit and tag"
-git push --follow-tags
+git push -u origin "$BRANCH_NAME" --follow-tags
 
-echo "Publish successful!"
+echo "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
 echo ""
 
 create_github_release

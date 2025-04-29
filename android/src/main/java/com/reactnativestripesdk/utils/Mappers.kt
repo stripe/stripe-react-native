@@ -3,19 +3,45 @@ package com.reactnativestripesdk.utils
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.PaymentAuthConfig
-import com.stripe.android.model.*
-import com.stripe.android.model.StripeIntent.NextActionType
+import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
+import com.stripe.android.model.Address
+import com.stripe.android.model.BankAccount
+import com.stripe.android.model.BankAccountTokenParams
+import com.stripe.android.model.Card
+import com.stripe.android.model.CardBrand
+import com.stripe.android.model.ConfirmPaymentIntentParams
+import com.stripe.android.model.GooglePayResult
+import com.stripe.android.model.MicrodepositType
+import com.stripe.android.model.PaymentIntent
+import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.SetupIntent
+import com.stripe.android.model.StripeIntent
 import com.stripe.android.model.StripeIntent.NextActionData
+import com.stripe.android.model.StripeIntent.NextActionType
+import com.stripe.android.model.Token
 
-internal fun createResult(key: String, value: WritableMap): WritableMap {
+internal fun createResult(
+  key: String,
+  value: WritableMap,
+): WritableMap {
   val map = WritableNativeMap()
   map.putMap(key, value)
   return map
 }
 
-internal fun createCanAddCardResult(canAddCard: Boolean, status: String? = null, token: WritableMap? = null): WritableNativeMap {
+internal fun createCanAddCardResult(
+  canAddCard: Boolean,
+  status: String? = null,
+  token: WritableMap? = null,
+): WritableNativeMap {
   val result = WritableNativeMap()
   val details = WritableNativeMap()
   result.putBoolean("canAddCard", canAddCard)
@@ -29,8 +55,8 @@ internal fun createCanAddCardResult(canAddCard: Boolean, status: String? = null,
   return result
 }
 
-internal fun mapIntentStatus(status: StripeIntent.Status?): String {
-  return when (status) {
+internal fun mapIntentStatus(status: StripeIntent.Status?): String =
+  when (status) {
     StripeIntent.Status.Succeeded -> "Succeeded"
     StripeIntent.Status.RequiresPaymentMethod -> "RequiresPaymentMethod"
     StripeIntent.Status.RequiresConfirmation -> "RequiresConfirmation"
@@ -40,24 +66,20 @@ internal fun mapIntentStatus(status: StripeIntent.Status?): String {
     StripeIntent.Status.RequiresCapture -> "RequiresCapture"
     else -> "Unknown"
   }
-}
 
-
-internal fun mapCaptureMethod(captureMethod: PaymentIntent.CaptureMethod?): String {
-  return when (captureMethod) {
+internal fun mapCaptureMethod(captureMethod: PaymentIntent.CaptureMethod?): String =
+  when (captureMethod) {
     PaymentIntent.CaptureMethod.Automatic -> "Automatic"
     PaymentIntent.CaptureMethod.Manual -> "Manual"
     else -> "Unknown"
   }
-}
 
-internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMethod?): String {
-  return when (captureMethod) {
+internal fun mapConfirmationMethod(captureMethod: PaymentIntent.ConfirmationMethod?): String =
+  when (captureMethod) {
     PaymentIntent.ConfirmationMethod.Automatic -> "Automatic"
     PaymentIntent.ConfirmationMethod.Manual -> "Manual"
     else -> "Unknown"
   }
-}
 
 internal fun mapToReturnURL(urlScheme: String?): String? {
   if (urlScheme != null) {
@@ -85,8 +107,8 @@ internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {
   return map
 }
 
-internal fun mapCardBrand(brand: CardBrand?): String {
-  return when (brand) {
+internal fun mapCardBrand(brand: CardBrand?): String =
+  when (brand) {
     CardBrand.AmericanExpress -> "AmericanExpress"
     CardBrand.DinersClub -> "DinersClub"
     CardBrand.Discover -> "Discover"
@@ -97,10 +119,9 @@ internal fun mapCardBrand(brand: CardBrand?): String {
     CardBrand.Unknown -> "Unknown"
     else -> "Unknown"
   }
-}
 
-internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
-  return when (type) {
+internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
+  when (type) {
     PaymentMethod.Type.AfterpayClearpay -> "AfterpayClearpay"
     PaymentMethod.Type.Alipay -> "Alipay"
     PaymentMethod.Type.AuBecsDebit -> "AuBecsDebit"
@@ -128,10 +149,9 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String {
     PaymentMethod.Type.RevolutPay -> "RevolutPay"
     else -> "Unknown"
   }
-}
 
-internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
-  return when (type) {
+internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
+  when (type) {
     "Card" -> PaymentMethod.Type.Card
     "Ideal" -> PaymentMethod.Type.Ideal
     "Alipay" -> PaymentMethod.Type.Alipay
@@ -159,7 +179,6 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? {
     "RevolutPay" -> PaymentMethod.Type.RevolutPay
     else -> null
   }
-}
 
 internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?): WritableMap {
   val details: WritableMap = WritableNativeMap()
@@ -180,8 +199,29 @@ internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?
   return details
 }
 
-internal fun mapTokenType(type: Token.Type): String {
-  return when (type) {
+internal fun mapFromPaymentSheetBillingDetails(billing: com.stripe.android.paymentsheet.PaymentSheet.BillingDetails?): WritableMap {
+  val details = Arguments.createMap()
+  details.putString("name", billing?.name)
+  details.putString("email", billing?.email)
+  details.putString("phone", billing?.phone)
+
+  // map the nested address
+  val addrMap = Arguments.createMap()
+  billing?.address?.let { a ->
+    addrMap.putString("city", a.city)
+    addrMap.putString("country", a.country)
+    addrMap.putString("line1", a.line1)
+    addrMap.putString("line2", a.line2)
+    addrMap.putString("postalCode", a.postalCode)
+    addrMap.putString("state", a.state)
+  }
+  details.putMap("address", addrMap)
+
+  return details
+}
+
+internal fun mapTokenType(type: Token.Type): String =
+  when (type) {
     Token.Type.Account -> "Account"
     Token.Type.BankAccount -> "BankAccount"
     Token.Type.Card -> "Card"
@@ -190,26 +230,23 @@ internal fun mapTokenType(type: Token.Type): String {
     Token.Type.Pii -> "Pii"
     else -> "Unknown"
   }
-}
 
-internal fun mapFromBankAccountType(type: BankAccount.Type?): String {
-  return when (type) {
+internal fun mapFromBankAccountType(type: BankAccount.Type?): String =
+  when (type) {
     BankAccount.Type.Company -> "Company"
     BankAccount.Type.Individual -> "Individual"
     else -> "Unknown"
   }
-}
 
-internal fun mapToBankAccountType(type: String?): BankAccountTokenParams.Type {
-  return when (type) {
+internal fun mapToBankAccountType(type: String?): BankAccountTokenParams.Type =
+  when (type) {
     "Company" -> BankAccountTokenParams.Type.Company
     "Individual" -> BankAccountTokenParams.Type.Individual
     else -> BankAccountTokenParams.Type.Individual
   }
-}
 
-internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String {
-  return when (status) {
+internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String =
+  when (status) {
     BankAccount.Status.Errored -> "Errored"
     BankAccount.Status.New -> "New"
     BankAccount.Status.Validated -> "Validated"
@@ -217,7 +254,6 @@ internal fun mapFromBankAccountStatus(status: BankAccount.Status?): String {
     BankAccount.Status.Verified -> "Verified"
     else -> "Unknown"
   }
-}
 
 internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
   if (bankAccount == null) {
@@ -228,7 +264,10 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
   bankAccountMap.putString("id", bankAccount.id)
   bankAccountMap.putString("bankName", bankAccount.bankName)
   bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
-  bankAccountMap.putString("accountHolderType", mapFromBankAccountType(bankAccount.accountHolderType))
+  bankAccountMap.putString(
+    "accountHolderType",
+    mapFromBankAccountType(bankAccount.accountHolderType),
+  )
   bankAccountMap.putString("currency", bankAccount.currency)
   bankAccountMap.putString("country", bankAccount.countryCode)
   bankAccountMap.putString("routingNumber", bankAccount.routingNumber)
@@ -239,37 +278,33 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
   return bankAccountMap
 }
 
-internal fun mapToUSBankAccountHolderType(type: String?): PaymentMethod.USBankAccount.USBankAccountHolderType {
-  return when (type) {
+internal fun mapToUSBankAccountHolderType(type: String?): PaymentMethod.USBankAccount.USBankAccountHolderType =
+  when (type) {
     "Company" -> PaymentMethod.USBankAccount.USBankAccountHolderType.COMPANY
     "Individual" -> PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL
     else -> PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL
   }
-}
 
-internal fun mapFromUSBankAccountHolderType(type: PaymentMethod.USBankAccount.USBankAccountHolderType?): String {
-  return when (type) {
+internal fun mapFromUSBankAccountHolderType(type: PaymentMethod.USBankAccount.USBankAccountHolderType?): String =
+  when (type) {
     PaymentMethod.USBankAccount.USBankAccountHolderType.COMPANY -> "Company"
     PaymentMethod.USBankAccount.USBankAccountHolderType.INDIVIDUAL -> "Individual"
     else -> "Unknown"
   }
-}
 
-internal fun mapToUSBankAccountType(type: String?): PaymentMethod.USBankAccount.USBankAccountType {
-  return when (type) {
+internal fun mapToUSBankAccountType(type: String?): PaymentMethod.USBankAccount.USBankAccountType =
+  when (type) {
     "Savings" -> PaymentMethod.USBankAccount.USBankAccountType.SAVINGS
     "Checking" -> PaymentMethod.USBankAccount.USBankAccountType.CHECKING
     else -> PaymentMethod.USBankAccount.USBankAccountType.CHECKING
   }
-}
 
-internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAccountType?): String {
-  return when (type) {
+internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAccountType?): String =
+  when (type) {
     PaymentMethod.USBankAccount.USBankAccountType.CHECKING -> "Checking"
     PaymentMethod.USBankAccount.USBankAccountType.SAVINGS -> "Savings"
     else -> "Unknown"
   }
-}
 
 internal fun mapFromCard(card: Card?): WritableMap? {
   val cardMap: WritableMap = WritableNativeMap()
@@ -284,17 +319,9 @@ internal fun mapFromCard(card: Card?): WritableMap? {
   cardMap.putString("brand", mapCardBrand(card.brand))
   cardMap.putString("currency", card.currency)
 
-  (card.expMonth)?.let {
-    cardMap.putInt("expMonth", it)
-  } ?: run {
-    cardMap.putNull("expMonth")
-  }
+  (card.expMonth)?.let { cardMap.putInt("expMonth", it) } ?: run { cardMap.putNull("expMonth") }
 
-  (card.expYear)?.let {
-    cardMap.putInt("expYear", it)
-  } ?: run {
-    cardMap.putNull("expYear")
-  }
+  (card.expYear)?.let { cardMap.putInt("expYear", it) } ?: run { cardMap.putNull("expYear") }
 
   cardMap.putString("id", card.id)
   cardMap.putString("last4", card.last4)
@@ -312,7 +339,6 @@ internal fun mapFromCard(card: Card?): WritableMap? {
 
   return cardMap
 }
-
 
 internal fun mapFromToken(token: Token): WritableMap {
   val tokenMap: WritableMap = WritableNativeMap()
@@ -335,66 +361,102 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   pm.putBoolean("livemode", paymentMethod.liveMode)
   pm.putString("customerId", paymentMethod.customerId)
   pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
-  pm.putMap("Card", WritableNativeMap().also {
-    it.putString("brand", mapCardBrand(paymentMethod.card?.brand))
-    it.putString("country", paymentMethod.card?.country)
-    paymentMethod.card?.expiryYear?.let { year ->
-      it.putInt("expYear", year)
-    }
-    paymentMethod.card?.expiryMonth?.let { month ->
-      it.putInt("expMonth", month)
-    }
-    it.putString("funding", paymentMethod.card?.funding)
-    it.putString("last4", paymentMethod.card?.last4)
-    it.putString("fingerprint", paymentMethod.card?.fingerprint)
-    it.putString("preferredNetwork", paymentMethod.card?.networks?.preferred)
-    it.putArray("availableNetworks", paymentMethod.card?.networks?.available?.toList() as? ReadableArray)
-    it.putMap("threeDSecureUsage", WritableNativeMap().also { threeDSecureUsageMap ->
-      threeDSecureUsageMap.putBoolean("isSupported", paymentMethod.card?.threeDSecureUsage?.isSupported ?: false)
-    })
-  })
-  pm.putMap("SepaDebit", WritableNativeMap().also {
-    it.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
-    it.putString("country", paymentMethod.sepaDebit?.country)
-    it.putString("fingerprint", paymentMethod.sepaDebit?.fingerprint)
-    it.putString("last4", paymentMethod.sepaDebit?.branchCode)
-  })
-  pm.putMap("BacsDebit", WritableNativeMap().also {
-    it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
-    it.putString("last4", paymentMethod.bacsDebit?.last4)
-    it.putString("sortCode", paymentMethod.bacsDebit?.sortCode)
-  })
-  pm.putMap("AuBecsDebit",
+  pm.putMap(
+    "Card",
+    WritableNativeMap().also {
+      it.putString("brand", mapCardBrand(paymentMethod.card?.brand))
+      it.putString("country", paymentMethod.card?.country)
+      paymentMethod.card?.expiryYear?.let { year -> it.putInt("expYear", year) }
+      paymentMethod.card?.expiryMonth?.let { month -> it.putInt("expMonth", month) }
+      it.putString("funding", paymentMethod.card?.funding)
+      it.putString("last4", paymentMethod.card?.last4)
+      it.putString("fingerprint", paymentMethod.card?.fingerprint)
+      it.putString("preferredNetwork", paymentMethod.card?.networks?.preferred)
+      it.putArray(
+        "availableNetworks",
+        paymentMethod.card
+          ?.networks
+          ?.available
+          ?.toList() as? ReadableArray,
+      )
+      it.putMap(
+        "threeDSecureUsage",
+        WritableNativeMap().also { threeDSecureUsageMap ->
+          threeDSecureUsageMap.putBoolean(
+            "isSupported",
+            paymentMethod.card?.threeDSecureUsage?.isSupported ?: false,
+          )
+        },
+      )
+    },
+  )
+  pm.putMap(
+    "SepaDebit",
+    WritableNativeMap().also {
+      it.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
+      it.putString("country", paymentMethod.sepaDebit?.country)
+      it.putString("fingerprint", paymentMethod.sepaDebit?.fingerprint)
+      it.putString("last4", paymentMethod.sepaDebit?.branchCode)
+    },
+  )
+  pm.putMap(
+    "BacsDebit",
+    WritableNativeMap().also {
+      it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
+      it.putString("last4", paymentMethod.bacsDebit?.last4)
+      it.putString("sortCode", paymentMethod.bacsDebit?.sortCode)
+    },
+  )
+  pm.putMap(
+    "AuBecsDebit",
     WritableNativeMap().also {
       it.putString("bsbNumber", paymentMethod.bacsDebit?.sortCode)
       it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
       it.putString("last4", paymentMethod.bacsDebit?.last4)
-    })
-  pm.putMap("Sofort", WritableNativeMap().also {
-    it.putString("country", paymentMethod.sofort?.country)
-  })
-  pm.putMap("Ideal", WritableNativeMap().also {
-    it.putString("bankName", paymentMethod.ideal?.bank)
-    it.putString("bankIdentifierCode", paymentMethod.ideal?.bankIdentifierCode)
-  })
-  pm.putMap("Fpx", WritableNativeMap().also {
-    it.putString("accountHolderType", paymentMethod.fpx?.accountHolderType)
-    it.putString("bank", paymentMethod.fpx?.bank)
-  })
-  pm.putMap("Upi", WritableNativeMap().also {
-    it.putString("vpa", paymentMethod.upi?.vpa)
-  })
-  pm.putMap("USBankAccount", WritableNativeMap().also {
-    it.putString("routingNumber", paymentMethod.usBankAccount?.routingNumber)
-    it.putString("accountType", mapFromUSBankAccountType(paymentMethod.usBankAccount?.accountType))
-    it.putString("accountHolderType", mapFromUSBankAccountHolderType(paymentMethod.usBankAccount?.accountHolderType))
-    it.putString("last4", paymentMethod.usBankAccount?.last4)
-    it.putString("bankName", paymentMethod.usBankAccount?.bankName)
-    it.putString("linkedAccount", paymentMethod.usBankAccount?.linkedAccount)
-    it.putString("fingerprint", paymentMethod.usBankAccount?.fingerprint)
-    it.putString("preferredNetworks", paymentMethod.usBankAccount?.networks?.preferred)
-    it.putArray("supportedNetworks", paymentMethod.usBankAccount?.networks?.supported as? ReadableArray)
-  })
+    },
+  )
+  pm.putMap(
+    "Sofort",
+    WritableNativeMap().also { it.putString("country", paymentMethod.sofort?.country) },
+  )
+  pm.putMap(
+    "Ideal",
+    WritableNativeMap().also {
+      it.putString("bankName", paymentMethod.ideal?.bank)
+      it.putString("bankIdentifierCode", paymentMethod.ideal?.bankIdentifierCode)
+    },
+  )
+  pm.putMap(
+    "Fpx",
+    WritableNativeMap().also {
+      it.putString("accountHolderType", paymentMethod.fpx?.accountHolderType)
+      it.putString("bank", paymentMethod.fpx?.bank)
+    },
+  )
+  pm.putMap("Upi", WritableNativeMap().also { it.putString("vpa", paymentMethod.upi?.vpa) })
+  pm.putMap(
+    "USBankAccount",
+    WritableNativeMap().also {
+      it.putString("routingNumber", paymentMethod.usBankAccount?.routingNumber)
+      it.putString(
+        "accountType",
+        mapFromUSBankAccountType(paymentMethod.usBankAccount?.accountType),
+      )
+      it.putString(
+        "accountHolderType",
+        mapFromUSBankAccountHolderType(paymentMethod.usBankAccount?.accountHolderType),
+      )
+      it.putString("last4", paymentMethod.usBankAccount?.last4)
+      it.putString("bankName", paymentMethod.usBankAccount?.bankName)
+      it.putString("linkedAccount", paymentMethod.usBankAccount?.financialConnectionsAccount)
+      it.putString("fingerprint", paymentMethod.usBankAccount?.fingerprint)
+      it.putString("preferredNetworks", paymentMethod.usBankAccount?.networks?.preferred)
+      it.putArray(
+        "supportedNetworks",
+        paymentMethod.usBankAccount?.networks?.supported as? ReadableArray,
+      )
+    },
+  )
 
   return pm
 }
@@ -405,11 +467,10 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putString("clientSecret", paymentIntent.clientSecret)
   map.putBoolean("livemode", paymentIntent.isLiveMode)
   map.putString("paymentMethodId", paymentIntent.paymentMethodId)
-  map.putMap("paymentMethod", paymentIntent.paymentMethod?.let {
-    mapFromPaymentMethod(it)
-  } ?: run {
-    null
-  })
+  map.putMap(
+    "paymentMethod",
+    paymentIntent.paymentMethod?.let { mapFromPaymentMethod(it) } ?: run { null },
+  )
   map.putString("receiptEmail", paymentIntent.receiptEmail)
   map.putString("currency", paymentIntent.currency)
   map.putString("status", mapIntentStatus(paymentIntent.status))
@@ -418,7 +479,10 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putString("created", convertToUnixTimestamp(paymentIntent.created))
   map.putString("captureMethod", mapCaptureMethod(paymentIntent.captureMethod))
   map.putString("confirmationMethod", mapConfirmationMethod(paymentIntent.confirmationMethod))
-  map.putMap("nextAction", mapNextAction(paymentIntent.nextActionType, paymentIntent.nextActionData))
+  map.putMap(
+    "nextAction",
+    mapNextAction(paymentIntent.nextActionType, paymentIntent.nextActionData),
+  )
   map.putNull("lastPaymentError")
   map.putNull("shipping")
   map.putNull("amount")
@@ -437,28 +501,26 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
     map.putMap("lastPaymentError", paymentError)
   }
 
-  paymentIntent.shipping?.let {
-    map.putMap("shipping", mapIntentShipping(it))
-  }
+  paymentIntent.shipping?.let { map.putMap("shipping", mapIntentShipping(it)) }
 
-  paymentIntent.amount?.let {
-    map.putDouble("amount", it.toDouble())
-  }
+  paymentIntent.amount?.let { map.putDouble("amount", it.toDouble()) }
   map.putString("canceledAt", convertToUnixTimestamp(paymentIntent.canceledAt))
   return map
 }
 
 @SuppressLint("RestrictedApi")
-internal fun mapFromMicrodepositType(type: MicrodepositType): String {
-  return when (type) {
+internal fun mapFromMicrodepositType(type: MicrodepositType): String =
+  when (type) {
     MicrodepositType.AMOUNTS -> "amounts"
     MicrodepositType.DESCRIPTOR_CODE -> "descriptorCode"
     else -> "unknown"
   }
-}
 
 @SuppressLint("RestrictedApi")
-internal fun mapNextAction(type: NextActionType?, data: NextActionData?): WritableNativeMap? {
+internal fun mapNextAction(
+  type: NextActionType?,
+  data: NextActionData?,
+): WritableNativeMap? {
   val nextActionMap = WritableNativeMap()
   when (type) {
     NextActionType.RedirectToUrl -> {
@@ -492,7 +554,12 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
     NextActionType.AlipayRedirect -> { // TODO: Can't access, private
       return null
     }
-    NextActionType.CashAppRedirect, NextActionType.BlikAuthorize, NextActionType.UseStripeSdk, NextActionType.UpiAwaitNotification,  null -> {
+    NextActionType.CashAppRedirect,
+    NextActionType.BlikAuthorize,
+    NextActionType.UseStripeSdk,
+    NextActionType.UpiAwaitNotification,
+    null,
+    -> {
       return null
     }
     NextActionType.DisplayBoletoDetails -> {
@@ -513,12 +580,18 @@ internal fun mapNextAction(type: NextActionType?, data: NextActionData?): Writab
         nextActionMap.putString("mobileAuthUrl", it.mobileAuthUrl)
       }
     }
+    NextActionType.DisplayMultibancoDetails -> {
+      (data as? NextActionData.DisplayMultibancoDetails)?.let {
+        nextActionMap.putString("type", "multibanco")
+        nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
+      }
+    }
   }
   return nextActionMap
 }
 
-internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Type?): String? {
-  return when (errorType) {
+internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Type?): String? =
+  when (errorType) {
     PaymentIntent.Error.Type.ApiConnectionError -> "api_connection_error"
     PaymentIntent.Error.Type.AuthenticationError -> "authentication_error"
     PaymentIntent.Error.Type.ApiError -> "api_error"
@@ -528,10 +601,9 @@ internal fun mapFromPaymentIntentLastErrorType(errorType: PaymentIntent.Error.Ty
     PaymentIntent.Error.Type.RateLimitError -> "rate_limit_error"
     else -> null
   }
-}
 
-internal fun mapFromSetupIntentLastErrorType(errorType: SetupIntent.Error.Type?): String? {
-  return when (errorType) {
+internal fun mapFromSetupIntentLastErrorType(errorType: SetupIntent.Error.Type?): String? =
+  when (errorType) {
     SetupIntent.Error.Type.ApiConnectionError -> "api_connection_error"
     SetupIntent.Error.Type.AuthenticationError -> "authentication_error"
     SetupIntent.Error.Type.ApiError -> "api_error"
@@ -541,15 +613,20 @@ internal fun mapFromSetupIntentLastErrorType(errorType: SetupIntent.Error.Type?)
     SetupIntent.Error.Type.RateLimitError -> "rate_limit_error"
     else -> null
   }
-}
 
-fun getValOr(map: ReadableMap?, key: String, default: String? = ""): String? {
-  return map?.let {
+fun getValOr(
+  map: ReadableMap?,
+  key: String,
+  default: String? = "",
+): String? =
+  map?.let {
     if (it.hasKey(key)) it.getString(key) else default
   } ?: default
-}
 
-internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Address {
+internal fun mapToAddress(
+  addressMap: ReadableMap?,
+  cardAddress: Address?,
+): Address {
   val address = Address.Builder()
 
   addressMap?.let {
@@ -574,12 +651,15 @@ internal fun mapToAddress(addressMap: ReadableMap?, cardAddress: Address?): Addr
   return address.build()
 }
 
-internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Address?): PaymentMethod.BillingDetails? {
+internal fun mapToBillingDetails(
+  billingDetails: ReadableMap?,
+  cardAddress: Address?,
+): PaymentMethod.BillingDetails? {
   if (billingDetails == null && cardAddress == null) {
     return null
   }
   val address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
-  val paymentMethodBillingDetailsBuilder =  PaymentMethod.BillingDetails.Builder()
+  val paymentMethodBillingDetailsBuilder = PaymentMethod.BillingDetails.Builder()
 
   if (billingDetails != null) {
     paymentMethodBillingDetailsBuilder
@@ -592,6 +672,8 @@ internal fun mapToBillingDetails(billingDetails: ReadableMap?, cardAddress: Addr
   return paymentMethodBillingDetailsBuilder.build()
 }
 
+internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? = metadata?.toHashMap()?.mapValues { it.value.toString() }
+
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
   if (shippingDetails == null) {
     return null
@@ -601,29 +683,31 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
-    address = address
+    address = address,
   )
 }
 
-private fun getStringOrNull(map: ReadableMap?, key: String): String? {
-  return if (map?.hasKey(key) == true) map.getString(key) else null
-}
+private fun getStringOrNull(
+  map: ReadableMap?,
+  key: String,
+): String? = if (map?.hasKey(key) == true) map.getString(key) else null
 
-fun getIntOrNull(map: ReadableMap?, key: String): Int? {
-  return if (map?.hasKey(key) == true) map.getInt(key) else null
-}
+fun getIntOrNull(
+  map: ReadableMap?,
+  key: String,
+): Int? = if (map?.hasKey(key) == true) map.getInt(key) else null
 
-fun getMapOrNull(map: ReadableMap?, key: String): ReadableMap? {
-  return if (map?.hasKey(key) == true) map.getMap(key) else null
-}
+fun getMapOrNull(
+  map: ReadableMap?,
+  key: String,
+): ReadableMap? = if (map?.hasKey(key) == true) map.getMap(key) else null
 
-fun getBooleanOrFalse(map: ReadableMap?, key: String): Boolean {
-  return if (map?.hasKey(key) == true) map.getBoolean(key) else false
-}
+fun getBooleanOrFalse(
+  map: ReadableMap?,
+  key: String,
+): Boolean = if (map?.hasKey(key) == true) map.getBoolean(key) else false
 
-private fun convertToUnixTimestamp(timestamp: Long): String {
-  return (timestamp * 1000).toString()
-}
+private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
   val labelCustomization = getMapOrNull(params, "label")
@@ -645,35 +729,35 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   val continueButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
   val resendButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
 
-  getStringOrNull(labelCustomization,"headingTextColor")?.let {
+  getStringOrNull(labelCustomization, "headingTextColor")?.let {
     labelCustomizationBuilder.setHeadingTextColor(it)
   }
-  getStringOrNull(labelCustomization,"textColor")?.let {
+  getStringOrNull(labelCustomization, "textColor")?.let {
     labelCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(labelCustomization,"headingFontSize")?.let {
+  getIntOrNull(labelCustomization, "headingFontSize")?.let {
     labelCustomizationBuilder.setHeadingTextFontSize(it)
   }
-  getIntOrNull(labelCustomization,"textFontSize")?.let {
+  getIntOrNull(labelCustomization, "textFontSize")?.let {
     labelCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(navigationBarCustomization,"headerText")?.let {
+  getStringOrNull(navigationBarCustomization, "headerText")?.let {
     toolbarCustomizationBuilder.setHeaderText(it)
   }
-  getStringOrNull(navigationBarCustomization,"buttonText")?.let {
+  getStringOrNull(navigationBarCustomization, "buttonText")?.let {
     toolbarCustomizationBuilder.setButtonText(it)
   }
-  getStringOrNull(navigationBarCustomization,"textColor")?.let {
+  getStringOrNull(navigationBarCustomization, "textColor")?.let {
     toolbarCustomizationBuilder.setTextColor(it)
   }
-  getStringOrNull(navigationBarCustomization,"statusBarColor")?.let {
+  getStringOrNull(navigationBarCustomization, "statusBarColor")?.let {
     toolbarCustomizationBuilder.setStatusBarColor(it)
   }
-  getStringOrNull(navigationBarCustomization,"backgroundColor")?.let {
+  getStringOrNull(navigationBarCustomization, "backgroundColor")?.let {
     toolbarCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(navigationBarCustomization,"textFontSize")?.let {
+  getIntOrNull(navigationBarCustomization, "textFontSize")?.let {
     toolbarCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -763,39 +847,29 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
     resendButtonCustomizationBuilder.setTextFontSize(it)
   }
 
+  val uiCustomization =
+    PaymentAuthConfig.Stripe3ds2UiCustomization
+      .Builder()
+      .setLabelCustomization(labelCustomizationBuilder.build())
+      .setToolbarCustomization(toolbarCustomizationBuilder.build())
+      .setButtonCustomization(
+        submitButtonCustomizationBuilder.build(),
+        PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SUBMIT,
+      ).setButtonCustomization(
+        continueButtonCustomizationBuilder.build(),
+        PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CONTINUE,
+      ).setButtonCustomization(
+        nextButtonCustomizationBuilder.build(),
+        PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SELECT,
+      ).setButtonCustomization(
+        cancelButtonCustomizationBuilder.build(),
+        PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CANCEL,
+      ).setButtonCustomization(
+        resendButtonCustomizationBuilder.build(),
+        PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.RESEND,
+      )
 
-
-  val uiCustomization = PaymentAuthConfig.Stripe3ds2UiCustomization.Builder()
-    .setLabelCustomization(
-      labelCustomizationBuilder.build()
-    )
-    .setToolbarCustomization(
-      toolbarCustomizationBuilder.build()
-    )
-    .setButtonCustomization(
-      submitButtonCustomizationBuilder.build(),
-      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SUBMIT
-    )
-    .setButtonCustomization(
-      continueButtonCustomizationBuilder.build(),
-      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CONTINUE
-    )
-    .setButtonCustomization(
-      nextButtonCustomizationBuilder.build(),
-      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.SELECT
-    )
-    .setButtonCustomization(
-      cancelButtonCustomizationBuilder.build(),
-      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.CANCEL
-    )
-    .setButtonCustomization(
-      resendButtonCustomizationBuilder.build(),
-      PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.RESEND
-    )
-
-  getStringOrNull(params, "accentColor")?.let {
-    uiCustomization.setAccentColor(it)
-  }
+  getStringOrNull(params, "accentColor")?.let { uiCustomization.setAccentColor(it) }
 
   return uiCustomization.build()
 }
@@ -809,11 +883,10 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putBoolean("livemode", setupIntent.isLiveMode)
   map.putString("clientSecret", setupIntent.clientSecret)
   map.putString("paymentMethodId", setupIntent.paymentMethodId)
-  map.putMap("paymentMethod", setupIntent.paymentMethod?.let {
-    mapFromPaymentMethod(it)
-  } ?: run {
-    null
-  })
+  map.putMap(
+    "paymentMethod",
+    setupIntent.paymentMethod?.let { mapFromPaymentMethod(it) } ?: run { null },
+  )
   map.putString("usage", mapSetupIntentUsage(setupIntent.usage))
   map.putString("created", convertToUnixTimestamp(setupIntent.created))
   map.putMap("nextAction", mapNextAction(setupIntent.nextActionType, setupIntent.nextActionData))
@@ -841,22 +914,20 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   return map
 }
 
-internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String {
-  return when (type) {
+internal fun mapSetupIntentUsage(type: StripeIntent.Usage?): String =
+  when (type) {
     StripeIntent.Usage.OffSession -> "OffSession"
     StripeIntent.Usage.OnSession -> "OnSession"
     StripeIntent.Usage.OneTime -> "OneTime"
     else -> "Unknown"
   }
-}
 
-fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.SetupFutureUsage? {
-  return when (type) {
-    "OffSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OffSession
-    "OnSession" ->  ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
-    else ->  null
+fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.SetupFutureUsage? =
+  when (type) {
+    "OffSession" -> ConfirmPaymentIntentParams.SetupFutureUsage.OffSession
+    "OnSession" -> ConfirmPaymentIntentParams.SetupFutureUsage.OnSession
+    else -> null
   }
-}
 
 fun toBundleObject(readableMap: ReadableMap?): Bundle {
   val result = Bundle()
@@ -869,17 +940,18 @@ fun toBundleObject(readableMap: ReadableMap?): Bundle {
     when (readableMap.getType(key)) {
       ReadableType.Null -> result.putString(key, null)
       ReadableType.Boolean -> result.putBoolean(key, readableMap.getBoolean(key))
-      ReadableType.Number -> try {
-        val numAsInt = readableMap.getInt(key)
-        val numAsDouble = readableMap.getDouble(key)
-        if (numAsDouble - numAsInt != 0.0) {
-          result.putDouble(key, numAsDouble)
-        } else {
-          result.putInt(key, numAsInt)
+      ReadableType.Number ->
+        try {
+          val numAsInt = readableMap.getInt(key)
+          val numAsDouble = readableMap.getDouble(key)
+          if (numAsDouble - numAsInt != 0.0) {
+            result.putDouble(key, numAsDouble)
+          } else {
+            result.putInt(key, numAsInt)
+          }
+        } catch (e: Exception) {
+          Log.e("toBundleException", "Failed to add number to bundle. Failed on: $key.")
         }
-      } catch (e: Exception) {
-        Log.e("toBundleException", "Failed to add number to bundle. Failed on: $key.")
-      }
       ReadableType.String -> result.putString(key, readableMap.getString(key))
       ReadableType.Map -> result.putBundle(key, toBundleObject(readableMap.getMap(key)))
       ReadableType.Array -> {
@@ -892,7 +964,11 @@ fun toBundleObject(readableMap: ReadableMap?): Bundle {
           when (list.first()) {
             is String -> result.putStringArrayList(key, list as java.util.ArrayList<String>)
             is Int -> result.putIntegerArrayList(key, list as java.util.ArrayList<Int>)
-            else -> Log.e("toBundleException", "Cannot put arrays of objects into bundles. Failed on: $key.")
+            else ->
+              Log.e(
+                "toBundleException",
+                "Cannot put arrays of objects into bundles. Failed on: $key.",
+              )
           }
         }
       }
@@ -909,11 +985,8 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   googlePayResult.name
   name.putString("givenName", googlePayResult.shippingInformation?.name)
   map.putMap("name", name)
-  googlePayResult.shippingInformation?.phone?.let {
-    map.putString("phoneNumber", it)
-  } ?: run {
-    map.putString("phoneNumber", googlePayResult.phoneNumber)
-  }
+  googlePayResult.shippingInformation?.phone?.let { map.putString("phoneNumber", it) }
+    ?: run { map.putString("phoneNumber", googlePayResult.phoneNumber) }
   val postalAddress = WritableNativeMap()
   postalAddress.putString("city", googlePayResult.shippingInformation?.address?.city)
   postalAddress.putString("country", googlePayResult.shippingInformation?.address?.country)
@@ -921,9 +994,7 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   postalAddress.putString("state", googlePayResult.shippingInformation?.address?.state)
   val line1: String? = googlePayResult.shippingInformation?.address?.line1
   val line2: String? = googlePayResult.shippingInformation?.address?.line2
-  val street =
-    (if (line1 != null) "$line1" else "") +
-    (if (line2 != null) "\n$line2" else "")
+  val street = (if (line1 != null) "$line1" else "") + (if (line2 != null) "\n$line2" else "")
   postalAddress.putString("street", street)
   postalAddress.putString("isoCountryCode", googlePayResult.shippingInformation?.address?.country)
   map.putMap("postalAddress", postalAddress)
@@ -935,19 +1006,62 @@ internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardB
     return emptyList()
   }
 
-  val intToCardBrand = mapOf(
-    0 to CardBrand.JCB,
-    1 to CardBrand.AmericanExpress,
-    2 to CardBrand.CartesBancaires,
-    3 to CardBrand.DinersClub,
-    4 to CardBrand.Discover,
-    5 to CardBrand.MasterCard,
-    6 to CardBrand.UnionPay,
-    7 to CardBrand.Visa,
-    8 to CardBrand.Unknown,
-  )
+  val intToCardBrand =
+    mapOf(
+      0 to CardBrand.JCB,
+      1 to CardBrand.AmericanExpress,
+      2 to CardBrand.CartesBancaires,
+      3 to CardBrand.DinersClub,
+      4 to CardBrand.Discover,
+      5 to CardBrand.MasterCard,
+      6 to CardBrand.UnionPay,
+      7 to CardBrand.Visa,
+      8 to CardBrand.Unknown,
+    )
 
-  return networksAsInts.mapNotNull {
-    intToCardBrand[it]
+  return networksAsInts.mapNotNull { intToCardBrand[it] }
+}
+
+internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent): WritableMap =
+  Arguments.createMap().apply {
+    putString("name", event.name.value)
+    putMap("metadata", event.metadata.toMap().toReadableMap())
   }
+
+private fun List<Any?>.toWritableArray(): WritableArray {
+  val writableArray = Arguments.createArray()
+
+  forEach { value ->
+    when (value) {
+      null -> writableArray.pushNull()
+      is Boolean -> writableArray.pushBoolean(value)
+      is Int -> writableArray.pushInt(value)
+      is Double -> writableArray.pushDouble(value)
+      is String -> writableArray.pushString(value)
+      is Map<*, *> -> writableArray.pushMap((value as Map<String, Any?>).toReadableMap())
+      is List<*> -> writableArray.pushArray((value as List<Any?>).toWritableArray())
+      else -> writableArray.pushString(value.toString())
+    }
+  }
+
+  return writableArray
+}
+
+private fun Map<String, Any?>.toReadableMap(): ReadableMap {
+  val writableMap = Arguments.createMap()
+
+  forEach { (key, value) ->
+    when (value) {
+      null -> writableMap.putNull(key)
+      is Boolean -> writableMap.putBoolean(key, value)
+      is Int -> writableMap.putInt(key, value)
+      is Double -> writableMap.putDouble(key, value)
+      is String -> writableMap.putString(key, value)
+      is Map<*, *> -> writableMap.putMap(key, (value as Map<String, Any?>).toReadableMap())
+      is List<*> -> writableMap.putArray(key, (value as List<Any?>).toWritableArray())
+      else -> writableMap.putString(key, value.toString())
+    }
+  }
+
+  return writableMap
 }

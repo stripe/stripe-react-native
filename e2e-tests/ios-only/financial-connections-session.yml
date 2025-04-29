@@ -8,21 +8,31 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect session"
     retryTapIfNoChange: false
-- tapOn: "Enter account details manually instead"
-- tapOn: "123456789"
-- inputText: "110000000"
-- tapOn: "Enter bank account details"
+- assertVisible:
+    text: "Agree and continue"
+- tapOn: "Agree and continue"
+- assertVisible:
+    text: "Test Institution"
+- tapOn: "Test Institution"
+- extendedWaitUntil:
+    # wait for the auth flow to finish
+    visible: "Select account"
+    timeout: 60000
+- assertVisible:
+    text: "Connect account"
+- tapOn: "Connect account"
 - tapOn:
-    text: "000123456789"
-    index: 0
-- inputText: "000123456789"
-- tapOn: "Enter bank account details"
-- tapOn:
-    text: "000123456789"
-    index: 1
-- inputText: "000123456789"
-- tapOn: "Please enter a checking account."
-- tapOn: "Continue"
+    # Hide the keyboard if it shows up
+    text: "Done"
+    optional: true
+- assertVisible:
+    text: "Not now"
+- tapOn: "Not now"
+- assertVisible:
+    text: "Done"
+- tapOn: "Done"
 - assertVisible:
     text: "Success"
-- tapOn: "OK"
+- tapOn:
+    text: "OK"
+    optional: true

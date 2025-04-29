@@ -38,3 +38,6 @@ export enum CardBrand {
   Visa = 7,
   Unknown = 8,
 }
+
+/** Theme options for colors used in our UI. */
+export type UserInterfaceStyle = 'alwaysLight' | 'alwaysDark' | 'automatic';

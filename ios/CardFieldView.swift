@@ -2,43 +2,50 @@ import Foundation
 import UIKit
 import Stripe
 
-class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
-    @objc var onCardChange: RCTDirectEventBlock?
-    @objc var onFocusChange: RCTDirectEventBlock?
-    @objc var dangerouslyGetFullCardDetails: Bool = false
-    
+@objc(CardFieldView)
+public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
+    @objc public var onCardChange: RCTDirectEventBlock?
+    @objc public var onFocusChange: RCTDirectEventBlock?
+    @objc public var dangerouslyGetFullCardDetails: Bool = false
+
     private var cardField = STPPaymentCardTextField()
-    
+
     public var cardParams: STPPaymentMethodParams? = nil
     public var cardPostalCode: String? = nil
 
-    @objc var disabled: Bool = false {
+    @objc public var disabled: Bool = false {
         didSet {
             cardField.isUserInteractionEnabled = !disabled
         }
     }
-    
-    @objc var postalCodeEnabled: Bool = true {
+
+    @objc public var postalCodeEnabled: Bool = true {
         didSet {
             cardField.postalCodeEntryEnabled = postalCodeEnabled
         }
     }
-    
-    @objc var countryCode: String? {
+
+    @objc public var countryCode: String? {
         didSet {
             cardField.countryCode = countryCode
         }
     }
-    
-    @objc var preferredNetworks: Array<Int>? {
+
+    @objc public var onBehalfOf: String? {
+        didSet {
+            cardField.onBehalfOf = onBehalfOf
+        }
+    }
+
+    @objc public var preferredNetworks: Array<Int>? {
         didSet {
             if let preferredNetworks = preferredNetworks {
                 cardField.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
             }
         }
     }
-    
-    @objc var placeholders: NSDictionary = NSDictionary() {
+
+    @objc public var placeholders: NSDictionary = NSDictionary() {
         didSet {
             if let numberPlaceholder = placeholders["number"] as? String {
                 cardField.numberPlaceholder = numberPlaceholder
@@ -56,16 +63,16 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
-    @objc var autofocus: Bool = false {
+
+    @objc public var autofocus: Bool = false {
         didSet {
             if autofocus == true {
                 cardField.reactFocus()
             }
         }
     }
-    
-    @objc var cardStyle: NSDictionary = NSDictionary() {
+
+    @objc public var cardStyle: NSDictionary = NSDictionary() {
         didSet {
             if let borderWidth = cardStyle["borderWidth"] as? Int {
                 cardField.borderWidth = CGFloat(borderWidth)
@@ -91,7 +98,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 cardField.textErrorColor = UIColor(hexString: textErrorColor)
             }
             let fontSize = cardStyle["fontSize"] as? Int ?? 14
-            
+
             if let fontFamily = cardStyle["fontFamily"] as? String {
                 cardField.font = UIFont(name: fontFamily, size: CGFloat(fontSize)) ?? UIFont.systemFont(ofSize: CGFloat(fontSize))
             } else {
@@ -104,47 +111,49 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             }
         }
     }
-    
-    override init(frame: CGRect) {
+
+    override public init(frame: CGRect) {
         super.init(frame: frame)
         cardField.delegate = self
-        
+
         self.addSubview(cardField)
+
+        StripeSdkImpl.shared.cardFieldView = self
     }
-    
-    func focus() {
+
+    @objc public func focus() {
         cardField.becomeFirstResponder()
     }
-    
-    func blur() {
+
+    @objc public func blur() {
         cardField.resignFirstResponder()
     }
-    
-    func clear() {
+
+    @objc public func clear() {
         cardField.clear()
     }
-    
-    func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
-        onFocusChange?(["focusedField": NSNull()])
+
+    public func paymentCardTextFieldDidEndEditing(_ textField: STPPaymentCardTextField) {
+        onFocusChange?(["focusedField": ""])
     }
-    
-    func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
+
+    public func paymentCardTextFieldDidBeginEditingNumber(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "CardNumber"])
     }
-    
-    func paymentCardTextFieldDidBeginEditingCVC(_ textField: STPPaymentCardTextField) {
+
+    public func paymentCardTextFieldDidBeginEditingCVC(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "Cvc"])
     }
-    
-    func paymentCardTextFieldDidBeginEditingExpiration(_ textField: STPPaymentCardTextField) {
+
+    public func paymentCardTextFieldDidBeginEditingExpiration(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "ExpiryDate"])
     }
-    
-    func paymentCardTextFieldDidBeginEditingPostalCode(_ textField: STPPaymentCardTextField) {
+
+    public func paymentCardTextFieldDidBeginEditingPostalCode(_ textField: STPPaymentCardTextField) {
         onFocusChange?(["focusedField": "PostalCode"])
     }
-    
-    func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
+
+    public func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
         if onCardChange != nil {
             let brand = STPCardValidator.brand(forNumber: textField.cardNumber ?? "")
             let validExpiryDate = STPCardValidator.validationState(
@@ -170,7 +179,7 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 cardData["number"] = textField.cardNumber ?? ""
                 cardData["cvc"] = textField.cvc ?? ""
             }
-            onCardChange!(cardData as [AnyHashable : Any])
+            onCardChange!(["card": cardData as [AnyHashable : Any]])
         }
         if (textField.isValid) {
             self.cardParams = textField.paymentMethodParams
@@ -180,29 +189,12 @@ class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
             self.cardPostalCode = nil
         }
     }
-    
-    override func layoutSubviews() {
+
+    override public func layoutSubviews() {
         cardField.frame = self.bounds
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func paymentContext(_ paymentContext: STPPaymentContext, didFailToLoadWithError error: Error) {
-        //
-    }
-    
-    func paymentContextDidChange(_ paymentContext: STPPaymentContext) {
-        //
-    }
-    
-    func paymentContext(_ paymentContext: STPPaymentContext, didCreatePaymentResult paymentResult: STPPaymentResult, completion: @escaping STPPaymentStatusBlock) {
-        //
-    }
-    
-    func paymentContext(_ paymentContext: STPPaymentContext, didFinishWith status: STPPaymentStatus, error: Error?) {
-        //
-    }
-    
 }

@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.view.MotionEvent
@@ -8,7 +9,10 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import com.facebook.react.uimanager.ThemedReactContext
 
-class StripeContainerView(private val context: ThemedReactContext) : FrameLayout(context) {
+@SuppressLint("ViewConstructor")
+class StripeContainerView(
+  private val context: ThemedReactContext,
+) : FrameLayout(context) {
   private var keyboardShouldPersistTapsValue: Boolean = true
 
   init {

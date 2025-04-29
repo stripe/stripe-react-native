@@ -16,30 +16,35 @@ class GooglePayPaymentMethodLauncherFragment(
   private val context: ReactApplicationContext,
   private val isTestEnv: Boolean,
   private val paymentMethodRequired: Boolean,
-  private val promise: Promise
-  ) : Fragment() {
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                            savedInstanceState: Bundle?): View {
-    return FrameLayout(requireActivity()).also {
-      it.visibility = View.GONE
-    }
-  }
+  private val promise: Promise,
+) : Fragment() {
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+  override fun onViewCreated(
+    view: View,
+    savedInstanceState: Bundle?,
+  ) {
     super.onViewCreated(view, savedInstanceState)
     GooglePayPaymentMethodLauncher(
       this,
-      config = GooglePayPaymentMethodLauncher.Config(
-        environment = if (isTestEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
-        existingPaymentMethodRequired = paymentMethodRequired,
-        merchantCountryCode = "", // Unnecessary since all we are checking for is Google Pay availability
-        merchantName = "",        // Same as above
-      ),
+      config =
+        GooglePayPaymentMethodLauncher.Config(
+          environment =
+            if (isTestEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
+          existingPaymentMethodRequired = paymentMethodRequired,
+          merchantCountryCode =
+            "", // Unnecessary since all we are checking for is Google Pay availability
+          merchantName = "", // Same as above
+        ),
       readyCallback = {
         promise.resolve(it)
         removeFragment(context)
       },
-      resultCallback = {}
+      resultCallback = {},
     )
   }
 

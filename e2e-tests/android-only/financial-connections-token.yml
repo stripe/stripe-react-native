@@ -1,0 +1,28 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Financial Connections"
+- tapOn: "Collect Bank Account"
+- assertVisible:
+    text: "Collect token"
+- tapOn:
+    text: "Collect token"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Manually verify instead"
+- tapOn: "Manually verify instead"
+- assertVisible:
+    text: "Use test account"
+- tapOn: "Use test account"
+- assertVisible:
+    text: "Not now"
+- tapOn: "Not now"
+- assertVisible:
+    id: "done_button"
+- tapOn:
+    id: "done_button"
+- assertVisible:
+    text: "Success"
+- tapOn:
+    text: "OK"
+    optional: true

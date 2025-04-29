@@ -3,41 +3,40 @@ package com.reactnativestripesdk
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class CardFormCompleteEvent constructor(viewTag: Int, private val cardDetails: MutableMap<String, Any>?, private val complete: Boolean, private val dangerouslyGetFullCardDetails: Boolean) : Event<CardChangedEvent>(viewTag) {
-  override fun getEventName(): String {
-    return EVENT_NAME
-  }
+internal class CardFormCompleteEvent(
+  surfaceId: Int,
+  viewTag: Int,
+  private val cardDetails: MutableMap<String, Any>?,
+  private val complete: Boolean,
+  private val dangerouslyGetFullCardDetails: Boolean,
+) : Event<CardChangeEvent>(surfaceId, viewTag) {
+  override fun getEventName() = EVENT_NAME
 
-  override fun dispatch(rctEventEmitter: RCTEventEmitter) {
-    rctEventEmitter.receiveEvent(viewTag, eventName, serializeEventData())
-  }
+  override fun getEventData(): WritableMap? {
+    val cardData = Arguments.createMap()
 
-  private fun serializeEventData(): WritableMap {
-    val eventData = Arguments.createMap()
+    if (cardDetails != null) {
+      cardData.putString("brand", cardDetails["brand"]?.toString())
+      cardData.putString("last4", cardDetails["last4"]?.toString())
+      cardData.putString("country", cardDetails["country"]?.toString())
+      cardData.putInt("expiryMonth", cardDetails["expiryMonth"] as Int)
+      cardData.putInt("expiryYear", cardDetails["expiryYear"] as Int)
+      cardData.putBoolean("complete", complete)
+      cardData.putString("postalCode", cardDetails["postalCode"]?.toString())
 
-    if (cardDetails == null) {
-      return eventData
-    }
-    eventData.putString("brand", cardDetails["brand"]?.toString())
-    eventData.putString("last4", cardDetails["last4"]?.toString())
-    eventData.putString("country", cardDetails["country"]?.toString())
-    eventData.putInt("expiryMonth", cardDetails["expiryMonth"] as Int)
-    eventData.putInt("expiryYear", cardDetails["expiryYear"] as Int)
-    eventData.putBoolean("complete", complete)
-    eventData.putString("postalCode", cardDetails["postalCode"]?.toString())
-
-    if (dangerouslyGetFullCardDetails) {
-      eventData.putString("number", cardDetails["number"]?.toString()?.replace(" ", ""))
-      eventData.putString("cvc", cardDetails["cvc"]?.toString())
+      if (dangerouslyGetFullCardDetails) {
+        cardData.putString("number", cardDetails["number"]?.toString()?.replace(" ", ""))
+        cardData.putString("cvc", cardDetails["cvc"]?.toString())
+      }
     }
 
-    return eventData
+    return Arguments.createMap().apply {
+      putMap("card", cardData)
+    }
   }
 
   companion object {
-    const val EVENT_NAME = "onFormComplete"
+    const val EVENT_NAME = "topFormComplete"
   }
-
 }

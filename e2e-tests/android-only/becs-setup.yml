@@ -1,0 +1,39 @@
+appId: ${APP_ID}
+---
+# TODO: Re-enable on iOS once we can enter 000-000 as the test bank.
+# Currently, 000-000 isn't recognized since the app is built in release mode.
+- launchApp
+- tapOn: "Bank Debits"
+- tapOn: "BECS Direct Debit set up"
+- tapOn:
+    text: "Name"
+    optional: true
+- tapOn:
+    text: "Full name"
+    optional: true
+- inputText: "stripe"
+- tapOn:
+    text: "Email Address"
+    optional: true
+- tapOn:
+    text: "Email"
+    index: 1
+    optional: true
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "BSB"
+- inputText: "000000"
+- tapOn:
+    text: "Account number"
+- inputText: "000123456"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Save"
+    direction: DOWN
+- tapOn:
+    text: "Save"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
