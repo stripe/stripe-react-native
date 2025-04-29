@@ -187,6 +187,14 @@ class EmbeddedPaymentElementViewManager :
     val intentConfig = PaymentSheetFragment.buildIntentConfiguration(toBundleObject(map))
     return intentConfig ?: throw IllegalArgumentException("IntentConfiguration is null")
   }
+
+  override fun confirm(view: EmbeddedPaymentElementView) {
+    view.confirm()
+  }
+
+  override fun clearPaymentOption(view: EmbeddedPaymentElementView) {
+    view.clearPaymentOption()
+  }
 }
 
 /**

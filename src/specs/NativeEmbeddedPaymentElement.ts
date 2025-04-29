@@ -7,6 +7,7 @@ import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNati
 import { EmbeddedPaymentElementConfiguration } from '../types/EmbeddedPaymentElement';
 import { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeMixed } from './utils';
+import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 
 type OnEmbeddedPaymentElementDidUpdateHeightEvent = Readonly<{
   height: Double;
@@ -17,6 +18,17 @@ export interface NativeProps extends ViewProps {
   intentConfiguration: UnsafeMixed<IntentConfiguration>;
   onEmbeddedPaymentElementDidUpdateHeight?: DirectEventHandler<OnEmbeddedPaymentElementDidUpdateHeightEvent>;
 }
+
+export interface NativeCommands {
+  confirm: (viewRef: React.ElementRef<HostComponent<NativeProps>>) => void;
+  clearPaymentOption: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>
+  ) => void;
+}
+
+export const Commands: NativeCommands = codegenNativeCommands<NativeCommands>({
+  supportedCommands: ['confirm', 'clearPaymentOption'],
+});
 
 type ComponentType = HostComponent<NativeProps>;
 

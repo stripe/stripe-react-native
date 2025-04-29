@@ -16,4 +16,6 @@ import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 public interface EmbeddedPaymentElementViewManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
   void setConfiguration(T view, Dynamic value);
   void setIntentConfiguration(T view, Dynamic value);
+  void confirm(T view);
+  void clearPaymentOption(T view);
 }
