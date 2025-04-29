@@ -8,16 +8,12 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.common.annotations.UnstableReactNativeAPI
-import com.facebook.react.fabric.FabricUIManager
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.customersheet.CustomerSheetFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
@@ -1252,7 +1248,7 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag.toInt(), promise) { confirm() }
+    // noop, iOS only
   }
 
   @ReactMethod
@@ -1268,7 +1264,7 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag.toInt(), promise) { clearPaymentOption() }
+    // noop, iOS only
   }
 
   override fun handleURLCallback(
@@ -1303,36 +1299,6 @@ class StripeSdkModule(
     promise: Promise?,
   ) {
     // noop, iOS only.
-  }
-
-  @OptIn(UnstableReactNativeAPI::class)
-  private fun performOnEmbeddedView(
-    viewTag: Int,
-    promise: Promise,
-    action: EmbeddedPaymentElementView.() -> Unit,
-  ) {
-    val uiManager =
-      UIManagerHelper
-        .getUIManagerForReactTag(
-          reactApplicationContext as ReactContext,
-          viewTag,
-        ) as? FabricUIManager
-        ?: return promise.reject("E_UI_MANAGER", "UIManager not available")
-
-    val block =
-      com.facebook.react.fabric.interop.UIBlock { resolver ->
-        (resolver.resolveView(viewTag) as? EmbeddedPaymentElementView)
-          ?.apply {
-            action()
-            promise.resolve(null)
-          }
-          ?: promise.reject(
-            "E_INVALID_VIEW",
-            "Expected EmbeddedPaymentElementView, got ${resolver.resolveView(viewTag)?.javaClass?.simpleName}",
-          )
-      }
-
-    uiManager.addUIBlock(block)
   }
 
   /**

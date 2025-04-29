@@ -4,6 +4,7 @@ import {
   Platform,
   findNodeHandle,
   EventSubscription,
+  HostComponent,
 } from 'react-native';
 import type {
   BillingDetails,
@@ -25,7 +26,10 @@ import {
 
 import React from 'react';
 import { addListener } from '../events';
-import NativeEmbeddedPaymentElement from '../specs/NativeEmbeddedPaymentElement';
+import NativeEmbeddedPaymentElement, {
+  Commands,
+  NativeProps,
+} from '../specs/NativeEmbeddedPaymentElement';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -304,7 +308,7 @@ export function useEmbeddedPaymentElement(
   const [paymentOption, setPaymentOption] =
     useState<PaymentOptionDisplayData | null>(null);
   const [height, setHeight] = useState<number | undefined>();
-  const viewRef = useRef<any>(null);
+  const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
 
   function getElementOrThrow(ref: {
@@ -330,13 +334,22 @@ export function useEmbeddedPaymentElement(
       elementRef.current = el;
       setElement(el);
     })();
+    const getCurrentRef = () => viewRef.current;
+
     return () => {
       active = false;
       elementRef.current?.clearPaymentOption();
       elementRef.current = null;
+
+      const currentRef = getCurrentRef();
+
+      if (isAndroid && currentRef) {
+        Commands.clearPaymentOption(currentRef);
+      }
+
       setElement(null);
     };
-  }, [intentConfig, configuration]);
+  }, [intentConfig, configuration, viewRef, isAndroid]);
 
   useEffect(() => {
     const sub = addListener(
@@ -378,7 +391,7 @@ export function useEmbeddedPaymentElement(
       return (
         <NativeEmbeddedPaymentElement
           ref={viewRef}
-          style={[{ width: '100%', height: height }]}
+          style={[{ width: '100%', height: '100%' }]}
           configuration={configuration}
           intentConfiguration={intentConfig}
         />
@@ -397,26 +410,28 @@ export function useEmbeddedPaymentElement(
 
   // Other APIs
   const confirm = useCallback((): Promise<EmbeddedPaymentElementResult> => {
+    const currentRef = viewRef.current;
+
     if (isAndroid) {
-      const tag = findNodeHandle(viewRef.current);
-      if (tag == null) {
-        return Promise.reject(new Error('Could not find Android view handle'));
+      if (currentRef) {
+        const promise = new Promise<EmbeddedPaymentElementResult>((resolve) => {
+          const sub = addListener(
+            'embeddedPaymentElementFormSheetConfirmComplete',
+            (result: EmbeddedPaymentElementResult) => {
+              sub.remove();
+              resolve(result);
+            }
+          );
+        });
+
+        Commands.confirm(currentRef);
+
+        return promise;
+      } else {
+        return Promise.reject(
+          new Error('Unable to find Android embedded payment element view!')
+        );
       }
-      // 1) Call into the native module
-      return NativeStripeSdkModule.confirmEmbeddedPaymentElement(tag).then(
-        () => {
-          // 2) Wait for the event
-          return new Promise<EmbeddedPaymentElementResult>((resolve) => {
-            const sub = addListener(
-              'embeddedPaymentElementFormSheetConfirmComplete',
-              (result: EmbeddedPaymentElementResult) => {
-                sub.remove();
-                resolve(result);
-              }
-            );
-          });
-        }
-      );
     }
 
     // iOS: just proxy to the native hook
