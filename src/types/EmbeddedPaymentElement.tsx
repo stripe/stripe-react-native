@@ -391,7 +391,7 @@ export function useEmbeddedPaymentElement(
       return (
         <NativeEmbeddedPaymentElement
           ref={viewRef}
-          style={[{ width: '100%', height: '100%' }]}
+          style={[{ width: '100%', height: height }]}
           configuration={configuration}
           intentConfiguration={intentConfig}
         />
