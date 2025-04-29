@@ -1,7 +1,8 @@
 # CHANGELOG
-## Unreleased
+## 0.45.0 - 2025-04-29
 
 ** Features **
+- Support for the New Architecture in React Native v0.68 or later.
 - Ability to update saved cards when using CustomerSessions (private preview)
 
 **Fixes**
