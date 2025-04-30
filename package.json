@@ -153,6 +153,7 @@
         "AuBECSDebitForm": "AuBECSDebitFormComponentView",
         "CardField": "CardFieldComponentView",
         "CardForm": "CardFormComponentView",
+        "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }
     },
