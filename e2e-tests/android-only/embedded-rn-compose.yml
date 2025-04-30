@@ -12,5 +12,5 @@ appId: ${APP_ID}
 - assertVisible: 'Card'
 - tapOn: 'Open modal'
 - assertVisible: 'Card'
-- tapOn: 'Close modal'
+- back
 - assertVisible: 'Card'
