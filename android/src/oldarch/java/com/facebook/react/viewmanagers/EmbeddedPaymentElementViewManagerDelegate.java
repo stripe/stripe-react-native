@@ -12,6 +12,7 @@ package com.facebook.react.viewmanagers;
 import android.view.View;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.DynamicFromObject;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.uimanager.BaseViewManager;
 import com.facebook.react.uimanager.BaseViewManagerDelegate;
 import com.facebook.react.uimanager.LayoutShadowNode;
@@ -31,6 +32,18 @@ public class EmbeddedPaymentElementViewManagerDelegate<T extends View, U extends
         break;
       default:
         super.setProperty(view, propName, value);
+    }
+  }
+
+  @Override
+  public void receiveCommand(T view, String commandName, @Nullable ReadableArray args) {
+    switch (commandName) {
+      case "confirm":
+        mViewManager.confirm(view);
+        break;
+      case "clearPaymentOption":
+        mViewManager.clearPaymentOption(view);
+        break;
     }
   }
 }

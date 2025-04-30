@@ -11,13 +11,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.fragment.app.Fragment
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -30,6 +25,7 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetErrorType
 import com.reactnativestripesdk.utils.PaymentSheetException
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -48,10 +44,9 @@ import java.io.ByteArrayOutputStream
 import kotlin.Exception
 
 @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
-class PaymentSheetFragment(
-  private val context: ReactApplicationContext,
-  private val initPromise: Promise,
-) : Fragment() {
+class PaymentSheetFragment : StripeFragment() {
+  private lateinit var context: ReactApplicationContext
+  private lateinit var initPromise: Promise
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -64,17 +59,7 @@ class PaymentSheetFragment(
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
 
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
-
-  override fun onViewCreated(
-    view: View,
-    savedInstanceState: Bundle?,
-  ) {
-    super.onViewCreated(view, savedInstanceState)
+  override fun prepare() {
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       initPromise.resolve(
@@ -435,6 +420,18 @@ class PaymentSheetFragment(
 
   companion object {
     internal const val TAG = "payment_sheet_launch_fragment"
+
+    internal fun create(
+      context: ReactApplicationContext,
+      arguments: Bundle,
+      initPromise: Promise,
+    ): PaymentSheetFragment {
+      val instance = PaymentSheetFragment()
+      instance.context = context
+      instance.initPromise = initPromise
+      instance.arguments = arguments
+      return instance
+    }
 
     private val mapIntToButtonType =
       mapOf(

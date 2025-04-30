@@ -1,17 +1,12 @@
 package com.reactnativestripesdk
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.getBooleanOr
@@ -19,7 +14,7 @@ import com.reactnativestripesdk.utils.getIntOrNull
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 
-class GooglePayLauncherFragment : Fragment() {
+class GooglePayLauncherFragment : StripeFragment() {
   enum class Mode {
     ForSetup,
     ForPayment,
@@ -34,16 +29,7 @@ class GooglePayLauncherFragment : Fragment() {
   private var label: String? = null
   private lateinit var callback: (result: GooglePayLauncher.Result?, error: WritableMap?) -> Unit
 
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
-
-  override fun onViewCreated(
-    view: View,
-    savedInstanceState: Bundle?,
-  ) {
+  override fun prepare() {
     launcher =
       GooglePayLauncher(
         fragment = this,

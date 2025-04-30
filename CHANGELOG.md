@@ -1,9 +1,12 @@
 # CHANGELOG
 ## Unreleased
 
+** Features **
+- Ability to update saved cards when using CustomerSessions (private preview)
+
 **Fixes**
 - Updated `stripe-ios` to 24.12.\*
-- Updated `stripe-android` to 21.11.\*
+- Updated `stripe-android` to 21.12.\*
 
 ## 0.44.0 - 2025-04-15
 

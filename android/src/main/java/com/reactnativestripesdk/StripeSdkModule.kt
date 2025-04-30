@@ -2,22 +2,20 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.common.annotations.UnstableReactNativeAPI
-import com.facebook.react.fabric.FabricUIManager
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.addresssheet.AddressLauncherFragment
 import com.reactnativestripesdk.customersheet.CustomerSheetFragment
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
@@ -216,6 +214,9 @@ class StripeSdkModule(
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+
+    preventActivityRecreation()
+
     promise.resolve(null)
   }
 
@@ -226,11 +227,9 @@ class StripeSdkModule(
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       paymentSheetFragment?.removeFragment(reactApplicationContext)
+      val bundle = toBundleObject(params)
       paymentSheetFragment =
-        PaymentSheetFragment(reactApplicationContext, promise).also {
-          val bundle = toBundleObject(params)
-          it.arguments = bundle
-        }
+        PaymentSheetFragment.create(reactApplicationContext, bundle, promise)
       try {
         activity.supportFragmentManager
           .beginTransaction()
@@ -690,7 +689,7 @@ class StripeSdkModule(
   ) {
     val googlePayParams = params?.getMap("googlePay")
     val fragment =
-      GooglePayPaymentMethodLauncherFragment(
+      GooglePayPaymentMethodLauncherFragment.create(
         reactApplicationContext,
         getBooleanOrFalse(googlePayParams, "testEnv"),
         getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
@@ -931,7 +930,7 @@ class StripeSdkModule(
       )
 
     collectBankAccountLauncherFragment =
-      CollectBankAccountLauncherFragment(
+      CollectBankAccountLauncherFragment.create(
         reactApplicationContext,
         publishableKey,
         stripeAccountId,
@@ -1252,7 +1251,7 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag.toInt(), promise) { confirm() }
+    // noop, iOS only
   }
 
   @ReactMethod
@@ -1268,7 +1267,7 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
-    performOnEmbeddedView(viewTag.toInt(), promise) { clearPaymentOption() }
+    // noop, iOS only
   }
 
   override fun handleURLCallback(
@@ -1305,36 +1304,6 @@ class StripeSdkModule(
     // noop, iOS only.
   }
 
-  @OptIn(UnstableReactNativeAPI::class)
-  private fun performOnEmbeddedView(
-    viewTag: Int,
-    promise: Promise,
-    action: EmbeddedPaymentElementView.() -> Unit,
-  ) {
-    val uiManager =
-      UIManagerHelper
-        .getUIManagerForReactTag(
-          reactApplicationContext as ReactContext,
-          viewTag,
-        ) as? FabricUIManager
-        ?: return promise.reject("E_UI_MANAGER", "UIManager not available")
-
-    val block =
-      com.facebook.react.fabric.interop.UIBlock { resolver ->
-        (resolver.resolveView(viewTag) as? EmbeddedPaymentElementView)
-          ?.apply {
-            action()
-            promise.resolve(null)
-          }
-          ?: promise.reject(
-            "E_INVALID_VIEW",
-            "Expected EmbeddedPaymentElementView, got ${resolver.resolveView(viewTag)?.javaClass?.simpleName}",
-          )
-      }
-
-    uiManager.addUIBlock(block)
-  }
-
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
    * provided will be resolved with an error message instructing the user to retry the method.
@@ -1345,6 +1314,56 @@ class StripeSdkModule(
     }
     promise?.resolve(createMissingActivityError())
     return null
+  }
+
+  private var isRecreatingActivities = false
+  private val activityLifecycleCallbacks =
+    object : Application.ActivityLifecycleCallbacks {
+      override fun onActivityCreated(
+        activity: Activity,
+        bundle: Bundle?,
+      ) {
+        if (bundle != null) {
+          isRecreatingActivities = true
+        }
+        if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
+          activity.finish()
+        }
+      }
+
+      override fun onActivityStarted(activity: Activity) {
+      }
+
+      override fun onActivityResumed(activity: Activity) {
+        isRecreatingActivities = false
+      }
+
+      override fun onActivityPaused(activity: Activity) {
+      }
+
+      override fun onActivityStopped(activity: Activity) {
+      }
+
+      override fun onActivitySaveInstanceState(
+        activity: Activity,
+        bundle: Bundle,
+      ) {
+      }
+
+      override fun onActivityDestroyed(activity: Activity) {
+      }
+    }
+
+  /**
+   * React native apps do not properly handle activity re-creation so make
+   * sure to dismiss any stripe ui when that happens to make sure apps stay
+   * in a consistent state.
+   *
+   * Note that because of some restrictions on some system ui like google
+   * pay this might not always work.
+   */
+  private fun preventActivityRecreation() {
+    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   companion object {

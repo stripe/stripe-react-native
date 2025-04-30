@@ -3,8 +3,6 @@ package com.reactnativestripesdk
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -16,7 +14,6 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
 import toWritableMap
 
 @OptIn(ExperimentalEmbeddedPaymentElementApi::class)
@@ -169,22 +166,15 @@ class EmbeddedPaymentElementView(
     config: EmbeddedPaymentElement.Configuration,
     intentConfig: PaymentSheet.IntentConfiguration,
   ) {
-    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-      events.send(Event.Configure(config, intentConfig))
-    }
     events.trySend(Event.Configure(config, intentConfig))
   }
 
   fun confirm() {
-    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-      events.send(Event.Confirm)
-    }
+    events.trySend(Event.Confirm)
   }
 
   fun clearPaymentOption() {
-    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-      events.send(Event.ClearPaymentOption)
-    }
+    events.trySend(Event.ClearPaymentOption)
   }
 
   private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))
