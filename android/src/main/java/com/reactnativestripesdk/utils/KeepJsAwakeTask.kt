@@ -1,7 +1,7 @@
 package com.reactnativestripesdk.utils
 
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
@@ -12,7 +12,7 @@ import com.facebook.react.jstasks.HeadlessJsTaskContext
  * pausing timers.
  */
 internal class KeepJsAwakeTask(
-  private val context: ReactContext,
+  private val context: ReactApplicationContext,
 ) {
   private var taskId: Int? = null
 

@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.ReactContext
+import com.facebook.react.uimanager.ThemedReactContext
+import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
@@ -34,7 +35,7 @@ class EmbeddedPaymentElementView(
   var latestIntentConfig: PaymentSheet.IntentConfiguration? = null
   var latestElementConfig: EmbeddedPaymentElement.Configuration? = null
 
-  private val reactContext get() = context as ReactContext
+  private val reactContext get() = context as ThemedReactContext
   private val events = Channel<Event>(Channel.UNLIMITED)
 
   private val builder by lazy {
@@ -52,6 +53,10 @@ class EmbeddedPaymentElementView(
               displayMessage = "An unexpected error occurred",
             )
           }
+
+        // Make sure that JS is active since the activity will be paused when stripe ui is presented.
+        val keepJsAwakeTask = KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
+
         val params =
           Arguments.createMap().apply {
             putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
@@ -63,6 +68,8 @@ class EmbeddedPaymentElementView(
         val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
         // reset the completable
         stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
+
+        keepJsAwakeTask.stop()
 
         resultFromJavascript.getString("clientSecret")?.let {
           CreateIntentResult.Success(clientSecret = it)
