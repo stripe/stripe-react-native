@@ -6,6 +6,7 @@ import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -13,6 +14,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
@@ -90,6 +92,8 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
+
+  internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -216,6 +220,7 @@ class StripeSdkModule(
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
     preventActivityRecreation()
+    setupComposeCompatView()
 
     promise.resolve(null)
   }
@@ -1364,6 +1369,16 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+  }
+
+  private fun setupComposeCompatView() {
+    UiThreadUtil.runOnUiThread {
+      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
+        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+          it,
+        )
+      }
+    }
   }
 
   companion object {

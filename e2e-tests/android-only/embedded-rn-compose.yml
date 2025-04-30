@@ -1,5 +1,4 @@
-# Test that embedded view works when using react-native-screens. This tests pushing a
-# screen on top of the embedded view and making sure it stays visible.
+# Test that interactions between Compose and React Native work as expected.
 appId: ${APP_ID}
 ---
 - launchApp
@@ -10,4 +9,8 @@ appId: ${APP_ID}
     timeout: 150000
 - tapOn: 'Open screen'
 - back
+- assertVisible: 'Card'
+- tapOn: 'Open modal'
+- assertVisible: 'Card'
+- tapOn: 'Close modal'
 - assertVisible: 'Card'

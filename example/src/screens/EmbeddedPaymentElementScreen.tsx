@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, View, Text } from 'react-native';
+import { Alert, View, Text, Modal } from 'react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
@@ -21,11 +21,67 @@ import {
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+function PaymentElementView({ intentConfig, elementConfig }: any) {
+  const [loading, setLoading] = React.useState(false);
+
+  // Hook into Stripe element
+  const {
+    embeddedPaymentElementView,
+    paymentOption,
+    confirm,
+    clearPaymentOption,
+    loadingError,
+  } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
+
+  // Payment action
+  const handlePay = React.useCallback(async () => {
+    setLoading(true);
+    await confirm();
+    setLoading(false);
+  }, [confirm]);
+
+  return (
+    <>
+      {loadingError && (
+        <View style={{ padding: 12, backgroundColor: '#fee', margin: 8 }}>
+          <Text style={{ color: '#900', fontWeight: '600' }}>
+            Failed to load payment form:
+          </Text>
+          <Text style={{ color: '#900' }}>{loadingError.message}</Text>
+        </View>
+      )}
+
+      {embeddedPaymentElementView}
+
+      <View style={{ paddingVertical: 16 }}>
+        <Text style={{ fontSize: 16, fontWeight: '600' }}>
+          {paymentOption?.label ?? 'No option'}
+        </Text>
+      </View>
+
+      <Button
+        variant="primary"
+        title="Pay"
+        onPress={handlePay}
+        loading={loading}
+        disabled={!paymentOption}
+      />
+
+      <Button
+        variant="default"
+        title="Clear"
+        onPress={clearPaymentOption}
+        disabled={!paymentOption}
+      />
+    </>
+  );
+}
+
 export default function EmbeddedPaymentElementScreen() {
   const navigation = useNavigation();
 
   // Local UI state
-  const [loading, setLoading] = React.useState(false);
+  const [modalVisible, setModalVisible] = React.useState(false);
   const [customerKeyType, setCustomerKeyType] = React.useState<
     'legacy_ephemeral_key' | 'customer_session'
   >('legacy_ephemeral_key');
@@ -219,22 +275,6 @@ export default function EmbeddedPaymentElementScreen() {
     [customerKeyType]
   );
 
-  // Hook into Stripe element
-  const {
-    embeddedPaymentElementView,
-    paymentOption,
-    confirm,
-    clearPaymentOption,
-    loadingError,
-  } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
-
-  // Payment action
-  const handlePay = React.useCallback(async () => {
-    setLoading(true);
-    await confirm();
-    setLoading(false);
-  }, [confirm]);
-
   return (
     <PaymentScreen onInit={initialize}>
       <CustomerSessionSwitch
@@ -246,42 +286,44 @@ export default function EmbeddedPaymentElementScreen() {
       <View style={{ flexDirection: 'row', gap: 20, marginBottom: 10 }}>
         <Button
           variant="default"
-          title="Clear"
-          onPress={clearPaymentOption}
-          disabled={!paymentOption}
-        />
-        <Button
-          variant="default"
           title="Open screen"
           onPress={() => {
             navigation.navigate('HomeScreen');
           }}
         />
+        <Button
+          variant="default"
+          title="Open modal"
+          onPress={() => {
+            setModalVisible(true);
+          }}
+        />
       </View>
-      {loadingError && (
-        <View style={{ padding: 12, backgroundColor: '#fee', margin: 8 }}>
-          <Text style={{ color: '#900', fontWeight: '600' }}>
-            Failed to load payment form:
-          </Text>
-          <Text style={{ color: '#900' }}>{loadingError.message}</Text>
-        </View>
-      )}
-
-      {embeddedPaymentElementView}
-
-      <View style={{ paddingVertical: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600' }}>
-          {paymentOption?.label ?? 'No option'}
-        </Text>
-      </View>
-
-      <Button
-        variant="primary"
-        title="Pay"
-        onPress={handlePay}
-        loading={loading}
-        disabled={!paymentOption}
+      <PaymentElementView
+        elementConfig={elementConfig}
+        intentConfig={intentConfig}
       />
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}
+      >
+        <View style={{ padding: 20 }}>
+          <PaymentElementView
+            elementConfig={elementConfig}
+            intentConfig={intentConfig}
+          />
+          <Button
+            variant="default"
+            title="Close modal"
+            onPress={() => {
+              setModalVisible(false);
+            }}
+          />
+        </View>
+      </Modal>
     </PaymentScreen>
   );
 }
