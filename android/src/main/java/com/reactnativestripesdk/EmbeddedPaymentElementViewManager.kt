@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -40,12 +39,13 @@ class EmbeddedPaymentElementViewManager :
 
   override fun getDelegate() = delegate
 
-  override fun createViewInstance(ctx: ThemedReactContext): EmbeddedPaymentElementView =
-    EmbeddedPaymentElementView(ctx).apply {
-      setViewCompositionStrategy(
-        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
-      )
-    }
+  override fun createViewInstance(ctx: ThemedReactContext): EmbeddedPaymentElementView = EmbeddedPaymentElementView(ctx)
+
+  override fun onDropViewInstance(view: EmbeddedPaymentElementView) {
+    super.onDropViewInstance(view)
+
+    view.handleOnDropViewInstance()
+  }
 
   override fun needsCustomLayoutForChildren(): Boolean = true
 

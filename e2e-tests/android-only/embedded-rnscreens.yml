@@ -1,0 +1,13 @@
+# Test that embedded view works when using react-native-screens. This tests pushing a
+# screen on top of the embedded view and making sure it stays visible.
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: 'Accept a payment'
+- tapOn: 'Prebuilt UI (EmbeddedPaymentElement)'
+- extendedWaitUntil:
+    visible: 'Card'
+    timeout: 150000
+- tapOn: 'Open screen'
+- back
+- assertVisible: 'Card'
