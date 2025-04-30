@@ -365,14 +365,14 @@ export function useEmbeddedPaymentElement(
       'embeddedPaymentElementDidUpdateHeight',
       ({ height: h }) => {
         // ignore zero
-        if (h > 0) {
+        if (h > 0 || (isAndroid && h === 0)) {
           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
           setHeight(h);
         }
       }
     );
     return () => sub.remove();
-  }, []);
+  }, [isAndroid]);
 
   // Listen for loading failures
   useEffect(() => {
