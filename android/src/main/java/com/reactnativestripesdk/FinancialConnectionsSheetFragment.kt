@@ -1,11 +1,5 @@
 package com.reactnativestripesdk
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -15,6 +9,7 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
@@ -29,7 +24,7 @@ import com.stripe.android.financialconnections.model.FinancialConnectionsAccount
 import com.stripe.android.financialconnections.model.FinancialConnectionsAccountList
 import com.stripe.android.financialconnections.model.FinancialConnectionsSession
 
-class FinancialConnectionsSheetFragment : Fragment() {
+class FinancialConnectionsSheetFragment : StripeFragment() {
   enum class Mode {
     ForToken,
     ForSession,
@@ -40,26 +35,13 @@ class FinancialConnectionsSheetFragment : Fragment() {
   private lateinit var configuration: FinancialConnectionsSheet.Configuration
   private lateinit var mode: Mode
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-
+  override fun prepare() {
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     FinancialConnections.setEventListener { event ->
       val params = mapFromFinancialConnectionsEvent(event)
       stripeSdkModule?.emitOnFinancialConnectionsEvent(params)
     }
-  }
 
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View = FrameLayout(requireActivity()).also { it.visibility = View.GONE }
-
-  override fun onViewCreated(
-    view: View,
-    savedInstanceState: Bundle?,
-  ) {
     when (mode) {
       Mode.ForToken -> {
         FinancialConnectionsSheet

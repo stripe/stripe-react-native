@@ -1,17 +1,12 @@
 package com.reactnativestripesdk
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.ConfirmSetupIntentErrorType
 import com.reactnativestripesdk.utils.ErrorType
+import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createResult
@@ -29,26 +24,57 @@ import com.stripe.android.payments.paymentlauncher.PaymentLauncher
 import com.stripe.android.payments.paymentlauncher.PaymentResult
 
 /** Instances of this class should only be initialized with the companion's helper methods. */
-class PaymentLauncherFragment(
-  private val context: ReactApplicationContext,
-  private val stripe: Stripe,
-  private val publishableKey: String,
-  private val stripeAccountId: String?,
-  private val promise: Promise,
+class PaymentLauncherFragment : StripeFragment() {
+  private lateinit var context: ReactApplicationContext
+  private lateinit var stripe: Stripe
+  private lateinit var publishableKey: String
+  private var stripeAccountId: String? = null
+  private lateinit var promise: Promise
+
   // Used when confirming a payment intent
-  private val paymentIntentClientSecret: String? = null,
-  private val confirmPaymentParams: ConfirmPaymentIntentParams? = null,
+  private var paymentIntentClientSecret: String? = null
+  private var confirmPaymentParams: ConfirmPaymentIntentParams? = null
+
   // Used when confirming a setup intent
-  private val setupIntentClientSecret: String? = null,
-  private val confirmSetupParams: ConfirmSetupIntentParams? = null,
+  private var setupIntentClientSecret: String? = null
+  private var confirmSetupParams: ConfirmSetupIntentParams? = null
+
   // Used when handling the next action on a payment intent
-  private val handleNextActionPaymentIntentClientSecret: String? = null,
+  private var handleNextActionPaymentIntentClientSecret: String? = null
+
   // Used when handling the next action on a setup intent
-  private val handleNextActionSetupIntentClientSecret: String? = null,
-) : Fragment() {
+  private var handleNextActionSetupIntentClientSecret: String? = null
   private lateinit var paymentLauncher: PaymentLauncher
 
   companion object {
+    private fun create(
+      context: ReactApplicationContext,
+      stripe: Stripe,
+      publishableKey: String,
+      stripeAccountId: String?,
+      promise: Promise,
+      paymentIntentClientSecret: String? = null,
+      confirmPaymentParams: ConfirmPaymentIntentParams? = null,
+      setupIntentClientSecret: String? = null,
+      confirmSetupParams: ConfirmSetupIntentParams? = null,
+      handleNextActionPaymentIntentClientSecret: String? = null,
+      handleNextActionSetupIntentClientSecret: String? = null,
+    ): PaymentLauncherFragment {
+      val instance = PaymentLauncherFragment()
+      instance.context = context
+      instance.stripe = stripe
+      instance.publishableKey = publishableKey
+      instance.stripeAccountId = stripeAccountId
+      instance.promise = promise
+      instance.paymentIntentClientSecret = paymentIntentClientSecret
+      instance.confirmPaymentParams = confirmPaymentParams
+      instance.setupIntentClientSecret = setupIntentClientSecret
+      instance.confirmSetupParams = confirmSetupParams
+      instance.handleNextActionPaymentIntentClientSecret = handleNextActionPaymentIntentClientSecret
+      instance.handleNextActionSetupIntentClientSecret = handleNextActionSetupIntentClientSecret
+      return instance
+    }
+
     /** Helper-constructor used for confirming payment intents */
     fun forPayment(
       context: ReactApplicationContext,
@@ -60,7 +86,7 @@ class PaymentLauncherFragment(
       confirmPaymentParams: ConfirmPaymentIntentParams,
     ): PaymentLauncherFragment {
       val paymentLauncherFragment =
-        PaymentLauncherFragment(
+        create(
           context,
           stripe,
           publishableKey,
@@ -84,7 +110,7 @@ class PaymentLauncherFragment(
       confirmSetupParams: ConfirmSetupIntentParams,
     ): PaymentLauncherFragment {
       val paymentLauncherFragment =
-        PaymentLauncherFragment(
+        create(
           context,
           stripe,
           publishableKey,
@@ -107,7 +133,7 @@ class PaymentLauncherFragment(
       handleNextActionPaymentIntentClientSecret: String,
     ): PaymentLauncherFragment {
       val paymentLauncherFragment =
-        PaymentLauncherFragment(
+        create(
           context,
           stripe,
           publishableKey,
@@ -129,7 +155,7 @@ class PaymentLauncherFragment(
       handleNextActionSetupIntentClientSecret: String,
     ): PaymentLauncherFragment {
       val paymentLauncherFragment =
-        PaymentLauncherFragment(
+        create(
           context,
           stripe,
           publishableKey,
@@ -161,43 +187,36 @@ class PaymentLauncherFragment(
     internal const val TAG = "payment_launcher_fragment"
   }
 
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
+  override fun prepare() {
     paymentLauncher = createPaymentLauncher()
     if (paymentIntentClientSecret != null && confirmPaymentParams != null) {
-      paymentLauncher.confirm(confirmPaymentParams)
+      paymentLauncher.confirm(confirmPaymentParams!!)
     } else if (setupIntentClientSecret != null && confirmSetupParams != null) {
-      paymentLauncher.confirm(confirmSetupParams)
+      paymentLauncher.confirm(confirmSetupParams!!)
     } else if (handleNextActionPaymentIntentClientSecret != null) {
-      paymentLauncher.handleNextActionForPaymentIntent(handleNextActionPaymentIntentClientSecret)
+      paymentLauncher.handleNextActionForPaymentIntent(handleNextActionPaymentIntentClientSecret!!)
     } else if (handleNextActionSetupIntentClientSecret != null) {
-      paymentLauncher.handleNextActionForSetupIntent(handleNextActionSetupIntentClientSecret)
+      paymentLauncher.handleNextActionForSetupIntent(handleNextActionSetupIntentClientSecret!!)
     } else {
       throw Exception(
         "Invalid parameters provided to PaymentLauncher. Ensure that you are providing the correct client secret and setup params (if necessary).",
       )
     }
-    return FrameLayout(requireActivity()).also { it.visibility = View.GONE }
   }
 
   private fun createPaymentLauncher(): PaymentLauncher =
     PaymentLauncher.create(this, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
-          if (paymentIntentClientSecret != null) {
-            retrievePaymentIntent(paymentIntentClientSecret, stripeAccountId)
-          } else if (handleNextActionPaymentIntentClientSecret != null) {
-            retrievePaymentIntent(handleNextActionPaymentIntentClientSecret, stripeAccountId)
-          } else if (setupIntentClientSecret != null) {
-            retrieveSetupIntent(setupIntentClientSecret, stripeAccountId)
-          } else if (handleNextActionSetupIntentClientSecret != null) {
-            retrieveSetupIntent(handleNextActionSetupIntentClientSecret, stripeAccountId)
-          } else {
-            throw Exception("Failed to create Payment Launcher. No client secret provided.")
-          }
+          paymentIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: handleNextActionPaymentIntentClientSecret?.let {
+            retrievePaymentIntent(it, stripeAccountId)
+          } ?: setupIntentClientSecret?.let {
+            retrieveSetupIntent(it, stripeAccountId)
+          } ?: handleNextActionSetupIntentClientSecret?.let {
+            retrieveSetupIntent(it, stripeAccountId)
+          } ?: throw Exception("Failed to create Payment Launcher. No client secret provided.")
         }
         is PaymentResult.Canceled -> {
           promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))

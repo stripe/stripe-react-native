@@ -12,12 +12,12 @@ import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 
-class GooglePayPaymentMethodLauncherFragment(
-  private val context: ReactApplicationContext,
-  private val isTestEnv: Boolean,
-  private val paymentMethodRequired: Boolean,
-  private val promise: Promise,
-) : Fragment() {
+class GooglePayPaymentMethodLauncherFragment : Fragment() {
+  private lateinit var context: ReactApplicationContext
+  private var isTestEnv = false
+  private var paymentMethodRequired = false
+  private lateinit var promise: Promise
+
   override fun onCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
@@ -50,5 +50,19 @@ class GooglePayPaymentMethodLauncherFragment(
 
   companion object {
     const val TAG = "google_pay_support_fragment"
+
+    fun create(
+      context: ReactApplicationContext,
+      isTestEnv: Boolean,
+      paymentMethodRequired: Boolean,
+      promise: Promise,
+    ): GooglePayPaymentMethodLauncherFragment {
+      val instance = GooglePayPaymentMethodLauncherFragment()
+      instance.context = context
+      instance.isTestEnv = isTestEnv
+      instance.paymentMethodRequired = paymentMethodRequired
+      instance.promise = promise
+      return instance
+    }
   }
 }

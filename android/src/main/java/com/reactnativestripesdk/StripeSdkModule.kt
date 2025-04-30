@@ -2,7 +2,9 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.BaseActivityEventListener
@@ -212,6 +214,9 @@ class StripeSdkModule(
     stripe = Stripe(reactApplicationContext, publishableKey, stripeAccountId)
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
+
+    preventActivityRecreation()
+
     promise.resolve(null)
   }
 
@@ -222,11 +227,9 @@ class StripeSdkModule(
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       paymentSheetFragment?.removeFragment(reactApplicationContext)
+      val bundle = toBundleObject(params)
       paymentSheetFragment =
-        PaymentSheetFragment(reactApplicationContext, promise).also {
-          val bundle = toBundleObject(params)
-          it.arguments = bundle
-        }
+        PaymentSheetFragment.create(reactApplicationContext, bundle, promise)
       try {
         activity.supportFragmentManager
           .beginTransaction()
@@ -686,7 +689,7 @@ class StripeSdkModule(
   ) {
     val googlePayParams = params?.getMap("googlePay")
     val fragment =
-      GooglePayPaymentMethodLauncherFragment(
+      GooglePayPaymentMethodLauncherFragment.create(
         reactApplicationContext,
         getBooleanOrFalse(googlePayParams, "testEnv"),
         getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
@@ -927,7 +930,7 @@ class StripeSdkModule(
       )
 
     collectBankAccountLauncherFragment =
-      CollectBankAccountLauncherFragment(
+      CollectBankAccountLauncherFragment.create(
         reactApplicationContext,
         publishableKey,
         stripeAccountId,
@@ -1311,6 +1314,56 @@ class StripeSdkModule(
     }
     promise?.resolve(createMissingActivityError())
     return null
+  }
+
+  private var isRecreatingActivities = false
+  private val activityLifecycleCallbacks =
+    object : Application.ActivityLifecycleCallbacks {
+      override fun onActivityCreated(
+        activity: Activity,
+        bundle: Bundle?,
+      ) {
+        if (bundle != null) {
+          isRecreatingActivities = true
+        }
+        if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
+          activity.finish()
+        }
+      }
+
+      override fun onActivityStarted(activity: Activity) {
+      }
+
+      override fun onActivityResumed(activity: Activity) {
+        isRecreatingActivities = false
+      }
+
+      override fun onActivityPaused(activity: Activity) {
+      }
+
+      override fun onActivityStopped(activity: Activity) {
+      }
+
+      override fun onActivitySaveInstanceState(
+        activity: Activity,
+        bundle: Bundle,
+      ) {
+      }
+
+      override fun onActivityDestroyed(activity: Activity) {
+      }
+    }
+
+  /**
+   * React native apps do not properly handle activity re-creation so make
+   * sure to dismiss any stripe ui when that happens to make sure apps stay
+   * in a consistent state.
+   *
+   * Note that because of some restrictions on some system ui like google
+   * pay this might not always work.
+   */
+  private fun preventActivityRecreation() {
+    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   companion object {
