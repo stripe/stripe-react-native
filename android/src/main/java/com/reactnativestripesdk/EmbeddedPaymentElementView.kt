@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -178,14 +177,13 @@ class EmbeddedPaymentElementView(
             layout(constraints.maxWidth, minIntrinsicHeight) {
               measurable.measure(constraints).placeRelative(IntOffset.Zero)
             }
-          }
-          .onPlaced {
+          }.onPlaced {
             reportHeightChange(
               with(density) {
                 height.toDp().value
-              }
+              },
             )
-          }
+          },
     ) {
       embedded.Content()
     }
