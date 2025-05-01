@@ -1,8 +1,20 @@
 package com.reactnativestripesdk
 
 import android.content.Context
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
@@ -105,6 +117,9 @@ class EmbeddedPaymentElementView(
   @Composable
   override fun Content() {
     val embedded = rememberEmbeddedPaymentElement(builder)
+    var height by remember {
+      mutableIntStateOf(0)
+    }
 
     // collect events: configure, confirm, clear
     LaunchedEffect(Unit) {
@@ -119,9 +134,7 @@ class EmbeddedPaymentElementView(
               )
 
             when (result) {
-              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
-                reportHeightChange(450)
-              }
+              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(1f)
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
                 // send the error back to JS
                 val err = result.error
@@ -157,13 +170,36 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    embedded.Content()
+    val density = LocalDensity.current
+
+    Box(
+      modifier =
+        Modifier
+          .requiredHeight(height.dp)
+          .layout { measurable, constraints ->
+            val minIntrinsicHeight = measurable.minIntrinsicHeight(constraints.maxWidth)
+
+            height = minIntrinsicHeight
+
+            layout(constraints.maxWidth, minIntrinsicHeight) {
+              measurable.measure(constraints).placeRelative(IntOffset.Zero)
+            }
+          }.onPlaced {
+            reportHeightChange(
+              with(density) {
+                height.toDp().value
+              },
+            )
+          },
+    ) {
+      embedded.Content()
+    }
   }
 
-  private fun reportHeightChange(height: Int) {
+  private fun reportHeightChange(height: Float) {
     val params =
       Arguments.createMap().apply {
-        putInt("height", height)
+        putDouble("height", height.toDouble())
       }
     requireStripeSdkModule().emitEmbeddedPaymentElementDidUpdateHeight(params)
   }
