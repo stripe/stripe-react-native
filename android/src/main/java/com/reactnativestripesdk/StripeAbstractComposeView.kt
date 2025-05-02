@@ -1,13 +1,19 @@
 package com.reactnativestripesdk
 
 import android.content.Context
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.findViewTreeCompositionContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.findViewTreeSavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.facebook.react.bridge.ReactContext
 
 /**
@@ -30,6 +36,25 @@ import com.facebook.react.bridge.ReactContext
 abstract class StripeAbstractComposeView(
   context: Context,
 ) : AbstractComposeView(context) {
+  /**
+   * Dummy compose view that will be added at the root of the app, this is needed so that the context
+   * that compose needs is already initialized and we can set it directly on our compose views.
+   * If we do not do this there are cases where react-native initializes compose views in ways that
+   * are not supported and causes crashes. An example is when using a compose view inside react-native
+   * Modal component.
+   */
+  class CompatView(
+    context: Context,
+  ) : AbstractComposeView(context) {
+    init {
+      visibility = GONE
+    }
+
+    @Composable
+    override fun Content() {
+    }
+  }
+
   private var isLifecycleSetup = false
 
   // Create a lifecycle this is tied to the activity, but that we can manually
@@ -43,10 +68,18 @@ abstract class StripeAbstractComposeView(
   private var lifecycleRegistry = LifecycleRegistry(lifecycleOwner)
 
   init {
+    // Setup lifecycles
     setViewCompositionStrategy(
       ViewCompositionStrategy.DisposeOnLifecycleDestroyed(lifecycleOwner = lifecycleOwner),
     )
     setViewTreeLifecycleOwner(lifecycleOwner = lifecycleOwner)
+
+    // Setup context from dummy compose view.
+    (context as ReactContext).getNativeModule(StripeSdkModule::class.java)?.composeCompatView?.let {
+      setParentCompositionContext(it.findViewTreeCompositionContext())
+      setViewTreeSavedStateRegistryOwner(it.findViewTreeSavedStateRegistryOwner())
+      setViewTreeViewModelStoreOwner(it.findViewTreeViewModelStoreOwner())
+    }
   }
 
   override fun onAttachedToWindow() {
@@ -59,7 +92,7 @@ abstract class StripeAbstractComposeView(
     ((context as? ReactContext)?.currentActivity as? LifecycleOwner?)?.let {
       isLifecycleSetup = true
 
-      // Setup our lifecycle to match the activity.
+      // Setup the lifecycle to match the activity.
       it.lifecycle.addObserver(
         object : LifecycleEventObserver {
           override fun onStateChanged(
