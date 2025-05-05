@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Text,
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -432,6 +433,15 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <View style={styles.infoContainer}>
+        <Text style={styles.infoText}>
+          New arch enabled:{' '}
+          {(global as any).nativeFabricUIManager ? 'true' : 'false'}
+        </Text>
+        <Text style={styles.infoText}>
+          Bridgeless enabled: {(global as any).RN$Bridgeless ? 'true' : 'false'}
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -445,5 +455,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomColor: colors.light_gray,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  infoContainer: {
+    padding: 16,
+    gap: 4,
+  },
+  infoText: {
+    fontSize: 12,
   },
 });
