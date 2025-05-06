@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# This generates the android codegen files for the old architecture.
+
+pushd example/android
+./gradlew -PnewArchEnabled=true generateCodegenArtifactsFromSchema
+popd
+
+rm -rf android/src/oldarch/java
+cp -r android/build/generated/source/codegen/java android/src/oldarch/java
+
+# Apply a patch to modify the codegen code so it works with the old architecture.
+# If this patch needs to be updated, create android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpecNew.java
+# and make the required changes then run the following command:
+# diff -u android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpecNew.java > scripts/NativeStripeSdkModuleSpec.patch
+patch android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java < scripts/NativeStripeSdkModuleSpec.patch
+sed -i '' 's/mEventEmitterCallback\.invoke/invoke/g' android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java
