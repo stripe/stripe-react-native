@@ -27,16 +27,17 @@ fi
 failedTests=()
 for file in $allTestFiles
 do
-  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" --debug-output e2e-artifacts"
-  if ! eval "$testCmd";
+  testName=$(basename "${file%.*}")
+  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" --flatten-debug-output"
+  if ! eval "$testCmd --debug-output e2e-artifacts/$testName";
   then
     echo "Test ${file} failed. Retrying in 30 seconds..."
     sleep 30
-    if ! eval "$testCmd";
+    if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-1";
     then
       echo "Test ${file} failed again. Retrying for the last time in 120 seconds..."
       sleep 120
-      if ! eval "$testCmd";
+      if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-2";
       then
         failedTests+=("$file")
       fi
