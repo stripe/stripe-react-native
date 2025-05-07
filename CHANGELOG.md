@@ -1,8 +1,8 @@
 # CHANGELOG
-## 0.45.0 - 2025-04-29
+## 0.45.0 - 2025-04-29 (📌 Expo SDK 53)
 
 ** Features **
-- Support for the New Architecture in React Native v0.68 or later.
+- Support for the New Architecture in React Native v0.76 or later.
 - Ability to update saved cards when using CustomerSessions (private preview)
 
 **Fixes**
