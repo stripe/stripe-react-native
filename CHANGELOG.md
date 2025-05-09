@@ -1,5 +1,5 @@
 # CHANGELOG
-## 0.x.0 - x-x-x
+## 0.46.0 - 2025-05-08
 
 **Features**
 - Added support for the Embedded Payment Element. Learn more by visiting the [docs](https://docs.stripe.com/payments/mobile/embedded).
