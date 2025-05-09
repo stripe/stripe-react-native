@@ -220,7 +220,6 @@ export default function EmbeddedPaymentElementScreen() {
         customerId: customer,
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
-        allowsDelayedPaymentMethods: true,
         formSheetAction: {
           type: 'confirm',
           onFormSheetConfirmComplete: (
