@@ -10,9 +10,8 @@
 package com.facebook.react.viewmanagers;
 
 import android.view.View;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface ApplePayButtonManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface ApplePayButtonManagerInterface<T extends View>  {
   void setDisabled(T view, boolean value);
   void setType(T view, int value);
   void setButtonStyle(T view, int value);

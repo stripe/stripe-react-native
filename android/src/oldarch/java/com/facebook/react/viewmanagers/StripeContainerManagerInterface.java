@@ -10,8 +10,7 @@
 package com.facebook.react.viewmanagers;
 
 import android.view.View;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface StripeContainerManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface StripeContainerManagerInterface<T extends View>  {
   void setKeyboardShouldPersistTaps(T view, boolean value);
 }

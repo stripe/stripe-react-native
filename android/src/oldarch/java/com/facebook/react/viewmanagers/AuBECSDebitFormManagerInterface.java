@@ -12,9 +12,8 @@ package com.facebook.react.viewmanagers;
 import android.view.View;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Dynamic;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface AuBECSDebitFormManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface AuBECSDebitFormManagerInterface<T extends View>  {
   void setCompanyName(T view, @Nullable String value);
   void setFormStyle(T view, Dynamic value);
 }
