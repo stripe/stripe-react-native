@@ -87,10 +87,11 @@ class EmbeddedPaymentElementViewManager :
     val merchantDisplayName = map.getString("merchantDisplayName").orEmpty()
     val allowsDelayedPaymentMethods: Boolean =
       if (map.hasKey("allowsDelayedPaymentMethods") &&
-        map.getType("allowsDelayedPaymentMethods") == ReadableType.Boolean) {
+        map.getType("allowsDelayedPaymentMethods") == ReadableType.Boolean
+      ) {
         map.getBoolean("allowsDelayedPaymentMethods")
       } else {
-        false       // default
+        false // default
       }
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     val billingDetailsMap = map.getMap("defaultBillingDetails")
