@@ -13,9 +13,8 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface AddressSheetViewManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface AddressSheetViewManagerInterface<T extends View>  {
   void setVisible(T view, boolean value);
   void setPresentationStyle(T view, @Nullable String value);
   void setAnimationStyle(T view, @Nullable String value);

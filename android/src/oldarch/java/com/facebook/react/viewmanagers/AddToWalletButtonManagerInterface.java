@@ -13,9 +13,8 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface AddToWalletButtonManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface AddToWalletButtonManagerInterface<T extends View>  {
   void setIOSButtonStyle(T view, @Nullable String value);
   void setAndroidAssetSource(T view, @Nullable ReadableMap value);
   void setTestEnv(T view, boolean value);
