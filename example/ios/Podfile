@@ -6,9 +6,11 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 
 workspace 'example.xcworkspace'
 
+new_arch_enabled = ENV['NEW_ARCH_ENABLED'].nil? ? true : ENV['NEW_ARCH_ENABLED'] == 'true'
+
 options = {
-  :bridgeless_enabled => false,
-  :fabric_enabled => false,
+  :bridgeless_enabled => new_arch_enabled,
+  :fabric_enabled =>  new_arch_enabled,
   :hermes_enabled => true,
 }
 
