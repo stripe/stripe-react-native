@@ -75,6 +75,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 - Android 5.0 (API level 21) and above
   - Your `compileSdkVersion` must be `34`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
 - Android gradle plugin 4.x and above
+- Kotlin 2.x and above. See [this issue](https://github.com/stripe/stripe-react-native/issues/1924#issuecomment-2867227374) for how to update the Kotlin version when using react-native 0.77 and below or Expo SDK 52.
 
 _Components_
 
