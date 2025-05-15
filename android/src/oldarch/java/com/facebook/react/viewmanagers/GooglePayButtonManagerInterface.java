@@ -10,9 +10,8 @@
 package com.facebook.react.viewmanagers;
 
 import android.view.View;
-import com.facebook.react.uimanager.ViewManagerWithGeneratedInterface;
 
-public interface GooglePayButtonManagerInterface<T extends View> extends ViewManagerWithGeneratedInterface {
+public interface GooglePayButtonManagerInterface<T extends View>  {
   void setType(T view, int value);
   void setAppearance(T view, int value);
   void setBorderRadius(T view, int value);
