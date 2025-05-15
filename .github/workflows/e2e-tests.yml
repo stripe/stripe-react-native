@@ -10,8 +10,12 @@ jobs:
   test-android:
     name: e2e-android-test
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
     steps:
       - name: Delete unnecessary tools 🔧
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -53,9 +57,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install React Native CLI
-        run: npm install react-native-cli
-
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
 
@@ -74,10 +75,9 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
       - name: Install Maestro CLI
-        run: curl -Ls "https://get.maestro.mobile.dev" | bash
-
-      - name: Add Maestro to path
-        run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Run Android Emulator and app
         uses: reactivecircus/android-emulator-runner@v2
@@ -95,14 +95,14 @@ jobs:
             # Wait for system to settle
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             # Retry once if necessary
-            yarn run-example-android:release || (sleep 60 && yarn run-example-android:release)
+            yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED" || (sleep 60 && yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED")
             yarn test:e2e:android
 
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-android
+          name: maestro-artifacts-android-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
 
@@ -110,9 +110,13 @@ jobs:
     name: e2e-ios-test
     # Silicon chips run through the iOS tests much faster
     runs-on: macos-15-xlarge
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -141,9 +145,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install React Native CLI
-        run: npm install react-native-cli
-
       - name: Install Dependencies
         run: yarn bootstrap-no-pods
 
@@ -156,11 +157,7 @@ jobs:
       - name: Install Maestro CLI
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
-          brew tap facebook/fb
-          brew install facebook/fb/idb-companion
-
-      - name: Add Maestro to path
-        run: echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
+          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Build iOS App
         run: |
@@ -174,6 +171,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-ios
+          name: maestro-artifacts-ios-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
