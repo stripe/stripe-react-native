@@ -100,6 +100,12 @@ export interface EmbeddedPaymentElementConfiguration {
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
+  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+  customerEphemeralKeySecret?: string;
+  /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
+   *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
+   */
+  customerSessionClientSecret?: string;
   /** iOS only. Enable Apple Pay in the Payment Sheet by passing an ApplePayParams object.  */
   applePay?: PaymentSheetTypes.ApplePayParams;
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
