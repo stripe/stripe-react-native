@@ -1,5 +1,5 @@
 # CHANGELOG
-## 0.47.0 - 2025-05-20
+## 0.47.0 - 2025-05-21
 
 **Features**
 - Added `customerEphemeralKeySecret` and `customerSessionClientSecret` to EmbeddedPaymentElement 
