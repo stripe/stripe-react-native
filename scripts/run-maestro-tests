@@ -28,7 +28,7 @@ failedTests=()
 for file in $allTestFiles
 do
   testName=$(basename "${file%.*}")
-  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" --flatten-debug-output"
+  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$RCT_NEW_ARCH_ENABLED\" --flatten-debug-output"
   if ! eval "$testCmd --debug-output e2e-artifacts/$testName";
   then
     echo "Test ${file} failed. Retrying in 30 seconds..."
