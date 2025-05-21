@@ -5,7 +5,7 @@ appId: ${APP_ID}
 - tapOn: "Customer Sheet"
 - tapOn: "Edit payment methods"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     text: "Card number"
@@ -31,5 +31,5 @@ appId: ${APP_ID}
     id: "customer_adapter_switch"
 - tapOn: .*4242
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000

@@ -5,7 +5,7 @@ appId: ${APP_ID}
 - tapOn: "Prebuilt UI (deferred intent)"
 - tapOn: "Checkout"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     text: "Card"
