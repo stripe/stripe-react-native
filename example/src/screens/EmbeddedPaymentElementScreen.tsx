@@ -36,7 +36,12 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
   // Payment action
   const handlePay = React.useCallback(async () => {
     setLoading(true);
-    await confirm();
+    const result = await confirm();
+    if (result.status === 'completed')
+      Alert.alert('Success', 'Payment confirmed');
+    else if (result.status === 'failed')
+      Alert.alert('Error', `Failed: ${result.error.message}`);
+    else Alert.alert('Cancelled');
     setLoading(false);
   }, [confirm]);
 
