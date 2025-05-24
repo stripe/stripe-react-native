@@ -326,10 +326,10 @@ class StripeSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val individualData = getMapOrNull(params, "individual")
     val accountParams = AccountParams.create(
       tosShownAndAccepted = getBooleanOrFalse(params, "tosShownAndAccepted"),
-      company = AccountParams.BusinessTypeParams.Individual.Builder()
-        .setEmail(getValOr(individualData, "email", null))
-        .setPhone(getValOr(individualData, "phone", null))
-        .build()
+      individual = AccountParams.BusinessTypeParams.Individual(
+        email = getValOr(individualData, "email", null),
+        phone = getValOr(individualData, "phone", null)
+      )
     )
     CoroutineScope(Dispatchers.IO).launch {
       runCatching {
