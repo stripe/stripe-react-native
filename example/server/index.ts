@@ -573,10 +573,11 @@ app.post('/payment-sheet', async (req, res) => {
   });
 
   try {
-    const customers = await stripe.customers.list();
+    const customer = await stripe.customers.retrieve('cus_SOZrv59WT6h8gO');
+    // const customers = await stripe.customers.list();
 
-    // Here, we're getting latest customer only for example purposes.
-    const customer = customers.data[0];
+    // // Here, we're getting latest customer only for example purposes.
+    // const customer = customers.data[0];
 
     if (!customer) {
       return res.send({
