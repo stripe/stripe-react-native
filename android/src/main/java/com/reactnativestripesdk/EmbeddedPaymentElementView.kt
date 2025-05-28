@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.content.Context
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
@@ -184,12 +182,13 @@ class EmbeddedPaymentElementView(
             height = minIntrinsicHeight
 
             layout(constraints.maxWidth, minIntrinsicHeight) {
-              measurable.measure(
-                constraints.copy(
-                  minHeight = minIntrinsicHeight,
-                  maxHeight = minIntrinsicHeight,
-                )
-              ).placeRelative(IntOffset.Zero)
+              measurable
+                .measure(
+                  constraints.copy(
+                    minHeight = minIntrinsicHeight,
+                    maxHeight = minIntrinsicHeight,
+                  ),
+                ).placeRelative(IntOffset.Zero)
             }
           }.onPlaced {
             reportHeightChange(
