@@ -9,7 +9,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "Choose payment method"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     id: "UIButton.Close"

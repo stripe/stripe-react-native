@@ -7,7 +7,7 @@ appId: ${APP_ID}
     text: "Checkout"
 - tapOn: "Checkout"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     id: "UIButton.Close"
