@@ -3,7 +3,7 @@
 
 **Fixes**
 - Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.
-- - Fixed EmbeddedPaymentElement not sizing correctly on Android when the user has saved payment methods.
+- Fixed EmbeddedPaymentElement not sizing correctly on Android when the user has saved payment methods.
 
 ## 0.47.0 - 2025-05-21
 
