@@ -35,6 +35,8 @@ class PaymentMethodFactory {
                 return try createSofortPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
+            case STPPaymentMethodType.billie:
+                return try createBilliePaymentMethodParams()
             case STPPaymentMethodType.SEPADebit:
                 return try createSepaPaymentMethodParams()
             case STPPaymentMethodType.giropay:
@@ -87,6 +89,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodOptions()
             case STPPaymentMethodType.bancontact:
+                return nil
+            case STPPaymentMethodType.billie:
                 return nil
             case STPPaymentMethodType.SEPADebit:
                 return nil
@@ -268,6 +272,16 @@ class PaymentMethodFactory {
         }
 
         return STPPaymentMethodParams(bancontact: params, billingDetails: billingDetails, metadata: metadata)
+    }
+
+    private func createBilliePaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodBillieParams()
+
+        if let billingDetails = billingDetailsParams {
+            return STPPaymentMethodParams(billie: params, billingDetails: billingDetails, metadata: metadata)
+        } else {
+            throw PaymentMethodError.klarnaPaymentMissingParams
+        }
     }
 
     private func createSepaPaymentMethodParams() throws -> STPPaymentMethodParams {

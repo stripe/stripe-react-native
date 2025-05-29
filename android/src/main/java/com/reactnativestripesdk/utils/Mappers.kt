@@ -127,6 +127,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.AuBecsDebit -> "AuBecsDebit"
     PaymentMethod.Type.BacsDebit -> "BacsDebit"
     PaymentMethod.Type.Bancontact -> "Bancontact"
+    PaymentMethod.Type.Billie -> "Billie"
     PaymentMethod.Type.Card -> "Card"
     PaymentMethod.Type.CardPresent -> "CardPresent"
     PaymentMethod.Type.Eps -> "Eps"
@@ -158,6 +159,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "AuBecsDebit" -> PaymentMethod.Type.AuBecsDebit
     "BacsDebit" -> PaymentMethod.Type.BacsDebit
     "Bancontact" -> PaymentMethod.Type.Bancontact
+    "Billie" -> PaymentMethod.Type.Billie
     "AfterpayClearpay" -> PaymentMethod.Type.AfterpayClearpay
     "CardPresent" -> PaymentMethod.Type.CardPresent
     "Eps" -> PaymentMethod.Type.Eps
