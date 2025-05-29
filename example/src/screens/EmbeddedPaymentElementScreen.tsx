@@ -117,7 +117,8 @@ export default function EmbeddedPaymentElementScreen() {
   // Initialize Stripe element configs
   const initialize = React.useCallback(
     async (shippingDetails?: AddressDetails) => {
-      const { customer } = await fetchPaymentSheetParams(customerKeyType);
+      const { customer, clientSecretKey } =
+        await fetchPaymentSheetParams(customerKeyType);
 
       const address: Address = {
         city: 'San Francisco',
@@ -222,7 +223,8 @@ export default function EmbeddedPaymentElementScreen() {
       const uiConfig: EmbeddedPaymentElementConfiguration = {
         merchantDisplayName: 'Example Inc.',
         returnURL: 'stripe-example://stripe-redirect',
-        customerId: customer,
+        customerId: 'cus_SOCB09Un97rzus',
+        customerEphemeralKeySecret: clientSecretKey,
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         formSheetAction: {
