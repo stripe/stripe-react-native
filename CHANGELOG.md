@@ -1,5 +1,5 @@
 # CHANGELOG
-## 0.47.1 - 2025-29-2025
+## 0.47.1 - 2025-05-29
 
 **Fixes**
 - Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.
