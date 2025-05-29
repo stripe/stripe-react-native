@@ -45,6 +45,7 @@ export type ConfirmParams =
   | KlarnaParams
   // | WeChatPayParams
   | BancontactParams
+  | BillieParams
   | USBankAccountParams
   | PayPalParams
   | AffirmParams
@@ -165,6 +166,16 @@ export interface BancontactParams {
     metadata?: MetaData;
   };
 }
+
+export type BillieParams = {
+  paymentMethodType: 'Billie';
+  paymentMethodData: {
+    billingDetails?: BillingDetails;
+    shippingDetails?: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+};
 
 export interface SepaParams {
   paymentMethodType: 'SepaDebit';

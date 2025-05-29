@@ -2,6 +2,9 @@
 
 ## x.x.x - x-x-x
 
+**Features**
+- [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
+
 **Changes**
 - Klarna: Made `billingDetails.email` and `billingDetails.address.country` optional when creating Klarna payment methods. See Stripe docs: [Migrate Klarna from Sources – Field mapping reference](https://docs.stripe.com/payments/klarna/migrate) ("Not required when using the Payment Element. It’s collected automatically.").
 
