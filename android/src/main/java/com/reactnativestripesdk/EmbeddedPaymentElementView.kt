@@ -182,7 +182,13 @@ class EmbeddedPaymentElementView(
             height = minIntrinsicHeight
 
             layout(constraints.maxWidth, minIntrinsicHeight) {
-              measurable.measure(constraints).placeRelative(IntOffset.Zero)
+              measurable
+                .measure(
+                  constraints.copy(
+                    minHeight = minIntrinsicHeight,
+                    maxHeight = minIntrinsicHeight,
+                  ),
+                ).placeRelative(IntOffset.Zero)
             }
           }.onPlaced {
             reportHeightChange(
