@@ -1,8 +1,9 @@
 # CHANGELOG
-## x.x.x - 2025-x-x
+## 0.47.1 - 2025-29-2025
 
 **Fixes**
-- Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.  
+- Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.
+- - Fixed EmbeddedPaymentElement not sizing correctly on Android when the user has saved payment methods.
 
 ## 0.47.0 - 2025-05-21
 
