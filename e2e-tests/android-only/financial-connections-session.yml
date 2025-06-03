@@ -8,6 +8,21 @@ appId: ${APP_ID}
 - tapOn:
     text: "Collect session"
     retryTapIfNoChange: false
+- tapOn:
+    # Dismiss Chrome onboarding screen
+    text: "Use without an account"
+    optional: true
+- tapOn:
+    # Accept Chrome terms
+    text: "Accept & continue"
+    optional: true
+- tapOn:
+    # Don't turn on sync
+    text: "No thanks"
+    optional: true
+- assertVisible:
+    text: "Test Institution stripe.com"
+- tapOn: "Test Institution stripe.com"
 - assertVisible:
     text: "Manually verify instead"
 - tapOn: "Manually verify instead"
@@ -17,10 +32,8 @@ appId: ${APP_ID}
 - assertVisible:
     text: "Not now"
 - tapOn: "Not now"
-- assertVisible:
-    id: "done_button"
-- tapOn:
-    id: "done_button"
+- assertVisible: "Done"
+- tapOn: "Done"
 - assertVisible:
     text: "Success"
 - tapOn:
