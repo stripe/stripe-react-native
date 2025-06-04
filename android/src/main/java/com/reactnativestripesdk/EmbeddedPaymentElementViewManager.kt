@@ -21,10 +21,8 @@ import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
-import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentsheet.PaymentSheet
 
-@OptIn(ExperimentalEmbeddedPaymentElementApi::class)
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
 class EmbeddedPaymentElementViewManager :
   ViewGroupManager<EmbeddedPaymentElementView>(),
@@ -54,6 +52,9 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
+    val rowSelectionBehaviorType = parseRowSelectionBehavior(cfg.asMap())
+    view.rowSelectionBehaviorType.value = rowSelectionBehaviorType
+
     val elementConfig = parseElementConfiguration(cfg.asMap(), view.context)
     view.latestElementConfig = elementConfig
     // if intentConfig is already set, configure immediately:
@@ -188,6 +189,21 @@ class EmbeddedPaymentElementViewManager :
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 
     return configurationBuilder.build()
+  }
+
+  private fun parseRowSelectionBehavior(map: ReadableMap): RowSelectionBehaviorType {
+    val rowSelectionBehavior =
+      map
+        .getMap("rowSelectionBehavior")
+        ?.getString("type")
+        ?.let { type ->
+          when (type) {
+            "immediateAction" -> RowSelectionBehaviorType.ImmediateAction
+            else -> RowSelectionBehaviorType.Default
+          }
+        }
+        ?: RowSelectionBehaviorType.Default
+    return rowSelectionBehavior
   }
 
   private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {

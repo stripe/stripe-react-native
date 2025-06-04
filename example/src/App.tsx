@@ -43,6 +43,7 @@ import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
 import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
+import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPaymentElementImmediateActionScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 
@@ -89,6 +90,7 @@ export type RootStackParamList = {
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   EmbeddedPaymentElementScreen: undefined;
+  EmbeddedPaymentElementImmediateActionScreen: undefined;
   CustomerSheetScreen: undefined;
   RevolutPayScreen: undefined;
 };
@@ -168,6 +170,10 @@ export default function App() {
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"
             component={EmbeddedPaymentElementScreen}
+          />
+          <Stack.Screen
+            name="EmbeddedPaymentElementImmediateActionScreen"
+            component={EmbeddedPaymentElementImmediateActionScreen}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"
