@@ -38,6 +38,7 @@ allprojects {
             }())
         }
         maven { url "file:/$rootDir/privateMavenRepository" }
+        maven { url "/Users/gbirch/.m2/repository" }
         mavenCentral()
         google()
     }

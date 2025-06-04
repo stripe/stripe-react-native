@@ -12,7 +12,8 @@ import type {
   Address,
   IntentCreationCallbackParams,
   PaymentMethod,
-  EmbeddedPaymentElementResult,
+  // EmbeddedPaymentElementResult,
+  PaymentOptionDisplayData,
 } from '@stripe/stripe-react-native';
 import {
   useEmbeddedPaymentElement,
@@ -20,6 +21,8 @@ import {
   RowStyle,
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
+
+var pmo: PaymentOptionDisplayData | null = null;
 
 function PaymentElementView({ intentConfig, elementConfig }: any) {
   const [loading, setLoading] = React.useState(false);
@@ -32,6 +35,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
     clearPaymentOption,
     loadingError,
   } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
+  pmo = paymentOption;
 
   // Payment action
   const handlePay = React.useCallback(async () => {
@@ -226,15 +230,21 @@ export default function EmbeddedPaymentElementScreen() {
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         formSheetAction: {
-          type: 'confirm',
-          onFormSheetConfirmComplete: (
-            result: EmbeddedPaymentElementResult
-          ) => {
-            if (result.status === 'completed')
-              Alert.alert('Success', 'Payment confirmed');
-            else if (result.status === 'failed')
-              Alert.alert('Error', `Failed: ${result.error.message}`);
-            else Alert.alert('Cancelled');
+          type: 'continue',
+          // onFormSheetConfirmComplete: (
+          //   result: EmbeddedPaymentElementResult
+          // ) => {
+          //   if (result.status === 'completed')
+          //     Alert.alert('Success', 'Payment confirmed');
+          //   else if (result.status === 'failed')
+          //     Alert.alert('Error', `Failed: ${result.error.message}`);
+          //   else Alert.alert('Cancelled');
+          // },
+        },
+        rowSelectionBehavior: {
+          type: 'immediateAction',
+          onSelectPaymentOption: () => {
+            console.log(pmo?.paymentMethodType);
           },
         },
         appearance,

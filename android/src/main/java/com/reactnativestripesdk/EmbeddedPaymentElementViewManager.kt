@@ -54,6 +54,9 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
+    val rowSelectionBehaviorType = parseRowSelectionBehavior(cfg.asMap())
+    view.rowSelectionBehaviorType.value = rowSelectionBehaviorType
+
     val elementConfig = parseElementConfiguration(cfg.asMap(), view.context)
     view.latestElementConfig = elementConfig
     // if intentConfig is already set, configure immediately:
@@ -188,6 +191,21 @@ class EmbeddedPaymentElementViewManager :
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 
     return configurationBuilder.build()
+  }
+
+  private fun parseRowSelectionBehavior(map: ReadableMap): RowSelectionBehaviorType {
+    val rowSelectionBehavior =
+      map
+        .getMap("rowSelectionBehavior")
+        ?.getString("type")
+        ?.let { type ->
+          when (type) {
+            "immediateAction" -> RowSelectionBehaviorType.ImmediateAction
+            else -> RowSelectionBehaviorType.Default
+          }
+        }
+        ?: RowSelectionBehaviorType.Default
+    return rowSelectionBehavior
   }
 
   private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
