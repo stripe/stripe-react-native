@@ -4,7 +4,7 @@ import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { API_URL } from '../Config';
-import type {
+import {
   IntentConfiguration,
   EmbeddedPaymentElementConfiguration,
   AddressDetails,
@@ -13,6 +13,10 @@ import type {
   IntentCreationCallbackParams,
   PaymentMethod,
   EmbeddedPaymentElementResult,
+  CustomPaymentMethod,
+  CustomPaymentMethodResult,
+  CustomPaymentMethodResultStatus,
+  ConfirmCustomPaymentMethodCallback,
 } from '@stripe/stripe-react-native';
 import {
   useEmbeddedPaymentElement,
@@ -235,6 +239,52 @@ export default function EmbeddedPaymentElementScreen() {
             else if (result.status === 'failed')
               Alert.alert('Error', `Failed: ${result.error.message}`);
             else Alert.alert('Cancelled');
+          },
+        },
+        customPaymentMethodConfiguration: {
+          customPaymentMethods: [
+            {
+              id: 'cpmt_1QpIMNLu5o3P18Zpwln1Sm6I', // The requested custom payment method ID
+              subtitle: 'Demo custom payment method',
+              disableBillingDetailCollection: false,
+            },
+          ],
+          confirmCustomPaymentMethodCallback: (
+            customPaymentMethod: CustomPaymentMethod,
+            cpmBillingDetails: BillingDetails | null,
+            confirmHandler: (result: CustomPaymentMethodResult) => void
+          ) => {
+            // Show an alert to simulate custom payment method processing
+            Alert.alert(
+              'Custom Payment Method',
+              `Processing payment with ${customPaymentMethod.id}`,
+              [
+                {
+                  text: 'Success',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Completed,
+                    }),
+                },
+                {
+                  text: 'Fail',
+                  style: 'destructive',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Failed,
+                      error: 'Custom payment failed',
+                    }),
+                },
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Canceled,
+                    }),
+                },
+              ]
+            );
           },
         },
         appearance,

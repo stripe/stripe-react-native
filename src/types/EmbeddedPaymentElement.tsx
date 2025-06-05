@@ -166,6 +166,8 @@ export interface EmbeddedPaymentElementConfiguration {
    * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs.
    */
   formSheetAction?: EmbeddedFormSheetAction;
+  /** Configuration for custom payment methods in EmbeddedPaymentElement */
+  customPaymentMethodConfiguration?: PaymentSheetTypes.CustomPaymentMethodConfiguration;
 }
 
 // -----------------------------------------------------------------------------
@@ -209,6 +211,7 @@ class EmbeddedPaymentElement {
 // -----------------------------------------------------------------------------
 let confirmHandlerCallback: EventSubscription | null = null;
 let formSheetActionConfirmCallback: EventSubscription | null = null;
+let customPaymentMethodConfirmCallback: EventSubscription | null = null;
 
 async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
@@ -258,6 +261,36 @@ function setupConfirmHandlers(
         (result: EmbeddedPaymentElementResult) => {
           // Pass the result back to the formSheetAction handler
           confirmFormSheetHandler(result);
+        }
+      );
+    }
+  }
+
+  // Setup custom payment method confirmation handler
+  if (configuration.customPaymentMethodConfiguration) {
+    const customPaymentMethodHandler =
+      configuration.customPaymentMethodConfiguration
+        .confirmCustomPaymentMethodCallback;
+    if (customPaymentMethodHandler) {
+      customPaymentMethodConfirmCallback?.remove();
+      customPaymentMethodConfirmCallback = addListener(
+        'embeddedPaymentElementCustomPaymentMethodConfirm',
+        ({
+          customPaymentMethod,
+          billingDetails,
+        }: {
+          customPaymentMethod: PaymentSheetTypes.CustomPaymentMethod;
+          billingDetails: BillingDetails | null;
+        }) => {
+          // Call the user's handler with a result handler callback
+          customPaymentMethodHandler(
+            customPaymentMethod,
+            billingDetails,
+            (result: PaymentSheetTypes.CustomPaymentMethodResult) => {
+              // Send the result back to the native side
+              NativeStripeSdkModule.customPaymentMethodResultCallback(result);
+            }
+          );
         }
       );
     }
