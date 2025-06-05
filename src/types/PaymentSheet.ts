@@ -84,6 +84,8 @@ export type SetupParamsBase = IntentParams & {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: CardBrandAcceptance;
+  /** Configuration for custom payment methods in PaymentSheet */
+  customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
 };
 
 export type SetupParams =
@@ -632,3 +634,60 @@ export type CardBrandAcceptance =
        */
       brands: CardBrandCategory[];
     };
+
+/**
+ * Configuration for a custom payment method.
+ */
+export interface CustomPaymentMethod {
+  /** The custom payment method ID (beginning with `cpmt_`) as created in your Stripe Dashboard. */
+  id: string;
+  /** Optional subtitle to display beneath the custom payment method name. */
+  subtitle?: string;
+  /** Whether to disable billing detail collection for this custom payment method. Defaults to true. */
+  disableBillingDetailCollection?: boolean;
+}
+
+/**
+ * Custom payment method confirmation result type for PaymentSheet.
+ */
+export enum CustomPaymentMethodResultStatus {
+  /** The custom payment method transaction was completed successfully */
+  Completed = 'completed',
+  /** The custom payment method transaction was canceled by the user */
+  Canceled = 'canceled',
+  /** The custom payment method transaction failed */
+  Failed = 'failed',
+}
+
+/**
+ * Result object returned when a custom payment method transaction completes.
+ * Contains the transaction status and, in case of failure, an error message.
+ */
+export type CustomPaymentMethodResult =
+  | { status: CustomPaymentMethodResultStatus.Completed }
+  | { status: CustomPaymentMethodResultStatus.Canceled }
+  | { status: CustomPaymentMethodResultStatus.Failed; error: string };
+
+/**
+ * Callback function called when a custom payment method is selected and confirmed.
+ * Your implementation should complete the payment using your custom payment provider's SDK.
+ */
+export type ConfirmCustomPaymentMethodCallback = (
+  customPaymentMethod: CustomPaymentMethod,
+  billingDetails: BillingDetails | null,
+  /**
+   * Call this function with the result of your custom payment method transaction.
+   * @param result The result of the custom payment method confirmation
+   */
+  resultHandler: (result: CustomPaymentMethodResult) => void
+) => void;
+
+/**
+ * Configuration for custom payment methods in PaymentSheet.
+ */
+export interface CustomPaymentMethodConfiguration {
+  /** Array of custom payment methods to display in the Payment Sheet */
+  customPaymentMethods: CustomPaymentMethod[];
+  /** Callback function to handle custom payment method confirmation */
+  confirmCustomPaymentMethodCallback: ConfirmCustomPaymentMethodCallback;
+}
