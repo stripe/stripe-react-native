@@ -16,7 +16,6 @@ import {
   CustomPaymentMethod,
   CustomPaymentMethodResult,
   CustomPaymentMethodResultStatus,
-  ConfirmCustomPaymentMethodCallback,
 } from '@stripe/stripe-react-native';
 import {
   useEmbeddedPaymentElement,
