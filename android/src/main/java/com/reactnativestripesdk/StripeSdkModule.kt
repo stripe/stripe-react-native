@@ -297,7 +297,7 @@ class StripeSdkModule(
 
     paymentSheetFragment?.paymentSheetIntentCreationCallback?.complete(params)
   }
-  
+
   @ReactMethod
   override fun customPaymentMethodResultCallback(
     result: ReadableMap?,
