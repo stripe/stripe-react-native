@@ -33,6 +33,10 @@ internal class PaymentSheetAppearance {
           appearance.embeddedPaymentElement = try buildEmbeddedPaymentElementAppearance(params: embeddedPaymentElementParams)
         }
         
+        if let formInsetParams = userParams[PaymentSheetAppearanceKeys.FORM_INSETS] as? NSDictionary {
+            appearance.formInsets = try buildFormInsets(params: formInsetParams)
+        }
+        
         return appearance
     }
     
@@ -113,6 +117,9 @@ internal class PaymentSheetAppearance {
             }
             if let shadowParams = shapeParams[PaymentSheetAppearanceKeys.SHADOW] as? NSDictionary {
                 primaryButton.shadow = try buildShadow(params: shadowParams)
+            }
+            if let height = shapeParams[PaymentSheetAppearanceKeys.HEIGHT] as? CGFloat {
+                primaryButton.height = height
             }
         }
         if let colorParams = params[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
@@ -314,6 +321,20 @@ internal class PaymentSheetAppearance {
             return defaultColor
           })
       }
+    
+    private class func buildFormInsets(params: NSDictionary) throws -> NSDirectionalEdgeInsets {
+        let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.top
+        let leading = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.leading
+        let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.bottom
+        let trailing = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.trailing
+        
+        return NSDirectionalEdgeInsets(
+          top: top,
+          leading: leading,
+          bottom: bottom,
+          trailing: trailing
+        )
+    }
 }
 
 enum PaymentSheetAppearanceError : Error {
@@ -361,6 +382,7 @@ private struct PaymentSheetAppearanceKeys {
     static let SHAPES = "shapes"
     static let BORDER_RADIUS = "borderRadius"
     static let BORDER_WIDTH = "borderWidth"
+    static let HEIGHT = "height"
 
     static let SHADOW = "shadow"
     static let SHADOW_COLOR = "color"
@@ -400,4 +422,6 @@ private struct PaymentSheetAppearanceKeys {
     static let ROW_STYLE_FLAT_WITH_RADIO = "flatWithRadio"
     static let ROW_STYLE_FLOATING_BUTTON = "floatingButton"
     static let ROW_STYLE_FLAT_WITH_CHECKMARK = "flatWithCheckmark"
+    
+    static let FORM_INSETS = "formInsetValues"
 }
