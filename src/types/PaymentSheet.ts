@@ -206,6 +206,9 @@ export type AppearanceParams = RecursivePartial<{
 
   /** Describes the appearance of the Embedded Mobile Payment Element */
   embeddedPaymentElement: EmbeddedPaymentElementAppearance;
+
+  /** Describes the inset values applied to Mobile Payment Element forms */
+  formInsetValues: EdgeInsetsConfig;
 }>;
 
 export type FontConfig = {
@@ -313,6 +316,11 @@ export type PrimaryButtonConfig = {
      * @default The root `appearance.shapes.shadow`
      */
     shadow: ShadowConfig;
+    /**
+     * The height of the primary button
+     * @default 48
+     */
+    height: number;
   };
 };
 
