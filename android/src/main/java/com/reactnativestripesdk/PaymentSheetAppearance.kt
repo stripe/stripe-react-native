@@ -38,7 +38,7 @@ fun buildPaymentSheetAppearance(
           context,
         ),
       embeddedAppearance = embeddedAppearance,
-      formInsetValues = buildFormInsets(insetParams)
+      formInsetValues = buildFormInsets(insetParams),
     )
   }
 
@@ -52,7 +52,7 @@ fun buildPaymentSheetAppearance(
         userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
         context,
       ),
-    formInsetValues = buildFormInsets(insetParams)
+    formInsetValues = buildFormInsets(insetParams),
   )
 }
 
@@ -201,7 +201,7 @@ private fun buildPrimaryButton(
           getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS),
         borderStrokeWidthDp =
           getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH),
-        heightDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.HEIGHT)
+        heightDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.HEIGHT),
       ),
     typography =
       PaymentSheet.PrimaryButtonTypography(
@@ -407,9 +407,7 @@ private fun buildEmbeddedAppearance(
   return PaymentSheet.Appearance.Embedded(style = rowStyle)
 }
 
-private fun buildFormInsets(
-  insetParams: Bundle?,
-): PaymentSheet.Insets {
+private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
   val defaultLeft = 20f
   val defaultTop = 0f
   val defaultRight = 20f
@@ -423,7 +421,7 @@ private fun buildFormInsets(
     startDp = left,
     topDp = top,
     endDp = right,
-    bottomDp = bottom
+    bottomDp = bottom,
   )
 }
 
