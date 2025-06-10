@@ -8,6 +8,7 @@ import android.os.Bundle
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.uicore.StripeThemeDefaults
 
 @SuppressLint("RestrictedApi")
 fun buildPaymentSheetAppearance(
@@ -407,15 +408,13 @@ private fun buildEmbeddedAppearance(
   return PaymentSheet.Appearance.Embedded(style = rowStyle)
 }
 
+@SuppressLint("RestrictedApi")
 private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
-  val defaultLeft = 20f
-  val defaultTop = 0f
-  val defaultRight = 20f
-  val defaultBottom = 40f
-  val left = getFloatOr(insetParams, PaymentSheetAppearanceKeys.LEFT, defaultLeft)
-  val top = getFloatOr(insetParams, PaymentSheetAppearanceKeys.TOP, defaultTop)
-  val right = getFloatOr(insetParams, PaymentSheetAppearanceKeys.RIGHT, defaultRight)
-  val bottom = getFloatOr(insetParams, PaymentSheetAppearanceKeys.BOTTOM, defaultBottom)
+  val defaults = StripeThemeDefaults.formInsets
+  val left = getFloatOr(insetParams, PaymentSheetAppearanceKeys.LEFT, defaults.start)
+  val top = getFloatOr(insetParams, PaymentSheetAppearanceKeys.TOP, defaults.top)
+  val right = getFloatOr(insetParams, PaymentSheetAppearanceKeys.RIGHT, defaults.end)
+  val bottom = getFloatOr(insetParams, PaymentSheetAppearanceKeys.BOTTOM, defaults.bottom)
 
   return PaymentSheet.Insets(
     startDp = left,
