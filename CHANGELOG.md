@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.48.0 - 2025-06-11
+
 **Feature**
 - Added `height` to `PrimaryButtonConfig.shapes`.
 - Added `formInsetValues` to `AppearanceParams`.
