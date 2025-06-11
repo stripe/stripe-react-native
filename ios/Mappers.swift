@@ -284,6 +284,7 @@ class Mappers {
         case STPPaymentMethodType.przelewy24: return "P24"
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
+        case STPPaymentMethodType.billie: return "Billie"
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
@@ -315,6 +316,7 @@ class Mappers {
             case "P24": return STPPaymentMethodType.przelewy24
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
+            case "Billie": return STPPaymentMethodType.billie
             case "Oxxo": return STPPaymentMethodType.OXXO
             case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
