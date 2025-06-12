@@ -5,6 +5,9 @@ import {
   AddressSheetError,
   BillingDetails,
   CardBrand,
+  CustomPaymentMethod,
+  CustomPaymentMethodResult,
+  CustomPaymentMethodResultStatus,
   PaymentMethodLayout,
   PaymentSheetError,
   useStripe,
@@ -141,6 +144,52 @@ export default function PaymentsUICompleteScreen() {
         paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
+        customPaymentMethodConfiguration: {
+          customPaymentMethods: [
+            {
+              id: 'cpmt_1QpIMNLu5o3P18Zpwln1Sm6I', // The requested custom payment method ID
+              subtitle: 'Demo custom payment method',
+              disableBillingDetailCollection: false,
+            },
+          ],
+          confirmCustomPaymentMethodCallback: (
+            customPaymentMethod: CustomPaymentMethod,
+            cpmBillingDetails: BillingDetails | null,
+            confirmHandler: (result: CustomPaymentMethodResult) => void
+          ) => {
+            // Show an alert to simulate custom payment method processing
+            Alert.alert(
+              'Custom Payment Method',
+              `Processing payment with ${customPaymentMethod.id}`,
+              [
+                {
+                  text: 'Success',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Completed,
+                    }),
+                },
+                {
+                  text: 'Fail',
+                  style: 'destructive',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Failed,
+                      error: 'Custom payment failed',
+                    }),
+                },
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                  onPress: () =>
+                    confirmHandler({
+                      status: CustomPaymentMethodResultStatus.Canceled,
+                    }),
+                },
+              ]
+            );
+          },
+        },
         ...clientSecretParams,
       });
       if (!error) {

@@ -36,7 +36,8 @@ type Events =
   | 'embeddedPaymentElementFormSheetConfirmComplete'
   | 'embeddedPaymentElementDidUpdatePaymentOption'
   | 'embeddedPaymentElementDidUpdateHeight'
-  | 'embeddedPaymentElementLoadingFailed';
+  | 'embeddedPaymentElementLoadingFailed'
+  | 'embeddedPaymentElementCustomPaymentMethodConfirm';
 
 export function addListener<EventT extends Events>(
   event: EventT,
