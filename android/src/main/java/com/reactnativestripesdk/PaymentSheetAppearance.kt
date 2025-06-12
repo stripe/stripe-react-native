@@ -8,6 +8,7 @@ import android.os.Bundle
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
 import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.uicore.StripeThemeDefaults
 
 @SuppressLint("RestrictedApi")
 fun buildPaymentSheetAppearance(
@@ -17,6 +18,7 @@ fun buildPaymentSheetAppearance(
   val colorParams = userParams?.getBundle(PaymentSheetAppearanceKeys.COLORS)
   val lightColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
   val darkColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val insetParams = userParams?.getBundle(PaymentSheetAppearanceKeys.FORM_INSETS)
 
   val embeddedAppearance =
     buildEmbeddedAppearance(
@@ -37,6 +39,7 @@ fun buildPaymentSheetAppearance(
           context,
         ),
       embeddedAppearance = embeddedAppearance,
+      formInsetValues = buildFormInsets(insetParams),
     )
   }
 
@@ -50,6 +53,7 @@ fun buildPaymentSheetAppearance(
         userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
         context,
       ),
+    formInsetValues = buildFormInsets(insetParams),
   )
 }
 
@@ -198,6 +202,7 @@ private fun buildPrimaryButton(
           getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS),
         borderStrokeWidthDp =
           getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH),
+        heightDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.HEIGHT),
       ),
     typography =
       PaymentSheet.PrimaryButtonTypography(
@@ -403,6 +408,22 @@ private fun buildEmbeddedAppearance(
   return PaymentSheet.Appearance.Embedded(style = rowStyle)
 }
 
+@SuppressLint("RestrictedApi")
+private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
+  val defaults = StripeThemeDefaults.formInsets
+  val left = getFloatOr(insetParams, PaymentSheetAppearanceKeys.LEFT, defaults.start)
+  val top = getFloatOr(insetParams, PaymentSheetAppearanceKeys.TOP, defaults.top)
+  val right = getFloatOr(insetParams, PaymentSheetAppearanceKeys.RIGHT, defaults.end)
+  val bottom = getFloatOr(insetParams, PaymentSheetAppearanceKeys.BOTTOM, defaults.bottom)
+
+  return PaymentSheet.Insets(
+    startDp = left,
+    topDp = top,
+    endDp = right,
+    bottomDp = bottom,
+  )
+}
+
 /**
  * Pulls a light/dark hex‑string map out of [params],
  * chooses the right one based on the current UI mode,
@@ -564,6 +585,7 @@ private class PaymentSheetAppearanceKeys {
     const val SHAPES = "shapes"
     const val BORDER_RADIUS = "borderRadius"
     const val BORDER_WIDTH = "borderWidth"
+    const val HEIGHT = "height"
 
     const val PRIMARY_BUTTON = "primaryButton"
     const val TEXT = "text"
@@ -593,5 +615,9 @@ private class PaymentSheetAppearanceKeys {
     // Keys for EdgeInsetsConfig
     const val LEFT = "left"
     const val RIGHT = "right"
+    const val TOP = "top"
+    const val BOTTOM = "bottom"
+
+    const val FORM_INSETS = "formInsetValues"
   }
 }
