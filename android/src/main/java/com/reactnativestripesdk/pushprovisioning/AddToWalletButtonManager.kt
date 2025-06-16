@@ -64,7 +64,9 @@ class AddToWalletButtonManager(
     view: AddToWalletButtonView,
     ephemeralKey: Dynamic,
   ) {
-    view.setEphemeralKey(ephemeralKey.asMap())
+    val map = ephemeralKey.asMap()
+    if (map == null) return
+    view.setEphemeralKey(map)
   }
 
   @ReactProp(name = "token")
