@@ -32,8 +32,8 @@ import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
-import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
@@ -534,7 +534,7 @@ class PaymentSheetFragment : StripeFragment() {
           currency = currencyCode,
           setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
           captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
-          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getBundle("paymentMethodOptions"))
+          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getBundle("paymentMethodOptions")),
         )
       } else {
         val setupFutureUsage =
@@ -667,7 +667,7 @@ fun mapToPaymentMethodOptions(options: Bundle?): PaymentSheet.IntentConfiguratio
     }
   }
   return PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions(
-    setupFutureUsageValues = paymentMethodToSfuMap
+    setupFutureUsageValues = paymentMethodToSfuMap,
   )
 }
 
