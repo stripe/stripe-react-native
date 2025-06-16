@@ -568,7 +568,8 @@ export type PaymentMode = {
 };
 
 export type PaymentMethodOptions = {
-  /* A map of payment method types to setup_future_usage value. */
+  /* This is an experimental feature that may be removed at any time
+  A map of payment method types to setup_future_usage value. (e.g. card: 'OffSession') */
   setupFutureUsageValues: {
     [key: string]: FutureUsage;
   };
