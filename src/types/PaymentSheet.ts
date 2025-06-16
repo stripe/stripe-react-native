@@ -562,6 +562,16 @@ export type PaymentMode = {
   /* Controls when the funds will be captured.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
   captureMethod?: CaptureMethod;
+  /** Additional payment method options params.
+  Seealso: https://docs.stripe.com/api/payment_intents/create#create_payment_intent-payment_method_options */
+  paymentMethodOptions?: PaymentMethodOptions;
+};
+
+export type PaymentMethodOptions = {
+  /* A map of payment method types to setup_future_usage value. */
+  setupFutureUsageValues: {
+    [key: string]: FutureUsage;
+  };
 };
 
 /* Use this if your integration creates a SetupIntent */

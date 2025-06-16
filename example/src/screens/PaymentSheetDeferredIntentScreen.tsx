@@ -141,6 +141,7 @@ export default function PaymentSheetDeferredIntentScreen() {
                 body: JSON.stringify({
                   paymentMethodId: paymentMethod.id,
                   customerId: customer,
+                  pmoSfuCard: true,
                 }),
               }
             );
@@ -162,6 +163,11 @@ export default function PaymentSheetDeferredIntentScreen() {
           mode: {
             amount: 6099,
             currencyCode: 'USD',
+            paymentMethodOptions: {
+              setupFutureUsageValues: {
+                card: 'OffSession',
+              },
+            },
           },
           paymentMethodTypes: ['card'],
         },
