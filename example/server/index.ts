@@ -831,21 +831,12 @@ app.post('/payment-intent-for-payment-sheet', async (req, res) => {
     typescript: true,
   });
 
-  let pmo = {};
-  if (req.body.pmoSfuCard) {
-    pmo = {
-      card: {
-        setup_future_usage: 'off_session',
-      },
-    };
-  }
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 5099,
       currency: 'usd',
       payment_method: req.body.paymentMethodId,
       customer: req.body.customerId,
-      payment_method_options: pmo,
     });
 
     return res.send({ clientSecret: paymentIntent.client_secret });
