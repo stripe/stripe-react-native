@@ -666,9 +666,13 @@ fun mapToPaymentMethodOptions(options: Bundle?): PaymentSheet.IntentConfiguratio
       paymentMethodToSfuMap[paymentMethodType] = sfuValue
     }
   }
-  return PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions(
-    setupFutureUsageValues = paymentMethodToSfuMap,
-  )
+  return if (paymentMethodToSfuMap.isNotEmpty()) {
+    PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions(
+      setupFutureUsageValues = paymentMethodToSfuMap,
+    )
+  } else {
+    null
+  }
 }
 
 fun mapToCardBrandAcceptance(params: Bundle?): PaymentSheet.CardBrandAcceptance {
