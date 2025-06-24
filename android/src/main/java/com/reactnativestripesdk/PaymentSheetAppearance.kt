@@ -341,7 +341,7 @@ private fun buildEmbeddedAppearance(
         val checkmarkParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.CHECKMARK)
         val separatorInsetsParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
 
-        // Default separator insets specific to FlatWithCheckmark
+        // Default separator insets specific to FlatWithCheckmark and FlatWithChevron
         val defaultSeparatorStartInsetDp = 0.0f
         val defaultSeparatorEndInsetDp = 0.0f
 
@@ -390,6 +390,59 @@ private fun buildEmbeddedAppearance(
           horizontalInsetsDp = 0.0F, // We do not have an iOS equal for this API so it's not configurable in React Native
           colorsLight = flatCheckmarkColors,
           colorsDark = flatCheckmarkColors,
+        )
+      }
+      "flatWithChevron" -> {
+        val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
+        val chevronParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.CHEVRON)
+        val separatorInsetsParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+
+        // Default separator insets specific to FlatWithCheckmark and FlatWithChevron
+        val defaultSeparatorStartInsetDp = 0.0f
+        val defaultSeparatorEndInsetDp = 0.0f
+
+        // Parse dimensions as Floats
+        val separatorThickness = getFloatOr(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS, defaultSeparatorThicknessDp)
+        val startSeparatorInset = getFloatOr(separatorInsetsParams, PaymentSheetAppearanceKeys.LEFT, defaultSeparatorStartInsetDp)
+        val endSeparatorInset = getFloatOr(separatorInsetsParams, PaymentSheetAppearanceKeys.RIGHT, defaultSeparatorEndInsetDp)
+
+        // Parse booleans
+        val topEnabled = getBooleanOr(flatParams, PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED, true)
+        val bottomEnabled = getBooleanOr(flatParams, PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED, true)
+
+        val parsedSeparatorColor =
+          dynamicColorFromParams(
+            context,
+            flatParams,
+            PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
+            Color.GRAY
+          )
+
+        val parsedChevronColor =
+          dynamicColorFromParams(
+            context,
+            chevronParams,
+            PaymentSheetAppearanceKeys.COLOR,
+            defaultColors.componentBorder, // Default to component border color like other elements
+          )
+
+        // Create the required Colors object
+        val flatChevronColors =
+          PaymentSheet.Appearance.Embedded.RowStyle.FlatWithChevron.Colors(
+            separatorColor = parsedSeparatorColor,
+            chevronColor = parsedChevronColor,
+          )
+
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithChevron(
+          separatorThicknessDp = separatorThickness,
+          startSeparatorInsetDp = startSeparatorInset,
+          endSeparatorInsetDp = endSeparatorInset,
+          topSeparatorEnabled = topEnabled,
+          bottomSeparatorEnabled = bottomEnabled,
+          additionalVerticalInsetsDp = additionalInsets,
+          horizontalInsetsDp = 0.0F, // We do not have an iOS equal for this API so it's not configurable in React Native
+          colorsLight = flatChevronColors,
+          colorsDark = flatChevronColors,
         )
       }
       "floatingButton" -> {
@@ -606,6 +659,7 @@ private class PaymentSheetAppearanceKeys {
     const val SELECTED_COLOR = "selectedColor"
     const val UNSELECTED_COLOR = "unselectedColor"
     const val CHECKMARK = "checkmark"
+    const val CHEVRON = "chevron"
     const val COLOR = "color"
     const val CHECKMARK_INSET = "inset"
 
