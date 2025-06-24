@@ -44,9 +44,7 @@
     "url": "https://github.com/stripe/stripe-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
-  "dependencies": {
-    "yarn": "^1.22.22"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@expo/config-plugins": "^9.0.16",
     "@react-native/babel-preset": "^0.78.0",
