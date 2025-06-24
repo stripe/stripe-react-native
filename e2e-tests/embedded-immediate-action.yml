@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement - immediateAction rowSelectionBehavior)"
+- tapOn: "Open modal"
+- extendedWaitUntil:
+    visible: "Link"
+    timeout: 150000
+- tapOn:
+    text: "Link"
+- assertNotVisible:
+# ensure modal is closed
+    text: "Card"
+- assertVisible:
+# ensure Link is selected
+    text: "Link"
