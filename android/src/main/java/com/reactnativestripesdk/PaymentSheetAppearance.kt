@@ -415,7 +415,7 @@ private fun buildEmbeddedAppearance(
             context,
             flatParams,
             PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
-            Color.GRAY
+            Color.GRAY,
           )
 
         val parsedChevronColor =
