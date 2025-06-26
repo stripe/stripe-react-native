@@ -27,8 +27,8 @@ appId: ${APP_ID}
     text: "Manually verify instead"
 - tapOn: "Manually verify instead"
 - assertVisible:
-    text: "Use test account"
-- tapOn: "Use test account"
+    text: "Autofill"
+- tapOn: "Autofill"
 - assertVisible:
     text: "Not now"
 - tapOn: "Not now"
