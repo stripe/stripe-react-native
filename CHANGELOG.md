@@ -1,5 +1,9 @@
 # CHANGELOG
 
+**Features**
+- Added `PaymentMethodOptions` to `PaymentMode` to enable setting payment method level setup future usage value
+- Added `None` to `FutureUsage`
+
 ## 0.48.0 - 2025-06-11
 
 **Feature**

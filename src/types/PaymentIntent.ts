@@ -58,7 +58,7 @@ export type LastPaymentError = StripeError<string> & {
   paymentMethod: PaymentMethodResult;
 };
 
-export type FutureUsage = 'OffSession' | 'OnSession';
+export type FutureUsage = 'OffSession' | 'OnSession' | 'None';
 
 export interface ShippingDetails {
   address: Required<Address>;
