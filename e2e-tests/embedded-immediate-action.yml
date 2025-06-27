@@ -5,13 +5,13 @@ appId: ${APP_ID}
 - tapOn: "Prebuilt UI (EmbeddedPaymentElement - immediateAction rowSelectionBehavior)"
 - tapOn: "Open modal"
 - extendedWaitUntil:
-    visible: "Link"
+    visible: "Cash App Pay"
     timeout: 150000
 - tapOn:
-    text: "Link"
+    text: "Cash App Pay"
 - assertNotVisible:
 # ensure modal is closed
     text: "Card"
 - assertVisible:
 # ensure Link is selected
-    text: "Link"
+    text: "Cash App Pay"
