@@ -142,14 +142,9 @@ export default function EmbeddedPaymentElementImmediateActionScreen() {
         },
         embeddedPaymentElement: {
           row: {
-            style: RowStyle.FloatingButton,
+            style: RowStyle.FlatWithChevron,
             flat: {
-              separatorColor: { light: '#FF0000', dark: '#0000FF' },
-              checkmark: { color: { light: '#FF0000', dark: '#0000FF' } },
-              radio: {
-                selectedColor: { light: '#FF0000', dark: '#0000FF' },
-                unselectedColor: { light: '#FF0000', dark: '#0000FF' },
-              },
+              chevron: { color: { light: '#FF0000', dark: '#0000FF' } },
             },
           },
         },
