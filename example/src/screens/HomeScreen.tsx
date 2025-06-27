@@ -104,6 +104,16 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI (EmbeddedPaymentElement - immediateAction rowSelectionBehavior)"
+              onPress={() => {
+                navigation.navigate(
+                  'EmbeddedPaymentElementImmediateActionScreen'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Customer Sheet"
               onPress={() => {
                 navigation.navigate('CustomerSheetScreen');

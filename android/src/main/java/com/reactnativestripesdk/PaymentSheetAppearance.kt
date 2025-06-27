@@ -6,7 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
-import com.stripe.android.paymentelement.ExperimentalEmbeddedPaymentElementApi
+import com.stripe.android.paymentelement.AppearanceAPIAdditionsPreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.uicore.StripeThemeDefaults
 
@@ -57,6 +57,7 @@ fun buildPaymentSheetAppearance(
   )
 }
 
+@OptIn(AppearanceAPIAdditionsPreview::class)
 private fun buildTypography(
   fontParams: Bundle?,
   context: Context,
@@ -244,7 +245,6 @@ private fun buildPrimaryButtonColors(
       ),
   )
 
-@OptIn(ExperimentalEmbeddedPaymentElementApi::class)
 @SuppressLint("RestrictedApi")
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildEmbeddedAppearance(

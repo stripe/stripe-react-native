@@ -34,6 +34,7 @@ type Events =
   | 'onCustomerAdapterFetchSelectedPaymentOptionCallback'
   | 'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback'
   | 'embeddedPaymentElementFormSheetConfirmComplete'
+  | 'embeddedPaymentElementRowSelectionImmediateAction'
   | 'embeddedPaymentElementDidUpdatePaymentOption'
   | 'embeddedPaymentElementDidUpdateHeight'
   | 'embeddedPaymentElementLoadingFailed';

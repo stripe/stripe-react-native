@@ -1,5 +1,8 @@
 # CHANGELOG
 
+**Feature**
+- Added rowSelectionBehavior to `EmbeddedPaymentElementConfiguration` with `immediateAction` option
+
 ## 0.48.0 - 2025-06-11
 
 **Feature**
