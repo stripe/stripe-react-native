@@ -245,13 +245,6 @@ async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
-  if (!rowSelectionConfigurationIsValid(configuration)) {
-    return Promise.reject(
-      new Error(
-        "Using 'immediateAction' with 'confirm' form sheet action is not supported when Apple Pay or a customer configuration is provided. Use 'default' row selection behavior or disable Apple Pay and saved payment methods."
-      )
-    );
-  }
   setupConfirmAndSelectionHandlers(intentConfig, configuration);
 
   await NativeStripeSdkModule.createEmbeddedPaymentElement(
@@ -259,31 +252,6 @@ async function createEmbeddedPaymentElement(
     configuration
   );
   return new EmbeddedPaymentElement();
-}
-
-function rowSelectionConfigurationIsValid(
-  configuration: EmbeddedPaymentElementConfiguration
-): boolean {
-  // Confgiruation is invalid if:
-  // 1. Row selection behavior is immediateAction AND
-  // 2. Form sheet action is confirm AND
-  // 3. Either Apple Pay is enabled OR customer configuration is present
-
-  const isImmediateAction =
-    configuration.rowSelectionBehavior?.type === 'immediateAction';
-  const isFormSheetConfirm = configuration.formSheetAction?.type === 'confirm';
-  const isApplePayEnabled = !!configuration.applePay;
-  const hasCustomerConfig = !!configuration.customerId;
-
-  if (
-    isImmediateAction &&
-    isFormSheetConfirm &&
-    (isApplePayEnabled || hasCustomerConfig)
-  ) {
-    return false;
-  }
-
-  return true;
 }
 
 function setupConfirmAndSelectionHandlers(
