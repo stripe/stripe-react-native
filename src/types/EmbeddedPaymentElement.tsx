@@ -245,10 +245,6 @@ async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
-  const validationError = getConfigurationValidationError(configuration);
-  if (validationError) {
-    return Promise.reject(new Error(validationError));
-  }
   setupConfirmAndSelectionHandlers(intentConfig, configuration);
 
   await NativeStripeSdkModule.createEmbeddedPaymentElement(
@@ -256,43 +252,6 @@ async function createEmbeddedPaymentElement(
     configuration
   );
   return new EmbeddedPaymentElement();
-}
-
-function getConfigurationValidationError(
-  configuration: EmbeddedPaymentElementConfiguration
-): string | null {
-  // Confgiruation is invalid if either:
-  // 1. Row selection behavior is immediateAction AND
-  // 2. Form sheet action is confirm AND
-  // 3. Either Apple Pay is enabled OR customer configuration is present
-  // OR
-  // 1. Row selection behavior is NOT immediateAction AND
-  // 2. Row style is flatWithChevron
-
-  const isImmediateAction =
-    configuration.rowSelectionBehavior?.type === 'immediateAction';
-  const isFormSheetConfirm = configuration.formSheetAction?.type === 'confirm';
-  const isApplePayEnabled = !!configuration.applePay;
-  const hasCustomerConfig = !!configuration.customerId;
-  const isFlatWithChevron =
-    configuration.appearance?.embeddedPaymentElement?.row?.style ===
-    'flatWithChevron';
-
-  // First condition: immediateAction + confirm + (ApplePay OR customer)
-  if (
-    isImmediateAction &&
-    isFormSheetConfirm &&
-    (isApplePayEnabled || hasCustomerConfig)
-  ) {
-    return "Using 'immediateAction' with 'confirm' form sheet action is not supported when Apple Pay or a customer configuration is provided. Use 'default' row selection behavior or disable Apple Pay and saved payment methods.";
-  }
-
-  // Second condition: NOT immediateAction + flatWithChevron
-  if (!isImmediateAction && isFlatWithChevron) {
-    return "The 'flatWithChevron' row style can only be used with 'immediateAction' row selection behavior. Set rowSelectionBehavior to 'immediateAction' or use a different row style.";
-  }
-
-  return null;
 }
 
 function setupConfirmAndSelectionHandlers(

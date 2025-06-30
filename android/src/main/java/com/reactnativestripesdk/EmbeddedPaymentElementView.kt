@@ -172,7 +172,6 @@ class EmbeddedPaymentElementView(
           is Event.Confirm -> {
             embedded.confirm()
           }
-
           is Event.ClearPaymentOption -> {
             embedded.clearPaymentOption()
           }
