@@ -93,6 +93,32 @@ export type EmbeddedFormSheetAction =
     };
 
 /**
+ * Describes how you handle row selections in EmbeddedPaymentElement.
+ * The embedded view may show payment method options that can be selected without further collecting further details in a form sheet.
+ * This type determines what happens upon a user tapping one of these payment options methods:
+ * - In the `default` case, the payment method option row enters a selected state.
+ * - In the `immediateAction` case, `onSelectPaymentOption` is called.
+ */
+export type EmbeddedRowSelectionBehavior =
+  | {
+      /**
+       * When a payment method option is selected, the customer taps a button to continue or confirm payment.
+       * This is the default recommended integration.
+       */
+      type: 'default';
+    }
+  | {
+      /**
+       * When a payment method option is selected, `onSelectPaymentOption` is triggered.
+       * You can implement this function to immediately perform an action such as going back to the checkout screen or confirming the payment.
+       * Note that certain payment options like Apple Pay and saved payment methods are disabled in this mode if you set
+       * `EmbeddedPaymentElementConfiguration.formSheetAction` to `continue`
+       */
+      type: 'immediateAction';
+      onSelectPaymentOption?: () => void;
+    };
+
+/**
  * Configuration object (subset of EmbeddedPaymentElement.Configuration).
  */
 export interface EmbeddedPaymentElementConfiguration {
@@ -166,6 +192,10 @@ export interface EmbeddedPaymentElementConfiguration {
    * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs.
    */
   formSheetAction?: EmbeddedFormSheetAction;
+  /** The view can display payment methods that, when tapped, do not open a sheet to collect additional details.
+   * `rowSelectionBehavior` controls the behavior tapping on these payment methods performs.
+   */
+  rowSelectionBehavior?: EmbeddedRowSelectionBehavior;
 }
 
 // -----------------------------------------------------------------------------
@@ -209,12 +239,13 @@ class EmbeddedPaymentElement {
 // -----------------------------------------------------------------------------
 let confirmHandlerCallback: EventSubscription | null = null;
 let formSheetActionConfirmCallback: EventSubscription | null = null;
+let rowSelectionCallback: EventSubscription | null = null;
 
 async function createEmbeddedPaymentElement(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ): Promise<EmbeddedPaymentElement> {
-  setupConfirmHandlers(intentConfig, configuration);
+  setupConfirmAndSelectionHandlers(intentConfig, configuration);
 
   await NativeStripeSdkModule.createEmbeddedPaymentElement(
     intentConfig,
@@ -223,7 +254,7 @@ async function createEmbeddedPaymentElement(
   return new EmbeddedPaymentElement();
 }
 
-function setupConfirmHandlers(
+function setupConfirmAndSelectionHandlers(
   intentConfig: PaymentSheetTypes.IntentConfiguration,
   configuration: EmbeddedPaymentElementConfiguration
 ) {
@@ -258,6 +289,20 @@ function setupConfirmHandlers(
         (result: EmbeddedPaymentElementResult) => {
           // Pass the result back to the formSheetAction handler
           confirmFormSheetHandler(result);
+        }
+      );
+    }
+  }
+
+  if (configuration.rowSelectionBehavior?.type === 'immediateAction') {
+    const rowSelectionHandler =
+      configuration.rowSelectionBehavior.onSelectPaymentOption;
+    if (rowSelectionHandler) {
+      rowSelectionCallback?.remove();
+      rowSelectionCallback = addListener(
+        'embeddedPaymentElementRowSelectionImmediateAction',
+        () => {
+          rowSelectionHandler();
         }
       );
     }
