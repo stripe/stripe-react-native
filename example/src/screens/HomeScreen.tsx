@@ -104,6 +104,16 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI (EmbeddedPaymentElement - immediateAction rowSelectionBehavior)"
+              onPress={() => {
+                navigation.navigate(
+                  'EmbeddedPaymentElementImmediateActionScreen'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Customer Sheet"
               onPress={() => {
                 navigation.navigate('CustomerSheetScreen');
@@ -160,6 +170,14 @@ export default function HomeScreen() {
               title="Create tokens"
               onPress={() => {
                 navigation.navigate('CreateTokenScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="PaymentSheet with PMO SFU"
+              onPress={() => {
+                navigation.navigate('PaymentSheetWithPmoSfuScreen');
               }}
             />
           </View>
