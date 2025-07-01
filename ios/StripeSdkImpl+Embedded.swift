@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
 
 @objc(StripeSdkImpl)
 extension StripeSdkImpl {
@@ -69,23 +69,25 @@ extension StripeSdkImpl {
   @objc(confirmEmbeddedPaymentElement:reject:)
   public func confirmEmbeddedPaymentElement(resolve: @escaping RCTPromiseResolveBlock,
                                             reject: @escaping RCTPromiseRejectBlock) {
-    embeddedInstance?.presentingViewController = RCTPresentedViewController()
-    embeddedInstance?.confirm { result in
-      switch result {
-      case .completed:
-        // Return an object with { status: 'completed' }
-        resolve(["status": "completed"])
-      case .canceled:
-        // Return an object with { status: 'canceled' }
-        resolve(["status": "canceled"])
-      case .failed(let error):
-        // Return an object with { status: 'failed', error }
-        resolve([
-          "status": "failed",
-          "error": error.localizedDescription
-        ])
+      DispatchQueue.main.async { [weak self] in
+          self?.embeddedInstance?.presentingViewController = RCTPresentedViewController()
+          self?.embeddedInstance?.confirm { result in
+              switch result {
+              case .completed:
+                  // Return an object with { status: 'completed' }
+                  resolve(["status": "completed"])
+              case .canceled:
+                  // Return an object with { status: 'canceled' }
+                  resolve(["status": "canceled"])
+              case .failed(let error):
+                  // Return an object with { status: 'failed', error }
+                  resolve([
+                    "status": "failed",
+                    "error": error.localizedDescription
+                  ])
+              }
+          }
       }
-    }
   }
 
   @objc(updateEmbeddedPaymentElement:resolve:reject:)
@@ -320,6 +322,26 @@ extension StripeSdkImpl {
         }
       }
     }
+      // Parse custom payment method configuration
+      if let customPaymentMethodConfig = params["customPaymentMethodConfiguration"] as? NSDictionary {
+        let parsedMethods = StripeSdkImpl.parseCustomPaymentMethods(from: customPaymentMethodConfig)
+
+        if !parsedMethods.isEmpty {
+          let customMethods = parsedMethods.map { parsed in
+            var customPaymentMethod = EmbeddedPaymentElement.CustomPaymentMethodConfiguration.CustomPaymentMethod(
+              id: parsed.id,
+              subtitle: parsed.subtitle
+            )
+            customPaymentMethod.disableBillingDetailCollection = parsed.disableBillingDetailCollection
+            return customPaymentMethod
+          }
+
+          configuration.customPaymentMethodConfiguration = .init(
+            customPaymentMethods: customMethods,
+            customPaymentMethodConfirmHandler: StripeSdkImpl.createCustomPaymentMethodConfirmHandler(sdkImpl: self)
+          )
+        }
+      }
 
     return (nil, configuration)
   }
