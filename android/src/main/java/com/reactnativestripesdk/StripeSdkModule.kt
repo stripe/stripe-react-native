@@ -299,6 +299,14 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun customPaymentMethodResultCallback(
+    result: ReadableMap?,
+    promise: Promise?,
+  ) {
+    TODO("Not yet implemented")
+  }
+
+  @ReactMethod
   override fun createPaymentMethod(
     data: ReadableMap,
     options: ReadableMap,

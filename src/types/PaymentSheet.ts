@@ -84,6 +84,8 @@ export type SetupParamsBase = IntentParams & {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: CardBrandAcceptance;
+  /** Configuration for custom payment methods in PaymentSheet */
+  customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
 };
 
 export type SetupParams =
@@ -358,6 +360,10 @@ export enum RowStyle {
   FloatingButton = 'floatingButton',
   /** A flat style with a checkmark */
   FlatWithCheckmark = 'flatWithCheckmark',
+  /** A flat style with a chevron
+   * Note that the EmbeddedPaymentElementConfiguration.rowSelectionBehavior must be set to `immediateAction` to use this style.
+   */
+  FlatWithChevron = 'flatWithChevron',
 }
 
 /** Describes the appearance of the radio button */
@@ -381,6 +387,14 @@ export interface CheckmarkConfig {
   color?: ThemedColor;
 }
 
+/** Describes the appearance of the chevron */
+export interface ChevronConfig {
+  /** The color of the chevron, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The iOS or Android system gray color
+   */
+  color?: ThemedColor;
+}
+
 /** Describes the appearance of the flat style row */
 export interface FlatConfig {
   /** The thickness of the separator line between rows.
@@ -395,7 +409,7 @@ export interface FlatConfig {
 
   /** The insets of the separator line between rows.
    * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
-   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark and RowStyle.FloatingButton
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithChevron, and RowStyle.FloatingButton
    */
   separatorInsets?: EdgeInsetsConfig;
 
@@ -414,6 +428,9 @@ export interface FlatConfig {
 
   /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
   checkmark?: CheckmarkConfig;
+
+  /** Appearance settings for the chevron (used when RowStyle is FlatWithChevron) */
+  chevron?: ChevronConfig;
 }
 
 /** Describes the appearance of the floating button style payment method row */
@@ -562,6 +579,17 @@ export type PaymentMode = {
   /* Controls when the funds will be captured.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
   captureMethod?: CaptureMethod;
+  /** Additional payment method options params.
+  Seealso: https://docs.stripe.com/api/payment_intents/create#create_payment_intent-payment_method_options */
+  paymentMethodOptions?: PaymentMethodOptions;
+};
+
+export type PaymentMethodOptions = {
+  /* This is an experimental feature that may be removed at any time
+  A map of payment method types to setup_future_usage value. (e.g. card: 'OffSession') */
+  setupFutureUsageValues: {
+    [key: string]: FutureUsage;
+  };
 };
 
 /* Use this if your integration creates a SetupIntent */
@@ -640,3 +668,60 @@ export type CardBrandAcceptance =
        */
       brands: CardBrandCategory[];
     };
+
+/**
+ * Configuration for a custom payment method.
+ */
+export interface CustomPaymentMethod {
+  /** The custom payment method ID (beginning with `cpmt_`) as created in your Stripe Dashboard. */
+  id: string;
+  /** Optional subtitle to display beneath the custom payment method name. */
+  subtitle?: string;
+  /** Whether to disable billing detail collection for this custom payment method. Defaults to true. */
+  disableBillingDetailCollection?: boolean;
+}
+
+/**
+ * Custom payment method confirmation result type for PaymentSheet.
+ */
+export enum CustomPaymentMethodResultStatus {
+  /** The custom payment method transaction was completed successfully */
+  Completed = 'completed',
+  /** The custom payment method transaction was canceled by the user */
+  Canceled = 'canceled',
+  /** The custom payment method transaction failed */
+  Failed = 'failed',
+}
+
+/**
+ * Result object returned when a custom payment method transaction completes.
+ * Contains the transaction status and, in case of failure, an error message.
+ */
+export type CustomPaymentMethodResult =
+  | { status: CustomPaymentMethodResultStatus.Completed }
+  | { status: CustomPaymentMethodResultStatus.Canceled }
+  | { status: CustomPaymentMethodResultStatus.Failed; error: string };
+
+/**
+ * Callback function called when a custom payment method is selected and confirmed.
+ * Your implementation should complete the payment using your custom payment provider's SDK.
+ */
+export type ConfirmCustomPaymentMethodCallback = (
+  customPaymentMethod: CustomPaymentMethod,
+  billingDetails: BillingDetails | null,
+  /**
+   * Call this function with the result of your custom payment method transaction.
+   * @param result The result of the custom payment method confirmation
+   */
+  resultHandler: (result: CustomPaymentMethodResult) => void
+) => void;
+
+/**
+ * Configuration for custom payment methods in PaymentSheet.
+ */
+export interface CustomPaymentMethodConfiguration {
+  /** Array of custom payment methods to display in the Payment Sheet */
+  customPaymentMethods: CustomPaymentMethod[];
+  /** Callback function to handle custom payment method confirmation */
+  confirmCustomPaymentMethodCallback: ConfirmCustomPaymentMethodCallback;
+}

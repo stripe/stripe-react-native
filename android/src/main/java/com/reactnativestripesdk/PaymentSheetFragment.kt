@@ -32,6 +32,8 @@ import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
+import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
@@ -518,6 +520,7 @@ class PaymentSheetFragment : StripeFragment() {
       )
     }
 
+    @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
     private fun buildIntentConfigurationMode(modeParams: Bundle): PaymentSheet.IntentConfiguration.Mode {
       val currencyCode =
         modeParams.getString("currencyCode")
@@ -531,6 +534,7 @@ class PaymentSheetFragment : StripeFragment() {
           currency = currencyCode,
           setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
           captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
+          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getBundle("paymentMethodOptions")),
         )
       } else {
         val setupFutureUsage =
@@ -639,6 +643,7 @@ fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFu
   when (type) {
     "OffSession" -> PaymentSheet.IntentConfiguration.SetupFutureUse.OffSession
     "OnSession" -> PaymentSheet.IntentConfiguration.SetupFutureUse.OnSession
+    "None" -> PaymentSheet.IntentConfiguration.SetupFutureUse.None
     else -> null
   }
 
@@ -649,6 +654,26 @@ fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureM
     "AutomaticAsync" -> PaymentSheet.IntentConfiguration.CaptureMethod.AutomaticAsync
     else -> PaymentSheet.IntentConfiguration.CaptureMethod.Automatic
   }
+
+@OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
+fun mapToPaymentMethodOptions(options: Bundle?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
+  val sfuBundle = options?.getBundle("setupFutureUsageValues")
+  val paymentMethodToSfuMap = mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
+  sfuBundle?.keySet()?.forEach { code ->
+    val sfuValue = mapToSetupFutureUse(sfuBundle?.getString(code))
+    val paymentMethodType = PaymentMethod.Type.fromCode(code)
+    if (paymentMethodType != null && sfuValue != null) {
+      paymentMethodToSfuMap[paymentMethodType] = sfuValue
+    }
+  }
+  return if (paymentMethodToSfuMap.isNotEmpty()) {
+    PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions(
+      setupFutureUsageValues = paymentMethodToSfuMap,
+    )
+  } else {
+    null
+  }
+}
 
 fun mapToCardBrandAcceptance(params: Bundle?): PaymentSheet.CardBrandAcceptance {
   val cardBrandAcceptanceParams = params?.getBundle("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()

@@ -6,7 +6,8 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+
 
 extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
@@ -298,10 +299,9 @@ extension StripeSdkImpl {
             mode = PaymentSheet.IntentConfiguration.Mode.payment(
                 amount: amount,
                 currency: modeParams["currencyCode"] as? String ?? "",
-                setupFutureUsage: modeParams["setupFutureUsage"] != nil
-                    ? (modeParams["setupFutureUsage"] as? String == "OffSession" ? .offSession : .onSession)
-                    : nil,
-            captureMethod: captureMethod
+                setupFutureUsage: setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
+                captureMethod: captureMethod,
+                paymentMethodOptions: buildPaymentMethodOptions(paymentMethodOptionsParams: modeParams["paymentMethodOptions"] as? NSDictionary ?? [:])
             )
         } else {
             mode = PaymentSheet.IntentConfiguration.Mode.setup(
@@ -320,6 +320,45 @@ extension StripeSdkImpl {
                     "shouldSavePaymentMethod": shouldSavePaymentMethod
                 ])
             })
+    }
+    
+    func buildPaymentMethodOptions(paymentMethodOptionsParams: NSDictionary) -> PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions? {
+        if let sfuDictionary = paymentMethodOptionsParams["setupFutureUsageValues"] as? NSDictionary {
+            var setupFutureUsageValues: [STPPaymentMethodType: PaymentSheet.IntentConfiguration.SetupFutureUsage] = [:]
+            
+            for (paymentMethodCode, sfuValue) in sfuDictionary {
+                if let paymentMethodCode = paymentMethodCode as? String,
+                    let sfuString = sfuValue as? String {
+                    let setupFutureUsage = setupFutureUsageFromString(from: sfuString)
+                    let paymentMethodType = STPPaymentMethodType.fromIdentifier(paymentMethodCode)
+                    
+                    if let setupFutureUsage = setupFutureUsage {
+                        if paymentMethodType != .unknown {
+                            setupFutureUsageValues[paymentMethodType] = setupFutureUsage
+                        }
+                    }
+                }
+            }
+            
+            if !setupFutureUsageValues.isEmpty {
+                return PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions(setupFutureUsageValues: setupFutureUsageValues)
+            }
+        }
+
+        return nil
+    }
+    
+    func setupFutureUsageFromString(from string: String) -> PaymentSheet.IntentConfiguration.SetupFutureUsage? {
+        switch string {
+        case "OnSession":
+            return PaymentSheet.IntentConfiguration.SetupFutureUsage.onSession
+        case "OffSession":
+            return PaymentSheet.IntentConfiguration.SetupFutureUsage.offSession
+        case "None":
+            return PaymentSheet.IntentConfiguration.SetupFutureUsage.none
+        default:
+            return nil
+        }
     }
 
     func buildCustomerHandlersForPaymentSheet(applePayParams: NSDictionary) -> PaymentSheet.ApplePayConfiguration.Handlers? {
