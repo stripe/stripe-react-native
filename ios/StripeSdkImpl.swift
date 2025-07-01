@@ -62,6 +62,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var setSelectedPaymentOptionCallback: (() -> Void)? = nil
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
+    var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -126,19 +127,37 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if let clientSecret = result["clientSecret"] as? String {
             paymentSheetIntentCreationCallback(.success(clientSecret))
         } else {
-          struct ConfirmationError: Error, LocalizedError {
-            private var errorMessage: String
-            init(errorMessage: String) {
-              self.errorMessage = errorMessage
-            }
-            public var errorDescription: String? {
-              return errorMessage
-            }
-          }
           let errorParams = result["error"] as? NSDictionary
           let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
           paymentSheetIntentCreationCallback(.failure(error))
         }
+    }
+    
+    @objc(customPaymentMethodResultCallback:resolver:rejecter:)
+    @MainActor public func customPaymentMethodResultCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        guard let customPaymentMethodResultCallback = self.customPaymentMethodResultCallback else {
+            resolve(Errors.createError(ErrorType.Failed, "Internal error: no custom payment method callback"))
+            return
+        }
+
+        let status = result["status"] as? String ?? ""
+        let errorMessage = result["error"] as? String
+
+        switch status {
+        case "completed":
+            customPaymentMethodResultCallback(.completed)
+        case "canceled":
+            customPaymentMethodResultCallback(.canceled)
+        case "failed":
+            let error = ConfirmationError.init(errorMessage: errorMessage ?? "An unknown error occurred.")
+            customPaymentMethodResultCallback(.failed(error: error))
+        default:
+            let error = ConfirmationError.init(errorMessage: "Unknown custom payment method result status")
+            customPaymentMethodResultCallback(.failed(error: error))
+        }
+
+        resolve(NSNull())
     }
 
     @objc(confirmPaymentSheetPayment:rejecter:)
@@ -1151,6 +1170,16 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             confirmPaymentResolver?(Errors.createError(ErrorType.Unknown, "Cannot complete the payment"))
             break
         }
+    }
+    
+    struct ConfirmationError: Error, LocalizedError {
+      private var errorMessage: String
+      init(errorMessage: String) {
+        self.errorMessage = errorMessage
+      }
+      public var errorDescription: String? {
+        return errorMessage
+      }
     }
 }
 
