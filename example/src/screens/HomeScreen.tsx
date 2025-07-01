@@ -173,6 +173,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="PaymentSheet with PMO SFU"
+              onPress={() => {
+                navigation.navigate('PaymentSheetWithPmoSfuScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 
