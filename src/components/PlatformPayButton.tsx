@@ -141,34 +141,16 @@ export function PlatformPayButton({
       }
     : undefined;
 
-  // Build props object conditionally - only include callback props when they exist
-  const nativeProps: any = {
-    type,
-    buttonStyle: appearance,
-    borderRadius,
-    disabled: disabled ?? false,
-    style: styles.nativeButtonStyle,
-    // Add explicit flags to indicate which callbacks are provided
+  const callbackProps: any = {
+    onShippingMethodSelectedAction: shippingMethodCallback,
+    onShippingContactSelectedAction: shippingContactCallback,
+    onCouponCodeEnteredAction: couponCodeCallback,
+    onOrderTrackingAction: orderTrackingCallback,
     hasShippingMethodCallback: !!onShippingMethodSelected,
     hasShippingContactCallback: !!onShippingContactSelected,
     hasCouponCodeCallback: !!onCouponCodeEntered,
     hasOrderTrackingCallback: !!setOrderTracking,
-    ...props,
   };
-
-  // Only add callback props if they are defined
-  if (shippingMethodCallback) {
-    nativeProps.onShippingMethodSelectedAction = shippingMethodCallback;
-  }
-  if (shippingContactCallback) {
-    nativeProps.onShippingContactSelectedAction = shippingContactCallback;
-  }
-  if (couponCodeCallback) {
-    nativeProps.onCouponCodeEnteredAction = couponCodeCallback;
-  }
-  if (orderTrackingCallback) {
-    nativeProps.onOrderTrackingAction = orderTrackingCallback;
-  }
 
   return (
     <TouchableOpacity
@@ -178,7 +160,15 @@ export function PlatformPayButton({
       style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
       {Platform.OS === 'ios' ? (
-        <NativeApplePayButton {...nativeProps} />
+        <NativeApplePayButton
+          type={type}
+          buttonStyle={appearance}
+          borderRadius={borderRadius}
+          disabled={disabled ?? false}
+          style={styles.nativeButtonStyle}
+          {...callbackProps}
+          {...props}
+        />
       ) : (
         <NativeGooglePayButton
           type={type}

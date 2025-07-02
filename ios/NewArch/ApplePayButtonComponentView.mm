@@ -99,10 +99,10 @@ using namespace facebook::react;
   _view.borderRadius = @(newViewProps.borderRadius);
 
   // Set the boolean flags from props
-  _view.hasShippingMethodCallback = @(newViewProps.hasShippingMethodCallback);
-  _view.hasShippingContactCallback = @(newViewProps.hasShippingContactCallback);
-  _view.hasCouponCodeCallback = @(newViewProps.hasCouponCodeCallback);
-  _view.hasOrderTrackingCallback = @(newViewProps.hasOrderTrackingCallback);
+  _view.hasShippingMethodCallback = newViewProps.hasShippingMethodCallback;
+  _view.hasShippingContactCallback = newViewProps.hasShippingContactCallback;
+  _view.hasCouponCodeCallback = newViewProps.hasCouponCodeCallback;
+  _view.hasOrderTrackingCallback = newViewProps.hasOrderTrackingCallback;
 
   [super updateProps:props oldProps:oldProps];
 
