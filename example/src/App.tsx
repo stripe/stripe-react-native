@@ -21,6 +21,7 @@ import SofortPaymentScreen from './screens/SofortPaymentScreen';
 import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
@@ -71,6 +72,7 @@ export type RootStackParamList = {
   SofortSetupFuturePaymentScreen: undefined;
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
+  BilliePaymentScreen: undefined;
   SepaPaymentScreen: undefined;
   SepaSetupFuturePaymentScreen: undefined;
   OxxoPaymentScreen: undefined;
@@ -231,6 +233,10 @@ export default function App() {
           <Stack.Screen
             name="BancontactSetupFuturePaymentScreen"
             component={BancontactSetupFuturePaymentScreen}
+          />
+          <Stack.Screen
+            name="BilliePaymentScreen"
+            component={BilliePaymentScreen}
           />
           <Stack.Screen
             name="SepaPaymentScreen"

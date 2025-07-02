@@ -341,6 +341,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Billie"
+              onPress={() => {
+                navigation.navigate('BilliePaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Affirm"
               onPress={() => {
                 navigation.navigate('AffirmScreen');
