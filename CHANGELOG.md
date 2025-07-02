@@ -1,5 +1,7 @@
 # CHANGELOG
 
+## 0.48.1 - 2025-07-02
+
 **Features**
 - Added rowSelectionBehavior to `EmbeddedPaymentElementConfiguration` with `immediateAction` option
 - Added `flatWithChevron` to `AppearanceParams.embeddedPaymentElement.rowConfig.style`
