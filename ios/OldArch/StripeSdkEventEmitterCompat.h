@@ -21,7 +21,7 @@
 - (void)emitEmbeddedPaymentElementFormSheetConfirmComplete:(NSDictionary *)value;
 - (void)emitEmbeddedPaymentElementRowSelectionImmediateAction;
 - (void)emitEmbeddedPaymentElementLoadingFailed:(NSDictionary *)value;
-
+- (void)emitEmbeddedPaymentElementCustomPaymentMethodConfirm:(NSDictionary *)value;
 @end
 
 #endif

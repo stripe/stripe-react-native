@@ -400,6 +400,13 @@ RCT_EXPORT_METHOD(clearEmbeddedPaymentOption:(NSInteger)viewTag
   resolve(nil);
 }
 
+RCT_EXPORT_METHOD(customPaymentMethodResultCallback:(nonnull NSDictionary *)result
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared customPaymentMethodResultCallback:result resolver:resolve rejecter:reject];
+}
+
 /* clang-format on */
 
 #ifdef RCT_NEW_ARCH_ENABLED
