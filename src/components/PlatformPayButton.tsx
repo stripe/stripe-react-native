@@ -141,6 +141,35 @@ export function PlatformPayButton({
       }
     : undefined;
 
+  // Build props object conditionally - only include callback props when they exist
+  const nativeProps: any = {
+    type,
+    buttonStyle: appearance,
+    borderRadius,
+    disabled: disabled ?? false,
+    style: styles.nativeButtonStyle,
+    // Add explicit flags to indicate which callbacks are provided
+    hasShippingMethodCallback: !!onShippingMethodSelected,
+    hasShippingContactCallback: !!onShippingContactSelected,
+    hasCouponCodeCallback: !!onCouponCodeEntered,
+    hasOrderTrackingCallback: !!setOrderTracking,
+    ...props,
+  };
+
+  // Only add callback props if they are defined
+  if (shippingMethodCallback) {
+    nativeProps.onShippingMethodSelectedAction = shippingMethodCallback;
+  }
+  if (shippingContactCallback) {
+    nativeProps.onShippingContactSelectedAction = shippingContactCallback;
+  }
+  if (couponCodeCallback) {
+    nativeProps.onCouponCodeEnteredAction = couponCodeCallback;
+  }
+  if (orderTrackingCallback) {
+    nativeProps.onOrderTrackingAction = orderTrackingCallback;
+  }
+
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -149,18 +178,7 @@ export function PlatformPayButton({
       style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
       {Platform.OS === 'ios' ? (
-        <NativeApplePayButton
-          type={type}
-          buttonStyle={appearance}
-          borderRadius={borderRadius}
-          disabled={disabled ?? false}
-          onShippingMethodSelectedAction={shippingMethodCallback}
-          onShippingContactSelectedAction={shippingContactCallback}
-          onCouponCodeEnteredAction={couponCodeCallback}
-          onOrderTrackingAction={orderTrackingCallback}
-          style={styles.nativeButtonStyle}
-          {...props}
-        />
+        <NativeApplePayButton {...nativeProps} />
       ) : (
         <NativeGooglePayButton
           type={type}

@@ -318,18 +318,18 @@ export default function ApplePayScreen() {
           borderRadius={4}
           disabled={!isApplePaySupported}
           style={styles.payButton}
-          onShippingContactSelected={({ shippingContact }) => {
-            console.log(JSON.stringify(shippingContact, null, 2));
-            updatePlatformPaySheet({
-              applePay: { cartItems: cart, shippingMethods, errors: [] },
-            });
-          }}
-          onShippingMethodSelected={({ shippingMethod }) => {
-            console.log(JSON.stringify(shippingMethod, null, 2));
-            updatePlatformPaySheet({
-              applePay: { cartItems: cart, shippingMethods, errors: [] },
-            });
-          }}
+          // onShippingContactSelected={({ shippingContact }) => {
+          //   console.log(JSON.stringify(shippingContact, null, 2));
+          //   updatePlatformPaySheet({
+          //     applePay: { cartItems: cart, shippingMethods, errors: [] },
+          //   });
+          // }}
+          // onShippingMethodSelected={({ shippingMethod }) => {
+          //   console.log(JSON.stringify(shippingMethod, null, 2));
+          //   updatePlatformPaySheet({
+          //     applePay: { cartItems: cart, shippingMethods, errors: [] },
+          //   });
+          // }}
         />
 
         <PlatformPayButton
