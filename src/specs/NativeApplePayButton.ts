@@ -31,6 +31,11 @@ export interface NativeProps extends ViewProps {
   onShippingContactSelectedAction?: DirectEventHandler<OnShippingContactSelectedActionEvent>;
   onCouponCodeEnteredAction?: DirectEventHandler<OnCouponCodeEnteredActionEvent>;
   onOrderTrackingAction?: DirectEventHandler<OnOrderTrackingActionEvent>;
+  // Boolean flags to indicate which callbacks are provided
+  hasShippingMethodCallback?: WithDefault<boolean, false>;
+  hasShippingContactCallback?: WithDefault<boolean, false>;
+  hasCouponCodeCallback?: WithDefault<boolean, false>;
+  hasOrderTrackingCallback?: WithDefault<boolean, false>;
 }
 
 type ComponentType = HostComponent<NativeProps>;

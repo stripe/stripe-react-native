@@ -141,6 +141,17 @@ export function PlatformPayButton({
       }
     : undefined;
 
+  const callbackProps: any = {
+    onShippingMethodSelectedAction: shippingMethodCallback,
+    onShippingContactSelectedAction: shippingContactCallback,
+    onCouponCodeEnteredAction: couponCodeCallback,
+    onOrderTrackingAction: orderTrackingCallback,
+    hasShippingMethodCallback: !!onShippingMethodSelected,
+    hasShippingContactCallback: !!onShippingContactSelected,
+    hasCouponCodeCallback: !!onCouponCodeEntered,
+    hasOrderTrackingCallback: !!setOrderTracking,
+  };
+
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -154,11 +165,8 @@ export function PlatformPayButton({
           buttonStyle={appearance}
           borderRadius={borderRadius}
           disabled={disabled ?? false}
-          onShippingMethodSelectedAction={shippingMethodCallback}
-          onShippingContactSelectedAction={shippingContactCallback}
-          onCouponCodeEnteredAction={couponCodeCallback}
-          onOrderTrackingAction={orderTrackingCallback}
           style={styles.nativeButtonStyle}
+          {...callbackProps}
           {...props}
         />
       ) : (

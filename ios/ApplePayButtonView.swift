@@ -10,16 +10,23 @@ public class ApplePayButtonView: UIView {
     @objc public var onCouponCodeEnteredAction: RCTDirectEventBlock?
     @objc public var onOrderTrackingAction: RCTDirectEventBlock?
     
+    // Boolean flags to track which callbacks were provided as props
+    @objc public var hasShippingMethodCallback = false
+    @objc public var hasShippingContactCallback = false
+    @objc public var hasCouponCodeCallback = false
+    @objc public var hasOrderTrackingCallback = false
+    
     @objc public var type: NSNumber?
     @objc public var buttonStyle: NSNumber?
     @objc public var borderRadius: NSNumber?
     @objc public var disabled = false
     
     @objc func handleApplePayButtonTapped() {
-        StripeSdkImpl.shared.shippingMethodUpdateJSCallback = onShippingMethodSelectedAction
-        StripeSdkImpl.shared.shippingContactUpdateJSCallback = onShippingContactSelectedAction
-        StripeSdkImpl.shared.couponCodeEnteredJSCallback = onCouponCodeEnteredAction
-        StripeSdkImpl.shared.platformPayOrderTrackingJSCallback = onOrderTrackingAction
+        // Only set callbacks that were actually provided as props
+        StripeSdkImpl.shared.shippingMethodUpdateJSCallback = hasShippingMethodCallback ? onShippingMethodSelectedAction : nil
+        StripeSdkImpl.shared.shippingContactUpdateJSCallback = hasShippingContactCallback ? onShippingContactSelectedAction : nil
+        StripeSdkImpl.shared.couponCodeEnteredJSCallback = hasCouponCodeCallback ? onCouponCodeEnteredAction : nil
+        StripeSdkImpl.shared.platformPayOrderTrackingJSCallback = hasOrderTrackingCallback ? onOrderTrackingAction : nil
     }
   
     @objc public func didSetProps() {
