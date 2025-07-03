@@ -2,6 +2,10 @@ appId: ${APP_ID}
 ---
 - launchApp
 - tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element:
+      text: "Customer Sheet"
+    direction: DOWN
 - tapOn: "Customer Sheet"
 - tapOn: "Edit payment methods"
 - extendedWaitUntil:

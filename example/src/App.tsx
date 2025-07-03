@@ -43,8 +43,12 @@ import CashAppScreen from './screens/CashAppScreen';
 import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
 import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
 import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
+import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPaymentElementImmediateActionScreen';
+import EmbeddedPaymentElementConfirmScreen from './screens/EmbeddedPaymentElementConfirmScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
+import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
+import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -89,8 +93,13 @@ export type RootStackParamList = {
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
   EmbeddedPaymentElementScreen: undefined;
+  EmbeddedPaymentElementImmediateActionScreen: undefined;
+  EmbeddedPaymentElementConfirmScreen: {
+    confirm: () => Promise<EmbeddedPaymentElementResult>;
+  };
   CustomerSheetScreen: undefined;
   RevolutPayScreen: undefined;
+  PaymentSheetWithPmoSfuScreen: undefined;
 };
 
 declare global {
@@ -168,6 +177,14 @@ export default function App() {
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"
             component={EmbeddedPaymentElementScreen}
+          />
+          <Stack.Screen
+            name="EmbeddedPaymentElementImmediateActionScreen"
+            component={EmbeddedPaymentElementImmediateActionScreen}
+          />
+          <Stack.Screen
+            name="EmbeddedPaymentElementConfirmScreen"
+            component={EmbeddedPaymentElementConfirmScreen}
           />
           <Stack.Screen
             name="PaymentsUICustomScreen"
@@ -254,6 +271,10 @@ export default function App() {
             component={CustomerSheetScreen}
           />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
+          <Stack.Screen
+            name="PaymentSheetWithPmoSfuScreen"
+            component={PaymentSheetWithPmoSfuScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>
