@@ -14,7 +14,7 @@ appId: ${APP_ID}
     optional: true
 - tapOn:
     # Accept Chrome terms
-    text: "Accept & continue"
+    text: "Agree and continue"
     optional: true
 - tapOn:
     # Don't turn on sync
