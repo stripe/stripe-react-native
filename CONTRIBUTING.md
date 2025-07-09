@@ -259,15 +259,3 @@ The patch needs to be updated when:
    git add patches/old-arch-codegen-fix.patch
    git commit -m "chore: update old-arch codegen fix patch"
    ```
-
-#### Testing the Patch
-
-Always test the patch with the `stripe-codegen-crash` example app:
-
-```bash
-cd stripe-codegen-crash
-npm install  # This should apply the patch automatically
-cd ios && pod install  # This should succeed without codegen errors
-```
-
-If the patch fails to apply or pod install fails, the patch needs to be updated.
