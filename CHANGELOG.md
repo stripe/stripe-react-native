@@ -52,6 +52,10 @@
 - Updated `stripe-android` to 21.10.\*
 - Fixed an issue where launching a Financial Connections flow would fail on Android.
 
+**Features**
+
+- [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Feat: Add support for Billie
+
 ## 0.43.0 - 2025-03-11
 
 **Features**

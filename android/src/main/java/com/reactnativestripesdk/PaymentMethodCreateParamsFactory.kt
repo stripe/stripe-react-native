@@ -40,6 +40,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Alipay -> createAlipayParams()
         PaymentMethod.Type.Sofort -> createSofortParams()
         PaymentMethod.Type.Bancontact -> createBancontactParams()
+        PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
         PaymentMethod.Type.Giropay -> createGiropayParams()
@@ -104,6 +105,14 @@ class PaymentMethodCreateParamsFactory(
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
+  }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createBillieParams(): PaymentMethodCreateParams {
+    return PaymentMethodCreateParams.createBillie(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
@@ -273,6 +282,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Alipay,
         PaymentMethod.Type.Sofort,
         PaymentMethod.Type.Bancontact,
+        PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
         PaymentMethod.Type.Oxxo,
         PaymentMethod.Type.Giropay,
