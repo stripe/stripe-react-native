@@ -202,19 +202,72 @@ https://www.contributor-covenant.org/faq. Translations are available at https://
 
 ### Maintaining the Stripe old-architecture patch
 
-We ship `patches/@stripe+stripe-react-native.patch` so that the library builds on **React-Native ≥ 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn’t fail).  
-The patch is applied automatically in `postinstall` whenever **`RCT_NEW_ARCH_ENABLED` is _not_ `1`**.
+We ship `patches/old-arch-codegen-fix.patch` so that the library builds on **React-Native ≥ 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn't fail).
 
-When you **upgrade** `@stripe/stripe-react-native` or need to tweak the patch:
+#### When to Update the Patch
+
+The patch needs to be updated when:
+- You modify `src/specs/NativeStripeSdkModule.ts` and add/remove/change EventEmitter properties
+- You upgrade dependencies that might affect the TurboModule interface
+- The patch fails to apply during testing or CI
+
+#### How to Update the Patch
+
+1. **Make your changes to the source code** in `src/specs/NativeStripeSdkModule.ts`
+
+2. **Create a backup of the original file**:
+   ```bash
+   cp src/specs/NativeStripeSdkModule.ts src/specs/NativeStripeSdkModule.ts.orig
+   ```
+
+3. **Apply the old-arch compatible changes**:
+   - Remove the `EventEmitter` import from the imports section
+   - Convert all `EventEmitter` properties to callback function methods
+   - For example, change:
+     ```typescript
+     onConfirmHandlerCallback: EventEmitter<{
+       paymentMethod: UnsafeObject<PaymentMethod.Result>;
+       shouldSavePaymentMethod: boolean;
+     }>;
+     ```
+     To:
+     ```typescript
+     onConfirmHandlerCallback(
+       callback: (event: {
+         paymentMethod: UnsafeObject<PaymentMethod.Result>;
+         shouldSavePaymentMethod: boolean;
+       }) => void
+     ): void;
+     ```
+
+4. **Generate the new patch**:
+   ```bash
+   diff -u src/specs/NativeStripeSdkModule.ts.orig src/specs/NativeStripeSdkModule.ts > patches/old-arch-codegen-fix.patch
+   ```
+
+5. **Test the patch**:
+   ```bash
+   # Test that the patch applies cleanly
+   git stash  # stash your changes
+   patch -p0 < patches/old-arch-codegen-fix.patch
+   # Verify the file looks correct
+   git stash pop  # restore your changes
+   ```
+
+6. **Commit the updated patch**:
+   ```bash
+   git add patches/old-arch-codegen-fix.patch
+   git commit -m "chore: update old-arch codegen fix patch"
+   ```
+
+#### Testing the Patch
+
+Always test the patch with the `stripe-codegen-crash` example app:
 
 ```bash
-# 1 Apply the edits again inside node_modules
-#   (open src/specs/NativeStripeSdkModule.ts and make the same EventEmitter→callback changes)
-
-# 2 Re-generate the diff
-npx patch-package @stripe/stripe-react-native
-
-git add patches/@stripe+stripe-react-native.patch
+cd stripe-codegen-crash
+npm install  # This should apply the patch automatically
+cd ios && pod install  # This should succeed without codegen errors
 ```
 
-If the upstream file changes and the patch can’t be applied, `npm install` (and CI) will fail because we pass `--error-on-fail` in the post-install script.  Fix the conflicts, regenerate, and commit the new diff.
+If the patch fails to apply or pod install fails, the patch needs to be updated.
