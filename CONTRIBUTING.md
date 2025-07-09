@@ -199,3 +199,22 @@ Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcem
 
 For answers to common questions about this code of conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
+
+### Maintaining the Stripe old-architecture patch
+
+We ship `patches/@stripe+stripe-react-native.patch` so that the library builds on **React-Native ≥ 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn’t fail).  
+The patch is applied automatically in `postinstall` whenever **`RCT_NEW_ARCH_ENABLED` is _not_ `1`**.
+
+When you **upgrade** `@stripe/stripe-react-native` or need to tweak the patch:
+
+```bash
+# 1 Apply the edits again inside node_modules
+#   (open src/specs/NativeStripeSdkModule.ts and make the same EventEmitter→callback changes)
+
+# 2 Re-generate the diff
+npx patch-package @stripe/stripe-react-native
+
+git add patches/@stripe+stripe-react-native.patch
+```
+
+If the upstream file changes and the patch can’t be applied, `npm install` (and CI) will fail because we pass `--error-on-fail` in the post-install script.  Fix the conflicts, regenerate, and commit the new diff.

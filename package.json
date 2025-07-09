@@ -12,6 +12,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
+    "postinstall": "if [ \"$RCT_NEW_ARCH_ENABLED\" != \"1\" ]; then echo \"[stripe-react-native] Applying old-arch codegen patch\" && patch -p1 -N -r - -s < src/old-arch-codegen-fix.patch || true; else echo \"[stripe-react-native] New architecture detected – no patch needed\"; fi",
     "prepare": "bob build && husky",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
