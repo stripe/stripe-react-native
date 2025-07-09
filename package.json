@@ -12,7 +12,6 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "postinstall": "if [ \"$RCT_NEW_ARCH_ENABLED\" != \"1\" ]; then echo \"[stripe-react-native] Applying old-arch codegen patch\" && patch -p1 -N -r - -s < src/old-arch-codegen-fix.patch || true; else echo \"[stripe-react-native] New architecture detected – no patch needed\"; fi",
     "prepare": "bob build && husky",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
@@ -63,7 +62,8 @@
     "react-native-builder-bob": "^0.37.0",
     "ts-node": "^10.9.2",
     "typedoc": "^0.27.9",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "patch-package": "^8.0.0"
   },
   "peerDependencies": {
     "expo": ">=46.0.9",
