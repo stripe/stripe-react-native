@@ -53,24 +53,3 @@ patch -p0 < patches/old-arch-codegen-fix.patch
    ```
 
 This ensures the patch is automatically applied whenever you run `npm install`.
-
-## When to Use This Patch
-
-- ✅ React Native 0.74+ with old architecture (`RCT_NEW_ARCH_ENABLED` != 1)
-- ✅ Expo SDK 51+ with old architecture
-- ❌ React Native with new architecture enabled (patch not needed)
-
-## Verification
-
-After applying the patch, verify it worked by checking that:
-
-1. The file `node_modules/@stripe/stripe-react-native/src/specs/NativeStripeSdkModule.ts` no longer imports `EventEmitter`
-2. All event properties (like `onConfirmHandlerCallback`) are now callback function methods instead of `EventEmitter` properties
-3. Your pod install completes successfully
-
-## Support
-
-If you encounter issues with this patch, please:
-1. Ensure you're using the old architecture (new architecture doesn't need this patch)
-2. Check that the patch applied correctly
-3. Report issues to the Stripe React Native repository 
