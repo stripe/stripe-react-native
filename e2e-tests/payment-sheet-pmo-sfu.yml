@@ -20,6 +20,7 @@ appId: ${APP_ID}
     optional: true
 - inputText: "0145"
 - inputText: "123"
+- hideKeyboard
 - tapOn:
     id: primary_button # Android
     optional: true

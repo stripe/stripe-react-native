@@ -15,6 +15,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
+- scrollUntilVisible:
+    element:
+      text: "Pay"
+    direction: DOWN
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false

@@ -24,14 +24,7 @@ appId: ${APP_ID}
 - tapOn:
     text: "CVC"
 - inputText: "123"
-- scrollUntilVisible:
-    element:
-      id: primary_button # Android
-    optional: true
-- scrollUntilVisible:
-    element:
-      text: "Continue" # iOS
-    optional: true
+- hideKeyboard
 - tapOn:
     id: primary_button # Android
     optional: true

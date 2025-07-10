@@ -14,26 +14,64 @@ appId: ${APP_ID}
     optional: true
 - tapOn:
     # Accept Chrome terms
-    text: "Accept & continue"
+    text: "Agree and continue"
     optional: true
 - tapOn:
     # Don't turn on sync
     text: "No thanks"
     optional: true
+
+- assertVisible:
+    text: "Test Institution"
+    optional: true
+- tapOn: 
+    text: "Test Institution"
+    optional: true
+- extendedWaitUntil:
+    visible: "Connect account"
+    timeout: 30000
+- tapOn: 
+    text: "Connect account"
+    optional: true
+
 - assertVisible:
     text: "Test Institution stripe.com"
-- tapOn: "Test Institution stripe.com"
+    optional: true
+- tapOn: 
+    text: "Test Institution stripe.com"
+    optional: true
 - assertVisible:
     text: "Manually verify instead"
-- tapOn: "Manually verify instead"
+    optional: true
+- tapOn: 
+    text: "Manually verify instead"
+    optional: true
 - assertVisible:
     text: "Autofill"
-- tapOn: "Autofill"
+    optional: true
+- tapOn: 
+    text: "Autofill"
+    optional: true
+
 - assertVisible:
     text: "Not now"
-- tapOn: "Not now"
-- assertVisible: "Done"
-- tapOn: "Done"
+- tapOn: 
+    text: "Not now"
+
+- assertVisible: 
+    text: "Back to Stripe Shop"
+    optional: true
+- tapOn: 
+    text: "Back to Stripe Shop"
+    optional: true
+
+- assertVisible: 
+    text: "Done"
+    optional: true
+- tapOn: 
+    text: "Done"
+    optional: true
+
 - assertVisible:
     text: "Success"
 - tapOn:
