@@ -9,31 +9,58 @@ appId: ${APP_ID}
     text: "Collect session"
     retryTapIfNoChange: false
 - tapOn:
-    # Dismiss Chrome onboarding screen
+    # Accept Link terms
+    text: "Agree and continue"
+- assertVisible:
+    text: "Test Institution"
+- tapOn:
+    text: "Test Institution"
+
+# The first chrome instance in E2E emulator, welcome page must be dismissed.
+- tapOn:
+    # Dismiss Chrome onboarding screen (new arch)
     text: "Use without an account"
     optional: true
 - tapOn:
-    # Accept Chrome terms
+    # Accept Chrome terms (old arch)
     text: "Accept & continue"
     optional: true
 - tapOn:
-    # Don't turn on sync
+    # Don't turn on Chrome sync (old arch)
     text: "No thanks"
     optional: true
-- assertVisible:
-    text: "Test Institution stripe.com"
-- tapOn: "Test Institution stripe.com"
-- assertVisible:
-    text: "Manually verify instead"
-- tapOn: "Manually verify instead"
-- assertVisible:
-    text: "Autofill"
-- tapOn: "Autofill"
-- assertVisible:
+
+- extendedWaitUntil:
+    visible: "Connect account"
+    timeout: 30000
+- tapOn:
+    text: "Connect account"
+
+- assertVisible: 
     text: "Not now"
-- tapOn: "Not now"
-- assertVisible: "Done"
-- tapOn: "Done"
+- tapOn: 
+    text: "Not now"
+
+- assertVisible: 
+    text: "Back to Stripe Shop"
+    optional: true
+- tapOn: 
+    text: "Back to Stripe Shop"
+    optional: true
+- assertVisible: 
+    text: "Done"
+    optional: true
+- tapOn: 
+    text: "Done"
+    optional: true
+- assertVisible: 
+    text: "Back to Test Inc."
+    optional: true
+- tapOn: 
+    text: "Back to Test Inc."
+    optional: true
+
+
 - assertVisible:
     text: "Success"
 - tapOn:
