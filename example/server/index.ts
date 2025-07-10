@@ -163,9 +163,18 @@ app.post(
       payment_method_types: payment_method_types,
     };
 
+    const paypalParams: Stripe.PaymentIntentCreateParams = {
+      amount: calculateOrderAmount(items),
+      currency: currency,
+      payment_method_types: payment_method_types,
+    };
+
     try {
       const paymentIntent: Stripe.PaymentIntent =
-        await stripe.paymentIntents.create(params);
+        // if the payment_method_types includes paypal, use paypalParams
+        payment_method_types.includes('paypal')
+          ? await stripe.paymentIntents.create(paypalParams)
+          : await stripe.paymentIntents.create(params);
       // Send publishable key and PaymentIntent client_secret to client.
       return res.send({
         clientSecret: paymentIntent.client_secret,
@@ -371,19 +380,11 @@ app.post('/create-setup-intent', async (req, res) => {
   const customer = await stripe.customers.create({ email });
 
   const payPalIntentPayload = {
-    return_url: 'https://example.com/setup/complete',
-    payment_method_options: { paypal: { currency: 'eur' } },
-    payment_method_data: { type: 'paypal' },
-    mandate_data: {
-      customer_acceptance: {
-        type: 'online',
-        online: {
-          ip_address: '1.1.1.1',
-          user_agent: 'test-user-agent',
-        },
-      },
+    customer: customer.id,
+    payment_method_types: payment_method_types,
+    payment_method_data: {
+      type: 'paypal',
     },
-    confirm: true,
   };
   const revolutPayIntentPayload = {
     payment_method_data: {
