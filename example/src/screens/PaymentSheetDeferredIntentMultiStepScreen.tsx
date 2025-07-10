@@ -68,7 +68,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
 
       const address: Address = {
         city: 'San Francisco',
-        country: 'AT',
+        country: 'US',
         line1: '510 Townsend St.',
         line2: '123 Street',
         postalCode: '94102',
