@@ -20,7 +20,6 @@ export interface Result {
   Fpx: FpxResult;
   Ideal: IdealResult;
   SepaDebit: SepaDebitResult;
-  Sofort: SofortResult;
   Upi: UpiResult;
   USBankAccount: USBankAccountResult;
 }
@@ -35,7 +34,6 @@ export type CreateParams =
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
-  | SofortParams
   | GrabPayParams
   | FPXParams
   | AfterpayClearpayParams
@@ -98,13 +96,6 @@ export interface OxxoParams {
   };
 }
 
-export interface SofortParams {
-  paymentMethodType: 'Sofort';
-  paymentMethodData: {
-    country: string;
-    billingDetails: BillingDetails;
-  };
-}
 export interface GrabPayParams {
   paymentMethodType: 'GrabPay';
   paymentMethodData?: {
@@ -264,10 +255,6 @@ export interface SepaDebitResult {
   last4?: string;
 }
 
-export interface SofortResult {
-  country?: string;
-}
-
 export interface UpiResult {
   vpa?: string;
 }
@@ -300,7 +287,6 @@ export type Type =
   | 'Eps'
   | 'Bancontact'
   | 'Oxxo'
-  | 'Sofort'
   | 'Upi'
   | 'USBankAccount'
   | 'PayPal'

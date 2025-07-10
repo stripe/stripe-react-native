@@ -138,7 +138,6 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.Oxxo -> "Oxxo"
     PaymentMethod.Type.P24 -> "P24"
     PaymentMethod.Type.SepaDebit -> "SepaDebit"
-    PaymentMethod.Type.Sofort -> "Sofort"
     PaymentMethod.Type.Upi -> "Upi"
     PaymentMethod.Type.WeChatPay -> "WeChatPay"
     PaymentMethod.Type.Klarna -> "Klarna"
@@ -168,7 +167,6 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Oxxo" -> PaymentMethod.Type.Oxxo
     "P24" -> PaymentMethod.Type.P24
     "SepaDebit" -> PaymentMethod.Type.SepaDebit
-    "Sofort" -> PaymentMethod.Type.Sofort
     "Upi" -> PaymentMethod.Type.Upi
     "WeChatPay" -> PaymentMethod.Type.WeChatPay
     "Klarna" -> PaymentMethod.Type.Klarna
@@ -414,10 +412,6 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
       it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
       it.putString("last4", paymentMethod.bacsDebit?.last4)
     },
-  )
-  pm.putMap(
-    "Sofort",
-    WritableNativeMap().also { it.putString("country", paymentMethod.sofort?.country) },
   )
   pm.putMap(
     "Ideal",

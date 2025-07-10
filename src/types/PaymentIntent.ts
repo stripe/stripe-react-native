@@ -39,7 +39,6 @@ export type ConfirmParams =
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
-  | SofortParams
   | GrabPayParams
   | FPXParams
   | AfterpayClearpayParams
@@ -149,15 +148,6 @@ export interface OxxoParams {
   };
 }
 
-export interface SofortParams {
-  paymentMethodType: 'Sofort';
-  paymentMethodData: {
-    country: string;
-    billingDetails: BillingDetails;
-    mandateData?: MandateData;
-    metadata?: MetaData;
-  };
-}
 export interface GrabPayParams {
   paymentMethodType: 'GrabPay';
   paymentMethodData?: {

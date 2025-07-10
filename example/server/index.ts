@@ -155,9 +155,6 @@ app.post(
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
         },
-        sofort: {
-          preferred_language: 'en',
-        },
         wechat_pay: {
           app_id: 'wx65907d6307c3827d',
           client: client,
@@ -594,7 +591,6 @@ app.post('/payment-sheet', async (req, res) => {
         'card',
         // 'ideal',
         // 'sepa_debit',
-        // 'sofort',
         // 'bancontact',
         // 'p24',
         // 'giropay',

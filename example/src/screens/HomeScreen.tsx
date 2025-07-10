@@ -301,23 +301,6 @@ export default function HomeScreen() {
               }}
             />
           </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Sofort"
-              onPress={() => {
-                navigation.navigate('SofortPaymentScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Sofort SEPA Direct Debit set up"
-              onPress={() => {
-                navigation.navigate('SofortSetupFuturePaymentScreen');
-              }}
-            />
-          </View>
         </>
       </Collapse>
 
