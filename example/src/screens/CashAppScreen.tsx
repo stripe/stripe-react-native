@@ -82,6 +82,7 @@ export default function CashAppScreen() {
     <PaymentScreen paymentMethod="cashapp">
       <TextInput
         placeholder="E-mail"
+        accessibilityLabel="E-mail"
         autoCapitalize="none"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
