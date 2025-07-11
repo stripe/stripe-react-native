@@ -16,8 +16,11 @@ appId: ${APP_ID}
     text: "Test Institution"
 - tapOn: 
     text: "Test Institution"
+
+# First chrome instance in E2E emulator, welcome page must be dismissed.
 - tapOn:
     text: "Use without an account"
+    optional: true
 
 - extendedWaitUntil:
     visible: "Connect account"
