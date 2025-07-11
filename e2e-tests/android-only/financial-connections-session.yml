@@ -9,49 +9,18 @@ appId: ${APP_ID}
     text: "Collect session"
     retryTapIfNoChange: false
 - tapOn:
-    # Dismiss Chrome onboarding screen
-    text: "Use without an account"
-    optional: true
-- tapOn:
     # Accept Chrome terms
     text: "Agree and continue"
-    optional: true
-- tapOn:
-    # Don't turn on sync
-    text: "No thanks"
-    optional: true
 
 - assertVisible:
     text: "Test Institution"
-    optional: true
 - tapOn:
     text: "Test Institution"
-    optional: true
 - extendedWaitUntil:
     visible: "Connect account"
-    timeout: 150000
+    timeout: 30000
 - tapOn:
     text: "Connect account"
-    optional: true
-
-- assertVisible:
-    text: "Test Institution stripe.com"
-    optional: true
-- tapOn: 
-    text: "Test Institution stripe.com"
-    optional: true
-- assertVisible:
-    text: "Manually verify instead"
-    optional: true
-- tapOn:
-    text: "Manually verify instead"
-    optional: true
-- assertVisible:
-    text: "Autofill"
-    optional: true
-- tapOn: 
-    text: "Autofill"
-    optional: true
 
 - assertVisible: 
     text: "Not now"
