@@ -10,6 +10,9 @@ appId: ${APP_ID}
 - tapOn:
     text: "Card"
     optional: true
+- tapOn:
+    text: "New card"
+    optional: true
 - assertVisible:
     text: "By providing your card information, you allow Example Inc. to charge your card for future payments in accordance with their terms."
 - tapOn:
