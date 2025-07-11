@@ -7,7 +7,7 @@ appId: ${APP_ID}
     text: "E-mail"
 - tapOn:
     text: "E-mail"
-- inputText: "test@stripe.com"
+- inputText: "reactnativecvctestcustomer@stripe.com"
 - tapOn:
     text: "CVC"
 - inputText: "123"
