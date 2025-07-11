@@ -9,17 +9,26 @@ appId: ${APP_ID}
     text: "Collect token"
     retryTapIfNoChange: false
 - tapOn:
-    # Accept Chrome terms
+    # Accept Link terms
     text: "Agree and continue"
+    optional: true
 
 - assertVisible:
     text: "Test Institution"
 - tapOn: 
     text: "Test Institution"
 
-# First chrome instance in E2E emulator, welcome page must be dismissed.
 - tapOn:
+    # Dismiss Chrome onboarding screen (new arch)
     text: "Use without an account"
+    optional: true
+- tapOn:
+    # Accept Chrome terms terms (old arch)
+    text: "Accept & continue"
+    optional: true
+- tapOn:
+    # Don't turn on Chrome sync (old arch)
+    text: "No thanks"
     optional: true
 
 - extendedWaitUntil:
