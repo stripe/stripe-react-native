@@ -26,6 +26,8 @@
     "run-example-android:release": "cd example && yarn build:android && yarn android --mode=release --no-packager",
     "test:e2e:ios": "bash ./scripts/run-maestro-tests ios",
     "test:e2e:android": "bash ./scripts/run-maestro-tests android",
+    "test:e2e:financial-connections:ios": "bash ./scripts/run-financial-connections-tests ios",
+    "test:e2e:financial-connections:android": "bash ./scripts/run-financial-connections-tests android",
     "test:unit:ios": "xcodebuild test -workspace example/ios/example.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 16' -scheme stripe-react-native-Unit-Tests",
     "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",

@@ -1,4 +1,4 @@
-name: RN Stripe
+name: RN Stripe - Financial Connections E2E Tests
 
 on:
   push:
@@ -96,13 +96,14 @@ jobs:
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
             # Retry once if necessary
             yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED" || (sleep 60 && yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED")
-            yarn test:e2e:android
-
+            yarn test:e2e:financial-connections:android
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-android-${{ matrix.react_arch }}
+          name: maestro-artifacts-android-financial-connections-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
 
@@ -165,12 +166,12 @@ jobs:
 
       - name: Run tests
         run: |
-          yarn test:e2e:ios
+          yarn test:e2e:financial-connections:ios
 
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-ios-${{ matrix.react_arch }}
+          name: maestro-artifacts-ios-financial-connections-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
