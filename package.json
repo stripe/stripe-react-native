@@ -28,6 +28,8 @@
     "test:e2e:android": "bash ./scripts/run-maestro-tests android",
     "test:e2e:financial-connections:ios": "bash ./scripts/run-financial-connections-tests ios",
     "test:e2e:financial-connections:android": "bash ./scripts/run-financial-connections-tests android",
+    "test:e2e:specific:ios": "bash ./scripts/run-specific-tests ios",
+    "test:e2e:specific:android": "bash ./scripts/run-specific-tests android",
     "test:unit:ios": "xcodebuild test -workspace example/ios/example.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 16' -scheme stripe-react-native-Unit-Tests",
     "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",

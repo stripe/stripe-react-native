@@ -1,0 +1,55 @@
+#!/bin/bash
+
+trap 'exit' INT
+
+PLATFORM=${1:-}
+
+# Validate passed platform
+case $PLATFORM in
+  ios | android )
+    ;;
+
+  *)
+    echo "Error! You must pass either 'android' or 'ios'"
+    echo ""
+    exit 1
+    ;;
+esac
+
+APPID="com.stripe.react.native"
+
+# Define the specific tests to run
+allTestFiles=(
+  "./e2e-tests/finalize-on-server.yml"
+  "./e2e-tests/payment-sheet-pmo-sfu.yml"
+  "./e2e-tests/recollect-cvc.yml"
+)
+
+failedTests=()
+for file in "${allTestFiles[@]}"
+do
+  testName=$(basename "${file%.*}")
+  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$RCT_NEW_ARCH_ENABLED\" --flatten-debug-output"
+  if ! eval "$testCmd --debug-output e2e-artifacts/$testName";
+  then
+    echo "Test ${file} failed. Retrying in 30 seconds..."
+    sleep 30
+    if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-1";
+    then
+      echo "Test ${file} failed again. Retrying for the last time in 120 seconds..."
+      sleep 120
+      if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-2";
+      then
+        failedTests+=("$file")
+      fi
+    fi
+  fi
+done
+
+if [ ${#failedTests[@]} -eq 0 ]; then
+    exit 0
+else
+    echo "These tests failed:"
+    printf '%s\n' "${failedTests[@]}"
+    exit 1
+fi 
