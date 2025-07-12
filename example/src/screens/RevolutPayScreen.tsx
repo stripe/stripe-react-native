@@ -105,7 +105,6 @@ export default function RevolutPayScreen() {
     <PaymentScreen paymentMethod="revolut_pay">
       <TextInput
         placeholder="E-mail"
-        accessibilityLabel="E-mail"
         autoCapitalize="none"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
