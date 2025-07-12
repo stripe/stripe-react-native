@@ -11,6 +11,10 @@ appId: ${APP_ID}
     text: "Card"
     optional: true
 - tapOn:
+    text: "New card"
+    optional: true
+
+- tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
 - tapOn:
