@@ -17,6 +17,10 @@ appId: ${APP_ID}
     text: "E-mail"
 - inputText: "test@stripe.com"
 - pressKey: Enter
+- scrollUntilVisible:
+    element:
+      text: "Pay"
+    direction: DOWN
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false

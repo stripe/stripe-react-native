@@ -285,7 +285,6 @@ class Mappers {
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
         case STPPaymentMethodType.OXXO: return "Oxxo"
-        case STPPaymentMethodType.sofort: return "Sofort"
         case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
         case STPPaymentMethodType.klarna: return "Klarna"
@@ -316,7 +315,6 @@ class Mappers {
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
             case "Oxxo": return STPPaymentMethodType.OXXO
-            case "Sofort": return STPPaymentMethodType.sofort
             case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
             case "Klarna": return STPPaymentMethodType.klarna
@@ -666,9 +664,6 @@ class Mappers {
             "SepaDebit": sepaDebit,
             "BacsDebit": bacsDebit,
             "AuBecsDebit": auBECSDebit,
-            "Sofort": [
-                "country": paymentMethod.sofort?.country
-            ],
             "Upi": [
                 "vpa": paymentMethod.upi?.vpa
             ],

@@ -11,6 +11,9 @@ appId: ${APP_ID}
     text: "Card"
     optional: true
 - tapOn:
+    text: "New card"
+    optional: true
+- tapOn:
     text: "Card number"
 - inputText: "4242424242424242"
 - tapOn:
@@ -18,6 +21,14 @@ appId: ${APP_ID}
     optional: true
 - inputText: "0145"
 - inputText: "123"
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "purchase!" # iOS
+    optional: true
 - tapOn:
     id: primary_button # Android
     optional: true

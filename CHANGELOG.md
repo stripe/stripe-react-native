@@ -1,5 +1,7 @@
 # CHANGELOG
 
+**Fixes**
+- Removed Sofort from playground pages. Sofort is no longer support by Stripe.
 ## 0.49.0 - 2025-07-02
 
 **Features**
