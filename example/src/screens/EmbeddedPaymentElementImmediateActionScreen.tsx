@@ -57,7 +57,7 @@ export default function EmbeddedPaymentElementImmediateActionScreen() {
 
       const address: Address = {
         city: 'San Francisco',
-        country: 'AT',
+        country: 'US',
         line1: '510 Townsend St.',
         line2: 'Suite 123',
         postalCode: '94102',

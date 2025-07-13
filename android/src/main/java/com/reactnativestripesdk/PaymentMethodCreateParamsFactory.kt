@@ -38,7 +38,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
         PaymentMethod.Type.Ideal -> createIDEALParams()
         PaymentMethod.Type.Alipay -> createAlipayParams()
-        PaymentMethod.Type.Sofort -> createSofortParams()
         PaymentMethod.Type.Bancontact -> createBancontactParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
@@ -78,21 +77,6 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAlipayParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createAlipay()
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createSofortParams(): PaymentMethodCreateParams {
-    val country =
-      getValOr(paymentMethodData, "country", null)
-        ?: run {
-          throw PaymentMethodCreateParamsException("You must provide bank account country")
-        }
-
-    return PaymentMethodCreateParams.create(
-      PaymentMethodCreateParams.Sofort(country = country),
-      billingDetailsParams,
-      metadata = metadataParams,
-    )
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactParams(): PaymentMethodCreateParams {
@@ -271,7 +255,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
-        PaymentMethod.Type.Sofort,
         PaymentMethod.Type.Bancontact,
         PaymentMethod.Type.SepaDebit,
         PaymentMethod.Type.Oxxo,

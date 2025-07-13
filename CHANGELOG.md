@@ -2,9 +2,10 @@
 
 ## x.x.x - x-x-x
 
-**Patches**
+**Fixes**
+- Removed Sofort from playground pages. Sofort is no longer support by Stripe.
+- **Patches**
 - Fixed codegen error when using React Native 0.74+ with old architecture by converting EventEmitter properties to callback functions in TurboModule interface. [#1977](https://github.com/stripe/stripe-react-native/issues/1977). See `patches/README.md` for more info.
-
 
 ## 0.49.0 - 2025-07-02
 
