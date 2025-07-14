@@ -146,30 +146,6 @@ After
 }
 ```
 
-### Sofort
-
-Before:
-
-```js
-{
-  type: 'Sofort',
-  country: string,
-  billingDetails: BillingDetails,
-}
-```
-
-After
-
-```js
-{
-  paymentMethodType: 'Sofort',
-  paymentMethodData: {
-    country: string,
-    billingDetails: BillingDetails,
-  }
-}
-```
-
 ### GrabPay
 
 Before:

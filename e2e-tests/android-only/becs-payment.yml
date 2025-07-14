@@ -26,7 +26,6 @@ appId: ${APP_ID}
 - tapOn:
     text: "Account number"
 - inputText: "000123456"
-- hideKeyboard
 - scrollUntilVisible:
     element:
       text: "Pay"

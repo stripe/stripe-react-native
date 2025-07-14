@@ -1,5 +1,5 @@
 import PassKit
-import Stripe
+@_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 import StripeFinancialConnections
 import Foundation
@@ -94,6 +94,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         STPAPIClient.shared.publishableKey = publishableKey
         StripeAPI.defaultPublishableKey = publishableKey
         STPAPIClient.shared.stripeAccount = stripeAccountId
+
+        if STPAPIClient.shared.publishableKeyIsUserKey {
+            STPAPIClient.shared.userKeyLiveMode = UserDefaults.standard.object(forKey: "stripe_userKeyLiveMode") as? Bool ?? true
+        }
 
         let name = appInfo["name"] as? String ?? ""
         let partnerId = appInfo["partnerId"] as? String ?? ""

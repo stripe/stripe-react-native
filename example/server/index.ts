@@ -155,9 +155,6 @@ app.post(
         card: {
           request_three_d_secure: request_three_d_secure || 'automatic',
         },
-        sofort: {
-          preferred_language: 'en',
-        },
         wechat_pay: {
           app_id: 'wx65907d6307c3827d',
           client: client,
@@ -375,7 +372,6 @@ app.post('/create-setup-intent', async (req, res) => {
 
   const payPalIntentPayload = {
     return_url: 'https://example.com/setup/complete',
-    payment_method_options: { paypal: { currency: 'eur' } },
     payment_method_data: { type: 'paypal' },
     mandate_data: {
       customer_acceptance: {
@@ -594,7 +590,6 @@ app.post('/payment-sheet', async (req, res) => {
         'card',
         // 'ideal',
         // 'sepa_debit',
-        // 'sofort',
         // 'bancontact',
         // 'p24',
         // 'giropay',
