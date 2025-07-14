@@ -498,14 +498,10 @@ extension StripeSdkImpl {
     static func createCustomPaymentMethodConfirmHandler(
       sdkImpl: StripeSdkImpl?
     ) -> PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethodConfirmHandler {
-      return { customPaymentMethod, billingDetails in
-        NSLog("🔥 iOS: Async custom payment method handler called for ID: %@", customPaymentMethod.id)
-        
+      return { customPaymentMethod, billingDetails in        
         // Send event to JS with the custom payment method data
         let customPaymentMethodDict: [String: Any] = [
-            "id": customPaymentMethod.id,
-            "subtitle": customPaymentMethod.subtitle ?? "",
-            "disableBillingDetailCollection": customPaymentMethod.disableBillingDetailCollection
+            "id": customPaymentMethod.id
         ]
 
         let billingDetailsDict = Mappers.mapFromBillingDetails(billingDetails: billingDetails)
@@ -515,20 +511,17 @@ extension StripeSdkImpl {
           "billingDetails": billingDetailsDict
         ]
 
-        NSLog("🔥 iOS: Using async/await for JavaScript response...")
         
         // Use async/await with continuation instead of blocking semaphore
         return await withCheckedContinuation { continuation in
           // Set up callback to receive result from JavaScript
           sdkImpl?.customPaymentMethodResultCallback = { result in
-            NSLog("🔥 iOS: Received async result from JavaScript: %@", String(describing: result))
             sdkImpl?.customPaymentMethodResultCallback = nil
             continuation.resume(returning: result)
           }
           
           // Emit event to JavaScript on main queue
           DispatchQueue.main.async {
-            NSLog("🔥 iOS: Emitting event to JavaScript (async)...")
             sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
           }
         }
