@@ -385,7 +385,7 @@ export const initPaymentSheet = async (
     if (customPaymentMethodHandler) {
       paymentSheetCustomPaymentMethodConfirmCallback?.remove();
       paymentSheetCustomPaymentMethodConfirmCallback = addListener(
-        'embeddedPaymentElementCustomPaymentMethodConfirm',
+        'onCustomPaymentMethodConfirmHandlerCallback',
         ({
           customPaymentMethod,
           billingDetails,

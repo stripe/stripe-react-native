@@ -16,5 +16,5 @@ import Foundation
     func emitEmbeddedPaymentElementFormSheetConfirmComplete(_ value: [String: Any])
     func emitEmbeddedPaymentElementRowSelectionImmediateAction()
     func emitEmbeddedPaymentElementLoadingFailed(_ value: [String: Any])
-    func emitEmbeddedPaymentElementCustomPaymentMethodConfirm(_ value: [String: Any])
+    func emitOnCustomPaymentMethodConfirmHandlerCallback(_ value: [String: Any])
 }

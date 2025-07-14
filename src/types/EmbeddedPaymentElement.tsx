@@ -305,7 +305,7 @@ function setupConfirmAndSelectionHandlers(
     if (customPaymentMethodHandler) {
       customPaymentMethodConfirmCallback?.remove();
       customPaymentMethodConfirmCallback = addListener(
-        'embeddedPaymentElementCustomPaymentMethodConfirm',
+        'onCustomPaymentMethodConfirmHandlerCallback',
         ({
           customPaymentMethod,
           billingDetails,

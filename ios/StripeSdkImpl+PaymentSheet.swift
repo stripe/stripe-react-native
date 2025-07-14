@@ -529,7 +529,7 @@ extension StripeSdkImpl {
           // Emit event to JavaScript on main queue
           DispatchQueue.main.async {
             NSLog("🔥 iOS: Emitting event to JavaScript (async)...")
-            sdkImpl?.emitter?.emitEmbeddedPaymentElementCustomPaymentMethodConfirm(payload)
+            sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
           }
         }
       }
