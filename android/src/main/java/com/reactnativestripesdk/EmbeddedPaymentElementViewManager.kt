@@ -18,9 +18,11 @@ import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
+import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
+import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
@@ -80,7 +82,10 @@ class EmbeddedPaymentElementViewManager :
   }
 
   @SuppressLint("RestrictedApi")
-  @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
+  @OptIn(
+    ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
+    ExperimentalCustomPaymentMethodsApi::class,
+  )
   private fun parseElementConfiguration(
     map: ReadableMap,
     context: Context,
@@ -184,6 +189,16 @@ class EmbeddedPaymentElementViewManager :
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(toBundleObject(map)))
+        // Serialize original ReadableMap because toBundleObject cannot keep arrays of objects
+        .customPaymentMethods(
+          parseCustomPaymentMethods(
+            toBundleObject(map.getMap("customPaymentMethodConfiguration")).apply {
+              map.getMap("customPaymentMethodConfiguration")?.let { readable ->
+                putSerializable("customPaymentMethodConfigurationReadableMap", readable.toHashMap())
+              }
+            },
+          ),
+        )
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }

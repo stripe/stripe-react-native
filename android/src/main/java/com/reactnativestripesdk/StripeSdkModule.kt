@@ -233,6 +233,14 @@ class StripeSdkModule(
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       paymentSheetFragment?.removeFragment(reactApplicationContext)
       val bundle = toBundleObject(params)
+
+      // Handle custom payment methods separately since toBundleObject cannot handle arrays of objects
+      val customPaymentMethodConfig = params.getMap("customPaymentMethodConfiguration")
+      if (customPaymentMethodConfig != null) {
+        // Store the original ReadableMap for custom payment methods
+        bundle.putSerializable("customPaymentMethodConfigurationReadableMap", customPaymentMethodConfig.toHashMap())
+      }
+
       paymentSheetFragment =
         PaymentSheetFragment.create(reactApplicationContext, bundle, promise)
       try {

@@ -30,9 +30,11 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
+import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
@@ -61,6 +63,7 @@ class PaymentSheetFragment : StripeFragment() {
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
 
+  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun prepare() {
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
@@ -240,6 +243,7 @@ class PaymentSheetFragment : StripeFragment() {
           mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
+        .customPaymentMethods(parseCustomPaymentMethods(arguments))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
