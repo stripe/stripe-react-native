@@ -76,4 +76,4 @@ class CustomPaymentMethodActivity : ReactActivity() {
     super.onStart()
     currentActivityRef = java.lang.ref.WeakReference(this)
   }
-} 
+}

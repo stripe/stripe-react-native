@@ -1,6 +1,5 @@
 package com.reactnativestripesdk
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -69,65 +68,78 @@ class EmbeddedPaymentElementView(
   override fun Content() {
     val type by remember { rowSelectionBehaviorType }
 
-    val confirmCustomPaymentMethodCallback = remember {
-      { customPaymentMethod: PaymentSheet.CustomPaymentMethod,
-        billingDetails: PaymentMethod.BillingDetails ->
-         // Launch a transparent Activity to ensure React Native UI can appear on top of the Stripe proxy activity.
-         try {
-           val intent = Intent(reactContext, CustomPaymentMethodActivity::class.java).apply {
-             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-           }
-           reactContext.startActivity(intent)
-         } catch (e: Exception) {
-           Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
-         }
+    val confirmCustomPaymentMethodCallback =
+      remember {
+        {
+          customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+          billingDetails: PaymentMethod.BillingDetails,
+          ->
+          // Launch a transparent Activity to ensure React Native UI can appear on top of the Stripe proxy activity.
+          try {
+            val intent =
+              Intent(reactContext, CustomPaymentMethodActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              }
+            reactContext.startActivity(intent)
+          } catch (e: Exception) {
+            Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
+          }
 
-         val stripeSdkModule = try {
-           requireStripeSdkModule()
-         } catch (ex: IllegalArgumentException) {
-           Log.e("StripeReactNative", "StripeSdkModule not found for CPM callback", ex)
-           return@remember
-         }
+          val stripeSdkModule =
+            try {
+              requireStripeSdkModule()
+            } catch (ex: IllegalArgumentException) {
+              Log.e("StripeReactNative", "StripeSdkModule not found for CPM callback", ex)
+              return@remember
+            }
 
-         // Keep JS awake while React Native is backgrounded by Stripe SDK.
+          // Keep JS awake while React Native is backgrounded by Stripe SDK.
 //         val keepJsAwakeTask =
 //           KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
 
-         // Run on main coroutine scope.
-         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
-           // Give the CustomPaymentMethodActivity a moment to fully initialize
-           kotlinx.coroutines.delay(100)
+          // Run on main coroutine scope.
+          kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            // Give the CustomPaymentMethodActivity a moment to fully initialize
+            kotlinx.coroutines.delay(100)
 
-           // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
-           stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
-             mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
-           )
+            // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
+            stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
+              mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
+            )
 
-           // Await JS result.
-           val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
+            // Await JS result.
+            val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
 
 //           keepJsAwakeTask.stop()
 
-           val status = resultFromJs.getString("status")
+            val status = resultFromJs.getString("status")
 
-           val nativeResult = when (status) {
-             "completed" -> com.stripe.android.paymentelement.CustomPaymentMethodResult.completed()
-             "canceled" -> com.stripe.android.paymentelement.CustomPaymentMethodResult.canceled()
-             "failed" -> {
-               val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
-               com.stripe.android.paymentelement.CustomPaymentMethodResult.failed(displayMessage = errMsg)
-             }
-             else -> com.stripe.android.paymentelement.CustomPaymentMethodResult.failed(displayMessage = "Unknown status")
-           }
+            val nativeResult =
+              when (status) {
+                "completed" ->
+                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                    .completed()
+                "canceled" ->
+                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                    .canceled()
+                "failed" -> {
+                  val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
+                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                    .failed(displayMessage = errMsg)
+                }
+                else ->
+                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                    .failed(displayMessage = "Unknown status")
+              }
 
-           // Return result to Stripe SDK.
-           com.stripe.android.paymentelement.CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
-             reactContext,
-             nativeResult,
-           )
-         }
+            // Return result to Stripe SDK.
+            com.stripe.android.paymentelement.CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
+              reactContext,
+              nativeResult,
+            )
+          }
+        }
       }
-    }
 
     val builder =
       remember(type) {

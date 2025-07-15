@@ -1,6 +1,7 @@
 package com.reactnativestripesdk
 
 import android.content.Context
+import android.view.ViewGroup.LayoutParams
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -15,7 +16,6 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.facebook.react.bridge.ReactContext
-import android.view.ViewGroup.LayoutParams
 
 /**
  * Compose disposes views by default when using Fragments, which is not compatible with how
