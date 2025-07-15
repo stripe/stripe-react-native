@@ -1297,11 +1297,6 @@ class StripeSdkModule(
     // noop, iOS only
   }
 
-  @ReactMethod
-  fun dismissCustomPaymentMethodActivity() {
-    CustomPaymentMethodActivity.finishCurrent()
-  }
-
   override fun handleURLCallback(
     url: String,
     promise: Promise,

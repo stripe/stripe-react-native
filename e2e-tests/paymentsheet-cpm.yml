@@ -4,8 +4,9 @@ appId: ${APP_ID}
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (single-step)"
 - tapOn: "Checkout"
-- extendedWaitUntil:
-    visible: "BufoPay (test)"
+- scrollUntilVisible:
+    element:
+      text: "BufoPay (test)"
     timeout: 150000
 - tapOn:
     text: "BufoPay (test)"
@@ -22,4 +23,4 @@ appId: ${APP_ID}
 - tapOn: "Success"
 - assertVisible:
     text: "The payment was confirmed successfully"
-- tapOn: "OK" 
+- tapOn: "OK"
