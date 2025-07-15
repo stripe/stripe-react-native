@@ -1069,7 +1069,6 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List
     return emptyList()
   }
 
-  // First try to get the ReadableMap version stored by StripeSdkModule
   val configHashMap = customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
   if (configHashMap != null) {
     val customPaymentMethods = configHashMap["customPaymentMethods"] as? List<HashMap<String, Any>>
@@ -1095,10 +1094,20 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List
     }
   }
 
-  // Handle direct Bundle access (from EmbeddedPaymentElementViewManager after toBundleObject conversion)
-  // Note: toBundleObject cannot handle arrays of objects, so this will likely return empty list
-  // The main path will be through the serialized HashMap above
-
-  // Fallback to empty list if no custom payment methods are found
   return emptyList()
 }
+
+@SuppressLint("RestrictedApi")
+internal fun mapFromCustomPaymentMethod(
+  customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+  billingDetails: PaymentMethod.BillingDetails,
+): WritableMap =
+  WritableNativeMap().apply {
+    putMap(
+      "customPaymentMethod",
+      WritableNativeMap().apply {
+        putString("id", customPaymentMethod.id)
+      },
+    )
+    putMap("billingDetails", mapFromBillingDetails(billingDetails))
+  }

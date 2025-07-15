@@ -299,10 +299,16 @@ function setupConfirmAndSelectionHandlers(
 
   // Setup custom payment method confirmation handler
   if (configuration.customPaymentMethodConfiguration) {
+    console.log(
+      'EmbeddedPaymentElement: Setting up custom payment method listener'
+    );
     const customPaymentMethodHandler =
       configuration.customPaymentMethodConfiguration
         .confirmCustomPaymentMethodCallback;
     if (customPaymentMethodHandler) {
+      console.log(
+        'EmbeddedPaymentElement: Custom payment method handler found, adding listener'
+      );
       customPaymentMethodConfirmCallback?.remove();
       customPaymentMethodConfirmCallback = addListener(
         'onCustomPaymentMethodConfirmHandlerCallback',
@@ -313,11 +319,24 @@ function setupConfirmAndSelectionHandlers(
           customPaymentMethod: PaymentSheetTypes.CustomPaymentMethod;
           billingDetails: BillingDetails | null;
         }) => {
+          // Debug logging
+          console.log(
+            'EmbeddedPaymentElement: Custom payment method event received',
+            {
+              customPaymentMethod,
+              billingDetails,
+            }
+          );
+
           // Call the user's handler with a result handler callback
           customPaymentMethodHandler(
             customPaymentMethod,
             billingDetails,
             (result: PaymentSheetTypes.CustomPaymentMethodResult) => {
+              console.log(
+                'EmbeddedPaymentElement: Sending result back to native',
+                result
+              );
               // Send the result back to the native side
               NativeStripeSdkModule.customPaymentMethodResultCallback(result);
             }

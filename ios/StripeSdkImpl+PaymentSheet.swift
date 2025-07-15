@@ -498,7 +498,7 @@ extension StripeSdkImpl {
     static func createCustomPaymentMethodConfirmHandler(
       sdkImpl: StripeSdkImpl?
     ) -> PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethodConfirmHandler {
-      return { customPaymentMethod, billingDetails in        
+      return { customPaymentMethod, billingDetails in
         // Send event to JS with the custom payment method data
         let customPaymentMethodDict: [String: Any] = [
             "id": customPaymentMethod.id
@@ -520,10 +520,8 @@ extension StripeSdkImpl {
             continuation.resume(returning: result)
           }
           
-          // Emit event to JavaScript on main queue
-          DispatchQueue.main.async {
-            sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
-          }
+          // Emit event to JavaScript
+          sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
         }
       }
     }

@@ -1,6 +1,9 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
@@ -19,14 +22,18 @@ import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
+import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
+import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 import toWritableMap
 
 enum class RowSelectionBehaviorType {
@@ -34,6 +41,7 @@ enum class RowSelectionBehaviorType {
   ImmediateAction,
 }
 
+@OptIn(ExperimentalCustomPaymentMethodsApi::class)
 class EmbeddedPaymentElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
@@ -56,9 +64,71 @@ class EmbeddedPaymentElementView(
   private val reactContext get() = context as ThemedReactContext
   private val events = Channel<Event>(Channel.UNLIMITED)
 
+  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   @Composable
   override fun Content() {
     val type by remember { rowSelectionBehaviorType }
+
+    val confirmCustomPaymentMethodCallback = remember {
+      { customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+        billingDetails: PaymentMethod.BillingDetails ->
+         // Launch a transparent Activity to ensure React Native UI can appear on top of the Stripe proxy activity.
+         try {
+           val intent = Intent(reactContext, CustomPaymentMethodActivity::class.java).apply {
+             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+           }
+           reactContext.startActivity(intent)
+         } catch (e: Exception) {
+           Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
+         }
+
+         val stripeSdkModule = try {
+           requireStripeSdkModule()
+         } catch (ex: IllegalArgumentException) {
+           Log.e("StripeReactNative", "StripeSdkModule not found for CPM callback", ex)
+           return@remember
+         }
+
+         // Keep JS awake while React Native is backgrounded by Stripe SDK.
+//         val keepJsAwakeTask =
+//           KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
+
+         // Run on main coroutine scope.
+         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+           // Give the CustomPaymentMethodActivity a moment to fully initialize
+           kotlinx.coroutines.delay(100)
+
+           // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
+           stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
+             mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
+           )
+
+           // Await JS result.
+           val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
+
+//           keepJsAwakeTask.stop()
+
+           val status = resultFromJs.getString("status")
+
+           val nativeResult = when (status) {
+             "completed" -> com.stripe.android.paymentelement.CustomPaymentMethodResult.completed()
+             "canceled" -> com.stripe.android.paymentelement.CustomPaymentMethodResult.canceled()
+             "failed" -> {
+               val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
+               com.stripe.android.paymentelement.CustomPaymentMethodResult.failed(displayMessage = errMsg)
+             }
+             else -> com.stripe.android.paymentelement.CustomPaymentMethodResult.failed(displayMessage = "Unknown status")
+           }
+
+           // Return result to Stripe SDK.
+           com.stripe.android.paymentelement.CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
+             reactContext,
+             nativeResult,
+           )
+         }
+      }
+    }
+
     val builder =
       remember(type) {
         EmbeddedPaymentElement
@@ -125,7 +195,8 @@ class EmbeddedPaymentElementView(
                 }
               requireStripeSdkModule().emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
             },
-          ).rowSelectionBehavior(
+          ).confirmCustomPaymentMethodCallback(confirmCustomPaymentMethodCallback)
+          .rowSelectionBehavior(
             if (type == RowSelectionBehaviorType.Default) {
               EmbeddedPaymentElement.RowSelectionBehavior.default()
             } else {

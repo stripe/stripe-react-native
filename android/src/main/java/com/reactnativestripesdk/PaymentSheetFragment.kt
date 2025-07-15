@@ -28,12 +28,16 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
+import com.stripe.android.paymentelement.CustomPaymentMethodResult
+import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
@@ -44,11 +48,14 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
 
-@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
-class PaymentSheetFragment : StripeFragment() {
+@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomPaymentMethodsApi::class)
+class PaymentSheetFragment : StripeFragment(), ConfirmCustomPaymentMethodCallback {
   private lateinit var context: ReactApplicationContext
   private lateinit var initPromise: Promise
   private var paymentSheet: PaymentSheet? = null
@@ -422,6 +429,43 @@ class PaymentSheetFragment : StripeFragment() {
       it.resolve(map)
       confirmPromise = null
     } ?: run { resolvePresentPromise(map) }
+  }
+
+  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
+  override fun onConfirmCustomPaymentMethod(
+    customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+    billingDetails: PaymentMethod.BillingDetails
+  ) {
+    val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+
+    // Launch coroutine to handle async operation
+    CoroutineScope(Dispatchers.Main).launch {
+      // Emit event to JavaScript
+      stripeSdkModule?.emitOnCustomPaymentMethodConfirmHandlerCallback(
+        mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
+      )
+
+      // Wait for result from JavaScript
+      val resultFromJavascript = stripeSdkModule?.customPaymentMethodResultCallback?.await()
+
+      // Process result and call native handler
+      val status = resultFromJavascript?.getString("status")
+
+      val resultToHandle =
+        when (status) {
+          "completed" -> CustomPaymentMethodResult.completed()
+          "canceled" -> CustomPaymentMethodResult.canceled()
+          "failed" -> {
+            val errorMessage = resultFromJavascript.getString("error") ?: "Failed to complete payment"
+            CustomPaymentMethodResult.failed(displayMessage = errorMessage)
+          }
+          else -> {
+            CustomPaymentMethodResult.failed(displayMessage = "Unknown result status")
+          }
+        }
+
+      CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(context, resultToHandle)
+    }
   }
 
   companion object {

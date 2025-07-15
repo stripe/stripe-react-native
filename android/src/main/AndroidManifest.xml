@@ -1,3 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.reactnativestripesdk">
+
+    <application>
+        <activity 
+            android:name=".CustomPaymentMethodActivity"
+            android:theme="@style/Theme.StripeReactNative.Transparent"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:excludeFromRecents="true"
+            android:noHistory="true" />
+    </application>
 </manifest>

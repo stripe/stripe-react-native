@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -62,6 +63,7 @@ import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
+import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
@@ -92,6 +94,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
@@ -311,7 +314,11 @@ class StripeSdkModule(
     result: ReadableMap?,
     promise: Promise?,
   ) {
-    TODO("Not yet implemented")
+    // Complete the deferred with the result from JavaScript
+    customPaymentMethodResultCallback.complete(result ?: Arguments.createMap())
+    // Reset for next use
+    customPaymentMethodResultCallback = CompletableDeferred()
+    promise?.resolve(null)
   }
 
   @ReactMethod
@@ -1289,6 +1296,11 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     // noop, iOS only
+  }
+
+  @ReactMethod
+  fun dismissCustomPaymentMethodActivity() {
+    CustomPaymentMethodActivity.finishCurrent()
   }
 
   override fun handleURLCallback(

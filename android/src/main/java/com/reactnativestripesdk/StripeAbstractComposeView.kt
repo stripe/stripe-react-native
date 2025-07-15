@@ -15,6 +15,7 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.facebook.react.bridge.ReactContext
+import android.view.ViewGroup.LayoutParams
 
 /**
  * Compose disposes views by default when using Fragments, which is not compatible with how
@@ -48,6 +49,9 @@ abstract class StripeAbstractComposeView(
   ) : AbstractComposeView(context) {
     init {
       visibility = GONE
+
+      // Ensure this view does not consume any layout space or intercept touch/visibility calculations.
+      layoutParams = LayoutParams(0, 0)
     }
 
     @Composable
