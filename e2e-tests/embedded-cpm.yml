@@ -5,10 +5,10 @@ appId: ${APP_ID}
 - tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
 - scrollUntilVisible:
     element:
-      text: "BufoPay (test)"
+      text: "Test CPM"
     timeout: 150000
 - tapOn:
-    text: "BufoPay (test)"
+    text: "Test CPM"
 - extendedWaitUntil:
     visible: "Pay"
     timeout: 30000
@@ -18,7 +18,7 @@ appId: ${APP_ID}
     visible: "Custom Payment Method"
     timeout: 30000
 - assertVisible:
-    text: "Processing payment with cpmt_1QpIMNLu5o3P18Zpwln1Sm6I"
+    text: "Processing payment with cpmt_1Qzj4rFY0qyl6XeWoHB842bf"
 - tapOn: "Success"
 - assertVisible:
     text: "Payment confirmed"
