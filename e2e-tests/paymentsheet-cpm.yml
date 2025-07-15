@@ -9,7 +9,7 @@ appId: ${APP_ID}
       text: "BufoPay (test)"
     timeout: 150000
 - tapOn:
-    text: "Test CPM"
+    text: "BufoPay (test)"
 - extendedWaitUntil:
     visible: "purchase!"
     timeout: 30000

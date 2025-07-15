@@ -5,7 +5,7 @@ appId: ${APP_ID}
 - tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
 - scrollUntilVisible:
     element:
-      text: "Test CPM"
+      text: "BufoPay (test)"
     timeout: 150000
 - tapOn:
     text: "BufoPay (test)"
