@@ -55,7 +55,9 @@ import java.io.ByteArrayOutputStream
 import kotlin.Exception
 
 @OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomPaymentMethodsApi::class)
-class PaymentSheetFragment : StripeFragment(), ConfirmCustomPaymentMethodCallback {
+class PaymentSheetFragment :
+  StripeFragment(),
+  ConfirmCustomPaymentMethodCallback {
   private lateinit var context: ReactApplicationContext
   private lateinit var initPromise: Promise
   private var paymentSheet: PaymentSheet? = null
@@ -264,30 +266,31 @@ class PaymentSheetFragment : StripeFragment(), ConfirmCustomPaymentMethodCallbac
     if (arguments?.getBoolean("customFlow") == true) {
       flowController =
         if (intentConfiguration != null) {
-          PaymentSheet.FlowController.create(
-            this,
-            paymentOptionCallback = paymentOptionCallback,
-            createIntentCallback = createIntentCallback,
-            paymentResultCallback = paymentResultCallback,
-          )
+          PaymentSheet.FlowController
+            .Builder(
+              resultCallback = paymentResultCallback,
+              paymentOptionCallback = paymentOptionCallback,
+            ).createIntentCallback(createIntentCallback)
+            .build(this)
         } else {
-          PaymentSheet.FlowController.create(
-            this,
-            paymentOptionCallback = paymentOptionCallback,
-            paymentResultCallback = paymentResultCallback,
-          )
+          PaymentSheet.FlowController
+            .Builder(
+              resultCallback = paymentResultCallback,
+              paymentOptionCallback = paymentOptionCallback,
+            ).build(this)
         }
       configureFlowController()
     } else {
       paymentSheet =
         if (intentConfiguration != null) {
-          PaymentSheet(
-            this,
-            createIntentCallback = createIntentCallback,
-            paymentResultCallback = paymentResultCallback,
-          )
+          PaymentSheet
+            .Builder(paymentResultCallback)
+            .createIntentCallback(createIntentCallback)
+            .build(this)
         } else {
-          PaymentSheet(this, callback = paymentResultCallback)
+          PaymentSheet
+            .Builder(paymentResultCallback)
+            .build(this)
         }
       initPromise.resolve(WritableNativeMap())
     }
@@ -434,7 +437,7 @@ class PaymentSheetFragment : StripeFragment(), ConfirmCustomPaymentMethodCallbac
   @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun onConfirmCustomPaymentMethod(
     customPaymentMethod: PaymentSheet.CustomPaymentMethod,
-    billingDetails: PaymentMethod.BillingDetails
+    billingDetails: PaymentMethod.BillingDetails,
   ) {
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
 
