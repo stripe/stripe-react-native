@@ -467,6 +467,10 @@ class PaymentSheetFragment :
         return
       }
 
+    // Keep JS awake while React Native is backgrounded by Stripe SDK.
+    val keepJsAwakeTask =
+      KeepJsAwakeTask(context).apply { start() }
+
     // Run on main coroutine scope.
     CoroutineScope(Dispatchers.Main).launch {
       // Give the CustomPaymentMethodActivity a moment to fully initialize
@@ -479,6 +483,8 @@ class PaymentSheetFragment :
 
       // Await JS result.
       val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
+
+      keepJsAwakeTask.stop()
 
       val status = resultFromJs.getString("status")
 

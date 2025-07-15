@@ -1,7 +1,6 @@
 package com.reactnativestripesdk
 
 import android.content.Context
-import android.view.ViewGroup.LayoutParams
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -49,9 +48,6 @@ abstract class StripeAbstractComposeView(
   ) : AbstractComposeView(context) {
     init {
       visibility = GONE
-
-      // Ensure this view does not consume any layout space or intercept touch/visibility calculations.
-      layoutParams = LayoutParams(0, 0)
     }
 
     @Composable

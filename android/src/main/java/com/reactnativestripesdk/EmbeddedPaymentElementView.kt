@@ -24,6 +24,8 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentelement.CustomPaymentMethodResult
+import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
@@ -118,23 +120,23 @@ class EmbeddedPaymentElementView(
             val nativeResult =
               when (status) {
                 "completed" ->
-                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                  CustomPaymentMethodResult
                     .completed()
                 "canceled" ->
-                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                  CustomPaymentMethodResult
                     .canceled()
                 "failed" -> {
                   val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
-                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                  CustomPaymentMethodResult
                     .failed(displayMessage = errMsg)
                 }
                 else ->
-                  com.stripe.android.paymentelement.CustomPaymentMethodResult
+                  CustomPaymentMethodResult
                     .failed(displayMessage = "Unknown status")
               }
 
             // Return result to Stripe SDK.
-            com.stripe.android.paymentelement.CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
+            CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
               reactContext,
               nativeResult,
             )
