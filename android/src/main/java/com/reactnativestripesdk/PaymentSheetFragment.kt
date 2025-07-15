@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -11,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
+import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import com.facebook.react.bridge.Arguments
@@ -50,6 +52,7 @@ import com.stripe.android.paymentsheet.PaymentSheetResultCallback
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
@@ -271,13 +274,15 @@ class PaymentSheetFragment :
               resultCallback = paymentResultCallback,
               paymentOptionCallback = paymentOptionCallback,
             ).createIntentCallback(createIntentCallback)
+            .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {
           PaymentSheet.FlowController
             .Builder(
               resultCallback = paymentResultCallback,
               paymentOptionCallback = paymentOptionCallback,
-            ).build(this)
+            ).confirmCustomPaymentMethodCallback(this)
+            .build(this)
         }
       configureFlowController()
     } else {
@@ -286,10 +291,12 @@ class PaymentSheetFragment :
           PaymentSheet
             .Builder(paymentResultCallback)
             .createIntentCallback(createIntentCallback)
+            .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {
           PaymentSheet
             .Builder(paymentResultCallback)
+            .confirmCustomPaymentMethodCallback(this)
             .build(this)
         }
       initPromise.resolve(WritableNativeMap())
@@ -439,35 +446,60 @@ class PaymentSheetFragment :
     customPaymentMethod: PaymentSheet.CustomPaymentMethod,
     billingDetails: PaymentMethod.BillingDetails,
   ) {
-    val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+    // Launch a transparent Activity to ensure React Native UI can appear on top of the Stripe proxy activity.
+    try {
+      val intent =
+        Intent(context, CustomPaymentMethodActivity::class.java).apply {
+          addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+      context.startActivity(intent)
+    } catch (e: Exception) {
+      Log.e("StripeReactNative", "Failed to start CustomPaymentMethodActivity", e)
+    }
 
-    // Launch coroutine to handle async operation
+    val stripeSdkModule =
+      try {
+        context.getNativeModule(StripeSdkModule::class.java)
+          ?: throw IllegalArgumentException("StripeSdkModule not found")
+      } catch (ex: IllegalArgumentException) {
+        Log.e("StripeReactNative", "StripeSdkModule not found for CPM callback", ex)
+        return
+      }
+
+    // Run on main coroutine scope.
     CoroutineScope(Dispatchers.Main).launch {
-      // Emit event to JavaScript
-      stripeSdkModule?.emitOnCustomPaymentMethodConfirmHandlerCallback(
+      // Give the CustomPaymentMethodActivity a moment to fully initialize
+      delay(100)
+
+      // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
+      stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
         mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
       )
 
-      // Wait for result from JavaScript
-      val resultFromJavascript = stripeSdkModule?.customPaymentMethodResultCallback?.await()
+      // Await JS result.
+      val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
 
-      // Process result and call native handler
-      val status = resultFromJavascript?.getString("status")
+      val status = resultFromJs.getString("status")
 
-      val resultToHandle =
+      val nativeResult =
         when (status) {
-          "completed" -> CustomPaymentMethodResult.completed()
-          "canceled" -> CustomPaymentMethodResult.canceled()
+          "completed" ->
+            CustomPaymentMethodResult.completed()
+          "canceled" ->
+            CustomPaymentMethodResult.canceled()
           "failed" -> {
-            val errorMessage = resultFromJavascript.getString("error") ?: "Failed to complete payment"
-            CustomPaymentMethodResult.failed(displayMessage = errorMessage)
+            val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
+            CustomPaymentMethodResult.failed(displayMessage = errMsg)
           }
-          else -> {
-            CustomPaymentMethodResult.failed(displayMessage = "Unknown result status")
-          }
+          else ->
+            CustomPaymentMethodResult.failed(displayMessage = "Unknown status")
         }
 
-      CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(context, resultToHandle)
+      // Return result to Stripe SDK.
+      CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
+        context,
+        nativeResult,
+      )
     }
   }
 
