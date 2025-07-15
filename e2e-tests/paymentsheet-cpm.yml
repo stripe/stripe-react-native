@@ -10,11 +10,20 @@ appId: ${APP_ID}
     timeout: 150000
 - tapOn:
     text: "BufoPay (test)"
-- extendedWaitUntil:
-    visible: "purchase!"
-    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "primary_button" # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "purchase!" # iOS
+    optional: true
 - tapOn:
-    text: "purchase!"
+    id: "primary_button" # Android
+    optional: true
+- tapOn:
+    text: "purchase!" # iOS
+    optional: true
 - extendedWaitUntil:
     visible: "Custom Payment Method"
     timeout: 30000
