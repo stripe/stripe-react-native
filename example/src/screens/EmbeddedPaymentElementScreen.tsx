@@ -243,7 +243,7 @@ export default function EmbeddedPaymentElementScreen() {
         customPaymentMethodConfiguration: {
           customPaymentMethods: [
             {
-              id: 'cpmt_1QpIMNLu5o3P18Zpwln1Sm6I', // The requested custom payment method ID
+              id: 'cpmt_1RlC0FFY0qyl6XeWL2cRXsUC', // The requested custom payment method ID
               subtitle: 'Demo custom payment method',
               disableBillingDetailCollection: false,
             },
