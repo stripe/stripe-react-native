@@ -451,6 +451,7 @@ class PaymentSheetFragment :
       val intent =
         Intent(context, CustomPaymentMethodActivity::class.java).apply {
           addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+          addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
         }
       context.startActivity(intent)
     } catch (e: Exception) {

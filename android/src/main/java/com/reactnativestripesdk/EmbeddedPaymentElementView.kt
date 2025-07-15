@@ -79,6 +79,7 @@ class EmbeddedPaymentElementView(
             val intent =
               Intent(reactContext, CustomPaymentMethodActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
               }
             reactContext.startActivity(intent)
           } catch (e: Exception) {
@@ -94,8 +95,8 @@ class EmbeddedPaymentElementView(
             }
 
           // Keep JS awake while React Native is backgrounded by Stripe SDK.
-//         val keepJsAwakeTask =
-//           KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
+          val keepJsAwakeTask =
+            KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
 
           // Run on main coroutine scope.
           kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
@@ -110,7 +111,7 @@ class EmbeddedPaymentElementView(
             // Await JS result.
             val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
 
-//           keepJsAwakeTask.stop()
+            keepJsAwakeTask.stop()
 
             val status = resultFromJs.getString("status")
 
