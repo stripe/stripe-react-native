@@ -464,6 +464,7 @@ class PaymentSheetFragment :
           ?: throw IllegalArgumentException("StripeSdkModule not found")
       } catch (ex: IllegalArgumentException) {
         Log.e("StripeReactNative", "StripeSdkModule not found for CPM callback", ex)
+        CustomPaymentMethodActivity.finishCurrent()
         return
       }
 
@@ -473,40 +474,45 @@ class PaymentSheetFragment :
 
     // Run on main coroutine scope.
     CoroutineScope(Dispatchers.Main).launch {
-      // Give the CustomPaymentMethodActivity a moment to fully initialize
-      delay(100)
+      try {
+        // Give the CustomPaymentMethodActivity a moment to fully initialize
+        delay(100)
 
-      // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
-      stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
-        mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
-      )
+        // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
+        stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
+          mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
+        )
 
-      // Await JS result.
-      val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
+        // Await JS result.
+        val resultFromJs = stripeSdkModule.customPaymentMethodResultCallback.await()
 
-      keepJsAwakeTask.stop()
+        keepJsAwakeTask.stop()
 
-      val status = resultFromJs.getString("status")
+        val status = resultFromJs.getString("status")
 
-      val nativeResult =
-        when (status) {
-          "completed" ->
-            CustomPaymentMethodResult.completed()
-          "canceled" ->
-            CustomPaymentMethodResult.canceled()
-          "failed" -> {
-            val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
-            CustomPaymentMethodResult.failed(displayMessage = errMsg)
+        val nativeResult =
+          when (status) {
+            "completed" ->
+              CustomPaymentMethodResult.completed()
+            "canceled" ->
+              CustomPaymentMethodResult.canceled()
+            "failed" -> {
+              val errMsg = resultFromJs.getString("error") ?: "Custom payment failed"
+              CustomPaymentMethodResult.failed(displayMessage = errMsg)
+            }
+            else ->
+              CustomPaymentMethodResult.failed(displayMessage = "Unknown status")
           }
-          else ->
-            CustomPaymentMethodResult.failed(displayMessage = "Unknown status")
-        }
 
-      // Return result to Stripe SDK.
-      CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
-        context,
-        nativeResult,
-      )
+        // Return result to Stripe SDK.
+        CustomPaymentMethodResultHandler.handleCustomPaymentMethodResult(
+          context,
+          nativeResult,
+        )
+      } finally {
+        // Clean up the transparent activity
+        CustomPaymentMethodActivity.finishCurrent()
+      }
     }
   }
 
