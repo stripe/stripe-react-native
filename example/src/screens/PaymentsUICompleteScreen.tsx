@@ -147,7 +147,7 @@ export default function PaymentsUICompleteScreen() {
         customPaymentMethodConfiguration: {
           customPaymentMethods: [
             {
-              id: 'cpmt_1Qzj4rFY0qyl6XeWoHB842bf', // The requested custom payment method ID
+              id: 'cpmt_1RlDWcCWPdGs21gLuSlYP6FB', // The requested custom payment method ID
               subtitle: 'Demo custom payment method',
               disableBillingDetailCollection: false,
             },

@@ -8,7 +8,7 @@ appId: ${APP_ID}
       text: "Test CPM"
     timeout: 150000
 - tapOn:
-    text: "Test CPM"
+    text: "BufoPay (test)"
 - extendedWaitUntil:
     visible: "Pay"
     timeout: 30000
@@ -18,7 +18,7 @@ appId: ${APP_ID}
     visible: "Custom Payment Method"
     timeout: 30000
 - assertVisible:
-    text: "Processing payment with cpmt_1Qzj4rFY0qyl6XeWoHB842bf"
+    text: "Processing payment with cpmt_1RlDWcCWPdGs21gLuSlYP6FB"
 - tapOn: "Success"
 - assertVisible:
     text: "Payment confirmed"

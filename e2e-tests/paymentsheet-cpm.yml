@@ -6,7 +6,7 @@ appId: ${APP_ID}
 - tapOn: "Checkout"
 - scrollUntilVisible:
     element:
-      text: "Test CPM"
+      text: "BufoPay (test)"
     timeout: 150000
 - tapOn:
     text: "Test CPM"
@@ -19,7 +19,7 @@ appId: ${APP_ID}
     visible: "Custom Payment Method"
     timeout: 30000
 - assertVisible:
-    text: "Processing payment with cpmt_1Qzj4rFY0qyl6XeWoHB842bf"
+    text: "Processing payment with cpmt_1RlDWcCWPdGs21gLuSlYP6FB"
 - tapOn: "Success"
 - assertVisible:
     text: "The payment was confirmed successfully"
