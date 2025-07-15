@@ -19,3 +19,6 @@ appId: ${APP_ID}
 - assertVisible:
     text: "Processing payment with cpmt_1QpIMNLu5o3P18Zpwln1Sm6I"
 - tapOn: "Success"
+- assertVisible:
+    text: "Payment confirmed"
+- tapOn: "OK" 

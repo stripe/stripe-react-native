@@ -505,13 +505,11 @@ extension StripeSdkImpl {
         ]
 
         let billingDetailsDict = Mappers.mapFromBillingDetails(billingDetails: billingDetails)
-
         let payload: [String: Any] = [
           "customPaymentMethod": customPaymentMethodDict,
           "billingDetails": billingDetailsDict
         ]
 
-        
         // Use async/await with continuation instead of blocking semaphore
         return await withCheckedContinuation { continuation in
           // Set up callback to receive result from JavaScript
