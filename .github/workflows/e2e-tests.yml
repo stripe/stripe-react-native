@@ -6,7 +6,8 @@ on:
   pull_request:
     branches: ['**']
   schedule:
-    - cron: '0 7 * * *' # run at 7 AM UTC, 12 AM PST
+    branches: [master]
+    cron: '0 7 * * *' # run at 7 AM UTC, 12 AM PST
   workflow_dispatch: # manually trigger the e2e tests
 
 jobs:
