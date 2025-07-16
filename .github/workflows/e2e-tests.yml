@@ -180,7 +180,6 @@ jobs:
 
   send-slack-email:
     # needs: [test-android, test-ios]
-    # if: always()
     # if: ${{ failure() && github.event_name == 'schedule'}}
     name: e2e-test-fail-slack-email
     runs-on: ubuntu-24.04
