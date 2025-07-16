@@ -188,5 +188,6 @@ jobs:
         uses: dawidd6/action-send-mail@v6
         with:
           to: "${{secrets.RUN_SLACK_EMAIL}}"
+          from: 'React Native E2E Test Github Action'
           subject: 'Test React NativeE2E slack notification'
           body: 'This is a test email'
