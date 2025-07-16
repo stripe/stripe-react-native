@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
@@ -32,8 +33,6 @@ import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -72,9 +71,10 @@ class EmbeddedPaymentElementView(
   @Composable
   override fun Content() {
     val type by remember { rowSelectionBehaviorType }
+    val coroutineScope = rememberCoroutineScope()
 
     val confirmCustomPaymentMethodCallback =
-      remember {
+      remember(coroutineScope) {
         {
           customPaymentMethod: PaymentSheet.CustomPaymentMethod,
           billingDetails: PaymentMethod.BillingDetails,
@@ -104,8 +104,8 @@ class EmbeddedPaymentElementView(
           val keepJsAwakeTask =
             KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
 
-          // Run on main coroutine scope.
-          CoroutineScope(Dispatchers.Main).launch {
+          // Run on coroutine scope.
+          coroutineScope.launch {
             try {
               // Give the CustomPaymentMethodActivity a moment to fully initialize
               delay(100)
