@@ -113,12 +113,10 @@ jobs:
         # if: ${{ failure() && github.event_name == 'schedule'}}
         uses: slackapi/slack-github-action@v1.23.0
         with:
+          webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
-            {
               "text": "testMessage REACT NATIVE Android E2E TESTS COMPLETED TEST"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
 
   test-ios:
     name: e2e-ios-test
@@ -193,9 +191,7 @@ jobs:
         # if: ${{ failure() && github.event_name == 'schedule'}}
         uses: slackapi/slack-github-action@v1.23.0
         with:
+          webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
-            {
               "text": "testMessage REACT NATIVE IOS E2E TESTS COMPLETED TEST"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
