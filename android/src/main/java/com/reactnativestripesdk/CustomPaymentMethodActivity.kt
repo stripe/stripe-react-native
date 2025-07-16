@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import android.os.Bundle
 import android.view.MotionEvent
 import com.facebook.react.ReactActivity
+import java.lang.ref.WeakReference
 
 /**
  * A transparent activity that is launched when the Payment Element requests the
@@ -62,7 +63,7 @@ class CustomPaymentMethodActivity : ReactActivity() {
 
   companion object {
     @Volatile
-    private var currentActivityRef: java.lang.ref.WeakReference<CustomPaymentMethodActivity>? = null
+    private var currentActivityRef: WeakReference<CustomPaymentMethodActivity>? = null
 
     fun finishCurrent() {
       currentActivityRef?.get()?.let { activity ->
@@ -75,6 +76,6 @@ class CustomPaymentMethodActivity : ReactActivity() {
 
   override fun onStart() {
     super.onStart()
-    currentActivityRef = java.lang.ref.WeakReference(this)
+    currentActivityRef = WeakReference(this)
   }
 }
