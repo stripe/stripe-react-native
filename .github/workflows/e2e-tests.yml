@@ -110,13 +110,13 @@ jobs:
           include-hidden-files: true
 
       - name: Send Slack notification
-        # if: ${{ failure() && github.event_name == 'schedule'}}
+        if: ${{ failure() && github.event_name == 'schedule'}}
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": " TEST MESSAGE *Nightly Build Failed* for ReactNative Android-${{ matrix.react_arch }}\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   test-ios:
     name: e2e-ios-test
@@ -188,10 +188,10 @@ jobs:
           include-hidden-files: true
 
       - name: Send Slack notification
-        # if: ${{ failure() && github.event_name == 'schedule'}}
+        if: ${{ failure() && github.event_name == 'schedule'}}
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": " TEST MESSAGE *Nightly Build Failed* for ReactNative iOS-${{ matrix.react_arch }}\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
