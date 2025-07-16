@@ -32,7 +32,10 @@ import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import toWritableMap
@@ -102,10 +105,10 @@ class EmbeddedPaymentElementView(
             KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
 
           // Run on main coroutine scope.
-          kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+          CoroutineScope(Dispatchers.Main).launch {
             try {
               // Give the CustomPaymentMethodActivity a moment to fully initialize
-              kotlinx.coroutines.delay(100)
+              delay(100)
 
               // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
               stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
