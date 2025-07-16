@@ -2,6 +2,9 @@
 
 ## x.x.x - x-x-x
 
+**Features**
+- Added support for Custom Payment Methods in PaymentSheet and Embedded Payment Element.
+
 **Fixes**
 - Removed Sofort from playground pages. Sofort is no longer support by Stripe.
 - **Patches**
