@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
     branches: ['**']
+  schedule:
+    - cron: '0 7 * * *' # run at 7 AM UTC, 12 AM PST
+  workflow_dispatch: # manually trigger the e2e tests
 
 jobs:
   test-android:
@@ -174,3 +177,17 @@ jobs:
           name: maestro-artifacts-ios-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
+
+  send-slack-email:
+    # needs: [test-android, test-ios]
+    # if: always()
+    # if: ${{ failure() && github.event_name == 'schedule'}}
+    name: e2e-test-fail-slack-email
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Send email Notification
+        uses: dawidd6/action-send-mail@v6
+        with:
+          to: "${{secrets.RUN_SLACK_EMAIL}}"
+          subject: 'Test React NativeE2E slack notification'
+          body: 'This is a test email'
