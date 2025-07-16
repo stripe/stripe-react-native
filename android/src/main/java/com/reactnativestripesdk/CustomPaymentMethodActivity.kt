@@ -5,7 +5,7 @@ import android.view.MotionEvent
 import com.facebook.react.ReactActivity
 
 /**
- * An "invisible" activity that is launched when the Payment Element requests the
+ * A transparent activity that is launched when the Payment Element requests the
  * `confirmCustomPaymentMethodCallback`.
  *
  * Its only purpose is to bring the app back to the foreground (the Stripe
@@ -14,8 +14,9 @@ import com.facebook.react.ReactActivity
  * Native can display UI elements such as `Alert` dialogs coming from
  * JavaScript.
  *
- * The activity uses a completely translucent theme so it is not visible to the
- * end-user and is excluded from recents.
+ * The activity uses a translucent theme to minimize visibility and is excluded
+ * from recents, though it may still be briefly visible to the end-user during
+ * certain operations.
  */
 class CustomPaymentMethodActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
