@@ -111,7 +111,7 @@ jobs:
 
       - name: Send Slack notification
         # if: ${{ failure() && github.event_name == 'schedule'}}
-        uses: slackapi/slack-github-action@v1.23.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -189,7 +189,7 @@ jobs:
 
       - name: Send Slack notification
         # if: ${{ failure() && github.event_name == 'schedule'}}
-        uses: slackapi/slack-github-action@v1.23.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
