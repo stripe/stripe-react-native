@@ -27,6 +27,8 @@ import com.stripe.android.model.StripeIntent
 import com.stripe.android.model.StripeIntent.NextActionData
 import com.stripe.android.model.StripeIntent.NextActionType
 import com.stripe.android.model.Token
+import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
+import com.stripe.android.paymentsheet.PaymentSheet
 
 internal fun createResult(
   key: String,
@@ -1059,3 +1061,53 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 
   return writableMap
 }
+
+@OptIn(ExperimentalCustomPaymentMethodsApi::class)
+@SuppressLint("RestrictedApi")
+internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List<PaymentSheet.CustomPaymentMethod> {
+  if (customPaymentMethodConfig == null) {
+    return emptyList()
+  }
+
+  val configHashMap = customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
+  if (configHashMap != null) {
+    val customPaymentMethods = configHashMap["customPaymentMethods"] as? List<HashMap<String, Any>>
+    if (customPaymentMethods != null) {
+      val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
+
+      for (customPaymentMethodMap in customPaymentMethods) {
+        val id = customPaymentMethodMap["id"] as? String
+        if (id != null) {
+          val subtitle = customPaymentMethodMap["subtitle"] as? String
+          val disableBillingDetailCollection = customPaymentMethodMap["disableBillingDetailCollection"] as? Boolean ?: false
+          result.add(
+            PaymentSheet.CustomPaymentMethod(
+              id = id,
+              subtitle = subtitle,
+              disableBillingDetailCollection = disableBillingDetailCollection,
+            ),
+          )
+        }
+      }
+
+      return result
+    }
+  }
+
+  return emptyList()
+}
+
+@SuppressLint("RestrictedApi")
+internal fun mapFromCustomPaymentMethod(
+  customPaymentMethod: PaymentSheet.CustomPaymentMethod,
+  billingDetails: PaymentMethod.BillingDetails,
+): WritableMap =
+  WritableNativeMap().apply {
+    putMap(
+      "customPaymentMethod",
+      WritableNativeMap().apply {
+        putString("id", customPaymentMethod.id)
+      },
+    )
+    putMap("billingDetails", mapFromBillingDetails(billingDetails))
+  }

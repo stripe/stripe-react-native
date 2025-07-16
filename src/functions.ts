@@ -355,6 +355,8 @@ export const verifyMicrodepositsForSetup = async (
 let confirmHandlerCallback: EventSubscription | null = null;
 let orderTrackingCallbackListener: EventSubscription | null = null;
 let financialConnectionsEventListener: EventSubscription | null = null;
+let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
+  null;
 
 export const initPaymentSheet = async (
   params: PaymentSheet.SetupParams
@@ -373,6 +375,36 @@ export const initPaymentSheet = async (
         );
       }
     );
+  }
+
+  // Setup custom payment method confirmation handler for PaymentSheet
+  if (params.customPaymentMethodConfiguration) {
+    const customPaymentMethodHandler =
+      params.customPaymentMethodConfiguration
+        .confirmCustomPaymentMethodCallback;
+    if (customPaymentMethodHandler) {
+      paymentSheetCustomPaymentMethodConfirmCallback?.remove();
+      paymentSheetCustomPaymentMethodConfirmCallback = addListener(
+        'onCustomPaymentMethodConfirmHandlerCallback',
+        ({
+          customPaymentMethod,
+          billingDetails,
+        }: {
+          customPaymentMethod: PaymentSheet.CustomPaymentMethod;
+          billingDetails: import('./types').BillingDetails | null;
+        }) => {
+          // Call the user's handler with a result handler callback
+          customPaymentMethodHandler(
+            customPaymentMethod,
+            billingDetails,
+            (cpmResult: PaymentSheet.CustomPaymentMethodResult) => {
+              // Send the result back to the native side
+              NativeStripeSdk.customPaymentMethodResultCallback(cpmResult);
+            }
+          );
+        }
+      );
+    }
   }
 
   const orderTrackingCallback = params?.applePay?.setOrderTracking;

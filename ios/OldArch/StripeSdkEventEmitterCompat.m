@@ -21,7 +21,8 @@
     @"embeddedPaymentElementDidUpdatePaymentOption",
     @"embeddedPaymentElementFormSheetConfirmComplete",
     @"embeddedPaymentElementRowSelectionImmediateAction",
-    @"embeddedPaymentElementLoadingFailed"
+    @"embeddedPaymentElementLoadingFailed",
+    @"onCustomPaymentMethodConfirmHandlerCallback"
   ];
 }
 
@@ -98,6 +99,11 @@
 - (void)emitEmbeddedPaymentElementLoadingFailed:(NSDictionary *)value
 {
   [self sendEventWithName:@"embeddedPaymentElementLoadingFailed"  body:value];
+}
+
+- (void)emitOnCustomPaymentMethodConfirmHandlerCallback:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onCustomPaymentMethodConfirmHandlerCallback" body:value];
 }
 
 @end

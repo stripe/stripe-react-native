@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -92,6 +93,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
@@ -233,6 +235,14 @@ class StripeSdkModule(
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
       paymentSheetFragment?.removeFragment(reactApplicationContext)
       val bundle = toBundleObject(params)
+
+      // Handle custom payment methods separately since toBundleObject cannot handle arrays of objects
+      val customPaymentMethodConfig = params.getMap("customPaymentMethodConfiguration")
+      if (customPaymentMethodConfig != null) {
+        // Store the original ReadableMap for custom payment methods
+        bundle.putSerializable("customPaymentMethodConfigurationReadableMap", customPaymentMethodConfig.toHashMap())
+      }
+
       paymentSheetFragment =
         PaymentSheetFragment.create(reactApplicationContext, bundle, promise)
       try {
@@ -296,6 +306,18 @@ class StripeSdkModule(
     }
 
     paymentSheetFragment?.paymentSheetIntentCreationCallback?.complete(params)
+  }
+
+  @ReactMethod
+  override fun customPaymentMethodResultCallback(
+    result: ReadableMap?,
+    promise: Promise?,
+  ) {
+    // Complete the deferred with the result from JavaScript
+    customPaymentMethodResultCallback.complete(result ?: Arguments.createMap())
+    // Reset for next use
+    customPaymentMethodResultCallback = CompletableDeferred()
+    promise?.resolve(null)
   }
 
   @ReactMethod
