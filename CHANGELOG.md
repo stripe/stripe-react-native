@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.50.0 - 2025-07-17
 
 **Features**
 - Added support for Custom Payment Methods in PaymentSheet and Embedded Payment Element.
