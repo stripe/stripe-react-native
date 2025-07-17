@@ -41,7 +41,7 @@ npm install @stripe/stripe-react-native
 
 > [Find Expo's full documentation here](https://docs.expo.io/versions/latest/sdk/stripe/).
 
-Each Expo SDK version requires a specific `stripe-react-native` version. See the [CHANGELOG](./CHANGELOG.md) for a mapping of versions. To install the correct version for your Expo SDK version run:
+Each Expo SDK version requires a specific `stripe-react-native` version, as specified in `bundledNativeModules.json` [here](https://github.com/expo/expo/blob/main/packages/expo/bundledNativeModules.json). See the [CHANGELOG](./CHANGELOG.md) for a mapping of versions. To install the correct version for your Expo SDK version run:
 
 ```sh
 expo install @stripe/stripe-react-native
