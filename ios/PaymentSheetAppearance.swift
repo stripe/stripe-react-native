@@ -10,7 +10,7 @@ internal class PaymentSheetAppearance {
     class func buildAppearanceFromParams(userParams: NSDictionary?) throws -> PaymentSheet.Appearance {
         var appearance = PaymentSheet.Appearance()
         guard let userParams = userParams else { return appearance }
-        
+
         if let fontParams = userParams[PaymentSheetAppearanceKeys.FONT] as? NSDictionary {
             appearance.font = try buildFont(params: fontParams)
         }
@@ -27,19 +27,19 @@ internal class PaymentSheetAppearance {
         if let primaryButtonParams = userParams[PaymentSheetAppearanceKeys.PRIMARY_BUTTON] as? NSDictionary {
             appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams)
         }
-      
-      
+
+
         if let embeddedPaymentElementParams = userParams[PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT] as? NSDictionary {
           appearance.embeddedPaymentElement = try buildEmbeddedPaymentElementAppearance(params: embeddedPaymentElementParams)
         }
-        
+
         if let formInsetParams = userParams[PaymentSheetAppearanceKeys.FORM_INSETS] as? NSDictionary {
             appearance.formInsets = try buildFormInsets(params: formInsetParams)
         }
-        
+
         return appearance
     }
-    
+
     private class func buildFont(params: NSDictionary) throws -> PaymentSheet.Appearance.Font {
         var font = PaymentSheet.Appearance.Font()
         if let fontName = params[PaymentSheetAppearanceKeys.FAMILY] as? String {
@@ -54,15 +54,15 @@ internal class PaymentSheetAppearance {
 
     private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
         var colors = PaymentSheet.Appearance.Colors()
-        
+
         if (params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
             params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
             throw PaymentSheetAppearanceError.missingAppearanceMode
         }
-        
+
         let lightModeParams = params[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? params
         let darkModeParams = params[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? params
-        
+
         colors.primary = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PRIMARY, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.primary
         colors.background = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.background
         colors.componentBackground = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentBackground
@@ -74,13 +74,13 @@ internal class PaymentSheetAppearance {
         colors.componentPlaceholderText = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.componentPlaceholderText
         colors.icon = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ICON, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.icon
         colors.danger = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.ERROR, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.colors.danger
-        
+
         return colors
     }
-    
+
     private class func buildShadow(params: NSDictionary) throws -> PaymentSheet.Appearance.Shadow {
         var shadow = PaymentSheet.Appearance.Shadow()
-        
+
         if let color = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SHADOW_COLOR, lightParams: params, darkParams: params) {
             shadow.color = color
         }
@@ -98,10 +98,10 @@ internal class PaymentSheetAppearance {
 
         return shadow
     }
-    
+
     private class func buildPrimaryButton(params: NSDictionary) throws -> PaymentSheet.Appearance.PrimaryButton {
         var primaryButton = PaymentSheet.Appearance.PrimaryButton()
-        
+
         if let fontName = (params[PaymentSheetAppearanceKeys.FONT] as? NSDictionary)?[PaymentSheetAppearanceKeys.FAMILY] as? String {
             guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
                 throw PaymentSheetAppearanceError.missingFont(fontName)
@@ -127,23 +127,23 @@ internal class PaymentSheetAppearance {
                 colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
                 throw PaymentSheetAppearanceError.missingAppearanceMode
             }
-            
+
             let lightModeParams = colorParams[PaymentSheetAppearanceKeys.LIGHT] as? NSDictionary ?? colorParams
             let darkModeParams = colorParams[PaymentSheetAppearanceKeys.DARK] as? NSDictionary ?? colorParams
-            
+
             primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.borderColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BORDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.borderColor
         }
-        
+
         return primaryButton
     }
-    
+
     private class func buildUserInterfaceStyleAwareColor(key: String, lightParams: NSDictionary, darkParams: NSDictionary) throws -> UIColor? {
         guard let lightHexString = lightParams[key] as? String, let darkHexString = darkParams[key] as? String else {
             return nil
         }
-        
+
         let darkCount = darkHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
         let lightCount = lightHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
         if (lightCount != 6 && lightCount != 8) {
@@ -151,10 +151,10 @@ internal class PaymentSheetAppearance {
         } else if (darkCount != 6 && darkCount != 8) {
             throw PaymentSheetAppearanceError.unexpectedHexStringLength(darkHexString)
         }
-        
+
         let lightColor = UIColor(hexString: lightHexString)
         let darkColor = UIColor(hexString: darkHexString)
-        
+
         if #available(iOS 13.0, *) {
             return UIColor.init { traits in
                 return traits.userInterfaceStyle == .dark ? darkColor : lightColor
@@ -163,7 +163,7 @@ internal class PaymentSheetAppearance {
             return lightColor
         }
     }
-  
+
   private class func buildEmbeddedPaymentElementAppearance(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement {
           var embeddedAppearance = PaymentSheet.Appearance.EmbeddedPaymentElement()
 
@@ -209,17 +209,16 @@ internal class PaymentSheetAppearance {
 
       private class func buildEmbeddedFlat(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat {
           var flat = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat
-          
+
           if let thickness = params[PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS] as? CGFloat {
               flat.separatorThickness = thickness
           }
-          
-          if let separatorColors = params[PaymentSheetAppearanceKeys.SEPARATOR_COLOR] as? [String: String] {
-            flat.separatorColor = dynamicColor(
-              from: separatorColors,
-              default: PaymentSheet.Appearance.default.colors.componentBorder
-            )
-          }
+
+          flat.separatorColor = parseThemedColor(
+            params: params,
+            key: PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
+            default: PaymentSheet.Appearance.default.colors.componentBorder
+          )
 
           if let insetsParams = params[PaymentSheetAppearanceKeys.SEPARATOR_INSETS] as? NSDictionary {
               flat.separatorInsets = try buildEdgeInsets(params: insetsParams)
@@ -251,21 +250,19 @@ internal class PaymentSheetAppearance {
       private class func buildEmbeddedRadio(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Radio {
           var radio = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.radio
 
-        // Selected‐state color
-        if let selectedHexes = params[PaymentSheetAppearanceKeys.SELECTED_COLOR] as? [String: String] {
-          radio.selectedColor = dynamicColor(
-            from: selectedHexes,
-            default: PaymentSheet.Appearance.default.colors.primary
-          )
-        }
-        
+                        // Selected‐state color
+        radio.selectedColor = parseThemedColor(
+          params: params,
+          key: PaymentSheetAppearanceKeys.SELECTED_COLOR,
+          default: PaymentSheet.Appearance.default.colors.primary
+        )
+
         // Unselected‐state color
-        if let unselectedHexes = params[PaymentSheetAppearanceKeys.UNSELECTED_COLOR] as? [String: String] {
-          radio.unselectedColor = dynamicColor(
-            from: unselectedHexes,
-            default: PaymentSheet.Appearance.default.colors.componentBorder
-          )
-        }
+        radio.unselectedColor = parseThemedColor(
+          params: params,
+          key: PaymentSheetAppearanceKeys.UNSELECTED_COLOR,
+          default: PaymentSheet.Appearance.default.colors.componentBorder
+        )
 
           return radio
       }
@@ -273,12 +270,11 @@ internal class PaymentSheetAppearance {
       private class func buildEmbeddedCheckmark(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Checkmark {
         var checkmark = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.checkmark
 
-        if let shadowHexes = params[PaymentSheetAppearanceKeys.COLOR] as? [String: String] {
-          checkmark.color = dynamicColor(
-            from: shadowHexes,
-            default: PaymentSheet.Appearance.default.colors.primary
-          )
-        }
+        checkmark.color = parseThemedColor(
+          params: params,
+          key: PaymentSheetAppearanceKeys.COLOR,
+          default: PaymentSheet.Appearance.default.colors.primary
+        )
 
           return checkmark
       }
@@ -286,12 +282,11 @@ internal class PaymentSheetAppearance {
       private class func buildEmbeddedChevron(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Chevron {
         var chevron = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.chevron
 
-        if let colorHexes = params[PaymentSheetAppearanceKeys.COLOR] as? [String: String] {
-          chevron.color = dynamicColor(
-            from: colorHexes,
-            default: UIColor.systemGray // Default iOS system gray color
-          )
-        }
+        chevron.color = parseThemedColor(
+          params: params,
+          key: PaymentSheetAppearanceKeys.COLOR,
+          default: UIColor.systemGray // Default iOS system gray color
+        )
 
           return chevron
       }
@@ -311,7 +306,7 @@ internal class PaymentSheetAppearance {
           let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
           let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
           let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
-          
+
           return UIEdgeInsets(
             top: top,
             left: left,
@@ -319,7 +314,7 @@ internal class PaymentSheetAppearance {
             right: right
           )
        }
-  
+
       private class func dynamicColor(
         from hexDict: [String: String],
         default defaultColor: UIColor
@@ -340,13 +335,32 @@ internal class PaymentSheetAppearance {
             return defaultColor
           })
       }
-    
+
+      private class func parseThemedColor(
+        params: NSDictionary,
+        key: String,
+        default defaultColor: UIColor
+      ) -> UIColor {
+        // Check if it's a dictionary with light/dark keys
+        if let colorDict = params[key] as? [String: String] {
+          return dynamicColor(from: colorDict, default: defaultColor)
+        }
+
+        // Check if it's a plain string
+        if let colorString = params[key] as? String {
+          return UIColor(hexString: colorString)
+        }
+
+        // Fall back to default if no color provided
+        return defaultColor
+      }
+
     private class func buildFormInsets(params: NSDictionary) throws -> NSDirectionalEdgeInsets {
         let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.top
         let leading = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.leading
         let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.bottom
         let trailing = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.trailing
-        
+
         return NSDirectionalEdgeInsets(
           top: top,
           leading: leading,
@@ -362,7 +376,7 @@ enum PaymentSheetAppearanceError : Error {
     case unexpectedHexStringLength(String)
     case invalidRowStyle(String)
 }
-    
+
 extension PaymentSheetAppearanceError: LocalizedError {
     public var errorDescription: String? {
         switch self {
@@ -393,11 +407,11 @@ private struct PaymentSheetAppearanceKeys {
     static let PLACEHOLDER_TEXT = "placeholderText"
     static let ICON = "icon"
     static let ERROR = "error"
-    
+
     static let FONT = "font"
     static let FAMILY = "family"
     static let SCALE = "scale"
-    
+
     static let SHAPES = "shapes"
     static let BORDER_RADIUS = "borderRadius"
     static let BORDER_WIDTH = "borderWidth"
@@ -410,11 +424,11 @@ private struct PaymentSheetAppearanceKeys {
     static let BLUR_RADIUS = "blurRadius"
     static let X = "x"
     static let Y = "y"
-    
+
     static let PRIMARY_BUTTON = "primaryButton"
     static let TEXT = "text"
     static let BORDER = "border"
-  
+
     static let EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
     static let ROW = "row"
     static let STYLE = "style"
@@ -437,12 +451,12 @@ private struct PaymentSheetAppearanceKeys {
     static let BOTTOM = "bottom"
     static let RIGHT = "right"
     static let COLOR = "color"
-  
+
     // Row Style Enum Values (match TS string enum values)
     static let ROW_STYLE_FLAT_WITH_RADIO = "flatWithRadio"
     static let ROW_STYLE_FLOATING_BUTTON = "floatingButton"
     static let ROW_STYLE_FLAT_WITH_CHECKMARK = "flatWithCheckmark"
     static let ROW_STYLE_FLAT_WITH_CHEVRON = "flatWithChevron"
-    
+
     static let FORM_INSETS = "formInsetValues"
 }

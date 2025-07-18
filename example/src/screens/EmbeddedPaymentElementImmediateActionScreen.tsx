@@ -143,7 +143,7 @@ export default function EmbeddedPaymentElementImmediateActionScreen() {
           row: {
             style: RowStyle.FlatWithChevron,
             flat: {
-              chevron: { color: { light: '#FF0000', dark: '#0000FF' } },
+              chevron: { color: '#90EE90' }, // Light green color
             },
           },
         },

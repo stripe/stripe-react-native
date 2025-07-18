@@ -478,9 +478,11 @@ private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
 }
 
 /**
- * Pulls a light/dark hex‑string map out of [params],
- * chooses the right one based on the current UI mode,
- * and parses it (falling back to [defaultColor]).
+ * Parses a ThemedColor from [params] at [key]. Supports both:
+ * - Single hex string: "#RRGGBB"
+ * - Light/dark object: { "light": "#RRGGBB", "dark": "#RRGGBB" }
+ * For light/dark objects, chooses the appropriate color based on current UI mode.
+ * Falls back to [defaultColor] if no color is provided.
  */
 private fun dynamicColorFromParams(
   context: Context,
@@ -488,8 +490,12 @@ private fun dynamicColorFromParams(
   key: String,
   defaultColor: Int,
 ): Int {
-  // Expect a nested Bundle { "light": "#RRGGBB", "dark": "#RRGGBB" }
-  val colorBundle = params?.getBundle(key)
+  if (params == null) {
+    return defaultColor
+  }
+
+  // First check if it's a nested Bundle { "light": "#RRGGBB", "dark": "#RRGGBB" }
+  val colorBundle = params.getBundle(key)
   if (colorBundle != null) {
     val isDark =
       (
@@ -508,7 +514,12 @@ private fun dynamicColorFromParams(
     return colorFromHexOrDefault(hex, defaultColor)
   }
 
-  // no override bundle → just use default
+  // Check if it's a single color string
+  params.getString(key)?.let { colorString ->
+    return colorFromHexOrDefault(colorString, defaultColor)
+  }
+
+  // no override → just use default
   return defaultColor
 }
 
