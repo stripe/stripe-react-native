@@ -21,6 +21,7 @@ import {
   useEmbeddedPaymentElement,
   AppearanceParams,
   RowStyle,
+  PaymentSheet,
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -228,6 +229,9 @@ export default function EmbeddedPaymentElementScreen() {
         customerId: customer,
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
+        billingDetailsCollectionConfiguration: {
+          name: PaymentSheet.CollectionMode.ALWAYS,
+        },
         formSheetAction: {
           type: 'confirm',
           onFormSheetConfirmComplete: (

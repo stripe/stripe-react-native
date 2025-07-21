@@ -4,6 +4,7 @@
 
 **Fixes**
 - Fixed embedded payment element color support to accept both single color strings and light/dark color objects for `ThemedColor` properties (separatorColor, selectedColor, unselectedColor, checkmark color, chevron color).
+- Fixed Android crash when providing partial `billingDetailsCollectionConfiguration` objects. Now gracefully handles missing fields like `attachDefaultsToPaymentMethod` by using safe accessor methods with default values.
 
 ## 0.50.0 - 2025-07-17
 
