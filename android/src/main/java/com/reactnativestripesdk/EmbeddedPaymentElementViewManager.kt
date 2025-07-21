@@ -54,10 +54,13 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val rowSelectionBehaviorType = parseRowSelectionBehavior(cfg.asMap())
+    val readableMap = cfg.asMap()
+    if (readableMap == null) return
+
+    val rowSelectionBehaviorType = parseRowSelectionBehavior(readableMap)
     view.rowSelectionBehaviorType.value = rowSelectionBehaviorType
 
-    val elementConfig = parseElementConfiguration(cfg.asMap(), view.context)
+    val elementConfig = parseElementConfiguration(readableMap, view.context)
     view.latestElementConfig = elementConfig
     // if intentConfig is already set, configure immediately:
     view.latestIntentConfig?.let { intentCfg ->
@@ -74,7 +77,9 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val intentConfig = parseIntentConfiguration(cfg.asMap())
+    val readableMap = cfg.asMap()
+    if (readableMap == null) return
+    val intentConfig = parseIntentConfiguration(readableMap)
     view.latestIntentConfig = intentConfig
     view.latestElementConfig?.let { elemCfg ->
       view.configure(elemCfg, intentConfig)
