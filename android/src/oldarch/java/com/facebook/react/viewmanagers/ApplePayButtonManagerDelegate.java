@@ -34,18 +34,6 @@ public class ApplePayButtonManagerDelegate<T extends View, U extends BaseViewMan
       case "borderRadius":
         mViewManager.setBorderRadius(view, value == null ? 4 : ((Double) value).intValue());
         break;
-      case "hasShippingMethodCallback":
-        mViewManager.setHasShippingMethodCallback(view, value == null ? false : (boolean) value);
-        break;
-      case "hasShippingContactCallback":
-        mViewManager.setHasShippingContactCallback(view, value == null ? false : (boolean) value);
-        break;
-      case "hasCouponCodeCallback":
-        mViewManager.setHasCouponCodeCallback(view, value == null ? false : (boolean) value);
-        break;
-      case "hasOrderTrackingCallback":
-        mViewManager.setHasOrderTrackingCallback(view, value == null ? false : (boolean) value);
-        break;
       default:
         super.setProperty(view, propName, value);
     }

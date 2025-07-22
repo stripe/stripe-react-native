@@ -16,8 +16,4 @@ public interface ApplePayButtonManagerInterface<T extends View>  {
   void setType(T view, int value);
   void setButtonStyle(T view, int value);
   void setBorderRadius(T view, int value);
-  void setHasShippingMethodCallback(T view, boolean value);
-  void setHasShippingContactCallback(T view, boolean value);
-  void setHasCouponCodeCallback(T view, boolean value);
-  void setHasOrderTrackingCallback(T view, boolean value);
 }
