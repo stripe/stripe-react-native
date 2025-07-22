@@ -309,7 +309,7 @@ class CustomerSheetFragment : StripeFragment() {
         phone = mapToCollectionMode(bundle.getString("phone")),
         email = mapToCollectionMode(bundle.getString("email")),
         address = mapToAddressCollectionMode(bundle.getString("address")),
-        attachDefaultsToPaymentMethod = bundle.getBoolean("attachDefaultsToPaymentMethod"),
+        attachDefaultsToPaymentMethod = bundle.getBoolean("attachDefaultsToPaymentMethod", false),
       )
 
     internal fun createCustomerAdapter(
