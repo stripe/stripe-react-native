@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.51.0 - 2025-07-22
+## 0.50.1 - 2025-07-22
 
 **Fixes**
 - Fixed embedded payment element color support to accept both single color strings and light/dark color objects for `ThemedColor` properties (separatorColor, selectedColor, unselectedColor, checkmark color, chevron color).
