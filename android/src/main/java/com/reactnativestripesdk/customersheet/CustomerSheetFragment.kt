@@ -25,7 +25,6 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
@@ -310,7 +309,7 @@ class CustomerSheetFragment : StripeFragment() {
         phone = mapToCollectionMode(bundle.getString("phone")),
         email = mapToCollectionMode(bundle.getString("email")),
         address = mapToAddressCollectionMode(bundle.getString("address")),
-        attachDefaultsToPaymentMethod = bundle.getBooleanOr("attachDefaultsToPaymentMethod", false),
+        attachDefaultsToPaymentMethod = bundle.getBoolean("attachDefaultsToPaymentMethod", false),
       )
 
     internal fun createCustomerAdapter(

@@ -30,7 +30,6 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
-import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
@@ -219,7 +218,7 @@ class PaymentSheetFragment :
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBooleanOr("attachDefaultsToPaymentMethod", false) ?: false,
+          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod", false) ?: false,
       )
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null

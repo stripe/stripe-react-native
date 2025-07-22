@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.utils
 
 import android.content.Context
-import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
@@ -34,15 +33,5 @@ fun Fragment.removeFragment(context: ReactApplicationContext) {
     }
   }
 }
-
-fun ReadableMap.getBooleanOr(
-  key: String,
-  default: Boolean,
-): Boolean = if (this.hasKey(key)) this.getBoolean(key) else default
-
-fun Bundle.getBooleanOr(
-  key: String,
-  default: Boolean,
-): Boolean = if (this.containsKey(key)) this.getBoolean(key) else default
 
 fun Dynamic.asMapOrNull(): ReadableMap? = if (this.type == ReadableType.Map) this.asMap() else null
