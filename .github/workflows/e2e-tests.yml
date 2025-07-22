@@ -97,6 +97,13 @@ jobs:
           script: |
             # Wait for system to settle
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+
+            # Generate old architecture files if needed
+            if [ "$NEW_ARCH_ENABLED" = "false" ]; then
+              echo "Generating old architecture files for Android..."
+              ./scripts/old-arch-codegen-android
+            fi
+
             # Retry once if necessary
             yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED" || (sleep 60 && yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED")
             yarn test:e2e:android
