@@ -17,6 +17,7 @@ import com.reactnativestripesdk.PaymentSheetFragment.Companion.buildGooglePayCon
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetException
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.toBundleObject
@@ -152,7 +153,7 @@ class EmbeddedPaymentElementViewManager :
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod", false) ?: false,
+          billingConfigParams?.getBooleanOr("attachDefaultsToPaymentMethod", false) ?: false,
       )
     val allowsRemovalOfLastSavedPaymentMethod =
       if (map.hasKey("allowsRemovalOfLastSavedPaymentMethod")) {
