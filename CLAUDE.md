@@ -129,6 +129,9 @@ The SDK uses React Native's TurboModules/Fabric for native communication:
   - Source files: `reactnativestripesdk` under `Android`
 - **TypeScript**: Edit files in `src/` and `example/`
 
+### Filing PRs
+When using the GitHub `gh` command, ALWAYS set `GH_HOST=github.com`. For example: `GH_HOST=github.com gh pr create --title [...]`
+
 ### Old Architecture Compatibility
 
 The SDK maintains compatibility with React Native's Old Architecture via `patches/old-arch-codegen-fix.patch`. This patch converts EventEmitter properties to callback functions for code generation compatibility with RN ≥ 0.74.
