@@ -617,14 +617,13 @@ class PaymentSheetFragment :
     }
 
     @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-    private fun buildIntentConfigurationMode(modeParams: Bundle): PaymentSheet.IntentConfiguration.Mode {
-      val currencyCode =
-        modeParams.getString("currencyCode")
-          ?: throw PaymentSheetException(
-            "You must provide a value to intentConfiguration.mode.currencyCode",
-          )
-
-      return if (modeParams.containsKey("amount")) {
+    private fun buildIntentConfigurationMode(modeParams: Bundle): PaymentSheet.IntentConfiguration.Mode =
+      if (modeParams.containsKey("amount")) {
+        val currencyCode =
+          modeParams.getString("currencyCode")
+            ?: throw PaymentSheetException(
+              "You must provide a value to intentConfiguration.mode.currencyCode",
+            )
         PaymentSheet.IntentConfiguration.Mode.Payment(
           amount = modeParams.getInt("amount").toLong(),
           currency = currencyCode,
@@ -639,11 +638,10 @@ class PaymentSheetFragment :
               "You must provide a value to intentConfiguration.mode.setupFutureUsage",
             )
         PaymentSheet.IntentConfiguration.Mode.Setup(
-          currency = currencyCode,
+          currency = modeParams.getString("currencyCode"),
           setupFutureUse = setupFutureUsage,
         )
       }
-    }
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
