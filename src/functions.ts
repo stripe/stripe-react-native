@@ -179,16 +179,10 @@ export const handleNextAction = async (
   returnURL?: string
 ): Promise<HandleNextActionResult> => {
   try {
-    const { paymentIntent, error } =
-      Platform.OS === 'ios'
-        ? await NativeStripeSdk.handleNextAction(
-            paymentIntentClientSecret,
-            returnURL ?? null
-          )
-        : await NativeStripeSdk.handleNextAction(
-            paymentIntentClientSecret,
-            returnURL ?? null
-          );
+    const { paymentIntent, error } = await NativeStripeSdk.handleNextAction(
+      paymentIntentClientSecret,
+      returnURL ?? null
+    );
     if (error) {
       return {
         error,
@@ -216,14 +210,10 @@ export const handleNextActionForSetup = async (
 ): Promise<HandleNextActionForSetupResult> => {
   try {
     const { setupIntent, error } =
-      Platform.OS === 'ios'
-        ? await NativeStripeSdk.handleNextActionForSetup(
-            setupIntentClientSecret,
-            returnURL ?? null
-          )
-        : await NativeStripeSdk.handleNextActionForSetup(
-            setupIntentClientSecret
-          );
+      await NativeStripeSdk.handleNextActionForSetup(
+        setupIntentClientSecret,
+        returnURL ?? null
+      );
     if (error) {
       return {
         error,
