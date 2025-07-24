@@ -467,6 +467,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
+        // Prevent multiple simultaneous Apple Pay presentations
+        if self.confirmApplePayResolver != nil {
+            resolve(Errors.createError(ErrorType.Failed, "Apple Pay is already in progress"))
+            return
+        }
+        
         self.applePaySummaryItems = paymentRequest.paymentSummaryItems
         self.applePayShippingMethods = paymentRequest.shippingMethods ?? []
         self.applePayShippingAddressErrors = nil
