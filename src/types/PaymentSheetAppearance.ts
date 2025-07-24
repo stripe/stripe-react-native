@@ -181,7 +181,7 @@ export enum RowStyle {
   /** A flat style with a chevron
    * Note that the EmbeddedPaymentElementConfiguration.rowSelectionBehavior must be set to `immediateAction` to use this style.
    */
-  FlatWithChevron = 'flatWithChevron',
+  FlatWithDisclosure = 'flatWithDisclosure',
 }
 
 /** Describes the appearance of the radio button */
@@ -205,9 +205,9 @@ export interface CheckmarkConfig {
   color?: ThemedColor;
 }
 
-/** Describes the appearance of the chevron */
-export interface ChevronConfig {
-  /** The color of the chevron, represented as a hex string #AARRGGBB or #RRGGBB.
+/** Describes the appearance of the disclosure indicator */
+export interface DisclosureConfig {
+  /** The color of the disclosure indicator, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The iOS or Android system gray color
    */
   color?: ThemedColor;
@@ -247,8 +247,8 @@ export interface FlatConfig {
   /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
   checkmark?: CheckmarkConfig;
 
-  /** Appearance settings for the chevron (used when RowStyle is FlatWithChevron) */
-  chevron?: ChevronConfig;
+  /** Appearance settings for the disclosure indicator (used when RowStyle is FlatWithDisclosure) */
+  disclosure?: DisclosureConfig;
 }
 
 /** Describes the appearance of the floating button style payment method row */
