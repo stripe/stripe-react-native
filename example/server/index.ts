@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 import Stripe from 'stripe';
-import { generateResponse } from './utils';
+import { generateResponse, generateSetupResponse } from './utils';
 
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
@@ -366,12 +366,9 @@ app.post(
     const {
       paymentMethodId,
       setupIntentId,
-      customerId,
-      useStripeSdk,
     }: {
       paymentMethodId?: string;
       setupIntentId?: string;
-      customerId?: string;
       useStripeSdk: boolean;
     } = req.body;
 
@@ -382,22 +379,21 @@ app.post(
     });
 
     try {
-      if (paymentMethodId && customerId) {
+      if (paymentMethodId) {
         // Create new SetupIntent with a PaymentMethod ID from the client.
         const params: Stripe.SetupIntentCreateParams = {
           payment_method: paymentMethodId,
-          customer: customerId,
-          confirm: useStripeSdk !== true,
+          confirm: true,
           return_url: 'stripe-example://stripe-redirect',
         };
         const intent = await stripe.setupIntents.create(params);
-        return res.send(generateResponse(intent));
+        return res.send(generateSetupResponse(intent));
       } else if (setupIntentId) {
         // Confirm the SetupIntent to finalize setup after handling a required action
         // on the client.
         const intent = await stripe.setupIntents.confirm(setupIntentId);
         // After confirm, if the SetupIntent's status is succeeded, fulfill the setup.
-        return res.send(generateResponse(intent));
+        return res.send(generateSetupResponse(intent));
       }
       return res.sendStatus(400);
     } catch (e: any) {

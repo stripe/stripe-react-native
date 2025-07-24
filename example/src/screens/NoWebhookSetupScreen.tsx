@@ -15,7 +15,6 @@ export default function NoWebhookSetupScreen() {
       | {
           useStripeSdk: boolean;
           paymentMethodId: string;
-          customerId: string;
         }
       | { setupIntentId: string }
   ) => {
@@ -79,7 +78,6 @@ export default function NoWebhookSetupScreen() {
     const setupIntentResult = await callNoWebhookSetupEndpoint({
       useStripeSdk: true,
       paymentMethodId: paymentMethod.id,
-      customerId: 'cus_test123', // mocked customer ID
     });
 
     const {
