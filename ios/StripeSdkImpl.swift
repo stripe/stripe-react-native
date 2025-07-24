@@ -63,6 +63,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+    
+    // Presentation state tracking to prevent concurrent presentations
+    private var isPaymentSheetPresenting = false
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -197,6 +200,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     public func presentPaymentSheet(options: NSDictionary,
                              resolver resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        
+        // Check if PaymentSheet is already being presented
+        guard !isPaymentSheetPresenting else {
+            resolve(Errors.createError(ErrorType.Failed, "Payment sheet is already being presented. Please wait for the current presentation to complete."))
+            return
+        }
+        
         var paymentSheetViewController: UIViewController?
 
         if let timeout = options["timeout"] as? Double {
@@ -207,11 +217,26 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 }
             }
         }
+        
         DispatchQueue.main.async {
+            // Set presentation flag
+            self.isPaymentSheetPresenting = true
+            
             paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            
+            // Safely get presenting view controller
+            let presentingVC = findViewControllerPresenter(from: paymentSheetViewController!)
+            
+            // Validate that we can present from this view controller
+            guard canPresentModal(presentingVC) else {
+                self.isPaymentSheetPresenting = false
+                resolve(Errors.createError(ErrorType.Failed, "Unable to present payment sheet: presenting view controller is not in a valid state for modal presentation."))
+                return
+            }
+            
             if let paymentSheetFlowController = self.paymentSheetFlowController {
-                paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
-                ) {
+                paymentSheetFlowController.presentPaymentOptions(from: presentingVC) {
+                    self.isPaymentSheetPresenting = false
                     paymentSheetViewController = nil
                     if let paymentOption = self.paymentSheetFlowController?.paymentOption {
                         let option: NSDictionary = [
@@ -224,8 +249,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     }
                 }
             } else if let paymentSheet = self.paymentSheet {
-                paymentSheet.present(from: findViewControllerPresenter(from: paymentSheetViewController!)
-                ) { paymentResult in
+                paymentSheet.present(from: presentingVC) { paymentResult in
+                    self.isPaymentSheetPresenting = false
                     paymentSheetViewController = nil
                     switch paymentResult {
                     case .completed:
@@ -238,6 +263,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     }
                 }
             } else {
+                self.isPaymentSheetPresenting = false
                 resolve(Errors.createError(ErrorType.Failed, "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`."))
             }
         }
@@ -1194,12 +1220,44 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
     var presentingViewController: UIViewController =
         uiViewController.view.window?.rootViewController ?? uiViewController
 
-    // Find the most-presented UIViewController
+    // Find the most-presented UIViewController that can actually present modals
     while let presented = presentingViewController.presentedViewController {
+        // Check if the current presenter is in a valid state to present
+        if canPresentModal(presentingViewController) {
+            break
+        }
         presentingViewController = presented
     }
 
+    // Final validation - if still can't present, fall back to root or original VC
+    if !canPresentModal(presentingViewController) {
+        if let rootVC = uiViewController.view.window?.rootViewController,
+           canPresentModal(rootVC) {
+            return rootVC
+        }
+        // Last resort: return the original VC even if it might not be ideal
+        return uiViewController
+    }
+
     return presentingViewController
+}
+
+private func canPresentModal(_ viewController: UIViewController) -> Bool {
+    // Check if the view controller is in a valid state to present modals
+    guard !viewController.isBeingPresented,
+          !viewController.isBeingDismissed,
+          viewController.view.window != nil else {
+        return false
+    }
+    
+    // Additional check: if the VC is already presenting a modal and it's not
+    // just a simple alert or action sheet, it might not be safe to present another
+    if let presentedVC = viewController.presentedViewController {
+        // Allow presenting over alerts and action sheets, but not over full modals
+        return presentedVC is UIAlertController
+    }
+    
+    return true
 }
 
 extension StripeSdkImpl: STPAuthenticationContext {
