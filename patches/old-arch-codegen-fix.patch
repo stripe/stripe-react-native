@@ -11,7 +11,7 @@
 @@ -185,35 +184,47 @@
    ): Promise<void>;
    clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
- 
+
 -  // Events
 -  onConfirmHandlerCallback: EventEmitter<{
 -    paymentMethod: UnsafeObject<PaymentMethod.Result>;
@@ -41,6 +41,7 @@
 -  >;
 -  embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
 -  embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
+-  onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
 +  // Events (callback form for old architecture)
 +  onConfirmHandlerCallback(
 +    callback: (event: {
@@ -82,6 +83,9 @@
 +  embeddedPaymentElementLoadingFailed(
 +    callback: (event: UnsafeObject<any>) => void
 +  ): void;
++  onCustomPaymentMethodConfirmHandlerCallback(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
  }
- 
+
  export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

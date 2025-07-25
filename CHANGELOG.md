@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+**Fixes**
+- Fixed missing `onCustomPaymentMethodConfirmHandlerCallback` in old architecture codegen patch. This resolves pod install failures when using React Native 0.74+ with old architecture and custom payment methods.
+
 ## 0.50.1 - 2025-07-22
 
 **Fixes**
