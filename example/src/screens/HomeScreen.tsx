@@ -159,6 +159,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Finalize setup on the server"
+              onPress={() => {
+                navigation.navigate('NoWebhookSetupScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Recollect a CVC"
               onPress={() => {
                 navigation.navigate('CVCReCollectionScreen');

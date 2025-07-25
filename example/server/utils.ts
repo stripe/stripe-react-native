@@ -35,3 +35,38 @@ export const generateResponse = (
     error: 'Failed',
   };
 };
+
+export const generateSetupResponse = (
+  intent: Stripe.SetupIntent
+):
+  | {
+      clientSecret: string | null;
+      requiresAction: boolean;
+      status: string;
+    }
+  | { clientSecret: string | null; status: string }
+  | { error: string } => {
+  // Generate a response based on the setup intent's status
+  switch (intent.status) {
+    case 'requires_action':
+      // Card requires authentication
+      return {
+        clientSecret: intent.client_secret,
+        requiresAction: true,
+        status: intent.status,
+      };
+    case 'requires_payment_method':
+      // Card was not properly authenticated, suggest a new payment method
+      return {
+        error: 'Your card was denied, please provide a new payment method',
+      };
+    case 'succeeded':
+      // Setup is complete, authentication not required
+      console.log('✅ Setup completed!');
+      return { clientSecret: intent.client_secret, status: intent.status };
+  }
+
+  return {
+    error: intent.status,
+  };
+};

@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
 import HomeScreen from './screens/HomeScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
+import NoWebhookSetupScreen from './screens/NoWebhookSetupScreen';
 import ApplePayScreen from './screens/ApplePayScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import { StatusBar } from 'react-native';
@@ -54,6 +55,7 @@ export type RootStackParamList = {
   WebhookPaymentScreen: undefined;
   HomeScreen: undefined;
   NoWebhookPaymentScreen: undefined;
+  NoWebhookSetupScreen: undefined;
   CreateTokenScreen: undefined;
   ApplePayScreen: undefined;
   SetupFuturePaymentScreen: undefined;
@@ -136,6 +138,10 @@ export default function App() {
           <Stack.Screen
             name="NoWebhookPaymentScreen"
             component={NoWebhookPaymentScreen}
+          />
+          <Stack.Screen
+            name="NoWebhookSetupScreen"
+            component={NoWebhookSetupScreen}
           />
           <Stack.Screen
             name="AuBECSDebitPaymentScreen"
