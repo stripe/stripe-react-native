@@ -646,7 +646,7 @@ export enum CardBrandAcceptanceFilter {
   Disallowed = 'disallowed',
 }
 
-/** Options to block certain card brands on the client */
+/** Options to only allow certain card brands on the client. Defaults to 'CardBrandAcceptanceFilter.All'. */
 export type CardBrandAcceptance =
   | {
       /** Accept all card brands supported by Stripe */

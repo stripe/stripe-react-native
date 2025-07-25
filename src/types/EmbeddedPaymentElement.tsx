@@ -69,6 +69,7 @@ export interface PaymentOptionDisplayData {
  * Describes the action performed when the bottom button in the embedded payment form sheet is tapped.
  * The embedded view may show payment method options such as "Card". When selected, a form sheet appears
  * for customers to input their payment details. At the bottom of that form sheet is a button.
+ * Defaults to 'continue'.
  * This type determines what tapping that button does:
  * - In the `confirm` case, the button says “Pay” or “Set up” and triggers confirmation of the payment or setup intent inside the sheet.
  * - In the `continue` case, the button says “Continue” and simply dismisses the sheet. The payment or setup is then confirmed outside the sheet, typically in your app.
@@ -93,9 +94,7 @@ export type EmbeddedFormSheetAction =
     };
 
 /**
- * Describes how you handle row selections in EmbeddedPaymentElement.
- * The embedded view may show payment method options that can be selected without further collecting further details in a form sheet.
- * This type determines what happens upon a user tapping one of these payment options methods:
+ * Describes how the EmbeddedPaymentElement handles payment method row selections:
  * - In the `default` case, the payment method option row enters a selected state.
  * - In the `immediateAction` case, `onSelectPaymentOption` is called.
  */
@@ -144,7 +143,7 @@ export interface EmbeddedPaymentElementConfiguration {
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
   billingDetailsCollectionConfiguration?: PaymentSheetTypes.BillingDetailsCollectionConfiguration;
-  /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with the values provided. */
+  /** PaymentSheet pre-populates the billing fields that are displayed in the Payment Sheet (only country and postal code, as of this version) with these values, if provided. */
   defaultBillingDetails?: BillingDetails;
   /**
    * The shipping information for the customer. If set, EmbeddedPaymentElement will pre-populate the form fields with the values provided.
@@ -189,14 +188,12 @@ export interface EmbeddedPaymentElementConfiguration {
    */
   cardBrandAcceptance?: PaymentSheetTypes.CardBrandAcceptance;
   /** The view can display payment methods like “Card” that, when tapped, open a sheet where customers enter their payment method details.
-   * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs.
+   * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs. Defaults to 'continue'.
    */
   formSheetAction?: EmbeddedFormSheetAction;
-  /** Configuration for custom payment methods in EmbeddedPaymentElement */
+  /** Configuration for custom payment methods in EmbeddedPaymentElement. */
   customPaymentMethodConfiguration?: PaymentSheetTypes.CustomPaymentMethodConfiguration;
-  /** The view can display payment methods that, when tapped, do not open a sheet to collect additional details.
-   * `rowSelectionBehavior` controls the behavior tapping on these payment methods performs.
-   */
+  /** Describes how the EmbeddedPaymentElement handles payment method row selections. */
   rowSelectionBehavior?: EmbeddedRowSelectionBehavior;
 }
 
