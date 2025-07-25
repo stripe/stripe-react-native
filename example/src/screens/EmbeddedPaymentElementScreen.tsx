@@ -353,10 +353,12 @@ export default function EmbeddedPaymentElementScreen() {
           }}
         />
       </View>
-      <PaymentElementView
-        elementConfig={elementConfig}
-        intentConfig={intentConfig}
-      />
+      {!modalVisible && (
+        <PaymentElementView
+          elementConfig={elementConfig}
+          intentConfig={intentConfig}
+        />
+      )}
       <Modal
         visible={modalVisible}
         animationType="slide"
