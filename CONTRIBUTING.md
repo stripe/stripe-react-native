@@ -8,15 +8,14 @@ We want this community to be friendly and respectful to each other. Please follo
 
 - Install the dependencies
   - `yarn bootstrap`
-- Set up env vars
-  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
 - Start the example
-  - Terminal 1: `yarn example start:server`
-  - Terminal 2: `yarn example start`
-  - Terminal 3: depending on what platform you want to build for run either
+  - Terminal 1: `yarn example start`
+  - Terminal 2: depending on what platform you want to build for run either
     - `yarn example ios`
     - or
     - `yarn example android`
+
+The example app uses a pre-configured demo backend, so no server setup is required.
 
 To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
 
