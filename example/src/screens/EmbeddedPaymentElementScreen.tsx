@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert, View, Text, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
@@ -352,10 +353,12 @@ export default function EmbeddedPaymentElementScreen() {
           }}
         />
       </View>
-      <PaymentElementView
-        elementConfig={elementConfig}
-        intentConfig={intentConfig}
-      />
+      {!modalVisible && (
+        <PaymentElementView
+          elementConfig={elementConfig}
+          intentConfig={intentConfig}
+        />
+      )}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -363,7 +366,7 @@ export default function EmbeddedPaymentElementScreen() {
           setModalVisible(false);
         }}
       >
-        <View style={{ padding: 20 }}>
+        <SafeAreaView style={{ padding: 20 }}>
           <PaymentElementView
             elementConfig={elementConfig}
             intentConfig={intentConfig}
@@ -375,7 +378,7 @@ export default function EmbeddedPaymentElementScreen() {
               setModalVisible(false);
             }}
           />
-        </View>
+        </SafeAreaView>
       </Modal>
     </PaymentScreen>
   );
