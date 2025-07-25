@@ -193,7 +193,7 @@ export interface EmbeddedPaymentElementConfiguration {
   formSheetAction?: EmbeddedFormSheetAction;
   /** Configuration for custom payment methods in EmbeddedPaymentElement. */
   customPaymentMethodConfiguration?: PaymentSheetTypes.CustomPaymentMethodConfiguration;
-  /** Describes how the EmbeddedPaymentElement handles payment method row selections. Defaults to 'default'. */
+  /** Describes how the EmbeddedPaymentElement handles payment method row selections. */
   rowSelectionBehavior?: EmbeddedRowSelectionBehavior;
 }
 
