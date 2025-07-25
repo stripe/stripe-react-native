@@ -19,15 +19,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Example App Development Workflow
 1. **Setup**: `yarn bootstrap`
-2. **Configure**: `cp example/.env.example example/.env` and set values
-3. **Run Example App** (requires 3 terminals):
-   - Terminal 1: `yarn example start:server`
-   - Terminal 2: `yarn example start`
-   - Terminal 3: `yarn example ios` OR `yarn example android`
+2. **Run Example App** (requires 2 terminals):
+   - Terminal 1: `yarn example start`
+   - Terminal 2: `yarn example ios` OR `yarn example android`
+
+The example app uses a pre-configured demo backend, so no server setup is required.
 
 ### Example App Commands
 - `yarn example start` - Start Metro server
-- `yarn example start:server` - Start backend server for examples
 - `yarn run-example-ios` - Run iOS example app on iPhone 16 simulator
 - `yarn run-example-android` - Run Android example app
 - `yarn run-example-ios:release` - Build and run iOS app in release mode
