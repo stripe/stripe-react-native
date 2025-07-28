@@ -433,17 +433,17 @@ private fun buildEmbeddedAppearance(
             disclosureColor = parsedDisclosureColor,
           )
 
-        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure(
-          separatorThicknessDp = separatorThickness,
-          startSeparatorInsetDp = startSeparatorInset,
-          endSeparatorInsetDp = endSeparatorInset,
-          topSeparatorEnabled = topEnabled,
-          bottomSeparatorEnabled = bottomEnabled,
-          additionalVerticalInsetsDp = additionalInsets,
-          horizontalInsetsDp = 0.0F, // We do not have an iOS equal for this API so it's not configurable in React Native
-          colorsLight = flatDisclosureColors,
-          colorsDark = flatDisclosureColors,
-        )
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Builder()
+          .separatorThicknessDp(separatorThickness)
+          .startSeparatorInsetDp(startSeparatorInset)
+          .endSeparatorInsetDp(endSeparatorInset)
+          .topSeparatorEnabled(topEnabled)
+          .bottomSeparatorEnabled(bottomEnabled)
+          .additionalVerticalInsetsDp(additionalInsets)
+          .horizontalInsetsDp(0.0F) // We do not have an iOS equal for this API so it's not configurable in React Native
+          .colorsLight(flatDisclosureColors)
+          .colorsDark(flatDisclosureColors)
+          .build()
       }
       "floatingButton" -> {
         val floatingParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLOATING)
