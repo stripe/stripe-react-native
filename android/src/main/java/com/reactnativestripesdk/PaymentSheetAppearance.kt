@@ -428,12 +428,12 @@ private fun buildEmbeddedAppearance(
 
         // Create the required Colors object
         val flatDisclosureColors =
-          PaymentSheet.Appearance.Embedded.RowStyle.FlatWithChevron.Colors(
+          PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors(
             separatorColor = parsedSeparatorColor,
-            chevronColor = parsedDisclosureColor,
+            disclosureColor = parsedDisclosureColor,
           )
 
-        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithChevron(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure(
           separatorThicknessDp = separatorThickness,
           startSeparatorInsetDp = startSeparatorInset,
           endSeparatorInsetDp = endSeparatorInset,

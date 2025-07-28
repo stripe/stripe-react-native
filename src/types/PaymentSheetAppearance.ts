@@ -227,7 +227,7 @@ export interface FlatConfig {
 
   /** The insets of the separator line between rows.
    * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
-   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithChevron, and RowStyle.FloatingButton
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithDisclosure, and RowStyle.FloatingButton
    */
   separatorInsets?: EdgeInsetsConfig;
 
