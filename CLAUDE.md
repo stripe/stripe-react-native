@@ -128,6 +128,18 @@ The SDK uses React Native's TurboModules/Fabric for native communication:
   - Source files: `reactnativestripesdk` under `Android`
 - **TypeScript**: Edit files in `src/` and `example/`
 
+### GitHub Issue Management
+- `GH_HOST=github.com gh issue list --repo stripe/stripe-react-native --limit 20` - List recent issues
+- `GH_HOST=github.com gh issue view <issue_number> --repo stripe/stripe-react-native` - View specific issue
+- `GH_HOST=github.com gh issue view <issue_number> --repo stripe/stripe-react-native --comments` - View issue with comments
+- `GH_HOST=github.com gh issue list --repo stripe/stripe-react-native --state all --search "keyword" --limit 30` - Search ALL issues (open/closed) by keyword
+- `GH_HOST=github.com gh issue create --repo stripe/stripe-react-native` - Create new issue
+- `GH_HOST=github.com gh issue edit <issue_number> --repo stripe/stripe-react-native` - Edit issue
+- `GH_HOST=github.com gh pr create --repo stripe/stripe-react-native` - Create pull request
+- Always use `--state all` when searching to include closed/resolved issues
+- Always check GitHub issues for similar problems before investigating user reports
+- Use GitHub CLI to distinguish between SDK bugs vs integration issues
+
 ### Filing PRs
 When using the GitHub `gh` command, ALWAYS set `GH_HOST=github.com`. For example: `GH_HOST=github.com gh pr create --title [...]`
 
