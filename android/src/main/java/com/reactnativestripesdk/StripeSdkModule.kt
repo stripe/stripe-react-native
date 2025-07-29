@@ -70,6 +70,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import android.system.Os
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
@@ -197,6 +198,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    Os.setenv("Stripe-Livemode", "false", true)
     val publishableKey = getValOr(params, "publishableKey", null) as String
     val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)

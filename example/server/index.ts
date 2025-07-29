@@ -874,14 +874,17 @@ app.post('/payment-intent-for-payment-sheet', async (req, res) => {
   });
 
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 5099,
-      currency: 'usd',
+    const paymentIntent = await stripe.setupIntents.create({
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never',
+      },
       payment_method: req.body.paymentMethodId,
       customer: req.body.customerId,
       payment_method_options: req.body.paymentMethodOptions,
     });
 
+    console.log('Setup Intent ID: ', paymentIntent.id);
     return res.send({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
     return res.send({ error: e });

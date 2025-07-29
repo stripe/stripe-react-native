@@ -19,7 +19,7 @@ const CUSTOM_BACKEND_URL = 'https://your-custom-backend.com';
 // ACTIVE CONFIGURATION
 // =============================================================================
 
-export const API_URL = DEMO_BACKEND_URL;
+export const API_URL = LOCAL_URL;
 
 // =============================================================================
 // SETUP INSTRUCTIONS

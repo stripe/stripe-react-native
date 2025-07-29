@@ -96,7 +96,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         STPAPIClient.shared.stripeAccount = stripeAccountId
 
         if STPAPIClient.shared.publishableKeyIsUserKey {
-            STPAPIClient.shared.userKeyLiveMode = UserDefaults.standard.object(forKey: "stripe_userKeyLiveMode") as? Bool ?? true
+            // Force livemode to false for user keys
+            STPAPIClient.shared.userKeyLiveMode = false
         }
 
         let name = appInfo["name"] as? String ?? ""

@@ -160,7 +160,7 @@ export default function PaymentSheetDeferredIntentScreen() {
             }
           },
           mode: {
-            amount: 6099,
+            setupFutureUsage: 'OffSession',
             currencyCode: 'USD',
           },
           paymentMethodTypes: ['card'],

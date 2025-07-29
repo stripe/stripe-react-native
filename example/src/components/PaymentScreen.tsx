@@ -26,6 +26,7 @@ const PaymentScreen: React.FC<Props> = ({
           merchantIdentifier: 'merchant.com.stripe.react.native',
           urlScheme: 'com.stripe.react.native',
           setReturnUrlSchemeOnAndroid: true,
+          stripeAccountId: 'acct_1DfwS2ClCIKljWvs', // TODO: MANUALLY  SET YOUR MERCHANT ID
         });
         setLoading(false);
         onInit?.();
