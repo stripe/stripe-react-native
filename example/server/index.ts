@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 import Stripe from 'stripe';
-import { generateResponse } from './utils';
+import { generateResponse, generateSetupResponse } from './utils';
 
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
@@ -348,6 +348,53 @@ app.post(
         return res.send(generateResponse(intent));
       }
 
+      return res.sendStatus(400);
+    } catch (e: any) {
+      // Handle "hard declines" e.g. insufficient funds, expired card, etc
+      // See https://stripe.com/docs/declines/codes for more.
+      return res.send({ error: e.message });
+    }
+  }
+);
+
+app.post(
+  '/setup-without-webhooks',
+  async (
+    req: express.Request,
+    res: express.Response
+  ): Promise<express.Response<any>> => {
+    const {
+      paymentMethodId,
+      setupIntentId,
+    }: {
+      paymentMethodId?: string;
+      setupIntentId?: string;
+      useStripeSdk: boolean;
+    } = req.body;
+
+    const { secret_key } = getKeys();
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2023-10-16',
+      typescript: true,
+    });
+
+    try {
+      if (paymentMethodId) {
+        // Create new SetupIntent with a PaymentMethod ID from the client.
+        const params: Stripe.SetupIntentCreateParams = {
+          payment_method: paymentMethodId,
+          confirm: true,
+          return_url: 'stripe-example://stripe-redirect',
+        };
+        const intent = await stripe.setupIntents.create(params);
+        return res.send(generateSetupResponse(intent));
+      } else if (setupIntentId) {
+        // Confirm the SetupIntent to finalize setup after handling a required action
+        // on the client.
+        const intent = await stripe.setupIntents.confirm(setupIntentId);
+        // After confirm, if the SetupIntent's status is succeeded, fulfill the setup.
+        return res.send(generateSetupResponse(intent));
+      }
       return res.sendStatus(400);
     } catch (e: any) {
       // Handle "hard declines" e.g. insufficient funds, expired card, etc
