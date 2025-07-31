@@ -83,6 +83,7 @@ jobs:
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Run Android Emulator and app
+        id: android_tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
@@ -108,6 +109,60 @@ jobs:
           name: maestro-artifacts-android-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
+
+      - name: Send Financial Connections Slack notification
+        if: always() && steps.android_tests.outputs.FINANCIAL_CONNECTIONS_TESTS_FAILED == 'true'
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_LINK_MOBILE_ALERT_CHANNEL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚨 *Financial Connections Tests Failed* on Android (${{ matrix.react_arch }})",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚨 *Financial Connections Tests Failed* on Android (${{ matrix.react_arch }})"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed Tests:*\n${{ steps.android_tests.outputs.FAILED_FC_TESTS }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Triggered by:*\n${{ github.event_name }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Build"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
 
       - name: Send Slack notification
         if: ${{ failure() && github.event_name == 'schedule'}}
@@ -176,6 +231,7 @@ jobs:
           yarn run-example-ios:release
 
       - name: Run tests
+        id: ios_tests
         run: |
           yarn test:e2e:ios
 
@@ -186,6 +242,60 @@ jobs:
           name: maestro-artifacts-ios-${{ matrix.react_arch }}
           path: e2e-artifacts
           include-hidden-files: true
+
+      - name: Send Financial Connections Slack notification
+        if: always() && steps.ios_tests.outputs.FINANCIAL_CONNECTIONS_TESTS_FAILED == 'true'
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_LINK_MOBILE_ALERT_CHANNEL_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚨 *Financial Connections Tests Failed* on iOS (${{ matrix.react_arch }})",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "🚨 *Financial Connections Tests Failed* on iOS (${{ matrix.react_arch }})"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed Tests:*\n${{ steps.ios_tests.outputs.FAILED_FC_TESTS }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n${{ github.sha }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Triggered by:*\n${{ github.event_name }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Build"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
 
       - name: Send Slack notification
         if: ${{ failure() && github.event_name == 'schedule'}}

@@ -25,6 +25,8 @@ else
 fi
 
 failedTests=()
+failedFinancialConnectionsTests=()
+
 for file in $allTestFiles
 do
   testName=$(basename "${file%.*}")
@@ -40,10 +42,22 @@ do
       if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-2";
       then
         failedTests+=("$file")
+        # Check if this is a Financial Connections test
+        if [[ "$testName" == *"financial-connections"* ]]; then
+          failedFinancialConnectionsTests+=("$file")
+        fi
       fi
     fi
   fi
 done
+
+# Output information for GitHub Actions
+if [ ${#failedFinancialConnectionsTests[@]} -gt 0 ]; then
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=true" >> $GITHUB_OUTPUT
+    echo "FAILED_FC_TESTS=${failedFinancialConnectionsTests[*]}" >> $GITHUB_OUTPUT
+else
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=false" >> $GITHUB_OUTPUT
+fi
 
 if [ ${#failedTests[@]} -eq 0 ]; then
     exit 0
