@@ -1,7 +1,11 @@
+import android.graphics.drawable.Drawable
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import com.reactnativestripesdk.getBase64FromBitmap
+import com.reactnativestripesdk.getBitmapFromDrawable
 import com.reactnativestripesdk.utils.mapFromPaymentSheetBillingDetails
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
+import kotlinx.coroutines.withTimeout
 
 /**
  * Serialize Stripe's PaymentOptionDisplayData into a WritableMap
@@ -12,4 +16,29 @@ fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap
     putString("label", label)
     putString("paymentMethodType", paymentMethodType)
     putMap("billingDetails", mapFromPaymentSheetBillingDetails(billingDetails))
+
+    // Direct access to imageLoader and call it synchronously with timeout
+    val imageBase64 =
+      try {
+        val imageLoaderField = this@toWritableMap.javaClass.getDeclaredField("imageLoader")
+        imageLoaderField.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        val imageLoader = imageLoaderField.get(this@toWritableMap) as suspend () -> Drawable
+
+        // Load synchronously with 2 second timeout
+        val drawable =
+          kotlinx.coroutines.runBlocking {
+            withTimeout(2000L) {
+              imageLoader()
+            }
+          }
+
+        getBitmapFromDrawable(drawable)?.let { bitmap ->
+          getBase64FromBitmap(bitmap)
+        } ?: ""
+      } catch (e: Exception) {
+        // If imageLoader fails or times out, return empty string
+        ""
+      }
+    putString("image", imageBase64)
   }
