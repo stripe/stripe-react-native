@@ -4,6 +4,7 @@
 
 **Fixes**
 - Fixed missing `onCustomPaymentMethodConfirmHandlerCallback` in old architecture codegen patch. This resolves pod install failures when using React Native 0.74+ with old architecture and custom payment methods.
+- Fixes an issue where saved payment methods weren't auto selected when using `EmbeddedPaymentElement` on Android.
 
 ## 0.50.1 - 2025-07-22
 
