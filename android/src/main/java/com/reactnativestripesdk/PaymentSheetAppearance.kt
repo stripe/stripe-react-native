@@ -194,9 +194,9 @@ private fun buildPrimaryButton(
 
   return PaymentSheet.PrimaryButton(
     colorsLight =
-      buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight),
+      buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight, context),
     colorsDark =
-      buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark),
+      buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark, context),
     shape =
       PaymentSheet.PrimaryButtonShape(
         cornerRadiusDp =
@@ -217,6 +217,7 @@ private fun buildPrimaryButton(
 private fun buildPrimaryButtonColors(
   colorParams: Bundle,
   default: PaymentSheet.PrimaryButtonColors,
+  context: Context,
 ): PaymentSheet.PrimaryButtonColors =
   PaymentSheet.PrimaryButtonColors(
     background =
@@ -242,6 +243,20 @@ private fun buildPrimaryButtonColors(
       colorFromHexOrDefault(
         colorParams.getString(PaymentSheetAppearanceKeys.BORDER),
         default.border,
+      ),
+    successBackgroundColor =
+      dynamicColorFromParams(
+        context,
+        colorParams,
+        PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND,
+        default.successBackgroundColor,
+      ),
+    onSuccessBackgroundColor =
+      dynamicColorFromParams(
+        context,
+        colorParams,
+        PaymentSheetAppearanceKeys.SUCCESS_TEXT,
+        default.onSuccessBackgroundColor,
       ),
   )
 
@@ -654,6 +669,8 @@ private class PaymentSheetAppearanceKeys {
     const val PRIMARY_BUTTON = "primaryButton"
     const val TEXT = "text"
     const val BORDER = "border"
+    const val SUCCESS_BACKGROUND = "successBackgroundColor"
+    const val SUCCESS_TEXT = "successTextColor"
 
     const val EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
     const val ROW = "row"
