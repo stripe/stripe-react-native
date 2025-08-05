@@ -6,6 +6,7 @@
 - Renamed `RowStyle.FlatWithChevron` to `RowStyle.FlatWithDisclosure` and updated related interfaces (`ChevronConfig` → `DisclosureConfig`).
 - Updated `stripe-ios` to 24.19.0
 - Updated `stripe-android` to 21.22.+
+- Added `successBackgroundColor` and `successTextColor` properties to `PrimaryButtonColorConfig` for customizing the primary button appearance in success states.
 
 **Fixes**
 - Fixed missing `onCustomPaymentMethodConfirmHandlerCallback` in old architecture codegen patch. This resolves pod install failures when using React Native 0.74+ with old architecture and custom payment methods.

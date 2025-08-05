@@ -134,6 +134,8 @@ internal class PaymentSheetAppearance {
             primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.borderColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BORDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.borderColor
+            primaryButton.successBackgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.successBackgroundColor
+            primaryButton.successTextColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
         }
 
         return primaryButton
@@ -428,6 +430,8 @@ private struct PaymentSheetAppearanceKeys {
     static let PRIMARY_BUTTON = "primaryButton"
     static let TEXT = "text"
     static let BORDER = "border"
+    static let SUCCESS_BACKGROUND = "successBackgroundColor"
+    static let SUCCESS_TEXT = "successTextColor"
 
     static let EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
     static let ROW = "row"

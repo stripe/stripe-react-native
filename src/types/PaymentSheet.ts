@@ -339,6 +339,14 @@ export type PrimaryButtonColorConfig = {
    * @default The System quaternary label on iOS, transparent on Android.
    */
   border: string;
+  /** The background color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default Green (#34C759 on iOS, system green on Android)
+   */
+  successBackgroundColor?: ThemedColor;
+  /** The text color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default White
+   */
+  successTextColor?: ThemedColor;
 };
 
 /** A color that’s either a single hex or a light/dark pair */
