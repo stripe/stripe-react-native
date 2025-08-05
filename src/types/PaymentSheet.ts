@@ -379,7 +379,7 @@ export interface RadioConfig {
   unselectedColor?: ThemedColor;
 }
 
-/** Describes the appearance of the disclosure indicator */
+/** Describes the appearance of the checkmark */
 export interface CheckmarkConfig {
   /** The color of the checkmark when selected, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The root appearance.colors.primary
