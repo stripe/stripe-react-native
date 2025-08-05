@@ -18,9 +18,9 @@ fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap
 
     val mandateTextHTML = mandateText?.toHtmlString()
     if (mandateTextHTML != null) {
-      putString("mandateText", mandateTextHTML)
+      putString("mandateHTML", mandateTextHTML)
     } else {
-      putNull("mandateText")
+      putNull("mandateHTML")
     }
   }
 

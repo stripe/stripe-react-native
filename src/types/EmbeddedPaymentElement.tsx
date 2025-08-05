@@ -67,7 +67,7 @@ export interface PaymentOptionDisplayData {
    * If you set `configuration.embeddedViewDisplaysMandateText = false`, this HTML text must be displayed to the customer near your "Buy" button to comply with regulations.
    * This text may contain formatting, colors, and links that should be preserved when rendering.
    */
-  mandateText?: string;
+  mandateHTML?: string;
 }
 
 /**
@@ -202,7 +202,7 @@ export interface EmbeddedPaymentElementConfiguration {
   rowSelectionBehavior?: EmbeddedRowSelectionBehavior;
   /**
    * Controls whether the view displays mandate text at the bottom for payment methods that require it.
-   * If set to `false`, your integration must display `PaymentOptionDisplayData.mandateText` to the customer near your "Buy" button to comply with regulations.
+   * If set to `false`, your integration must display `PaymentOptionDisplayData.mandateHTML` to the customer near your "Buy" button to comply with regulations.
    * Note: This doesn't affect mandates displayed in the form sheet.
    * Defaults to `true`.
    */

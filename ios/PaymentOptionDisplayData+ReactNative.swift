@@ -69,7 +69,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
             "label": label,
             "billingDetails": billingDetailsDict,
             "paymentMethodType": paymentMethodType,
-            "mandateText": mandateTextHTML
+            "mandateHTML": mandateTextHTML
         ]
     }
 }
