@@ -1,3 +1,6 @@
+import androidx.compose.ui.text.AnnotatedString
+import androidx.core.text.toHtml
+import androidx.core.text.toSpannable
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.mapFromPaymentSheetBillingDetails
@@ -12,4 +15,16 @@ fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap
     putString("label", label)
     putString("paymentMethodType", paymentMethodType)
     putMap("billingDetails", mapFromPaymentSheetBillingDetails(billingDetails))
+
+    val mandateTextHTML = mandateText?.toHtmlString()
+    if (mandateTextHTML != null) {
+      putString("mandateText", mandateTextHTML)
+    } else {
+      putNull("mandateText")
+    }
   }
+
+fun AnnotatedString.toHtmlString(): String {
+  val spanned = this.toSpannable()
+  return spanned.toHtml()
+}
