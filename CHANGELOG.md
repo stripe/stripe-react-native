@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+**Fixed**
+- Fixed Android crash when using `RowSelectionBehavior.ImmediateAction` with `FormSheetAction.Confirm` in EmbeddedPaymentElement.
+
 ## 0.50.2 - 2025-08-06
 
 **Changes**

@@ -44,16 +44,8 @@ class PaymentSheetFragmentTest {
   }
 
   @Test
-  fun buildGooglePayConfig_defaultsToCorrectValues() {
+  fun buildGooglePayConfig_returnsNullForEmptyBundle() {
     val config = PaymentSheetFragment.buildGooglePayConfig(Bundle.EMPTY)
-    Assert.assertEquals(
-      config,
-      PaymentSheet.GooglePayConfiguration(
-        environment = PaymentSheet.GooglePayConfiguration.Environment.Production,
-        countryCode = "",
-        currencyCode = "",
-        buttonType = PaymentSheet.GooglePayConfiguration.ButtonType.Pay,
-      ),
-    )
+    Assert.assertNull(config)
   }
 }
