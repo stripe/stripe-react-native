@@ -550,7 +550,7 @@ class PaymentSheetFragment :
       )
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
-      if (params == null) {
+      if (params == null || params.isEmpty) {
         return null
       }
 
