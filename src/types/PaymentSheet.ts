@@ -339,6 +339,14 @@ export type PrimaryButtonColorConfig = {
    * @default The System quaternary label on iOS, transparent on Android.
    */
   border: string;
+  /** The background color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default Green (#34C759 on iOS, system green on Android)
+   */
+  successBackgroundColor?: ThemedColor;
+  /** The text color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default White
+   */
+  successTextColor?: ThemedColor;
 };
 
 /** A color that’s either a single hex or a light/dark pair */
@@ -360,10 +368,10 @@ export enum RowStyle {
   FloatingButton = 'floatingButton',
   /** A flat style with a checkmark */
   FlatWithCheckmark = 'flatWithCheckmark',
-  /** A flat style with a chevron
+  /** A flat style with a disclosure
    * Note that the EmbeddedPaymentElementConfiguration.rowSelectionBehavior must be set to `immediateAction` to use this style.
    */
-  FlatWithChevron = 'flatWithChevron',
+  FlatWithDisclosure = 'flatWithDisclosure',
 }
 
 /** Describes the appearance of the radio button */
@@ -387,9 +395,9 @@ export interface CheckmarkConfig {
   color?: ThemedColor;
 }
 
-/** Describes the appearance of the chevron */
-export interface ChevronConfig {
-  /** The color of the chevron, represented as a hex string #AARRGGBB or #RRGGBB.
+/** Describes the appearance of the disclosure indicator */
+export interface DisclosureConfig {
+  /** The color of the disclosure indicator, represented as a hex string #AARRGGBB or #RRGGBB.
    * @default The iOS or Android system gray color
    */
   color?: ThemedColor;
@@ -409,7 +417,7 @@ export interface FlatConfig {
 
   /** The insets of the separator line between rows.
    * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
-   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithChevron, and RowStyle.FloatingButton
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithDisclosure, and RowStyle.FloatingButton
    */
   separatorInsets?: EdgeInsetsConfig;
 
@@ -429,8 +437,8 @@ export interface FlatConfig {
   /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
   checkmark?: CheckmarkConfig;
 
-  /** Appearance settings for the chevron (used when RowStyle is FlatWithChevron) */
-  chevron?: ChevronConfig;
+  /** Appearance settings for the disclosure indicator (used when RowStyle is FlatWithDisclosure) */
+  disclosure?: DisclosureConfig;
 }
 
 /** Describes the appearance of the floating button style payment method row */

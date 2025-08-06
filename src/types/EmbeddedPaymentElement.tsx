@@ -427,19 +427,9 @@ export function useEmbeddedPaymentElement(
       elementRef.current = el;
       setElement(el);
     })();
-    const getCurrentRef = () => viewRef.current;
-
     return () => {
       active = false;
-      elementRef.current?.clearPaymentOption();
       elementRef.current = null;
-
-      const currentRef = getCurrentRef();
-
-      if (isAndroid && currentRef) {
-        Commands.clearPaymentOption(currentRef);
-      }
-
       setElement(null);
     };
   }, [intentConfig, configuration, viewRef, isAndroid]);
