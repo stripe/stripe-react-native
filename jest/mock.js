@@ -203,25 +203,93 @@ const mockHooks = {
   })),
 };
 
+// Stripe constants and enums for testing - matches runtime exports
+const StripeConstants = {
+  // PlatformPay enums
+  PlatformPay: {
+    PaymentType: {
+      Immediate: 'Immediate',
+      Deferred: 'Deferred',
+      Recurring: 'Recurring',
+    },
+    BillingAddressFormat: {
+      Full: 'FULL',
+      Min: 'MIN',
+    },
+    ContactField: {
+      EmailAddress: 'emailAddress',
+      Name: 'name',
+      PhoneNumber: 'phoneNumber',
+      PhoneticName: 'phoneticName',
+      PostalAddress: 'postalAddress',
+    },
+  },
+
+  // Error enums
+  PlatformPayError: {
+    Canceled: 'Canceled',
+    Failed: 'Failed',
+    Unknown: 'Unknown',
+  },
+
+  // PaymentSheet enums
+  PaymentSheet: {
+    CollectionMode: {
+      AUTOMATIC: 'automatic',
+      NEVER: 'never',
+      ALWAYS: 'always',
+    },
+    AddressCollectionMode: {
+      AUTOMATIC: 'automatic',
+      NEVER: 'never',
+      FULL: 'full',
+    },
+    CardBrandCategory: {
+      Visa: 'visa',
+      Mastercard: 'mastercard',
+      Amex: 'amex',
+      Discover: 'discover',
+    },
+    CardBrandAcceptanceFilter: {
+      All: 'all',
+      Allowed: 'allowed',
+      Disallowed: 'disallowed',
+    },
+    CustomPaymentMethodResultStatus: {
+      Completed: 'completed',
+      Canceled: 'canceled',
+      Failed: 'failed',
+    },
+  },
+};
+
 // EmbeddedPaymentElement constants and enums for testing
 const EmbeddedPaymentElementMocks = {
-  // Result status constants
+  // Result status constants (from EmbeddedPaymentElementResult)
   EmbeddedPaymentElementStatus: {
     COMPLETED: 'completed',
     CANCELED: 'canceled',
     FAILED: 'failed',
   },
 
-  // Form sheet action types
+  // Form sheet action types (from EmbeddedFormSheetAction)
   EmbeddedFormSheetActionType: {
     CONFIRM: 'confirm',
     CONTINUE: 'continue',
   },
 
-  // Row selection behavior types
+  // Row selection behavior types (from EmbeddedRowSelectionBehavior)
   EmbeddedRowSelectionBehaviorType: {
     DEFAULT: 'default',
     IMMEDIATE_ACTION: 'immediateAction',
+  },
+
+  // Row display styles for Embedded Payment Element (from PaymentSheet.RowStyle)
+  RowStyle: {
+    FlatWithRadio: 'flatWithRadio',
+    FloatingButton: 'floatingButton',
+    FlatWithCheckmark: 'flatWithCheckmark',
+    FlatWithDisclosure: 'flatWithDisclosure',
   },
 
   // Mock payment method types commonly used with EmbeddedPaymentElement
@@ -289,6 +357,7 @@ const EmbeddedPaymentElementMocks = {
 module.exports = {
   ...mockFunctions,
   ...mockHooks,
+  ...StripeConstants,
   ...EmbeddedPaymentElementMocks,
   StripeContainer: () => 'StripeContainer',
   StripeProvider: () => 'StripeProvider',
