@@ -1,5 +1,7 @@
 /* eslint-disable no-undef */
 
+const React = require('react');
+
 const mockFunctions = {
   initStripe: jest.fn(async () => ({})),
   createPaymentMethod: jest.fn(async () => ({
@@ -172,11 +174,122 @@ const mockHooks = {
       ...mockFunctions.collectFinancialConnectionsAccounts(),
     })),
   })),
+  useEmbeddedPaymentElement: jest.fn((intentConfig, configuration) => ({
+    embeddedPaymentElementView: React.createElement('View', {
+      testID: 'embedded-payment-element-view',
+      style: { width: '100%', height: 200 },
+    }),
+    paymentOption: {
+      label: 'Card ending in 4242',
+      paymentMethodType: 'card',
+      billingDetails: {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        address: {
+          country: 'US',
+          postalCode: '12345',
+          line1: '123 Main St',
+          city: 'Anytown',
+          state: 'CA',
+        },
+      },
+    },
+    confirm: jest.fn(async () => ({
+      status: 'completed',
+    })),
+    update: jest.fn(async () => ({ status: 'completed', error: null })),
+    clearPaymentOption: jest.fn(() => {}),
+    loadingError: null,
+  })),
+};
+
+// EmbeddedPaymentElement constants and enums for testing
+const EmbeddedPaymentElementMocks = {
+  // Result status constants
+  EmbeddedPaymentElementStatus: {
+    COMPLETED: 'completed',
+    CANCELED: 'canceled',
+    FAILED: 'failed',
+  },
+
+  // Form sheet action types
+  EmbeddedFormSheetActionType: {
+    CONFIRM: 'confirm',
+    CONTINUE: 'continue',
+  },
+
+  // Row selection behavior types
+  EmbeddedRowSelectionBehaviorType: {
+    DEFAULT: 'default',
+    IMMEDIATE_ACTION: 'immediateAction',
+  },
+
+  // Mock payment method types commonly used with EmbeddedPaymentElement
+  PaymentMethodTypes: {
+    CARD: 'card',
+    APPLE_PAY: 'apple_pay',
+    GOOGLE_PAY: 'google_pay',
+    LINK: 'link',
+    KLARNA: 'klarna',
+    AFTERPAY: 'afterpay_clearpay',
+    US_BANK_ACCOUNT: 'us_bank_account',
+    SEPA_DEBIT: 'sepa_debit',
+  },
+
+  // Mock test helpers for different payment option states
+  mockPaymentOptions: {
+    card: {
+      label: 'Card ending in 4242',
+      paymentMethodType: 'card',
+      billingDetails: {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        address: {
+          country: 'US',
+          postalCode: '12345',
+          line1: '123 Main St',
+          city: 'Anytown',
+          state: 'CA',
+        },
+      },
+    },
+    applePay: {
+      label: 'Apple Pay',
+      paymentMethodType: 'apple_pay',
+      billingDetails: {
+        name: 'John Doe',
+      },
+    },
+    googlePay: {
+      label: 'Google Pay',
+      paymentMethodType: 'google_pay',
+      billingDetails: {
+        name: 'John Doe',
+      },
+    },
+    link: {
+      label: 'Link',
+      paymentMethodType: 'link',
+      billingDetails: {
+        email: 'john.doe@example.com',
+      },
+    },
+    null: null,
+  },
+
+  // Mock results for different scenarios
+  mockResults: {
+    completed: { status: 'completed' },
+    canceled: { status: 'canceled' },
+    failed: { status: 'failed', error: new Error('Payment failed') },
+    networkError: { status: 'failed', error: new Error('Network error') },
+  },
 };
 
 module.exports = {
   ...mockFunctions,
   ...mockHooks,
+  ...EmbeddedPaymentElementMocks,
   StripeContainer: () => 'StripeContainer',
   StripeProvider: () => 'StripeProvider',
   CardField: () => 'CardField',
