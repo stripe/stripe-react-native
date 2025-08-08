@@ -53,6 +53,10 @@ export interface PaymentOptionDisplayData {
    */
   label: string;
   /**
+   * A base64 encoded string representing the image for the payment option.
+   */
+  image: string;
+  /**
    * Optional billing details associated with the payment method, such as name, email, or address.
    */
   billingDetails?: BillingDetails;
