@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+**Fixes**
+- Fixed iOS crash "Stripe SDK confirmPayment must not be null" when calling `confirmPayment` with optional parameters. Updated native bridge to properly handle nullable params argument. [#2048](https://github.com/stripe/stripe-react-native/issues/2048)
+
 ## 0.50.3 - 2025-08-07
 
 **Fixed**
