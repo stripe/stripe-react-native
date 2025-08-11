@@ -5,6 +5,8 @@
 **Changes**
 - Klarna: Made `billingDetails.email` and `billingDetails.address.country` optional when creating Klarna payment methods. See Stripe docs: [Migrate Klarna from Sources – Field mapping reference](https://docs.stripe.com/payments/klarna/migrate) ("Not required when using the Payment Element. It’s collected automatically.").
 
+**Fixes**
+- Fixed iOS crash "Stripe SDK confirmPayment must not be null" when calling `confirmPayment` with optional parameters. Updated native bridge to properly handle nullable params argument. [#2048](https://github.com/stripe/stripe-react-native/issues/2048)
 
 ## 0.50.3 - 2025-08-07
 
