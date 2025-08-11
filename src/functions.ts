@@ -1,5 +1,4 @@
 import { createError } from './helpers';
-import { PaymentSheetError } from './types/Errors';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './specs/NativeStripeSdkModule';
 import type {
@@ -410,23 +409,6 @@ export const initPaymentSheet = async (
   }
 
   try {
-    // Validate Google Pay config for SetupIntents: currencyCode is required
-    const isSetupMode =
-      typeof (params as any).setupIntentClientSecret === 'string' ||
-      (!!(params as any).intentConfiguration &&
-        !!(params as any).intentConfiguration.mode &&
-        'setupFutureUsage' in (params as any).intentConfiguration.mode);
-
-    if (params.googlePay && isSetupMode && !params.googlePay.currencyCode) {
-      return {
-        error: {
-          code: PaymentSheetError.Failed,
-          message:
-            "Missing googlePay.currencyCode. When initializing PaymentSheet for a SetupIntent with Google Pay enabled, you must provide a three-letter ISO 4217 currency code (e.g., 'USD').",
-        },
-      };
-    }
-
     if (Platform.OS === 'ios' && !params.returnURL) {
       console.warn(
         `[@stripe/stripe-react-native] You have not provided the 'returnURL' field to 'initPaymentSheet', so payment methods that require redirects will not be shown in your iOS Payment Sheet. Visit https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet#react-native-set-up-return-url to learn more.`
