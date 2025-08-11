@@ -85,7 +85,13 @@ class PaymentSheetFragment :
       return
     }
     val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
-    val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
+    val googlePayConfig =
+      try {
+        buildGooglePayConfig(arguments?.getBundle("googlePay"))
+      } catch (error: PaymentSheetException) {
+        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+        return
+      }
     val linkConfig = buildLinkConfig(arguments?.getBundle("link"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
@@ -549,6 +555,7 @@ class PaymentSheetFragment :
         "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.",
       )
 
+    @Throws(PaymentSheetException::class)
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
       if (params == null || params.isEmpty) {
         return null
@@ -562,6 +569,13 @@ class PaymentSheetFragment :
       val buttonType =
         mapIntToButtonType.get(params.getInt("buttonType"))
           ?: PaymentSheet.GooglePayConfiguration.ButtonType.Pay
+
+      // Validate required fields for Google Pay
+      if (currencyCode.isEmpty()) {
+        throw PaymentSheetException(
+          "Google Pay requires a currencyCode. Please provide a valid ISO 4217 alphabetic currency code (e.g., 'USD', 'EUR') in the googlePay.currencyCode parameter.",
+        )
+      }
 
       return PaymentSheet.GooglePayConfiguration(
         environment =
