@@ -328,11 +328,7 @@ class PaymentMethodFactory {
     private func createKlarnaPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodKlarnaParams()
 
-        if let billingDetails = billingDetailsParams, billingDetails.address?.country != nil, billingDetails.email != nil {
-            return STPPaymentMethodParams(klarna: params, billingDetails: billingDetails, metadata: metadata)
-        } else {
-            throw PaymentMethodError.klarnaPaymentMissingParams
-        }
+        return STPPaymentMethodParams(klarna: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createUSBankAccountPaymentMethodParams() throws -> STPPaymentMethodParams {
@@ -403,7 +399,7 @@ enum PaymentMethodError: Error {
     case giropayPaymentMissingParams
     case p24PaymentMissingParams
     case afterpayClearpayPaymentMissingParams
-    case klarnaPaymentMissingParams
+    // Klarna no longer requires email and country in billing details
     case weChatPayPaymentMissingParams
     case usBankAccountPaymentMissingParams
     case usBankAccountPaymentMissingAccountNumber
@@ -435,8 +431,6 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("You must provide CVC number", comment: "Create payment error")
         case .weChatPayPaymentMissingParams:
             return NSLocalizedString("You must provide appId", comment: "Create payment error")
-        case .klarnaPaymentMissingParams:
-            return NSLocalizedString("Klarna requires that you provide the following billing details: email, country", comment: "Create payment error")
         case .usBankAccountPaymentMissingParams:
             return NSLocalizedString("When creating a US bank account payment method, you must provide the following billing details: name", comment: "Create payment error")
         case .usBankAccountPaymentMissingAccountNumber:
