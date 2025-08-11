@@ -134,7 +134,12 @@ class EmbeddedPaymentElementViewManager :
         throw Error() // TODO handle error
       }
 
-    val googlePayConfig = buildGooglePayConfig(toBundleObject(map.getMap("googlePay")))
+    val googlePayConfig =
+      try {
+        buildGooglePayConfig(toBundleObject(map.getMap("googlePay")))
+      } catch (error: PaymentSheetException) {
+        throw Error(error.message) // TODO handle error properly
+      }
     val shippingDetails =
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)

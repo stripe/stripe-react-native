@@ -3,6 +3,7 @@ package com.reactnativestripesdk.paymentsheet
 import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.reactnativestripesdk.PaymentSheetFragment
+import com.reactnativestripesdk.utils.PaymentSheetException
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert
 import org.junit.Test
@@ -47,5 +48,27 @@ class PaymentSheetFragmentTest {
   fun buildGooglePayConfig_returnsNullForEmptyBundle() {
     val config = PaymentSheetFragment.buildGooglePayConfig(Bundle.EMPTY)
     Assert.assertNull(config)
+  }
+
+  @Test(expected = PaymentSheetException::class)
+  fun buildGooglePayConfig_throwsExceptionWhenCurrencyCodeMissing() {
+    PaymentSheetFragment.buildGooglePayConfig(
+      bundleOf(
+        "merchantCountryCode" to "US",
+        "testEnv" to true,
+        // Missing currencyCode
+      ),
+    )
+  }
+
+  @Test(expected = PaymentSheetException::class)
+  fun buildGooglePayConfig_throwsExceptionWhenCurrencyCodeEmpty() {
+    PaymentSheetFragment.buildGooglePayConfig(
+      bundleOf(
+        "merchantCountryCode" to "US",
+        "currencyCode" to "",
+        "testEnv" to true,
+      ),
+    )
   }
 }
