@@ -200,12 +200,11 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createKlarnaParams(): PaymentMethodCreateParams {
-    return PaymentMethodCreateParams.createKlarna(
+  private fun createKlarnaParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createKlarna(
       billingDetails = billingDetailsParams,
       metadata = metadataParams,
     )
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
