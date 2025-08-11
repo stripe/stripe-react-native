@@ -92,7 +92,7 @@ RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
 }
 
 RCT_EXPORT_METHOD(confirmPayment:(nonnull NSString *)paymentIntentClientSecret
-                          params:(nullable NSDictionary *)params
+                          params:(nonnull NSDictionary *)params
                          options:(nonnull NSDictionary *)options
                          resolve:(nonnull RCTPromiseResolveBlock)resolve
                           reject:(nonnull RCTPromiseRejectBlock)reject)
