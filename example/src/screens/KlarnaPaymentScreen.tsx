@@ -106,12 +106,6 @@ export default function KlarnaPaymentScreen() {
           email: 'myemail@s.com',
           name: 'John Doe',
         },
-        billingDetails: {
-          email: 'stripe@test.com',
-          address: {
-            country: 'US',
-          },
-        },
       },
     });
 

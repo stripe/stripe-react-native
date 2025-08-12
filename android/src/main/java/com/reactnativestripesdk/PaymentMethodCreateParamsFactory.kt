@@ -200,21 +200,11 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createKlarnaParams(): PaymentMethodCreateParams {
-    if (billingDetailsParams == null ||
-      billingDetailsParams.address?.country.isNullOrBlank() ||
-      billingDetailsParams.email.isNullOrBlank()
-    ) {
-      throw PaymentMethodCreateParamsException(
-        "Klarna requires that you provide the following billing details: email, country",
-      )
-    }
-
-    return PaymentMethodCreateParams.createKlarna(
+  private fun createKlarnaParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createKlarna(
       billingDetails = billingDetailsParams,
       metadata = metadataParams,
     )
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)

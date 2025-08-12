@@ -5,7 +5,7 @@ import type {
   BankAcccountType,
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
-import type { Address, BillingDetails, UserInterfaceStyle } from './Common';
+import type { BillingDetails, UserInterfaceStyle } from './Common';
 import type { FinancialConnectionsEvent } from './FinancialConnections';
 
 export interface Result {
@@ -136,9 +136,8 @@ export interface AfterpayClearpayParams {
 export type KlarnaParams = {
   paymentMethodType: 'Klarna';
   paymentMethodData: {
-    billingDetails: Pick<Required<BillingDetails>, 'email'> & {
-      address: Pick<Required<Address>, 'country'>;
-    } & BillingDetails;
+    // Email and country are no longer required by Klarna
+    billingDetails?: BillingDetails;
     shippingDetails?: ShippingDetails;
   };
 };
