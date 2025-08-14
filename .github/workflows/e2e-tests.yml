@@ -225,12 +225,17 @@ jobs:
       - name: Generate bundle
         run: yarn example build:ios
 
-      - name: Install Pods
+      - name: Install Pods with react-native-test-app auto-linking fix
         run: |
-          cd example/ios
-          rm -rf Pods Podfile.lock
-          cd ../..
+          cd example
+          # Clean everything to force fresh auto-linking resolution
+          rm -rf ios/Pods ios/Podfile.lock ios/build node_modules/.generated
+          # Force react-native-test-app to regenerate project configuration
+          rm -rf ios/example.xcworkspace
+          cd ..
           yarn pods
+          # Verify the test app workspace was regenerated
+          ls -la example/ios/example.xcworkspace
 
       - name: Install Maestro CLI
         run: |
