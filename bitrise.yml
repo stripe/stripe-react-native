@@ -71,13 +71,23 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache more aggressively to prevent corruption
-            yarn cache clean --force
+            # Clear all caches more aggressively to prevent corruption
+            yarn cache clean --force || true
+            npm cache clean --force || true
             rm -rf ~/.yarn-cache || true
             rm -rf ~/Library/Caches/Yarn || true
-            # Install dependencies
-            yarn bootstrap-no-pods
-        title: Install Dependencies
+            rm -rf ~/.npm || true
+        title: Clear caches
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: install
+        title: Install root dependencies
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: --cwd example install
+        title: Install example dependencies
     - script@1:
         inputs:
         - content: |-
@@ -140,11 +150,31 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache to prevent corruption
-            yarn cache clean --force
-            # Install dependencies and pods
-            yarn bootstrap
-        title: Install Dependencies
+            # Clear all caches more aggressively to prevent corruption
+            yarn cache clean --force || true
+            npm cache clean --force || true
+            rm -rf ~/.yarn-cache || true
+            rm -rf ~/Library/Caches/Yarn || true
+            rm -rf ~/.npm || true
+        title: Clear caches
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: install
+        title: Install root dependencies
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: --cwd example install
+        title: Install example dependencies
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Install pods for iOS
+            yarn pods
+        title: Install iOS Pods
     - script@1:
         inputs:
         - content: |-
@@ -184,13 +214,23 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache more aggressively to prevent corruption
-            yarn cache clean --force
+            # Clear all caches more aggressively to prevent corruption
+            yarn cache clean --force || true
+            npm cache clean --force || true
             rm -rf ~/.yarn-cache || true
             rm -rf ~/Library/Caches/Yarn || true
-            # Install dependencies
-            yarn bootstrap-no-pods
-        title: Install Dependencies
+            rm -rf ~/.npm || true
+        title: Clear caches
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: install
+        title: Install root dependencies
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: --cwd example install
+        title: Install example dependencies
     - install-missing-android-tools@3:
         inputs:
         - gradlew_path: example/android/gradlew
@@ -238,13 +278,23 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache more aggressively to prevent corruption
-            yarn cache clean --force
+            # Clear all caches more aggressively to prevent corruption
+            yarn cache clean --force || true
+            npm cache clean --force || true
             rm -rf ~/.yarn-cache || true
             rm -rf ~/Library/Caches/Yarn || true
-            # Install dependencies
-            yarn bootstrap-no-pods
-        title: Install Dependencies
+            rm -rf ~/.npm || true
+        title: Clear caches
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: install
+        title: Install root dependencies
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: --cwd example install
+        title: Install example dependencies
     - script@1:
         inputs:
         - content: |-
@@ -357,13 +407,23 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache more aggressively to prevent corruption
-            yarn cache clean --force
+            # Clear all caches more aggressively to prevent corruption
+            yarn cache clean --force || true
+            npm cache clean --force || true
             rm -rf ~/.yarn-cache || true
             rm -rf ~/Library/Caches/Yarn || true
-            # Install dependencies
-            yarn bootstrap-no-pods
-        title: Install Dependencies
+            rm -rf ~/.npm || true
+        title: Clear caches
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: install
+        title: Install root dependencies
+    - yarn@0:
+        inputs:
+        - cache_local_deps: "yes"
+        - command: --cwd example install
+        title: Install example dependencies
     - install-missing-android-tools@3:
         inputs:
         - gradlew_path: example/android/gradlew
