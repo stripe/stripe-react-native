@@ -259,6 +259,10 @@ jobs:
           cd example/ios
           xcodebuild clean -workspace example.xcworkspace -scheme example || true
 
+      - name: Debug Doctor
+        run: |
+          npx react-native doctor
+
       - name: Build iOS App (Debug Mode)
         run: |
           yarn run-example-ios:release
