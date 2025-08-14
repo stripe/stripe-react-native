@@ -183,7 +183,7 @@ jobs:
   test-ios:
     name: e2e-ios-test
     # Silicon chips run through the iOS tests much faster
-    runs-on: macos-15-xlarge
+    runs-on: macos-14-xlarge
     strategy:
       matrix:
         react_arch: [old_arch, new_arch]
