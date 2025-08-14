@@ -21,7 +21,7 @@
     "bootstrap-no-pods": "yarn example && yarn",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",
     "run-example-ios": "cd example && yarn ios --simulator \"iPhone 16\"",
-    "run-example-ios:release": "cd example && yarn build:ios && echo '=== Available Simulators ===' && xcrun simctl list devices available && echo '=== Building iOS App ===' && RN_DISABLE_CODE_SIGNING=1 xcodebuild OTHER_CODE_SIGN_FLAGS=\"--keychain /dev/null\" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=\"\" -workspace ios/example.xcworkspace -scheme example -configuration Release -destination \"generic/platform=iOS Simulator\" build && echo '=== Launching App ===' && react-native run-ios --mode Release --simulator \"iPhone 16\" --no-packager",
+    "run-example-ios:release": "cd example && yarn build:ios && RN_DISABLE_CODE_SIGNING=1 xcodebuild OTHER_CODE_SIGN_FLAGS=\"--keychain /dev/null\" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=\"\" -workspace ios/example.xcworkspace -scheme example -configuration Release -destination \"platform=iOS Simulator,name=iPhone 16,OS=18.4\" build && react-native run-ios --mode Release --simulator \"iPhone 16 (18.4)\" --no-packager",
     "run-example-android": "cd example && yarn android",
     "run-example-android:release": "cd example && yarn build:android && yarn android --mode=release --no-packager",
     "test:e2e:ios": "bash ./scripts/run-maestro-tests ios",
