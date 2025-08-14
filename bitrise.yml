@@ -29,14 +29,19 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            bitrise run js_tests &
-            bitrise run unit_tests_ios &
-            bitrise run unit_tests_android &
-            bitrise run e2e_tests_ios &
-            bitrise run e2e_tests_android &
-            bitrise run generate_docs &
-            wait
-        title: Run all CI workflows in parallel
+            echo "Running JavaScript tests..."
+            bitrise run js_tests
+            echo "Running iOS unit tests..." 
+            bitrise run unit_tests_ios
+            echo "Running Android unit tests..."
+            bitrise run unit_tests_android
+            echo "Running iOS E2E tests..."
+            bitrise run e2e_tests_ios
+            echo "Running Android E2E tests..."
+            bitrise run e2e_tests_android
+            echo "Generating documentation..."
+            bitrise run generate_docs
+        title: Run all CI workflows sequentially
 
   ci_pull_request:
     description: Pull request CI - runs all tests except docs
@@ -49,13 +54,17 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            bitrise run js_tests &
-            bitrise run unit_tests_ios &
-            bitrise run unit_tests_android &
-            bitrise run e2e_tests_ios &
-            bitrise run e2e_tests_android &
-            wait
-        title: Run PR CI workflows in parallel
+            echo "Running JavaScript tests..."
+            bitrise run js_tests
+            echo "Running iOS unit tests..."
+            bitrise run unit_tests_ios
+            echo "Running Android unit tests..."
+            bitrise run unit_tests_android
+            echo "Running iOS E2E tests..."
+            bitrise run e2e_tests_ios
+            echo "Running Android E2E tests..."
+            bitrise run e2e_tests_android
+        title: Run PR CI workflows sequentially
 
   nightly_e2e:
     description: Nightly E2E tests
@@ -68,10 +77,11 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            bitrise run e2e_tests_ios &
-            bitrise run e2e_tests_android &
-            wait
-        title: Run nightly E2E tests
+            echo "Running iOS E2E tests..."
+            bitrise run e2e_tests_ios
+            echo "Running Android E2E tests..."
+            bitrise run e2e_tests_android
+        title: Run nightly E2E tests sequentially
 
   js_tests:
     description: JavaScript/TypeScript tests and linting
@@ -79,13 +89,22 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
-    - yarn@0:
+        - key: 'yarn-{{ checksum "yarn.lock" }}'
+        - verbose: true
+    - nodejs@1:
         inputs:
-        - command: bootstrap-no-pods
+        - node_version: '20.19.4'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies
+            yarn bootstrap-no-pods
         title: Install Dependencies
     - script@1:
         inputs:
@@ -116,7 +135,13 @@ workflows:
             cd example
             yarn typescript
         title: Run example TypeScript check
-    - cache-push@2: {}
+    - save-cache@1:
+        inputs:
+        - key: 'yarn-{{ checksum "yarn.lock" }}'
+        - paths: |-
+            ~/.yarn
+            node_modules
+            example/node_modules
 
   unit_tests_ios:
     description: iOS unit tests
@@ -124,13 +149,22 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
-    - yarn@0:
+        - key: 'pods-{{ checksum "example/ios/Podfile.lock" }}'
+        - verbose: true
+    - nodejs@1:
         inputs:
-        - command: bootstrap
+        - node_version: '20.19.4'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies and pods
+            yarn bootstrap
         title: Install Dependencies
     - script@1:
         inputs:
@@ -139,7 +173,12 @@ workflows:
             set -ex
             yarn test:unit:ios
         title: Run iOS unit tests
-    - cache-push@2: {}
+    - save-cache@1:
+        inputs:
+        - key: 'pods-{{ checksum "example/ios/Podfile.lock" }}'
+        - paths: |-
+            example/ios/Pods
+            ~/.cocoapods
 
   unit_tests_android:
     description: Android unit tests and formatting check
@@ -147,13 +186,22 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
-    - yarn@0:
+        - key: 'android-{{ checksum "example/android/build.gradle" }}'
+        - verbose: true
+    - nodejs@1:
         inputs:
-        - command: bootstrap-no-pods
+        - node_version: '20.19.4'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies
+            yarn bootstrap-no-pods
         title: Install Dependencies
     - install-missing-android-tools@3:
         inputs:
@@ -170,7 +218,12 @@ workflows:
         - project_location: example/android
         - module: app
         - variant: debug
-    - cache-push@2: {}
+    - save-cache@1:
+        inputs:
+        - key: 'android-{{ checksum "example/android/build.gradle" }}'
+        - paths: |-
+            ~/.gradle
+            example/android/.gradle
 
   e2e_tests_ios:
     description: iOS E2E tests with enhanced debugging and cache management
@@ -178,13 +231,22 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
-    - yarn@0:
+        - key: 'ios-e2e-{{ checksum "example/ios/Podfile.lock" }}'
+        - verbose: true
+    - nodejs@1:
         inputs:
-        - command: bootstrap-no-pods
+        - node_version: '20.19.4'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies
+            yarn bootstrap-no-pods
         title: Install Dependencies
     - script@1:
         inputs:
@@ -267,7 +329,12 @@ workflows:
         - text: |-
             *E2E iOS Test Failed*
             See details: $BITRISE_BUILD_URL
-    - cache-push@2: {}
+    - save-cache@1:
+        inputs:
+        - key: 'ios-e2e-{{ checksum "example/ios/Podfile.lock" }}'
+        - paths: |-
+            example/ios/Pods
+            ~/.cocoapods
 
   e2e_tests_android:
     description: Android E2E tests
@@ -275,13 +342,22 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
-    - yarn@0:
+        - key: 'android-e2e-{{ checksum "example/android/build.gradle" }}'
+        - verbose: true
+    - nodejs@1:
         inputs:
-        - command: bootstrap-no-pods
+        - node_version: '20.19.4'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies
+            yarn bootstrap-no-pods
         title: Install Dependencies
     - install-missing-android-tools@3:
         inputs:
@@ -329,7 +405,12 @@ workflows:
         - text: |-
             *E2E Android Test Failed*
             See details: $BITRISE_BUILD_URL
-    - cache-push@2: {}
+    - save-cache@1:
+        inputs:
+        - key: 'android-e2e-{{ checksum "example/android/build.gradle" }}'
+        - paths: |-
+            ~/.gradle
+            example/android/.gradle
 
   generate_docs:
     description: Generate and deploy documentation to GitHub Pages
@@ -337,15 +418,21 @@ workflows:
     - activate-ssh-key@4:
         run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
     - git-clone@8: {}
-    - cache-pull@2: {}
-    - nvm@1:
+    - restore-cache@1:
         inputs:
-        - node_version: '20'
+        - key: 'docs-{{ checksum "package.json" }}'
+        - verbose: true
+    - nodejs@1:
+        inputs:
+        - node_version: '20.19.4'
     - script@1:
         inputs:
         - content: |-
             #!/bin/bash
             set -ex
+            # Clear yarn cache to prevent corruption
+            yarn cache clean --force
+            # Install dependencies
             yarn example && yarn
         title: Install Dependencies
     - script@1:
@@ -382,13 +469,13 @@ workflows:
             git push -f origin gh-pages
         title: Deploy to GitHub Pages
         run_if: '{{getenv "GITHUB_TOKEN" | ne ""}}'
-    - cache-push@2: {}
-
-stack:
-  linux:
-    id: linux-docker-android-20.04
-  osx:
-    id: osx-xcode-16.2.x
+    - save-cache@1:
+        inputs:
+        - key: 'docs-{{ checksum "package.json" }}'
+        - paths: |-
+            ~/.yarn
+            node_modules
+            example/node_modules
 
 meta:
   bitrise.io:
