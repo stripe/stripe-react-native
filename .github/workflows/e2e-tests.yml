@@ -226,7 +226,11 @@ jobs:
         run: yarn example build:ios
 
       - name: Install Pods
-        run: yarn pods
+        run: |
+          cd example/ios
+          rm -rf Pods Podfile.lock
+          cd ../..
+          yarn pods
 
       - name: Install Maestro CLI
         run: |
@@ -238,7 +242,19 @@ jobs:
           echo "Available iOS simulators:"
           xcrun simctl list devices
 
-      - name: Build iOS App
+      - name: Clean build caches and regenerate
+        run: |
+          cd example/ios
+          rm -rf ~/Library/Developer/Xcode/DerivedData/* || true
+          rm -rf ~/Library/Caches/com.apple.dt.Xcode/* || true
+          rm -rf build/ || true
+          rm -rf .generated/ || true
+          cd ../..
+          yarn example build:ios
+          cd example/ios
+          xcodebuild clean -workspace example.xcworkspace -scheme example || true
+
+      - name: Build iOS App (Debug Mode)
         run: |
           yarn run-example-ios:release
 
