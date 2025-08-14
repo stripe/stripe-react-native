@@ -233,6 +233,11 @@ jobs:
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
+      - name: List available iOS simulators
+        run: |
+          echo "Available iOS simulators:"
+          xcrun simctl list devices
+
       - name: Build iOS App
         run: |
           yarn run-example-ios:release
