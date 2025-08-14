@@ -1,4 +1,4 @@
-// hooks
+// hookstest
 export { useConfirmPayment } from './hooks/useConfirmPayment';
 export { useConfirmSetupIntent } from './hooks/useConfirmSetupIntent';
 export { useStripe } from './hooks/useStripe';
