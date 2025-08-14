@@ -51,12 +51,21 @@ do
   fi
 done
 
-# Output information for GitHub Actions
+# Output information for CI system
 if [ ${#failedFinancialConnectionsTests[@]} -gt 0 ]; then
-    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=true" >> $GITHUB_OUTPUT
-    echo "FAILED_FC_TESTS=${failedFinancialConnectionsTests[*]}" >> $GITHUB_OUTPUT
+    # For Bitrise
+    if [ -n "$BITRISE_BUILD_URL" ]; then
+        envman add --key FINANCIAL_CONNECTIONS_TESTS_FAILED --value "true"
+        envman add --key FAILED_FC_TESTS --value "${failedFinancialConnectionsTests[*]}"
+    fi
+    # For local or other CI systems
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=true"
+    echo "FAILED_FC_TESTS=${failedFinancialConnectionsTests[*]}"
 else
-    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=false" >> $GITHUB_OUTPUT
+    if [ -n "$BITRISE_BUILD_URL" ]; then
+        envman add --key FINANCIAL_CONNECTIONS_TESTS_FAILED --value "false"
+    fi
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=false"
 fi
 
 if [ ${#failedTests[@]} -eq 0 ]; then

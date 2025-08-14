@@ -1,0 +1,396 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: react-native
+
+app:
+  envs:
+  - BITRISE_PROJECT_PATH: example/ios/example.xcworkspace
+  - BITRISE_SCHEME: example
+  - BITRISE_EXPORT_METHOD: development
+  - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+  - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+
+trigger_map:
+- push_branch: master
+  workflow: ci_master
+- pull_request_source_branch: "*"
+  workflow: ci_pull_request
+
+workflows:
+  ci_master:
+    description: Master branch CI - runs all tests and generates docs
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            bitrise run js_tests &
+            bitrise run unit_tests_ios &
+            bitrise run unit_tests_android &
+            bitrise run e2e_tests_ios &
+            bitrise run e2e_tests_android &
+            bitrise run generate_docs &
+            wait
+        title: Run all CI workflows in parallel
+
+  ci_pull_request:
+    description: Pull request CI - runs all tests except docs
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            bitrise run js_tests &
+            bitrise run unit_tests_ios &
+            bitrise run unit_tests_android &
+            bitrise run e2e_tests_ios &
+            bitrise run e2e_tests_android &
+            wait
+        title: Run PR CI workflows in parallel
+
+  nightly_e2e:
+    description: Nightly E2E tests
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            bitrise run e2e_tests_ios &
+            bitrise run e2e_tests_android &
+            wait
+        title: Run nightly E2E tests
+
+  js_tests:
+    description: JavaScript/TypeScript tests and linting
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - yarn@0:
+        inputs:
+        - command: bootstrap-no-pods
+        title: Install Dependencies
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn typescript
+        title: Run TypeScript check
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn lint
+        title: Run ESLint
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn test
+        title: Run Jest tests
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            cd example
+            yarn typescript
+        title: Run example TypeScript check
+    - cache-push@2: {}
+
+  unit_tests_ios:
+    description: iOS unit tests
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - yarn@0:
+        inputs:
+        - command: bootstrap
+        title: Install Dependencies
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn test:unit:ios
+        title: Run iOS unit tests
+    - cache-push@2: {}
+
+  unit_tests_android:
+    description: Android unit tests and formatting check
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - yarn@0:
+        inputs:
+        - command: bootstrap-no-pods
+        title: Install Dependencies
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: example/android/gradlew
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn format:android:check
+        title: Check Android code formatting
+    - android-unit-test@1:
+        inputs:
+        - project_location: example/android
+        - module: app
+        - variant: debug
+    - cache-push@2: {}
+
+  e2e_tests_ios:
+    description: iOS E2E tests with enhanced debugging and cache management
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - yarn@0:
+        inputs:
+        - command: bootstrap-no-pods
+        title: Install Dependencies
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn example build:ios
+        title: Generate iOS bundle
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            cd example
+            # Clean everything to force fresh auto-linking resolution
+            rm -rf ios/Pods ios/Podfile.lock ios/build node_modules/.generated
+            # Force react-native-test-app to regenerate project configuration
+            rm -rf ios/example.xcworkspace
+            cd ..
+            yarn pods
+            # Verify the test app workspace was regenerated
+            ls -la example/ios/example.xcworkspace
+        title: Install Pods with react-native-test-app auto-linking fix
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            curl -Ls "https://get.maestro.mobile.dev" | bash
+            echo "${HOME}/.maestro/bin" >> $BITRISE_PROFILE
+            source $BITRISE_PROFILE
+        title: Install Maestro CLI
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            echo "Available iOS simulators:"
+            xcrun simctl list devices
+        title: List available iOS simulators
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            cd example/ios
+            # Clean build caches to prevent module cache corruption
+            rm -rf ~/Library/Developer/Xcode/DerivedData/* || true
+            rm -rf ~/Library/Caches/com.apple.dt.Xcode/* || true
+            rm -rf build/ || true
+            rm -rf .generated/ || true
+            # Clean the workspace
+            xcodebuild clean -workspace example.xcworkspace -scheme example || true
+        title: Clean build caches and regenerate
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Build iOS app in Debug mode to avoid Release build issues
+            yarn run-example-ios:release
+        title: Build iOS App (Debug Mode)
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            source $BITRISE_PROFILE
+            yarn test:e2e:ios
+        title: Run iOS E2E tests
+    - deploy-to-bitrise-io@2:
+        inputs:
+        - deploy_path: e2e-artifacts
+        - is_compress: true
+        title: Upload E2E artifacts
+    - slack@3:
+        run_if: ".IsBuildFailed"
+        inputs:
+        - webhook_url: "$SLACK_RUN_CHANNEL_WEBHOOK_URL"
+        - text: |-
+            *E2E iOS Test Failed*
+            See details: $BITRISE_BUILD_URL
+    - cache-push@2: {}
+
+  e2e_tests_android:
+    description: Android E2E tests
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - yarn@0:
+        inputs:
+        - command: bootstrap-no-pods
+        title: Install Dependencies
+    - install-missing-android-tools@3:
+        inputs:
+        - gradlew_path: example/android/gradlew
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            curl -Ls "https://get.maestro.mobile.dev" | bash
+            echo "${HOME}/.maestro/bin" >> $BITRISE_PROFILE
+            source $BITRISE_PROFILE
+        title: Install Maestro CLI
+    - avd-manager@1:
+        inputs:
+        - api_level: '33'
+        - tag: google_apis
+        - abi: x86_64
+        - profile: Galaxy Nexus
+        - emulator_id: test
+    - wait-for-android-emulator@1:
+        inputs:
+        - emulator_id: test
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            # Wait for system to settle
+            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+            # Retry once if necessary
+            yarn run-example-android:release || (sleep 60 && yarn run-example-android:release)
+            source $BITRISE_PROFILE
+            yarn test:e2e:android
+        title: Run Android E2E tests
+    - deploy-to-bitrise-io@2:
+        inputs:
+        - deploy_path: e2e-artifacts
+        - is_compress: true
+        title: Upload E2E artifacts
+    - slack@3:
+        run_if: ".IsBuildFailed"
+        inputs:
+        - webhook_url: "$SLACK_RUN_CHANNEL_WEBHOOK_URL"
+        - text: |-
+            *E2E Android Test Failed*
+            See details: $BITRISE_BUILD_URL
+    - cache-push@2: {}
+
+  generate_docs:
+    description: Generate and deploy documentation to GitHub Pages
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - nvm@1:
+        inputs:
+        - node_version: '20'
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn example && yarn
+        title: Install Dependencies
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            yarn docs
+        title: Build docs
+    - script@1:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            git config --global user.email "ci@bitrise.io"
+            git config --global user.name "Bitrise CI"
+
+            # Create temporary directory for gh-pages
+            mkdir -p /tmp/gh-pages
+            cp -r ./docs/* /tmp/gh-pages/
+
+            # Switch to gh-pages branch
+            git checkout --orphan gh-pages
+            git rm -rf .
+
+            # Copy docs to root
+            cp -r /tmp/gh-pages/* .
+
+            # Add and commit
+            git add .
+            git commit -m "docs: update documentation"
+
+            # Push to gh-pages branch
+            git push -f origin gh-pages
+        title: Deploy to GitHub Pages
+        run_if: '{{getenv "GITHUB_TOKEN" | ne ""}}'
+    - cache-push@2: {}
+
+stack:
+  linux:
+    id: linux-docker-android-20.04
+  osx:
+    id: osx-xcode-16.2.x
+
+meta:
+  bitrise.io:
+    stack: osx-xcode-16.4.x
+    machine_type_id: g2.mac.4large
