@@ -63,7 +63,7 @@ workflows:
         inputs:
         - key: 'yarn-{{ checksum "yarn.lock" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
@@ -130,7 +130,7 @@ workflows:
         inputs:
         - key: 'pods-{{ checksum "example/ios/Podfile.lock" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
@@ -174,7 +174,7 @@ workflows:
         inputs:
         - key: 'android-{{ checksum "example/android/build.gradle" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
@@ -226,7 +226,7 @@ workflows:
         inputs:
         - key: 'ios-e2e-{{ checksum "example/ios/Podfile.lock" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
@@ -343,7 +343,7 @@ workflows:
         inputs:
         - key: 'android-e2e-{{ checksum "example/android/build.gradle" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
@@ -425,7 +425,7 @@ workflows:
         inputs:
         - key: 'docs-{{ checksum "package.json" }}'
         - verbose: true
-    - nodejs@1:
+    - nvm@1:
         inputs:
         - node_version: '20.19.4'
     - script@1:
