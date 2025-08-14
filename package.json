@@ -46,6 +46,7 @@
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
   "dependencies": {},
   "devDependencies": {
+    "@react-native-community/cli": "latest",
     "@expo/config-plugins": "^9.0.16",
     "@react-native/babel-preset": "^0.78.0",
     "@react-native/eslint-config": "^0.78.0",
