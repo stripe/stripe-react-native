@@ -13,75 +13,45 @@ app:
 
 trigger_map:
 - push_branch: master
-  workflow: ci_master
-- pull_request_source_branch: "*"
-  workflow: ci_pull_request
+  pipeline: main-trigger-pipeline
+- pull_request_source_branch: releases/*
+  pipeline: releases-trigger-pipeline
+- pull_request_source_branch: '*'
+  pipeline: main-trigger-pipeline
+
+pipelines:
+  main-trigger-pipeline:
+    stages:
+    - stage-trigger-run-all: {}
+  releases-trigger-pipeline:
+    stages:
+    - stage-releases-run-all: {}
+  nightly-pipeline:
+    stages:
+    - stage-nightly-all: {}
+
+stages:
+  stage-trigger-run-all:
+    workflows:
+    - js_tests: {}
+    - unit_tests_ios: {}
+    - unit_tests_android: {}
+    - e2e_tests_ios: {}
+    - e2e_tests_android: {}
+  stage-releases-run-all:
+    workflows:
+    - js_tests: {}
+    - unit_tests_ios: {}
+    - unit_tests_android: {}
+    - e2e_tests_ios: {}
+    - e2e_tests_android: {}
+    - generate_docs: {}
+  stage-nightly-all:
+    workflows:
+    - e2e_tests_ios: {}
+    - e2e_tests_android: {}
 
 workflows:
-  ci_master:
-    description: Master branch CI - runs all tests and generates docs
-    steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@8: {}
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            echo "Running JavaScript tests..."
-            bitrise run js_tests
-            echo "Running iOS unit tests..." 
-            bitrise run unit_tests_ios
-            echo "Running Android unit tests..."
-            bitrise run unit_tests_android
-            echo "Running iOS E2E tests..."
-            bitrise run e2e_tests_ios
-            echo "Running Android E2E tests..."
-            bitrise run e2e_tests_android
-            echo "Generating documentation..."
-            bitrise run generate_docs
-        title: Run all CI workflows sequentially
-
-  ci_pull_request:
-    description: Pull request CI - runs all tests except docs
-    steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@8: {}
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            echo "Running JavaScript tests..."
-            bitrise run js_tests
-            echo "Running iOS unit tests..."
-            bitrise run unit_tests_ios
-            echo "Running Android unit tests..."
-            bitrise run unit_tests_android
-            echo "Running iOS E2E tests..."
-            bitrise run e2e_tests_ios
-            echo "Running Android E2E tests..."
-            bitrise run e2e_tests_android
-        title: Run PR CI workflows sequentially
-
-  nightly_e2e:
-    description: Nightly E2E tests
-    steps:
-    - activate-ssh-key@4:
-        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-    - git-clone@8: {}
-    - script@1:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            echo "Running iOS E2E tests..."
-            bitrise run e2e_tests_ios
-            echo "Running Android E2E tests..."
-            bitrise run e2e_tests_android
-        title: Run nightly E2E tests sequentially
 
   js_tests:
     description: JavaScript/TypeScript tests and linting
@@ -135,6 +105,7 @@ workflows:
             cd example
             yarn typescript
         title: Run example TypeScript check
+    - deploy-to-bitrise-io@2: {}
     - save-cache@1:
         inputs:
         - key: 'yarn-{{ checksum "yarn.lock" }}'
@@ -142,6 +113,12 @@ workflows:
             ~/.yarn
             node_modules
             example/node_modules
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.large
 
   unit_tests_ios:
     description: iOS unit tests
@@ -173,12 +150,19 @@ workflows:
             set -ex
             yarn test:unit:ios
         title: Run iOS unit tests
+    - deploy-to-bitrise-io@2: {}
     - save-cache@1:
         inputs:
         - key: 'pods-{{ checksum "example/ios/Podfile.lock" }}'
         - paths: |-
             example/ios/Pods
             ~/.cocoapods
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.large
 
   unit_tests_android:
     description: Android unit tests and formatting check
@@ -218,12 +202,19 @@ workflows:
         - project_location: example/android
         - module: app
         - variant: debug
+    - deploy-to-bitrise-io@2: {}
     - save-cache@1:
         inputs:
         - key: 'android-{{ checksum "example/android/build.gradle" }}'
         - paths: |-
             ~/.gradle
             example/android/.gradle
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
 
   e2e_tests_ios:
     description: iOS E2E tests with enhanced debugging and cache management
@@ -335,6 +326,12 @@ workflows:
         - paths: |-
             example/ios/Pods
             ~/.cocoapods
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   e2e_tests_android:
     description: Android E2E tests
@@ -411,6 +408,12 @@ workflows:
         - paths: |-
             ~/.gradle
             example/android/.gradle
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite
 
   generate_docs:
     description: Generate and deploy documentation to GitHub Pages
@@ -476,6 +479,28 @@ workflows:
             ~/.yarn
             node_modules
             example/node_modules
+    after_run:
+    - notify_ci
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.large
+
+  notify_ci:
+    description: Send notification if workflow failed
+    steps:
+    - slack@3:
+        is_always_run: true
+        run_if: .IsBuildFailed
+        inputs:
+        - webhook_url: $SLACK_RUN_CHANNEL_WEBHOOK_URL
+        - webhook_url_on_error: $SLACK_RUN_CHANNEL_WEBHOOK_URL
+        - text_on_error: |-
+            *React Native CI Build Failed*
+            Pipeline: $BITRISE_TRIGGERED_WORKFLOW_ID
+            Branch: $BITRISE_GIT_BRANCH
+            Commit: $BITRISE_GIT_MESSAGE
+            See details: $BITRISE_BUILD_URL
 
 meta:
   bitrise.io:
