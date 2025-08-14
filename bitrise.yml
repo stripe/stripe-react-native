@@ -71,8 +71,10 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache to prevent corruption
+            # Clear yarn cache more aggressively to prevent corruption
             yarn cache clean --force
+            rm -rf ~/.yarn-cache || true
+            rm -rf ~/Library/Caches/Yarn || true
             # Install dependencies
             yarn bootstrap-no-pods
         title: Install Dependencies
@@ -182,8 +184,10 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache to prevent corruption
+            # Clear yarn cache more aggressively to prevent corruption
             yarn cache clean --force
+            rm -rf ~/.yarn-cache || true
+            rm -rf ~/Library/Caches/Yarn || true
             # Install dependencies
             yarn bootstrap-no-pods
         title: Install Dependencies
@@ -234,8 +238,10 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache to prevent corruption
+            # Clear yarn cache more aggressively to prevent corruption
             yarn cache clean --force
+            rm -rf ~/.yarn-cache || true
+            rm -rf ~/Library/Caches/Yarn || true
             # Install dependencies
             yarn bootstrap-no-pods
         title: Install Dependencies
@@ -351,8 +357,10 @@ workflows:
         - content: |-
             #!/bin/bash
             set -ex
-            # Clear yarn cache to prevent corruption
+            # Clear yarn cache more aggressively to prevent corruption
             yarn cache clean --force
+            rm -rf ~/.yarn-cache || true
+            rm -rf ~/Library/Caches/Yarn || true
             # Install dependencies
             yarn bootstrap-no-pods
         title: Install Dependencies
