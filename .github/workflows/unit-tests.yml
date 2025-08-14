@@ -16,7 +16,7 @@ concurrency:
 jobs:
   test-ios:
     name: unit-test-ios
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - name: checkout
         uses: actions/checkout@v4
