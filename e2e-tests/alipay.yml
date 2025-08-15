@@ -3,6 +3,14 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Wallets"
 - tapOn: "Alipay"
+- extendedWaitUntil:
+    visible: "Pay"
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      text: "E-mail"
+    direction: DOWN
+    timeout: 10000
 - tapOn: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
