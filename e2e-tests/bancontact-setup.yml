@@ -3,6 +3,9 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Bank redirects"
 - tapOn: "Bancontact SEPA Direct Debit set up"
+- extendedWaitUntil:
+    visible: "E-mail"
+    timeout: 30000
 - assertVisible:
     text: "E-mail"
 - tapOn:

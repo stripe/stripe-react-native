@@ -7,6 +7,9 @@ appId: ${APP_ID}
     direction: DOWN
     timeout: 5000
 - tapOn: "Card element only"
+- extendedWaitUntil:
+    visible: "E-mail"
+    timeout: 30000
 - assertVisible:
     text: "E-mail"
 - inputText: "4242424242424242"

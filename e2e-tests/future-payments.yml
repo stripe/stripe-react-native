@@ -3,6 +3,9 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "More payment scenarios"
 - tapOn: "Set up future payments"
+- extendedWaitUntil:
+    visible: "E-mail"
+    timeout: 30000
 - assertVisible:
     text: "E-mail"
 - inputText: "4242424242424242"

@@ -3,6 +3,9 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "More payment scenarios"
 - tapOn: "Create tokens"
+- extendedWaitUntil:
+    visible: "Create a PII token"
+    timeout: 30000
 - assertVisible:
     text: "Create a PII token"
 - inputText: "4242424242424242"

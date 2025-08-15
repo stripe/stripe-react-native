@@ -7,6 +7,9 @@ appId: ${APP_ID}
       text: "Customer Sheet"
     direction: DOWN
 - tapOn: "Customer Sheet"
+- extendedWaitUntil:
+    visible: "Edit payment methods"
+    timeout: 30000
 - tapOn: "Edit payment methods"
 - extendedWaitUntil:
     visible: "TEST"

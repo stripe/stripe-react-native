@@ -7,6 +7,9 @@ appId: ${APP_ID}
       text: "iDEAL payment"
     direction: DOWN
 - tapOn: "iDEAL payment"
+- extendedWaitUntil:
+    visible: "E-mail"
+    timeout: 30000
 - assertVisible:
     text: "E-mail"
 - tapOn:
