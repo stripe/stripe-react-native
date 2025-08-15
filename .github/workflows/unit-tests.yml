@@ -21,6 +21,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer
+
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"

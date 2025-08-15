@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Financial Connections"
 - tapOn: "Collect Bank Account"
 - assertVisible:
@@ -36,27 +37,27 @@ appId: ${APP_ID}
 - tapOn:
     text: "Connect account"
 
-- assertVisible: 
+- assertVisible:
     text: "Not now"
-- tapOn: 
+- tapOn:
     text: "Not now"
 
-- assertVisible: 
+- assertVisible:
     text: "Back to Stripe Shop"
     optional: true
-- tapOn: 
+- tapOn:
     text: "Back to Stripe Shop"
     optional: true
-- assertVisible: 
+- assertVisible:
     text: "Done"
     optional: true
-- tapOn: 
+- tapOn:
     text: "Done"
     optional: true
-- assertVisible: 
+- assertVisible:
     text: "Back to Test Inc."
     optional: true
-- tapOn: 
+- tapOn:
     text: "Back to Test Inc."
     optional: true
 

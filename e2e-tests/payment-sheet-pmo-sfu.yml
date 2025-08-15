@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "More payment scenarios"
 - tapOn: "PaymentSheet with PMO SFU"
 - tapOn: "Checkout"

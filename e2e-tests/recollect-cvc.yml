@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "More payment scenarios"
 - tapOn: "Recollect a CVC"
 - assertVisible:
