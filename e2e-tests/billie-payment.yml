@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Buy now pay later"
+- scrollUntilVisible:
+    element:
+      text: "Billie"
+    direction: DOWN
+- tapOn: "Billie"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"
