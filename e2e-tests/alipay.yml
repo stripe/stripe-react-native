@@ -3,9 +3,8 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Wallets"
 - tapOn: "Alipay"
-- extendedWaitUntil:
-    visible: "Pay"
-    timeout: 30000
+- tapOn: "E-mail"
+- inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false

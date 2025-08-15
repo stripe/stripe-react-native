@@ -7,17 +7,11 @@ appId: ${APP_ID}
       text: "Multiline Card element only"
     direction: DOWN
 - tapOn: "Multiline Card element only"
-- extendedWaitUntil:
-    visible: "E-mail"
-    timeout: 30000
-- assertVisible:
-    text: "E-mail"
 - inputText: "4242424242424242"
 - inputText: "0145"
 - inputText: "123"
 - inputText: "12345"
-- tapOn:
-    text: "E-mail"
+- tapOn: "E-mail"
 - inputText: "test@stripe.com"
 - pressKey: Enter
 - scrollUntilVisible:

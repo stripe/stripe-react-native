@@ -3,16 +3,10 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "More payment scenarios"
 - tapOn: "Set up future payments"
-- extendedWaitUntil:
-    visible: "E-mail"
-    timeout: 30000
-- assertVisible:
-    text: "E-mail"
 - inputText: "4242424242424242"
 - inputText: "0145"
 - inputText: "123"
-- tapOn:
-    text: "E-mail"
+- tapOn: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn: "Save via card input form"
 - assertVisible:

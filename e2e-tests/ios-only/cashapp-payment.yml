@@ -7,13 +7,7 @@ appId: ${APP_ID}
       text: "CashApp"
     direction: DOWN
 - tapOn: "CashApp"
-- extendedWaitUntil:
-    visible: "E-mail"
-    timeout: 30000
-- assertVisible:
-    text: "E-mail"
-- tapOn:
-    text: "E-mail"
+- tapOn: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"
