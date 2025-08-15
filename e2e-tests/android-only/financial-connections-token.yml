@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Financial Connections"
 - tapOn: "Collect Bank Account"
 - assertVisible:
@@ -13,7 +14,7 @@ appId: ${APP_ID}
     text: "Agree and continue"
 - assertVisible:
     text: "Test Institution"
-- tapOn: 
+- tapOn:
     text: "Test Institution"
 
 # The first chrome instance in E2E emulator, welcome page must be dismissed.
@@ -33,30 +34,30 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "Connect account"
     timeout: 30000
-- tapOn: 
+- tapOn:
     text: "Connect account"
 
 - assertVisible:
     text: "Not now"
-- tapOn: 
+- tapOn:
     text: "Not now"
 
-- assertVisible: 
+- assertVisible:
     text: "Back to Stripe Shop"
     optional: true
-- tapOn: 
+- tapOn:
     text: "Back to Stripe Shop"
     optional: true
-- assertVisible: 
+- assertVisible:
     text: "Done"
     optional: true
-- tapOn: 
+- tapOn:
     text: "Done"
     optional: true
-- assertVisible: 
+- assertVisible:
     text: "Back to Test Inc."
     optional: true
-- tapOn: 
+- tapOn:
     text: "Back to Test Inc."
     optional: true
 

@@ -1,7 +1,8 @@
 # Test that interactions between Compose and React Native work as expected.
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: 'Accept a payment'
 - tapOn: 'Prebuilt UI (EmbeddedPaymentElement)'
 - extendedWaitUntil:

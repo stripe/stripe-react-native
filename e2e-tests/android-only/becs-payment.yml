@@ -2,7 +2,8 @@ appId: ${APP_ID}
 ---
 # TODO: Re-enable on iOS once we can enter 000-000 as the test bank.
 # Currently, 000-000 isn't recognized since the app is built in release mode.
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank Debits"
 - tapOn: "BECS Direct Debit payment"
 - tapOn:
