@@ -7,10 +7,13 @@ appId: ${APP_ID}
     direction: DOWN
     timeout: 5000
 - tapOn: "Card element only"
+- assertVisible:
+    text: "E-mail"
 - inputText: "4242424242424242"
 - inputText: "0145"
 - inputText: "123"
-- tapOn: "E-mail"
+- tapOn:
+    text: "E-mail"
 - inputText: "test@stripe.com"
 - scrollUntilVisible:
     element:

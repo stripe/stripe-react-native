@@ -3,9 +3,6 @@ appId: ${APP_ID}
 - launchApp
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (single-step)"
-- extendedWaitUntil:
-    visible: "Checkout"
-    timeout: 30000
 - assertVisible:
     text: "Checkout"
 - tapOn: "Checkout"

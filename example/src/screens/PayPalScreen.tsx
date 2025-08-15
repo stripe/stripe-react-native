@@ -105,7 +105,6 @@ export default function PayPalScreen() {
     <PaymentScreen paymentMethod="paypal">
       <TextInput
         placeholder="E-mail"
-        accessibilityLabel="E-mail"
         autoCapitalize="none"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}

@@ -91,7 +91,6 @@ export default function MultilineWebhookPaymentScreen() {
       <TextInput
         autoCapitalize="none"
         placeholder="E-mail"
-        accessibilityLabel="E-mail"
         keyboardType="email-address"
         onChange={(value) => setEmail(value.nativeEvent.text)}
         style={styles.input}

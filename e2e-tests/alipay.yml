@@ -1,18 +1,12 @@
 appId: ${APP_ID}
 ---
-- launchApp:
-    clearState: true
+- launchApp
 - tapOn: "Wallets"
 - tapOn: "Alipay"
-- extendedWaitUntil:
-    visible: "Pay"
-    timeout: 60000
-- scrollUntilVisible:
-    element:
-      text: "E-mail"
-    direction: DOWN
-    timeout: 10000
-- tapOn: "E-mail"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"

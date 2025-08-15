@@ -7,7 +7,10 @@ appId: ${APP_ID}
       text: "Przelewy24"
     direction: DOWN
 - tapOn: "Przelewy24"
-- tapOn: "E-mail"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"

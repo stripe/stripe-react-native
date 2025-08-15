@@ -128,7 +128,6 @@ export default function CVCReCollectionScreen() {
         autoCapitalize="none"
         style={styles.input}
         placeholder="E-mail"
-        accessibilityLabel="E-mail"
         onChange={(value) => setEmail(value.nativeEvent.text)}
       />
       <TextInput
