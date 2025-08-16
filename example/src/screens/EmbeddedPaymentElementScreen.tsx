@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, View, Text, Modal } from 'react-native';
+import { Alert, View, Text, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -63,9 +63,18 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
       {embeddedPaymentElementView}
 
       <View style={{ paddingVertical: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600' }}>
-          {paymentOption?.label ?? 'No option'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {paymentOption?.image && (
+            <Image
+              source={{ uri: `data:image/png;base64,${paymentOption.image}` }}
+              style={{ width: 32, height: 20 }}
+              resizeMode="contain"
+            />
+          )}
+          <Text style={{ fontSize: 16, fontWeight: '600' }}>
+            {paymentOption?.label ?? 'No option'}
+          </Text>
+        </View>
       </View>
 
       <Button
