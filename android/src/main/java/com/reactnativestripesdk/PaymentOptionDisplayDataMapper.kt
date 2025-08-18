@@ -1,4 +1,3 @@
-import android.graphics.drawable.Drawable
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.getBase64FromBitmap
