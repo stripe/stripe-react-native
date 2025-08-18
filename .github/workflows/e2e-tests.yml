@@ -335,3 +335,42 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
               "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  # Reporter jobs that provide the status checks branch protection expects
+  report-android-status:
+    name: e2e-android-test
+    runs-on: ubuntu-latest
+    needs: test-android
+    if: always()
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.test-android.result }}" == "success" ]]; then
+            echo "All Android tests passed for ${{ matrix.react_arch }}"
+            exit 0
+          else
+            echo "Android tests failed for ${{ matrix.react_arch }}"
+            exit 1
+          fi
+
+  report-ios-status:
+    name: e2e-ios-test
+    runs-on: ubuntu-latest
+    needs: test-ios
+    if: always()
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.test-ios.result }}" == "success" ]]; then
+            echo "All iOS tests passed for ${{ matrix.react_arch }}"
+            exit 0
+          else
+            echo "iOS tests failed for ${{ matrix.react_arch }}"
+            exit 1
+          fi
