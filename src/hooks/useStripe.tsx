@@ -59,6 +59,8 @@ import {
   createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
+  configureOnramp,
+  lookupLinkUser,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -320,6 +322,20 @@ export function useStripe() {
     return openPlatformPaySetup();
   }, []);
 
+  const _configureOnramp = useCallback(
+    async (config: Record<string, any>): Promise<void> => {
+      return configureOnramp(config);
+    },
+    []
+  );
+
+  const _lookupLinkUser = useCallback(
+    async (email: string): Promise<{ isLinkUser: boolean }> => {
+      return lookupLinkUser(email);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -355,5 +371,7 @@ export function useStripe() {
     createPlatformPayToken: _createPlatformPayToken,
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
+    configureOnramp: _configureOnramp,
+    lookupLinkUser: _lookupLinkUser,
   };
 }

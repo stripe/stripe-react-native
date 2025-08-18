@@ -218,6 +218,8 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
+  configureOnramp(config: UnsafeObject<any>): Promise<any>;
+  lookupLinkUser(email: string): Promise<any>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

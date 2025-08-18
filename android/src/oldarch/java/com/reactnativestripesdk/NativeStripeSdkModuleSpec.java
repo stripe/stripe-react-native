@@ -315,4 +315,12 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void clearEmbeddedPaymentOption(double viewTag, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void configureOnramp(ReadableMap config, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void lookupLinkUser(String email, Promise promise);
 }

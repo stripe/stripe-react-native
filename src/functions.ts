@@ -892,3 +892,11 @@ export const openPlatformPaySetup = async (): Promise<void> => {
     await NativeStripeSdk.openApplePaySetup();
   }
 };
+
+export const configureOnramp = async (config: any): Promise<any> => {
+  return NativeStripeSdk.configureOnramp(config);
+};
+
+export const lookupLinkUser = async (email: string): Promise<any> => {
+  return NativeStripeSdk.lookupLinkUser(email);
+};

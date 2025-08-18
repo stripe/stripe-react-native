@@ -450,6 +450,14 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Crypto Onramp Flow"
+          onPress={() => {
+            navigation.navigate('CryptoOnrampScreen');
+          }}
+        />
+      </View>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}

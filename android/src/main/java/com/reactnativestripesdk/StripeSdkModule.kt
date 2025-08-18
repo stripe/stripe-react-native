@@ -71,6 +71,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+import androidx.compose.ui.graphics.Color
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.stripe.android.crypto.onramp.OnrampCoordinator
+import com.stripe.android.crypto.onramp.model.OnrampConfiguration
+import com.stripe.android.crypto.onramp.model.OnrampLinkLookupResult
+import com.stripe.android.link.model.LinkAppearance
+import com.stripe.android.link.model.LinkAppearance.Colors
+import com.stripe.android.link.model.LinkAppearance.PrimaryButton
+import com.stripe.android.link.model.LinkAppearance.Style
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import androidx.lifecycle.SavedStateHandle
+
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
@@ -96,6 +110,8 @@ class StripeSdkModule(
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
+
+  private var coordinator: OnrampCoordinator? = null
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -1401,6 +1417,120 @@ class StripeSdkModule(
         )
       }
     }
+  }
+
+  @ReactMethod
+  override fun configureOnramp(
+    config: ReadableMap,
+    promise: Promise,
+  ) {
+    val application = currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
+    if (application == null) {
+        promise.reject("NO_APPLICATION", "Could not get Application instance")
+        return
+    }
+
+    coordinator = OnrampCoordinator.Builder()
+      .build(application, SavedStateHandle())
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val appearanceMap = config.getMap("appearance")
+      val appearance =
+        if (appearanceMap != null) {
+          mapAppearance(appearanceMap)
+        } else {
+          LinkAppearance(style = Style.AUTOMATIC)
+        }
+
+      val configuration = OnrampConfiguration(appearance)
+      coordinator?.configure(configuration)
+      promise.resolve(true)
+    }
+  }
+
+  @ReactMethod
+  override fun lookupLinkUser(
+    email: String,
+    promise: Promise,
+  ) {
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator?.lookupLinkUser(email)) {
+        is OnrampLinkLookupResult.Completed -> {
+          promise.resolve(
+            Arguments.createMap().apply {
+              putBoolean("isLinkUser", result.isLinkUser)
+            },
+          )
+        }
+        is OnrampLinkLookupResult.Failed -> {
+          promise.reject("LookupError", result.error)
+        }
+        else -> {
+          promise.reject("LookupError", "Unknown result")
+        }
+      }
+    }
+  }
+
+  private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
+    val lightColorsMap = appearanceMap.getMap("lightColors")
+    val darkColorsMap = appearanceMap.getMap("darkColors")
+    val styleStr = appearanceMap.getString("style")
+    val primaryButtonMap = appearanceMap.getMap("primaryButton")
+
+    val lightColors =
+      if (lightColorsMap != null) {
+        Colors(
+          primary = Color(lightColorsMap.getInt("primary")),
+          borderSelected = Color(lightColorsMap.getInt("borderSelected")),
+        )
+      } else {
+        Colors.default(isDark = false)
+      }
+
+    val darkColors =
+      if (darkColorsMap != null) {
+        Colors(
+          primary = Color(darkColorsMap.getInt("primary")),
+          borderSelected = Color(darkColorsMap.getInt("borderSelected")),
+        )
+      } else {
+        Colors.default(isDark = true)
+      }
+
+    val style =
+      when (styleStr) {
+        "ALWAYS_LIGHT" -> Style.ALWAYS_LIGHT
+        "ALWAYS_DARK" -> Style.ALWAYS_DARK
+        else -> Style.AUTOMATIC
+      }
+
+    val primaryButton =
+      if (primaryButtonMap != null) {
+        PrimaryButton(
+          cornerRadiusDp =
+            if (primaryButtonMap.hasKey("cornerRadiusDp")) {
+              primaryButtonMap.getDouble("cornerRadiusDp").toFloat()
+            } else {
+              null
+            },
+          heightDp =
+            if (primaryButtonMap.hasKey("heightDp")) {
+              primaryButtonMap.getDouble("heightDp").toFloat()
+            } else {
+              null
+            },
+        )
+      } else {
+        PrimaryButton()
+      }
+
+    return LinkAppearance(
+      lightColors = lightColors,
+      darkColors = darkColors,
+      style = style,
+      primaryButton = primaryButton,
+    )
   }
 
   companion object {
