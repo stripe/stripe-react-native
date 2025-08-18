@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "More payment scenarios"
 - tapOn: "Finalize payments on the server"
 - assertVisible:

@@ -45,7 +45,7 @@ import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePre
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
-import com.stripe.android.paymentsheet.PaymentOptionCallback
+import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
@@ -124,9 +124,9 @@ class PaymentSheetFragment :
       }
 
     val paymentOptionCallback =
-      PaymentOptionCallback { paymentOption ->
+      PaymentOptionResultCallback { paymentOptionResult ->
         val result =
-          paymentOption?.let {
+          paymentOptionResult.paymentOption?.let {
             val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
             val imageString = getBase64FromBitmap(bitmap)
             val option: WritableMap = WritableNativeMap()
@@ -272,7 +272,7 @@ class PaymentSheetFragment :
           PaymentSheet.FlowController
             .Builder(
               resultCallback = paymentResultCallback,
-              paymentOptionCallback = paymentOptionCallback,
+              paymentOptionResultCallback = paymentOptionCallback,
             ).createIntentCallback(createIntentCallback)
             .confirmCustomPaymentMethodCallback(this)
             .build(this)
@@ -280,7 +280,7 @@ class PaymentSheetFragment :
           PaymentSheet.FlowController
             .Builder(
               resultCallback = paymentResultCallback,
-              paymentOptionCallback = paymentOptionCallback,
+              paymentOptionResultCallback = paymentOptionCallback,
             ).confirmCustomPaymentMethodCallback(this)
             .build(this)
         }
@@ -550,7 +550,7 @@ class PaymentSheetFragment :
       )
 
     internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
-      if (params == null) {
+      if (params == null || params.isEmpty) {
         return null
       }
 

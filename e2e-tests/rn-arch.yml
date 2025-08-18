@@ -1,7 +1,8 @@
 # Validates that we are testing the correct react architecture.
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - runFlow:
     when:
       true: ${NEW_ARCH == 'true'}

@@ -2,8 +2,31 @@
 
 ## x.x.x - x-x-x
 
+**Features**
+- [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
+
+**Changes**
+- Klarna: Made `billingDetails.email` and `billingDetails.address.country` optional when creating Klarna payment methods. See Stripe docs: [Migrate Klarna from Sources – Field mapping reference](https://docs.stripe.com/payments/klarna/migrate) ("Not required when using the Payment Element. It’s collected automatically.").
+
+**Fixes**
+- Fixed iOS crash "Stripe SDK confirmPayment must not be null" when calling `confirmPayment` with optional parameters. Updated native bridge to properly handle nullable params argument. [#2048](https://github.com/stripe/stripe-react-native/issues/2048)
+
+## 0.50.3 - 2025-08-07
+
+**Fixed**
+- Fixed Android crash when using `RowSelectionBehavior.ImmediateAction` with `FormSheetAction.Confirm` in EmbeddedPaymentElement.
+
+## 0.50.2 - 2025-08-06
+
+**Changes**
+- Renamed `RowStyle.FlatWithChevron` to `RowStyle.FlatWithDisclosure` and updated related interfaces (`ChevronConfig` → `DisclosureConfig`).
+- Updated `stripe-ios` to 24.19.0
+- Updated `stripe-android` to 21.22.+
+- Added `successBackgroundColor` and `successTextColor` properties to `PrimaryButtonColorConfig` for customizing the primary button appearance in success states.
+
 **Fixes**
 - Fixed missing `onCustomPaymentMethodConfirmHandlerCallback` in old architecture codegen patch. This resolves pod install failures when using React Native 0.74+ with old architecture and custom payment methods.
+- Fixes an issue where saved payment methods weren't auto selected when using `EmbeddedPaymentElement` on Android.
 
 ## 0.50.1 - 2025-07-22
 

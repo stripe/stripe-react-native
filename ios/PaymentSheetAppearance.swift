@@ -134,6 +134,8 @@ internal class PaymentSheetAppearance {
             primaryButton.backgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.textColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
             primaryButton.borderColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.BORDER, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.borderColor
+            primaryButton.successBackgroundColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND, lightParams: lightModeParams, darkParams: darkModeParams) ?? PaymentSheet.Appearance.default.primaryButton.successBackgroundColor
+            primaryButton.successTextColor = try buildUserInterfaceStyleAwareColor(key: PaymentSheetAppearanceKeys.SUCCESS_TEXT, lightParams: lightModeParams, darkParams: darkModeParams)
         }
 
         return primaryButton
@@ -185,8 +187,8 @@ internal class PaymentSheetAppearance {
                   row.style = .floatingButton
               case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_CHECKMARK:
                   row.style = .flatWithCheckmark
-              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_CHEVRON:
-                  row.style = .flatWithChevron
+              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_DISCLOSURE:
+                  row.style = .flatWithDisclosure
               default:
                   throw PaymentSheetAppearanceError.invalidRowStyle(styleString)
               }
@@ -240,8 +242,8 @@ internal class PaymentSheetAppearance {
               flat.checkmark = try buildEmbeddedCheckmark(params: checkmarkParams)
           }
 
-          if let chevronParams = params[PaymentSheetAppearanceKeys.CHEVRON] as? NSDictionary {
-              flat.chevron = try buildEmbeddedChevron(params: chevronParams)
+          if let disclosureParams = params[PaymentSheetAppearanceKeys.DISCLOSURE] as? NSDictionary {
+              flat.disclosure = try buildEmbeddedDisclosure(params: disclosureParams)
           }
 
           return flat
@@ -279,16 +281,16 @@ internal class PaymentSheetAppearance {
           return checkmark
       }
 
-      private class func buildEmbeddedChevron(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Chevron {
-        var chevron = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.chevron
+    private class func buildEmbeddedDisclosure(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Disclosure {
+        var disclosure = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.disclosure
 
-        chevron.color = parseThemedColor(
+        disclosure.color = parseThemedColor(
           params: params,
           key: PaymentSheetAppearanceKeys.COLOR,
           default: UIColor.systemGray // Default iOS system gray color
         )
 
-          return chevron
+        return disclosure
       }
 
       private class func buildEmbeddedFloating(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Floating {
@@ -387,7 +389,7 @@ extension PaymentSheetAppearanceError: LocalizedError {
         case .unexpectedHexStringLength(let hexString):
             return NSLocalizedString("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: \(hexString)", comment: "Failed to set color")
         case .invalidRowStyle(let styleString):
-            return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark', 'flatWithChevron'.", comment: "Invalid row style string")
+            return NSLocalizedString("Failed to set Embedded Payment Element appearance. Invalid row style '\(styleString)'. Expected one of: 'flatWithRadio', 'floatingButton', 'flatWithCheckmark', 'flatWithDisclosure'.", comment: "Invalid row style string")
         }
     }
 }
@@ -428,6 +430,8 @@ private struct PaymentSheetAppearanceKeys {
     static let PRIMARY_BUTTON = "primaryButton"
     static let TEXT = "text"
     static let BORDER = "border"
+    static let SUCCESS_BACKGROUND = "successBackgroundColor"
+    static let SUCCESS_TEXT = "successTextColor"
 
     static let EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
     static let ROW = "row"
@@ -444,7 +448,7 @@ private struct PaymentSheetAppearanceKeys {
     static let SELECTED_COLOR = "selectedColor"
     static let UNSELECTED_COLOR = "unselectedColor"
     static let CHECKMARK = "checkmark"
-    static let CHEVRON = "chevron"
+    static let DISCLOSURE = "disclosure"
     static let SPACING = "spacing"
     static let TOP = "top"
     static let LEFT = "left"
@@ -456,7 +460,7 @@ private struct PaymentSheetAppearanceKeys {
     static let ROW_STYLE_FLAT_WITH_RADIO = "flatWithRadio"
     static let ROW_STYLE_FLOATING_BUTTON = "floatingButton"
     static let ROW_STYLE_FLAT_WITH_CHECKMARK = "flatWithCheckmark"
-    static let ROW_STYLE_FLAT_WITH_CHEVRON = "flatWithChevron"
+    static let ROW_STYLE_FLAT_WITH_DISCLOSURE = "flatWithDisclosure"
 
     static let FORM_INSETS = "formInsetValues"
 }

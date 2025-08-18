@@ -39,6 +39,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Ideal -> createIDEALParams()
         PaymentMethod.Type.Alipay -> createAlipayParams()
         PaymentMethod.Type.Bancontact -> createBancontactParams()
+        PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
         PaymentMethod.Type.Giropay -> createGiropayParams()
@@ -89,6 +90,13 @@ class PaymentMethodCreateParamsFactory(
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
   }
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createBillieParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createBillie(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createSepaParams(): PaymentMethodCreateParams {
@@ -200,21 +208,11 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createKlarnaParams(): PaymentMethodCreateParams {
-    if (billingDetailsParams == null ||
-      billingDetailsParams.address?.country.isNullOrBlank() ||
-      billingDetailsParams.email.isNullOrBlank()
-    ) {
-      throw PaymentMethodCreateParamsException(
-        "Klarna requires that you provide the following billing details: email, country",
-      )
-    }
-
-    return PaymentMethodCreateParams.createKlarna(
+  private fun createKlarnaParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createKlarna(
       billingDetails = billingDetailsParams,
       metadata = metadataParams,
     )
-  }
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createPayPalParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createPayPal(metadata = metadataParams)
@@ -256,6 +254,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
         PaymentMethod.Type.Bancontact,
+        PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
         PaymentMethod.Type.Oxxo,
         PaymentMethod.Type.Giropay,

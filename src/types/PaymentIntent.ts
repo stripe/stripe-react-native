@@ -45,6 +45,7 @@ export type ConfirmParams =
   | KlarnaParams
   // | WeChatPayParams
   | BancontactParams
+  | BillieParams
   | USBankAccountParams
   | PayPalParams
   | AffirmParams
@@ -166,6 +167,16 @@ export interface BancontactParams {
   };
 }
 
+export type BillieParams = {
+  paymentMethodType: 'Billie';
+  paymentMethodData: {
+    billingDetails?: BillingDetails;
+    shippingDetails?: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+};
+
 export interface SepaParams {
   paymentMethodType: 'SepaDebit';
   paymentMethodData: {
@@ -198,9 +209,8 @@ export interface AfterpayClearpayParams {
 export type KlarnaParams = {
   paymentMethodType: 'Klarna';
   paymentMethodData: {
-    billingDetails: Pick<Required<BillingDetails>, 'email'> & {
-      address: Pick<Required<Address>, 'country'>;
-    } & BillingDetails;
+    // Email and country are no longer required by Klarna
+    billingDetails?: BillingDetails;
     shippingDetails?: BillingDetails;
     mandateData?: MandateData;
     metadata?: MetaData;
