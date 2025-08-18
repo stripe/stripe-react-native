@@ -20,15 +20,10 @@ fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): WritableMap
     // Direct access to imageLoader and call it synchronously with timeout
     val imageBase64 =
       try {
-        val imageLoaderField = this@toWritableMap.javaClass.getDeclaredField("imageLoader")
-        imageLoaderField.isAccessible = true
-        @Suppress("UNCHECKED_CAST")
-        val imageLoader = imageLoaderField.get(this@toWritableMap) as suspend () -> Drawable
-
-        // Load synchronously with 2 second timeout
+        // Load synchronously with 5 second timeout
         val drawable =
           kotlinx.coroutines.runBlocking {
-            withTimeout(2000L) {
+            withTimeout(5000L) {
               imageLoader()
             }
           }
