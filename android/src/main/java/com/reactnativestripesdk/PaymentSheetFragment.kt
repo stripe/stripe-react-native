@@ -250,6 +250,7 @@ class PaymentSheetFragment :
         .googlePay(googlePayConfig)
         .appearance(appearance)
         .shippingDetails(shippingDetails)
+        .link(linkConfig)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
         .preferredNetworks(
           mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
