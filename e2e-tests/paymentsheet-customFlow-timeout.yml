@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (multi-step)"
 - extendedWaitUntil:

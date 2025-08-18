@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Financial Connections"
 - tapOn: "Collect Bank Account"
 - assertVisible:

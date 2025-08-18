@@ -9,7 +9,7 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function KlarnaPaymentScreen() {
+export default function BilliePaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
   const { confirmSetupIntent, loading: setupLoading } = useConfirmSetupIntent();
@@ -22,9 +22,9 @@ export default function KlarnaPaymentScreen() {
       },
       body: JSON.stringify({
         email,
-        currency: 'usd',
+        currency: 'eur',
         items: ['id-1'],
-        payment_method_types: ['klarna'],
+        payment_method_types: ['billie'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -42,19 +42,8 @@ export default function KlarnaPaymentScreen() {
     }
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      paymentMethodType: 'Klarna',
+      paymentMethodType: 'Billie',
       paymentMethodData: {
-        shippingDetails: {
-          address: {
-            city: 'Houston',
-            country: 'US',
-            line1: '1459  Circle Drive',
-            state: 'Texas',
-            postalCode: '77063',
-          },
-          email: 'myemail@s.com',
-          name: 'John Doe',
-        },
         billingDetails: {
           email: 'stripe@test.com',
           address: {
@@ -85,7 +74,7 @@ export default function KlarnaPaymentScreen() {
     }
 
     const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
-      paymentMethodType: 'Klarna',
+      paymentMethodType: 'Billie',
       paymentMethodData: {
         mandateData: {
           customerAcceptance: {
@@ -105,6 +94,12 @@ export default function KlarnaPaymentScreen() {
           },
           email: 'myemail@s.com',
           name: 'John Doe',
+        },
+        billingDetails: {
+          email: 'stripe@test.com',
+          address: {
+            country: 'US',
+          },
         },
       },
     });
