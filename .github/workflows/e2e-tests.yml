@@ -21,11 +21,18 @@ jobs:
     name: e2e-android-test
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
+        shard_index: [0, 1, 2, 3]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      SHARD_COUNT: 4
+      SHARD_INDEX: ${{ matrix.shard_index }}
+      RETRY_SLEEP_FAST: 10
+      RETRY_SLEEP_SLOW: 45
     steps:
       - name: Delete unnecessary tools 🔧
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -113,7 +120,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-android-${{ matrix.react_arch }}
+          name: maestro-artifacts-android-${{ matrix.react_arch }}-shard-${{ matrix.shard_index }}
           path: e2e-artifacts
           include-hidden-files: true
 
@@ -185,12 +192,19 @@ jobs:
     # Silicon chips run through the iOS tests much faster
     runs-on: macos-15-xlarge
     strategy:
+      fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
+        shard_index: [0, 1, 2, 3]
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      SHARD_COUNT: 4
+      SHARD_INDEX: ${{ matrix.shard_index }}
+      RETRY_SLEEP_FAST: 10
+      RETRY_SLEEP_SLOW: 45
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -249,7 +263,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-ios-${{ matrix.react_arch }}
+          name: maestro-artifacts-ios-${{ matrix.react_arch }}-shard-${{ matrix.shard_index }}
           path: e2e-artifacts
           include-hidden-files: true
 
