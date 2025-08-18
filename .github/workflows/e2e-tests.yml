@@ -27,8 +27,8 @@ jobs:
         shard_index: [0, 1]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
-      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
-      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && 'true' || 'false' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
       SHARD_COUNT: 2
       SHARD_INDEX: ${{ matrix.shard_index }}
       RETRY_SLEEP_FAST: 10
@@ -199,8 +199,8 @@ jobs:
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
-      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
-      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && 'true' || 'false' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
       SHARD_COUNT: 2
       SHARD_INDEX: ${{ matrix.shard_index }}
       RETRY_SLEEP_FAST: 10
@@ -227,8 +227,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
+            ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-
             ${{ runner.os }}-pods-
 
       - name: Setup Node.js environment
@@ -244,6 +245,8 @@ jobs:
 
       - name: Install Pods
         run: yarn pods
+        env:
+          NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
 
       - name: Install Maestro CLI
         run: |
@@ -251,6 +254,9 @@ jobs:
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Build iOS App
+        env:
+          NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
+          RCT_NEW_ARCH_ENABLED: ${{ env.RCT_NEW_ARCH_ENABLED }}
         run: |
           yarn run-example-ios:release
 
