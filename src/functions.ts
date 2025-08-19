@@ -37,6 +37,8 @@ import type { CollectFinancialConnectionsAccountsParams } from './types/Financia
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
 import type { LinkUserInfo } from './types/LinkUserInfo';
+import type { KycInfo } from './types/KycInfo';
+import type { CryptoNetwork } from './types/CryptoNetwork';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -904,4 +906,15 @@ export const lookupLinkUser = async (email: string): Promise<any> => {
 
 export const registerLinkUser = async (info: LinkUserInfo): Promise<any> => {
   return NativeStripeSdk.registerLinkUser(info);
+};
+
+export const registerWalletAddress = async (
+  walletAddress: string,
+  network: CryptoNetwork
+): Promise<any> => {
+  return NativeStripeSdk.registerWalletAddress(walletAddress, network);
+};
+
+export const collectKycInfo = async (kycInfo: KycInfo): Promise<any> => {
+  return NativeStripeSdk.collectKycInfo(kycInfo);
 };

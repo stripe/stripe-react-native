@@ -17,6 +17,7 @@ import { Collapse } from '../components/Collapse';
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { handleURLCallback } = useStripe();
+  const { configureOnramp } = useStripe();
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
@@ -47,6 +48,37 @@ export default function HomeScreen() {
 
     return () => deepLinkListener.remove();
   }, [handleDeepLink]);
+
+  const handleConfigureOnramp = useCallback(() => {
+    const config = {
+      merchantDisplayName: 'Onramp RN Example',
+      publishableKey:
+        'pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO',
+      appearance: {
+        lightColors: {
+          primary: 0xff6200ee,
+          borderSelected: 0xff03dac6,
+        },
+        darkColors: {
+          primary: 0xffbb86fc,
+          borderSelected: 0xff3700b3,
+        },
+        style: 'ALWAYS_DARK',
+        primaryButton: {
+          cornerRadiusDp: 8,
+          heightDp: 48,
+        },
+      },
+    };
+
+    configureOnramp(config)
+      .then(() => {
+        console.error('Onramp configured successfully.');
+      })
+      .catch((error: any) => {
+        console.error('Error configuring Onramp:', error);
+      });
+  }, [configureOnramp]);
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
@@ -452,6 +484,14 @@ export default function HomeScreen() {
       </Collapse>
       <Collapse title="Crypto Onramp">
         <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Configure Onramp (Required First)"
+              onPress={() => {
+                handleConfigureOnramp();
+              }}
+            />
+          </View>
           <View style={styles.buttonContainer}>
             <Button
               title="Crypto Onramp Flow"

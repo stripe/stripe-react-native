@@ -327,4 +327,12 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void registerLinkUser(ReadableMap info, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void registerWalletAddress(String walletAddress, String network, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void collectKycInfo(ReadableMap kycInfo, Promise promise);
 }

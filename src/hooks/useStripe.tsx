@@ -62,10 +62,14 @@ import {
   configureOnramp,
   lookupLinkUser,
   registerLinkUser,
+  registerWalletAddress,
+  collectKycInfo,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
 import type { LinkUserInfo } from '../types/LinkUserInfo';
+import type { CryptoNetwork } from '../types/CryptoNetwork';
+import type { KycInfo } from '../types/KycInfo';
 
 /**
  * useStripe hook
@@ -345,6 +349,20 @@ export function useStripe() {
     []
   );
 
+  const _registerWalletAddress = useCallback(
+    async (walletAddress: string, network: CryptoNetwork): Promise<any> => {
+      return registerWalletAddress(walletAddress, network);
+    },
+    []
+  );
+
+  const _collectKycInfo = useCallback(
+    async (kycInfo: KycInfo): Promise<any> => {
+      return collectKycInfo(kycInfo);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -383,5 +401,7 @@ export function useStripe() {
     configureOnramp: _configureOnramp,
     lookupLinkUser: _lookupLinkUser,
     registerLinkUser: _registerLinkUser,
+    registerWalletAddress: _registerWalletAddress,
+    collectKycInfo: _collectKycInfo,
   };
 }

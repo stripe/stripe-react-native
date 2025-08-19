@@ -78,6 +78,8 @@ import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampLinkLookupResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterUserResult
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
+import com.stripe.android.crypto.onramp.model.IdType
+import com.stripe.android.crypto.onramp.model.DateOfBirth
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
@@ -86,6 +88,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import androidx.lifecycle.SavedStateHandle
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
+import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.crypto.onramp.model.OnrampSetWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampKYCResult
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
@@ -1426,6 +1432,11 @@ class StripeSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
+    if (coordinator != null) {
+      promise.resolve(true)
+      return
+    }
+
     val application = currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
         promise.reject("NO_APPLICATION", "Could not get Application instance")
@@ -1473,10 +1484,13 @@ class StripeSdkModule(
           )
         }
         is OnrampLinkLookupResult.Failed -> {
-          promise.reject("LookupError", result.error)
+          promise.reject("LOOKUP_ERROR", result.error)
+        }
+        null -> {
+          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
         }
         else -> {
-          promise.reject("LookupError", "Unknown result")
+          promise.reject("LOOKUP_ERROR", "Unknown result")
         }
       }
     }
@@ -1487,25 +1501,131 @@ class StripeSdkModule(
     info: ReadableMap,
     promise: Promise,
   ) {
-
-    val linkUserInfo = LinkUserInfo(
-      email = info.getString("email") ?: "",
-      phone = info.getString("phone") ?: "",
-      country = info.getString("country") ?: "",
-      fullName = info.getString("fullName"),
-    )
-
     CoroutineScope(Dispatchers.IO).launch {
+      val linkUserInfo = LinkUserInfo(
+        email = info.getString("email") ?: "",
+        phone = info.getString("phone") ?: "",
+        country = info.getString("country") ?: "",
+        fullName = info.getString("fullName"),
+      )
+
       val result = coordinator?.registerLinkUser(linkUserInfo)
       when (result) {
         is OnrampRegisterUserResult.Completed -> {
           promise.resolve(result.customerId)
         }
         is OnrampRegisterUserResult.Failed -> {
-          promise.reject("RegistrationError", result.error)
+          promise.reject("REGISTRATION_ERROR", result.error)
+        }
+        null -> {
+          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
         }
         else -> {
-          promise.reject("RegistrationError", "Unknown result")
+          promise.reject("REGISTRATION_ERROR", "Unknown result")
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun registerWalletAddress(
+    walletAddress: String,
+    network: String,
+    promise: Promise
+  ) {
+    CoroutineScope(Dispatchers.IO).launch {
+      val cryptoNetwork = try {
+        CryptoNetwork.valueOf(network)
+      } catch (e: Exception) {
+        promise.reject("INVALID_NETWORK", "Invalid network: $network")
+        return@launch
+      }
+
+      when (val result = coordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {
+        is OnrampSetWalletAddressResult.Completed -> {
+          promise.resolve(null)
+        }
+        is OnrampSetWalletAddressResult.Failed -> {
+          promise.reject("REGISTER_WALLET_ERROR", result.error)
+        }
+        null -> {
+          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+        }
+        else -> {
+          promise.reject("REGISTER_WALLET_ERROR", "Unknown result")
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+override fun collectKycInfo(
+  kycInfo: ReadableMap,
+  promise: Promise
+) {
+    CoroutineScope(Dispatchers.IO).launch {
+      val firstName = kycInfo.getString("firstName") ?: ""
+      val lastName = kycInfo.getString("lastName") ?: ""
+      val idNumber = kycInfo.getString("idNumber")
+      val idTypeStr = kycInfo.getString("idType")
+      val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
+      val addressMap = kycInfo.getMap("address")
+      val nationalities = kycInfo.getArray("nationalities")?.toArrayList()?.map { it as String }
+      val birthCountry = kycInfo.getString("birthCountry")
+      val birthCity = kycInfo.getString("birthCity")
+
+      val dob = dateOfBirthMap?.let {
+        DateOfBirth(
+          day = it.getInt("day"),
+          month = it.getInt("month"),
+          year = it.getInt("year")
+        )
+      }
+
+      val addressObj = addressMap?.let {
+        PaymentSheet.Address(
+          line1 = it.getString("line1"),
+          line2 = it.getString("line2"),
+          city = it.getString("city"),
+          state = it.getString("state"),
+          postalCode = it.getString("postalCode"),
+          country = it.getString("country"),
+        )
+      }
+
+      val idTypeValue = idTypeStr?.let {
+        try {
+          IdType.valueOf(it)
+        } catch (e: Exception) {
+          promise.reject("INVALID_ID_TYPE", "Invalid ID type: $it")
+          return@launch
+        }
+      }
+
+      val kycInfo = KycInfo(
+        firstName = firstName,
+        lastName = lastName,
+        idNumber = idNumber,
+        idType = idTypeValue,
+        dateOfBirth = dob ?: DateOfBirth(1, 1, 1970),
+        address = addressObj ?: PaymentSheet.Address(),
+        nationalities = nationalities,
+        birthCountry = birthCountry,
+        birthCity = birthCity
+      )
+
+      when (val result = coordinator?.collectKycInfo(kycInfo)) {
+        is OnrampKYCResult.Completed -> {
+          promise.resolve(null)
+        }
+        is OnrampKYCResult.Failed -> {
+          promise.reject("COLLECT_KYC_ERROR", result.error)
+        }
+        null -> {
+          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+        }
+        else -> {
+          promise.reject("COLLECT_KYC_ERROR", "Unknown result")
         }
       }
     }
@@ -1576,3 +1696,4 @@ class StripeSdkModule(
     const val NAME = NativeStripeSdkModuleSpec.NAME
   }
 }
+

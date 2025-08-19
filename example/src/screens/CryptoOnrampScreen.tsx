@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,39 +12,8 @@ import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 
 export default function CryptoOnrampScreen() {
-  const { configureOnramp, lookupLinkUser } = useStripe();
+  const { lookupLinkUser } = useStripe();
   const [email, setEmail] = useState('');
-
-  useEffect(() => {
-    const config = {
-      merchantDisplayName: 'Onramp RN Example',
-      publishableKey:
-        'pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO',
-      appearance: {
-        lightColors: {
-          primary: 0xff6200ee, // Example: purple
-          borderSelected: 0xff03dac6, // Example: teal
-        },
-        darkColors: {
-          primary: 0xffbb86fc, // Example: light purple
-          borderSelected: 0xff3700b3, // Example: dark purple
-        },
-        style: 'ALWAYS_DARK', // or "ALWAYS_LIGHT", "ALWAYS_DARK"
-        primaryButton: {
-          cornerRadiusDp: 8,
-          heightDp: 48,
-        },
-      },
-    };
-
-    configureOnramp(config)
-      .then(() => {
-        console.error('Onramp configured successfully.');
-      })
-      .catch((error: any) => {
-        console.error('Error configuring Onramp:', error);
-      });
-  }, [configureOnramp]);
 
   const checkIsLinkUser = useCallback(async () => {
     try {
