@@ -24,12 +24,12 @@ jobs:
       fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
-        shard_index: [0, 1]
+        shard_index: [0, 1, 2]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
-      SHARD_COUNT: 2
+      SHARD_COUNT: 3
       SHARD_INDEX: ${{ matrix.shard_index }}
       RETRY_SLEEP_FAST: 10
       RETRY_SLEEP_SLOW: 45
@@ -195,13 +195,13 @@ jobs:
       fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
-        shard_index: [0, 1]
+        shard_index: [0, 1, 2]
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
-      SHARD_COUNT: 2
+      SHARD_COUNT: 3
       SHARD_INDEX: ${{ matrix.shard_index }}
       RETRY_SLEEP_FAST: 10
       RETRY_SLEEP_SLOW: 45
