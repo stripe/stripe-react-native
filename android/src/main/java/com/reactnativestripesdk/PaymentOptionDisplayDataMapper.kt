@@ -1,8 +1,14 @@
 package com.reactnativestripesdk
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
-import androidx.core.text.toHtml
-import androidx.core.text.toSpannable
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.TextUnit
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.getBase64FromBitmap
@@ -52,6 +58,162 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
   }
 
 fun AnnotatedString.toHtmlString(): String {
-  val spanned = this.toSpannable()
-  return spanned.toHtml()
+  val htmlBuilder = StringBuilder()
+  var currentIndex = 0
+
+  val allAnnotations = mutableListOf<AnnotationInfo>()
+
+  spanStyles.forEach { range ->
+    allAnnotations.add(
+      AnnotationInfo(
+        start = range.start,
+        end = range.end,
+        type = AnnotationType.SPAN_STYLE,
+        data = range.item,
+      ),
+    )
+  }
+
+  getStringAnnotations(0, length).forEach { range ->
+    allAnnotations.add(
+      AnnotationInfo(
+        start = range.start,
+        end = range.end,
+        type = AnnotationType.STRING_ANNOTATION,
+        data = range,
+      ),
+    )
+  }
+
+  getLinkAnnotations(0, length).forEach { range ->
+    allAnnotations.add(
+      AnnotationInfo(
+        start = range.start,
+        end = range.end,
+        type = AnnotationType.LINK_ANNOTATION,
+        data = range,
+      ),
+    )
+  }
+
+  allAnnotations.sortWith(compareBy({ it.start }, { -it.end }))
+
+  val openTags = mutableListOf<TagInfo>()
+
+  while (currentIndex < length) {
+    openTags
+      .filter { it.end == currentIndex }
+      .reversed()
+      .forEach { tagInfo ->
+        htmlBuilder.append(tagInfo.closeTag)
+        openTags.remove(tagInfo)
+      }
+
+    allAnnotations.filter { it.start == currentIndex }.forEach { annotation ->
+      when (annotation.type) {
+        AnnotationType.SPAN_STYLE -> {
+          val spanStyle = annotation.data as SpanStyle
+          val tags = getHtmlTagsForSpanStyle(spanStyle)
+          tags.forEach { (openTag, closeTag) ->
+            htmlBuilder.append(openTag)
+            openTags.add(TagInfo(annotation.end, closeTag))
+          }
+        }
+        AnnotationType.STRING_ANNOTATION -> {
+          val stringAnnotation = annotation.data as AnnotatedString.Range<String>
+          when (stringAnnotation.tag) {
+            "URL", "LINK_TAG" -> {
+              val url = stringAnnotation.item
+              htmlBuilder.append("<a href=\"${escapeHtml(url)}\">")
+              openTags.add(TagInfo(annotation.end, "</a>"))
+            }
+          }
+        }
+        AnnotationType.LINK_ANNOTATION -> {
+          val linkAnnotation = annotation.data as AnnotatedString.Range<LinkAnnotation>
+          when (val linkItem = linkAnnotation.item) {
+            is LinkAnnotation.Url -> {
+              htmlBuilder.append("<a href=\"${escapeHtml(linkItem.url)}\">")
+              openTags.add(TagInfo(annotation.end, "</a>"))
+            }
+          }
+        }
+      }
+    }
+
+    htmlBuilder.append(escapeHtml(text[currentIndex].toString()))
+    currentIndex++
+  }
+
+  openTags.reversed().forEach { tagInfo ->
+    htmlBuilder.append(tagInfo.closeTag)
+  }
+
+  return htmlBuilder.toString()
 }
+
+private fun getHtmlTagsForSpanStyle(spanStyle: SpanStyle): List<Pair<String, String>> {
+  val tags = mutableListOf<Pair<String, String>>()
+
+  if (spanStyle.fontWeight == FontWeight.Bold ||
+    (spanStyle.fontWeight?.weight ?: 0) >= FontWeight.Bold.weight
+  ) {
+    tags.add("<b>" to "</b>")
+  }
+
+  if (spanStyle.fontStyle == FontStyle.Italic) {
+    tags.add("<i>" to "</i>")
+  }
+
+  spanStyle.color.takeIf { it != Color.Unspecified }?.let { color ->
+    val hexColor = String.format("#%06X", 0xFFFFFF and color.toArgb())
+    tags.add("<font color=\"$hexColor\">" to "</font>")
+  }
+
+  spanStyle.fontSize.takeIf { it != TextUnit.Unspecified }?.let { fontSize ->
+    val emSize = fontSize.value / 16f
+    tags.add("<span style=\"font-size: ${emSize}em;\">" to "</span>")
+  }
+
+  spanStyle.textDecoration?.let { decoration ->
+    if (decoration.contains(TextDecoration.Underline)) {
+      tags.add("<u>" to "</u>")
+    }
+    if (decoration.contains(TextDecoration.LineThrough)) {
+      tags.add("<s>" to "</s>")
+    }
+  }
+
+  spanStyle.background.takeIf { it != Color.Unspecified }?.let { bgColor ->
+    val hexBgColor = String.format("#%06X", 0xFFFFFF and bgColor.toArgb())
+    tags.add("<span style=\"background-color: $hexBgColor;\">" to "</span>")
+  }
+
+  return tags
+}
+
+private fun escapeHtml(text: String): String =
+  text
+    .replace("&", "&amp;")
+    .replace("<", "&lt;")
+    .replace(">", "&gt;")
+    .replace("\"", "&quot;")
+    .replace("'", "&#39;")
+
+private data class AnnotationInfo(
+  val start: Int,
+  val end: Int,
+  val type: AnnotationType,
+  val data: Any,
+)
+
+private enum class AnnotationType {
+  SPAN_STYLE,
+  STRING_ANNOTATION,
+  LINK_ANNOTATION,
+}
+
+private data class TagInfo(
+  val end: Int,
+  val closeTag: String,
+)
