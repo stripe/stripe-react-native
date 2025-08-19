@@ -9,10 +9,6 @@ on:
       - '**/*.md'
       - '**/*.MD'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test-ios:
     name: unit-test-ios
