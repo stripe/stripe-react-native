@@ -1,3 +1,5 @@
+package com.reactnativestripesdk
+
 import androidx.compose.ui.text.AnnotatedString
 import androidx.core.text.toHtml
 import androidx.core.text.toSpannable
