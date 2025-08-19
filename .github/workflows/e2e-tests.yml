@@ -27,7 +27,7 @@ jobs:
         shard_index: [0, 1]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
-      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && 'true' || 'false' }}
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
       SHARD_COUNT: 2
       SHARD_INDEX: ${{ matrix.shard_index }}
@@ -199,7 +199,7 @@ jobs:
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
-      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && 'true' || 'false' }}
+      NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
       RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
       SHARD_COUNT: 2
       SHARD_INDEX: ${{ matrix.shard_index }}
@@ -230,7 +230,6 @@ jobs:
           key: ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-
-            ${{ runner.os }}-pods-
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
