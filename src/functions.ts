@@ -36,6 +36,7 @@ import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
+import type { LinkUserInfo } from './types/LinkUserInfo';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -899,4 +900,8 @@ export const configureOnramp = async (config: any): Promise<any> => {
 
 export const lookupLinkUser = async (email: string): Promise<any> => {
   return NativeStripeSdk.lookupLinkUser(email);
+};
+
+export const registerLinkUser = async (info: LinkUserInfo): Promise<any> => {
+  return NativeStripeSdk.registerLinkUser(info);
 };

@@ -323,4 +323,8 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void lookupLinkUser(String email, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void registerLinkUser(ReadableMap info, Promise promise);
 }

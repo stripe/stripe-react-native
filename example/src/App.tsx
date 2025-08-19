@@ -50,6 +50,8 @@ import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import CryptoOnrampScreen from './screens/CryptoOnrampScreen';
+import RegisterCryptoUserScreen from './screens/RegisterCryptoUserScreen';
+import VerifyCryptoLinkUserScreen from './screens/VerifyCryptoLinkUserScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -102,6 +104,8 @@ export type RootStackParamList = {
   RevolutPayScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
   CryptoOnrampScreen: undefined;
+  RegisterCryptoUserScreen: undefined;
+  VerifyCryptoLinkUserScreen: undefined;
 };
 
 declare global {
@@ -280,6 +284,14 @@ export default function App() {
           <Stack.Screen
             name="CryptoOnrampScreen"
             component={CryptoOnrampScreen}
+          />
+          <Stack.Screen
+            name="RegisterCryptoUserScreen"
+            component={RegisterCryptoUserScreen}
+          />
+          <Stack.Screen
+            name="VerifyCryptoLinkUserScreen"
+            component={VerifyCryptoLinkUserScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

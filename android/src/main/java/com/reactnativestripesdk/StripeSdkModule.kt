@@ -76,10 +76,12 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampLinkLookupResult
-import com.stripe.android.link.model.LinkAppearance
-import com.stripe.android.link.model.LinkAppearance.Colors
-import com.stripe.android.link.model.LinkAppearance.PrimaryButton
-import com.stripe.android.link.model.LinkAppearance.Style
+import com.stripe.android.crypto.onramp.model.OnrampRegisterUserResult
+import com.stripe.android.crypto.onramp.model.LinkUserInfo
+import com.stripe.android.link.LinkAppearance
+import com.stripe.android.link.LinkAppearance.Colors
+import com.stripe.android.link.LinkAppearance.PrimaryButton
+import com.stripe.android.link.LinkAppearance.Style
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -1442,7 +1444,15 @@ class StripeSdkModule(
           LinkAppearance(style = Style.AUTOMATIC)
         }
 
-      val configuration = OnrampConfiguration(appearance)
+      val displayName = config.getString("merchantDisplayName") ?: ""
+      val publishableKey = config.getString("publishableKey") ?: ""
+
+      val configuration = OnrampConfiguration(
+        merchantDisplayName = displayName,
+        publishableKey = publishableKey,
+        appearance = appearance
+      )
+
       coordinator?.configure(configuration)
       promise.resolve(true)
     }
@@ -1467,6 +1477,35 @@ class StripeSdkModule(
         }
         else -> {
           promise.reject("LookupError", "Unknown result")
+        }
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun registerLinkUser(
+    info: ReadableMap,
+    promise: Promise,
+  ) {
+
+    val linkUserInfo = LinkUserInfo(
+      email = info.getString("email") ?: "",
+      phone = info.getString("phone") ?: "",
+      country = info.getString("country") ?: "",
+      fullName = info.getString("fullName"),
+    )
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator?.registerLinkUser(linkUserInfo)
+      when (result) {
+        is OnrampRegisterUserResult.Completed -> {
+          promise.resolve(result.customerId)
+        }
+        is OnrampRegisterUserResult.Failed -> {
+          promise.reject("RegistrationError", result.error)
+        }
+        else -> {
+          promise.reject("RegistrationError", "Unknown result")
         }
       }
     }

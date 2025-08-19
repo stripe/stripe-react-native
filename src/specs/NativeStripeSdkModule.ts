@@ -44,6 +44,7 @@ import type {
 import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
+import type { LinkUserInfo } from '../types/LinkUserInfo';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -220,6 +221,7 @@ export interface Spec extends TurboModule {
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   configureOnramp(config: UnsafeObject<any>): Promise<any>;
   lookupLinkUser(email: string): Promise<any>;
+  registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

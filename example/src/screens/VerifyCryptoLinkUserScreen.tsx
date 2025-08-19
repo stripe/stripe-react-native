@@ -1,19 +1,13 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Alert,
-  Text,
-  TextInput,
-} from 'react-native';
+import { StyleSheet, View, ScrollView, Text, TextInput } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 
-export default function CryptoOnrampScreen() {
+export default function VerifyCryptoLinkUserScreen() {
   const { configureOnramp, lookupLinkUser } = useStripe();
   const [email, setEmail] = useState('');
+  const [response, setResponse] = useState<string | null>(null);
 
   useEffect(() => {
     const config = {
@@ -22,14 +16,14 @@ export default function CryptoOnrampScreen() {
         'pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO',
       appearance: {
         lightColors: {
-          primary: 0xff6200ee, // Example: purple
-          borderSelected: 0xff03dac6, // Example: teal
+          primary: 0xff6200ee,
+          borderSelected: 0xff03dac6,
         },
         darkColors: {
-          primary: 0xffbb86fc, // Example: light purple
-          borderSelected: 0xff3700b3, // Example: dark purple
+          primary: 0xffbb86fc,
+          borderSelected: 0xff3700b3,
         },
-        style: 'ALWAYS_DARK', // or "ALWAYS_LIGHT", "ALWAYS_DARK"
+        style: 'ALWAYS_DARK',
         primaryButton: {
           cornerRadiusDp: 8,
           heightDp: 48,
@@ -37,28 +31,27 @@ export default function CryptoOnrampScreen() {
       },
     };
 
-    configureOnramp(config)
-      .then(() => {
-        console.error('Onramp configured successfully.');
-      })
-      .catch((error: any) => {
-        console.error('Error configuring Onramp:', error);
-      });
+    configureOnramp(config).catch(() => {});
   }, [configureOnramp]);
 
   const checkIsLinkUser = useCallback(async () => {
+    setResponse(null);
     try {
       const result = await lookupLinkUser(email);
       const isLinkUser = result?.isLinkUser ?? false;
-      Alert.alert('Result', `Is Link User: ${isLinkUser}`);
-    } catch (error) {
-      console.error('Error checking link user:', error);
-      Alert.alert('Error', 'An error occurred while checking link user.');
+      setResponse(`Is Link User: ${isLinkUser}`);
+    } catch (error: any) {
+      setResponse(
+        `Error: ${error?.message || 'An error occurred while checking link user.'}`
+      );
     }
   }, [email, lookupLinkUser]);
 
   return (
-    <ScrollView accessibilityLabel="onramp-root" style={styles.container}>
+    <ScrollView
+      accessibilityLabel="verify-link-user-root"
+      style={styles.container}
+    >
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>Enter your email address:</Text>
         <TextInput
@@ -69,7 +62,10 @@ export default function CryptoOnrampScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+      </View>
+      <View style={styles.buttonContainer}>
         <Button title="Check Link User" onPress={checkIsLinkUser} />
+        {response && <Text style={styles.responseText}>{response}</Text>}
       </View>
     </ScrollView>
   );
@@ -98,5 +94,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
     marginBottom: 8,
+  },
+  responseText: {
+    marginTop: 12,
+    fontSize: 12,
+    color: colors.dark_gray,
   },
 });

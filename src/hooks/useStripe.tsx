@@ -61,9 +61,11 @@ import {
   openPlatformPaySetup,
   configureOnramp,
   lookupLinkUser,
+  registerLinkUser,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
+import type { LinkUserInfo } from '../types/LinkUserInfo';
 
 /**
  * useStripe hook
@@ -336,6 +338,13 @@ export function useStripe() {
     []
   );
 
+  const _registerLinkUser = useCallback(
+    async (info: LinkUserInfo): Promise<{ customerId: string }> => {
+      return registerLinkUser(info);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -373,5 +382,6 @@ export function useStripe() {
     openPlatformPaySetup: _openPlatformPaySetup,
     configureOnramp: _configureOnramp,
     lookupLinkUser: _lookupLinkUser,
+    registerLinkUser: _registerLinkUser,
   };
 }

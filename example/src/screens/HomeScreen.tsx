@@ -450,14 +450,34 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Crypto Onramp Flow"
-          onPress={() => {
-            navigation.navigate('CryptoOnrampScreen');
-          }}
-        />
-      </View>
+      <Collapse title="Crypto Onramp">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Crypto Onramp Flow"
+              onPress={() => {
+                navigation.navigate('CryptoOnrampScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Verify Crypto Link User"
+              onPress={() => {
+                navigation.navigate('VerifyCryptoLinkUserScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Register Crypto Link User"
+              onPress={() => {
+                navigation.navigate('RegisterCryptoUserScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}
