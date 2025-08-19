@@ -1499,6 +1499,9 @@ class StripeSdkModule(
       identityVerificationCallback = { result ->
           //emitOnrampIdentityVerification()
       },
+      selectPaymentCallback = { result ->
+          //emitOnrampSelectPayment(result)
+      }
     )
 
     // val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
