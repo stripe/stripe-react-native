@@ -215,6 +215,10 @@ extension StripeSdkImpl {
       configuration.allowsDelayedPaymentMethods = allowsDelayedPaymentMethods
     }
 
+    if let embeddedViewDisplaysMandateText = params["embeddedViewDisplaysMandateText"] as? Bool {
+      configuration.embeddedViewDisplaysMandateText = embeddedViewDisplaysMandateText
+    }
+
     if let removeSavedPaymentMethodMessage = params["removeSavedPaymentMethodMessage"] as? String {
       configuration.removeSavedPaymentMethodMessage = removeSavedPaymentMethodMessage
     }

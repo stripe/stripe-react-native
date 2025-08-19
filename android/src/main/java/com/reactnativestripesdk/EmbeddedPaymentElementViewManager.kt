@@ -195,6 +195,15 @@ class EmbeddedPaymentElementViewManager :
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(toBundleObject(map)))
+        .embeddedViewDisplaysMandateText(
+          if (map.hasKey("embeddedViewDisplaysMandateText") &&
+            map.getType("embeddedViewDisplaysMandateText") == ReadableType.Boolean
+          ) {
+            map.getBoolean("embeddedViewDisplaysMandateText")
+          } else {
+            true // default value
+          },
+        )
         // Serialize original ReadableMap because toBundleObject cannot keep arrays of objects
         .customPaymentMethods(
           parseCustomPaymentMethods(
