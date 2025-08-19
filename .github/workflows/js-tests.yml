@@ -9,10 +9,6 @@ on:
       - '**/*.md'
       - '**/*.MD'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   js-tests:
     name: js-tests
