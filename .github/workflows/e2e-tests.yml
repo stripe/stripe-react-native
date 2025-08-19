@@ -21,11 +21,18 @@ jobs:
     name: e2e-android-test
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
+        shard_index: [0, 1, 2]
     env:
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
+      SHARD_COUNT: 3
+      SHARD_INDEX: ${{ matrix.shard_index }}
+      RETRY_SLEEP_FAST: 10
+      RETRY_SLEEP_SLOW: 45
     steps:
       - name: Delete unnecessary tools 🔧
         uses: jlumbroso/free-disk-space@v1.3.1
@@ -113,7 +120,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-android-${{ matrix.react_arch }}
+          name: maestro-artifacts-android-${{ matrix.react_arch }}-shard-${{ matrix.shard_index }}
           path: e2e-artifacts
           include-hidden-files: true
 
@@ -185,12 +192,19 @@ jobs:
     # Silicon chips run through the iOS tests much faster
     runs-on: macos-15-xlarge
     strategy:
+      fail-fast: false
       matrix:
         react_arch: [old_arch, new_arch]
+        shard_index: [0, 1, 2]
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: 300_000 # 5 minutes
       MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
       NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' }}
+      RCT_NEW_ARCH_ENABLED: ${{ matrix.react_arch == 'new_arch' && '1' || '0' }}
+      SHARD_COUNT: 3
+      SHARD_INDEX: ${{ matrix.shard_index }}
+      RETRY_SLEEP_FAST: 10
+      RETRY_SLEEP_SLOW: 45
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -213,9 +227,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pods-
+            ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
@@ -230,6 +244,8 @@ jobs:
 
       - name: Install Pods
         run: yarn pods
+        env:
+          NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
 
       - name: Install Maestro CLI
         run: |
@@ -237,6 +253,9 @@ jobs:
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Build iOS App
+        env:
+          NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
+          RCT_NEW_ARCH_ENABLED: ${{ env.RCT_NEW_ARCH_ENABLED }}
         run: |
           yarn run-example-ios:release
 
@@ -249,7 +268,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maestro-artifacts-ios-${{ matrix.react_arch }}
+          name: maestro-artifacts-ios-${{ matrix.react_arch }}-shard-${{ matrix.shard_index }}
           path: e2e-artifacts
           include-hidden-files: true
 
@@ -315,3 +334,42 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
               "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  # Reporter jobs that provide the status checks branch protection expects
+  report-android-status:
+    name: e2e-android-test
+    runs-on: ubuntu-latest
+    needs: test-android
+    if: always()
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.test-android.result }}" == "success" ]]; then
+            echo "All Android tests passed for ${{ matrix.react_arch }}"
+            exit 0
+          else
+            echo "Android tests failed for ${{ matrix.react_arch }}"
+            exit 1
+          fi
+
+  report-ios-status:
+    name: e2e-ios-test
+    runs-on: ubuntu-latest
+    needs: test-ios
+    if: always()
+    strategy:
+      matrix:
+        react_arch: [old_arch, new_arch]
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.test-ios.result }}" == "success" ]]; then
+            echo "All iOS tests passed for ${{ matrix.react_arch }}"
+            exit 0
+          else
+            echo "iOS tests failed for ${{ matrix.react_arch }}"
+            exit 1
+          fi

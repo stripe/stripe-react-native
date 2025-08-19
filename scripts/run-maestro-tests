@@ -27,18 +27,55 @@ fi
 failedTests=()
 failedFinancialConnectionsTests=()
 
+# Ensure artifacts directory exists even if shard has no tests
+mkdir -p e2e-artifacts
+
+# Optional sharding configuration via environment variables
+# Set SHARD_COUNT to the total number of shards and SHARD_INDEX to the index for this job (0-based)
+if { [ -n "$SHARD_COUNT" ] || [ -n "$SHARD_INDEX" ]; } && { [ -z "$SHARD_COUNT" ] || [ -z "$SHARD_INDEX" ]; }; then
+  echo "Error! Both SHARD_COUNT and SHARD_INDEX must be set to enable sharding."
+  exit 1
+fi
+
+if [ -n "$SHARD_COUNT" ]; then
+  if ! [[ $SHARD_COUNT =~ ^[0-9]+$ ]] || ! [[ $SHARD_INDEX =~ ^[0-9]+$ ]]; then
+    echo "Error! SHARD_COUNT and SHARD_INDEX must be integers."
+    exit 1
+  fi
+  if [ "$SHARD_COUNT" -le 0 ] || [ "$SHARD_INDEX" -lt 0 ] || [ "$SHARD_INDEX" -ge "$SHARD_COUNT" ]; then
+    echo "Error! SHARD_INDEX must satisfy 0 <= SHARD_INDEX < SHARD_COUNT. Got SHARD_INDEX=$SHARD_INDEX, SHARD_COUNT=$SHARD_COUNT"
+    exit 1
+  fi
+  echo "Sharding enabled: SHARD_INDEX=$SHARD_INDEX SHARD_COUNT=$SHARD_COUNT"
+fi
+
+# Retry timing configuration (in seconds)
+RETRY_SLEEP_FAST=${RETRY_SLEEP_FAST:-30}
+RETRY_SLEEP_SLOW=${RETRY_SLEEP_SLOW:-120}
+
+idx=0
 for file in $allTestFiles
 do
   testName=$(basename "${file%.*}")
   testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$RCT_NEW_ARCH_ENABLED\" --flatten-debug-output"
+
+  # Shard filter: only run files where (idx % SHARD_COUNT) == SHARD_INDEX
+  if [ -n "$SHARD_COUNT" ]; then
+    mod=$(( idx % SHARD_COUNT ))
+    if [ "$mod" -ne "$SHARD_INDEX" ]; then
+      idx=$((idx + 1))
+      continue
+    fi
+  fi
+
   if ! eval "$testCmd --debug-output e2e-artifacts/$testName";
   then
-    echo "Test ${file} failed. Retrying in 30 seconds..."
-    sleep 30
+    echo "Test ${file} failed. Retrying in ${RETRY_SLEEP_FAST}s..."
+    sleep "$RETRY_SLEEP_FAST"
     if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-1";
     then
-      echo "Test ${file} failed again. Retrying for the last time in 120 seconds..."
-      sleep 120
+      echo "Test ${file} failed again. Retrying for the last time in ${RETRY_SLEEP_SLOW}s..."
+      sleep "$RETRY_SLEEP_SLOW"
       if ! eval "$testCmd --debug-output e2e-artifacts/$testName-retry-2";
       then
         failedTests+=("$file")
@@ -49,14 +86,18 @@ do
       fi
     fi
   fi
+  idx=$((idx + 1))
 done
 
 # Output information for GitHub Actions
 if [ ${#failedFinancialConnectionsTests[@]} -gt 0 ]; then
     echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=true" >> $GITHUB_OUTPUT
     echo "FAILED_FC_TESTS=${failedFinancialConnectionsTests[*]}" >> $GITHUB_OUTPUT
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=true" > e2e-artifacts/fincon.env
+    echo "FAILED_FC_TESTS=${failedFinancialConnectionsTests[*]}" >> e2e-artifacts/fincon.env
 else
     echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=false" >> $GITHUB_OUTPUT
+    echo "FINANCIAL_CONNECTIONS_TESTS_FAILED=false" > e2e-artifacts/fincon.env
 fi
 
 if [ ${#failedTests[@]} -eq 0 ]; then
