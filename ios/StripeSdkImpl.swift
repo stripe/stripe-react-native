@@ -1149,6 +1149,20 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #endif
     }
 
+    @objc(configureOnramp:resolver:rejecter:)
+    public func configureOnramp(
+        config: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if (STPAPIClient.shared.publishableKey == nil) {
+            resolve(Errors.MISSING_INIT_ERROR)
+            return
+        }
+
+        resolve(nil)
+    }
+
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
     }

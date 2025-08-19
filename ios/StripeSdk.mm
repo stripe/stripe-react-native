@@ -76,6 +76,12 @@ RCT_EXPORT_METHOD(collectFinancialConnectionsAccounts:(nonnull NSString *)client
                                                    rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(configureOnramp:(nonnull NSDictionary *)config
+                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                           reject:(nonnull RCTPromiseRejectBlock)reject) {
+                                [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];
+                              }
+
 RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
                          orderIdentifier:(nonnull NSString *)orderIdentifier
                            webServiceUrl:(nonnull NSString *)webServiceUrl
