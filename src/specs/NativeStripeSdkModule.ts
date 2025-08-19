@@ -225,6 +225,8 @@ export interface Spec extends TurboModule {
   registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
   registerWalletAddress(walletAddress: string, network: string): Promise<any>;
   collectKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
+  presentOnrampVerificationFlow(): Promise<any>;
+  promptOnrampIdentityVerification(): Promise<any>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

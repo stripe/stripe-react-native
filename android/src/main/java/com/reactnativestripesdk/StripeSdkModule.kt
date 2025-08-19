@@ -80,6 +80,8 @@ import com.stripe.android.crypto.onramp.model.OnrampRegisterUserResult
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
 import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.DateOfBirth
+import com.stripe.android.crypto.onramp.model.OnrampCallbacks
+
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
@@ -92,6 +94,7 @@ import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampSetWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampKYCResult
+import androidx.activity.ComponentActivity
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
@@ -120,6 +123,7 @@ class StripeSdkModule(
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
   private var coordinator: OnrampCoordinator? = null
+  private var onrampPresenter: OnrampCoordinator.Presenter? = null
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -1465,7 +1469,46 @@ class StripeSdkModule(
       )
 
       coordinator?.configure(configuration)
+
+      CoroutineScope(Dispatchers.Main).launch {
+        createOnrampPresenter(promise)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun createOnrampPresenter(promise: Promise) {
+    val activity = getCurrentActivityOrResolveWithError(promise) as? ComponentActivity
+    if (activity == null) {
+      promise.reject("NO_ACTIVITY", "Current activity is not a ComponentActivity")
+      return
+    }
+    if (coordinator == null) {
+      promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+      return
+    }
+    if (onrampPresenter != null) {
+      promise.resolve(true) // Already created
+      return
+    }
+
+    val onrampCallbacks = OnrampCallbacks(
+      authenticationCallback = { result ->
+          //emitOnrampAuthentication(result)
+      },
+      identityVerificationCallback = { result ->
+          //emitOnrampIdentityVerification()
+      },
+    )
+
+    // val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+    //   .emitOnrampIdentityVerification()
+
+    try {
+      onrampPresenter = coordinator!!.createPresenter(activity, onrampCallbacks)
       promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("PRESENTER_ERROR", e.message)
     }
   }
 
@@ -1559,10 +1602,10 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-override fun collectKycInfo(
-  kycInfo: ReadableMap,
-  promise: Promise
-) {
+  override fun collectKycInfo(
+    kycInfo: ReadableMap,
+    promise: Promise
+  ) {
     CoroutineScope(Dispatchers.IO).launch {
       val firstName = kycInfo.getString("firstName") ?: ""
       val lastName = kycInfo.getString("lastName") ?: ""
@@ -1628,6 +1671,35 @@ override fun collectKycInfo(
           promise.reject("COLLECT_KYC_ERROR", "Unknown result")
         }
       }
+    }
+  }
+
+  @ReactMethod
+  override fun presentOnrampVerificationFlow(promise: Promise) {
+    if (onrampPresenter == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    try {
+      onrampPresenter!!.presentForVerification()
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("PRESENT_VERIFICATION_ERROR", e.message)
+    }
+  }
+
+  @ReactMethod
+  override fun promptOnrampIdentityVerification(promise: Promise) {
+    if (onrampPresenter == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+    try {
+      onrampPresenter!!.promptForIdentityVerification()
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("PROMPT_IDENTITY_VERIFICATION_ERROR", e.message)
     }
   }
 

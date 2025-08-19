@@ -918,3 +918,11 @@ export const registerWalletAddress = async (
 export const collectKycInfo = async (kycInfo: KycInfo): Promise<any> => {
   return NativeStripeSdk.collectKycInfo(kycInfo);
 };
+
+export const presentOnrampVerificationFlow = async (): Promise<any> => {
+  return NativeStripeSdk.presentOnrampVerificationFlow();
+};
+
+export const promptOnrampIdentityVerification = async (): Promise<any> => {
+  return NativeStripeSdk.promptOnrampIdentityVerification();
+};

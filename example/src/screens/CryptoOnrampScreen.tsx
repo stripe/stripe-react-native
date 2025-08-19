@@ -12,22 +12,21 @@ import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 
 export default function CryptoOnrampScreen() {
-  const { lookupLinkUser } = useStripe();
+  const { presentOnrampVerificationFlow } = useStripe();
   const [email, setEmail] = useState('');
 
-  const checkIsLinkUser = useCallback(async () => {
+  const handlePresentVerification = useCallback(async () => {
     try {
-      const result = await lookupLinkUser(email);
-      const isLinkUser = result?.isLinkUser ?? false;
-      Alert.alert('Result', `Is Link User: ${isLinkUser}`);
+      await presentOnrampVerificationFlow();
+      Alert.alert('Success', 'Verification flow presented.');
     } catch (error) {
-      console.error('Error checking link user:', error);
-      Alert.alert('Error', 'An error occurred while checking link user.');
+      console.error('Error presenting verification flow:', error);
+      Alert.alert('Error', 'Could not present verification flow.');
     }
-  }, [email, lookupLinkUser]);
+  }, [presentOnrampVerificationFlow]);
 
   return (
-    <ScrollView accessibilityLabel="onramp-root" style={styles.container}>
+    <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>Enter your email address:</Text>
         <TextInput
@@ -38,7 +37,10 @@ export default function CryptoOnrampScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Button title="Check Link User" onPress={checkIsLinkUser} />
+        <Button
+          title="Authenticate Link User"
+          onPress={handlePresentVerification}
+        />
       </View>
     </ScrollView>
   );
