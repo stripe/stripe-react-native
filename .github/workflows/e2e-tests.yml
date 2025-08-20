@@ -5,9 +5,6 @@ on:
     branches: [master]
   pull_request:
     branches: ['**']
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.MD'
   schedule:
     - cron: '0 7 * * *' # run at 7 AM UTC, 12 AM PST
   workflow_dispatch: # manually trigger the e2e tests

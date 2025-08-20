@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.50.4 - 2025-08-20
 
 **Features**
 - [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
