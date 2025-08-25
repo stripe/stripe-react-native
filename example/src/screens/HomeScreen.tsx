@@ -56,12 +56,12 @@ export default function HomeScreen() {
         'pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO',
       appearance: {
         lightColors: {
-          primary: '#2d22a1ff',
-          borderSelected: '#07b8b8ff',
+          primary: '#2d22a1',
+          borderSelected: '#07b8b8',
         },
         darkColors: {
           primary: '#800080',
-          borderSelected: '#526f3eff',
+          borderSelected: '#526f3e',
         },
         style: 'ALWAYS_DARK',
         primaryButton: {
