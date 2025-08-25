@@ -1736,9 +1736,12 @@ class StripeSdkModule(
 
     val lightColors =
       if (lightColorsMap != null) {
+        val primaryColorStr = lightColorsMap.getString("primary")
+        val borderSelectedColorStr = lightColorsMap.getString("borderSelected")
+
         Colors(
-          primary = Color(lightColorsMap.getInt("primary")),
-          borderSelected = Color(lightColorsMap.getInt("borderSelected")),
+          primary = Color(android.graphics.Color.parseColor(primaryColorStr)),
+          borderSelected = Color(android.graphics.Color.parseColor(borderSelectedColorStr)),
         )
       } else {
         Colors.default(isDark = false)
@@ -1746,9 +1749,12 @@ class StripeSdkModule(
 
     val darkColors =
       if (darkColorsMap != null) {
+        val primaryColorStr = darkColorsMap.getString("primary")
+        val borderSelectedColorStr = darkColorsMap.getString("borderSelected")
+
         Colors(
-          primary = Color(darkColorsMap.getInt("primary")),
-          borderSelected = Color(darkColorsMap.getInt("borderSelected")),
+          primary = Color(android.graphics.Color.parseColor(primaryColorStr)),
+          borderSelected = Color(android.graphics.Color.parseColor(borderSelectedColorStr)),
         )
       } else {
         Colors.default(isDark = true)
