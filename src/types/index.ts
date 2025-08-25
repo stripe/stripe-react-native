@@ -277,3 +277,28 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
+
+export type OnrampVerificationResult =
+  | { status: 'completed'; customerId: string }
+  | { status: 'cancelled' }
+  | { status: 'failed'; error: string };
+
+export type OnrampIdentityVerificationResult =
+  | { status: 'completed' }
+  | { status: 'cancelled' }
+  | { status: 'failed'; error: string };
+
+export type OnrampCollectPaymentResult =
+  | { status: 'completed'; displayData: PaymentOptionData }
+  | { status: 'cancelled' }
+  | { status: 'failed'; error: string };
+
+export type PaymentOptionData = {
+  /**
+   * User facing icon represented payment method.
+   * In React Native, this will likely be a URI string or a base64 string, not a Drawable.
+   */
+  icon: string; // e.g. URI or base64 string
+  label: string;
+  sublabel?: string;
+};

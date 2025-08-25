@@ -926,3 +926,9 @@ export const presentOnrampVerificationFlow = async (): Promise<any> => {
 export const promptOnrampIdentityVerification = async (): Promise<any> => {
   return NativeStripeSdk.promptOnrampIdentityVerification();
 };
+
+export const presentOnrampCollectPaymentFlow = async (
+  paymentMethod: string
+): Promise<any> => {
+  return NativeStripeSdk.presentOnrampCollectPaymentFlow(paymentMethod);
+};

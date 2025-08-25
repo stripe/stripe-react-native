@@ -227,6 +227,10 @@ export interface Spec extends TurboModule {
   collectKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
   presentOnrampVerificationFlow(): Promise<any>;
   promptOnrampIdentityVerification(): Promise<any>;
+  presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
+  onOnrampAuthentication: EventEmitter<UnsafeObject<any>>;
+  onOnrampIdentityVerification: EventEmitter<UnsafeObject<any>>;
+  onOnrampSelectPayment: EventEmitter<UnsafeObject<any>>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

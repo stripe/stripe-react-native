@@ -66,6 +66,7 @@ import {
   collectKycInfo,
   presentOnrampVerificationFlow,
   promptOnrampIdentityVerification,
+  presentOnrampCollectPaymentFlow,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -374,6 +375,13 @@ export function useStripe() {
       return promptOnrampIdentityVerification();
     }, []);
 
+  const _presentOnrampCollectPaymentFlow = useCallback(
+    async (paymentMethod: string): Promise<any> => {
+      return presentOnrampCollectPaymentFlow(paymentMethod);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -416,5 +424,6 @@ export function useStripe() {
     collectKycInfo: _collectKycInfo,
     presentOnrampVerificationFlow: _presentOnrampVerificationFlow,
     promptOnrampIdentityVerification: _promptOnrampIdentityVerification,
+    presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
   };
 }

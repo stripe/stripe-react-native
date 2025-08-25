@@ -81,6 +81,10 @@ import com.stripe.android.crypto.onramp.model.LinkUserInfo
 import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.DateOfBirth
 import com.stripe.android.crypto.onramp.model.OnrampCallbacks
+import com.stripe.android.crypto.onramp.model.OnrampVerificationResult
+import com.stripe.android.crypto.onramp.model.OnrampIdentityVerificationResult
+import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentResult
+import com.stripe.android.crypto.onramp.model.PaymentMethodType
 
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
@@ -1477,7 +1481,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  fun createOnrampPresenter(promise: Promise) {
+  private fun createOnrampPresenter(promise: Promise) {
     val activity = getCurrentActivityOrResolveWithError(promise) as? ComponentActivity
     if (activity == null) {
       promise.reject("NO_ACTIVITY", "Current activity is not a ComponentActivity")
@@ -1494,18 +1498,15 @@ class StripeSdkModule(
 
     val onrampCallbacks = OnrampCallbacks(
       authenticationCallback = { result ->
-          //emitOnrampAuthentication(result)
+        emitOnOnrampAuthentication(mapOnrampVerificationResult(result))
       },
       identityVerificationCallback = { result ->
-          //emitOnrampIdentityVerification()
+        emitOnOnrampIdentityVerification(mapOnrampIdentityVerificationResult(result))
       },
       selectPaymentCallback = { result ->
-          //emitOnrampSelectPayment(result)
+        emitOnOnrampSelectPayment(mapOnrampCollectPaymentResult(result))
       }
     )
-
-    // val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
-    //   .emitOnrampIdentityVerification()
 
     try {
       onrampPresenter = coordinator!!.createPresenter(activity, onrampCallbacks)
@@ -1706,6 +1707,27 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun presentOnrampCollectPaymentFlow(paymentMethod: String, promise: Promise) {
+    if (onrampPresenter == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    try {
+      val method = when (paymentMethod) {
+        "Card" -> PaymentMethodType.Card
+        "BankAccount" -> PaymentMethodType.BankAccount
+        else -> throw IllegalArgumentException("Unsupported payment method: $paymentMethod")
+      }
+
+      onrampPresenter!!.collectPaymentMethod(method)
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("PRESENT_PAYMENT_COLLECTION_ERROR", e.message)
+    }
+  }
+
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
     val darkColorsMap = appearanceMap.getMap("darkColors")
@@ -1765,6 +1787,64 @@ class StripeSdkModule(
       style = style,
       primaryButton = primaryButton,
     )
+  }
+
+  private fun mapOnrampVerificationResult(result: OnrampVerificationResult): ReadableMap {
+    val map = Arguments.createMap()
+    when (result) {
+        is OnrampVerificationResult.Completed -> {
+            map.putString("status", "completed")
+            map.putString("customerId", result.customerId)
+        }
+        is OnrampVerificationResult.Cancelled -> {
+            map.putString("status", "cancelled")
+        }
+        is OnrampVerificationResult.Failed -> {
+            map.putString("status", "failed")
+            map.putString("error", result.error.message ?: "Unknown error")
+        }
+    }
+    return map
+  }
+
+  private fun mapOnrampIdentityVerificationResult(result: OnrampIdentityVerificationResult): ReadableMap {
+    val map = Arguments.createMap()
+    when (result) {
+        is OnrampIdentityVerificationResult.Completed -> {
+            map.putString("status", "completed")
+        }
+        is OnrampIdentityVerificationResult.Cancelled -> {
+            map.putString("status", "cancelled")
+        }
+        is OnrampIdentityVerificationResult.Failed -> {
+            map.putString("status", "failed")
+            map.putString("error", result.error.message ?: "Unknown error")
+        }
+    }
+    return map
+  }
+
+  private fun mapOnrampCollectPaymentResult(result: OnrampCollectPaymentResult): ReadableMap {
+      val map = Arguments.createMap()
+      when (result) {
+          is OnrampCollectPaymentResult.Completed -> {
+              map.putString("status", "completed")
+              // Assuming displayData is a data class with icon, label, sublabel
+              val displayDataMap = Arguments.createMap()
+              displayDataMap.putString("icon", result.displayData.icon.toString()) // Convert Drawable to string/uri if needed
+              displayDataMap.putString("label", result.displayData.label)
+              result.displayData.sublabel?.let { displayDataMap.putString("sublabel", it) }
+              map.putMap("displayData", displayDataMap)
+          }
+          is OnrampCollectPaymentResult.Cancelled -> {
+              map.putString("status", "cancelled")
+          }
+          is OnrampCollectPaymentResult.Failed -> {
+              map.putString("status", "failed")
+              map.putString("error", result.error.message ?: "Unknown error")
+          }
+      }
+      return map
   }
 
   companion object {
