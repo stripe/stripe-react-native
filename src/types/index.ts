@@ -294,11 +294,7 @@ export type OnrampCollectPaymentResult =
   | { status: 'failed'; error: string };
 
 export type PaymentOptionData = {
-  /**
-   * User facing icon represented payment method.
-   * In React Native, this will likely be a URI string or a base64 string, not a Drawable.
-   */
-  icon: string; // e.g. URI or base64 string
+  icon: string; // base64 string
   label: string;
   sublabel?: string;
 };

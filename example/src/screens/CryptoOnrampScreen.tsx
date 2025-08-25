@@ -6,6 +6,7 @@ import {
   Alert,
   Text,
   TextInput,
+  Image,
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -165,6 +166,13 @@ export default function CryptoOnrampScreen() {
           )}
         </View>
         <View style={styles.buttonContainer}>
+          {paymentDisplayData && (
+            <Image
+              source={{ uri: paymentDisplayData.icon }}
+              style={{ width: 32, height: 32 }}
+              resizeMode="contain"
+            />
+          )}
           {paymentDisplayData && (
             <Text style={styles.responseText}>
               {'Payment Method Label: ' + paymentDisplayData.label}

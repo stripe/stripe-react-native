@@ -47,6 +47,9 @@ import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUICustomization
 import com.reactnativestripesdk.utils.removeFragment
 import com.reactnativestripesdk.utils.toBundleObject
+import com.reactnativestripesdk.getBase64FromBitmap
+import com.reactnativestripesdk.getBitmapFromDrawable
+
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
@@ -72,6 +75,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 import androidx.compose.ui.graphics.Color
+import android.graphics.Color as AndroidColor
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
@@ -99,6 +103,12 @@ import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.OnrampSetWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampKYCResult
 import androidx.activity.ComponentActivity
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+import android.graphics.Canvas
+import androidx.core.graphics.drawable.DrawableCompat
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
@@ -1835,9 +1845,10 @@ class StripeSdkModule(
       when (result) {
           is OnrampCollectPaymentResult.Completed -> {
               map.putString("status", "completed")
-              // Assuming displayData is a data class with icon, label, sublabel
               val displayDataMap = Arguments.createMap()
-              displayDataMap.putString("icon", result.displayData.icon.toString()) // Convert Drawable to string/uri if needed
+              val icon = "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
+
+              displayDataMap.putString("icon", icon)
               displayDataMap.putString("label", result.displayData.label)
               result.displayData.sublabel?.let { displayDataMap.putString("sublabel", it) }
               map.putMap("displayData", displayDataMap)
@@ -1850,6 +1861,7 @@ class StripeSdkModule(
               map.putString("error", result.error.message ?: "Unknown error")
           }
       }
+      
       return map
   }
 
