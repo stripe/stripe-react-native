@@ -32,7 +32,9 @@ export default function CryptoOnrampScreen() {
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
-  const [paymentMethod] = useState<string | null>('Card');
+  const [cardPaymentMethod] = useState<string | null>('Card');
+  const [bankAccountPaymentMethod] = useState<string | null>('BaAccount');
+
   const [paymentDisplayData, setPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
 
@@ -68,14 +70,23 @@ export default function CryptoOnrampScreen() {
     }
   }, [promptOnrampIdentityVerification]);
 
-  const handleCollectPayment = useCallback(async () => {
+  const handleCollectCardPayment = useCallback(async () => {
     try {
-      await presentOnrampCollectPaymentFlow(paymentMethod);
+      await presentOnrampCollectPaymentFlow(cardPaymentMethod);
     } catch (error) {
       console.error('Error collecting payment:', error);
       Alert.alert('Error', 'Could not collect payment.');
     }
-  }, [paymentMethod, presentOnrampCollectPaymentFlow]);
+  }, [cardPaymentMethod, presentOnrampCollectPaymentFlow]);
+
+  const handleCollectBankAccountPayment = useCallback(async () => {
+    try {
+      await presentOnrampCollectPaymentFlow(bankAccountPaymentMethod);
+    } catch (error) {
+      console.error('Error collecting payment:', error);
+      Alert.alert('Error', 'Could not collect payment.');
+    }
+  }, [bankAccountPaymentMethod, presentOnrampCollectPaymentFlow]);
 
   useEffect(() => {
     const authSub = addListener(
@@ -201,7 +212,17 @@ export default function CryptoOnrampScreen() {
         )}
 
         {isLinkUser === true && customerId != null && (
-          <Button title="Collect Payment" onPress={handleCollectPayment} />
+          <Button
+            title="Collect Card Payment"
+            onPress={handleCollectCardPayment}
+          />
+        )}
+
+        {isLinkUser === true && customerId != null && (
+          <Button
+            title="Collect Bank Account Payment"
+            onPress={handleCollectBankAccountPayment}
+          />
         )}
       </View>
     </ScrollView>
