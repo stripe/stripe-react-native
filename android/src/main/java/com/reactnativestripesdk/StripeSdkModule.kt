@@ -1591,11 +1591,10 @@ class StripeSdkModule(
     promise: Promise
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val cryptoNetwork = try {
-        CryptoNetwork.valueOf(network)
-      } catch (e: Exception) {
-        promise.reject("INVALID_NETWORK", "Invalid network: $network")
-        return@launch
+      val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
+      if (cryptoNetwork == null) {
+          promise.reject("INVALID_NETWORK", "Invalid network: $network")
+          return@launch
       }
 
       when (val result = coordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {

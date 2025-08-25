@@ -18,6 +18,8 @@ import {
   OnrampVerificationResult,
   PaymentOptionData,
 } from '../../../src/types';
+import { Picker } from '@react-native-picker/picker';
+import { CryptoNetwork } from '../../../src/types/CryptoNetwork';
 
 export default function CryptoOnrampScreen() {
   const {
@@ -224,8 +226,61 @@ export default function CryptoOnrampScreen() {
             onPress={handleCollectBankAccountPayment}
           />
         )}
+
+        {isLinkUser === true && customerId != null && (
+          <RegisterWalletAddressScreen />
+        )}
       </View>
     </ScrollView>
+  );
+}
+
+export function RegisterWalletAddressScreen() {
+  const { registerWalletAddress } = useStripe();
+  const [walletAddress, setWalletAddress] = useState('');
+  const [network, setNetwork] = useState<CryptoNetwork>(CryptoNetwork.bitcoin); // or let user select
+  const [response, setResponse] = useState<string | null>(null);
+
+  const handleRegisterWallet = useCallback(async () => {
+    setResponse(null);
+    try {
+      await registerWalletAddress(walletAddress, network);
+      setResponse(`Wallet registered`);
+    } catch (error: any) {
+      setResponse(`Error: ${error?.message || 'Failed to register wallet.'}`);
+      Alert.alert('Error', error?.message || 'Failed to register wallet.');
+    }
+  }, [walletAddress, network, registerWalletAddress]);
+
+  return (
+    <View style={{ padding: 16 }}>
+      <Text>Wallet Address:</Text>
+      <TextInput
+        value={walletAddress}
+        onChangeText={setWalletAddress}
+        placeholder="Enter wallet address"
+        style={styles.textInput}
+      />
+      <Text>Network:</Text>
+      <Picker
+        selectedValue={network}
+        onValueChange={(itemValue) => setNetwork(itemValue as CryptoNetwork)}
+        style={styles.textInput}
+      >
+        {Object.values(CryptoNetwork).map((n) => (
+          <Picker.Item
+            key={String(n)}
+            label={String(n).charAt(0).toUpperCase() + String(n).slice(1)}
+            value={n}
+          />
+        ))}
+      </Picker>
+      <Text style={{ marginBottom: 8 }}>
+        Selected Network: {String(network)}
+      </Text>
+      <Button title="Register Wallet Address" onPress={handleRegisterWallet} />
+      {response && <Text style={{ marginTop: 12 }}>{response}</Text>}
+    </View>
   );
 }
 
