@@ -16,13 +16,13 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
             guard let data = image.pngData() else { return "" }
             return data.base64EncodedString()
         }()
-        
+
         // Convert BillingDetails to a dictionary
         let billingDetailsDict: [String: Any] = {
             guard let billing = billingDetails else {
                 return [:]
             }
-            
+
             // Extract address
             let addressDict: [String: Any] = {
                 let addr = billing.address
@@ -35,7 +35,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
                     "state": addr.state ?? ""
                 ]
             }()
-            
+
             return [
                 "name": billing.name ?? "",
                 "email": billing.email ?? "",
@@ -43,13 +43,33 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
                 "address": addressDict
             ]
         }()
-        
+
+        // Convert NSAttributedString mandateText to HTML
+        let mandateTextHTML: String? = {
+            guard let mandateText = mandateText else { return nil }
+
+            do {
+                let htmlData = try mandateText.data(
+                    from: NSRange(location: 0, length: mandateText.length),
+                    documentAttributes: [
+                        .documentType: NSAttributedString.DocumentType.html,
+                        .characterEncoding: String.Encoding.utf8.rawValue
+                    ]
+                )
+                return String(data: htmlData, encoding: .utf8)
+            } catch {
+                // Fallback to plain string if HTML conversion fails
+                return mandateText.string
+            }
+        }()
+
         // Return as a dictionary
         return [
             "image": imageBase64,
             "label": label,
             "billingDetails": billingDetailsDict,
-            "paymentMethodType": paymentMethodType
+            "paymentMethodType": paymentMethodType,
+            "mandateHTML": mandateTextHTML
         ]
     }
 }

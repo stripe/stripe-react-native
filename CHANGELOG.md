@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.51.0 - 2025-08-20
 
 **Features**
 - [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
-- Added `image` to `EmbeddedPaymentElement.PaymentOptionDisplayData`
+- Added `image` and `mandateHTML` to `EmbeddedPaymentElement.PaymentOptionDisplayData`
+- Added `embeddedViewDisplaysMandateText` to `EmbeddedPaymentElementConfiguration`
 
 **Changes**
 - Klarna: Made `billingDetails.email` and `billingDetails.address.country` optional when creating Klarna payment methods. See Stripe docs: [Migrate Klarna from Sources – Field mapping reference](https://docs.stripe.com/payments/klarna/migrate) ("Not required when using the Payment Element. It’s collected automatically.").
