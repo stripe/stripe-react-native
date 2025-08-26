@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,12 +11,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
-import { addListener } from '../../../src/events';
-import {
-  OnrampCollectPaymentResult,
-  OnrampIdentityVerificationResult,
-  PaymentOptionData,
-} from '../../../src/types';
+import { PaymentOptionData } from '../../../src/types';
 import { Picker } from '@react-native-picker/picker';
 import { CryptoNetwork } from '../../../src/types/CryptoNetwork';
 
@@ -70,75 +65,56 @@ export default function CryptoOnrampScreen() {
 
   const handleVerifyIdentity = useCallback(async () => {
     try {
-      await promptOnrampIdentityVerification();
+      const result = await promptOnrampIdentityVerification();
+
+      if (result) {
+        Alert.alert('Success', 'Identity Verification completed');
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Identity Verification cancelled, please try again.'
+        );
+      }
     } catch (error) {
-      console.error('Error verifying identity:', error);
-      Alert.alert('Error', 'Could not verify identity.');
+      Alert.alert('Error', `Could not verify identity ${error}.`);
     }
   }, [promptOnrampIdentityVerification]);
 
   const handleCollectCardPayment = useCallback(async () => {
     try {
-      await presentOnrampCollectPaymentFlow(cardPaymentMethod);
+      const result = await presentOnrampCollectPaymentFlow(cardPaymentMethod);
+
+      if (result) {
+        setPaymentDisplayData(result);
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Payment collection cancelled, please try again.'
+        );
+      }
     } catch (error) {
-      console.error('Error collecting payment:', error);
-      Alert.alert('Error', 'Could not collect payment.');
+      Alert.alert('Error', `Could not collect payment ${error}.`);
     }
   }, [cardPaymentMethod, presentOnrampCollectPaymentFlow]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
     try {
-      await presentOnrampCollectPaymentFlow(bankAccountPaymentMethod);
+      const result = await presentOnrampCollectPaymentFlow(
+        bankAccountPaymentMethod
+      );
+
+      if (result) {
+        setPaymentDisplayData(result);
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Payment collection cancelled, please try again.'
+        );
+      }
     } catch (error) {
-      console.error('Error collecting payment:', error);
-      Alert.alert('Error', 'Could not collect payment.');
+      Alert.alert('Error', `Could not collect payment ${error}.`);
     }
   }, [bankAccountPaymentMethod, presentOnrampCollectPaymentFlow]);
-
-  useEffect(() => {
-    const identitySub = addListener(
-      'onOnrampIdentityVerification',
-      (result: OnrampIdentityVerificationResult) => {
-        // Handle identity verification result
-        if (result.status === 'completed') {
-          Alert.alert('Success', 'Identity Verification completed');
-        } else if (result.status === 'cancelled') {
-          Alert.alert(
-            'Cancelled',
-            'Identity Verification cancelled, please try again.'
-          );
-        } else if (result.status === 'failed') {
-          Alert.alert(
-            'Failed',
-            `Identity Verification failed: ${result.error}`
-          );
-        }
-      }
-    );
-
-    const paymentSub = addListener(
-      'onOnrampSelectPayment',
-      (result: OnrampCollectPaymentResult) => {
-        // Handle payment selection result
-        if (result.status === 'completed') {
-          setPaymentDisplayData(result.displayData);
-        } else if (result.status === 'cancelled') {
-          Alert.alert(
-            'Cancelled',
-            'Payment selection cancelled, please try again.'
-          );
-        } else if (result.status === 'failed') {
-          Alert.alert('Failed', `Payment selection failed: ${result.error}`);
-        }
-      }
-    );
-
-    // Clean up listeners on unmount
-    return () => {
-      identitySub.remove();
-      paymentSub.remove();
-    };
-  }, []);
 
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>

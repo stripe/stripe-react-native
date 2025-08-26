@@ -140,8 +140,13 @@ class StripeSdkModule(
 
   private var coordinator: OnrampCoordinator? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
+
   private var verificationPromise: Promise? = null
-  
+  private var identityVerificationPromise: Promise? = null
+  private var collectPaymentPromise: Promise? = null
+  private var authorizePromise: Promise? = null
+  private var checkoutPromise: Promise? = null
+
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
   private val allStripeFragmentTags: List<String>
@@ -1513,16 +1518,16 @@ class StripeSdkModule(
         handleOnrampVerificationResult(result, verificationPromise!!)
       },
       identityVerificationCallback = { result ->
-        emitOnOnrampIdentityVerification(mapOnrampIdentityVerificationResult(result))
+        handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
       },
       selectPaymentCallback = { result ->
-        emitOnOnrampSelectPayment(mapOnrampCollectPaymentResult(result))
+        handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
       },
       authorizeCallback = { result ->
-        emitOnOnrampAuthorize(mapOnrampAuthorizationResult(result))
+        handleOnrampAuthorizationResult(result, authorizePromise!!)
       },
       checkoutCallback = { result ->
-        emitOnOnrampCheckout(mapOnrampCheckoutResult(result))
+        handleOnrampCheckoutResult(result, checkoutPromise!!)
       }
     )
 
@@ -1713,11 +1718,13 @@ class StripeSdkModule(
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return
     }
+
+    identityVerificationPromise = promise
+
     try {
       onrampPresenter!!.promptForIdentityVerification()
-      promise.resolve(true)
     } catch (e: Exception) {
-      promise.reject("PROMPT_IDENTITY_VERIFICATION_ERROR", e.message)
+      identityVerificationPromise?.reject("PROMPT_IDENTITY_VERIFICATION_ERROR", e.message)
     }
   }
 
@@ -1735,10 +1742,11 @@ class StripeSdkModule(
         else -> throw IllegalArgumentException("Unsupported payment method: $paymentMethod")
       }
 
+      collectPaymentPromise = promise
+
       onrampPresenter!!.collectPaymentMethod(method)
-      promise.resolve(true)
     } catch (e: Exception) {
-      promise.reject("PRESENT_PAYMENT_COLLECTION_ERROR", e.message)
+      collectPaymentPromise?.reject("PRESENT_PAYMENT_COLLECTION_ERROR", e.message)
     }
   }
 
@@ -1862,90 +1870,74 @@ class StripeSdkModule(
           promise.resolve(null)
         }
         is OnrampVerificationResult.Failed -> {
-          promise.reject("VERIFICATION_ERROR", result.error)
+          promise.reject("VERIFICATION_ERROR", result.error.message)
         }
     }
     return map
   }
 
-  private fun mapOnrampIdentityVerificationResult(result: OnrampIdentityVerificationResult): ReadableMap {
-    val map = Arguments.createMap()
+  private fun handleOnrampIdentityVerificationResult(result: OnrampIdentityVerificationResult, promise: Promise) {
     when (result) {
         is OnrampIdentityVerificationResult.Completed -> {
-            map.putString("status", "completed")
+            promise.resolve(true)
         }
         is OnrampIdentityVerificationResult.Cancelled -> {
-            map.putString("status", "cancelled")
+            promise.resolve(false)
         }
         is OnrampIdentityVerificationResult.Failed -> {
-            map.putString("status", "failed")
-            map.putString("error", result.error.message ?: "Unknown error")
+            promise.reject("IDENTITY_VERIFICATION_ERROR", result.error.message)
         }
     }
-    return map
   }
 
-  private fun mapOnrampCollectPaymentResult(result: OnrampCollectPaymentResult): ReadableMap {
-      val map = Arguments.createMap()
-      when (result) {
-          is OnrampCollectPaymentResult.Completed -> {
-              map.putString("status", "completed")
-              val displayDataMap = Arguments.createMap()
-              val icon = "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
+  private fun handleOnrampCollectPaymentResult(result: OnrampCollectPaymentResult, promise: Promise) {
+    when (result) {
+        is OnrampCollectPaymentResult.Completed -> {
+            val displayData = Arguments.createMap()
+            val icon = "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
+            displayData.putString("icon", icon)
+            displayData.putString("label", result.displayData.label)
+            result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
+            promise.resolve(displayData)
+        }
+        is OnrampCollectPaymentResult.Cancelled -> {
+            promise.resolve(null)
+        }
+        is OnrampCollectPaymentResult.Failed -> {
+            promise.reject("COLLECT_PAYMENT_ERROR", result.error.message)
+        }
+    }
+  }
 
-              displayDataMap.putString("icon", icon)
-              displayDataMap.putString("label", result.displayData.label)
-              result.displayData.sublabel?.let { displayDataMap.putString("sublabel", it) }
-              map.putMap("displayData", displayDataMap)
-          }
-          is OnrampCollectPaymentResult.Cancelled -> {
-              map.putString("status", "cancelled")
-          }
-          is OnrampCollectPaymentResult.Failed -> {
-              map.putString("status", "failed")
-              map.putString("error", result.error.message ?: "Unknown error")
-          }
+  private fun handleOnrampAuthorizationResult(result: OnrampAuthorizeResult, promise: Promise) {
+    when (result) {
+      is OnrampAuthorizeResult.Consented -> {
+          promise.resolve(result.customerId)
       }
-      
-      return map
+      is OnrampAuthorizeResult.Canceled -> {
+          promise.resolve(null)
+      }
+      is OnrampAuthorizeResult.Denied -> {
+          promise.reject("AUTHORIZE_DENIED", "User denied authorization")
+      }
+      is OnrampAuthorizeResult.Failed -> {
+          promise.reject("AUTHORIZE_ERROR", result.error.message)
+      }
+    }
   }
 
-  private fun mapOnrampAuthorizationResult(result: OnrampAuthorizeResult): ReadableMap {
-    val map = Arguments.createMap()
+  private fun handleOnrampCheckoutResult(result: OnrampCheckoutResult, promise: Promise) {
     when (result) {
-        is OnrampAuthorizeResult.Consented -> {
-            map.putString("status", "consented")
-            map.putString("customerId", result.customerId)
-        }
-        is OnrampAuthorizeResult.Denied -> {
-            map.putString("status", "denied")
-        }
-        is OnrampAuthorizeResult.Canceled -> {
-            map.putString("status", "canceled")
-        }
-        is OnrampAuthorizeResult.Failed -> {
-            map.putString("status", "failed")
-            map.putString("error", result.error.message ?: "Unknown error")
-        }
+      is OnrampCheckoutResult.Completed -> {
+          promise.resolve(true)
+      }
+      is OnrampCheckoutResult.Canceled -> {
+          promise.resolve(false)
+      }
+      is OnrampCheckoutResult.Failed -> {
+          promise.reject("CHECKOUT_ERROR", result.error.message)
+      }
     }
-    return map
-  }
-
-  private fun mapOnrampCheckoutResult(result: OnrampCheckoutResult): ReadableMap {
-    val map = Arguments.createMap()
-    when (result) {
-        is OnrampCheckoutResult.Completed -> {
-            map.putString("status", "completed")
-        }
-        is OnrampCheckoutResult.Canceled -> {
-            map.putString("status", "canceled")
-        }
-        is OnrampCheckoutResult.Failed -> {
-            map.putString("status", "failed")
-            map.putString("error", result.error.message ?: "Unknown error")
-        }
-    }
-    return map
   }
 
   companion object {
