@@ -936,3 +936,10 @@ export const presentOnrampCollectPaymentFlow = async (
 export const createCryptoPaymentToken = async (): Promise<any> => {
   return NativeStripeSdk.createCryptoPaymentToken();
 };
+
+export const performCheckout = async (
+  onrampSessionId: string,
+  clientSecret: string
+): Promise<any> => {
+  return NativeStripeSdk.performCheckout(onrampSessionId, clientSecret);
+};

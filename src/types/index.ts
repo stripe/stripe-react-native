@@ -298,3 +298,7 @@ export type PaymentOptionData = {
   label: string;
   sublabel?: string;
 };
+
+export type CheckoutResult =
+  | { status: 'completed' }
+  | { status: 'failed'; error: string };

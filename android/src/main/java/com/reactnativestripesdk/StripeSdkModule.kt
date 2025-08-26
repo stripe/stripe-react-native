@@ -1742,6 +1742,16 @@ class StripeSdkModule(
     // Implementation for creating a crypto payment token
   }
 
+  @ReactMethod
+  override fun performCheckout(
+    onrampSessionId: String,
+    clientSecret: String,
+    promise: Promise
+  ) {
+    // Implementation for performing checkout
+  }
+
+
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
     val darkColorsMap = appearanceMap.getMap("darkColors")

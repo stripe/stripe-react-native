@@ -36,6 +36,7 @@ import type {
   StripeError,
   Token,
   VerifyMicrodepositsParams,
+  CheckoutResult,
 } from '../types';
 import type {
   EmbeddedPaymentElementConfiguration,
@@ -229,6 +230,10 @@ export interface Spec extends TurboModule {
   promptOnrampIdentityVerification(): Promise<any>;
   presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
   createCryptoPaymentToken(): Promise<any>;
+  performCheckout(
+    onrampSessionId: string,
+    clientSecret: string
+  ): Promise<CheckoutResult>;
   onOnrampAuthentication: EventEmitter<UnsafeObject<any>>;
   onOnrampIdentityVerification: EventEmitter<UnsafeObject<any>>;
   onOnrampSelectPayment: EventEmitter<UnsafeObject<any>>;

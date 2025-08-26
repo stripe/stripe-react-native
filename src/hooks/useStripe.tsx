@@ -27,6 +27,7 @@ import type {
   FinancialConnections,
   PlatformPay,
   PlatformPayError,
+  CheckoutResult,
 } from '../types';
 import { useCallback } from 'react';
 import {
@@ -68,6 +69,7 @@ import {
   promptOnrampIdentityVerification,
   presentOnrampCollectPaymentFlow,
   createCryptoPaymentToken,
+  performCheckout,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -387,6 +389,16 @@ export function useStripe() {
     return createCryptoPaymentToken();
   }, []);
 
+  const _performCheckout = useCallback(
+    async (
+      onrampSessionId: string,
+      clientSecret: string
+    ): Promise<CheckoutResult> => {
+      return performCheckout(onrampSessionId, clientSecret);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -431,5 +443,6 @@ export function useStripe() {
     promptOnrampIdentityVerification: _promptOnrampIdentityVerification,
     presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
     createCryptoPaymentToken: _createCryptoPaymentToken,
+    performCheckout: _performCheckout,
   };
 }
