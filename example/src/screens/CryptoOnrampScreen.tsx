@@ -44,7 +44,8 @@ export default function CryptoOnrampScreen() {
     setResponse(null);
     try {
       const result = await lookupLinkUser(email);
-      const verified = result?.isLinkUser ?? false;
+      const verified = result ?? false;
+
       setIsLinkUser(verified);
       setResponse(`Is Link User: ${verified}`);
     } catch (error: any) {

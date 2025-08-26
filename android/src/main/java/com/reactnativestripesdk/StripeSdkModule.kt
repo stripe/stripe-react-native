@@ -1539,11 +1539,7 @@ class StripeSdkModule(
     CoroutineScope(Dispatchers.IO).launch {
       when (val result = coordinator?.lookupLinkUser(email)) {
         is OnrampLinkLookupResult.Completed -> {
-          promise.resolve(
-            Arguments.createMap().apply {
-              putBoolean("isLinkUser", result.isLinkUser)
-            },
-          )
+          promise.resolve(result.isLinkUser)
         }
         is OnrampLinkLookupResult.Failed -> {
           promise.reject("LOOKUP_ERROR", result.error)
