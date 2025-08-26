@@ -67,6 +67,7 @@ import {
   presentOnrampVerificationFlow,
   promptOnrampIdentityVerification,
   presentOnrampCollectPaymentFlow,
+  createCryptoPaymentToken,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -382,6 +383,10 @@ export function useStripe() {
     []
   );
 
+  const _createCryptoPaymentToken = useCallback(async (): Promise<any> => {
+    return createCryptoPaymentToken();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -425,5 +430,6 @@ export function useStripe() {
     presentOnrampVerificationFlow: _presentOnrampVerificationFlow,
     promptOnrampIdentityVerification: _promptOnrampIdentityVerification,
     presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
+    createCryptoPaymentToken: _createCryptoPaymentToken,
   };
 }

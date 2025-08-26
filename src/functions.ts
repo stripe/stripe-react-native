@@ -932,3 +932,7 @@ export const presentOnrampCollectPaymentFlow = async (
 ): Promise<any> => {
   return NativeStripeSdk.presentOnrampCollectPaymentFlow(paymentMethod);
 };
+
+export const createCryptoPaymentToken = async (): Promise<any> => {
+  return NativeStripeSdk.createCryptoPaymentToken();
+};

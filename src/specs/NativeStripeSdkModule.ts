@@ -228,6 +228,7 @@ export interface Spec extends TurboModule {
   presentOnrampVerificationFlow(): Promise<any>;
   promptOnrampIdentityVerification(): Promise<any>;
   presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
+  createCryptoPaymentToken(): Promise<any>;
   onOnrampAuthentication: EventEmitter<UnsafeObject<any>>;
   onOnrampIdentityVerification: EventEmitter<UnsafeObject<any>>;
   onOnrampSelectPayment: EventEmitter<UnsafeObject<any>>;

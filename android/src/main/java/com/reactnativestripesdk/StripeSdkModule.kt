@@ -1737,6 +1737,11 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun createCryptoPaymentToken(promise: Promise) {
+    // Implementation for creating a crypto payment token
+  }
+
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
     val darkColorsMap = appearanceMap.getMap("darkColors")
