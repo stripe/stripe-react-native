@@ -15,7 +15,6 @@ import { addListener } from '../../../src/events';
 import {
   OnrampCollectPaymentResult,
   OnrampIdentityVerificationResult,
-  OnrampVerificationResult,
   PaymentOptionData,
 } from '../../../src/types';
 import { Picker } from '@react-native-picker/picker';
@@ -57,10 +56,15 @@ export default function CryptoOnrampScreen() {
 
   const handlePresentVerification = useCallback(async () => {
     try {
-      await presentOnrampVerificationFlow();
+      const result = await presentOnrampVerificationFlow();
+
+      if (result != null) {
+        setCustomerId(result);
+      } else {
+        Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
+      }
     } catch (error) {
-      console.error('Error presenting verification flow:', error);
-      Alert.alert('Error', 'Could not present verification flow.');
+      Alert.alert('Error', `Authentication Failed: ${error}.`);
     }
   }, [presentOnrampVerificationFlow]);
 
@@ -92,23 +96,6 @@ export default function CryptoOnrampScreen() {
   }, [bankAccountPaymentMethod, presentOnrampCollectPaymentFlow]);
 
   useEffect(() => {
-    const authSub = addListener(
-      'onOnrampAuthentication',
-      (result: OnrampVerificationResult) => {
-        // Handle authentication result
-        if (result.status === 'completed') {
-          setCustomerId(result.customerId);
-        } else if (result.status === 'cancelled') {
-          Alert.alert(
-            'Cancelled',
-            'Authentication cancelled, please try again.'
-          );
-        } else if (result.status === 'failed') {
-          Alert.alert('Failed', `Authentication failed: ${result.error}`);
-        }
-      }
-    );
-
     const identitySub = addListener(
       'onOnrampIdentityVerification',
       (result: OnrampIdentityVerificationResult) => {
@@ -148,7 +135,6 @@ export default function CryptoOnrampScreen() {
 
     // Clean up listeners on unmount
     return () => {
-      authSub.remove();
       identitySub.remove();
       paymentSub.remove();
     };

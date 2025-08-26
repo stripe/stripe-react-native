@@ -140,7 +140,8 @@ class StripeSdkModule(
 
   private var coordinator: OnrampCoordinator? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
-
+  private var verificationPromise: Promise? = null
+  
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
   private val allStripeFragmentTags: List<String>
@@ -1509,7 +1510,7 @@ class StripeSdkModule(
 
     val onrampCallbacks = OnrampCallbacks(
       authenticationCallback = { result ->
-        emitOnOnrampAuthentication(mapOnrampVerificationResult(result))
+        handleOnrampVerificationResult(result, verificationPromise!!)
       },
       identityVerificationCallback = { result ->
         emitOnOnrampIdentityVerification(mapOnrampIdentityVerificationResult(result))
@@ -1697,11 +1698,12 @@ class StripeSdkModule(
       return
     }
 
+    verificationPromise = promise
+
     try {
       onrampPresenter!!.presentForVerification()
-      promise.resolve(true)
     } catch (e: Exception) {
-      promise.reject("PRESENT_VERIFICATION_ERROR", e.message)
+      verificationPromise?.reject("PRESENT_VERIFICATION_ERROR", e.message)
     }
   }
 
@@ -1850,19 +1852,17 @@ class StripeSdkModule(
     }
   }
 
-  private fun mapOnrampVerificationResult(result: OnrampVerificationResult): ReadableMap {
+  private fun handleOnrampVerificationResult(result: OnrampVerificationResult, promise: Promise): ReadableMap {
     val map = Arguments.createMap()
     when (result) {
         is OnrampVerificationResult.Completed -> {
-            map.putString("status", "completed")
-            map.putString("customerId", result.customerId)
+          promise.resolve(result.customerId)
         }
         is OnrampVerificationResult.Cancelled -> {
-            map.putString("status", "cancelled")
+          promise.resolve(null)
         }
         is OnrampVerificationResult.Failed -> {
-            map.putString("status", "failed")
-            map.putString("error", result.error.message ?: "Unknown error")
+          promise.reject("VERIFICATION_ERROR", result.error)
         }
     }
     return map
