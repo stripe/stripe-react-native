@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useStripe } from '@stripe/stripe-react-native';
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import {
   Linking,
   StyleSheet,
@@ -52,8 +52,6 @@ export default function HomeScreen() {
   const handleConfigureOnramp = useCallback(() => {
     const config = {
       merchantDisplayName: 'Onramp RN Example',
-      publishableKey:
-        'pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO',
       appearance: {
         lightColors: {
           primary: '#2d22a1',
@@ -482,42 +480,44 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
-      <Collapse title="Crypto Onramp">
-        <>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Configure Onramp (Required First)"
-              onPress={() => {
-                handleConfigureOnramp();
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Crypto Onramp Flow"
-              onPress={() => {
-                navigation.navigate('CryptoOnrampScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Verify Crypto Link User"
-              onPress={() => {
-                navigation.navigate('VerifyCryptoLinkUserScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Register Crypto Link User"
-              onPress={() => {
-                navigation.navigate('RegisterCryptoUserScreen');
-              }}
-            />
-          </View>
-        </>
-      </Collapse>
+      <StripeProvider publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO">
+        <Collapse title="Crypto Onramp">
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Configure Onramp (Required First)"
+                onPress={() => {
+                  handleConfigureOnramp();
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Crypto Onramp Flow"
+                onPress={() => {
+                  navigation.navigate('CryptoOnrampScreen');
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Verify Crypto Link User"
+                onPress={() => {
+                  navigation.navigate('VerifyCryptoLinkUserScreen');
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Register Crypto Link User"
+                onPress={() => {
+                  navigation.navigate('RegisterCryptoUserScreen');
+                }}
+              />
+            </View>
+          </>
+        </Collapse>
+      </StripeProvider>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}

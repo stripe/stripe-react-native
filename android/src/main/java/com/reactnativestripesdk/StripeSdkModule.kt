@@ -1474,7 +1474,6 @@ class StripeSdkModule(
         }
 
       val displayName = config.getString("merchantDisplayName") ?: ""
-      val publishableKey = config.getString("publishableKey") ?: ""
 
       val configuration = OnrampConfiguration(
         merchantDisplayName = displayName,
