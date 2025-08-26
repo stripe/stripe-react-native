@@ -70,6 +70,7 @@ import {
   presentOnrampCollectPaymentFlow,
   createCryptoPaymentToken,
   performCheckout,
+  onrampAuthorize,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -399,6 +400,13 @@ export function useStripe() {
     []
   );
 
+  const _onrampAuthorize = useCallback(
+    async (linkAuthIntentId: string): Promise<any> => {
+      return onrampAuthorize(linkAuthIntentId);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -444,5 +452,6 @@ export function useStripe() {
     presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
     createCryptoPaymentToken: _createCryptoPaymentToken,
     performCheckout: _performCheckout,
+    onrampAuthorize: _onrampAuthorize,
   };
 }

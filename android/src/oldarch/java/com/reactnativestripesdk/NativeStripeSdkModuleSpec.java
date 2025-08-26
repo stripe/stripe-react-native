@@ -375,4 +375,8 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void performCheckout(String onrampSessionId, String clientSecret, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void onrampAuthorize(String linkAuthIntentId, Promise promise);
 }

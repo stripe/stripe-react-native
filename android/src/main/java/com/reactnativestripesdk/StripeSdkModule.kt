@@ -1754,6 +1754,13 @@ class StripeSdkModule(
     // Implementation for performing checkout
   }
 
+  @ReactMethod
+  override fun onrampAuthorize(
+    linkAuthIntentId: String,
+    promise: Promise
+  ) {
+    // Implementation for authorize
+  }
 
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")

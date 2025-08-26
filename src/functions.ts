@@ -943,3 +943,9 @@ export const performCheckout = async (
 ): Promise<any> => {
   return NativeStripeSdk.performCheckout(onrampSessionId, clientSecret);
 };
+
+export const onrampAuthorize = async (
+  linkAuthIntentId: string
+): Promise<any> => {
+  return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
+};

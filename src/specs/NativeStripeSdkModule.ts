@@ -234,6 +234,7 @@ export interface Spec extends TurboModule {
     onrampSessionId: string,
     clientSecret: string
   ): Promise<CheckoutResult>;
+  onrampAuthorize(linkAuthIntentId: string): Promise<any>;
   onOnrampAuthentication: EventEmitter<UnsafeObject<any>>;
   onOnrampIdentityVerification: EventEmitter<UnsafeObject<any>>;
   onOnrampSelectPayment: EventEmitter<UnsafeObject<any>>;
