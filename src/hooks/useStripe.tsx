@@ -59,9 +59,23 @@ import {
   createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
+  configureOnramp,
+  lookupLinkUser,
+  registerLinkUser,
+  registerWalletAddress,
+  collectKycInfo,
+  presentOnrampVerificationFlow,
+  promptOnrampIdentityVerification,
+  presentOnrampCollectPaymentFlow,
+  createCryptoPaymentToken,
+  performCheckout,
+  onrampAuthorize,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
+import type { LinkUserInfo } from '../types/LinkUserInfo';
+import type { CryptoNetwork } from '../types/CryptoNetwork';
+import type { KycInfo } from '../types/KycInfo';
 
 /**
  * useStripe hook
@@ -320,6 +334,75 @@ export function useStripe() {
     return openPlatformPaySetup();
   }, []);
 
+  const _configureOnramp = useCallback(
+    async (config: Record<string, any>): Promise<void> => {
+      return configureOnramp(config);
+    },
+    []
+  );
+
+  const _lookupLinkUser = useCallback(
+    async (email: string): Promise<{ isLinkUser: boolean }> => {
+      return lookupLinkUser(email);
+    },
+    []
+  );
+
+  const _registerLinkUser = useCallback(
+    async (info: LinkUserInfo): Promise<{ customerId: string }> => {
+      return registerLinkUser(info);
+    },
+    []
+  );
+
+  const _registerWalletAddress = useCallback(
+    async (walletAddress: string, network: CryptoNetwork): Promise<any> => {
+      return registerWalletAddress(walletAddress, network);
+    },
+    []
+  );
+
+  const _collectKycInfo = useCallback(
+    async (kycInfo: KycInfo): Promise<any> => {
+      return collectKycInfo(kycInfo);
+    },
+    []
+  );
+
+  const _presentOnrampVerificationFlow = useCallback(async (): Promise<any> => {
+    return presentOnrampVerificationFlow();
+  }, []);
+
+  const _promptOnrampIdentityVerification =
+    useCallback(async (): Promise<any> => {
+      return promptOnrampIdentityVerification();
+    }, []);
+
+  const _presentOnrampCollectPaymentFlow = useCallback(
+    async (paymentMethod: string): Promise<any> => {
+      return presentOnrampCollectPaymentFlow(paymentMethod);
+    },
+    []
+  );
+
+  const _createCryptoPaymentToken = useCallback(async (): Promise<any> => {
+    return createCryptoPaymentToken();
+  }, []);
+
+  const _performCheckout = useCallback(
+    async (onrampSessionId: string, clientSecret: string): Promise<any> => {
+      return performCheckout(onrampSessionId, clientSecret);
+    },
+    []
+  );
+
+  const _onrampAuthorize = useCallback(
+    async (linkAuthIntentId: string): Promise<any> => {
+      return onrampAuthorize(linkAuthIntentId);
+    },
+    []
+  );
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -355,5 +438,16 @@ export function useStripe() {
     createPlatformPayToken: _createPlatformPayToken,
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
+    configureOnramp: _configureOnramp,
+    lookupLinkUser: _lookupLinkUser,
+    registerLinkUser: _registerLinkUser,
+    registerWalletAddress: _registerWalletAddress,
+    collectKycInfo: _collectKycInfo,
+    presentOnrampVerificationFlow: _presentOnrampVerificationFlow,
+    promptOnrampIdentityVerification: _promptOnrampIdentityVerification,
+    presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
+    createCryptoPaymentToken: _createCryptoPaymentToken,
+    performCheckout: _performCheckout,
+    onrampAuthorize: _onrampAuthorize,
   };
 }

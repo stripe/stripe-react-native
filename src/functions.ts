@@ -36,6 +36,9 @@ import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
+import type { LinkUserInfo } from './types/LinkUserInfo';
+import type { KycInfo } from './types/KycInfo';
+import type { CryptoNetwork } from './types/CryptoNetwork';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -891,4 +894,58 @@ export const openPlatformPaySetup = async (): Promise<void> => {
   if (Platform.OS === 'ios') {
     await NativeStripeSdk.openApplePaySetup();
   }
+};
+
+export const configureOnramp = async (config: any): Promise<any> => {
+  return NativeStripeSdk.configureOnramp(config);
+};
+
+export const lookupLinkUser = async (email: string): Promise<any> => {
+  return NativeStripeSdk.lookupLinkUser(email);
+};
+
+export const registerLinkUser = async (info: LinkUserInfo): Promise<any> => {
+  return NativeStripeSdk.registerLinkUser(info);
+};
+
+export const registerWalletAddress = async (
+  walletAddress: string,
+  network: CryptoNetwork
+): Promise<any> => {
+  return NativeStripeSdk.registerWalletAddress(walletAddress, network);
+};
+
+export const collectKycInfo = async (kycInfo: KycInfo): Promise<any> => {
+  return NativeStripeSdk.collectKycInfo(kycInfo);
+};
+
+export const presentOnrampVerificationFlow = async (): Promise<any> => {
+  return NativeStripeSdk.presentOnrampVerificationFlow();
+};
+
+export const promptOnrampIdentityVerification = async (): Promise<any> => {
+  return NativeStripeSdk.promptOnrampIdentityVerification();
+};
+
+export const presentOnrampCollectPaymentFlow = async (
+  paymentMethod: string
+): Promise<any> => {
+  return NativeStripeSdk.presentOnrampCollectPaymentFlow(paymentMethod);
+};
+
+export const createCryptoPaymentToken = async (): Promise<any> => {
+  return NativeStripeSdk.createCryptoPaymentToken();
+};
+
+export const performCheckout = async (
+  onrampSessionId: string,
+  clientSecret: string
+): Promise<any> => {
+  return NativeStripeSdk.performCheckout(onrampSessionId, clientSecret);
+};
+
+export const onrampAuthorize = async (
+  linkAuthIntentId: string
+): Promise<any> => {
+  return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
 };

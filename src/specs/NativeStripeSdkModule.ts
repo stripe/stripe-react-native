@@ -44,6 +44,8 @@ import type {
 import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
+import type { LinkUserInfo } from '../types/LinkUserInfo';
+import type { KycInfo } from '../types/KycInfo';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -218,6 +220,17 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
+  configureOnramp(config: UnsafeObject<any>): Promise<any>;
+  lookupLinkUser(email: string): Promise<any>;
+  registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
+  registerWalletAddress(walletAddress: string, network: string): Promise<any>;
+  collectKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
+  presentOnrampVerificationFlow(): Promise<any>;
+  promptOnrampIdentityVerification(): Promise<any>;
+  presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
+  createCryptoPaymentToken(): Promise<any>;
+  performCheckout(onrampSessionId: string, clientSecret: string): Promise<any>;
+  onrampAuthorize(linkAuthIntentId: string): Promise<any>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');
