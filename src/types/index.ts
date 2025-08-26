@@ -278,37 +278,8 @@ export type CollectBankAccountForSetupResult =
       error: StripeError<CollectBankAccountError>;
     };
 
-export type OnrampVerificationResult =
-  | { status: 'completed'; customerId: string }
-  | { status: 'cancelled' }
-  | { status: 'failed'; error: string };
-
-export type OnrampIdentityVerificationResult =
-  | { status: 'completed' }
-  | { status: 'cancelled' }
-  | { status: 'failed'; error: string };
-
-export type OnrampCollectPaymentResult =
-  | { status: 'completed'; displayData: PaymentOptionData }
-  | { status: 'cancelled' }
-  | { status: 'failed'; error: string };
-
-export type OnrampAuthorizeResult =
-  | { status: 'consented'; customerId: string }
-  | { status: 'denied' }
-  | { status: 'canceled' }
-  | { status: 'failed'; error: string };
-
-export type OnrampCheckoutResult =
-  | { status: 'completed' }
-  | { status: 'failed'; error: string };
-
 export type PaymentOptionData = {
   icon: string; // base64 string
   label: string;
   sublabel?: string;
 };
-
-export type CheckoutResult =
-  | { status: 'completed' }
-  | { status: 'failed'; error: string };

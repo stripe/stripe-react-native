@@ -11,7 +11,6 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
-import { PaymentOptionData } from '../../../src/types';
 import { Picker } from '@react-native-picker/picker';
 import { CryptoNetwork } from '../../../src/types/CryptoNetwork';
 

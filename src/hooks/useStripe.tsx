@@ -27,7 +27,6 @@ import type {
   FinancialConnections,
   PlatformPay,
   PlatformPayError,
-  CheckoutResult,
 } from '../types';
 import { useCallback } from 'react';
 import {
@@ -391,10 +390,7 @@ export function useStripe() {
   }, []);
 
   const _performCheckout = useCallback(
-    async (
-      onrampSessionId: string,
-      clientSecret: string
-    ): Promise<CheckoutResult> => {
+    async (onrampSessionId: string, clientSecret: string): Promise<any> => {
       return performCheckout(onrampSessionId, clientSecret);
     },
     []
