@@ -38,12 +38,7 @@ type Events =
   | 'embeddedPaymentElementDidUpdatePaymentOption'
   | 'embeddedPaymentElementDidUpdateHeight'
   | 'embeddedPaymentElementLoadingFailed'
-  | 'onCustomPaymentMethodConfirmHandlerCallback'
-  | 'onOnrampAuthentication'
-  | 'onOnrampIdentityVerification'
-  | 'onOnrampSelectPayment'
-  | 'onOnrampAuthorize'
-  | 'onOnrampCheckout';
+  | 'onCustomPaymentMethodConfirmHandlerCallback';
 
 export function addListener<EventT extends Events>(
   event: EventT,

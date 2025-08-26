@@ -235,11 +235,6 @@ export interface Spec extends TurboModule {
     clientSecret: string
   ): Promise<CheckoutResult>;
   onrampAuthorize(linkAuthIntentId: string): Promise<any>;
-  onOnrampAuthentication: EventEmitter<UnsafeObject<any>>;
-  onOnrampIdentityVerification: EventEmitter<UnsafeObject<any>>;
-  onOnrampSelectPayment: EventEmitter<UnsafeObject<any>>;
-  onOnrampAuthorize: EventEmitter<UnsafeObject<any>>;
-  onOnrampCheckout: EventEmitter<UnsafeObject<any>>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');
