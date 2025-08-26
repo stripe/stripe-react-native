@@ -1860,8 +1860,7 @@ class StripeSdkModule(
     }
   }
 
-  private fun handleOnrampVerificationResult(result: OnrampVerificationResult, promise: Promise): ReadableMap {
-    val map = Arguments.createMap()
+  private fun handleOnrampVerificationResult(result: OnrampVerificationResult, promise: Promise) {
     when (result) {
         is OnrampVerificationResult.Completed -> {
           promise.resolve(result.customerId)
@@ -1873,7 +1872,6 @@ class StripeSdkModule(
           promise.reject("VERIFICATION_ERROR", result.error.message)
         }
     }
-    return map
   }
 
   private fun handleOnrampIdentityVerificationResult(result: OnrampIdentityVerificationResult, promise: Promise) {
