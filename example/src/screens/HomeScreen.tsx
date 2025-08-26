@@ -55,10 +55,12 @@ export default function HomeScreen() {
       appearance: {
         lightColors: {
           primary: '#2d22a1',
+          contentOnPrimary: '#ffffff',
           borderSelected: '#07b8b8',
         },
         darkColors: {
           primary: '#800080',
+          contentOnPrimary: '#ffffff',
           borderSelected: '#526f3e',
         },
         style: 'ALWAYS_DARK',

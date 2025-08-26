@@ -1450,7 +1450,7 @@ class StripeSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
-    if (coordinator != null) {
+    if (coordinator != null && onrampPresenter != null) {
       promise.resolve(true)
       return
     }
@@ -1514,6 +1514,12 @@ class StripeSdkModule(
       },
       selectPaymentCallback = { result ->
         emitOnOnrampSelectPayment(mapOnrampCollectPaymentResult(result))
+      },
+      authorizeCallback = { result ->
+        // nothing
+      },
+      checkoutCallback = { result ->
+        // nothing
       }
     )
 
@@ -1760,27 +1766,31 @@ class StripeSdkModule(
     val lightColors =
       if (lightColorsMap != null) {
         val primaryColorStr = lightColorsMap.getString("primary")
+        val contentColorStr = lightColorsMap.getString("contentOnPrimary")
         val borderSelectedColorStr = lightColorsMap.getString("borderSelected")
 
         Colors(
           primary = Color(android.graphics.Color.parseColor(primaryColorStr)),
+          contentOnPrimary = Color(android.graphics.Color.parseColor(contentColorStr)),
           borderSelected = Color(android.graphics.Color.parseColor(borderSelectedColorStr)),
         )
       } else {
-        Colors.default(isDark = false)
+        null
       }
 
     val darkColors =
       if (darkColorsMap != null) {
         val primaryColorStr = darkColorsMap.getString("primary")
+        val contentColorStr = darkColorsMap.getString("contentOnPrimary")
         val borderSelectedColorStr = darkColorsMap.getString("borderSelected")
 
         Colors(
           primary = Color(android.graphics.Color.parseColor(primaryColorStr)),
+          contentOnPrimary = Color(android.graphics.Color.parseColor(contentColorStr)),
           borderSelected = Color(android.graphics.Color.parseColor(borderSelectedColorStr)),
         )
       } else {
-        Colors.default(isDark = true)
+        null
       }
 
     val style =
@@ -1810,12 +1820,29 @@ class StripeSdkModule(
         PrimaryButton()
       }
 
-    return LinkAppearance(
-      lightColors = lightColors,
-      darkColors = darkColors,
-      style = style,
-      primaryButton = primaryButton,
-    )
+    if (lightColors == null && darkColors == null) {
+      return LinkAppearance(
+        style = style, 
+        primaryButton = primaryButton
+        )
+    } else if (lightColors != null) {
+      return LinkAppearance(
+        lightColors = lightColors,
+        style = style,
+        primaryButton = primaryButton,
+      )
+    } else if (darkColors != null) {
+      return LinkAppearance(
+        darkColors = darkColors,
+        style = style,
+        primaryButton = primaryButton,
+      )
+    } else {
+      return LinkAppearance(
+        style = style,
+        primaryButton = primaryButton,
+      )
+    }
   }
 
   private fun mapOnrampVerificationResult(result: OnrampVerificationResult): ReadableMap {

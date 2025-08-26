@@ -214,6 +214,8 @@ dependencies {
   implementation("com.stripe:stripe-android:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'
   }
+  implementation("com.stripe:crypto-onramp:$stripe_version")
+
   implementation("com.stripe:financial-connections:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'
   }

@@ -584,6 +584,12 @@ internal fun mapNextAction(
         nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
       }
     }
+    NextActionType.DisplayPayNowDetails -> {
+      (data as? NextActionData.DisplayPayNowDetails)?.let {
+        nextActionMap.putString("type", "paynow")
+        nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
+      }
+    }
   }
   return nextActionMap
 }
