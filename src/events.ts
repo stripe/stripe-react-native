@@ -41,7 +41,9 @@ type Events =
   | 'onCustomPaymentMethodConfirmHandlerCallback'
   | 'onOnrampAuthentication'
   | 'onOnrampIdentityVerification'
-  | 'onOnrampSelectPayment';
+  | 'onOnrampSelectPayment'
+  | 'onOnrampAuthorize'
+  | 'onOnrampCheckout';
 
 export function addListener<EventT extends Events>(
   event: EventT,

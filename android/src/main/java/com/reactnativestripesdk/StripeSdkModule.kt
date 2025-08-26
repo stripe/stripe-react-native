@@ -88,6 +88,8 @@ import com.stripe.android.crypto.onramp.model.OnrampCallbacks
 import com.stripe.android.crypto.onramp.model.OnrampVerificationResult
 import com.stripe.android.crypto.onramp.model.OnrampIdentityVerificationResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentResult
+import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
+import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
 
 import com.stripe.android.link.LinkAppearance
@@ -1516,10 +1518,10 @@ class StripeSdkModule(
         emitOnOnrampSelectPayment(mapOnrampCollectPaymentResult(result))
       },
       authorizeCallback = { result ->
-        // nothing
+        emitOnOnrampAuthorize(mapOnrampAuthorizationResult(result))
       },
       checkoutCallback = { result ->
-        // nothing
+        emitOnOnrampCheckout(mapOnrampCheckoutResult(result))
       }
     )
 
@@ -1899,6 +1901,44 @@ class StripeSdkModule(
       }
       
       return map
+  }
+
+  private fun mapOnrampAuthorizationResult(result: OnrampAuthorizeResult): ReadableMap {
+    val map = Arguments.createMap()
+    when (result) {
+        is OnrampAuthorizeResult.Consented -> {
+            map.putString("status", "consented")
+            map.putString("customerId", result.customerId)
+        }
+        is OnrampAuthorizeResult.Denied -> {
+            map.putString("status", "denied")
+        }
+        is OnrampAuthorizeResult.Canceled -> {
+            map.putString("status", "canceled")
+        }
+        is OnrampAuthorizeResult.Failed -> {
+            map.putString("status", "failed")
+            map.putString("error", result.error.message ?: "Unknown error")
+        }
+    }
+    return map
+  }
+
+  private fun mapOnrampCheckoutResult(result: OnrampCheckoutResult): ReadableMap {
+    val map = Arguments.createMap()
+    when (result) {
+        is OnrampCheckoutResult.Completed -> {
+            map.putString("status", "completed")
+        }
+        is OnrampCheckoutResult.Canceled -> {
+            map.putString("status", "canceled")
+        }
+        is OnrampCheckoutResult.Failed -> {
+            map.putString("status", "failed")
+            map.putString("error", result.error.message ?: "Unknown error")
+        }
+    }
+    return map
   }
 
   companion object {

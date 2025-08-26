@@ -293,6 +293,16 @@ export type OnrampCollectPaymentResult =
   | { status: 'cancelled' }
   | { status: 'failed'; error: string };
 
+export type OnrampAuthorizeResult =
+  | { status: 'consented'; customerId: string }
+  | { status: 'denied' }
+  | { status: 'canceled' }
+  | { status: 'failed'; error: string };
+
+export type OnrampCheckoutResult =
+  | { status: 'completed' }
+  | { status: 'failed'; error: string };
+
 export type PaymentOptionData = {
   icon: string; // base64 string
   label: string;
