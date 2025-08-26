@@ -2,7 +2,7 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '~> 24.20.0'
+stripe_version = '~> 24.21.0'
 
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
@@ -44,7 +44,8 @@ Pod::Spec.new do |s|
   s.dependency 'StripePaymentsUI', stripe_version
   s.dependency 'StripeApplePay', stripe_version
   s.dependency 'StripeFinancialConnections', stripe_version
-
+  s.dependency 'StripeCryptoOnramp', stripe_version
+  
   if fabric_enabled
     install_modules_dependencies(s)
 
