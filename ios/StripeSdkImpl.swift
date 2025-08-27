@@ -1252,9 +1252,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
+        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+
         Task {
             do {
-                let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
                 let result = try await coordinator.authenticateUser(from: presentingViewController)
                 switch result {
                 case let .completed(customerId):
@@ -1347,9 +1348,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
+        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+
         Task {
             do {
-                let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
                 let result = try await coordinator.verifyIdentity(from: presentingViewController)
                 switch result {
                 case .completed:
