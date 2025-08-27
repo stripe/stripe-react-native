@@ -322,7 +322,7 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void lookupLinkUser(String email, Promise promise);
+  public abstract void hasLinkAccount(String email, Promise promise);
 
   @ReactMethod
   @DoNotStrip
@@ -334,19 +334,19 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void collectKycInfo(ReadableMap kycInfo, Promise promise);
+  public abstract void attachKycInfo(ReadableMap kycInfo, Promise promise);
 
   @ReactMethod
   @DoNotStrip
-  public abstract void presentOnrampVerificationFlow(Promise promise);
+  public abstract void authenticateUser(Promise promise);
 
   @ReactMethod
   @DoNotStrip
-  public abstract void promptOnrampIdentityVerification(Promise promise);
+  public abstract void verifyIdentity(Promise promise);
 
   @ReactMethod
   @DoNotStrip
-  public abstract void presentOnrampCollectPaymentFlow(String paymentMethod, Promise promise);
+  public abstract void collectPaymentMethod(String paymentMethod, Promise promise);
 
   @ReactMethod
   @DoNotStrip

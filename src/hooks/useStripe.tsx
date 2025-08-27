@@ -66,7 +66,7 @@ import {
   attachKycInfo,
   authenticateUser,
   verifyIdentity,
-  presentOnrampCollectPaymentFlow,
+  collectPaymentMethod,
   createCryptoPaymentToken,
   performCheckout,
   onrampAuthorize,
@@ -374,9 +374,9 @@ export function useStripe() {
     return verifyIdentity();
   }, []);
 
-  const _presentOnrampCollectPaymentFlow = useCallback(
+  const _collectPaymentMethod = useCallback(
     async (paymentMethod: string): Promise<any> => {
-      return presentOnrampCollectPaymentFlow(paymentMethod);
+      return collectPaymentMethod(paymentMethod);
     },
     []
   );
@@ -441,7 +441,7 @@ export function useStripe() {
     attachKycInfo: _attachKycInfo,
     authenticateUser: _authenticateUser,
     verifyIdentity: _verifyIdentity,
-    presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
+    collectPaymentMethod: _collectPaymentMethod,
     createCryptoPaymentToken: _createCryptoPaymentToken,
     performCheckout: _performCheckout,
     onrampAuthorize: _onrampAuthorize,

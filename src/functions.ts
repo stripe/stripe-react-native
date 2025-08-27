@@ -927,10 +927,10 @@ export const verifyIdentity = async (): Promise<any> => {
   return NativeStripeSdk.verifyIdentity();
 };
 
-export const presentOnrampCollectPaymentFlow = async (
+export const collectPaymentMethod = async (
   paymentMethod: string
 ): Promise<any> => {
-  return NativeStripeSdk.presentOnrampCollectPaymentFlow(paymentMethod);
+  return NativeStripeSdk.collectPaymentMethod(paymentMethod);
 };
 
 export const createCryptoPaymentToken = async (): Promise<any> => {

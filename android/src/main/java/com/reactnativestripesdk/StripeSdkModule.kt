@@ -1729,7 +1729,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun presentOnrampCollectPaymentFlow(paymentMethod: String, promise: Promise) {
+  override fun collectPaymentMethod(paymentMethod: String, promise: Promise) {
     if (onrampPresenter == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return

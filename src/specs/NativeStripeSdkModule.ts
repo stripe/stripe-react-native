@@ -227,7 +227,7 @@ export interface Spec extends TurboModule {
   attachKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
   authenticateUser(): Promise<any>;
   verifyIdentity(): Promise<any>;
-  presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
+  collectPaymentMethod(paymentMethod: string): Promise<any>;
   createCryptoPaymentToken(): Promise<any>;
   performCheckout(onrampSessionId: string, clientSecret: string): Promise<any>;
   onrampAuthorize(linkAuthIntentId: string): Promise<any>;
