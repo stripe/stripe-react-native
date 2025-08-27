@@ -1186,4 +1186,17 @@ class Mappers {
             dateOfBirth: dateOfBirth
         )
     }
+
+    class func paymentMethodDisplayDataToMap(_ paymentMethodDisplayData: PaymentMethodDisplayData) -> [String: String] {
+        var result = [
+            "icon": "data:image/png;base64," + (paymentMethodDisplayData.icon.pngData()?.base64EncodedString(options: []) ?? ""),
+            "label": paymentMethodDisplayData.label,
+        ]
+
+        if let sublabel = paymentMethodDisplayData.sublabel {
+            result["sublabel"] = sublabel
+        }
+
+        return result
+    }
 }

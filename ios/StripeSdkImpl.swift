@@ -1365,6 +1365,53 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(collectPaymentMethod:resolver:rejecter:)
+    public func collectPaymentMethod(
+        paymentMethod: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        let paymentMethodType: PaymentMethodType? = switch paymentMethod {
+        case "Card":
+            .card
+        case "BankAccount":
+            .bankAccount
+        default:
+            nil
+        }
+
+        guard let paymentMethodType else {
+            reject("-1", "Unknown payment method: \(paymentMethod)", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+
+        Task {
+            do {
+                if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
+                    let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+                    resolve(displayData)
+                } else {
+                    // cancelled
+                    resolve(nil)
+                }
+            } catch {
+                reject("-1", "Error encountered while collecting payment method: \(error)", error)
+            }
+        }
+    }
+
     @objc(createCryptoPaymentToken:rejecter:)
     public func createCryptoPaymentToken(
         resolver resolve: @escaping RCTPromiseResolveBlock,

@@ -124,6 +124,13 @@ RCT_EXPORT_METHOD(verifyIdentity:(nonnull RCTPromiseResolveBlock)resolve
   [StripeSdkImpl.shared verifyIdentity:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(collectPaymentMethod:(nonnull NSString *)paymentMethod
+                               resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared collectPaymentMethod:paymentMethod resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(createCryptoPaymentToken:(nonnull RCTPromiseResolveBlock)resolve
                                     reject:(nonnull RCTPromiseRejectBlock)reject)
 {
