@@ -90,6 +90,7 @@ import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
 import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
 import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
+import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
 
 import com.stripe.android.link.LinkAppearance
@@ -1754,7 +1755,17 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun createCryptoPaymentToken(promise: Promise) {
-    // Implementation for creating a crypto payment token
+    if (coordinator == null) {
+      promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+      return
+    }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator!!.createCryptoPaymentToken()
+      CoroutineScope(Dispatchers.Main).launch {
+        handleOnrampCreateCryptoPaymentTokenResult(result, promise)
+      }
+    }
   }
 
   @ReactMethod
@@ -1795,11 +1806,19 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun onrampAuthorize(
-    linkAuthIntentId: String,
-    promise: Promise
-  ) {
-    // Implementation for authorize
+  override fun onrampAuthorize(linkAuthIntentId: String,promise: Promise) {
+    if (onrampPresenter == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    authorizePromise = promise
+
+    try {
+      onrampPresenter!!.authorize(linkAuthIntentId)
+    } catch (e: Exception) {
+      authorizePromise?.reject("AUTHORIZE_ERROR", e.message)
+    }
   }
 
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
@@ -1967,6 +1986,17 @@ class StripeSdkModule(
       }
     }
   }
+
+  private fun handleOnrampCreateCryptoPaymentTokenResult(result: OnrampCreateCryptoPaymentTokenResult, promise: Promise) {
+    when (result) {
+        is OnrampCreateCryptoPaymentTokenResult.Completed -> {
+            promise.resolve(result.cryptoPaymentToken)
+        }
+        is OnrampCreateCryptoPaymentTokenResult.Failed -> {
+            promise.reject("CREATE_CRYPTO_PAYMENT_TOKEN_ERROR", result.error.message)
+        }
+    }
+}
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
