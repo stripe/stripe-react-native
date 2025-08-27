@@ -24,6 +24,7 @@ export default function CryptoOnrampScreen() {
     collectPaymentMethod,
     provideCheckoutClientSecret,
     createCryptoPaymentToken,
+    onrampAuthorize,
   } = useStripe();
   const [email, setEmail] = useState('');
   const [response, setResponse] = useState<string | null>(null);
@@ -151,6 +152,23 @@ export default function CryptoOnrampScreen() {
     }
   }, [createCryptoPaymentToken]);
 
+  const handleOnrampAuthorize = useCallback(async () => {
+    try {
+      const result = await onrampAuthorize('INSERT_LAI_HERE');
+
+      if (result) {
+        Alert.alert('Success', 'Onramp Authorization completed');
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Onramp Authorization cancelled, please try again.'
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', `Could not authorize onramp ${error}.`);
+    }
+  }, [onrampAuthorize]);
+
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <View style={styles.infoContainer}>
@@ -240,6 +258,12 @@ export default function CryptoOnrampScreen() {
               title="Create Crypto Payment Token"
               onPress={handleCreateCryptoPaymentToken}
             />
+          )}
+
+        {isLinkUser === true &&
+          customerId != null &&
+          cryptoPaymentToken != null && (
+            <Button title="Authorize Onramp" onPress={handleOnrampAuthorize} />
           )}
 
         {isLinkUser === true && customerId != null && (
