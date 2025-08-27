@@ -943,8 +943,8 @@ export const performCheckout = async (
   return NativeStripeSdk.performCheckout(onrampSessionId);
 };
 
-export const provideCheckoutClientSecret = (onrampSessionId: string): void => {
-  NativeStripeSdk.provideCheckoutClientSecret(onrampSessionId);
+export const provideCheckoutClientSecret = (clientSecret: string): void => {
+  NativeStripeSdk.provideCheckoutClientSecret(clientSecret);
 };
 
 export const onrampAuthorize = async (

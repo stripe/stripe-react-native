@@ -394,8 +394,8 @@ export function useStripe() {
   );
 
   const _provideCheckoutClientSecret = useCallback(
-    (onrampSessionId: string): void => {
-      provideCheckoutClientSecret(onrampSessionId);
+    (clientSecret: string): void => {
+      provideCheckoutClientSecret(clientSecret);
     },
     []
   );
