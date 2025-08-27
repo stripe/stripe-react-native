@@ -137,6 +137,18 @@ RCT_EXPORT_METHOD(createCryptoPaymentToken:(nonnull RCTPromiseResolveBlock)resol
   [StripeSdkImpl.shared createCryptoPaymentToken:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(performCheckout:(nonnull NSString *)onrampSessionId
+                          resolve:(nonnull RCTPromiseResolveBlock)resolve
+                           reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared performCheckout:onrampSessionId resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(provideCheckoutClientSecret:(nonnull NSString *)clientSecret)
+{
+  [StripeSdkImpl.shared provideCheckoutClientSecret:clientSecret];
+}
+
 RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
                          orderIdentifier:(nonnull NSString *)orderIdentifier
                            webServiceUrl:(nonnull NSString *)webServiceUrl

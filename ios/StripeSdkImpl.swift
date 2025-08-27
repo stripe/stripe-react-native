@@ -67,6 +67,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
 
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
+    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Never>?
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -1438,6 +1439,47 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 reject("-1", "Error encountered while creating crypto payment token: \(error)", error)
             }
         }
+    }
+
+    @objc(performCheckout:resolver:rejecter:)
+    public func performCheckout(
+        onrampSessionId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
+                self?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(["onrampSessionId": onrampSessionId])
+
+                let clientSecret: String = await withCheckedContinuation { [weak self] continuation in
+                    self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                }
+
+                return clientSecret
+            }
+            switch result {
+            case .completed:
+                resolve(true)
+            case let .failed(error):
+                reject("-1", "Error encountered while performing checkout: \(error)", error)
+            }
+        }
+    }
+
+    @objc(provideCheckoutClientSecret:)
+    public func provideCheckoutClientSecret(clientSecret: String) {
+        cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+        cryptoOnrampCheckoutClientSecretContinuation = nil
     }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

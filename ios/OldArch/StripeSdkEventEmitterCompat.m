@@ -106,6 +106,11 @@
   [self sendEventWithName:@"onCustomPaymentMethodConfirmHandlerCallback" body:value];
 }
 
+- (void)emitOnCheckoutClientSecretRequested:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onCheckoutClientSecretRequested" body:value];
+}
+
 @end
 
 #endif

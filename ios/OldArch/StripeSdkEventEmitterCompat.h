@@ -22,6 +22,7 @@
 - (void)emitEmbeddedPaymentElementRowSelectionImmediateAction;
 - (void)emitEmbeddedPaymentElementLoadingFailed:(NSDictionary *)value;
 - (void)emitOnCustomPaymentMethodConfirmHandlerCallback:(NSDictionary *)value;
+- (void)emitOnCheckoutClientSecretRequested:(NSDictionary *)value;
 @end
 
 #endif
