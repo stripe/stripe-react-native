@@ -1332,6 +1332,37 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(verifyIdentity:rejecter:)
+    public func verifyIdentity(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                let result = try await coordinator.verifyIdentity(from: presentingViewController)
+                switch result {
+                case .completed:
+                    resolve(true)
+                case .canceled:
+                    resolve(false)
+                }
+            } catch {
+                reject("-1", "Error encountered while verifying identity: \(error)", error)
+            }
+        }
+    }
+
     @objc(createCryptoPaymentToken:rejecter:)
     public func createCryptoPaymentToken(
         resolver resolve: @escaping RCTPromiseResolveBlock,

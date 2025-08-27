@@ -118,6 +118,12 @@ RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
   [StripeSdkImpl.shared attachKycInfo:info resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(verifyIdentity:(nonnull RCTPromiseResolveBlock)resolve
+                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared verifyIdentity:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(createCryptoPaymentToken:(nonnull RCTPromiseResolveBlock)resolve
                                     reject:(nonnull RCTPromiseRejectBlock)reject)
 {
