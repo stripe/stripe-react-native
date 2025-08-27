@@ -1275,7 +1275,6 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-
         if STPAPIClient.shared.publishableKey == nil {
             reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
             return
@@ -1298,6 +1297,38 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             } catch {
                 reject("-1", "Error encountered while registering a wallet address \(error)", error)
             }
+        }
+    }
+
+    @objc(attachKycInfo:resolver:rejecter:)
+    public func attachKycInfo(
+        info: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let kycInfoDictionary = info as? [String: Any?] else {
+            reject("-1", "Unexpected format of KYC info dictionary. Expected String keys.", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        do {
+            let kycInfo = try Mappers.mapToKycInfo(kycInfoDictionary)
+            Task {
+                try await coordinator.attachKYCInfo(info: kycInfo)
+                resolve(nil)
+            }
+        } catch {
+            reject("-1", "Error encountered while attaching KYC info: \(error)", error)
         }
     }
 

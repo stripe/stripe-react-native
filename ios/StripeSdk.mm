@@ -111,6 +111,13 @@ RCT_EXPORT_METHOD(registerWalletAddress:(nonnull NSString *)address
   [StripeSdkImpl.shared registerWalletAddress:address network:network resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
+                        resolve:(nonnull RCTPromiseResolveBlock)resolve
+                         reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared attachKycInfo:info resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
                          orderIdentifier:(nonnull NSString *)orderIdentifier
                            webServiceUrl:(nonnull NSString *)webServiceUrl

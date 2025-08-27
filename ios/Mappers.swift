@@ -1,4 +1,5 @@
 import Stripe
+@_spi(STP) import StripeCryptoOnramp
 @_spi(STP) import StripePaymentSheet
 
 class Mappers {
@@ -1128,6 +1129,61 @@ class Mappers {
             primaryButton: primaryButtonConfiguration,
             style: style,
             reduceLinkBranding: true
+        )
+    }
+
+    class func mapToKycInfo(_ params: [String: Any?]) throws -> KycInfo {
+        enum KycInfoError: Swift.Error {
+            case missingRequiredField(String)
+        }
+
+        guard let firstName = params["firstName"] as? String else {
+            throw KycInfoError.missingRequiredField("firstName")
+        }
+
+        guard let lastName = params["lastName"] as? String else {
+            throw KycInfoError.missingRequiredField("lastName")
+        }
+
+        guard let idNumber = params["idNumber"] as? String else {
+            throw KycInfoError.missingRequiredField("idNumber")
+        }
+
+        guard let dateOfBirthParams = params["dateOfBirth"] as? [String: Int] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth")
+        }
+
+        guard let day = dateOfBirthParams["day"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.day")
+        }
+
+        guard let month = dateOfBirthParams["month"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.month")
+        }
+        
+        guard let year = dateOfBirthParams["year"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.year")
+        }
+
+        let dateOfBirth = KycInfo.DateOfBirth(day: day, month: month, year: year)
+
+        /// All address parameters are optional, so we don’t guard.
+        let addressParams = params["address"] as? [String: String]
+        let address = Address(
+            city: addressParams?["city"],
+            country: addressParams?["country"],
+            line1: addressParams?["line1"],
+            line2: addressParams?["line2"],
+            postalCode: addressParams?["postalCode"],
+            state: addressParams?["state"]
+        )
+
+        return KycInfo(
+            firstName: firstName,
+            lastName: lastName,
+            idNumber: idNumber,
+            address: address,
+            dateOfBirth: dateOfBirth
         )
     }
 }
