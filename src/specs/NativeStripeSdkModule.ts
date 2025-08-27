@@ -228,8 +228,10 @@ export interface Spec extends TurboModule {
   authenticateUser(): Promise<any>;
   verifyIdentity(): Promise<any>;
   collectPaymentMethod(paymentMethod: string): Promise<any>;
+  provideCheckoutClientSecret(clientSecret: string): void;
+  onCheckoutClientSecretRequested: EventEmitter<UnsafeObject<any>>;
   createCryptoPaymentToken(): Promise<any>;
-  performCheckout(onrampSessionId: string, clientSecret: string): Promise<any>;
+  performCheckout(onrampSessionId: string): Promise<any>;
   onrampAuthorize(linkAuthIntentId: string): Promise<any>;
 }
 

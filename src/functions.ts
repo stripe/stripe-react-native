@@ -938,10 +938,13 @@ export const createCryptoPaymentToken = async (): Promise<any> => {
 };
 
 export const performCheckout = async (
-  onrampSessionId: string,
-  clientSecret: string
+  onrampSessionId: string
 ): Promise<any> => {
-  return NativeStripeSdk.performCheckout(onrampSessionId, clientSecret);
+  return NativeStripeSdk.performCheckout(onrampSessionId);
+};
+
+export const provideCheckoutClientSecret = (onrampSessionId: string): void => {
+  NativeStripeSdk.provideCheckoutClientSecret(onrampSessionId);
 };
 
 export const onrampAuthorize = async (
