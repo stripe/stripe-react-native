@@ -1252,10 +1252,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
-
         Task {
             do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
                 let result = try await coordinator.authenticateUser(from: presentingViewController)
                 switch result {
                 case let .completed(customerId):
@@ -1348,10 +1349,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
-
         Task {
             do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
                 let result = try await coordinator.verifyIdentity(from: presentingViewController)
                 switch result {
                 case .completed:
@@ -1395,10 +1397,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        let presentingViewController = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
-
         Task {
             do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
                 if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
                     let displayData = Mappers.paymentMethodDisplayDataToMap(result)
                     resolve(displayData)
