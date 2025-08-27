@@ -1632,57 +1632,63 @@ class StripeSdkModule(
     promise: Promise
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val firstName = kycInfo.getString("firstName") ?: ""
-      val lastName = kycInfo.getString("lastName") ?: ""
+      val firstName = kycInfo.getString("firstName")
+      if (firstName.isNullOrEmpty()) {
+        promise.reject("MISSING_KYC_FIELD", "Missing required field: firstName")
+        return@launch
+      }
+      val lastName = kycInfo.getString("lastName")
+      if (lastName.isNullOrEmpty()) {
+        promise.reject("MISSING_KYC_FIELD", "Missing required field: lastName")
+        return@launch
+      }
       val idNumber = kycInfo.getString("idNumber")
-      val idTypeStr = kycInfo.getString("idType")
+      if (idNumber.isNullOrEmpty()) {
+        promise.reject("MISSING_KYC_FIELD", "Missing required field: idNumber")
+        return@launch
+      }
+
       val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
+      val dob = if (dateOfBirthMap != null && dateOfBirthMap.hasKey("day") && dateOfBirthMap.hasKey("month") && dateOfBirthMap.hasKey("year")) {
+        DateOfBirth(
+          day = dateOfBirthMap.getInt("day"),
+          month = dateOfBirthMap.getInt("month"),
+          year = dateOfBirthMap.getInt("year")
+        )
+      } else {
+        promise.reject("MISSING_KYC_FIELD", "Missing required field: dateOfBirth")
+        return@launch
+      }
+
       val addressMap = kycInfo.getMap("address")
+      val addressObj = addressMap?.let {
+        PaymentSheet.Address(
+          city = it.getString("city"),
+          country = it.getString("country"),
+          line1 = it.getString("line1"),
+          line2 = it.getString("line2"),
+          postalCode = it.getString("postalCode"),
+          state = it.getString("state"),
+        )
+      } ?: PaymentSheet.Address()
+
       val nationalities = kycInfo.getArray("nationalities")?.toArrayList()?.map { it as String }
       val birthCountry = kycInfo.getString("birthCountry")
       val birthCity = kycInfo.getString("birthCity")
 
-      val dob = dateOfBirthMap?.let {
-        DateOfBirth(
-          day = it.getInt("day"),
-          month = it.getInt("month"),
-          year = it.getInt("year")
-        )
-      }
-
-      val addressObj = addressMap?.let {
-        PaymentSheet.Address(
-          line1 = it.getString("line1"),
-          line2 = it.getString("line2"),
-          city = it.getString("city"),
-          state = it.getString("state"),
-          postalCode = it.getString("postalCode"),
-          country = it.getString("country"),
-        )
-      }
-
-      val idTypeValue = idTypeStr?.let {
-        try {
-          IdType.valueOf(it)
-        } catch (e: Exception) {
-          promise.reject("INVALID_ID_TYPE", "Invalid ID type: $it")
-          return@launch
-        }
-      }
-
-      val kycInfo = KycInfo(
+      val kycInfoObj = KycInfo(
         firstName = firstName,
         lastName = lastName,
         idNumber = idNumber,
-        idType = idTypeValue,
-        dateOfBirth = dob ?: DateOfBirth(1, 1, 1970),
-        address = addressObj ?: PaymentSheet.Address(),
+        idType = IdType.SOCIAL_SECURITY_NUMBER,
+        dateOfBirth = dob,
+        address = addressObj,
         nationalities = nationalities,
         birthCountry = birthCountry,
         birthCity = birthCity
       )
 
-      when (val result = coordinator?.attachKycInfo(kycInfo)) {
+      when (val result = coordinator?.attachKycInfo(kycInfoObj)) {
         is OnrampAttachKycInfoResult.Completed -> {
           promise.resolve(null)
         }
