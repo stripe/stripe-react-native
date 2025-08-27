@@ -60,12 +60,12 @@ import {
   updatePlatformPaySheet,
   openPlatformPaySetup,
   configureOnramp,
-  lookupLinkUser,
+  hasLinkAccount,
   registerLinkUser,
   registerWalletAddress,
-  collectKycInfo,
-  presentOnrampVerificationFlow,
-  promptOnrampIdentityVerification,
+  attachKycInfo,
+  authenticateUser,
+  verifyIdentity,
   presentOnrampCollectPaymentFlow,
   createCryptoPaymentToken,
   performCheckout,
@@ -341,9 +341,9 @@ export function useStripe() {
     []
   );
 
-  const _lookupLinkUser = useCallback(
+  const _hasLinkAccount = useCallback(
     async (email: string): Promise<{ isLinkUser: boolean }> => {
-      return lookupLinkUser(email);
+      return hasLinkAccount(email);
     },
     []
   );
@@ -362,21 +362,17 @@ export function useStripe() {
     []
   );
 
-  const _collectKycInfo = useCallback(
-    async (kycInfo: KycInfo): Promise<any> => {
-      return collectKycInfo(kycInfo);
-    },
-    []
-  );
-
-  const _presentOnrampVerificationFlow = useCallback(async (): Promise<any> => {
-    return presentOnrampVerificationFlow();
+  const _attachKycInfo = useCallback(async (kycInfo: KycInfo): Promise<any> => {
+    return attachKycInfo(kycInfo);
   }, []);
 
-  const _promptOnrampIdentityVerification =
-    useCallback(async (): Promise<any> => {
-      return promptOnrampIdentityVerification();
-    }, []);
+  const _authenticateUser = useCallback(async (): Promise<any> => {
+    return authenticateUser();
+  }, []);
+
+  const _verifyIdentity = useCallback(async (): Promise<any> => {
+    return verifyIdentity();
+  }, []);
 
   const _presentOnrampCollectPaymentFlow = useCallback(
     async (paymentMethod: string): Promise<any> => {
@@ -439,12 +435,12 @@ export function useStripe() {
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
     configureOnramp: _configureOnramp,
-    lookupLinkUser: _lookupLinkUser,
+    hasLinkAccount: _hasLinkAccount,
     registerLinkUser: _registerLinkUser,
     registerWalletAddress: _registerWalletAddress,
-    collectKycInfo: _collectKycInfo,
-    presentOnrampVerificationFlow: _presentOnrampVerificationFlow,
-    promptOnrampIdentityVerification: _promptOnrampIdentityVerification,
+    attachKycInfo: _attachKycInfo,
+    authenticateUser: _authenticateUser,
+    verifyIdentity: _verifyIdentity,
     presentOnrampCollectPaymentFlow: _presentOnrampCollectPaymentFlow,
     createCryptoPaymentToken: _createCryptoPaymentToken,
     performCheckout: _performCheckout,

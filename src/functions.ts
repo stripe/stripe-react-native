@@ -900,8 +900,8 @@ export const configureOnramp = async (config: any): Promise<any> => {
   return NativeStripeSdk.configureOnramp(config);
 };
 
-export const lookupLinkUser = async (email: string): Promise<any> => {
-  return NativeStripeSdk.lookupLinkUser(email);
+export const hasLinkAccount = async (email: string): Promise<any> => {
+  return NativeStripeSdk.hasLinkAccount(email);
 };
 
 export const registerLinkUser = async (info: LinkUserInfo): Promise<any> => {
@@ -915,16 +915,16 @@ export const registerWalletAddress = async (
   return NativeStripeSdk.registerWalletAddress(walletAddress, network);
 };
 
-export const collectKycInfo = async (kycInfo: KycInfo): Promise<any> => {
-  return NativeStripeSdk.collectKycInfo(kycInfo);
+export const attachKycInfo = async (kycInfo: KycInfo): Promise<any> => {
+  return NativeStripeSdk.attachKycInfo(kycInfo);
 };
 
-export const presentOnrampVerificationFlow = async (): Promise<any> => {
-  return NativeStripeSdk.presentOnrampVerificationFlow();
+export const authenticateUser = async (): Promise<any> => {
+  return NativeStripeSdk.authenticateUser();
 };
 
-export const promptOnrampIdentityVerification = async (): Promise<any> => {
-  return NativeStripeSdk.promptOnrampIdentityVerification();
+export const verifyIdentity = async (): Promise<any> => {
+  return NativeStripeSdk.verifyIdentity();
 };
 
 export const presentOnrampCollectPaymentFlow = async (

@@ -16,9 +16,9 @@ import { CryptoNetwork } from '../../../src/types/CryptoNetwork';
 
 export default function CryptoOnrampScreen() {
   const {
-    lookupLinkUser,
-    presentOnrampVerificationFlow,
-    promptOnrampIdentityVerification,
+    hasLinkAccount,
+    authenticateUser,
+    verifyIdentity,
     presentOnrampCollectPaymentFlow,
   } = useStripe();
   const [email, setEmail] = useState('');
@@ -36,7 +36,7 @@ export default function CryptoOnrampScreen() {
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
     try {
-      const result = await lookupLinkUser(email);
+      const result = await hasLinkAccount(email);
       const verified = result ?? false;
 
       setIsLinkUser(verified);
@@ -46,11 +46,11 @@ export default function CryptoOnrampScreen() {
         `Error: ${error?.message || 'An error occurred while checking link user.'}`
       );
     }
-  }, [email, lookupLinkUser]);
+  }, [email, hasLinkAccount]);
 
   const handlePresentVerification = useCallback(async () => {
     try {
-      const result = await presentOnrampVerificationFlow();
+      const result = await authenticateUser();
 
       if (result != null) {
         setCustomerId(result);
@@ -60,11 +60,11 @@ export default function CryptoOnrampScreen() {
     } catch (error) {
       Alert.alert('Error', `Authentication Failed: ${error}.`);
     }
-  }, [presentOnrampVerificationFlow]);
+  }, [authenticateUser]);
 
   const handleVerifyIdentity = useCallback(async () => {
     try {
-      const result = await promptOnrampIdentityVerification();
+      const result = await verifyIdentity();
 
       if (result) {
         Alert.alert('Success', 'Identity Verification completed');
@@ -77,7 +77,7 @@ export default function CryptoOnrampScreen() {
     } catch (error) {
       Alert.alert('Error', `Could not verify identity ${error}.`);
     }
-  }, [promptOnrampIdentityVerification]);
+  }, [verifyIdentity]);
 
   const handleCollectCardPayment = useCallback(async () => {
     try {

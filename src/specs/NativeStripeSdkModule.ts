@@ -221,12 +221,12 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
   configureOnramp(config: UnsafeObject<any>): Promise<any>;
-  lookupLinkUser(email: string): Promise<any>;
+  hasLinkAccount(email: string): Promise<any>;
   registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
   registerWalletAddress(walletAddress: string, network: string): Promise<any>;
-  collectKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
-  presentOnrampVerificationFlow(): Promise<any>;
-  promptOnrampIdentityVerification(): Promise<any>;
+  attachKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
+  authenticateUser(): Promise<any>;
+  verifyIdentity(): Promise<any>;
   presentOnrampCollectPaymentFlow(paymentMethod: string): Promise<any>;
   createCryptoPaymentToken(): Promise<any>;
   performCheckout(onrampSessionId: string, clientSecret: string): Promise<any>;

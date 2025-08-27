@@ -5,14 +5,14 @@ import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 
 export default function VerifyCryptoLinkUserScreen() {
-  const { lookupLinkUser } = useStripe();
+  const { hasLinkAccount } = useStripe();
   const [email, setEmail] = useState('');
   const [response, setResponse] = useState<string | null>(null);
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
     try {
-      const result = await lookupLinkUser(email);
+      const result = await hasLinkAccount(email);
       const isLinkUser = result?.isLinkUser ?? false;
       setResponse(`Is Link User: ${isLinkUser}`);
     } catch (error: any) {
@@ -20,7 +20,7 @@ export default function VerifyCryptoLinkUserScreen() {
         `Error: ${error?.message || 'An error occurred while checking link user.'}`
       );
     }
-  }, [email, lookupLinkUser]);
+  }, [email, hasLinkAccount]);
 
   return (
     <ScrollView
