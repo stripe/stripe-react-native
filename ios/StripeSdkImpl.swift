@@ -1,6 +1,8 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(STP) import StripePaymentSheet
+@_spi(STP) import StripeCryptoOnramp
 import StripeFinancialConnections
 import Foundation
 
@@ -63,6 +65,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+
+    var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -1155,12 +1159,146 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if (STPAPIClient.shared.publishableKey == nil) {
-            resolve(Errors.MISSING_INIT_ERROR)
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
             return
         }
 
-        resolve(nil)
+        let appearance: LinkAppearance = if let appearanceParams = config["appearance"] as? [String: Any?] {
+            Mappers.mapToLinkAppearance(appearanceParams)
+        } else {
+            LinkAppearance()
+        }
+
+        Task {
+            do {
+                try await cryptoOnrampCoordinator = CryptoOnrampCoordinator.create(appearance: appearance)
+                resolve(true)
+            } catch {
+                reject("-1", "Error encountered while configuring onramp \(error)", error)
+            }
+        }
+    }
+
+    @objc(hasLinkAccount:resolver:rejecter:)
+    public func hasLinkAccount(
+        email: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            do {
+                let result = try await coordinator.hasLinkAccount(with: email)
+                resolve(result)
+            } catch {
+                reject("-1", "Error encountered while looking up link user \(error)", error)
+            }
+        }
+    }
+
+    @objc(registerLinkUser:resolver:rejecter:)
+    public func registerLinkUser(
+        info: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        let email = info["email"] as? String ?? ""
+        let phone = info["phone"] as? String ?? ""
+        let country = info["country"] as? String ?? ""
+        let fullName = info["fullName"] as? String
+
+        Task {
+            do {
+                let customerId = try await coordinator.registerLinkUser(email: email, fullName: fullName, phone: phone, country: country)
+                resolve(customerId)
+            } catch {
+                reject("-1", "Error encountered while registering user \(error)", error)
+            }
+        }
+    }
+
+    @objc(authenticateUser:rejecter:)
+    public func authenticateUser(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            do {
+                let viewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+                let result = try await coordinator.authenticateUser(from: viewController)
+                switch result {
+                case let .completed(customerId):
+                    resolve(customerId)
+                case .canceled:
+                    resolve(nil)
+                }
+            } catch {
+                reject("-1", "Error encountered during verification flow \(error)", error)
+            }
+        }
+    }
+
+    @objc(registerWalletAddress:network:resolver:rejecter:)
+    public func registerWalletAddress(
+        address: String,
+        network: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let cryptoNetwork = CryptoNetwork(rawValue: network as String) else {
+            reject("-1", "The specified crypto network is not supported: \(network)", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.registerWalletAddress(walletAddress: address, network: cryptoNetwork)
+                resolve(true)
+            } catch {
+                reject("-1", "Error encountered while registering a wallet address \(error)", error)
+            }
+        }
     }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

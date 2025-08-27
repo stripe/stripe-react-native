@@ -1,5 +1,5 @@
 import Stripe
-import StripePaymentSheet
+@_spi(STP) import StripePaymentSheet
 
 class Mappers {
     class func createResult(_ key: String, _ value: NSDictionary?) -> NSDictionary {
@@ -1069,5 +1069,65 @@ class Mappers {
       ]
 
       return mappedEvent
+    }
+
+    class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
+        let darkColors = params["darkColors"] as? [String: Any?]
+        let lightColors = params["lightColors"] as? [String: Any?]
+
+        let darkPrimaryHex = darkColors?["primary"] as? String
+        let lightPrimaryHex = lightColors?["primary"] as? String
+        let darkSelectedBorderHex = darkColors?["borderSelected"] as? String
+        let lightSelectedBorderHex = lightColors?["borderSelected"] as? String
+
+        let darkPrimary = darkPrimaryHex.flatMap { UIColor(hexString: $0) }
+        let lightPrimary = lightPrimaryHex.flatMap { UIColor(hexString: $0) }
+
+        let darkSelectedBorder = darkSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+        let lightSelectedBorder = lightSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+
+        let primary: UIColor? = if let darkPrimary, let lightPrimary {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkPrimary : lightPrimary
+            }
+        } else {
+            nil
+        }
+
+        let selectedBorder: UIColor? = if let darkSelectedBorder, let lightSelectedBorder {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkSelectedBorder : lightSelectedBorder
+            }
+        } else {
+            nil
+        }
+
+        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
+            .init(primary: primary, selectedBorder: selectedBorder)
+        } else {
+            nil
+        }
+
+        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? = 
+            if let primaryButton = params["primaryButton"] as? [String: CGFloat],
+                let cornerRadius = primaryButton["cornerRadiusDp"],
+                let height = primaryButton["heightDp"] {
+                    .init(cornerRadius: cornerRadius, height: height)
+        } else {
+            nil
+        }
+
+        let style: PaymentSheet.UserInterfaceStyle = switch params["style"] as? String ?? "" {
+            case "ALWAYS_LIGHT": .alwaysLight
+            case "ALWAYS_DARK": .alwaysDark
+            default: .automatic
+        }
+
+        return LinkAppearance(
+            colors: colors,
+            primaryButton: primaryButtonConfiguration,
+            style: style,
+            reduceLinkBranding: true
+        )
     }
 }

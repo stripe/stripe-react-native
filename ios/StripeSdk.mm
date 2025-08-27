@@ -78,9 +78,38 @@ RCT_EXPORT_METHOD(collectFinancialConnectionsAccounts:(nonnull NSString *)client
 
 RCT_EXPORT_METHOD(configureOnramp:(nonnull NSDictionary *)config
                           resolve:(nonnull RCTPromiseResolveBlock)resolve
-                           reject:(nonnull RCTPromiseRejectBlock)reject) {
-                                [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];
-                              }
+                           reject:(nonnull RCTPromiseRejectBlock)reject) 
+{
+  [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(hasLinkAccount:(nonnull NSString *)email
+                         resolve:(nonnull RCTPromiseResolveBlock)resolve
+                          reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared hasLinkAccount:email resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(registerLinkUser:(nonnull NSDictionary *)info
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared registerLinkUser:info resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(authenticateUser:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared authenticateUser:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(registerWalletAddress:(nonnull NSString *)address
+                                network:(nonnull NSString *)network
+                                resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                 reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared registerWalletAddress:address network:network resolver:resolve rejecter:reject];
+}
 
 RCT_EXPORT_METHOD(configureOrderTracking:(nonnull NSString *)orderTypeIdentifier
                          orderIdentifier:(nonnull NSString *)orderIdentifier
