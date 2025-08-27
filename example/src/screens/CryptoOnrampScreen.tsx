@@ -23,6 +23,7 @@ export default function CryptoOnrampScreen() {
     verifyIdentity,
     collectPaymentMethod,
     provideCheckoutClientSecret,
+    createCryptoPaymentToken,
   } = useStripe();
   const [email, setEmail] = useState('');
   const [response, setResponse] = useState<string | null>(null);
@@ -35,6 +36,10 @@ export default function CryptoOnrampScreen() {
 
   const [paymentDisplayData, setPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
+
+  const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
+    null
+  );
 
   type CheckoutClientSecretRequestedParams = {
     onrampSessionId: string;
@@ -136,6 +141,16 @@ export default function CryptoOnrampScreen() {
     }
   }, [bankAccountPaymentMethod, collectPaymentMethod]);
 
+  const handleCreateCryptoPaymentToken = useCallback(async () => {
+    try {
+      const result = await createCryptoPaymentToken();
+
+      setCryptoPaymentToken(result);
+    } catch (error) {
+      Alert.alert('Error', `Could not create crypto payment token ${error}.`);
+    }
+  }, [createCryptoPaymentToken]);
+
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <View style={styles.infoContainer}>
@@ -181,6 +196,14 @@ export default function CryptoOnrampScreen() {
           )}
         </View>
 
+        <View style={styles.buttonContainer}>
+          {cryptoPaymentToken && (
+            <Text style={styles.responseText}>
+              {'Crypto Payment Token: ' + cryptoPaymentToken}
+            </Text>
+          )}
+        </View>
+
         {isLinkUser === false && (
           <Button title="Verify Link User" onPress={checkIsLinkUser} />
         )}
@@ -209,6 +232,15 @@ export default function CryptoOnrampScreen() {
             onPress={handleCollectBankAccountPayment}
           />
         )}
+
+        {isLinkUser === true &&
+          customerId != null &&
+          (cardPaymentMethod != null || bankAccountPaymentMethod != null) && (
+            <Button
+              title="Create Crypto Payment Token"
+              onPress={handleCreateCryptoPaymentToken}
+            />
+          )}
 
         {isLinkUser === true && customerId != null && (
           <RegisterWalletAddressScreen />
