@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,14 +12,17 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import { useStripe } from '@stripe/stripe-react-native';
 import { Picker } from '@react-native-picker/picker';
-import { CryptoNetwork } from '../../../src/types/CryptoNetwork';
+import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/CryptoNetwork';
+import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
+import { addListener } from '@stripe/stripe-react-native/src/events';
 
 export default function CryptoOnrampScreen() {
   const {
     hasLinkAccount,
     authenticateUser,
     verifyIdentity,
-    presentOnrampCollectPaymentFlow,
+    collectPaymentMethod,
+    provideCheckoutClientSecret,
   } = useStripe();
   const [email, setEmail] = useState('');
   const [response, setResponse] = useState<string | null>(null);
@@ -32,6 +35,26 @@ export default function CryptoOnrampScreen() {
 
   const [paymentDisplayData, setPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
+
+  type CheckoutClientSecretRequestedParams = {
+    onrampSessionId: string;
+  };
+
+  useEffect(() => {
+    const subscription = addListener(
+      'onCheckoutClientSecretRequested',
+      async (params: CheckoutClientSecretRequestedParams) => {
+        console.log(params.onrampSessionId);
+
+        const clientSecret = 'test-secret'; //await getClientSecretFromServer(params.onrampSessionId);
+        provideCheckoutClientSecret(clientSecret);
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [provideCheckoutClientSecret]);
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
@@ -81,7 +104,7 @@ export default function CryptoOnrampScreen() {
 
   const handleCollectCardPayment = useCallback(async () => {
     try {
-      const result = await presentOnrampCollectPaymentFlow(cardPaymentMethod);
+      const result = await collectPaymentMethod(cardPaymentMethod);
 
       if (result) {
         setPaymentDisplayData(result);
@@ -94,13 +117,11 @@ export default function CryptoOnrampScreen() {
     } catch (error) {
       Alert.alert('Error', `Could not collect payment ${error}.`);
     }
-  }, [cardPaymentMethod, presentOnrampCollectPaymentFlow]);
+  }, [cardPaymentMethod, collectPaymentMethod]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
     try {
-      const result = await presentOnrampCollectPaymentFlow(
-        bankAccountPaymentMethod
-      );
+      const result = await collectPaymentMethod(bankAccountPaymentMethod);
 
       if (result) {
         setPaymentDisplayData(result);
@@ -113,7 +134,7 @@ export default function CryptoOnrampScreen() {
     } catch (error) {
       Alert.alert('Error', `Could not collect payment ${error}.`);
     }
-  }, [bankAccountPaymentMethod, presentOnrampCollectPaymentFlow]);
+  }, [bankAccountPaymentMethod, collectPaymentMethod]);
 
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>

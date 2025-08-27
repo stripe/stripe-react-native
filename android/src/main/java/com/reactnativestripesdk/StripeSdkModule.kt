@@ -147,6 +147,8 @@ class StripeSdkModule(
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
 
+  private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
+
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
   private val allStripeFragmentTags: List<String>
@@ -1758,10 +1760,38 @@ class StripeSdkModule(
   @ReactMethod
   override fun performCheckout(
     onrampSessionId: String,
-    clientSecret: String,
     promise: Promise
   ) {
-    // Implementation for performing checkout
+    if (onrampPresenter == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    val checkoutHandler: suspend () -> String = {
+      checkoutClientSecretDeferred = CompletableDeferred()
+
+      val params = Arguments.createMap()
+      params.putString("onrampSessionId", onrampSessionId)
+      reactApplicationContext
+        .getJSModule(com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit("onCheckoutClientSecretRequested", params)
+
+      checkoutClientSecretDeferred!!.await()
+    }
+
+    checkoutPromise = promise
+
+    try {
+      onrampPresenter!!.performCheckout(onrampSessionId, checkoutHandler)
+    } catch (e: Exception) {
+      checkoutPromise?.reject("PRESENT_CHECKOUT_ERROR", e.message)
+    }
+  }
+
+  @ReactMethod
+  override fun provideCheckoutClientSecret(clientSecret: String) {
+    checkoutClientSecretDeferred?.complete(clientSecret)
+    checkoutClientSecretDeferred = null
   }
 
   @ReactMethod

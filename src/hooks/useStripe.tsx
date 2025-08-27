@@ -69,6 +69,7 @@ import {
   collectPaymentMethod,
   createCryptoPaymentToken,
   performCheckout,
+  provideCheckoutClientSecret,
   onrampAuthorize,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
@@ -386,8 +387,15 @@ export function useStripe() {
   }, []);
 
   const _performCheckout = useCallback(
-    async (onrampSessionId: string, clientSecret: string): Promise<any> => {
-      return performCheckout(onrampSessionId, clientSecret);
+    async (onrampSessionId: string): Promise<any> => {
+      return performCheckout(onrampSessionId);
+    },
+    []
+  );
+
+  const _provideCheckoutClientSecret = useCallback(
+    (onrampSessionId: string): void => {
+      provideCheckoutClientSecret(onrampSessionId);
     },
     []
   );
@@ -444,6 +452,7 @@ export function useStripe() {
     collectPaymentMethod: _collectPaymentMethod,
     createCryptoPaymentToken: _createCryptoPaymentToken,
     performCheckout: _performCheckout,
+    provideCheckoutClientSecret: _provideCheckoutClientSecret,
     onrampAuthorize: _onrampAuthorize,
   };
 }
