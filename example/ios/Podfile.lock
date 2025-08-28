@@ -1685,12 +1685,12 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - Stripe (24.20.0):
-    - StripeApplePay (= 24.20.0)
-    - StripeCore (= 24.20.0)
-    - StripePayments (= 24.20.0)
-    - StripePaymentsUI (= 24.20.0)
-    - StripeUICore (= 24.20.0)
+  - Stripe (24.22.0):
+    - StripeApplePay (= 24.22.0)
+    - StripeCore (= 24.22.0)
+    - StripePayments (= 24.22.0)
+    - StripePaymentsUI (= 24.22.0)
+    - StripeUICore (= 24.22.0)
   - stripe-react-native (0.50.3):
     - DoubleConversion
     - glog
@@ -1711,13 +1711,13 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.20.0)
+    - Stripe (~> 24.22.0)
     - stripe-react-native/NewArch (= 0.50.3)
-    - StripeApplePay (~> 24.20.0)
-    - StripeFinancialConnections (~> 24.20.0)
-    - StripePayments (~> 24.20.0)
-    - StripePaymentSheet (~> 24.20.0)
-    - StripePaymentsUI (~> 24.20.0)
+    - StripeApplePay (~> 24.22.0)
+    - StripeFinancialConnections (~> 24.22.0)
+    - StripePayments (~> 24.22.0)
+    - StripePaymentSheet (~> 24.22.0)
+    - StripePaymentsUI (~> 24.22.0)
     - Yoga
   - stripe-react-native/NewArch (0.50.3):
     - DoubleConversion
@@ -1739,12 +1739,12 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.20.0)
-    - StripeApplePay (~> 24.20.0)
-    - StripeFinancialConnections (~> 24.20.0)
-    - StripePayments (~> 24.20.0)
-    - StripePaymentSheet (~> 24.20.0)
-    - StripePaymentsUI (~> 24.20.0)
+    - Stripe (~> 24.22.0)
+    - StripeApplePay (~> 24.22.0)
+    - StripeFinancialConnections (~> 24.22.0)
+    - StripePayments (~> 24.22.0)
+    - StripePaymentSheet (~> 24.22.0)
+    - StripePaymentsUI (~> 24.22.0)
     - Yoga
   - stripe-react-native/Tests (0.50.3):
     - DoubleConversion
@@ -1766,35 +1766,35 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.20.0)
-    - StripeApplePay (~> 24.20.0)
-    - StripeFinancialConnections (~> 24.20.0)
-    - StripePayments (~> 24.20.0)
-    - StripePaymentSheet (~> 24.20.0)
-    - StripePaymentsUI (~> 24.20.0)
+    - Stripe (~> 24.22.0)
+    - StripeApplePay (~> 24.22.0)
+    - StripeFinancialConnections (~> 24.22.0)
+    - StripePayments (~> 24.22.0)
+    - StripePaymentSheet (~> 24.22.0)
+    - StripePaymentsUI (~> 24.22.0)
     - Yoga
-  - StripeApplePay (24.20.0):
-    - StripeCore (= 24.20.0)
-  - StripeCore (24.20.0)
-  - StripeFinancialConnections (24.20.0):
-    - StripeCore (= 24.20.0)
-    - StripeUICore (= 24.20.0)
-  - StripePayments (24.20.0):
-    - StripeCore (= 24.20.0)
-    - StripePayments/Stripe3DS2 (= 24.20.0)
-  - StripePayments/Stripe3DS2 (24.20.0):
-    - StripeCore (= 24.20.0)
-  - StripePaymentSheet (24.20.0):
-    - StripeApplePay (= 24.20.0)
-    - StripeCore (= 24.20.0)
-    - StripePayments (= 24.20.0)
-    - StripePaymentsUI (= 24.20.0)
-  - StripePaymentsUI (24.20.0):
-    - StripeCore (= 24.20.0)
-    - StripePayments (= 24.20.0)
-    - StripeUICore (= 24.20.0)
-  - StripeUICore (24.20.0):
-    - StripeCore (= 24.20.0)
+  - StripeApplePay (24.22.0):
+    - StripeCore (= 24.22.0)
+  - StripeCore (24.22.0)
+  - StripeFinancialConnections (24.22.0):
+    - StripeCore (= 24.22.0)
+    - StripeUICore (= 24.22.0)
+  - StripePayments (24.22.0):
+    - StripeCore (= 24.22.0)
+    - StripePayments/Stripe3DS2 (= 24.22.0)
+  - StripePayments/Stripe3DS2 (24.22.0):
+    - StripeCore (= 24.22.0)
+  - StripePaymentSheet (24.22.0):
+    - StripeApplePay (= 24.22.0)
+    - StripeCore (= 24.22.0)
+    - StripePayments (= 24.22.0)
+    - StripePaymentsUI (= 24.22.0)
+  - StripePaymentsUI (24.22.0):
+    - StripeCore (= 24.22.0)
+    - StripePayments (= 24.22.0)
+    - StripeUICore (= 24.22.0)
+  - StripeUICore (24.22.0):
+    - StripeCore (= 24.22.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
