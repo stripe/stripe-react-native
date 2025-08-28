@@ -1828,6 +1828,17 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun logout(promise: Promise) {
+    if (coordinator == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    promise.reject("LOGOUT_ERROR", "UNIMPLEMENTED FUNCTION")
+  }
+
+
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
     val darkColorsMap = appearanceMap.getMap("darkColors")

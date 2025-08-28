@@ -957,3 +957,7 @@ export const onrampAuthorize = async (
 ): Promise<any> => {
   return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
 };
+
+export const logout = async (): Promise<any> => {
+  return NativeStripeSdk.logout();
+};

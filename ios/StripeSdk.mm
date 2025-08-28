@@ -157,6 +157,12 @@ RCT_EXPORT_METHOD(provideCheckoutClientSecret:(nonnull NSString *)clientSecret)
   [StripeSdkImpl.shared provideCheckoutClientSecret:clientSecret];
 }
 
+RCT_EXPORT_METHOD(logout:(nonnull RCTPromiseResolveBlock)resolve
+                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared logout:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(onrampAuthorize:(nonnull NSString *)linkAuthIntentId
                           resolve:(nonnull RCTPromiseResolveBlock)resolve
                            reject:(nonnull RCTPromiseRejectBlock)reject)

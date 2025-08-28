@@ -237,6 +237,7 @@ export interface Spec extends TurboModule {
   createCryptoPaymentToken(): Promise<any>;
   performCheckout(onrampSessionId: string): Promise<any>;
   onrampAuthorize(linkAuthIntentId: string): Promise<any>;
+  logout(): Promise<any>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

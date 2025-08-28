@@ -72,6 +72,7 @@ import {
   performCheckout,
   provideCheckoutClientSecret,
   onrampAuthorize,
+  logout,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -418,6 +419,10 @@ export function useStripe() {
     []
   );
 
+  const _logout = useCallback(async (): Promise<any> => {
+    return logout();
+  }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -466,5 +471,6 @@ export function useStripe() {
     performCheckout: _performCheckout,
     provideCheckoutClientSecret: _provideCheckoutClientSecret,
     onrampAuthorize: _onrampAuthorize,
+    logout: _logout,
   };
 }
