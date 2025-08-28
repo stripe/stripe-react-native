@@ -1783,9 +1783,8 @@ class StripeSdkModule(
 
       val params = Arguments.createMap()
       params.putString("onrampSessionId", onrampSessionId)
-      reactApplicationContext
-        .getJSModule(com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit("onCheckoutClientSecretRequested", params)
+
+      emitOnCheckoutClientSecretRequested(params)
 
       checkoutClientSecretDeferred!!.await()
     }
