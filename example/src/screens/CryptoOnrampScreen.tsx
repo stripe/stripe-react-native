@@ -37,6 +37,7 @@ export default function CryptoOnrampScreen() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
@@ -103,6 +104,23 @@ export default function CryptoOnrampScreen() {
       Alert.alert('Error', `Authentication Failed: ${error}.`);
     }
   }, [authenticateUser]);
+
+  const handleAuthorizeLinkAuthIntent = useCallback(async () => {
+    try {
+      const result = await onrampAuthorize(linkAuthIntentId);
+
+      if (result) {
+        Alert.alert('Success', 'Link auth intent successfully authorized.');
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Link auth intent authorization was cancelled.'
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', `Could not authorize Link auth intent ${error}.`);
+    }
+  }, [onrampAuthorize, linkAuthIntentId]);
 
   const handleVerifyIdentity = useCallback(async () => {
     try {
@@ -326,6 +344,24 @@ export default function CryptoOnrampScreen() {
           <Button
             title="Authenticate Link User"
             onPress={handlePresentVerification}
+          />
+        )}
+
+        {isLinkUser === true && customerId === null && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Link auth intent id"
+            value={linkAuthIntentId}
+            onChangeText={setLinkAuthIntentId}
+            keyboardType="default"
+            autoCapitalize="none"
+          />
+        )}
+
+        {isLinkUser === true && customerId === null && (
+          <Button
+            title="Authorize Link Auth Intent"
+            onPress={handleAuthorizeLinkAuthIntent}
           />
         )}
 
