@@ -122,7 +122,9 @@ export default function PaymentsUICustomScreen() {
   }, [customerKeyType, initialisePaymentSheet]);
 
   const choosePaymentOption = async () => {
-    const { error, paymentOption } = await presentPaymentSheet();
+    const { error, paymentOption, didCancel } = await presentPaymentSheet();
+
+    console.log('didCancel', didCancel);
 
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);

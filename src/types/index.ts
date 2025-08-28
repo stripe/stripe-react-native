@@ -154,6 +154,7 @@ export type InitPaymentSheetResult =
 
 export type PresentPaymentSheetResult = {
   paymentOption?: PaymentSheet.PaymentOption | undefined;
+  didCancel?: boolean;
   error?: StripeError<PaymentSheetError> | undefined;
 };
 

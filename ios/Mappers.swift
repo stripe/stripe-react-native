@@ -6,6 +6,13 @@ class Mappers {
         return [key: value ?? NSNull()]
     }
 
+    class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]?) -> NSDictionary {
+        let result = NSMutableDictionary()
+        result[key] = value ?? NSNull()
+        additionalFields?.forEach { (a, b) in result[a] = b }
+        return result
+    }
+
     class func mapToPKContactField(field: String) -> PKContactField {
         switch field {
         case "emailAddress": return PKContactField.emailAddress
