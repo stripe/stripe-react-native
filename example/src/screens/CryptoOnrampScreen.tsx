@@ -39,13 +39,13 @@ export default function CryptoOnrampScreen() {
   const [lastName, setLastName] = useState('');
 
   const [response, setResponse] = useState<string | null>(null);
-  const [isLinkUser, setIsLinkUser] = useState<boolean | null>(false);
+  const [isLinkUser, setIsLinkUser] = useState(false);
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
-  const [platformPayPaymentMethod] = useState<string | null>('PlatformPay');
-  const [cardPaymentMethod] = useState<string | null>('Card');
-  const [bankAccountPaymentMethod] = useState<string | null>('BankAccount');
+  const [platformPayPaymentMethod] = useState('PlatformPay');
+  const [cardPaymentMethod] = useState('Card');
+  const [bankAccountPaymentMethod] = useState('BankAccount');
 
   const [paymentDisplayData, setPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
@@ -79,8 +79,7 @@ export default function CryptoOnrampScreen() {
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
     try {
-      const result = await hasLinkAccount(email);
-      const verified = result ?? false;
+      const verified = await hasLinkAccount(email);
 
       setIsLinkUser(verified);
       setResponse(`Is Link User: ${verified}`);
@@ -190,7 +189,7 @@ export default function CryptoOnrampScreen() {
 
   const handleCollectCardPayment = useCallback(async () => {
     try {
-      const result = await collectPaymentMethod(cardPaymentMethod);
+      const result = await collectPaymentMethod(cardPaymentMethod, {});
 
       if (result) {
         setPaymentDisplayData(result);
@@ -207,7 +206,7 @@ export default function CryptoOnrampScreen() {
 
   const handleCollectBankAccountPayment = useCallback(async () => {
     try {
-      const result = await collectPaymentMethod(bankAccountPaymentMethod);
+      const result = await collectPaymentMethod(bankAccountPaymentMethod, {});
 
       if (result) {
         setPaymentDisplayData(result);

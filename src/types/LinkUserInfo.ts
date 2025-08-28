@@ -1,6 +1,6 @@
 export type LinkUserInfo = {
   email: string;
-  phoner: string;
+  phone: string;
   country: string;
   fullName?: string;
 };

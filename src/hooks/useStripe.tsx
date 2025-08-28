@@ -344,14 +344,14 @@ export function useStripe() {
   );
 
   const _hasLinkAccount = useCallback(
-    async (email: string): Promise<{ isLinkUser: boolean }> => {
+    async (email: string): Promise<boolean> => {
       return hasLinkAccount(email);
     },
     []
   );
 
   const _registerLinkUser = useCallback(
-    async (info: LinkUserInfo): Promise<{ customerId: string }> => {
+    async (info: LinkUserInfo): Promise<string> => {
       return registerLinkUser(info);
     },
     []

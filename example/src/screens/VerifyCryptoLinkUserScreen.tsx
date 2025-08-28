@@ -12,8 +12,7 @@ export default function VerifyCryptoLinkUserScreen() {
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
     try {
-      const result = await hasLinkAccount(email);
-      const isLinkUser = result?.isLinkUser ?? false;
+      const isLinkUser = await hasLinkAccount(email);
       setResponse(`Is Link User: ${isLinkUser}`);
     } catch (error: any) {
       setResponse(

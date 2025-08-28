@@ -22,7 +22,7 @@ export default function RegisterCryptoOnrampScreen() {
         fullName: fullName || undefined,
       };
       const result = await registerLinkUser(userInfo);
-      setResponse(`Registration Successful: ${JSON.stringify(result)}`);
+      setResponse(`Registration Successful: ${result}`);
     } catch (error: any) {
       setResponse(
         `Error: ${error?.message || 'An error occurred while registering link user.'}`
