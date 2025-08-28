@@ -16,7 +16,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `yarn bootstrap-no-pods` - Setup without installing CocoaPods
 - `yarn pods` - Install CocoaPods for iOS (example app)
 - `yarn update-pods` - Update specific Stripe pod dependencies
-- `yarn update-stripe-ios` - Update Stripe iOS SDK to latest version (or specify version)
 
 ### Example App Development Workflow
 1. **Setup**: `yarn bootstrap`
