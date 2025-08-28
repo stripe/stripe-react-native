@@ -7,7 +7,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -47,9 +50,6 @@ import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUICustomization
 import com.reactnativestripesdk.utils.removeFragment
 import com.reactnativestripesdk.utils.toBundleObject
-import com.reactnativestripesdk.getBase64FromBitmap
-import com.reactnativestripesdk.getBitmapFromDrawable
-
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.GooglePayJsonFactory
 import com.stripe.android.PaymentAuthConfig
@@ -57,7 +57,30 @@ import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
+import com.stripe.android.crypto.onramp.OnrampCoordinator
+import com.stripe.android.crypto.onramp.model.CryptoNetwork
+import com.stripe.android.crypto.onramp.model.DateOfBirth
+import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.crypto.onramp.model.LinkUserInfo
+import com.stripe.android.crypto.onramp.model.OnrampAttachKycInfoResult
+import com.stripe.android.crypto.onramp.model.OnrampAuthenticateResult
+import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
+import com.stripe.android.crypto.onramp.model.OnrampCallbacks
+import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
+import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
+import com.stripe.android.crypto.onramp.model.OnrampConfiguration
+import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
+import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
+import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
+import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
+import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
+import com.stripe.android.crypto.onramp.model.PaymentMethodType
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
+import com.stripe.android.link.LinkAppearance
+import com.stripe.android.link.LinkAppearance.Colors
+import com.stripe.android.link.LinkAppearance.PrimaryButton
+import com.stripe.android.link.LinkAppearance.Style
 import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.CardParams
 import com.stripe.android.model.ConfirmPaymentIntentParams
@@ -73,44 +96,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-
-import androidx.compose.ui.graphics.Color
-import android.graphics.Color as AndroidColor
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.stripe.android.crypto.onramp.OnrampCoordinator
-import com.stripe.android.crypto.onramp.model.OnrampConfiguration
-import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
-import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
-import com.stripe.android.crypto.onramp.model.LinkUserInfo
-import com.stripe.android.crypto.onramp.model.DateOfBirth
-import com.stripe.android.crypto.onramp.model.OnrampCallbacks
-import com.stripe.android.crypto.onramp.model.OnrampAuthenticateResult
-import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
-import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
-import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
-import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
-import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
-import com.stripe.android.crypto.onramp.model.PaymentMethodType
-
-import com.stripe.android.link.LinkAppearance
-import com.stripe.android.link.LinkAppearance.Colors
-import com.stripe.android.link.LinkAppearance.PrimaryButton
-import com.stripe.android.link.LinkAppearance.Style
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
-import androidx.lifecycle.SavedStateHandle
-import com.stripe.android.crypto.onramp.model.CryptoNetwork
-import com.stripe.android.crypto.onramp.model.KycInfo
-import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
-import com.stripe.android.crypto.onramp.model.OnrampAttachKycInfoResult
-import androidx.activity.ComponentActivity
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import android.util.Base64
-import java.io.ByteArrayOutputStream
-import android.graphics.Canvas
-import androidx.core.graphics.drawable.DrawableCompat
 
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
@@ -1471,8 +1456,9 @@ class StripeSdkModule(
         return
     }
 
-    coordinator = OnrampCoordinator.Builder()
+    val coordinator = OnrampCoordinator.Builder()
       .build(application, SavedStateHandle())
+      .also { this.coordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
       val appearanceMap = config.getMap("appearance")
@@ -1491,10 +1477,17 @@ class StripeSdkModule(
         appearance = appearance
       )
 
-      coordinator?.configure(configuration)
+      val configureResult = coordinator.configure(configuration)
 
       CoroutineScope(Dispatchers.Main).launch {
-        createOnrampPresenter(promise)
+        when (configureResult) {
+          is OnrampConfigurationResult.Completed -> {
+            createOnrampPresenter(promise)
+          }
+          is OnrampConfigurationResult.Failed -> {
+            promise.reject("CONFIGURATION_FAILED", configureResult.error)
+          }
+        }
       }
     }
   }
