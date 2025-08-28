@@ -82,7 +82,6 @@ import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
-import com.stripe.android.crypto.onramp.model.IdType
 import com.stripe.android.crypto.onramp.model.DateOfBirth
 import com.stripe.android.crypto.onramp.model.OnrampCallbacks
 import com.stripe.android.crypto.onramp.model.OnrampAuthenticateResult
@@ -1672,20 +1671,12 @@ class StripeSdkModule(
         )
       } ?: PaymentSheet.Address()
 
-      val nationalities = kycInfo.getArray("nationalities")?.toArrayList()?.map { it as String }
-      val birthCountry = kycInfo.getString("birthCountry")
-      val birthCity = kycInfo.getString("birthCity")
-
       val kycInfoObj = KycInfo(
         firstName = firstName,
         lastName = lastName,
         idNumber = idNumber,
-        idType = IdType.SOCIAL_SECURITY_NUMBER,
         dateOfBirth = dob,
         address = addressObj,
-        nationalities = nationalities,
-        birthCountry = birthCountry,
-        birthCity = birthCity
       )
 
       when (val result = coordinator?.attachKycInfo(kycInfoObj)) {
@@ -1902,7 +1893,7 @@ class StripeSdkModule(
 
     if (lightColors == null && darkColors == null) {
       return LinkAppearance(
-        style = style, 
+        style = style,
         primaryButton = primaryButton
         )
     } else if (lightColors != null) {
@@ -1957,7 +1948,8 @@ class StripeSdkModule(
     when (result) {
         is OnrampCollectPaymentMethodResult.Completed -> {
             val displayData = Arguments.createMap()
-            val icon = "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
+            val icon = currentActivity?.getDrawable(result.displayData.iconRes)
+              ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
             displayData.putString("icon", icon)
             displayData.putString("label", result.displayData.label)
             result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
@@ -2018,4 +2010,3 @@ class StripeSdkModule(
     const val NAME = NativeStripeSdkModuleSpec.NAME
   }
 }
-
