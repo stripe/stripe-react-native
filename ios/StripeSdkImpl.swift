@@ -1515,6 +1515,42 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         cryptoOnrampCheckoutClientSecretContinuation = nil
     }
 
+    @objc(onrampAuthorize:resolver:rejecter:)
+    public func onrampAuthorize(
+        linkAuthIntentId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                let authorizationResult = try await coordinator.authorize(linkAuthIntentId: linkAuthIntentId, from: presentingViewController)
+                switch authorizationResult {
+                case let .consented(customerId):
+                    resolve(customerId)
+                case .denied:
+                    reject("-1", "Authorization was denied.", NSError(domain: "StripeCryptoOnramp", code: -1))
+                case.canceled:
+                    resolve(nil)
+                }
+            } catch {
+                reject("-1", "Error encountered while authorizing: \(error)", error)
+            }
+        }
+    }
+
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
     }
