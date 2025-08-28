@@ -2,7 +2,7 @@ import Stripe
 import StripePaymentSheet
 
 class Mappers {
-    class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]?) -> NSDictionary {
+    class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]? = nil) -> NSDictionary {
         let result = NSMutableDictionary()
         result[key] = value ?? NSNull()
         additionalFields?.forEach { (a, b) in result[a] = b }
