@@ -33,9 +33,24 @@ import com.stripe.android.paymentsheet.PaymentSheet
 internal fun createResult(
   key: String,
   value: WritableMap,
+  additionalFields: Map<String, Any>? = null
 ): WritableMap {
   val map = WritableNativeMap()
   map.putMap(key, value)
+  additionalFields?.forEach { (fieldKey, fieldValue) ->
+    when (fieldValue) {
+      is String -> map.putString(fieldKey, fieldValue)
+      is Boolean -> map.putBoolean(fieldKey, fieldValue)
+      is Int -> map.putInt(fieldKey, fieldValue)
+      is Double -> map.putDouble(fieldKey, fieldValue)
+      is WritableMap -> map.putMap(fieldKey, fieldValue)
+      is ReadableMap -> map.putMap(fieldKey, fieldValue)
+      is WritableArray -> map.putArray(fieldKey, fieldValue)
+      is ReadableArray -> map.putArray(fieldKey, fieldValue)
+      null -> map.putNull(fieldKey)
+      else -> map.putString(fieldKey, fieldValue.toString())
+    }
+  }
   return map
 }
 

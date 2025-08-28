@@ -132,9 +132,8 @@ class PaymentSheetFragment :
             val option: WritableMap = WritableNativeMap()
             option.putString("label", it.label)
             option.putString("image", imageString)
-            val result = createResult("paymentOption", option)
-            result.putBoolean("didCancel", paymentOptionResult.didCancel)
-            result
+            val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
+            createResult("paymentOption", option, additionalFields)
           }
             ?: run {
               if (paymentSheetTimedOut) {

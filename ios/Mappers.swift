@@ -2,10 +2,6 @@ import Stripe
 import StripePaymentSheet
 
 class Mappers {
-    class func createResult(_ key: String, _ value: NSDictionary?) -> NSDictionary {
-        return [key: value ?? NSNull()]
-    }
-
     class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]?) -> NSDictionary {
         let result = NSMutableDictionary()
         result[key] = value ?? NSNull()
