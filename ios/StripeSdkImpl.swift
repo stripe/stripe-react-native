@@ -1510,7 +1510,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
-                self?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(["onrampSessionId": onrampSessionId])
+                self?.emitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
 
                 let clientSecret: String = await withCheckedContinuation { [weak self] continuation in
                     self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
