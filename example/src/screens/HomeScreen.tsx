@@ -482,7 +482,10 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
-      <StripeProvider publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO">
+      <StripeProvider
+        publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO"
+        merchantIdentifier="merchant.com.stripe.react.native"
+      >
         <Collapse title="Crypto Onramp">
           <>
             <View style={styles.buttonContainer}>
