@@ -1706,6 +1706,16 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun updatePhoneNumber(phone: String, promise: Promise) {
+    if (coordinator == null) {
+      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+      return
+    }
+
+    promise.reject("UPDATE_PHONE_NUMBER_ERROR", "UNIMPLEMENTED FUNCTION")
+  }
+
+  @ReactMethod
   override fun authenticateUser(promise: Promise) {
     if (onrampPresenter == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")

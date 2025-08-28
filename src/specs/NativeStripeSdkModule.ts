@@ -225,6 +225,7 @@ export interface Spec extends TurboModule {
   registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
   registerWalletAddress(walletAddress: string, network: string): Promise<any>;
   attachKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
+  updatePhoneNumber(phone: string): Promise<any>;
   authenticateUser(): Promise<any>;
   verifyIdentity(): Promise<any>;
   collectPaymentMethod(paymentMethod: string): Promise<any>;
