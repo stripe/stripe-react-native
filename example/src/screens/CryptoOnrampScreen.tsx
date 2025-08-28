@@ -7,10 +7,15 @@ import {
   Text,
   TextInput,
   Image,
+  Platform,
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import { useStripe } from '@stripe/stripe-react-native';
+import {
+  useStripe,
+  PlatformPay,
+  PlatformPayButton,
+} from '@stripe/stripe-react-native';
 import { Picker } from '@react-native-picker/picker';
 import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/CryptoNetwork';
 import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
@@ -25,6 +30,7 @@ export default function CryptoOnrampScreen() {
     provideCheckoutClientSecret,
     createCryptoPaymentToken,
     onrampAuthorize,
+    isPlatformPaySupported,
   } = useStripe();
   const [email, setEmail] = useState('');
   const [response, setResponse] = useState<string | null>(null);
@@ -32,6 +38,7 @@ export default function CryptoOnrampScreen() {
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
+  const [platformPayPaymentMethod] = useState<string | null>('PlatformPay');
   const [cardPaymentMethod] = useState<string | null>('Card');
   const [bankAccountPaymentMethod] = useState<string | null>('BankAccount');
 
@@ -41,6 +48,8 @@ export default function CryptoOnrampScreen() {
   const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
     null
   );
+
+  const [isApplePaySupported, setIsApplePaySupported] = useState(false);
 
   type CheckoutClientSecretRequestedParams = {
     onrampSessionId: string;
@@ -108,6 +117,40 @@ export default function CryptoOnrampScreen() {
     }
   }, [verifyIdentity]);
 
+  const handleCollectApplePayPayment = useCallback(async () => {
+    try {
+      const platformPayParams = {
+        applePay: {
+          cartItems: [
+            {
+              label: 'Example',
+              amount: '1.00',
+              paymentType: PlatformPay.PaymentType.Immediate,
+            },
+          ],
+          merchantCountryCode: 'US',
+          currencyCode: 'USD',
+        },
+      };
+
+      const result = await collectPaymentMethod(
+        platformPayPaymentMethod,
+        platformPayParams
+      );
+
+      if (result) {
+        setPaymentDisplayData(result);
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Payment collection cancelled, please try again.'
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', `Could not collect payment ${error}.`);
+    }
+  }, [platformPayPaymentMethod, collectPaymentMethod]);
+
   const handleCollectCardPayment = useCallback(async () => {
     try {
       const result = await collectPaymentMethod(cardPaymentMethod);
@@ -168,6 +211,23 @@ export default function CryptoOnrampScreen() {
       Alert.alert('Error', `Could not authorize onramp ${error}.`);
     }
   }, [onrampAuthorize]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (Platform.OS === 'ios') {
+        try {
+          const supported = await isPlatformPaySupported();
+          if (mounted) setIsApplePaySupported(!!supported);
+        } catch {
+          if (mounted) setIsApplePaySupported(false);
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [isPlatformPaySupported]);
 
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
@@ -236,6 +296,18 @@ export default function CryptoOnrampScreen() {
         {isLinkUser === true && customerId != null && (
           <Button title="Verify Identity" onPress={handleVerifyIdentity} />
         )}
+
+        {isLinkUser === true &&
+          customerId != null &&
+          Platform.OS === 'ios' &&
+          isApplePaySupported && (
+            <View style={styles.applePayButtonContainer}>
+              <PlatformPayButton
+                onPress={handleCollectApplePayPayment}
+                style={styles.applePayButton}
+              />
+            </View>
+          )}
 
         {isLinkUser === true && customerId != null && (
           <Button
@@ -351,5 +423,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 12,
     color: colors.dark_gray,
+  },
+  applePayButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  applePayButton: {
+    height: 50,
   },
 });

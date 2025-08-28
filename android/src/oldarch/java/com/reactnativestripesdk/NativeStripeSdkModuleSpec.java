@@ -350,7 +350,7 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void collectPaymentMethod(String paymentMethod, Promise promise);
+  public abstract void collectPaymentMethod(String paymentMethod, ReadableMap platformPayParams, Promise promise);
 
   @ReactMethod
   @DoNotStrip

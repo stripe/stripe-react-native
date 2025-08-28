@@ -376,8 +376,11 @@ export function useStripe() {
   }, []);
 
   const _collectPaymentMethod = useCallback(
-    async (paymentMethod: string): Promise<any> => {
-      return collectPaymentMethod(paymentMethod);
+    async (
+      paymentMethod: string,
+      platformPayParams: Record<string, any>
+    ): Promise<any> => {
+      return collectPaymentMethod(paymentMethod, platformPayParams);
     },
     []
   );

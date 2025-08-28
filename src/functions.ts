@@ -928,9 +928,10 @@ export const verifyIdentity = async (): Promise<any> => {
 };
 
 export const collectPaymentMethod = async (
-  paymentMethod: string
+  paymentMethod: string,
+  platformPayParams: any
 ): Promise<any> => {
-  return NativeStripeSdk.collectPaymentMethod(paymentMethod);
+  return NativeStripeSdk.collectPaymentMethod(paymentMethod, platformPayParams);
 };
 
 export const createCryptoPaymentToken = async (): Promise<any> => {

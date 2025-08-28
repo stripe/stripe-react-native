@@ -1368,9 +1368,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(collectPaymentMethod:resolver:rejecter:)
+    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
     public func collectPaymentMethod(
         paymentMethod: String,
+        platformPayParams: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
@@ -1384,17 +1385,30 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        let paymentMethodType: PaymentMethodType? = switch paymentMethod {
+        var paymentMethodType: PaymentMethodType?
+        switch paymentMethod {
         case "Card":
-            .card
+            paymentMethodType = .card
         case "BankAccount":
-            .bankAccount
+            paymentMethodType = .bankAccount
+        case "PlatformPay":
+            guard let applePayParams = platformPayParams["applePay"] as? NSDictionary else {
+                reject("-1", "You must provide the `applePay` parameter.", NSError(domain: "StripeCryptoOnramp", code: -1))
+                break
+            }
+
+            let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayParams)
+            if let paymentRequest {
+                paymentMethodType = .applePay(paymentRequest: paymentRequest)
+            } else {
+                reject("-1", "Unable to create Apple Pay payment request: \(String(describing: error))", NSError(domain: "StripeCryptoOnramp", code: -1))
+            }
         default:
-            nil
+            reject("-1", "Unknown payment method: \(paymentMethod)", NSError(domain: "StripeCryptoOnramp", code: -1))
         }
 
         guard let paymentMethodType else {
-            reject("-1", "Unknown payment method: \(paymentMethod)", NSError(domain: "StripeCryptoOnramp", code: -1))
+            // In all non-assignment branches above, we’ve already called `reject`, so simply return.
             return
         }
 
