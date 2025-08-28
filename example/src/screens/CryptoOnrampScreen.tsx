@@ -330,7 +330,7 @@ export default function CryptoOnrampScreen() {
 
         <View style={styles.buttonContainer}>
           {cryptoPaymentToken && (
-            <Text style={styles.responseText}>
+            <Text style={styles.responseText} selectable>
               {'Crypto Payment Token: ' + cryptoPaymentToken}
             </Text>
           )}
