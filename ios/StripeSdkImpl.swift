@@ -1324,14 +1324,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        do {
-            let kycInfo = try Mappers.mapToKycInfo(kycInfoDictionary)
-            Task {
+        Task {
+            do {
+                let kycInfo = try Mappers.mapToKycInfo(kycInfoDictionary)
                 try await coordinator.attachKYCInfo(info: kycInfo)
                 resolve(nil)
+            } catch {
+                reject("-1", "Error encountered while attaching KYC info: \(error)", error)
             }
-        } catch {
-            reject("-1", "Error encountered while attaching KYC info: \(error)", error)
         }
     }
 
