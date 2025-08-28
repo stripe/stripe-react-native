@@ -160,7 +160,7 @@ export default function CryptoOnrampScreen() {
       const kycInfo = {
         firstName: firstName,
         lastName: lastName,
-        idNumber: '123456789',
+        idNumber: '000000000',
         dateOfBirth: {
           day: 1,
           month: 1,
