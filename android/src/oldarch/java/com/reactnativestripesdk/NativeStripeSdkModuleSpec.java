@@ -330,6 +330,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void updatePhoneNumber(String phone, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void registerLinkUser(ReadableMap info, Promise promise);
 
   @ReactMethod

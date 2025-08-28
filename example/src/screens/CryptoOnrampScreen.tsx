@@ -26,6 +26,7 @@ export default function CryptoOnrampScreen() {
     hasLinkAccount,
     authenticateUser,
     verifyIdentity,
+    attachKycInfo,
     collectPaymentMethod,
     provideCheckoutClientSecret,
     createCryptoPaymentToken,
@@ -33,6 +34,10 @@ export default function CryptoOnrampScreen() {
     isPlatformPaySupported,
   } = useStripe();
   const [email, setEmail] = useState('');
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState<boolean | null>(false);
 
@@ -150,6 +155,38 @@ export default function CryptoOnrampScreen() {
       Alert.alert('Error', `Could not collect payment ${error}.`);
     }
   }, [platformPayPaymentMethod, collectPaymentMethod]);
+
+  const handleAttachKycInfo = useCallback(async () => {
+    try {
+      const kycInfo = {
+        firstName: firstName,
+        lastName: lastName,
+        idNumber: '123456789',
+        dateOfBirth: {
+          day: 1,
+          month: 1,
+          year: 1990,
+        },
+        address: {
+          line1: '123 Main St',
+          line2: 'Apt 4B',
+          city: 'San Francisco',
+          state: 'CA',
+          postalCode: '94111',
+          country: 'US',
+        },
+        nationalities: ['US'],
+        birthCountry: 'US',
+        birthCity: 'San Francisco',
+      };
+
+      await attachKycInfo(kycInfo);
+
+      Alert.alert('Success', 'KYC Attached');
+    } catch (error: any) {
+      Alert.alert('Error', `Failed to attach KYC info: ${error}.`);
+    }
+  }, [attachKycInfo, firstName, lastName]);
 
   const handleCollectCardPayment = useCallback(async () => {
     try {
@@ -291,6 +328,32 @@ export default function CryptoOnrampScreen() {
             title="Authenticate Link User"
             onPress={handlePresentVerification}
           />
+        )}
+
+        {isLinkUser === true && customerId != null && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="First Name"
+            value={firstName}
+            onChangeText={setFirstName}
+            keyboardType="default"
+            autoCapitalize="none"
+          />
+        )}
+
+        {isLinkUser === true && customerId != null && (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Last Name"
+            value={lastName}
+            onChangeText={setLastName}
+            keyboardType="default"
+            autoCapitalize="none"
+          />
+        )}
+
+        {isLinkUser === true && customerId != null && (
+          <Button title="Attach KYC Info" onPress={handleAttachKycInfo} />
         )}
 
         {isLinkUser === true && customerId != null && (

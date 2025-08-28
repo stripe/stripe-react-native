@@ -64,6 +64,7 @@ import {
   registerLinkUser,
   registerWalletAddress,
   attachKycInfo,
+  updatePhoneNumber,
   authenticateUser,
   verifyIdentity,
   collectPaymentMethod,
@@ -367,6 +368,13 @@ export function useStripe() {
     return attachKycInfo(kycInfo);
   }, []);
 
+  const _updatePhoneNumber = useCallback(
+    async (phone: string): Promise<any> => {
+      return updatePhoneNumber(phone);
+    },
+    []
+  );
+
   const _authenticateUser = useCallback(async (): Promise<any> => {
     return authenticateUser();
   }, []);
@@ -450,6 +458,7 @@ export function useStripe() {
     registerLinkUser: _registerLinkUser,
     registerWalletAddress: _registerWalletAddress,
     attachKycInfo: _attachKycInfo,
+    updatePhoneNumber: _updatePhoneNumber,
     authenticateUser: _authenticateUser,
     verifyIdentity: _verifyIdentity,
     collectPaymentMethod: _collectPaymentMethod,

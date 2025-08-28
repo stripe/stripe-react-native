@@ -1335,6 +1335,25 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(updatePhoneNumber:resolver:rejecter:)
+    public func updatePhoneNumber(
+        phone: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        if STPAPIClient.shared.publishableKey == nil {
+            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        guard let coordinator = cryptoOnrampCoordinator else {
+            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            return
+        }
+
+        reject("-1", "FUNCTION NOT IMPLEMENTED", NSError(domain: "StripeCryptoOnramp", code: -1))
+    }
+
     @objc(verifyIdentity:rejecter:)
     public func verifyIdentity(
         resolver resolve: @escaping RCTPromiseResolveBlock,

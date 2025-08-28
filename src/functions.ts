@@ -919,6 +919,10 @@ export const attachKycInfo = async (kycInfo: KycInfo): Promise<any> => {
   return NativeStripeSdk.attachKycInfo(kycInfo);
 };
 
+export const updatePhoneNumber = async (phone: string): Promise<any> => {
+  return NativeStripeSdk.updatePhoneNumber(phone);
+};
+
 export const authenticateUser = async (): Promise<any> => {
   return NativeStripeSdk.authenticateUser();
 };
