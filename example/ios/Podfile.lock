@@ -1691,7 +1691,7 @@ PODS:
     - StripePayments (= 24.22.0)
     - StripePaymentsUI (= 24.22.0)
     - StripeUICore (= 24.22.0)
-  - stripe-react-native (0.51.0):
+  - stripe-react-native (0.50.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1712,7 +1712,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Stripe (~> 24.22.0)
-    - stripe-react-native/NewArch (= 0.51.0)
+    - stripe-react-native/NewArch (= 0.50.3)
     - StripeApplePay (~> 24.22.0)
     - StripeFinancialConnections (~> 24.22.0)
     - StripePayments (~> 24.22.0)
