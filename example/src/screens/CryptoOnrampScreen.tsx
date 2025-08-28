@@ -30,6 +30,7 @@ export default function CryptoOnrampScreen() {
     collectPaymentMethod,
     provideCheckoutClientSecret,
     createCryptoPaymentToken,
+    performCheckout,
     onrampAuthorize,
     isPlatformPaySupported,
   } = useStripe();
@@ -67,7 +68,7 @@ export default function CryptoOnrampScreen() {
       async (params: CheckoutClientSecretRequestedParams) => {
         console.log(params.onrampSessionId);
 
-        const clientSecret = 'test-secret'; //await getClientSecretFromServer(params.onrampSessionId);
+        const clientSecret = 'INSERT_CLIENT_SECRET_HERE';
         provideCheckoutClientSecret(clientSecret);
       }
     );
@@ -249,22 +250,19 @@ export default function CryptoOnrampScreen() {
     }
   }, [createCryptoPaymentToken]);
 
-  const handleOnrampAuthorize = useCallback(async () => {
+  const handlePerformCheckout = useCallback(async () => {
     try {
-      const result = await onrampAuthorize('INSERT_LAI_HERE');
+      const result = await performCheckout('INSERT_SESSION_ID_HERE');
 
       if (result) {
-        Alert.alert('Success', 'Onramp Authorization completed');
+        Alert.alert('Success', 'Checkout succeeded!');
       } else {
-        Alert.alert(
-          'Cancelled',
-          'Onramp Authorization cancelled, please try again.'
-        );
+        Alert.alert('Cancelled', 'Checkout cancelled.');
       }
     } catch (error) {
-      Alert.alert('Error', `Could not authorize onramp ${error}.`);
+      Alert.alert('Error', `Could not perform checkout ${error}.`);
     }
-  }, [onrampAuthorize]);
+  }, [performCheckout]);
 
   useEffect(() => {
     let mounted = true;
@@ -430,11 +428,9 @@ export default function CryptoOnrampScreen() {
             />
           )}
 
-        {isLinkUser === true &&
-          customerId != null &&
-          cryptoPaymentToken != null && (
-            <Button title="Authorize Onramp" onPress={handleOnrampAuthorize} />
-          )}
+        {isLinkUser === true && customerId != null && (
+          <Button title="Check Out" onPress={handlePerformCheckout} />
+        )}
 
         {isLinkUser === true && customerId != null && (
           <RegisterWalletAddressScreen />
