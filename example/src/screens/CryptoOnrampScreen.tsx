@@ -13,6 +13,7 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import {
   useStripe,
+  useOnramp,
   PlatformPay,
   PlatformPayButton,
 } from '@stripe/stripe-react-native';
@@ -32,8 +33,8 @@ export default function CryptoOnrampScreen() {
     createCryptoPaymentToken,
     performCheckout,
     onrampAuthorize,
-    isPlatformPaySupported,
-  } = useStripe();
+  } = useOnramp();
+  const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
 
   const [firstName, setFirstName] = useState('');
@@ -441,7 +442,7 @@ export default function CryptoOnrampScreen() {
 }
 
 export function RegisterWalletAddressScreen() {
-  const { registerWalletAddress } = useStripe();
+  const { registerWalletAddress } = useOnramp();
   const [walletAddress, setWalletAddress] = useState('');
   const [network, setNetwork] = useState<CryptoNetwork>(CryptoNetwork.bitcoin); // or let user select
   const [response, setResponse] = useState<string | null>(null);

@@ -2,10 +2,10 @@ import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, ScrollView, Text, TextInput } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import { useStripe } from '@stripe/stripe-react-native';
+import { useOnramp } from '@stripe/stripe-react-native';
 
 export default function RegisterCryptoOnrampScreen() {
-  const { registerLinkUser } = useStripe();
+  const { registerLinkUser } = useOnramp();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');

@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
+import {
+  StripeProvider,
+  useStripe,
+  useOnramp,
+} from '@stripe/stripe-react-native';
 import {
   Linking,
   StyleSheet,
@@ -17,7 +21,7 @@ import { Collapse } from '../components/Collapse';
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { handleURLCallback } = useStripe();
-  const { configureOnramp } = useStripe();
+  const { configureOnramp } = useOnramp();
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
