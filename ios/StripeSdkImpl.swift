@@ -1346,7 +1346,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        guard let coordinator = cryptoOnrampCoordinator else {
+        guard let _ = cryptoOnrampCoordinator else {
             reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
             return
         }
