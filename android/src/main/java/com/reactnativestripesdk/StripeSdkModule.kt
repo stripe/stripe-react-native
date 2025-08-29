@@ -1934,7 +1934,7 @@ class StripeSdkModule(
   private fun handleOnrampAuthenticationResult(result: OnrampAuthenticateResult, promise: Promise) {
     when (result) {
       is OnrampAuthenticateResult.Completed -> {
-        promise.resolve(result.customerId)
+        promise.resolveString("customerId", result.customerId)
       }
       is OnrampAuthenticateResult.Cancelled -> {
         promise.resolve(createCanceledError())
