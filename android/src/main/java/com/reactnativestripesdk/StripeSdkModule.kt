@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.bridge.Arguments
@@ -30,6 +31,7 @@ import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
 import com.reactnativestripesdk.utils.createCanAddCardResult
+import com.reactnativestripesdk.utils.createCanceledError
 import com.reactnativestripesdk.utils.createEmptyResult
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createFailedError
@@ -77,6 +79,7 @@ import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResu
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
@@ -130,7 +133,7 @@ class StripeSdkModule(
   private var onrampCoordinator: OnrampCoordinator? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
 
-  private var verificationPromise: Promise? = null
+  private var authenticateUserPromise: Promise? = null
   private var identityVerificationPromise: Promise? = null
   private var collectPaymentPromise: Promise? = null
   private var authorizePromise: Promise? = null
@@ -1520,7 +1523,7 @@ class StripeSdkModule(
 
     val onrampCallbacks = OnrampCallbacks(
       authenticateUserCallback = { result ->
-        handleOnrampAuthenticationResult(result, verificationPromise!!)
+        handleOnrampAuthenticationResult(result, authenticateUserPromise!!)
       },
       verifyIdentityCallback = { result ->
         handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
@@ -1556,11 +1559,7 @@ class StripeSdkModule(
     CoroutineScope(Dispatchers.IO).launch {
       when (val result = coordinator.hasLinkAccount(email)) {
         is OnrampHasLinkAccountResult.Completed -> {
-          promise.resolve(
-            WritableNativeMap().apply {
-              putBoolean("hasLinkAccount", result.hasLinkAccount)
-            }
-          )
+          promise.resolveBoolean("hasLinkAccount", result.hasLinkAccount)
         }
         is OnrampHasLinkAccountResult.Failed -> {
           promise.resolve(createFailedError(result.error))
@@ -1589,11 +1588,7 @@ class StripeSdkModule(
       val result = coordinator.registerLinkUser(linkUserInfo)
       when (result) {
         is OnrampRegisterLinkUserResult.Completed -> {
-          promise.resolve(
-            WritableNativeMap().apply {
-              putString("customerId", result.customerId)
-            }
-          )
+          promise.resolveString("customerId", result.customerId)
         }
         is OnrampRegisterLinkUserResult.Failed -> {
           promise.resolve(createFailedError(result.error))
@@ -1615,7 +1610,7 @@ class StripeSdkModule(
     CoroutineScope(Dispatchers.IO).launch {
       val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
       if (cryptoNetwork == null) {
-        promise.reject("INVALID_NETWORK", "Invalid network: $network")
+        promise.resolve(createError(ErrorType.Unknown.toString(), "Invalid network: $network"))
         return@launch
       }
 
@@ -1635,20 +1630,39 @@ class StripeSdkModule(
     kycInfo: ReadableMap,
     promise: Promise
   ) {
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
+      return
+    }
     CoroutineScope(Dispatchers.IO).launch {
       val firstName = kycInfo.getString("firstName")
       if (firstName.isNullOrEmpty()) {
-        promise.reject("MISSING_KYC_FIELD", "Missing required field: firstName")
+        promise.resolve(
+          createError(
+            ErrorType.Unknown.toString(),
+            "Missing required field: firstName"
+          )
+        )
         return@launch
       }
       val lastName = kycInfo.getString("lastName")
       if (lastName.isNullOrEmpty()) {
-        promise.reject("MISSING_KYC_FIELD", "Missing required field: lastName")
+        promise.resolve(
+          createError(
+            ErrorType.Unknown.toString(),
+            "Missing required field: lastName"
+          )
+        )
         return@launch
       }
       val idNumber = kycInfo.getString("idNumber")
       if (idNumber.isNullOrEmpty()) {
-        promise.reject("MISSING_KYC_FIELD", "Missing required field: idNumber")
+        promise.resolve(
+          createError(
+            ErrorType.Unknown.toString(),
+            "Missing required field: idNumber"
+          )
+        )
         return@launch
       }
 
@@ -1666,7 +1680,12 @@ class StripeSdkModule(
             year = dateOfBirthMap.getInt("year")
           )
         } else {
-          promise.reject("MISSING_KYC_FIELD", "Missing required field: dateOfBirth")
+          promise.resolve(
+            createError(
+              ErrorType.Unknown.toString(),
+              "Missing required field: dateOfBirth"
+            )
+          )
           return@launch
         }
 
@@ -1690,18 +1709,12 @@ class StripeSdkModule(
         address = addressObj,
       )
 
-      when (val result = onrampCoordinator?.attachKycInfo(kycInfoObj)) {
+      when (val result = coordinator.attachKycInfo(kycInfoObj)) {
         is OnrampAttachKycInfoResult.Completed -> {
-          promise.resolve(null)
+          promise.resolveVoid()
         }
         is OnrampAttachKycInfoResult.Failed -> {
-          promise.reject("COLLECT_KYC_ERROR", result.error)
-        }
-        null -> {
-          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
-        }
-        else -> {
-          promise.reject("COLLECT_KYC_ERROR", "Unknown result")
+          promise.resolve(createFailedError(result.error))
         }
       }
     }
@@ -1709,44 +1722,44 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun updatePhoneNumber(phone: String, promise: Promise) {
-    if (onrampCoordinator == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
-
-    promise.reject("UPDATE_PHONE_NUMBER_ERROR", "UNIMPLEMENTED FUNCTION")
+    CoroutineScope(Dispatchers.IO).launch {
+      when (val result = coordinator.updatePhoneNumber(phone)) {
+        OnrampUpdatePhoneNumberResult.Completed -> {
+          promise.resolveVoid()
+        }
+        is OnrampUpdatePhoneNumberResult.Failed -> {
+          promise.resolve(createFailedError(result.error))
+        }
+      }
+    }
   }
 
   @ReactMethod
   override fun authenticateUser(promise: Promise) {
-    if (onrampPresenter == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val presenter = onrampPresenter ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
-    verificationPromise = promise
+    authenticateUserPromise = promise
 
-    try {
-      onrampPresenter!!.authenticateUser()
-    } catch (e: Exception) {
-      verificationPromise?.reject("PRESENT_VERIFICATION_ERROR", e.message)
-    }
+    presenter.authenticateUser()
   }
 
   @ReactMethod
   override fun verifyIdentity(promise: Promise) {
-    if (onrampPresenter == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val presenter = onrampPresenter ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
     identityVerificationPromise = promise
 
-    try {
-      onrampPresenter!!.verifyIdentity()
-    } catch (e: Exception) {
-      identityVerificationPromise?.reject("PROMPT_IDENTITY_VERIFICATION_ERROR", e.message)
-    }
+    presenter.verifyIdentity()
   }
 
   @ReactMethod
@@ -1755,35 +1768,38 @@ class StripeSdkModule(
     platformPayParams: ReadableMap,
     promise: Promise
   ) {
-    if (onrampPresenter == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val presenter = onrampPresenter ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
-    try {
-      val method = when (paymentMethod) {
-        "Card" -> PaymentMethodType.Card
-        "BankAccount" -> PaymentMethodType.BankAccount
-        else -> throw IllegalArgumentException("Unsupported payment method: $paymentMethod")
+    val method = when (paymentMethod) {
+      "Card" -> PaymentMethodType.Card
+      "BankAccount" -> PaymentMethodType.BankAccount
+      else -> {
+        promise.resolve(
+          createFailedError(
+            IllegalArgumentException("Unsupported payment method: $paymentMethod")
+          )
+        )
+        return
       }
-
-      collectPaymentPromise = promise
-
-      onrampPresenter!!.collectPaymentMethod(method)
-    } catch (e: Exception) {
-      collectPaymentPromise?.reject("PRESENT_PAYMENT_COLLECTION_ERROR", e.message)
     }
+
+    collectPaymentPromise = promise
+
+    presenter.collectPaymentMethod(method)
   }
 
   @ReactMethod
   override fun createCryptoPaymentToken(promise: Promise) {
-    if (onrampCoordinator == null) {
-      promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val result = onrampCoordinator!!.createCryptoPaymentToken()
+      val result = coordinator.createCryptoPaymentToken()
       CoroutineScope(Dispatchers.Main).launch {
         handleOnrampCreateCryptoPaymentTokenResult(result, promise)
       }
@@ -1795,8 +1811,8 @@ class StripeSdkModule(
     onrampSessionId: String,
     promise: Promise
   ) {
-    if (onrampPresenter == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val presenter = onrampPresenter ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
@@ -1813,11 +1829,7 @@ class StripeSdkModule(
 
     checkoutPromise = promise
 
-    try {
-      onrampPresenter!!.performCheckout(onrampSessionId, checkoutHandler)
-    } catch (e: Exception) {
-      checkoutPromise?.reject("PRESENT_CHECKOUT_ERROR", e.message)
-    }
+    presenter.performCheckout(onrampSessionId, checkoutHandler)
   }
 
   @ReactMethod
@@ -1828,30 +1840,24 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun onrampAuthorize(linkAuthIntentId: String, promise: Promise) {
-    if (onrampPresenter == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val presenter = onrampPresenter ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
 
     authorizePromise = promise
 
-    try {
-      onrampPresenter!!.authorize(linkAuthIntentId)
-    } catch (e: Exception) {
-      authorizePromise?.reject("AUTHORIZE_ERROR", e.message)
-    }
+    presenter.authorize(linkAuthIntentId)
   }
 
   @ReactMethod
   override fun logout(promise: Promise) {
-    if (onrampCoordinator == null) {
-      promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
       return
     }
-
-    promise.reject("LOGOUT_ERROR", "UNIMPLEMENTED FUNCTION")
+    promise.resolve(createFailedError(NotImplementedError()))
   }
-
 
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
@@ -1931,10 +1937,10 @@ class StripeSdkModule(
         promise.resolve(result.customerId)
       }
       is OnrampAuthenticateResult.Cancelled -> {
-        promise.resolve(null)
+        promise.resolve(createCanceledError())
       }
       is OnrampAuthenticateResult.Failed -> {
-        promise.reject("VERIFICATION_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
@@ -1945,13 +1951,13 @@ class StripeSdkModule(
   ) {
     when (result) {
       is OnrampVerifyIdentityResult.Completed -> {
-        promise.resolve(true)
+        promise.resolveVoid()
       }
       is OnrampVerifyIdentityResult.Cancelled -> {
-        promise.resolve(false)
+        promise.resolve(createCanceledError())
       }
       is OnrampVerifyIdentityResult.Failed -> {
-        promise.reject("IDENTITY_VERIFICATION_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
@@ -1963,18 +1969,19 @@ class StripeSdkModule(
     when (result) {
       is OnrampCollectPaymentMethodResult.Completed -> {
         val displayData = Arguments.createMap()
-        val icon = currentActivity?.getDrawable(result.displayData.iconRes)
+        val icon = currentActivity
+          ?.let { ContextCompat.getDrawable(it, result.displayData.iconRes) }
           ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
         displayData.putString("icon", icon)
         displayData.putString("label", result.displayData.label)
         result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
-        promise.resolve(displayData)
+        promise.resolve(createResult("displayData", displayData))
       }
       is OnrampCollectPaymentMethodResult.Cancelled -> {
-        promise.resolve(null)
+        promise.resolve(createCanceledError())
       }
       is OnrampCollectPaymentMethodResult.Failed -> {
-        promise.reject("COLLECT_PAYMENT_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
@@ -1982,16 +1989,25 @@ class StripeSdkModule(
   private fun handleOnrampAuthorizationResult(result: OnrampAuthorizeResult, promise: Promise) {
     when (result) {
       is OnrampAuthorizeResult.Consented -> {
-        promise.resolve(result.customerId)
-      }
-      is OnrampAuthorizeResult.Canceled -> {
-        promise.resolve(null)
+        promise.resolve(
+          WritableNativeMap().apply {
+            putString("status", "Consented")
+            putString("customerId", result.customerId)
+          }
+        )
       }
       is OnrampAuthorizeResult.Denied -> {
-        promise.reject("AUTHORIZE_DENIED", "User denied authorization")
+        promise.resolve(
+          WritableNativeMap().apply {
+            putString("status", "Denied")
+          }
+        )
+      }
+      is OnrampAuthorizeResult.Canceled -> {
+        promise.resolve(createCanceledError())
       }
       is OnrampAuthorizeResult.Failed -> {
-        promise.reject("AUTHORIZE_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
@@ -1999,13 +2015,13 @@ class StripeSdkModule(
   private fun handleOnrampCheckoutResult(result: OnrampCheckoutResult, promise: Promise) {
     when (result) {
       is OnrampCheckoutResult.Completed -> {
-        promise.resolve(true)
+        promise.resolveVoid()
       }
       is OnrampCheckoutResult.Canceled -> {
-        promise.resolve(false)
+        promise.resolve(createCanceledError())
       }
       is OnrampCheckoutResult.Failed -> {
-        promise.reject("CHECKOUT_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
@@ -2016,16 +2032,24 @@ class StripeSdkModule(
   ) {
     when (result) {
       is OnrampCreateCryptoPaymentTokenResult.Completed -> {
-        promise.resolve(result.cryptoPaymentToken)
+        promise.resolveString("cryptoPaymentToken", result.cryptoPaymentToken)
       }
       is OnrampCreateCryptoPaymentTokenResult.Failed -> {
-        promise.reject("CREATE_CRYPTO_PAYMENT_TOKEN_ERROR", result.error.message)
+        promise.resolve(createFailedError(result.error))
       }
     }
   }
 
   private fun Promise.resolveVoid() {
     resolve(createEmptyResult())
+  }
+
+  private fun Promise.resolveString(key: String, value: String) {
+    resolve(WritableNativeMap().apply { putString(key, value) })
+  }
+
+  private fun Promise.resolveBoolean(key: String, value: Boolean) {
+    resolve(WritableNativeMap().apply { putBoolean(key, value) })
   }
 
   companion object {

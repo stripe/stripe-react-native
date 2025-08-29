@@ -47,6 +47,7 @@ export enum PaymentSheetError {
 export enum OnrampError {
   Failed = 'Failed',
   Canceled = 'Canceled',
+  Unknown = 'Unknown',
 }
 
 export type ErrorType =

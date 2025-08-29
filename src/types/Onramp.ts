@@ -65,15 +65,20 @@ export type VoidResult = {
   error?: StripeError<OnrampError>;
 };
 
-export type AuthorizeStatus = 'Consented' | 'Denied';
-
 export type AuthorizeResult =
   | {
-      status: AuthorizeStatus;
+      status: 'Consented';
+      customerId: string;
+      error?: undefined;
+    }
+  | {
+      status: 'Denied';
+      customerId?: undefined;
       error?: undefined;
     }
   | {
       status?: undefined;
+      customerId?: undefined;
       error: StripeError<OnrampError>;
     };
 

@@ -178,6 +178,10 @@ internal fun createError(
   return mapError(code, error.message, error.localizedMessage, null, null, null)
 }
 
+internal fun createCanceledError(message: String? = null): WritableMap {
+  return createError(ErrorType.Canceled.toString(), message)
+}
+
 internal fun createFailedError(error: Throwable): WritableMap {
   return createError(ErrorType.Failed.toString(), error)
 }
