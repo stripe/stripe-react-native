@@ -1,4 +1,4 @@
-import type { LinkUserInfo } from '../types/LinkUserInfo';
+import type { LinkUserInfo } from '../types/Onramp';
 import type { CryptoNetwork } from '../types/CryptoNetwork';
 import type { KycInfo } from '../types/KycInfo';
 import { useCallback } from 'react';

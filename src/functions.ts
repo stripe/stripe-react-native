@@ -36,7 +36,7 @@ import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
-import type { LinkUserInfo } from './types/LinkUserInfo';
+import type { LinkUserInfo } from './types/Onramp';
 import type { KycInfo } from './types/KycInfo';
 import type { CryptoNetwork } from './types/CryptoNetwork';
 

@@ -44,7 +44,7 @@ import type {
 import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
-import type { LinkUserInfo } from '../types/LinkUserInfo';
+import type { LinkUserInfo } from '../types/Onramp';
 import type { KycInfo } from '../types/KycInfo';
 
 type CustomerSheetInitResult = UnsafeObject<{
