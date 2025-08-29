@@ -32,7 +32,7 @@ export default function CryptoOnrampScreen() {
     provideCheckoutClientSecret,
     createCryptoPaymentToken,
     performCheckout,
-    onrampAuthorize,
+    authorize,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
@@ -109,7 +109,7 @@ export default function CryptoOnrampScreen() {
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     try {
-      const result = await onrampAuthorize(linkAuthIntentId);
+      const result = await authorize(linkAuthIntentId);
 
       if (result) {
         Alert.alert('Success', 'Link auth intent successfully authorized.');
@@ -122,7 +122,7 @@ export default function CryptoOnrampScreen() {
     } catch (error) {
       Alert.alert('Error', `Could not authorize Link auth intent ${error}.`);
     }
-  }, [onrampAuthorize, linkAuthIntentId]);
+  }, [authorize, linkAuthIntentId]);
 
   const handleVerifyIdentity = useCallback(async () => {
     try {

@@ -22,7 +22,7 @@ import {
  * useOnramp hook
  */
 export function useOnramp() {
-  const _configureOnramp = useCallback(
+  const _configure = useCallback(
     async (config: Record<string, any>): Promise<void> => {
       return configureOnramp(config);
     },
@@ -97,7 +97,7 @@ export function useOnramp() {
     []
   );
 
-  const _onrampAuthorize = useCallback(
+  const _authorize = useCallback(
     async (linkAuthIntentId: string): Promise<any> => {
       return onrampAuthorize(linkAuthIntentId);
     },
@@ -109,7 +109,7 @@ export function useOnramp() {
   }, []);
 
   return {
-    configureOnramp: _configureOnramp,
+    configure: _configure,
     hasLinkAccount: _hasLinkAccount,
     registerLinkUser: _registerLinkUser,
     registerWalletAddress: _registerWalletAddress,
@@ -121,7 +121,7 @@ export function useOnramp() {
     createCryptoPaymentToken: _createCryptoPaymentToken,
     performCheckout: _performCheckout,
     provideCheckoutClientSecret: _provideCheckoutClientSecret,
-    onrampAuthorize: _onrampAuthorize,
+    authorize: _authorize,
     logout: _logout,
   };
 }

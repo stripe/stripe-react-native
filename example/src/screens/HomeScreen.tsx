@@ -21,7 +21,7 @@ import { Collapse } from '../components/Collapse';
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { handleURLCallback } = useStripe();
-  const { configureOnramp } = useOnramp();
+  const { configure } = useOnramp();
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
@@ -75,14 +75,14 @@ export default function HomeScreen() {
       },
     };
 
-    configureOnramp(config)
+    configure(config)
       .then(() => {
         console.error('Onramp configured successfully.');
       })
       .catch((error: any) => {
         console.error('Error configuring Onramp:', error);
       });
-  }, [configureOnramp]);
+  }, [configure]);
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
