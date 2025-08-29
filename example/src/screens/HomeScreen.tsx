@@ -76,13 +76,13 @@ export default function HomeScreen() {
       },
     };
 
-    configure(config)
-      .then(() => {
-        console.error('Onramp configured successfully.');
-      })
-      .catch((error: any) => {
-        console.error('Error configuring Onramp:', error);
-      });
+    configure(config).then((result) => {
+      if (result?.error) {
+        console.error('Error configuring Onramp:', result.error.message);
+      } else {
+        console.log('Onramp configured successfully.');
+      }
+    });
   }, [configure]);
 
   return (

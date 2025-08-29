@@ -14,19 +14,19 @@ export default function RegisterCryptoOnrampScreen() {
 
   const registerUser = useCallback(async () => {
     setResponse(null);
-    try {
-      const userInfo = {
-        email,
-        phone,
-        country,
-        fullName: fullName || undefined,
-      };
-      const result = await registerLinkUser(userInfo);
-      setResponse(`Registration Successful: ${result}`);
-    } catch (error: any) {
+    const userInfo = {
+      email,
+      phone,
+      country,
+      fullName: fullName || undefined,
+    };
+    const result = await registerLinkUser(userInfo);
+    if (result?.error) {
       setResponse(
-        `Error: ${error?.message || 'An error occurred while registering link user.'}`
+        `Error: ${result.error.message || 'An error occurred while registering link user.'}`
       );
+    } else {
+      setResponse(`Registration Successful: ${result}`);
     }
   }, [email, phone, country, fullName, registerLinkUser]);
 

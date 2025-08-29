@@ -81,187 +81,194 @@ export default function CryptoOnrampScreen() {
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
-    try {
-      const verified = await hasLinkAccount(email);
+    const result = await hasLinkAccount(email);
 
-      setIsLinkUser(verified);
-      setResponse(`Is Link User: ${verified}`);
-    } catch (error: any) {
+    if (result?.error) {
       setResponse(
-        `Error: ${error?.message || 'An error occurred while checking link user.'}`
+        `Error: ${result.error.message || 'An error occurred while checking link user.'}`
       );
+    } else {
+      setIsLinkUser(result);
+      setResponse(`Is Link User: ${result}`);
     }
   }, [email, hasLinkAccount]);
 
   const handlePresentVerification = useCallback(async () => {
-    try {
-      const result = await authenticateUser();
+    const result = await authenticateUser();
 
-      if (result != null) {
-        setCustomerId(result);
-      } else {
-        Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
-      }
-    } catch (error) {
-      Alert.alert('Error', `Authentication Failed: ${error}.`);
+    if (result?.error) {
+      Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
+    } else if (result != null) {
+      setCustomerId(result);
+    } else {
+      Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
     }
   }, [authenticateUser]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
-    try {
-      const result = await authorize(linkAuthIntentId);
+    const result = await authorize(linkAuthIntentId);
 
-      if (result) {
-        Alert.alert('Success', 'Link auth intent successfully authorized.');
-      } else {
-        Alert.alert(
-          'Cancelled',
-          'Link auth intent authorization was cancelled.'
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not authorize Link auth intent ${error}.`);
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not authorize Link auth intent ${result.error.message}.`
+      );
+    } else if (result) {
+      Alert.alert('Success', 'Link auth intent successfully authorized.');
+    } else {
+      Alert.alert('Cancelled', 'Link auth intent authorization was cancelled.');
     }
   }, [authorize, linkAuthIntentId]);
 
   const handleVerifyIdentity = useCallback(async () => {
-    try {
-      const result = await verifyIdentity();
+    const result = await verifyIdentity();
 
-      if (result) {
-        Alert.alert('Success', 'Identity Verification completed');
-      } else {
-        Alert.alert(
-          'Cancelled',
-          'Identity Verification cancelled, please try again.'
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not verify identity ${error}.`);
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not verify identity ${result.error.message}.`
+      );
+    } else if (result) {
+      Alert.alert('Success', 'Identity Verification completed');
+    } else {
+      Alert.alert(
+        'Cancelled',
+        'Identity Verification cancelled, please try again.'
+      );
     }
   }, [verifyIdentity]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
-    try {
-      const platformPayParams = {
-        applePay: {
-          cartItems: [
-            {
-              label: 'Example',
-              amount: '1.00',
-              paymentType: PlatformPay.PaymentType.Immediate,
-            },
-          ],
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-        },
-      };
+    const platformPayParams = {
+      applePay: {
+        cartItems: [
+          {
+            label: 'Example',
+            amount: '1.00',
+            paymentType: PlatformPay.PaymentType.Immediate,
+          },
+        ],
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+      },
+    };
 
-      const result = await collectPaymentMethod(
-        platformPayPaymentMethod,
-        platformPayParams
+    const result = await collectPaymentMethod(
+      platformPayPaymentMethod,
+      platformPayParams
+    );
+
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not collect payment ${result.error.message}.`
       );
-
-      if (result) {
-        setPaymentDisplayData(result);
-      } else {
-        Alert.alert(
-          'Cancelled',
-          'Payment collection cancelled, please try again.'
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not collect payment ${error}.`);
+    } else if (result) {
+      setPaymentDisplayData(result);
+    } else {
+      Alert.alert(
+        'Cancelled',
+        'Payment collection cancelled, please try again.'
+      );
     }
   }, [platformPayPaymentMethod, collectPaymentMethod]);
 
   const handleAttachKycInfo = useCallback(async () => {
-    try {
-      const kycInfo = {
-        firstName: firstName,
-        lastName: lastName,
-        idNumber: '000000000',
-        dateOfBirth: {
-          day: 1,
-          month: 1,
-          year: 1990,
-        },
-        address: {
-          line1: '123 Main St',
-          line2: 'Apt 4B',
-          city: 'San Francisco',
-          state: 'CA',
-          postalCode: '94111',
-          country: 'US',
-        },
-        nationalities: ['US'],
-        birthCountry: 'US',
-        birthCity: 'San Francisco',
-      };
+    const kycInfo = {
+      firstName: firstName,
+      lastName: lastName,
+      idNumber: '000000000',
+      dateOfBirth: {
+        day: 1,
+        month: 1,
+        year: 1990,
+      },
+      address: {
+        line1: '123 Main St',
+        line2: 'Apt 4B',
+        city: 'San Francisco',
+        state: 'CA',
+        postalCode: '94111',
+        country: 'US',
+      },
+      nationalities: ['US'],
+      birthCountry: 'US',
+      birthCity: 'San Francisco',
+    };
 
-      await attachKycInfo(kycInfo);
+    const result = await attachKycInfo(kycInfo);
 
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Failed to attach KYC info: ${result.error.message}.`
+      );
+    } else {
       Alert.alert('Success', 'KYC Attached');
-    } catch (error: any) {
-      Alert.alert('Error', `Failed to attach KYC info: ${error}.`);
     }
   }, [attachKycInfo, firstName, lastName]);
 
   const handleCollectCardPayment = useCallback(async () => {
-    try {
-      const result = await collectPaymentMethod(cardPaymentMethod, {});
+    const result = await collectPaymentMethod(cardPaymentMethod, {});
 
-      if (result) {
-        setPaymentDisplayData(result);
-      } else {
-        Alert.alert(
-          'Cancelled',
-          'Payment collection cancelled, please try again.'
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not collect payment ${error}.`);
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not collect payment ${result.error.message}.`
+      );
+    } else if (result) {
+      setPaymentDisplayData(result);
+    } else {
+      Alert.alert(
+        'Cancelled',
+        'Payment collection cancelled, please try again.'
+      );
     }
   }, [cardPaymentMethod, collectPaymentMethod]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
-    try {
-      const result = await collectPaymentMethod(bankAccountPaymentMethod, {});
+    const result = await collectPaymentMethod(bankAccountPaymentMethod, {});
 
-      if (result) {
-        setPaymentDisplayData(result);
-      } else {
-        Alert.alert(
-          'Cancelled',
-          'Payment collection cancelled, please try again.'
-        );
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not collect payment ${error}.`);
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not collect payment ${result.error.message}.`
+      );
+    } else if (result) {
+      setPaymentDisplayData(result);
+    } else {
+      Alert.alert(
+        'Cancelled',
+        'Payment collection cancelled, please try again.'
+      );
     }
   }, [bankAccountPaymentMethod, collectPaymentMethod]);
 
   const handleCreateCryptoPaymentToken = useCallback(async () => {
-    try {
-      const result = await createCryptoPaymentToken();
+    const result = await createCryptoPaymentToken();
 
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not create crypto payment token ${result.error.message}.`
+      );
+    } else {
       setCryptoPaymentToken(result);
-    } catch (error) {
-      Alert.alert('Error', `Could not create crypto payment token ${error}.`);
     }
   }, [createCryptoPaymentToken]);
 
   const handlePerformCheckout = useCallback(async () => {
-    try {
-      const result = await performCheckout('INSERT_SESSION_ID_HERE');
+    const result = await performCheckout('INSERT_SESSION_ID_HERE');
 
-      if (result) {
-        Alert.alert('Success', 'Checkout succeeded!');
-      } else {
-        Alert.alert('Cancelled', 'Checkout cancelled.');
-      }
-    } catch (error) {
-      Alert.alert('Error', `Could not perform checkout ${error}.`);
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not perform checkout ${result.error.message}.`
+      );
+    } else if (result) {
+      Alert.alert('Success', 'Checkout succeeded!');
+    } else {
+      Alert.alert('Cancelled', 'Checkout cancelled.');
     }
   }, [performCheckout]);
 
@@ -449,12 +456,18 @@ export function RegisterWalletAddressScreen() {
 
   const handleRegisterWallet = useCallback(async () => {
     setResponse(null);
-    try {
-      await registerWalletAddress(walletAddress, network);
+    const result = await registerWalletAddress(walletAddress, network);
+
+    if (result?.error) {
+      setResponse(
+        `Error: ${result.error.message || 'Failed to register wallet.'}`
+      );
+      Alert.alert(
+        'Error',
+        result.error.message || 'Failed to register wallet.'
+      );
+    } else {
       setResponse(`Wallet registered`);
-    } catch (error: any) {
-      setResponse(`Error: ${error?.message || 'Failed to register wallet.'}`);
-      Alert.alert('Error', error?.message || 'Failed to register wallet.');
     }
   }, [walletAddress, network, registerWalletAddress]);
 

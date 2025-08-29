@@ -11,13 +11,13 @@ export default function VerifyCryptoLinkUserScreen() {
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
-    try {
-      const isLinkUser = await hasLinkAccount(email);
-      setResponse(`Is Link User: ${isLinkUser}`);
-    } catch (error: any) {
+    const result = await hasLinkAccount(email);
+    if (result?.error) {
       setResponse(
-        `Error: ${error?.message || 'An error occurred while checking link user.'}`
+        `Error: ${result.error.message || 'An error occurred while checking link user.'}`
       );
+    } else {
+      setResponse(`Is Link User: ${result}`);
     }
   }, [email, hasLinkAccount]);
 
