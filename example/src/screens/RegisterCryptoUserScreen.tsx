@@ -26,7 +26,7 @@ export default function RegisterCryptoOnrampScreen() {
         `Error: ${result.error.message || 'An error occurred while registering link user.'}`
       );
     } else {
-      setResponse(`Registration Successful: ${result}`);
+      setResponse(`Registration Successful: ${result.customerId}`);
     }
   }, [email, phone, country, fullName, registerLinkUser]);
 

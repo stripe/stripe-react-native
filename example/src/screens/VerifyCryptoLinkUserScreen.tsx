@@ -17,7 +17,7 @@ export default function VerifyCryptoLinkUserScreen() {
         `Error: ${result.error.message || 'An error occurred while checking link user.'}`
       );
     } else {
-      setResponse(`Is Link User: ${result}`);
+      setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
   }, [email, hasLinkAccount]);
 

@@ -88,8 +88,8 @@ export default function CryptoOnrampScreen() {
         `Error: ${result.error.message || 'An error occurred while checking link user.'}`
       );
     } else {
-      setIsLinkUser(result);
-      setResponse(`Is Link User: ${result}`);
+      setIsLinkUser(result.hasLinkAccount);
+      setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
   }, [email, hasLinkAccount]);
 
@@ -98,8 +98,8 @@ export default function CryptoOnrampScreen() {
 
     if (result?.error) {
       Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
-    } else if (result != null) {
-      setCustomerId(result);
+    } else if (result?.customerId) {
+      setCustomerId(result.customerId);
     } else {
       Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
     }
@@ -113,8 +113,11 @@ export default function CryptoOnrampScreen() {
         'Error',
         `Could not authorize Link auth intent ${result.error.message}.`
       );
-    } else if (result) {
-      Alert.alert('Success', 'Link auth intent successfully authorized.');
+    } else if (result?.status) {
+      Alert.alert(
+        'Success',
+        `Link auth intent ${result.status.toLowerCase()}.`
+      );
     } else {
       Alert.alert('Cancelled', 'Link auth intent authorization was cancelled.');
     }
@@ -124,17 +127,19 @@ export default function CryptoOnrampScreen() {
     const result = await verifyIdentity();
 
     if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not verify identity ${result.error.message}.`
-      );
-    } else if (result) {
-      Alert.alert('Success', 'Identity Verification completed');
+      if (result.error.code === 'Canceled') {
+        Alert.alert(
+          'Cancelled',
+          'Identity Verification cancelled, please try again.'
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          `Could not verify identity ${result.error.message}.`
+        );
+      }
     } else {
-      Alert.alert(
-        'Cancelled',
-        'Identity Verification cancelled, please try again.'
-      );
+      Alert.alert('Success', 'Identity Verification completed');
     }
   }, [verifyIdentity]);
 
@@ -163,8 +168,8 @@ export default function CryptoOnrampScreen() {
         'Error',
         `Could not collect payment ${result.error.message}.`
       );
-    } else if (result) {
-      setPaymentDisplayData(result);
+    } else if (result?.displayData) {
+      setPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -216,8 +221,8 @@ export default function CryptoOnrampScreen() {
         'Error',
         `Could not collect payment ${result.error.message}.`
       );
-    } else if (result) {
-      setPaymentDisplayData(result);
+    } else if (result?.displayData) {
+      setPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -234,8 +239,8 @@ export default function CryptoOnrampScreen() {
         'Error',
         `Could not collect payment ${result.error.message}.`
       );
-    } else if (result) {
-      setPaymentDisplayData(result);
+    } else if (result?.displayData) {
+      setPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -253,7 +258,7 @@ export default function CryptoOnrampScreen() {
         `Could not create crypto payment token ${result.error.message}.`
       );
     } else {
-      setCryptoPaymentToken(result);
+      setCryptoPaymentToken(result.cryptoPaymentToken);
     }
   }, [createCryptoPaymentToken]);
 
