@@ -33,7 +33,7 @@ import com.stripe.android.paymentsheet.PaymentSheet
 internal fun createResult(
   key: String,
   value: WritableMap,
-  additionalFields: Map<String, Any>? = null
+  additionalFields: Map<String, Any>? = null,
 ): WritableMap {
   val map = WritableNativeMap()
   map.putMap(key, value)
