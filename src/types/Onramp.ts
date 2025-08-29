@@ -61,6 +61,10 @@ export type KycInfo = {
   address: Address;
 };
 
+export type VoidResult = {
+  error?: StripeError<OnrampError>;
+};
+
 export type AuthorizeStatus = 'Consented' | 'Denied';
 
 export type AuthorizeResult =
