@@ -35,6 +35,7 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createFailedError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
+import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getBooleanOrFalse
@@ -126,7 +127,7 @@ class StripeSdkModule(
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
-  private var coordinator: OnrampCoordinator? = null
+  private var onrampCoordinator: OnrampCoordinator? = null
   private var onrampPresenter: OnrampCoordinator.Presenter? = null
 
   private var verificationPromise: Promise? = null
@@ -280,7 +281,10 @@ class StripeSdkModule(
       val customPaymentMethodConfig = params.getMap("customPaymentMethodConfiguration")
       if (customPaymentMethodConfig != null) {
         // Store the original ReadableMap for custom payment methods
-        bundle.putSerializable("customPaymentMethodConfigurationReadableMap", customPaymentMethodConfig.toHashMap())
+        bundle.putSerializable(
+          "customPaymentMethodConfigurationReadableMap",
+          customPaymentMethodConfig.toHashMap()
+        )
       }
 
       paymentSheetFragment =
@@ -1435,11 +1439,13 @@ class StripeSdkModule(
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
-      }
+      composeCompatView =
+        composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext)
+          .also {
+            currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+              it,
+            )
+          }
     }
   }
 
@@ -1448,7 +1454,7 @@ class StripeSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
-    if (coordinator != null && onrampPresenter != null) {
+    if (onrampCoordinator != null && onrampPresenter != null) {
       promise.resolveVoid()
       return
     }
@@ -1462,7 +1468,7 @@ class StripeSdkModule(
 
     val coordinator = OnrampCoordinator.Builder()
       .build(application, SavedStateHandle())
-      .also { this.coordinator = it }
+      .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
       val appearanceMap = config.getMap("appearance")
@@ -1503,7 +1509,7 @@ class StripeSdkModule(
       promise.resolve(createMissingActivityError())
       return
     }
-    if (coordinator == null) {
+    if (onrampCoordinator == null) {
       promise.resolve(createMissingInitError())
       return
     }
@@ -1531,7 +1537,7 @@ class StripeSdkModule(
     )
 
     try {
-      onrampPresenter = coordinator!!.createPresenter(activity, onrampCallbacks)
+      onrampPresenter = onrampCoordinator!!.createPresenter(activity, onrampCallbacks)
       promise.resolveVoid()
     } catch (e: Exception) {
       promise.resolve(createFailedError(e))
@@ -1543,19 +1549,21 @@ class StripeSdkModule(
     email: String,
     promise: Promise,
   ) {
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
+      return
+    }
     CoroutineScope(Dispatchers.IO).launch {
-      when (val result = coordinator?.hasLinkAccount(email)) {
+      when (val result = coordinator.hasLinkAccount(email)) {
         is OnrampHasLinkAccountResult.Completed -> {
-          promise.resolve(result.hasLinkAccount)
+          promise.resolve(
+            WritableNativeMap().apply {
+              putBoolean("hasLinkAccount", result.hasLinkAccount)
+            }
+          )
         }
         is OnrampHasLinkAccountResult.Failed -> {
-          promise.reject("LOOKUP_ERROR", result.error)
-        }
-        null -> {
-          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
-        }
-        else -> {
-          promise.reject("LOOKUP_ERROR", "Unknown result")
+          promise.resolve(createFailedError(result.error))
         }
       }
     }
@@ -1574,7 +1582,7 @@ class StripeSdkModule(
         fullName = info.getString("fullName"),
       )
 
-      val result = coordinator?.registerLinkUser(linkUserInfo)
+      val result = onrampCoordinator?.registerLinkUser(linkUserInfo)
       when (result) {
         is OnrampRegisterLinkUserResult.Completed -> {
           promise.resolve(result.customerId)
@@ -1605,7 +1613,7 @@ class StripeSdkModule(
         return@launch
       }
 
-      when (val result = coordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {
+      when (val result = onrampCoordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {
         is OnrampRegisterWalletAddressResult.Completed -> {
           promise.resolve(null)
         }
@@ -1682,7 +1690,7 @@ class StripeSdkModule(
         address = addressObj,
       )
 
-      when (val result = coordinator?.attachKycInfo(kycInfoObj)) {
+      when (val result = onrampCoordinator?.attachKycInfo(kycInfoObj)) {
         is OnrampAttachKycInfoResult.Completed -> {
           promise.resolve(null)
         }
@@ -1701,7 +1709,7 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun updatePhoneNumber(phone: String, promise: Promise) {
-    if (coordinator == null) {
+    if (onrampCoordinator == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return
     }
@@ -1769,13 +1777,13 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun createCryptoPaymentToken(promise: Promise) {
-    if (coordinator == null) {
+    if (onrampCoordinator == null) {
       promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
       return
     }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val result = coordinator!!.createCryptoPaymentToken()
+      val result = onrampCoordinator!!.createCryptoPaymentToken()
       CoroutineScope(Dispatchers.Main).launch {
         handleOnrampCreateCryptoPaymentTokenResult(result, promise)
       }
@@ -1836,7 +1844,7 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun logout(promise: Promise) {
-    if (coordinator == null) {
+    if (onrampCoordinator == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return
     }
