@@ -17,7 +17,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
-import { OnrampConfiguration } from '../../../src/types/Onramp';
+import { Configuration } from '../../../src/types/Onramp';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -55,7 +55,7 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   const handleConfigureOnramp = useCallback(() => {
-    const config: OnrampConfiguration = {
+    const config: Configuration = {
       merchantDisplayName: 'Onramp RN Example',
       appearance: {
         lightColors: {
@@ -79,8 +79,10 @@ export default function HomeScreen() {
     configure(config).then((result) => {
       if (result?.error) {
         console.error('Error configuring Onramp:', result.error.message);
+        Alert.alert('Onramp Configuration Error', result.error.message);
       } else {
         console.log('Onramp configured successfully.');
+        Alert.alert('Success', 'Onramp configured successfully.');
       }
     });
   }, [configure]);

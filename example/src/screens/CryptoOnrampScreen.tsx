@@ -129,8 +129,8 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       if (result.error.code === 'Canceled') {
         Alert.alert(
-          'Cancelled',
-          'Identity Verification cancelled, please try again.'
+          'Canceled',
+          'Identity Verification canceled, please try again.'
         );
       } else {
         Alert.alert(
