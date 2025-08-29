@@ -8,7 +8,7 @@ export default function RegisterCryptoOnrampScreen() {
   const { registerLinkUser } = useOnramp();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState('US');
   const [fullName, setFullName] = useState('');
   const [response, setResponse] = useState<string | null>(null);
 
@@ -69,7 +69,11 @@ export default function RegisterCryptoOnrampScreen() {
         />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Register Link User" onPress={registerUser} />
+        <Button
+          variant="primary"
+          title="Register Link User"
+          onPress={registerUser}
+        />
         {response && <Text style={styles.responseText}>{response}</Text>}
       </View>
     </ScrollView>
@@ -90,9 +94,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 4,
   },
-  infoText: {
-    fontSize: 12,
-  },
+  infoText: {},
   textInput: {
     borderWidth: 1,
     borderColor: colors.light_gray,
@@ -102,7 +104,6 @@ const styles = StyleSheet.create({
   },
   responseText: {
     marginTop: 12,
-    fontSize: 12,
     color: colors.dark_gray,
   },
 });
