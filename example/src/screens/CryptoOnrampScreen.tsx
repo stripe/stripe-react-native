@@ -1,26 +1,26 @@
+import { Picker } from '@react-native-picker/picker';
+import {
+  PlatformPay,
+  PlatformPayButton,
+  useOnramp,
+  useStripe,
+} from '@stripe/stripe-react-native';
+import { addListener } from '@stripe/stripe-react-native/src/events';
+import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
+import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/Onramp';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  ScrollView,
   Alert,
-  Text,
-  TextInput,
   Image,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import {
-  useStripe,
-  useOnramp,
-  PlatformPay,
-  PlatformPayButton,
-} from '@stripe/stripe-react-native';
-import { Picker } from '@react-native-picker/picker';
-import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/CryptoNetwork';
-import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
-import { addListener } from '@stripe/stripe-react-native/src/events';
 
 export default function CryptoOnrampScreen() {
   const {

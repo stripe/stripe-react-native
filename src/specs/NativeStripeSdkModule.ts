@@ -45,7 +45,7 @@ import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
 import type { LinkUserInfo } from '../types/Onramp';
-import type { KycInfo } from '../types/KycInfo';
+import type { KycInfo } from '../types/Onramp';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;

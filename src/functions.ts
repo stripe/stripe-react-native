@@ -37,8 +37,7 @@ import type { CollectFinancialConnectionsAccountsParams } from './types/Financia
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
 import type { LinkUserInfo } from './types/Onramp';
-import type { KycInfo } from './types/KycInfo';
-import type { CryptoNetwork } from './types/CryptoNetwork';
+import type { KycInfo, CryptoNetwork } from './types/Onramp';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,

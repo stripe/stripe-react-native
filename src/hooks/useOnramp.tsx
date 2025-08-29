@@ -1,6 +1,5 @@
 import type { LinkUserInfo } from '../types/Onramp';
-import type { CryptoNetwork } from '../types/CryptoNetwork';
-import type { KycInfo } from '../types/KycInfo';
+import type { CryptoNetwork, KycInfo } from '../types/Onramp';
 import { useCallback } from 'react';
 import {
   configureOnramp,
