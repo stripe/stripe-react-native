@@ -461,8 +461,10 @@ export default function CryptoOnrampScreen() {
 
 export function RegisterWalletAddressScreen() {
   const { registerWalletAddress } = useOnramp();
-  const [walletAddress, setWalletAddress] = useState('');
-  const [network, setNetwork] = useState<CryptoNetwork>(CryptoNetwork.bitcoin); // or let user select
+  const [walletAddress, setWalletAddress] = useState(
+    '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
+  );
+  const [network, setNetwork] = useState<CryptoNetwork>(CryptoNetwork.ethereum);
   const [response, setResponse] = useState<string | null>(null);
 
   const handleRegisterWallet = useCallback(async () => {
