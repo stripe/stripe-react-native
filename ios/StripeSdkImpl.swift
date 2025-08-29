@@ -1161,7 +1161,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
@@ -1176,7 +1176,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await cryptoOnrampCoordinator = CryptoOnrampCoordinator.create(appearance: appearance)
                 resolve(true)
             } catch {
-                reject("-1", "Error encountered while configuring onramp \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1188,12 +1188,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1202,7 +1202,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let result = try await coordinator.hasLinkAccount(with: email)
                 resolve(result)
             } catch {
-                reject("-1", "Error encountered while looking up link user \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1214,12 +1214,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1233,7 +1233,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let customerId = try await coordinator.registerLinkUser(email: email, fullName: fullName, phone: phone, country: country)
                 resolve(customerId)
             } catch {
-                reject("-1", "Error encountered while registering user \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1244,12 +1244,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1266,7 +1266,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(nil)
                 }
             } catch {
-                reject("-1", "Error encountered during verification flow \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1279,17 +1279,17 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
         guard let cryptoNetwork = CryptoNetwork(rawValue: network as String) else {
-            reject("-1", "The specified crypto network is not supported: \(network)", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "The specified crypto network is not supported: \(network)"))
             return
         }
 
@@ -1298,7 +1298,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.registerWalletAddress(walletAddress: address, network: cryptoNetwork)
                 resolve(true)
             } catch {
-                reject("-1", "Error encountered while registering a wallet address \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1310,17 +1310,17 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
         guard let kycInfoDictionary = info as? [String: Any?] else {
-            reject("-1", "Unexpected format of KYC info dictionary. Expected String keys.", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "Unexpected format of KYC info dictionary. Expected String keys."))
             return
         }
 
@@ -1330,7 +1330,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.attachKYCInfo(info: kycInfo)
                 resolve(nil)
             } catch {
-                reject("-1", "Error encountered while attaching KYC info: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1342,16 +1342,16 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let _ = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
-        reject("-1", "FUNCTION NOT IMPLEMENTED", NSError(domain: "StripeCryptoOnramp", code: -1))
+        resolve(Errors.createError(ErrorType.Failed, "FUNCTION NOT IMPLEMENTED"))
     }
 
     @objc(logout:rejecter:)
@@ -1360,16 +1360,16 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let _ = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
-        reject("-1", "FUNCTION NOT IMPLEMENTED", NSError(domain: "StripeCryptoOnramp", code: -1))
+        resolve(Errors.createError(ErrorType.Failed, "FUNCTION NOT IMPLEMENTED"))
     }
 
     @objc(verifyIdentity:rejecter:)
@@ -1378,12 +1378,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1400,7 +1400,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(false)
                 }
             } catch {
-                reject("-1", "Error encountered while verifying identity: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1413,12 +1413,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1430,22 +1430,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             paymentMethodType = .bankAccount
         case "PlatformPay":
             guard let applePayParams = platformPayParams["applePay"] as? NSDictionary else {
-                reject("-1", "You must provide the `applePay` parameter.", NSError(domain: "StripeCryptoOnramp", code: -1))
-                break
+                resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
+                return
             }
 
             let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayParams)
             if let paymentRequest {
                 paymentMethodType = .applePay(paymentRequest: paymentRequest)
             } else {
-                reject("-1", "Unable to create Apple Pay payment request: \(String(describing: error))", NSError(domain: "StripeCryptoOnramp", code: -1))
+                resolve(Errors.createError(ErrorType.Failed, "Unable to create Apple Pay payment request: \(String(describing: error))"))
+                return
             }
         default:
-            reject("-1", "Unknown payment method: \(paymentMethod)", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "Unknown payment method: \(paymentMethod)"))
+            return
         }
 
         guard let paymentMethodType else {
-            // In all non-assignment branches above, we’ve already called `reject`, so simply return.
+            // In all non-assignment branches above, we've already called `resolve` with error, so simply return.
             return
         }
 
@@ -1462,7 +1464,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     resolve(nil)
                 }
             } catch {
-                reject("-1", "Error encountered while collecting payment method: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1473,12 +1475,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1487,7 +1489,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let token = try await coordinator.createCryptoPaymentToken()
                 resolve(token)
             } catch {
-                reject("-1", "Error encountered while creating crypto payment token: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1499,12 +1501,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1522,7 +1524,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             case .completed:
                 resolve(true)
             case let .failed(error):
-                reject("-1", "Error encountered while performing checkout: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
@@ -1540,12 +1542,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
         if STPAPIClient.shared.publishableKey == nil {
-            reject("-1", Errors.MISSING_INIT_ERROR["message"] as? String, NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.MISSING_INIT_ERROR)
             return
         }
 
         guard let coordinator = cryptoOnrampCoordinator else {
-            reject("-1", "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first", NSError(domain: "StripeCryptoOnramp", code: -1))
+            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
             return
         }
 
@@ -1559,12 +1561,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case let .consented(customerId):
                     resolve(customerId)
                 case .denied:
-                    reject("-1", "Authorization was denied.", NSError(domain: "StripeCryptoOnramp", code: -1))
+                    resolve(Errors.createError(ErrorType.Failed, "Authorization was denied."))
                 case.canceled:
                     resolve(nil)
                 }
             } catch {
-                reject("-1", "Error encountered while authorizing: \(error)", error)
+                resolve(Errors.createError(ErrorType.Failed, error))
             }
         }
     }
