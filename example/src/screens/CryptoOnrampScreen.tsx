@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
+import { Collapse } from '../components/Collapse';
 
 export default function CryptoOnrampScreen() {
   const {
@@ -296,7 +297,7 @@ export default function CryptoOnrampScreen() {
 
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
-      <View style={styles.infoContainer}>
+      <Collapse title="User Information" initialExpanded={true}>
         <Text style={styles.infoText}>Enter your email address:</Text>
         <TextInput
           style={styles.textInput}
@@ -308,57 +309,55 @@ export default function CryptoOnrampScreen() {
           editable={!isLinkUser}
         />
 
-        <View style={styles.buttonContainer}>
-          {response && <Text style={styles.responseText}>{response}</Text>}
-        </View>
-
-        <View style={styles.buttonContainer}>
-          {customerId && (
-            <Text style={styles.responseText}>
-              {'Customer ID: ' + customerId}
-            </Text>
-          )}
-        </View>
-        <View style={styles.buttonContainer}>
-          {paymentDisplayData && (
-            <Image
-              source={{ uri: paymentDisplayData.icon }}
-              style={{ width: 32, height: 32 }}
-              resizeMode="contain"
-            />
-          )}
-          {paymentDisplayData && (
-            <Text style={styles.responseText}>
-              {'Payment Method Label: ' + paymentDisplayData.label}
-            </Text>
-          )}
-          {paymentDisplayData && (
-            <Text style={styles.responseText}>
-              {'Payment Method Sublabel: ' + paymentDisplayData.sublabel}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.buttonContainer}>
-          {cryptoPaymentToken && (
-            <Text style={styles.responseText} selectable>
-              {'Crypto Payment Token: ' + cryptoPaymentToken}
-            </Text>
-          )}
-        </View>
-
         {isLinkUser === false && (
-          <Button title="Verify Link User" onPress={checkIsLinkUser} />
-        )}
-
-        {isLinkUser === true && customerId === null && (
           <Button
-            title="Authenticate Link User"
-            onPress={handlePresentVerification}
+            title="Verify Link User"
+            onPress={checkIsLinkUser}
+            variant="primary"
           />
         )}
+      </Collapse>
 
-        {isLinkUser === true && customerId === null && (
+      {response && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText}>{response}</Text>
+        </View>
+      )}
+
+      {customerId && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText}>
+            {'Customer ID: ' + customerId}
+          </Text>
+        </View>
+      )}
+
+      {paymentDisplayData && (
+        <View style={styles.buttonContainer}>
+          <Image
+            source={{ uri: paymentDisplayData.icon }}
+            style={{ width: 32, height: 32 }}
+            resizeMode="contain"
+          />
+          <Text style={styles.responseText}>
+            {'Payment Method Label: ' + paymentDisplayData.label}
+          </Text>
+          <Text style={styles.responseText}>
+            {'Payment Method Sublabel: ' + paymentDisplayData.sublabel}
+          </Text>
+        </View>
+      )}
+
+      {cryptoPaymentToken && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText} selectable>
+            {'Crypto Payment Token: ' + cryptoPaymentToken}
+          </Text>
+        </View>
+      )}
+
+      {isLinkUser === true && customerId === null && (
+        <Collapse title="Link Authentication" initialExpanded={true}>
           <TextInput
             style={styles.textInput}
             placeholder="Link auth intent id"
@@ -367,16 +366,21 @@ export default function CryptoOnrampScreen() {
             keyboardType="default"
             autoCapitalize="none"
           />
-        )}
-
-        {isLinkUser === true && customerId === null && (
+          <Button
+            title="Authenticate Link User"
+            onPress={handlePresentVerification}
+            variant="primary"
+          />
           <Button
             title="Authorize Link Auth Intent"
             onPress={handleAuthorizeLinkAuthIntent}
+            variant="primary"
           />
-        )}
+        </Collapse>
+      )}
 
-        {isLinkUser === true && customerId != null && (
+      {isLinkUser === true && customerId != null && (
+        <Collapse title="KYC Information" initialExpanded={true}>
           <TextInput
             style={styles.textInput}
             placeholder="First Name"
@@ -385,9 +389,6 @@ export default function CryptoOnrampScreen() {
             keyboardType="default"
             autoCapitalize="none"
           />
-        )}
-
-        {isLinkUser === true && customerId != null && (
           <TextInput
             style={styles.textInput}
             placeholder="Last Name"
@@ -396,20 +397,22 @@ export default function CryptoOnrampScreen() {
             keyboardType="default"
             autoCapitalize="none"
           />
-        )}
+          <Button
+            title="Attach KYC Info"
+            onPress={handleAttachKycInfo}
+            variant="primary"
+          />
+          <Button
+            title="Verify Identity"
+            onPress={handleVerifyIdentity}
+            variant="primary"
+          />
+        </Collapse>
+      )}
 
-        {isLinkUser === true && customerId != null && (
-          <Button title="Attach KYC Info" onPress={handleAttachKycInfo} />
-        )}
-
-        {isLinkUser === true && customerId != null && (
-          <Button title="Verify Identity" onPress={handleVerifyIdentity} />
-        )}
-
-        {isLinkUser === true &&
-          customerId != null &&
-          Platform.OS === 'ios' &&
-          isApplePaySupported && (
+      {isLinkUser === true && customerId != null && (
+        <Collapse title="Payment Collection" initialExpanded={true}>
+          {Platform.OS === 'ios' && isApplePaySupported && (
             <View style={styles.applePayButtonContainer}>
               <PlatformPayButton
                 onPress={handleCollectApplePayPayment}
@@ -417,38 +420,41 @@ export default function CryptoOnrampScreen() {
               />
             </View>
           )}
-
-        {isLinkUser === true && customerId != null && (
           <Button
             title="Collect Card Payment"
             onPress={handleCollectCardPayment}
+            variant="primary"
           />
-        )}
-
-        {isLinkUser === true && customerId != null && (
           <Button
             title="Collect Bank Account Payment"
             onPress={handleCollectBankAccountPayment}
+            variant="primary"
           />
-        )}
+        </Collapse>
+      )}
 
-        {isLinkUser === true &&
-          customerId != null &&
-          (cardPaymentMethod != null || bankAccountPaymentMethod != null) && (
+      {isLinkUser === true && customerId != null && (
+        <Collapse title="Crypto Operations" initialExpanded={true}>
+          {(cardPaymentMethod != null || bankAccountPaymentMethod != null) && (
             <Button
               title="Create Crypto Payment Token"
               onPress={handleCreateCryptoPaymentToken}
+              variant="primary"
             />
           )}
+          <Button
+            title="Check Out"
+            onPress={handlePerformCheckout}
+            variant="primary"
+          />
+        </Collapse>
+      )}
 
-        {isLinkUser === true && customerId != null && (
-          <Button title="Check Out" onPress={handlePerformCheckout} />
-        )}
-
-        {isLinkUser === true && customerId != null && (
+      {isLinkUser === true && customerId != null && (
+        <Collapse title="Wallet Registration" initialExpanded={true}>
           <RegisterWalletAddressScreen />
-        )}
-      </View>
+        </Collapse>
+      )}
     </ScrollView>
   );
 }
@@ -477,15 +483,15 @@ export function RegisterWalletAddressScreen() {
   }, [walletAddress, network, registerWalletAddress]);
 
   return (
-    <View style={{ padding: 16 }}>
-      <Text>Wallet Address:</Text>
+    <View style={styles.walletContainer}>
+      <Text style={styles.infoText}>Wallet Address:</Text>
       <TextInput
         value={walletAddress}
         onChangeText={setWalletAddress}
         placeholder="Enter wallet address"
         style={styles.textInput}
       />
-      <Text>Network:</Text>
+      <Text style={styles.infoText}>Network:</Text>
       <Picker
         selectedValue={network}
         onValueChange={(itemValue) => setNetwork(itemValue as CryptoNetwork)}
@@ -499,18 +505,22 @@ export function RegisterWalletAddressScreen() {
           />
         ))}
       </Picker>
-      <Text style={{ marginBottom: 8 }}>
-        Selected Network: {String(network)}
-      </Text>
-      <Button title="Register Wallet Address" onPress={handleRegisterWallet} />
-      {response && <Text style={{ marginTop: 12 }}>{response}</Text>}
+      <Text style={styles.infoText}>Selected Network: {String(network)}</Text>
+      <Button
+        title="Register Wallet Address"
+        onPress={handleRegisterWallet}
+        variant="primary"
+      />
+      {response && <Text style={styles.responseText}>{response}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: colors.white,
+    paddingEnd: 16, // Hack.
   },
   buttonContainer: {
     paddingHorizontal: 16,
@@ -519,12 +529,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   infoContainer: {
-    padding: 16,
+    paddingVertical: 16,
     gap: 4,
   },
-  infoText: {
-    fontSize: 12,
-  },
+  infoText: {},
   textInput: {
     borderWidth: 1,
     borderColor: colors.light_gray,
@@ -543,5 +551,9 @@ const styles = StyleSheet.create({
   },
   applePayButton: {
     height: 50,
+  },
+  walletContainer: {
+    paddingVertical: 16,
+    gap: 4,
   },
 });
