@@ -1,5 +1,30 @@
 import type { Address } from './Common';
 
+export type OnrampConfiguration = {
+  merchantDisplayName: string;
+  appearance: LinkAppearance;
+};
+
+export type LinkAppearance = {
+  lightColors?: LinkColors;
+  darkColors?: LinkColors;
+  style?: LinkStyle;
+  primaryButton?: LinkPrimaryButton;
+};
+
+export type LinkColors = {
+  primary: string;
+  contentOnPrimary: string;
+  borderSelected: string;
+};
+
+export type LinkStyle = 'AUTOMATIC' | 'ALWAYS_LIGHT' | 'ALWAYS_DARK';
+
+export type LinkPrimaryButton = {
+  cornerRadius?: number;
+  height?: number;
+};
+
 export type LinkUserInfo = {
   email: string;
   phone: string;

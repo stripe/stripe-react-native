@@ -1,4 +1,4 @@
-import type { LinkUserInfo } from '../types/Onramp';
+import type { LinkUserInfo, OnrampConfiguration } from '../types/Onramp';
 import type { CryptoNetwork, KycInfo } from '../types/Onramp';
 import { useCallback } from 'react';
 import {
@@ -23,7 +23,7 @@ import {
  */
 export function useOnramp() {
   const _configure = useCallback(
-    async (config: Record<string, any>): Promise<void> => {
+    async (config: OnrampConfiguration): Promise<void> => {
       return configureOnramp(config);
     },
     []

@@ -1109,10 +1109,10 @@ class Mappers {
             nil
         }
 
-        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? = 
+        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? =
             if let primaryButton = params["primaryButton"] as? [String: CGFloat],
-                let cornerRadius = primaryButton["cornerRadiusDp"],
-                let height = primaryButton["heightDp"] {
+                let cornerRadius = primaryButton["cornerRadius"],
+                let height = primaryButton["height"] {
                     .init(cornerRadius: cornerRadius, height: height)
         } else {
             nil
@@ -1160,7 +1160,7 @@ class Mappers {
         guard let month = dateOfBirthParams["month"] else {
             throw KycInfoError.missingRequiredField("dateOfBirth.month")
         }
-        
+
         guard let year = dateOfBirthParams["year"] else {
             throw KycInfoError.missingRequiredField("dateOfBirth.year")
         }

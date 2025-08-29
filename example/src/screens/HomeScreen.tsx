@@ -17,6 +17,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
+import { OnrampConfiguration } from '../../../src/types/Onramp';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -54,7 +55,7 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   const handleConfigureOnramp = useCallback(() => {
-    const config = {
+    const config: OnrampConfiguration = {
       merchantDisplayName: 'Onramp RN Example',
       appearance: {
         lightColors: {
@@ -69,8 +70,8 @@ export default function HomeScreen() {
         },
         style: 'ALWAYS_DARK',
         primaryButton: {
-          cornerRadiusDp: 8,
-          heightDp: 48,
+          cornerRadius: 8,
+          height: 48,
         },
       },
     };

@@ -36,7 +36,7 @@ import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
-import type { LinkUserInfo } from './types/Onramp';
+import type { LinkUserInfo, OnrampConfiguration } from './types/Onramp';
 import type { KycInfo, CryptoNetwork } from './types/Onramp';
 
 export const createPaymentMethod = async (
@@ -895,7 +895,9 @@ export const openPlatformPaySetup = async (): Promise<void> => {
   }
 };
 
-export const configureOnramp = async (config: any): Promise<any> => {
+export const configureOnramp = async (
+  config: OnrampConfiguration
+): Promise<void> => {
   return NativeStripeSdk.configureOnramp(config);
 };
 

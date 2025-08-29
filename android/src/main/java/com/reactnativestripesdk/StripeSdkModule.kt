@@ -97,6 +97,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+@SuppressLint("RestrictedApi")
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
@@ -1450,10 +1451,11 @@ class StripeSdkModule(
       return
     }
 
-    val application = currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
+    val application =
+      currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
-        promise.reject("NO_APPLICATION", "Could not get Application instance")
-        return
+      promise.reject("NO_APPLICATION", "Could not get Application instance")
+      return
     }
 
     val coordinator = OnrampCoordinator.Builder()
@@ -1597,8 +1599,8 @@ class StripeSdkModule(
     CoroutineScope(Dispatchers.IO).launch {
       val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
       if (cryptoNetwork == null) {
-          promise.reject("INVALID_NETWORK", "Invalid network: $network")
-          return@launch
+        promise.reject("INVALID_NETWORK", "Invalid network: $network")
+        return@launch
       }
 
       when (val result = coordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {
@@ -1641,16 +1643,22 @@ class StripeSdkModule(
       }
 
       val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
-      val dob = if (dateOfBirthMap != null && dateOfBirthMap.hasKey("day") && dateOfBirthMap.hasKey("month") && dateOfBirthMap.hasKey("year")) {
-        DateOfBirth(
-          day = dateOfBirthMap.getInt("day"),
-          month = dateOfBirthMap.getInt("month"),
-          year = dateOfBirthMap.getInt("year")
-        )
-      } else {
-        promise.reject("MISSING_KYC_FIELD", "Missing required field: dateOfBirth")
-        return@launch
-      }
+      val dob =
+        if (
+          dateOfBirthMap != null &&
+          dateOfBirthMap.hasKey("day") &&
+          dateOfBirthMap.hasKey("month") &&
+          dateOfBirthMap.hasKey("year")
+        ) {
+          DateOfBirth(
+            day = dateOfBirthMap.getInt("day"),
+            month = dateOfBirthMap.getInt("month"),
+            year = dateOfBirthMap.getInt("year")
+          )
+        } else {
+          promise.reject("MISSING_KYC_FIELD", "Missing required field: dateOfBirth")
+          return@launch
+        }
 
       val addressMap = kycInfo.getMap("address")
       val addressObj = addressMap?.let {
@@ -1732,7 +1740,11 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun collectPaymentMethod(paymentMethod: String, platformPayParams: ReadableMap, promise: Promise) {
+  override fun collectPaymentMethod(
+    paymentMethod: String,
+    platformPayParams: ReadableMap,
+    promise: Promise
+  ) {
     if (onrampPresenter == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return
@@ -1805,7 +1817,7 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun onrampAuthorize(linkAuthIntentId: String,promise: Promise) {
+  override fun onrampAuthorize(linkAuthIntentId: String, promise: Promise) {
     if (onrampPresenter == null) {
       promise.reject("NO_ONRAMP_PRESENTER", "OnrampPresenter not initialized")
       return
@@ -1878,108 +1890,98 @@ class StripeSdkModule(
       if (primaryButtonMap != null) {
         PrimaryButton(
           cornerRadiusDp =
-            if (primaryButtonMap.hasKey("cornerRadiusDp")) {
-              primaryButtonMap.getDouble("cornerRadiusDp").toFloat()
+            if (primaryButtonMap.hasKey("cornerRadius")) {
+              primaryButtonMap.getDouble("cornerRadius").toFloat()
             } else {
               null
             },
           heightDp =
-            if (primaryButtonMap.hasKey("heightDp")) {
-              primaryButtonMap.getDouble("heightDp").toFloat()
+            if (primaryButtonMap.hasKey("height")) {
+              primaryButtonMap.getDouble("height").toFloat()
             } else {
               null
             },
         )
       } else {
-        PrimaryButton()
+        null
       }
 
-    if (lightColors == null && darkColors == null) {
-      return LinkAppearance(
-        style = style,
-        primaryButton = primaryButton
-        )
-    } else if (lightColors != null) {
-      return LinkAppearance(
-        lightColors = lightColors,
-        style = style,
-        primaryButton = primaryButton,
-      )
-    } else if (darkColors != null) {
-      return LinkAppearance(
-        darkColors = darkColors,
-        style = style,
-        primaryButton = primaryButton,
-      )
-    } else {
-      return LinkAppearance(
-        style = style,
-        primaryButton = primaryButton,
-      )
-    }
+    val default = LinkAppearance(style = Style.AUTOMATIC)
+    return LinkAppearance(
+      lightColors = lightColors ?: default.lightColors,
+      darkColors = darkColors ?: default.darkColors,
+      style = style,
+      primaryButton = primaryButton ?: default.primaryButton,
+    )
   }
 
   private fun handleOnrampAuthenticationResult(result: OnrampAuthenticateResult, promise: Promise) {
     when (result) {
-        is OnrampAuthenticateResult.Completed -> {
-          promise.resolve(result.customerId)
-        }
-        is OnrampAuthenticateResult.Cancelled -> {
-          promise.resolve(null)
-        }
-        is OnrampAuthenticateResult.Failed -> {
-          promise.reject("VERIFICATION_ERROR", result.error.message)
-        }
+      is OnrampAuthenticateResult.Completed -> {
+        promise.resolve(result.customerId)
+      }
+      is OnrampAuthenticateResult.Cancelled -> {
+        promise.resolve(null)
+      }
+      is OnrampAuthenticateResult.Failed -> {
+        promise.reject("VERIFICATION_ERROR", result.error.message)
+      }
     }
   }
 
-  private fun handleOnrampIdentityVerificationResult(result: OnrampVerifyIdentityResult, promise: Promise) {
+  private fun handleOnrampIdentityVerificationResult(
+    result: OnrampVerifyIdentityResult,
+    promise: Promise
+  ) {
     when (result) {
-        is OnrampVerifyIdentityResult.Completed -> {
-            promise.resolve(true)
-        }
-        is OnrampVerifyIdentityResult.Cancelled -> {
-            promise.resolve(false)
-        }
-        is OnrampVerifyIdentityResult.Failed -> {
-            promise.reject("IDENTITY_VERIFICATION_ERROR", result.error.message)
-        }
+      is OnrampVerifyIdentityResult.Completed -> {
+        promise.resolve(true)
+      }
+      is OnrampVerifyIdentityResult.Cancelled -> {
+        promise.resolve(false)
+      }
+      is OnrampVerifyIdentityResult.Failed -> {
+        promise.reject("IDENTITY_VERIFICATION_ERROR", result.error.message)
+      }
     }
   }
 
-  private fun handleOnrampCollectPaymentResult(result: OnrampCollectPaymentMethodResult, promise: Promise) {
+  private fun handleOnrampCollectPaymentResult(
+    result: OnrampCollectPaymentMethodResult,
+    promise: Promise
+  ) {
     when (result) {
-        is OnrampCollectPaymentMethodResult.Completed -> {
-            val displayData = Arguments.createMap()
-            val icon = currentActivity?.getDrawable(result.displayData.iconRes)
-              ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
-            displayData.putString("icon", icon)
-            displayData.putString("label", result.displayData.label)
-            result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
-            promise.resolve(displayData)
-        }
-        is OnrampCollectPaymentMethodResult.Cancelled -> {
-            promise.resolve(null)
-        }
-        is OnrampCollectPaymentMethodResult.Failed -> {
-            promise.reject("COLLECT_PAYMENT_ERROR", result.error.message)
-        }
+      is OnrampCollectPaymentMethodResult.Completed -> {
+        val displayData = Arguments.createMap()
+        val icon = currentActivity?.getDrawable(result.displayData.iconRes)
+          ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
+        displayData.putString("icon", icon)
+        displayData.putString("label", result.displayData.label)
+        result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
+        promise.resolve(displayData)
+      }
+      is OnrampCollectPaymentMethodResult.Cancelled -> {
+        promise.resolve(null)
+      }
+      is OnrampCollectPaymentMethodResult.Failed -> {
+        promise.reject("COLLECT_PAYMENT_ERROR", result.error.message)
+      }
     }
   }
 
   private fun handleOnrampAuthorizationResult(result: OnrampAuthorizeResult, promise: Promise) {
     when (result) {
       is OnrampAuthorizeResult.Consented -> {
-          promise.resolve(result.customerId)
+        promise.resolve(result.customerId)
       }
       is OnrampAuthorizeResult.Canceled -> {
-          promise.resolve(null)
+        promise.resolve(null)
       }
       is OnrampAuthorizeResult.Denied -> {
-          promise.reject("AUTHORIZE_DENIED", "User denied authorization")
+        promise.reject("AUTHORIZE_DENIED", "User denied authorization")
       }
       is OnrampAuthorizeResult.Failed -> {
-          promise.reject("AUTHORIZE_ERROR", result.error.message)
+        promise.reject("AUTHORIZE_ERROR", result.error.message)
       }
     }
   }
@@ -1987,27 +1989,30 @@ class StripeSdkModule(
   private fun handleOnrampCheckoutResult(result: OnrampCheckoutResult, promise: Promise) {
     when (result) {
       is OnrampCheckoutResult.Completed -> {
-          promise.resolve(true)
+        promise.resolve(true)
       }
       is OnrampCheckoutResult.Canceled -> {
-          promise.resolve(false)
+        promise.resolve(false)
       }
       is OnrampCheckoutResult.Failed -> {
-          promise.reject("CHECKOUT_ERROR", result.error.message)
+        promise.reject("CHECKOUT_ERROR", result.error.message)
       }
     }
   }
 
-  private fun handleOnrampCreateCryptoPaymentTokenResult(result: OnrampCreateCryptoPaymentTokenResult, promise: Promise) {
+  private fun handleOnrampCreateCryptoPaymentTokenResult(
+    result: OnrampCreateCryptoPaymentTokenResult,
+    promise: Promise
+  ) {
     when (result) {
-        is OnrampCreateCryptoPaymentTokenResult.Completed -> {
-            promise.resolve(result.cryptoPaymentToken)
-        }
-        is OnrampCreateCryptoPaymentTokenResult.Failed -> {
-            promise.reject("CREATE_CRYPTO_PAYMENT_TOKEN_ERROR", result.error.message)
-        }
+      is OnrampCreateCryptoPaymentTokenResult.Completed -> {
+        promise.resolve(result.cryptoPaymentToken)
+      }
+      is OnrampCreateCryptoPaymentTokenResult.Failed -> {
+        promise.reject("CREATE_CRYPTO_PAYMENT_TOKEN_ERROR", result.error.message)
+      }
     }
-}
+  }
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME

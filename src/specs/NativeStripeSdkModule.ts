@@ -46,6 +46,7 @@ import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
 import type { LinkUserInfo } from '../types/Onramp';
 import type { KycInfo } from '../types/Onramp';
+import type { OnrampConfiguration } from '../types/Onramp';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -220,7 +221,7 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
-  configureOnramp(config: UnsafeObject<any>): Promise<any>;
+  configureOnramp(config: UnsafeObject<OnrampConfiguration>): Promise<void>;
   hasLinkAccount(email: string): Promise<any>;
   registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
   registerWalletAddress(walletAddress: string, network: string): Promise<any>;
