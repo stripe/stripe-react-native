@@ -44,6 +44,11 @@ export enum PaymentSheetError {
   Timeout = 'Timeout',
 }
 
+export enum OnrampError {
+  Failed = 'Failed',
+  Canceled = 'Canceled',
+}
+
 export type ErrorType =
   | 'api_connection_error'
   | 'api_error'

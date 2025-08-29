@@ -24,6 +24,8 @@ import type {
   InitialiseParams,
   InitPaymentSheetResult,
   IsCardInWalletResult,
+  Onramp,
+  OnrampError,
   OpenApplePaySetupResult,
   PaymentIntent,
   PaymentMethod,
@@ -44,9 +46,7 @@ import type {
 import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
-import type { LinkUserInfo } from '../types/Onramp';
-import type { KycInfo } from '../types/Onramp';
-import type { OnrampConfiguration } from '../types/Onramp';
+import type { LinkUserInfo, KycInfo, Configuration } from '../types/Onramp';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -221,24 +221,37 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
-  configureOnramp(config: UnsafeObject<OnrampConfiguration>): Promise<void>;
-  hasLinkAccount(email: string): Promise<any>;
-  registerLinkUser(info: UnsafeObject<LinkUserInfo>): Promise<any>;
-  registerWalletAddress(walletAddress: string, network: string): Promise<any>;
-  attachKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<any>;
-  updatePhoneNumber(phone: string): Promise<any>;
-  authenticateUser(): Promise<any>;
-  verifyIdentity(): Promise<any>;
+  configureOnramp(
+    config: UnsafeObject<Configuration>
+  ): Promise<{ error?: StripeError<OnrampError> }>;
+  hasLinkAccount(email: string): Promise<Onramp.HasLinkAccountResult>;
+  registerLinkUser(
+    info: UnsafeObject<LinkUserInfo>
+  ): Promise<Onramp.RegisterLinkUserResult>;
+  registerWalletAddress(
+    walletAddress: string,
+    network: string
+  ): Promise<{ error?: StripeError<OnrampError> }>;
+  attachKycInfo(
+    kycInfo: UnsafeObject<KycInfo>
+  ): Promise<{ error?: StripeError<OnrampError> }>;
+  updatePhoneNumber(
+    phone: string
+  ): Promise<{ error?: StripeError<OnrampError> }>;
+  authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
+  verifyIdentity(): Promise<{ error?: StripeError<OnrampError> }>;
   collectPaymentMethod(
     paymentMethod: string,
     platformPayParams: UnsafeObject<any>
-  ): Promise<any>;
+  ): Promise<Onramp.CollectPaymentMethodResult>;
   provideCheckoutClientSecret(clientSecret: string): void;
   onCheckoutClientSecretRequested: EventEmitter<UnsafeObject<any>>;
-  createCryptoPaymentToken(): Promise<any>;
-  performCheckout(onrampSessionId: string): Promise<any>;
-  onrampAuthorize(linkAuthIntentId: string): Promise<any>;
-  logout(): Promise<any>;
+  createCryptoPaymentToken(): Promise<Onramp.CreateCryptoPaymentTokenResult>;
+  performCheckout(
+    onrampSessionId: string
+  ): Promise<{ error?: StripeError<OnrampError> }>;
+  onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
+  logout(): Promise<{ error?: StripeError<OnrampError> }>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

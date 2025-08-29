@@ -14,6 +14,7 @@ import type {
   HandleNextActionResult,
   HandleNextActionForSetupResult,
   InitPaymentSheetResult,
+  Onramp,
   PaymentMethod,
   PaymentSheet,
   PresentPaymentSheetResult,
@@ -31,13 +32,12 @@ import type {
   CanAddCardToWalletResult,
   FinancialConnections,
   PlatformPay,
+  OnrampError,
 } from './types';
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
 import type { CollectBankAccountTokenParams } from './types/PaymentMethod';
 import { addListener } from './events';
-import type { LinkUserInfo, OnrampConfiguration } from './types/Onramp';
-import type { KycInfo, CryptoNetwork } from './types/Onramp';
 
 export const createPaymentMethod = async (
   params: PaymentMethod.CreateParams,
@@ -896,56 +896,68 @@ export const openPlatformPaySetup = async (): Promise<void> => {
 };
 
 export const configureOnramp = async (
-  config: OnrampConfiguration
-): Promise<void> => {
+  config: Onramp.Configuration
+): Promise<{ error?: StripeError<OnrampError> }> => {
   return NativeStripeSdk.configureOnramp(config);
 };
 
-export const hasLinkAccount = async (email: string): Promise<any> => {
+export const hasLinkAccount = async (
+  email: string
+): Promise<Onramp.HasLinkAccountResult> => {
   return NativeStripeSdk.hasLinkAccount(email);
 };
 
-export const registerLinkUser = async (info: LinkUserInfo): Promise<any> => {
+export const registerLinkUser = async (
+  info: Onramp.LinkUserInfo
+): Promise<Onramp.RegisterLinkUserResult> => {
   return NativeStripeSdk.registerLinkUser(info);
 };
 
 export const registerWalletAddress = async (
   walletAddress: string,
-  network: CryptoNetwork
-): Promise<any> => {
+  network: Onramp.CryptoNetwork
+): Promise<{ error?: StripeError<OnrampError> }> => {
   return NativeStripeSdk.registerWalletAddress(walletAddress, network);
 };
 
-export const attachKycInfo = async (kycInfo: KycInfo): Promise<any> => {
+export const attachKycInfo = async (
+  kycInfo: Onramp.KycInfo
+): Promise<{ error?: StripeError<OnrampError> }> => {
   return NativeStripeSdk.attachKycInfo(kycInfo);
 };
 
-export const updatePhoneNumber = async (phone: string): Promise<any> => {
+export const updatePhoneNumber = async (
+  phone: string
+): Promise<{ error?: StripeError<OnrampError> }> => {
   return NativeStripeSdk.updatePhoneNumber(phone);
 };
 
-export const authenticateUser = async (): Promise<any> => {
-  return NativeStripeSdk.authenticateUser();
-};
+export const authenticateUser =
+  async (): Promise<Onramp.AuthenticateUserResult> => {
+    return NativeStripeSdk.authenticateUser();
+  };
 
-export const verifyIdentity = async (): Promise<any> => {
+export const verifyIdentity = async (): Promise<{
+  error?: StripeError<OnrampError>;
+}> => {
   return NativeStripeSdk.verifyIdentity();
 };
 
 export const collectPaymentMethod = async (
   paymentMethod: string,
   platformPayParams: any
-): Promise<any> => {
+): Promise<Onramp.CollectPaymentMethodResult> => {
   return NativeStripeSdk.collectPaymentMethod(paymentMethod, platformPayParams);
 };
 
-export const createCryptoPaymentToken = async (): Promise<any> => {
-  return NativeStripeSdk.createCryptoPaymentToken();
-};
+export const createCryptoPaymentToken =
+  async (): Promise<Onramp.CreateCryptoPaymentTokenResult> => {
+    return NativeStripeSdk.createCryptoPaymentToken();
+  };
 
 export const performCheckout = async (
   onrampSessionId: string
-): Promise<any> => {
+): Promise<{ error?: StripeError<OnrampError> }> => {
   return NativeStripeSdk.performCheckout(onrampSessionId);
 };
 
@@ -955,10 +967,12 @@ export const provideCheckoutClientSecret = (clientSecret: string): void => {
 
 export const onrampAuthorize = async (
   linkAuthIntentId: string
-): Promise<any> => {
+): Promise<Onramp.AuthorizeResult> => {
   return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
 };
 
-export const logout = async (): Promise<any> => {
+export const logOut = async (): Promise<{
+  error?: StripeError<OnrampError>;
+}> => {
   return NativeStripeSdk.logout();
 };

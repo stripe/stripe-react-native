@@ -5,7 +5,7 @@ import {
   configureOnramp,
   createCryptoPaymentToken,
   hasLinkAccount,
-  logout,
+  logOut,
   onrampAuthorize,
   performCheckout,
   provideCheckoutClientSecret,
@@ -33,6 +33,6 @@ export function useOnramp() {
     performCheckout,
     provideCheckoutClientSecret,
     authorize: onrampAuthorize,
-    logout,
+    logOut,
   };
 }

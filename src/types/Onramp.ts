@@ -1,6 +1,7 @@
 import type { Address } from './Common';
+import { OnrampError, StripeError } from './Errors';
 
-export type OnrampConfiguration = {
+export type Configuration = {
   merchantDisplayName: string;
   appearance: LinkAppearance;
 };
@@ -59,3 +60,71 @@ export type KycInfo = {
   dateOfBirth: DateOfBirth;
   address: Address;
 };
+
+export type AuthorizeStatus = 'Consented' | 'Denied';
+
+export type AuthorizeResult =
+  | {
+      status: AuthorizeStatus;
+      error?: undefined;
+    }
+  | {
+      status?: undefined;
+      error: StripeError<OnrampError>;
+    };
+
+export type HasLinkAccountResult =
+  | {
+      hasLinkAccount: boolean;
+      error?: undefined;
+    }
+  | {
+      hasLinkAccount?: undefined;
+      error: StripeError<OnrampError>;
+    };
+
+export type RegisterLinkUserResult =
+  | {
+      customerId: string;
+      error?: undefined;
+    }
+  | {
+      customerId?: undefined;
+      error: StripeError<OnrampError>;
+    };
+
+export type AuthenticateUserResult =
+  | {
+      customerId: string;
+      error?: undefined;
+    }
+  | {
+      customerId?: undefined;
+      error: StripeError<OnrampError>;
+    };
+
+export type PaymentMethodDisplayData = {
+  icon: string;
+  label: string;
+  sublabel?: string;
+};
+
+export type CollectPaymentMethodResult =
+  | {
+      displayData: PaymentMethodDisplayData;
+      error?: undefined;
+    }
+  | {
+      displayData?: undefined;
+      error: StripeError<OnrampError>;
+    };
+
+export type CreateCryptoPaymentTokenResult =
+  | {
+      cryptoPaymentToken: string;
+      error?: undefined;
+    }
+  | {
+      cryptoPaymentToken?: undefined;
+      error: StripeError<OnrampError>;
+    };
