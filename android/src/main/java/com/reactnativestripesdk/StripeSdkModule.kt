@@ -30,7 +30,9 @@ import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
 import com.reactnativestripesdk.utils.createCanAddCardResult
+import com.reactnativestripesdk.utils.createEmptyResult
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.createFailedError
 import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
@@ -1447,14 +1449,14 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     if (coordinator != null && onrampPresenter != null) {
-      promise.resolve(true)
+      promise.resolveVoid()
       return
     }
 
     val application =
       currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
-      promise.reject("NO_APPLICATION", "Could not get Application instance")
+      promise.resolve(createMissingActivityError())
       return
     }
 
@@ -1487,7 +1489,7 @@ class StripeSdkModule(
             createOnrampPresenter(promise)
           }
           is OnrampConfigurationResult.Failed -> {
-            promise.reject("CONFIGURATION_FAILED", configureResult.error)
+            promise.resolve(createError(ErrorType.Failed.toString(), configureResult.error))
           }
         }
       }
@@ -1498,15 +1500,15 @@ class StripeSdkModule(
   private fun createOnrampPresenter(promise: Promise) {
     val activity = getCurrentActivityOrResolveWithError(promise) as? ComponentActivity
     if (activity == null) {
-      promise.reject("NO_ACTIVITY", "Current activity is not a ComponentActivity")
+      promise.resolve(createMissingActivityError())
       return
     }
     if (coordinator == null) {
-      promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
+      promise.resolve(createMissingInitError())
       return
     }
     if (onrampPresenter != null) {
-      promise.resolve(true) // Already created
+      promise.resolveVoid()
       return
     }
 
@@ -1530,9 +1532,9 @@ class StripeSdkModule(
 
     try {
       onrampPresenter = coordinator!!.createPresenter(activity, onrampCallbacks)
-      promise.resolve(true)
+      promise.resolveVoid()
     } catch (e: Exception) {
-      promise.reject("PRESENTER_ERROR", e.message)
+      promise.resolve(createFailedError(e))
     }
   }
 
@@ -2012,6 +2014,10 @@ class StripeSdkModule(
         promise.reject("CREATE_CRYPTO_PAYMENT_TOKEN_ERROR", result.error.message)
       }
     }
+  }
+
+  private fun Promise.resolveVoid() {
+    resolve(createEmptyResult())
   }
 
   companion object {
