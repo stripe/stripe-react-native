@@ -1574,6 +1574,10 @@ class StripeSdkModule(
     info: ReadableMap,
     promise: Promise,
   ) {
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
+      return
+    }
     CoroutineScope(Dispatchers.IO).launch {
       val linkUserInfo = LinkUserInfo(
         email = info.getString("email") ?: "",
@@ -1582,19 +1586,17 @@ class StripeSdkModule(
         fullName = info.getString("fullName"),
       )
 
-      val result = onrampCoordinator?.registerLinkUser(linkUserInfo)
+      val result = coordinator.registerLinkUser(linkUserInfo)
       when (result) {
         is OnrampRegisterLinkUserResult.Completed -> {
-          promise.resolve(result.customerId)
+          promise.resolve(
+            WritableNativeMap().apply {
+              putString("customerId", result.customerId)
+            }
+          )
         }
         is OnrampRegisterLinkUserResult.Failed -> {
-          promise.reject("REGISTRATION_ERROR", result.error)
-        }
-        null -> {
-          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
-        }
-        else -> {
-          promise.reject("REGISTRATION_ERROR", "Unknown result")
+          promise.resolve(createFailedError(result.error))
         }
       }
     }
@@ -1606,6 +1608,10 @@ class StripeSdkModule(
     network: String,
     promise: Promise
   ) {
+    val coordinator = onrampCoordinator ?: run {
+      promise.resolve(createOnrampNotConfiguredError())
+      return
+    }
     CoroutineScope(Dispatchers.IO).launch {
       val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
       if (cryptoNetwork == null) {
@@ -1613,18 +1619,12 @@ class StripeSdkModule(
         return@launch
       }
 
-      when (val result = onrampCoordinator?.registerWalletAddress(walletAddress, cryptoNetwork)) {
+      when (val result = coordinator.registerWalletAddress(walletAddress, cryptoNetwork)) {
         is OnrampRegisterWalletAddressResult.Completed -> {
-          promise.resolve(null)
+          promise.resolveVoid()
         }
         is OnrampRegisterWalletAddressResult.Failed -> {
-          promise.reject("REGISTER_WALLET_ERROR", result.error)
-        }
-        null -> {
-          promise.reject("NO_ONRAMP", "OnrampCoordinator not initialized")
-        }
-        else -> {
-          promise.reject("REGISTER_WALLET_ERROR", "Unknown result")
+          promise.resolve(createFailedError(result.error))
         }
       }
     }
