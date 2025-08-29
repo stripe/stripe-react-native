@@ -1587,7 +1587,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .denied:
                     resolve(["status": "Denied"])
                 case.canceled:
-                    resolve([:])  // Return empty object for canceled
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was canceled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
