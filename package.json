@@ -33,6 +33,25 @@
     "format:android:check": "cd android && ./gradlew spotlessCheck",
     "format:android:write": "cd android && ./gradlew spotlessApply"
   },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "jest",
+    "stripe-react-native.podspec",
+    "app.plugin.js",
+    "LICENSE",
+    "!android/.cxx",
+    "!android/.gradle",
+    "!android/build",
+    "!android/src/androidTest",
+    "!ios/build",
+    "!ios/Tests",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
   "keywords": [
     "react-native",
     "ios",
