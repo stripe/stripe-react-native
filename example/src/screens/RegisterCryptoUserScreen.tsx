@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, ScrollView, Text, TextInput } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
-import { useOnramp } from '@stripe/stripe-react-native';
+import { useOnramp } from '@stripe/stripe-react-native/onramp';
 
 export default function RegisterCryptoOnrampScreen() {
   const { registerLinkUser } = useOnramp();

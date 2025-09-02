@@ -33,6 +33,12 @@ export type LinkUserInfo = {
   fullName?: string;
 };
 
+export type PaymentOptionData = {
+  icon: string; // base64 string
+  label: string;
+  sublabel?: string;
+};
+
 export enum CryptoNetwork {
   bitcoin = 'bitcoin',
   ethereum = 'ethereum',

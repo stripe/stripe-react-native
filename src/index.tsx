@@ -5,7 +5,6 @@ export { useStripe } from './hooks/useStripe';
 export { usePlatformPay } from './hooks/usePlatformPay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
-export { useOnramp } from './hooks/useOnramp';
 
 //components
 export { initStripe, StripeProvider } from './components/StripeProvider';

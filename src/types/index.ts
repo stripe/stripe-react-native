@@ -279,9 +279,3 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
-
-export type PaymentOptionData = {
-  icon: string; // base64 string
-  label: string;
-  sublabel?: string;
-};

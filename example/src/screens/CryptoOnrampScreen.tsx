@@ -2,12 +2,17 @@ import { Picker } from '@react-native-picker/picker';
 import {
   PlatformPay,
   PlatformPayButton,
-  useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
+
+import {
+  useOnramp,
+  PaymentOptionData,
+  CryptoNetwork,
+} from '@stripe/stripe-react-native/onramp';
+
 import { addListener } from '@stripe/stripe-react-native/src/events';
-import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
-import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/Onramp';
+
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,

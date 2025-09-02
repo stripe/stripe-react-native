@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  StripeProvider,
-  useStripe,
-  useOnramp,
-} from '@stripe/stripe-react-native';
+import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
+
+import { useOnramp } from '@stripe/stripe-react-native/onramp';
+
 import {
   Linking,
   StyleSheet,
