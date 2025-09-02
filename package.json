@@ -12,7 +12,7 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "prepare": "bob build && husky",
+    "prepare": "bob build && rm -rf lib/*/package.json && husky",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
@@ -59,7 +59,7 @@
     "prettier": "^3.5.2",
     "react": "^19.0.0",
     "react-native": "^0.78.0",
-    "react-native-builder-bob": "^0.37.0",
+    "react-native-builder-bob": "^0.40.13",
     "ts-node": "^10.9.2",
     "typedoc": "^0.27.9",
     "typescript": "^5.7.3"
@@ -130,12 +130,7 @@
           "configFile": true
         }
       ],
-      [
-        "typescript",
-        {
-          "configFile": true
-        }
-      ]
+      "typescript"
     ]
   },
   "resolutions": {
