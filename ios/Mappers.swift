@@ -1092,7 +1092,7 @@ class Mappers {
                 trait.userInterfaceStyle == .dark ? darkPrimary : lightPrimary
             }
         } else {
-            nil
+            darkPrimary ?? lightPrimary
         }
 
         let selectedBorder: UIColor? = if let darkSelectedBorder, let lightSelectedBorder {
@@ -1100,7 +1100,7 @@ class Mappers {
                 trait.userInterfaceStyle == .dark ? darkSelectedBorder : lightSelectedBorder
             }
         } else {
-            nil
+            darkSelectedBorder ?? lightSelectedBorder
         }
 
         let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
