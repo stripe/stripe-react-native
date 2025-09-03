@@ -17,7 +17,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
-import { Configuration } from '../../../src/types/Onramp';
+import { Onramp } from '@stripe/stripe-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -55,7 +55,7 @@ export default function HomeScreen() {
   }, [handleDeepLink]);
 
   const handleConfigureOnramp = useCallback(() => {
-    const config: Configuration = {
+    const config: Onramp.Configuration = {
       merchantDisplayName: 'Onramp RN Example',
       appearance: {
         lightColors: {
