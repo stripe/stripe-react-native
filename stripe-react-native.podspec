@@ -37,7 +37,11 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 
-  s.default_subspecs = 'Core'
+  if fabric_enabled
+    s.default_subspecs = 'Core', 'NewArch'
+  else
+    s.default_subspecs = 'Core'
+  end
 
   s.subspec 'Core' do |core|
     core.dependency 'React-Core'

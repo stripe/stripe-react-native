@@ -1712,6 +1712,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - stripe-react-native/Core (= 0.51.0)
+    - stripe-react-native/NewArch (= 0.51.0)
     - Yoga
   - stripe-react-native/Core (0.51.0):
     - DoubleConversion
@@ -1918,7 +1919,6 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
-  - "stripe-react-native/NewArch (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2161,7 +2161,7 @@ SPEC CHECKSUMS:
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: 6f559964c4b0a700ed71adb397b2fa3f126b2f1d
-  stripe-react-native: 3d45e2c80025e6cff9cf4acad61daed5b94867ff
+  stripe-react-native: 19e1d82d75376ed484040619f14c122b5dfc95da
   StripeApplePay: b54e61b4632e2ad3f19fa25f5cd10422804addc5
   StripeCameraCore: 4ce9b0fab6a32ea193e35d149e0fec5223408825
   StripeCore: dd9d1cce6b8e2b2f53ae1936f3728a239d0233aa
@@ -2174,6 +2174,6 @@ SPEC CHECKSUMS:
   StripeUICore: 8e8f566c5ba96c3924c50ec157cad3f03b92fea5
   Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
 
-PODFILE CHECKSUM: bc7e2e0e2262430fc3845f69543aab7fe6879892
+PODFILE CHECKSUM: 0e8d697b2e2384b55c224afb61b755b153a2962a
 
 COCOAPODS: 1.16.2
