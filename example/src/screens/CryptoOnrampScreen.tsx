@@ -1,13 +1,12 @@
 import { Picker } from '@react-native-picker/picker';
 import {
+  Onramp,
+  PaymentOptionData,
   PlatformPay,
   PlatformPayButton,
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
-import { addOnrampListener } from '@stripe/stripe-react-native/src/events';
-import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
-import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/Onramp';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -30,7 +29,6 @@ export default function CryptoOnrampScreen() {
     verifyIdentity,
     attachKycInfo,
     collectPaymentMethod,
-    provideCheckoutClientSecret,
     createCryptoPaymentToken,
     performCheckout,
     authorize,
@@ -47,7 +45,6 @@ export default function CryptoOnrampScreen() {
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
-  const [platformPayPaymentMethod] = useState('PlatformPay');
   const [cardPaymentMethod] = useState('Card');
   const [bankAccountPaymentMethod] = useState('BankAccount');
 
@@ -59,26 +56,6 @@ export default function CryptoOnrampScreen() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
-
-  type CheckoutClientSecretRequestedParams = {
-    onrampSessionId: string;
-  };
-
-  useEffect(() => {
-    const subscription = addOnrampListener(
-      'onCheckoutClientSecretRequested',
-      async (params: CheckoutClientSecretRequestedParams) => {
-        console.log(params.onrampSessionId);
-
-        const clientSecret = 'INSERT_CLIENT_SECRET_HERE';
-        provideCheckoutClientSecret(clientSecret);
-      }
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [provideCheckoutClientSecret]);
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
@@ -110,10 +87,17 @@ export default function CryptoOnrampScreen() {
     const result = await authorize(linkAuthIntentId);
 
     if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not authorize Link auth intent ${result.error.message}.`
-      );
+      if (result.error.code === 'Canceled') {
+        Alert.alert(
+          'Cancelled',
+          'Link auth intent authorization was cancelled.'
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          `Could not authorize Link auth intent ${result.error.message}.`
+        );
+      }
     } else if (result?.status) {
       Alert.alert(
         'Success',
@@ -145,7 +129,7 @@ export default function CryptoOnrampScreen() {
   }, [verifyIdentity]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
-    const platformPayParams = {
+    const platformPayParams: PlatformPay.PaymentMethodParams = {
       applePay: {
         cartItems: [
           {
@@ -159,10 +143,7 @@ export default function CryptoOnrampScreen() {
       },
     };
 
-    const result = await collectPaymentMethod(
-      platformPayPaymentMethod,
-      platformPayParams
-    );
+    const result = await collectPaymentMethod('PlatformPay', platformPayParams);
 
     if (result?.error) {
       Alert.alert(
@@ -177,7 +158,7 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [platformPayPaymentMethod, collectPaymentMethod]);
+  }, [collectPaymentMethod]);
 
   const handleAttachKycInfo = useCallback(async () => {
     const kycInfo = {
@@ -197,9 +178,6 @@ export default function CryptoOnrampScreen() {
         postalCode: '94111',
         country: 'US',
       },
-      nationalities: ['US'],
-      birthCountry: 'US',
-      birthCity: 'San Francisco',
     };
 
     const result = await attachKycInfo(kycInfo);
@@ -207,7 +185,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Failed to attach KYC info: ${result.error.message}.`
+        `Failed to attach KYC info: ${result.error?.stripeErrorCode} ${result.error.message}.`
       );
     } else {
       Alert.alert('Success', 'KYC Attached');
@@ -215,7 +193,7 @@ export default function CryptoOnrampScreen() {
   }, [attachKycInfo, firstName, lastName]);
 
   const handleCollectCardPayment = useCallback(async () => {
-    const result = await collectPaymentMethod(cardPaymentMethod, {});
+    const result = await collectPaymentMethod('Card', {});
 
     if (result?.error) {
       Alert.alert(
@@ -230,10 +208,10 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [cardPaymentMethod, collectPaymentMethod]);
+  }, [collectPaymentMethod]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
-    const result = await collectPaymentMethod(bankAccountPaymentMethod, {});
+    const result = await collectPaymentMethod('BankAccount', {});
 
     if (result?.error) {
       Alert.alert(
@@ -248,7 +226,7 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [bankAccountPaymentMethod, collectPaymentMethod]);
+  }, [collectPaymentMethod]);
 
   const handleCreateCryptoPaymentToken = useCallback(async () => {
     const result = await createCryptoPaymentToken();
@@ -264,7 +242,9 @@ export default function CryptoOnrampScreen() {
   }, [createCryptoPaymentToken]);
 
   const handlePerformCheckout = useCallback(async () => {
-    const result = await performCheckout('INSERT_SESSION_ID_HERE');
+    const result = await performCheckout('INSERT_SESSION_ID_HERE', async () => {
+      return 'INSERT_CLIENT_SECRET_HERE';
+    });
 
     if (result?.error) {
       Alert.alert(
@@ -464,7 +444,9 @@ export function RegisterWalletAddressScreen() {
   const [walletAddress, setWalletAddress] = useState(
     '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
   );
-  const [network, setNetwork] = useState<CryptoNetwork>(CryptoNetwork.ethereum);
+  const [network, setNetwork] = useState<Onramp.CryptoNetwork>(
+    Onramp.CryptoNetwork.ethereum
+  );
   const [response, setResponse] = useState<string | null>(null);
 
   const handleRegisterWallet = useCallback(async () => {
@@ -496,10 +478,12 @@ export function RegisterWalletAddressScreen() {
       <Text style={styles.infoText}>Network:</Text>
       <Picker
         selectedValue={network}
-        onValueChange={(itemValue) => setNetwork(itemValue as CryptoNetwork)}
+        onValueChange={(itemValue) =>
+          setNetwork(itemValue as Onramp.CryptoNetwork)
+        }
         style={styles.textInput}
       >
-        {Object.values(CryptoNetwork).map((n) => (
+        {Object.values(Onramp.CryptoNetwork).map((n) => (
           <Picker.Item
             key={String(n)}
             label={String(n).charAt(0).toUpperCase() + String(n).slice(1)}

@@ -1,6 +1,12 @@
-import NativeStripeSdk from '../specs/NativeOnrampSdkModule';
+import { EventSubscription } from 'react-native';
+import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import type { Onramp, OnrampError, StripeError } from '../types';
+import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
+import { addOnrampListener } from '../events';
+
+let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
+  null;
 
 /**
  * useOnramp hook
@@ -10,14 +16,14 @@ export function useOnramp() {
     async (
       config: Onramp.Configuration
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeStripeSdk.configureOnramp(config);
+      return NativeOnrampSdk.configureOnramp(config);
     },
     []
   );
 
   const _hasLinkAccount = useCallback(
     async (email: string): Promise<Onramp.HasLinkAccountResult> => {
-      return NativeStripeSdk.hasLinkAccount(email);
+      return NativeOnrampSdk.hasLinkAccount(email);
     },
     []
   );
@@ -26,7 +32,7 @@ export function useOnramp() {
     async (
       info: Onramp.LinkUserInfo
     ): Promise<Onramp.RegisterLinkUserResult> => {
-      return NativeStripeSdk.registerLinkUser(info);
+      return NativeOnrampSdk.registerLinkUser(info);
     },
     []
   );
@@ -36,7 +42,7 @@ export function useOnramp() {
       walletAddress: string,
       network: Onramp.CryptoNetwork
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeStripeSdk.registerWalletAddress(walletAddress, network);
+      return NativeOnrampSdk.registerWalletAddress(walletAddress, network);
     },
     []
   );
@@ -45,37 +51,56 @@ export function useOnramp() {
     async (
       kycInfo: Onramp.KycInfo
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeStripeSdk.attachKycInfo(kycInfo);
+      return NativeOnrampSdk.attachKycInfo(kycInfo);
     },
     []
   );
 
   const _updatePhoneNumber = useCallback(
     async (phone: string): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeStripeSdk.updatePhoneNumber(phone);
+      return NativeOnrampSdk.updatePhoneNumber(phone);
     },
     []
   );
 
   const _authenticateUser =
     useCallback(async (): Promise<Onramp.AuthenticateUserResult> => {
-      return NativeStripeSdk.authenticateUser();
+      return NativeOnrampSdk.authenticateUser();
     }, []);
 
   const _verifyIdentity = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
-    return NativeStripeSdk.verifyIdentity();
+    return NativeOnrampSdk.verifyIdentity();
   }, []);
 
-  const _collectPaymentMethod = useCallback(
+  /**
+   * The set of payment methods supported by crypto onramp collection.
+   * - 'Card' and 'BankAccount' present Link for collection.
+   * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
+   */
+  type OnrampPaymentMethod = 'Card' | 'BankAccount' | 'PlatformPay';
+
+  // Overloads for stronger type-safety at call-sites
+  const _collectPaymentMethod: {
+    (
+      paymentMethod: 'Card' | 'BankAccount',
+      platformPayParams?: Record<string, never>
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+    (
+      paymentMethod: 'PlatformPay',
+      platformPayParams: PlatformPay.PaymentMethodParams
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+  } = useCallback(
     async (
-      paymentMethod: string,
-      platformPayParams: any
+      paymentMethod: OnrampPaymentMethod,
+      platformPayParams?:
+        | PlatformPay.PaymentMethodParams
+        | Record<string, never>
     ): Promise<Onramp.CollectPaymentMethodResult> => {
-      return NativeStripeSdk.collectPaymentMethod(
+      return NativeOnrampSdk.collectPaymentMethod(
         paymentMethod,
-        platformPayParams
+        (platformPayParams ?? {}) as any
       );
     },
     []
@@ -83,28 +108,34 @@ export function useOnramp() {
 
   const _createCryptoPaymentToken =
     useCallback(async (): Promise<Onramp.CreateCryptoPaymentTokenResult> => {
-      return NativeStripeSdk.createCryptoPaymentToken();
+      return NativeOnrampSdk.createCryptoPaymentToken();
     }, []);
 
   const _performCheckout = useCallback(
     async (
-      onrampSessionId: string
+      onrampSessionId: string,
+      provideCheckoutClientSecret: () => Promise<string | null>
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeStripeSdk.performCheckout(onrampSessionId);
-    },
-    []
-  );
-
-  const _provideCheckoutClientSecret = useCallback(
-    (clientSecret: string): void => {
-      NativeStripeSdk.provideCheckoutClientSecret(clientSecret);
+      onCheckoutClientSecretRequestedSubscription?.remove();
+      onCheckoutClientSecretRequestedSubscription = addOnrampListener(
+        'onCheckoutClientSecretRequested',
+        async () => {
+          try {
+            const clientSecret = await provideCheckoutClientSecret();
+            NativeOnrampSdk.provideCheckoutClientSecret(clientSecret);
+          } catch (error: any) {
+            NativeOnrampSdk.provideCheckoutClientSecret(null);
+          }
+        }
+      );
+      return NativeOnrampSdk.performCheckout(onrampSessionId);
     },
     []
   );
 
   const _authorize = useCallback(
     async (linkAuthIntentId: string): Promise<Onramp.AuthorizeResult> => {
-      return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
+      return NativeOnrampSdk.onrampAuthorize(linkAuthIntentId);
     },
     []
   );
@@ -112,7 +143,7 @@ export function useOnramp() {
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
-    return NativeStripeSdk.logout();
+    return NativeOnrampSdk.logout();
   }, []);
 
   return {
@@ -161,7 +192,7 @@ export function useOnramp() {
     /**
      * Updates the user's phone number in their Link account.
      *
-     * @param phone The new phone number to set for the user
+     * @param phone The new phone number to set for the user in E.164 format (e.g., +12125551234)
      * @returns Promise that resolves to an object with an optional error property
      */
     updatePhoneNumber: _updatePhoneNumber,
@@ -185,8 +216,12 @@ export function useOnramp() {
     /**
      * Presents UI to collect/select a payment method of the given type.
      *
-     * @param paymentMethod The payment method type to collect. For 'Card' and 'BankAccount', this presents Link. For 'PlatformPay', this presents Apple Pay using the provided platform pay parameters
-     * @param platformPayParams Platform-specific parameters (required for PlatformPay)
+     * @param paymentMethod The payment method type to collect.
+     *  - 'Card' and 'BankAccount' present Link for collection.
+     *  - 'PlatformPay' presents Apple Pay / Google Pay using the provided parameters.
+     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
+     *  - iOS: provide `applePay` params
+     *  - Android: provide `googlePay` params
      * @returns Promise that resolves to an object with displayData or error
      */
     collectPaymentMethod: _collectPaymentMethod,
@@ -206,13 +241,6 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     performCheckout: _performCheckout,
-
-    /**
-     * Provides a checkout client secret in response to a checkout client secret request.
-     *
-     * @param clientSecret The client secret for the checkout session
-     */
-    provideCheckoutClientSecret: _provideCheckoutClientSecret,
 
     /**
      * Authorizes a Link auth intent and authenticates the user if necessary.

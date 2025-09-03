@@ -26,7 +26,7 @@ export interface Spec extends TurboModule {
     paymentMethod: string,
     platformPayParams: UnsafeObject<any>
   ): Promise<Onramp.CollectPaymentMethodResult>;
-  provideCheckoutClientSecret(clientSecret: string): void;
+  provideCheckoutClientSecret(clientSecret: string | null): void;
   onCheckoutClientSecretRequested: EventEmitter<UnsafeObject<any>>;
   createCryptoPaymentToken(): Promise<Onramp.CreateCryptoPaymentTokenResult>;
   performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
