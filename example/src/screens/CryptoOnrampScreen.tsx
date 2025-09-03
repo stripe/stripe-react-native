@@ -5,7 +5,7 @@ import {
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
-import { addListener } from '@stripe/stripe-react-native/src/events';
+import { addOnrampListener } from '@stripe/stripe-react-native/src/events';
 import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
 import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/Onramp';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -65,7 +65,7 @@ export default function CryptoOnrampScreen() {
   };
 
   useEffect(() => {
-    const subscription = addListener(
+    const subscription = addOnrampListener(
       'onCheckoutClientSecretRequested',
       async (params: CheckoutClientSecretRequestedParams) => {
         console.log(params.onrampSessionId);

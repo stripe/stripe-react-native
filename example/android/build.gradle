@@ -42,3 +42,7 @@ allprojects {
         google()
     }
 }
+
+ext {
+  includeOnramp = true
+}
