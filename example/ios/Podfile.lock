@@ -1711,10 +1711,31 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.22.0)
+    - stripe-react-native/Core (= 0.51.0)
     - stripe-react-native/NewArch (= 0.51.0)
+    - Yoga
+  - stripe-react-native/Core (0.51.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Stripe (~> 24.22.0)
     - StripeApplePay (~> 24.22.0)
-    - StripeCryptoOnramp (~> 24.22.0)
     - StripeFinancialConnections (~> 24.22.0)
     - StripePayments (~> 24.22.0)
     - StripePaymentSheet (~> 24.22.0)
@@ -1740,13 +1761,29 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.22.0)
-    - StripeApplePay (~> 24.22.0)
+    - Yoga
+  - stripe-react-native/Onramp (0.51.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - stripe-react-native/Core
     - StripeCryptoOnramp (~> 24.22.0)
-    - StripeFinancialConnections (~> 24.22.0)
-    - StripePayments (~> 24.22.0)
-    - StripePaymentSheet (~> 24.22.0)
-    - StripePaymentsUI (~> 24.22.0)
     - Yoga
   - stripe-react-native/Tests (0.51.0):
     - DoubleConversion
@@ -1768,13 +1805,6 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Stripe (~> 24.22.0)
-    - StripeApplePay (~> 24.22.0)
-    - StripeCryptoOnramp (~> 24.22.0)
-    - StripeFinancialConnections (~> 24.22.0)
-    - StripePayments (~> 24.22.0)
-    - StripePaymentSheet (~> 24.22.0)
-    - StripePaymentsUI (~> 24.22.0)
     - Yoga
   - StripeApplePay (24.22.0):
     - StripeCore (= 24.22.0)
@@ -1889,6 +1919,7 @@ DEPENDENCIES:
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
+  - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2064,7 +2095,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: b417d2b2aee3b89b58e63e23a51e02be91dc876d
-  RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
+  RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
   RCTDeprecation: b2eecf2d60216df56bc5e6be5f063826d3c1ee35
   RCTRequired: 78522de7dc73b81f3ed7890d145fa341f5bb32ea
   RCTTypeSafety: c135dd2bf50402d87fd12884cbad5d5e64850edd
@@ -2130,7 +2161,7 @@ SPEC CHECKSUMS:
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: 6f559964c4b0a700ed71adb397b2fa3f126b2f1d
-  stripe-react-native: 4a643a36820f2b8165b8a45c9a987223fd404838
+  stripe-react-native: 19e1d82d75376ed484040619f14c122b5dfc95da
   StripeApplePay: b54e61b4632e2ad3f19fa25f5cd10422804addc5
   StripeCameraCore: 4ce9b0fab6a32ea193e35d149e0fec5223408825
   StripeCore: dd9d1cce6b8e2b2f53ae1936f3728a239d0233aa
@@ -2143,6 +2174,6 @@ SPEC CHECKSUMS:
   StripeUICore: 8e8f566c5ba96c3924c50ec157cad3f03b92fea5
   Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
 
-PODFILE CHECKSUM: a2ed964678852d4cc306ff4add3e4fa90be77ea6
+PODFILE CHECKSUM: 0e8d697b2e2384b55c224afb61b755b153a2962a
 
 COCOAPODS: 1.16.2

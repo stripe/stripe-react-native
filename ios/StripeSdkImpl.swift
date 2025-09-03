@@ -2,7 +2,9 @@ import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 @_spi(STP) import StripePaymentSheet
+#if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+#endif
 import StripeFinancialConnections
 import Foundation
 
@@ -66,8 +68,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
 
+#if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
     var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Never>?
+#endif
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -1154,6 +1158,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #endif
     }
 
+#if canImport(StripeCryptoOnramp)
     @objc(configureOnramp:resolver:rejecter:)
     public func configureOnramp(
         config: NSDictionary,
@@ -1173,7 +1178,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             do {
-                try await cryptoOnrampCoordinator = CryptoOnrampCoordinator.create(appearance: appearance)
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance)
                 resolve([:])  // Return empty object on success
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1596,6 +1601,81 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
     }
+#else
+    @objc(configureOnramp:resolver:rejecter:)
+    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(hasLinkAccount:resolver:rejecter:)
+    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerLinkUser:resolver:rejecter:)
+    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(authenticateUser:rejecter:)
+    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerWalletAddress:network:resolver:rejecter:)
+    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(attachKycInfo:resolver:rejecter:)
+    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(updatePhoneNumber:resolver:rejecter:)
+    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(logout:rejecter:)
+    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(verifyIdentity:rejecter:)
+    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
+    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(createCryptoPaymentToken:rejecter:)
+    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(performCheckout:resolver:rejecter:)
+    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(provideCheckoutClientSecret:)
+    public func provideCheckoutClientSecret(clientSecret: String) {
+        // no-op when Onramp is unavailable
+    }
+
+    @objc(onrampAuthorize:resolver:rejecter:)
+    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
+        resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
+    }
+#endif
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
