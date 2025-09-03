@@ -1,5 +1,5 @@
 import type { Address } from './Common';
-import { OnrampError, StripeError } from './Errors';
+import type { OnrampError, StripeError } from './Errors';
 
 export type Configuration = {
   merchantDisplayName: string;
