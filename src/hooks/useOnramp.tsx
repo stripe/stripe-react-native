@@ -133,13 +133,6 @@ export function useOnramp() {
     []
   );
 
-  const _provideCheckoutClientSecret = useCallback(
-    (clientSecret: string): void => {
-      NativeOnrampSdk.provideCheckoutClientSecret(clientSecret);
-    },
-    []
-  );
-
   const _authorize = useCallback(
     async (linkAuthIntentId: string): Promise<Onramp.AuthorizeResult> => {
       return NativeOnrampSdk.onrampAuthorize(linkAuthIntentId);
@@ -248,13 +241,6 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     performCheckout: _performCheckout,
-
-    /**
-     * Provides a checkout client secret in response to a checkout client secret request.
-     *
-     * @param clientSecret The client secret for the checkout session
-     */
-    provideCheckoutClientSecret: _provideCheckoutClientSecret,
 
     /**
      * Authorizes a Link auth intent and authenticates the user if necessary.
