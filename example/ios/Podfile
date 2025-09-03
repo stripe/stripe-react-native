@@ -16,5 +16,6 @@ options = {
 
 use_test_app! options do |target|
   pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
+  pod 'stripe-react-native/NewArch', path: '../node_modules/@stripe/stripe-react-native'
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
 end
