@@ -30,7 +30,7 @@ class ReactNativeCustomerAdapter(
     if (overridesFetchPaymentMethods) {
       CompletableDeferred<List<PaymentMethod>>().also {
         fetchPaymentMethodsCallback = it
-        stripeSdkModule?.emitOnCustomerAdapterFetchPaymentMethodsCallback()
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterFetchPaymentMethodsCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -44,7 +44,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<PaymentMethod>().also {
         attachPaymentMethodCallback = it
         val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
-        stripeSdkModule?.emitOnCustomerAdapterAttachPaymentMethodCallback(params)
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterAttachPaymentMethodCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -58,7 +58,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<PaymentMethod>().also {
         detachPaymentMethodCallback = it
         val params = Arguments.createMap().also { it.putString("paymentMethodId", paymentMethodId) }
-        stripeSdkModule?.emitOnCustomerAdapterDetachPaymentMethodCallback(params)
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterDetachPaymentMethodCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -72,7 +72,7 @@ class ReactNativeCustomerAdapter(
       CompletableDeferred<Unit>().also {
         setSelectedPaymentOptionCallback = it
         val params = Arguments.createMap().also { it.putString("paymentOption", paymentOption?.id) }
-        stripeSdkModule?.emitOnCustomerAdapterSetSelectedPaymentOptionCallback(params)
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterSetSelectedPaymentOptionCallback(params)
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
@@ -85,7 +85,7 @@ class ReactNativeCustomerAdapter(
     if (overridesFetchSelectedPaymentOption) {
       CompletableDeferred<String?>().also {
         fetchSelectedPaymentOptionCallback = it
-        stripeSdkModule?.emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(
           if (resultFromJavascript != null) {
@@ -104,7 +104,7 @@ class ReactNativeCustomerAdapter(
     if (overridesSetupIntentClientSecretForCustomerAttach) {
       CompletableDeferred<String>().also {
         setupIntentClientSecretForCustomerAttachCallback = it
-        stripeSdkModule?.emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
+        stripeSdkModule?.eventEmitter?.emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
         val resultFromJavascript = it.await()
         return CustomerAdapter.Result.success(resultFromJavascript)
       }
