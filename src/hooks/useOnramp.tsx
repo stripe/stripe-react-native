@@ -1,5 +1,6 @@
 import NativeStripeSdk from '../specs/NativeOnrampSdkModule';
 import type { Onramp, OnrampError, StripeError } from '../types';
+import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 
 /**
@@ -68,14 +69,33 @@ export function useOnramp() {
     return NativeStripeSdk.verifyIdentity();
   }, []);
 
-  const _collectPaymentMethod = useCallback(
+  /**
+   * The set of payment methods supported by crypto onramp collection.
+   * - 'Card' and 'BankAccount' present Link for collection.
+   * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
+   */
+  type OnrampPaymentMethod = 'Card' | 'BankAccount' | 'PlatformPay';
+
+  // Overloads for stronger type-safety at call-sites
+  const _collectPaymentMethod: {
+    (
+      paymentMethod: 'Card' | 'BankAccount',
+      platformPayParams?: Record<string, never>
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+    (
+      paymentMethod: 'PlatformPay',
+      platformPayParams: PlatformPay.PaymentMethodParams
+    ): Promise<Onramp.CollectPaymentMethodResult>;
+  } = useCallback(
     async (
-      paymentMethod: string,
-      platformPayParams: any
+      paymentMethod: OnrampPaymentMethod,
+      platformPayParams?:
+        | PlatformPay.PaymentMethodParams
+        | Record<string, never>
     ): Promise<Onramp.CollectPaymentMethodResult> => {
       return NativeStripeSdk.collectPaymentMethod(
         paymentMethod,
-        platformPayParams
+        (platformPayParams ?? {}) as any
       );
     },
     []
@@ -161,7 +181,7 @@ export function useOnramp() {
     /**
      * Updates the user's phone number in their Link account.
      *
-     * @param phone The new phone number to set for the user
+     * @param phone The new phone number to set for the user in E.164 format (e.g., +12125551234)
      * @returns Promise that resolves to an object with an optional error property
      */
     updatePhoneNumber: _updatePhoneNumber,
@@ -185,8 +205,12 @@ export function useOnramp() {
     /**
      * Presents UI to collect/select a payment method of the given type.
      *
-     * @param paymentMethod The payment method type to collect. For 'Card' and 'BankAccount', this presents Link. For 'PlatformPay', this presents Apple Pay using the provided platform pay parameters
-     * @param platformPayParams Platform-specific parameters (required for PlatformPay)
+     * @param paymentMethod The payment method type to collect.
+     *  - 'Card' and 'BankAccount' present Link for collection.
+     *  - 'PlatformPay' presents Apple Pay / Google Pay using the provided parameters.
+     * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
+     *  - iOS: provide `applePay` params
+     *  - Android: provide `googlePay` params
      * @returns Promise that resolves to an object with displayData or error
      */
     collectPaymentMethod: _collectPaymentMethod,
