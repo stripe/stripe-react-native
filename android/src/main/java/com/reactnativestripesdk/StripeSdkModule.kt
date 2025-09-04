@@ -284,13 +284,15 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      val manager = EmbeddedComponentManager {
-        "" // TODO: fetch client secret
-      }
-      val accountOnboardingView = manager.createAccountOnboardingView(activity)
+      val manager = EmbeddedComponentManager(
+        publishableKey = "",
+        fetchClientSecret = { "" }
+      )
+      val accountOnboardingController = manager.createAccountOnboardingController(activity)
       val delegate = AccountOnboardingDelegate(promise)
-      accountOnboardingView.listener = delegate
-      accountOnboardingView.present()
+      accountOnboardingController.listener = delegate
+      // TODO: onDismissListener?
+      accountOnboardingController.show()
     }
   }
 
@@ -1427,13 +1429,17 @@ class StripeSdkModule(
 
 class AccountOnboardingDelegate(
   private val promise: Promise
-) : com.stripe.android.connect.AccountOnboardingViewListener {
-  
+) : com.stripe.android.connect.AccountOnboardingListener {
+
   override fun onExit() {
     promise.resolve(Arguments.createMap())
   }
-  
+
   override fun onLoadError(error: Throwable) {
     promise.reject("account_onboarding_error", error.message, error)
+  }
+
+  override fun onLoaderStart() {
+
   }
 }
