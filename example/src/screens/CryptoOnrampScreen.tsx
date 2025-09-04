@@ -66,6 +66,8 @@ export default function CryptoOnrampScreen() {
 
   // Wallet address from registration
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletNetwork, setWalletNetwork] =
+    useState<Onramp.CryptoNetwork | null>(null);
 
   // Onramp session data
   const [onrampSessionId, setOnrampSessionId] = useState<string | null>(null);
@@ -292,6 +294,81 @@ export default function CryptoOnrampScreen() {
     }
   }, [createCryptoPaymentToken]);
 
+  // Map crypto networks to destination currencies and networks for onramp session
+  const getDestinationParamsForNetwork = useCallback(
+    (
+      network: Onramp.CryptoNetwork
+    ): {
+      destinationNetwork: string;
+      destinationCurrency: string;
+    } => {
+      switch (network) {
+        case Onramp.CryptoNetwork.ethereum:
+          return {
+            destinationNetwork: 'ethereum',
+            destinationCurrency: 'eth',
+          };
+        case Onramp.CryptoNetwork.polygon:
+          return {
+            destinationNetwork: 'polygon',
+            destinationCurrency: 'eth',
+          };
+        case Onramp.CryptoNetwork.avalanche:
+          return {
+            destinationNetwork: 'avalanche',
+            destinationCurrency: 'avax',
+          };
+        case Onramp.CryptoNetwork.base:
+          return {
+            destinationNetwork: 'base',
+            destinationCurrency: 'eth',
+          };
+        case Onramp.CryptoNetwork.optimism:
+          return {
+            destinationNetwork: 'optimism',
+            destinationCurrency: 'eth',
+          };
+        case Onramp.CryptoNetwork.worldchain:
+          return {
+            destinationNetwork: 'worldchain',
+            destinationCurrency: 'eth',
+          };
+        case Onramp.CryptoNetwork.solana:
+          return {
+            destinationNetwork: 'solana',
+            destinationCurrency: 'sol',
+          };
+        case Onramp.CryptoNetwork.bitcoin:
+          return {
+            destinationNetwork: 'bitcoin',
+            destinationCurrency: 'btc',
+          };
+        case Onramp.CryptoNetwork.stellar:
+          return {
+            destinationNetwork: 'stellar',
+            destinationCurrency: 'xlm',
+          };
+        case Onramp.CryptoNetwork.aptos:
+          return {
+            destinationNetwork: 'aptos',
+            destinationCurrency: 'apt',
+          };
+        case Onramp.CryptoNetwork.xrpl:
+          return {
+            destinationNetwork: 'xrpl',
+            destinationCurrency: 'xrp',
+          };
+        default:
+          // Default to Ethereum for unknown networks
+          return {
+            destinationNetwork: 'ethereum',
+            destinationCurrency: 'eth',
+          };
+      }
+    },
+    []
+  );
+
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
     message?: string;
@@ -299,7 +376,8 @@ export default function CryptoOnrampScreen() {
     const missingItems: string[] = [];
 
     if (!customerId) missingItems.push('customer authentication');
-    if (!walletAddress) missingItems.push('wallet address registration');
+    if (!walletAddress || !walletNetwork)
+      missingItems.push('wallet address registration');
     if (!paymentDisplayData) missingItems.push('payment method selection');
     if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
     if (!authToken) missingItems.push('authentication token');
@@ -313,6 +391,7 @@ export default function CryptoOnrampScreen() {
   }, [
     customerId,
     walletAddress,
+    walletNetwork,
     paymentDisplayData,
     cryptoPaymentToken,
     authToken,
@@ -328,11 +407,19 @@ export default function CryptoOnrampScreen() {
     setIsCreatingSession(true);
 
     try {
+      // Get the correct destination network and currency based on wallet network
+      const destinationParams = getDestinationParamsForNetwork(walletNetwork!);
+
       const result = await createOnrampSession(
         cryptoPaymentToken!,
         walletAddress!,
         customerId!,
-        authToken!
+        authToken!,
+        destinationParams.destinationNetwork,
+        10.0, // sourceAmount
+        'usd', // sourceCurrency
+        destinationParams.destinationCurrency,
+        '127.0.0.1' // customerIpAddress
       );
 
       if (result.success) {
@@ -357,8 +444,10 @@ export default function CryptoOnrampScreen() {
     }
   }, [
     validateOnrampSessionParams,
+    getDestinationParamsForNetwork,
     cryptoPaymentToken,
     walletAddress,
+    walletNetwork,
     customerId,
     authToken,
   ]);
@@ -490,11 +579,12 @@ export default function CryptoOnrampScreen() {
         </View>
       )}
 
-      {walletAddress && (
+      {walletAddress && walletNetwork && (
         <View style={styles.buttonContainer}>
           <Text style={styles.responseText} selectable>
             {'Wallet Address: ' + walletAddress}
           </Text>
+          <Text style={styles.responseText}>{'Network: ' + walletNetwork}</Text>
         </View>
       )}
 
@@ -597,7 +687,12 @@ export default function CryptoOnrampScreen() {
 
       {isLinkUser === true && customerId != null && (
         <Collapse title="Wallet Registration" initialExpanded={true}>
-          <RegisterWalletAddressScreen onWalletRegistered={setWalletAddress} />
+          <RegisterWalletAddressScreen
+            onWalletRegistered={(address, network) => {
+              setWalletAddress(address);
+              setWalletNetwork(network);
+            }}
+          />
         </Collapse>
       )}
 
@@ -646,16 +741,54 @@ export default function CryptoOnrampScreen() {
 export function RegisterWalletAddressScreen({
   onWalletRegistered,
 }: {
-  onWalletRegistered?: (address: string) => void;
+  onWalletRegistered?: (address: string, network: Onramp.CryptoNetwork) => void;
 }) {
   const { registerWalletAddress } = useOnramp();
-  const [walletAddress, setWalletAddress] = useState(
-    '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
-  );
   const [network, setNetwork] = useState<Onramp.CryptoNetwork>(
     Onramp.CryptoNetwork.ethereum
   );
+
+  // Sample addresses for different networks
+  const getDefaultAddressForNetwork = useCallback(
+    (cryptoNetwork: Onramp.CryptoNetwork): string => {
+      switch (cryptoNetwork) {
+        case Onramp.CryptoNetwork.ethereum:
+        case Onramp.CryptoNetwork.polygon:
+        case Onramp.CryptoNetwork.avalanche:
+        case Onramp.CryptoNetwork.base:
+        case Onramp.CryptoNetwork.optimism:
+        case Onramp.CryptoNetwork.worldchain:
+          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+        case Onramp.CryptoNetwork.solana:
+          return '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+        case Onramp.CryptoNetwork.bitcoin:
+          return '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+        case Onramp.CryptoNetwork.stellar:
+          return 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
+        case Onramp.CryptoNetwork.aptos:
+          return '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
+        case Onramp.CryptoNetwork.xrpl:
+          return 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH';
+        default:
+          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+      }
+    },
+    []
+  );
+
+  const [walletAddress, setWalletAddress] = useState(
+    getDefaultAddressForNetwork(Onramp.CryptoNetwork.ethereum)
+  );
   const [response, setResponse] = useState<string | null>(null);
+
+  // Update wallet address when network changes
+  const handleNetworkChange = useCallback(
+    (newNetwork: Onramp.CryptoNetwork) => {
+      setNetwork(newNetwork);
+      setWalletAddress(getDefaultAddressForNetwork(newNetwork));
+    },
+    [getDefaultAddressForNetwork]
+  );
 
   const handleRegisterWallet = useCallback(async () => {
     setResponse(null);
@@ -671,7 +804,7 @@ export function RegisterWalletAddressScreen({
       );
     } else {
       setResponse(`Wallet registered`);
-      onWalletRegistered?.(walletAddress);
+      onWalletRegistered?.(walletAddress, network);
     }
   }, [walletAddress, network, registerWalletAddress, onWalletRegistered]);
 
@@ -681,14 +814,17 @@ export function RegisterWalletAddressScreen({
       <TextInput
         value={walletAddress}
         onChangeText={setWalletAddress}
-        placeholder="Enter wallet address"
+        placeholder={`Enter ${network} wallet address`}
         style={styles.textInput}
       />
+      <Text style={styles.responseText}>
+        Current format: {network} address (auto-updated when network changes)
+      </Text>
       <Text style={styles.infoText}>Network:</Text>
       <Picker
         selectedValue={network}
         onValueChange={(itemValue) =>
-          setNetwork(itemValue as Onramp.CryptoNetwork)
+          handleNetworkChange(itemValue as Onramp.CryptoNetwork)
         }
         style={styles.textInput}
       >
