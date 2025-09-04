@@ -543,8 +543,14 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun provideCheckoutClientSecret(clientSecret: String) {
-    checkoutClientSecretDeferred?.complete(clientSecret)
+  override fun provideCheckoutClientSecret(clientSecret: String?) {
+    if (clientSecret != null) {
+      checkoutClientSecretDeferred?.complete(clientSecret)
+    } else {
+      checkoutClientSecretDeferred?.completeExceptionally(
+        RuntimeException("Failed to provide checkout client secret")
+      )
+    }
     checkoutClientSecretDeferred = null
   }
 
