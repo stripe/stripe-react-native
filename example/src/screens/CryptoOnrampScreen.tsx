@@ -7,7 +7,7 @@ import {
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Image,
@@ -21,7 +21,11 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
-import OnrampBackend from '../../server/onrampBackend';
+import {
+  createAuthIntent,
+  createOnrampSession,
+  checkout,
+} from '../../server/onrampBackend';
 
 export default function CryptoOnrampScreen() {
   const {
@@ -35,9 +39,6 @@ export default function CryptoOnrampScreen() {
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
-
-  // Create OnrampBackend instance (memoized to prevent recreation on every render)
-  const onrampBackend = useMemo(() => new OnrampBackend(), []);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -59,6 +60,17 @@ export default function CryptoOnrampScreen() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+
+  // Auth token from CreateAuthIntentResponse
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Wallet address from registration
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+
+  // Onramp session data
+  const [onrampSessionId, setOnrampSessionId] = useState<string | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
@@ -82,7 +94,7 @@ export default function CryptoOnrampScreen() {
 
     try {
       // Step 1: Create auth intent using OnrampBackend API
-      const authIntentResponse = await onrampBackend.createAuthIntent(
+      const authIntentResponse = await createAuthIntent(
         email,
         'kyc.status:read,crypto:ramp'
       );
@@ -104,14 +116,10 @@ export default function CryptoOnrampScreen() {
       if (result?.error) {
         Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
       } else if (result?.status === 'Consented' && result.customerId) {
-        Alert.alert(
-          'Success',
-          `Authentication successful! You may now proceed with KYC.`
-        );
-        // Set the customer ID to unlock KYC section
+        Alert.alert('Success', `Authentication successful!`);
         setCustomerId(result.customerId);
-        // Set the auth intent ID for manual entry field (for testing)
         setLinkAuthIntentId(authIntentId);
+        setAuthToken(authIntentResponse.data.token);
       } else if (result?.status === 'Denied') {
         Alert.alert(
           'Access Denied',
@@ -124,7 +132,7 @@ export default function CryptoOnrampScreen() {
       console.error('Error in authentication flow:', error);
       Alert.alert('Error', 'Failed to complete authentication flow.');
     }
-  }, [email, authorize, onrampBackend]);
+  }, [email, authorize]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     const result = await authorize(linkAuthIntentId);
@@ -284,22 +292,125 @@ export default function CryptoOnrampScreen() {
     }
   }, [createCryptoPaymentToken]);
 
-  const handlePerformCheckout = useCallback(async () => {
-    const result = await performCheckout('INSERT_SESSION_ID_HERE', async () => {
-      return 'INSERT_CLIENT_SECRET_HERE';
-    });
+  const validateOnrampSessionParams = useCallback((): {
+    isValid: boolean;
+    message?: string;
+  } => {
+    const missingItems: string[] = [];
 
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not perform checkout ${result.error.message}.`
-      );
-    } else if (result) {
-      Alert.alert('Success', 'Checkout succeeded!');
-    } else {
-      Alert.alert('Cancelled', 'Checkout cancelled.');
+    if (!customerId) missingItems.push('customer authentication');
+    if (!walletAddress) missingItems.push('wallet address registration');
+    if (!paymentDisplayData) missingItems.push('payment method selection');
+    if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
+    if (!authToken) missingItems.push('authentication token');
+
+    if (missingItems.length === 0) {
+      return { isValid: true };
     }
-  }, [performCheckout]);
+
+    let message: string;
+    if (missingItems.length === 1) {
+      message = `Please complete ${missingItems[0]} first`;
+    } else if (missingItems.length === 2) {
+      message = `Please complete ${missingItems[0]} and ${missingItems[1]} first`;
+    } else {
+      message = `Please complete the following steps first: ${missingItems.join(', ')}`;
+    }
+
+    return { isValid: false, message };
+  }, [
+    customerId,
+    walletAddress,
+    paymentDisplayData,
+    cryptoPaymentToken,
+    authToken,
+  ]);
+
+  const handleCreateOnrampSession = useCallback(async () => {
+    const validation = validateOnrampSessionParams();
+    if (!validation.isValid) {
+      Alert.alert('Missing Requirements', validation.message!);
+      return;
+    }
+
+    setIsCreatingSession(true);
+
+    try {
+      const result = await createOnrampSession(
+        cryptoPaymentToken!,
+        walletAddress!,
+        customerId!,
+        authToken!
+      );
+
+      if (result.success) {
+        // Cache the session ID for checkout
+        setOnrampSessionId(result.data.id);
+
+        Alert.alert(
+          'Onramp Session Created',
+          `Session ID: ${result.data.id}\nClient Secret: ${result.data.client_secret.substring(0, 20)}...`
+        );
+      } else {
+        Alert.alert(
+          'Error Creating Onramp Session',
+          `Code: ${result.error.code}\nMessage: ${result.error.message}`
+        );
+      }
+    } catch (error) {
+      console.error('Error creating onramp session:', error);
+      Alert.alert('Error', 'Failed to create onramp session.');
+    } finally {
+      setIsCreatingSession(false);
+    }
+  }, [
+    validateOnrampSessionParams,
+    cryptoPaymentToken,
+    walletAddress,
+    customerId,
+    authToken,
+  ]);
+
+  const handlePerformCheckout = useCallback(async () => {
+    if (!onrampSessionId) {
+      Alert.alert('Error', 'Please create an onramp session first.');
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    try {
+      const result = await performCheckout(onrampSessionId, async () => {
+        if (!authToken) {
+          throw new Error('Auth token is required for checkout');
+        }
+
+        const checkoutResult = await checkout(onrampSessionId, authToken);
+
+        if (checkoutResult.success) {
+          return checkoutResult.data.client_secret;
+        } else {
+          throw new Error(`Checkout failed: ${checkoutResult.error.message}`);
+        }
+      });
+
+      if (result?.error) {
+        Alert.alert(
+          'Error',
+          `Could not perform checkout ${result.error.message}.`
+        );
+      } else if (result) {
+        Alert.alert('Success', 'Checkout succeeded!');
+      } else {
+        Alert.alert('Cancelled', 'Checkout cancelled.');
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      Alert.alert('Error', 'Failed to complete checkout.');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  }, [performCheckout, onrampSessionId, authToken]);
 
   useEffect(() => {
     let mounted = true;
@@ -375,6 +486,30 @@ export default function CryptoOnrampScreen() {
         <View style={styles.buttonContainer}>
           <Text style={styles.responseText} selectable>
             {'Crypto Payment Token: ' + cryptoPaymentToken}
+          </Text>
+        </View>
+      )}
+
+      {authToken && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText} selectable>
+            {'Auth Token: ' + authToken.substring(0, 20) + '...'}
+          </Text>
+        </View>
+      )}
+
+      {walletAddress && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText} selectable>
+            {'Wallet Address: ' + walletAddress}
+          </Text>
+        </View>
+      )}
+
+      {onrampSessionId && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.responseText} selectable>
+            {'Onramp Session ID: ' + onrampSessionId}
           </Text>
         </View>
       )}
@@ -465,24 +600,62 @@ export default function CryptoOnrampScreen() {
               variant="primary"
             />
           )}
-          <Button
-            title="Check Out"
-            onPress={handlePerformCheckout}
-            variant="primary"
-          />
         </Collapse>
       )}
 
       {isLinkUser === true && customerId != null && (
         <Collapse title="Wallet Registration" initialExpanded={true}>
-          <RegisterWalletAddressScreen />
+          <RegisterWalletAddressScreen onWalletRegistered={setWalletAddress} />
+        </Collapse>
+      )}
+
+      {isLinkUser === true && customerId != null && (
+        <Collapse title="Onramp Session Creation" initialExpanded={true}>
+          <Button
+            title={
+              isCreatingSession
+                ? 'Creating Session...'
+                : 'Create Onramp Session'
+            }
+            onPress={handleCreateOnrampSession}
+            variant="primary"
+            disabled={
+              !validateOnrampSessionParams().isValid || isCreatingSession
+            }
+          />
+          {!validateOnrampSessionParams().isValid && !isCreatingSession && (
+            <Text style={styles.infoText}>
+              {validateOnrampSessionParams().message}
+            </Text>
+          )}
+          {isCreatingSession && (
+            <Text style={styles.infoText}>Creating onramp session...</Text>
+          )}
+          <Button
+            title={isCheckingOut ? 'Checking Out...' : 'Check Out'}
+            onPress={handlePerformCheckout}
+            variant="primary"
+            disabled={!onrampSessionId || isCheckingOut}
+          />
+          {!onrampSessionId && !isCheckingOut && (
+            <Text style={styles.infoText}>
+              Please create an onramp session first
+            </Text>
+          )}
+          {isCheckingOut && (
+            <Text style={styles.infoText}>Processing checkout...</Text>
+          )}
         </Collapse>
       )}
     </ScrollView>
   );
 }
 
-export function RegisterWalletAddressScreen() {
+export function RegisterWalletAddressScreen({
+  onWalletRegistered,
+}: {
+  onWalletRegistered?: (address: string) => void;
+}) {
   const { registerWalletAddress } = useOnramp();
   const [walletAddress, setWalletAddress] = useState(
     '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
@@ -506,8 +679,10 @@ export function RegisterWalletAddressScreen() {
       );
     } else {
       setResponse(`Wallet registered`);
+      // Notify parent component of successful wallet registration
+      onWalletRegistered?.(walletAddress);
     }
-  }, [walletAddress, network, registerWalletAddress]);
+  }, [walletAddress, network, registerWalletAddress, onWalletRegistered]);
 
   return (
     <View style={styles.walletContainer}>
