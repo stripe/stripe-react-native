@@ -74,3 +74,11 @@ export const currentlyFocusedInput = () => {
     }
   }
 };
+
+export const isAuthError = (error: any): boolean => {
+  const stripeErrorCode = error?.stripeErrorCode;
+  if (stripeErrorCode === 'consumer_session_credentials_invalid') {
+    return true;
+  }
+  return false;
+};

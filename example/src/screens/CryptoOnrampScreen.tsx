@@ -4,10 +4,13 @@ import {
   PlatformPayButton,
   useOnramp,
   useStripe,
+  isAuthError,
 } from '@stripe/stripe-react-native';
 import { addListener } from '@stripe/stripe-react-native/src/events';
 import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
 import { CryptoNetwork } from '@stripe/stripe-react-native/src/types/Onramp';
+import type { StripeError } from '@stripe/stripe-react-native/src/types';
+import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -59,6 +62,29 @@ export default function CryptoOnrampScreen() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+
+  // Helper function to handle authentication errors with automatic retry
+  const withReauth = useCallback(
+    async <T extends { error?: StripeError<OnrampError> }>(
+      f: () => Promise<T>,
+      reauth: () => Promise<{ error?: StripeError<OnrampError> }>
+    ): Promise<T> => {
+      const result = await f();
+      if (isAuthError(result.error)) {
+        const reauthResult = await reauth();
+        if (reauthResult.error) {
+          Alert.alert(
+            'Error reauthenticating',
+            `${JSON.stringify(reauthResult.error, null, 2)}`
+          );
+          return result;
+        }
+        return await f();
+      }
+      return result;
+    },
+    []
+  );
 
   type CheckoutClientSecretRequestedParams = {
     onrampSessionId: string;
@@ -125,7 +151,10 @@ export default function CryptoOnrampScreen() {
   }, [authorize, linkAuthIntentId]);
 
   const handleVerifyIdentity = useCallback(async () => {
-    const result = await verifyIdentity();
+    const result = await withReauth(
+      () => verifyIdentity(),
+      () => authenticateUser()
+    );
 
     if (result?.error) {
       if (result.error.code === 'Canceled') {
@@ -136,13 +165,13 @@ export default function CryptoOnrampScreen() {
       } else {
         Alert.alert(
           'Error',
-          `Could not verify identity ${result.error.message}.`
+          `Could not verify identity: ${JSON.stringify(result.error, null, 2)}`
         );
       }
     } else {
       Alert.alert('Success', 'Identity Verification completed');
     }
-  }, [verifyIdentity]);
+  }, [verifyIdentity, withReauth, authenticateUser]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
     const platformPayParams = {
@@ -202,7 +231,10 @@ export default function CryptoOnrampScreen() {
       birthCity: 'San Francisco',
     };
 
-    const result = await attachKycInfo(kycInfo);
+    const result = await withReauth(
+      () => attachKycInfo(kycInfo),
+      () => authenticateUser()
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -212,10 +244,13 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'KYC Attached');
     }
-  }, [attachKycInfo, firstName, lastName]);
+  }, [attachKycInfo, firstName, lastName, withReauth, authenticateUser]);
 
   const handleCollectCardPayment = useCallback(async () => {
-    const result = await collectPaymentMethod(cardPaymentMethod, {});
+    const result = await withReauth(
+      () => collectPaymentMethod(cardPaymentMethod, {}),
+      () => authenticateUser()
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -230,10 +265,13 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [cardPaymentMethod, collectPaymentMethod]);
+  }, [cardPaymentMethod, collectPaymentMethod, withReauth, authenticateUser]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
-    const result = await collectPaymentMethod(bankAccountPaymentMethod, {});
+    const result = await withReauth(
+      () => collectPaymentMethod(bankAccountPaymentMethod, {}),
+      () => authenticateUser()
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -248,10 +286,18 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [bankAccountPaymentMethod, collectPaymentMethod]);
+  }, [
+    bankAccountPaymentMethod,
+    collectPaymentMethod,
+    withReauth,
+    authenticateUser,
+  ]);
 
   const handleCreateCryptoPaymentToken = useCallback(async () => {
-    const result = await createCryptoPaymentToken();
+    const result = await withReauth(
+      () => createCryptoPaymentToken(),
+      () => authenticateUser()
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -261,7 +307,7 @@ export default function CryptoOnrampScreen() {
     } else {
       setCryptoPaymentToken(result.cryptoPaymentToken);
     }
-  }, [createCryptoPaymentToken]);
+  }, [createCryptoPaymentToken, withReauth, authenticateUser]);
 
   const handlePerformCheckout = useCallback(async () => {
     const result = await performCheckout('INSERT_SESSION_ID_HERE');

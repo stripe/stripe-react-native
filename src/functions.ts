@@ -1,4 +1,4 @@
-import { createError } from './helpers';
+import { createError, isAuthError as isAuthErrorHelper } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './specs/NativeStripeSdkModule';
 import type {
@@ -975,4 +975,8 @@ export const logOut = async (): Promise<{
   error?: StripeError<OnrampError>;
 }> => {
   return NativeStripeSdk.logout();
+};
+
+export const isAuthError = (error: any): boolean => {
+  return isAuthErrorHelper(error);
 };
