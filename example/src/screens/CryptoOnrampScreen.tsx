@@ -671,7 +671,6 @@ export function RegisterWalletAddressScreen({
       );
     } else {
       setResponse(`Wallet registered`);
-      // Notify parent component of successful wallet registration
       onWalletRegistered?.(walletAddress);
     }
   }, [walletAddress, network, registerWalletAddress, onWalletRegistered]);
