@@ -44,6 +44,10 @@ def isNewArchitectureEnabled() {
   return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
 }
 
+def isOnrampIncluded() {
+  return getExtOrDefault('includeOnramp').toString().toBoolean()
+}
+
 def reactNativeArchitectures() {
   def value = project.getProperties().get("reactNativeArchitectures")
   return value ? value.split(",") : [
@@ -98,6 +102,7 @@ android {
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     consumerProguardFiles 'proguard-rules.txt'
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    buildConfigField "boolean", "IS_ONRAMP_INCLUDED", isOnrampIncluded().toString()
 
     ndk {
       abiFilters(*reactNativeArchitectures())
@@ -128,6 +133,9 @@ android {
     java {
       if (!isNewArchitectureEnabled()) {
         srcDirs += ["src/oldarch/java"]
+      }
+      if (isOnrampIncluded()) {
+        srcDirs += ["src/onramp/java"]
       }
     }
   }
@@ -214,8 +222,10 @@ dependencies {
   implementation("com.stripe:stripe-android:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'
   }
-  implementation("com.stripe:crypto-onramp:$stripe_version") {
-    exclude group: 'androidx.emoji2', module: 'emoji2'
+  if (isOnrampIncluded()) {
+    implementation("com.stripe:crypto-onramp:$stripe_version") {
+      exclude group: 'androidx.emoji2', module: 'emoji2'
+    }
   }
   implementation("com.stripe:financial-connections:$stripe_version") {
     exclude group: 'androidx.emoji2', module: 'emoji2'

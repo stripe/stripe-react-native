@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
+import NativeOnrampSdkModule from './specs/NativeOnrampSdkModule';
 
 const compatEventEmitter =
   // On new arch we use native module events. On old arch this doesn't exist
@@ -38,8 +39,7 @@ type Events =
   | 'embeddedPaymentElementDidUpdatePaymentOption'
   | 'embeddedPaymentElementDidUpdateHeight'
   | 'embeddedPaymentElementLoadingFailed'
-  | 'onCustomPaymentMethodConfirmHandlerCallback'
-  | 'onCheckoutClientSecretRequested';
+  | 'onCustomPaymentMethodConfirmHandlerCallback';
 
 export function addListener<EventT extends Events>(
   event: EventT,
@@ -49,4 +49,25 @@ export function addListener<EventT extends Events>(
     return compatEventEmitter.addListener(event, handler);
   }
   return NativeStripeSdkModule[event](handler as any);
+}
+
+const compatOnrampEventEmitter =
+  // On new arch we use native module events. On old arch this doesn't exist
+  // so use NativeEventEmitter on iOS and DeviceEventEmitter on Android.
+  NativeOnrampSdkModule.onCheckoutClientSecretRequested == null
+    ? Platform.OS === 'ios'
+      ? new NativeEventEmitter(NativeOnrampSdkModule as any)
+      : DeviceEventEmitter
+    : null;
+
+type OnrampEvents = 'onCheckoutClientSecretRequested';
+
+export function addOnrampListener<EventT extends OnrampEvents>(
+  event: EventT,
+  handler: Parameters<(typeof NativeOnrampSdkModule)[EventT]>[0]
+): EventSubscription {
+  if (compatOnrampEventEmitter != null) {
+    return compatOnrampEventEmitter.addListener(event, handler);
+  }
+  return NativeOnrampSdkModule[event](handler as any);
 }

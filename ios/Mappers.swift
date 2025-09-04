@@ -1,5 +1,7 @@
 import Stripe
+#if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+#endif
 @_spi(STP) import StripePaymentSheet
 
 class Mappers {
@@ -1072,6 +1074,7 @@ class Mappers {
       return mappedEvent
     }
 
+#if canImport(StripeCryptoOnramp)
     class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
         let darkColors = params["darkColors"] as? [String: Any?]
         let lightColors = params["lightColors"] as? [String: Any?]
@@ -1199,4 +1202,5 @@ class Mappers {
 
         return result
     }
+#endif
 }

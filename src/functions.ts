@@ -1,4 +1,4 @@
-import { createError, isAuthError as isAuthErrorHelper } from './helpers';
+import { createError } from './helpers';
 import { MissingRoutingNumber } from './types/Errors';
 import NativeStripeSdk from './specs/NativeStripeSdkModule';
 import type {
@@ -14,7 +14,6 @@ import type {
   HandleNextActionResult,
   HandleNextActionForSetupResult,
   InitPaymentSheetResult,
-  Onramp,
   PaymentMethod,
   PaymentSheet,
   PresentPaymentSheetResult,
@@ -32,7 +31,6 @@ import type {
   CanAddCardToWalletResult,
   FinancialConnections,
   PlatformPay,
-  OnrampError,
 } from './types';
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
@@ -893,90 +891,4 @@ export const openPlatformPaySetup = async (): Promise<void> => {
   if (Platform.OS === 'ios') {
     await NativeStripeSdk.openApplePaySetup();
   }
-};
-
-export const configureOnramp = async (
-  config: Onramp.Configuration
-): Promise<{ error?: StripeError<OnrampError> }> => {
-  return NativeStripeSdk.configureOnramp(config);
-};
-
-export const hasLinkAccount = async (
-  email: string
-): Promise<Onramp.HasLinkAccountResult> => {
-  return NativeStripeSdk.hasLinkAccount(email);
-};
-
-export const registerLinkUser = async (
-  info: Onramp.LinkUserInfo
-): Promise<Onramp.RegisterLinkUserResult> => {
-  return NativeStripeSdk.registerLinkUser(info);
-};
-
-export const registerWalletAddress = async (
-  walletAddress: string,
-  network: Onramp.CryptoNetwork
-): Promise<{ error?: StripeError<OnrampError> }> => {
-  return NativeStripeSdk.registerWalletAddress(walletAddress, network);
-};
-
-export const attachKycInfo = async (
-  kycInfo: Onramp.KycInfo
-): Promise<{ error?: StripeError<OnrampError> }> => {
-  return NativeStripeSdk.attachKycInfo(kycInfo);
-};
-
-export const updatePhoneNumber = async (
-  phone: string
-): Promise<{ error?: StripeError<OnrampError> }> => {
-  return NativeStripeSdk.updatePhoneNumber(phone);
-};
-
-export const authenticateUser =
-  async (): Promise<Onramp.AuthenticateUserResult> => {
-    return NativeStripeSdk.authenticateUser();
-  };
-
-export const verifyIdentity = async (): Promise<{
-  error?: StripeError<OnrampError>;
-}> => {
-  return NativeStripeSdk.verifyIdentity();
-};
-
-export const collectPaymentMethod = async (
-  paymentMethod: string,
-  platformPayParams: any
-): Promise<Onramp.CollectPaymentMethodResult> => {
-  return NativeStripeSdk.collectPaymentMethod(paymentMethod, platformPayParams);
-};
-
-export const createCryptoPaymentToken =
-  async (): Promise<Onramp.CreateCryptoPaymentTokenResult> => {
-    return NativeStripeSdk.createCryptoPaymentToken();
-  };
-
-export const performCheckout = async (
-  onrampSessionId: string
-): Promise<{ error?: StripeError<OnrampError> }> => {
-  return NativeStripeSdk.performCheckout(onrampSessionId);
-};
-
-export const provideCheckoutClientSecret = (clientSecret: string): void => {
-  NativeStripeSdk.provideCheckoutClientSecret(clientSecret);
-};
-
-export const onrampAuthorize = async (
-  linkAuthIntentId: string
-): Promise<Onramp.AuthorizeResult> => {
-  return NativeStripeSdk.onrampAuthorize(linkAuthIntentId);
-};
-
-export const logOut = async (): Promise<{
-  error?: StripeError<OnrampError>;
-}> => {
-  return NativeStripeSdk.logout();
-};
-
-export const isAuthError = (error: any): boolean => {
-  return isAuthErrorHelper(error);
 };
