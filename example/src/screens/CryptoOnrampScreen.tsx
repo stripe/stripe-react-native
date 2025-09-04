@@ -649,13 +649,51 @@ export function RegisterWalletAddressScreen({
   onWalletRegistered?: (address: string) => void;
 }) {
   const { registerWalletAddress } = useOnramp();
-  const [walletAddress, setWalletAddress] = useState(
-    '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
-  );
   const [network, setNetwork] = useState<Onramp.CryptoNetwork>(
     Onramp.CryptoNetwork.ethereum
   );
+
+  // Sample addresses for different networks
+  const getDefaultAddressForNetwork = useCallback(
+    (cryptoNetwork: Onramp.CryptoNetwork): string => {
+      switch (cryptoNetwork) {
+        case Onramp.CryptoNetwork.ethereum:
+        case Onramp.CryptoNetwork.polygon:
+        case Onramp.CryptoNetwork.avalanche:
+        case Onramp.CryptoNetwork.base:
+        case Onramp.CryptoNetwork.optimism:
+        case Onramp.CryptoNetwork.worldchain:
+          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+        case Onramp.CryptoNetwork.solana:
+          return '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+        case Onramp.CryptoNetwork.bitcoin:
+          return '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+        case Onramp.CryptoNetwork.stellar:
+          return 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
+        case Onramp.CryptoNetwork.aptos:
+          return '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
+        case Onramp.CryptoNetwork.xrpl:
+          return 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH';
+        default:
+          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+      }
+    },
+    []
+  );
+
+  const [walletAddress, setWalletAddress] = useState(
+    getDefaultAddressForNetwork(Onramp.CryptoNetwork.ethereum)
+  );
   const [response, setResponse] = useState<string | null>(null);
+
+  // Update wallet address when network changes
+  const handleNetworkChange = useCallback(
+    (newNetwork: Onramp.CryptoNetwork) => {
+      setNetwork(newNetwork);
+      setWalletAddress(getDefaultAddressForNetwork(newNetwork));
+    },
+    [getDefaultAddressForNetwork]
+  );
 
   const handleRegisterWallet = useCallback(async () => {
     setResponse(null);
@@ -681,14 +719,17 @@ export function RegisterWalletAddressScreen({
       <TextInput
         value={walletAddress}
         onChangeText={setWalletAddress}
-        placeholder="Enter wallet address"
+        placeholder={`Enter ${network} wallet address`}
         style={styles.textInput}
       />
+      <Text style={styles.responseText}>
+        Current format: {network} address (auto-updated when network changes)
+      </Text>
       <Text style={styles.infoText}>Network:</Text>
       <Picker
         selectedValue={network}
         onValueChange={(itemValue) =>
-          setNetwork(itemValue as Onramp.CryptoNetwork)
+          handleNetworkChange(itemValue as Onramp.CryptoNetwork)
         }
         style={styles.textInput}
       >
