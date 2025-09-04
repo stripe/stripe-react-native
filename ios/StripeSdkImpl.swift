@@ -71,7 +71,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
-    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Never>?
+    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
 #endif
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
@@ -1542,7 +1542,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
                 self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
 
-                let clientSecret: String = await withCheckedContinuation { [weak self] continuation in
+                let clientSecret = try await withCheckedThrowingContinuation { [weak self] continuation in
                     self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
                 }
 
@@ -1559,8 +1559,17 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(provideCheckoutClientSecret:)
-    public func provideCheckoutClientSecret(clientSecret: String) {
-        cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+    public func provideCheckoutClientSecret(clientSecret: String?) {
+        if let clientSecret {
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+        } else {
+            let error = NSError(
+                domain: ErrorType.Failed,
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to provide checkout client secret"]
+            )
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(throwing: error)
+        }
         cryptoOnrampCheckoutClientSecretContinuation = nil
     }
 
