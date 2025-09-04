@@ -418,7 +418,8 @@ export default function CryptoOnrampScreen() {
         destinationParams.destinationNetwork,
         10.0, // sourceAmount
         'usd', // sourceCurrency
-        destinationParams.destinationCurrency
+        destinationParams.destinationCurrency,
+        '127.0.0.1' // customerIpAddress
       );
 
       if (result.success) {
