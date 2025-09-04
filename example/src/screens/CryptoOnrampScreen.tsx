@@ -7,7 +7,7 @@ import {
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -21,11 +21,11 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
+import OnrampBackend from '../server/onrampBackend';
 
 export default function CryptoOnrampScreen() {
   const {
     hasLinkAccount,
-    authenticateUser,
     verifyIdentity,
     attachKycInfo,
     collectPaymentMethod,
@@ -35,6 +35,9 @@ export default function CryptoOnrampScreen() {
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
+
+  // Create OnrampBackend instance (memoized to prevent recreation on every render)
+  const onrampBackend = useMemo(() => new OnrampBackend(), []);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -72,16 +75,56 @@ export default function CryptoOnrampScreen() {
   }, [email, hasLinkAccount]);
 
   const handlePresentVerification = useCallback(async () => {
-    const result = await authenticateUser();
-
-    if (result?.error) {
-      Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
-    } else if (result?.customerId) {
-      setCustomerId(result.customerId);
-    } else {
-      Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
+    if (!email) {
+      Alert.alert('Error', 'Please enter an email address first.');
+      return;
     }
-  }, [authenticateUser]);
+
+    try {
+      // Step 1: Create auth intent using OnrampBackend API
+      const authIntentResponse = await onrampBackend.createAuthIntent(
+        email,
+        'kyc.status:read,crypto:ramp'
+      );
+
+      if (!authIntentResponse.success) {
+        Alert.alert(
+          'Error Creating Auth Intent',
+          `Code: ${authIntentResponse.error.code}\nMessage: ${authIntentResponse.error.message}`
+        );
+        return;
+      }
+
+      const authIntentId = authIntentResponse.data.data.id;
+      console.log(`Created auth intent: ${authIntentId}`);
+
+      // Step 2: Authorize using the created auth intent ID
+      const result = await authorize(authIntentId);
+
+      if (result?.error) {
+        Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
+      } else if (result?.status === 'Consented' && result.customerId) {
+        Alert.alert(
+          'Success',
+          `Authentication successful! You may now proceed with KYC.`
+        );
+        // Set the customer ID to unlock KYC section
+        setCustomerId(result.customerId);
+        // Set the auth intent ID for manual entry field (for testing)
+        setLinkAuthIntentId(authIntentId);
+      } else if (result?.status === 'Denied') {
+        Alert.alert(
+          'Access Denied',
+          'User denied the authentication request. Please try again.'
+        );
+      } else {
+        Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
+      }
+    } catch (error) {
+      console.error('Error in authentication flow:', error);
+      Alert.alert('Error', 'Failed to complete authentication flow.');
+    }
+  }, [email, authorize, onrampBackend]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     const result = await authorize(linkAuthIntentId);
@@ -347,7 +390,7 @@ export default function CryptoOnrampScreen() {
             autoCapitalize="none"
           />
           <Button
-            title="Authenticate Link User"
+            title="Create Auth Intent & Authenticate"
             onPress={handlePresentVerification}
             variant="primary"
           />
