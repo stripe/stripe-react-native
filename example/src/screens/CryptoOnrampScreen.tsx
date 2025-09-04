@@ -21,7 +21,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
-import OnrampBackend from '../server/onrampBackend';
+import OnrampBackend from '../../server/onrampBackend';
 
 export default function CryptoOnrampScreen() {
   const {
