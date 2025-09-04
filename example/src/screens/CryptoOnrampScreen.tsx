@@ -409,6 +409,77 @@ export default function CryptoOnrampScreen() {
     authToken,
   ]);
 
+  const validateOnrampSessionParams = useCallback((): {
+    isValid: boolean;
+    message?: string;
+  } => {
+    const missingItems: string[] = [];
+
+    if (!customerId) missingItems.push('customer authentication');
+    if (!walletAddress) missingItems.push('wallet address registration');
+    if (!paymentDisplayData) missingItems.push('payment method selection');
+    if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
+    if (!authToken) missingItems.push('authentication token');
+
+    if (missingItems.length === 0) {
+      return { isValid: true };
+    }
+
+    let message = `Please complete the following steps first: ${missingItems.join(', ')}`;
+    return { isValid: false, message };
+  }, [
+    customerId,
+    walletAddress,
+    paymentDisplayData,
+    cryptoPaymentToken,
+    authToken,
+  ]);
+
+  const handleCreateOnrampSession = useCallback(async () => {
+    const validation = validateOnrampSessionParams();
+    if (!validation.isValid) {
+      Alert.alert('Missing Requirements', validation.message!);
+      return;
+    }
+
+    setIsCreatingSession(true);
+
+    try {
+      const result = await createOnrampSession(
+        cryptoPaymentToken!,
+        walletAddress!,
+        customerId!,
+        authToken!
+      );
+
+      if (result.success) {
+        // Cache the session ID for checkout
+        setOnrampSessionId(result.data.id);
+
+        Alert.alert(
+          'Onramp Session Created',
+          `Session ID: ${result.data.id}\nClient Secret: ${result.data.client_secret.substring(0, 20)}...`
+        );
+      } else {
+        Alert.alert(
+          'Error Creating Onramp Session',
+          `Code: ${result.error.code}\nMessage: ${result.error.message}`
+        );
+      }
+    } catch (error) {
+      console.error('Error creating onramp session:', error);
+      Alert.alert('Error', 'Failed to create onramp session.');
+    } finally {
+      setIsCreatingSession(false);
+    }
+  }, [
+    validateOnrampSessionParams,
+    cryptoPaymentToken,
+    walletAddress,
+    customerId,
+    authToken,
+  ]);
+
   const handlePerformCheckout = useCallback(async () => {
     if (!onrampSessionId) {
       Alert.alert('Error', 'Please create an onramp session first.');
