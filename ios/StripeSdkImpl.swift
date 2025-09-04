@@ -13,6 +13,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
     @objc public weak var emitter: StripeSdkEmitter? = nil
+    @objc public weak var onrampEmitter: StripeOnrampSdkEmitter? = nil
     weak var cardFieldView: CardFieldView? = nil
     weak var cardFormView: CardFormView? = nil
 
@@ -1539,7 +1540,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
-                self?.emitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
+                self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
 
                 let clientSecret: String = await withCheckedContinuation { [weak self] continuation in
                     self?.cryptoOnrampCheckoutClientSecretContinuation = continuation

@@ -1,6 +1,9 @@
 #import "StripeOnrampSdk.h"
 #import "StripeSwiftInterop.h"
 
+@interface StripeOnrampSdk () <StripeOnrampSdkEmitter>
+@end
+
 @implementation StripeOnrampSdk
 RCT_EXPORT_MODULE(OnrampSdk)
 
@@ -13,7 +16,7 @@ RCT_EXPORT_MODULE(OnrampSdk)
 {
   self = [super init];
   if (self) {
-    
+    StripeSdkImpl.shared.onrampEmitter = self;
   }
   return self;
 }
