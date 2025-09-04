@@ -4,7 +4,6 @@ import {
   PlatformPayButton,
   useOnramp,
   useStripe,
-  isAuthError,
 } from '@stripe/stripe-react-native';
 import { addListener } from '@stripe/stripe-react-native/src/events';
 import { PaymentOptionData } from '@stripe/stripe-react-native/src/index';
@@ -37,6 +36,7 @@ export default function CryptoOnrampScreen() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
+    isAuthError,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
@@ -83,7 +83,7 @@ export default function CryptoOnrampScreen() {
       }
       return result;
     },
-    []
+    [isAuthError]
   );
 
   type CheckoutClientSecretRequestedParams = {
