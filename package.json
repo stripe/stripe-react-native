@@ -66,11 +66,15 @@
   },
   "peerDependencies": {
     "expo": ">=46.0.9",
+    "expo-build-properties": "*",
     "react": "*",
     "react-native": "*"
   },
   "peerDependenciesMeta": {
     "expo": {
+      "optional": true
+    },
+    "expo-build-properties": {
       "optional": true
     }
   },
