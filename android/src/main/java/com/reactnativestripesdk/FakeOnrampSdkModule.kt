@@ -20,7 +20,10 @@ class FakeOnrampSdkModule(
     config: ReadableMap?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    throw NotImplementedError(
+      "StripeCryptoOnramp is not available. " +
+        "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle."
+    )
   }
 
   override fun hasLinkAccount(email: String?, promise: Promise?) {
