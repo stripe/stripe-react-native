@@ -27,6 +27,7 @@ import type {
   FinancialConnections,
   PlatformPay,
   PlatformPayError,
+  AccountOnboarding,
 } from '../types';
 import { useCallback } from 'react';
 import {
@@ -59,6 +60,7 @@ import {
   createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
+  presentAccountOnboardingScreen,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -161,6 +163,15 @@ export function useStripe() {
       options?: PaymentSheet.PresentOptions
     ): Promise<PresentPaymentSheetResult> => {
       return presentPaymentSheet(options);
+    },
+    []
+  );
+
+  const _presentAccountOnboardingScreen = useCallback(
+    async (
+      options?: AccountOnboarding.PresentOptions
+    ): Promise<AccountOnboarding.PresentResult> => {
+      return presentAccountOnboardingScreen(options);
     },
     []
   );
@@ -355,5 +366,6 @@ export function useStripe() {
     createPlatformPayToken: _createPlatformPayToken,
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
+    presentAccountOnboardingScreen: _presentAccountOnboardingScreen,
   };
 }

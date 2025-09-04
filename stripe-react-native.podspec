@@ -44,6 +44,7 @@ Pod::Spec.new do |s|
   s.dependency 'StripePaymentsUI', stripe_version
   s.dependency 'StripeApplePay', stripe_version
   s.dependency 'StripeFinancialConnections', stripe_version
+  s.dependency 'StripeConnect', stripe_version
 
   if fabric_enabled
     install_modules_dependencies(s)

@@ -450,6 +450,18 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <Collapse title="Account Onboarding">
+        <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Account Onboarding screen"
+              onPress={() => {
+                navigation.navigate('AccountOnboardingScreen');
+              }}
+            />
+          </View>
+        </>
+      </Collapse>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}

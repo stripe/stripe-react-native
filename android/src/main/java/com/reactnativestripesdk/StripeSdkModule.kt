@@ -65,6 +65,7 @@ import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.connect.EmbeddedComponentManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -274,6 +275,22 @@ class StripeSdkModule(
       )
     } else {
       paymentSheetFragment?.present(promise)
+    }
+  }
+
+  @ReactMethod
+  override fun presentAccountOnboardingScreen(
+    options: ReadableMap,
+    promise: Promise,
+  ) {
+    getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      val manager = EmbeddedComponentManager {
+        "" // TODO: fetch client secret
+      }
+      val accountOnboardingView = manager.createAccountOnboardingView(activity)
+      val delegate = AccountOnboardingDelegate(promise)
+      accountOnboardingView.listener = delegate
+      accountOnboardingView.present()
     }
   }
 
@@ -1405,5 +1422,18 @@ class StripeSdkModule(
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
+  }
+}
+
+class AccountOnboardingDelegate(
+  private val promise: Promise
+) : com.stripe.android.connect.AccountOnboardingViewListener {
+  
+  override fun onExit() {
+    promise.resolve(Arguments.createMap())
+  }
+  
+  override fun onLoadError(error: Throwable) {
+    promise.reject("account_onboarding_error", error.message, error)
   }
 }

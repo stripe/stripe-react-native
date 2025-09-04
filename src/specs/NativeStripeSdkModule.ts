@@ -5,6 +5,7 @@ import type {
   Int32,
 } from 'react-native/Libraries/Types/CodegenTypes';
 import type {
+  AccountOnboarding,
   CanAddCardToWalletParams,
   CanAddCardToWalletResult,
   ConfirmPaymentResult,
@@ -89,6 +90,9 @@ export interface Spec extends TurboModule {
   presentPaymentSheet(
     options: UnsafeObject<PaymentSheet.PresentOptions>
   ): Promise<PresentPaymentSheetResult>;
+  presentAccountOnboardingScreen(
+    options: UnsafeObject<AccountOnboarding.PresentOptions>
+  ): Promise<void>;
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;

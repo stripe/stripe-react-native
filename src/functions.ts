@@ -31,6 +31,7 @@ import type {
   CanAddCardToWalletResult,
   FinancialConnections,
   PlatformPay,
+  AccountOnboarding,
 } from './types';
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
@@ -446,6 +447,19 @@ export const presentPaymentSheet = async (
       paymentOption: paymentOption!,
       didCancel: didCancel,
     };
+  } catch (error: any) {
+    return {
+      error,
+    };
+  }
+};
+
+export const presentAccountOnboardingScreen = async (
+  options: AccountOnboarding.PresentOptions = {}
+): Promise<AccountOnboarding.PresentResult> => {
+  try {
+    await NativeStripeSdk.presentAccountOnboardingScreen(options);
+    return {};
   } catch (error: any) {
     return {
       error,

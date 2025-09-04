@@ -12,7 +12,9 @@ import type {
   StripeError,
   VerifyMicrodepositsError,
   CollectBankAccountError,
+  AccountOnboardingError,
 } from './Errors';
+import * as AccountOnboarding from './AccountOnboarding';
 import * as ApplePay from './ApplePay';
 import * as PaymentIntent from './PaymentIntent';
 import * as PaymentMethod from './PaymentMethod';
@@ -27,6 +29,7 @@ import * as FinancialConnections from './FinancialConnections';
 import * as PlatformPay from './PlatformPay';
 
 export {
+  AccountOnboarding,
   ApplePay,
   PaymentIntent,
   PaymentMethod,
@@ -156,6 +159,11 @@ export type PresentPaymentSheetResult = {
   paymentOption?: PaymentSheet.PaymentOption | undefined;
   didCancel?: boolean;
   error?: StripeError<PaymentSheetError> | undefined;
+};
+
+export type PresentAccountOnboardingScreenResult = {
+  didCancel?: boolean;
+  error?: StripeError<AccountOnboardingError> | undefined;
 };
 
 export type CreateTokenResult =
