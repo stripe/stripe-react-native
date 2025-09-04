@@ -166,22 +166,22 @@ export class OnrampBackend {
    * @param walletAddress Destination wallet address
    * @param cryptoCustomerId Customer ID from authentication
    * @param authToken Authorization token
-   * @param destinationNetwork Destination network (default: "ethereum")
-   * @param sourceAmount Source amount (default: 10.0)
-   * @param sourceCurrency Source currency (default: "usd")
-   * @param destinationCurrency Destination currency (default: "eth")
-   * @param customerIpAddress Customer IP address (default: "127.0.0.1")
+   * @param destinationNetwork Destination network (e.g., "ethereum", "solana", "bitcoin")
+   * @param sourceAmount Source amount in USD
+   * @param sourceCurrency Source currency (e.g., "usd")
+   * @param destinationCurrency Destination currency (e.g., "eth", "sol", "btc")
+   * @param customerIpAddress Customer IP address
    */
   async createOnrampSession(
     paymentToken: string,
     walletAddress: string,
     cryptoCustomerId: string,
     authToken: string,
-    destinationNetwork: string = 'ethereum',
-    sourceAmount: number = 10.0,
-    sourceCurrency: string = 'usd',
-    destinationCurrency: string = 'eth',
-    customerIpAddress: string = '127.0.0.1'
+    destinationNetwork: string,
+    sourceAmount: number,
+    sourceCurrency: string,
+    destinationCurrency: string,
+    customerIpAddress: string
   ): Promise<ApiResult<OnrampSessionResponse>> {
     const requestBody: CreateOnrampSessionRequest = {
       ui_mode: 'headless',
@@ -247,11 +247,11 @@ export const createOnrampSession = async (
   walletAddress: string,
   cryptoCustomerId: string,
   authToken: string,
-  destinationNetwork?: string,
-  sourceAmount?: number,
-  sourceCurrency?: string,
-  destinationCurrency?: string,
-  customerIpAddress?: string
+  destinationNetwork: string,
+  sourceAmount: number,
+  sourceCurrency: string,
+  destinationCurrency: string,
+  customerIpAddress: string
 ): Promise<ApiResult<OnrampSessionResponse>> => {
   return defaultClient.createOnrampSession(
     paymentToken,
