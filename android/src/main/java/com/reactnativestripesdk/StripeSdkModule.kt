@@ -286,7 +286,7 @@ class StripeSdkModule(
         // Store the original ReadableMap for custom payment methods
         bundle.putSerializable(
           "customPaymentMethodConfigurationReadableMap",
-          customPaymentMethodConfig.toHashMap()
+          customPaymentMethodConfig.toHashMap(),
         )
       }
 
@@ -1443,7 +1443,8 @@ class StripeSdkModule(
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView =
-        composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext)
+        composeCompatView ?: StripeAbstractComposeView
+          .CompatView(context = reactApplicationContext)
           .also {
             currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
               it,
@@ -1469,9 +1470,11 @@ class StripeSdkModule(
       return
     }
 
-    val coordinator = OnrampCoordinator.Builder()
-      .build(application, SavedStateHandle())
-      .also { this.onrampCoordinator = it }
+    val coordinator =
+      OnrampCoordinator
+        .Builder()
+        .build(application, SavedStateHandle())
+        .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
       val appearanceMap = config.getMap("appearance")
@@ -1484,11 +1487,12 @@ class StripeSdkModule(
 
       val displayName = config.getString("merchantDisplayName") ?: ""
 
-      val configuration = OnrampConfiguration(
-        merchantDisplayName = displayName,
-        publishableKey = publishableKey,
-        appearance = appearance
-      )
+      val configuration =
+        OnrampConfiguration(
+          merchantDisplayName = displayName,
+          publishableKey = publishableKey,
+          appearance = appearance,
+        )
 
       val configureResult = coordinator.configure(configuration)
 
@@ -1521,23 +1525,24 @@ class StripeSdkModule(
       return
     }
 
-    val onrampCallbacks = OnrampCallbacks(
-      authenticateUserCallback = { result ->
-        handleOnrampAuthenticationResult(result, authenticateUserPromise!!)
-      },
-      verifyIdentityCallback = { result ->
-        handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
-      },
-      collectPaymentCallback = { result ->
-        handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
-      },
-      authorizeCallback = { result ->
-        handleOnrampAuthorizationResult(result, authorizePromise!!)
-      },
-      checkoutCallback = { result ->
-        handleOnrampCheckoutResult(result, checkoutPromise!!)
-      }
-    )
+    val onrampCallbacks =
+      OnrampCallbacks(
+        authenticateUserCallback = { result ->
+          handleOnrampAuthenticationResult(result, authenticateUserPromise!!)
+        },
+        verifyIdentityCallback = { result ->
+          handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
+        },
+        collectPaymentCallback = { result ->
+          handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
+        },
+        authorizeCallback = { result ->
+          handleOnrampAuthorizationResult(result, authorizePromise!!)
+        },
+        checkoutCallback = { result ->
+          handleOnrampCheckoutResult(result, checkoutPromise!!)
+        },
+      )
 
     try {
       onrampPresenter = onrampCoordinator!!.createPresenter(activity, onrampCallbacks)
@@ -1552,10 +1557,11 @@ class StripeSdkModule(
     email: String,
     promise: Promise,
   ) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     CoroutineScope(Dispatchers.IO).launch {
       when (val result = coordinator.hasLinkAccount(email)) {
         is OnrampHasLinkAccountResult.Completed -> {
@@ -1573,17 +1579,19 @@ class StripeSdkModule(
     info: ReadableMap,
     promise: Promise,
   ) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     CoroutineScope(Dispatchers.IO).launch {
-      val linkUserInfo = LinkUserInfo(
-        email = info.getString("email") ?: "",
-        phone = info.getString("phone") ?: "",
-        country = info.getString("country") ?: "",
-        fullName = info.getString("fullName"),
-      )
+      val linkUserInfo =
+        LinkUserInfo(
+          email = info.getString("email") ?: "",
+          phone = info.getString("phone") ?: "",
+          country = info.getString("country") ?: "",
+          fullName = info.getString("fullName"),
+        )
 
       val result = coordinator.registerLinkUser(linkUserInfo)
       when (result) {
@@ -1601,12 +1609,13 @@ class StripeSdkModule(
   override fun registerWalletAddress(
     walletAddress: String,
     network: String,
-    promise: Promise
+    promise: Promise,
   ) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     CoroutineScope(Dispatchers.IO).launch {
       val cryptoNetwork = enumValues<CryptoNetwork>().firstOrNull { it.value == network }
       if (cryptoNetwork == null) {
@@ -1628,20 +1637,21 @@ class StripeSdkModule(
   @ReactMethod
   override fun attachKycInfo(
     kycInfo: ReadableMap,
-    promise: Promise
+    promise: Promise,
   ) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     CoroutineScope(Dispatchers.IO).launch {
       val firstName = kycInfo.getString("firstName")
       if (firstName.isNullOrEmpty()) {
         promise.resolve(
           createError(
             ErrorType.Unknown.toString(),
-            "Missing required field: firstName"
-          )
+            "Missing required field: firstName",
+          ),
         )
         return@launch
       }
@@ -1650,8 +1660,8 @@ class StripeSdkModule(
         promise.resolve(
           createError(
             ErrorType.Unknown.toString(),
-            "Missing required field: lastName"
-          )
+            "Missing required field: lastName",
+          ),
         )
         return@launch
       }
@@ -1660,8 +1670,8 @@ class StripeSdkModule(
         promise.resolve(
           createError(
             ErrorType.Unknown.toString(),
-            "Missing required field: idNumber"
-          )
+            "Missing required field: idNumber",
+          ),
         )
         return@launch
       }
@@ -1677,37 +1687,39 @@ class StripeSdkModule(
           DateOfBirth(
             day = dateOfBirthMap.getInt("day"),
             month = dateOfBirthMap.getInt("month"),
-            year = dateOfBirthMap.getInt("year")
+            year = dateOfBirthMap.getInt("year"),
           )
         } else {
           promise.resolve(
             createError(
               ErrorType.Unknown.toString(),
-              "Missing required field: dateOfBirth"
-            )
+              "Missing required field: dateOfBirth",
+            ),
           )
           return@launch
         }
 
       val addressMap = kycInfo.getMap("address")
-      val addressObj = addressMap?.let {
-        PaymentSheet.Address(
-          city = it.getString("city"),
-          country = it.getString("country"),
-          line1 = it.getString("line1"),
-          line2 = it.getString("line2"),
-          postalCode = it.getString("postalCode"),
-          state = it.getString("state"),
-        )
-      } ?: PaymentSheet.Address()
+      val addressObj =
+        addressMap?.let {
+          PaymentSheet.Address(
+            city = it.getString("city"),
+            country = it.getString("country"),
+            line1 = it.getString("line1"),
+            line2 = it.getString("line2"),
+            postalCode = it.getString("postalCode"),
+            state = it.getString("state"),
+          )
+        } ?: PaymentSheet.Address()
 
-      val kycInfoObj = KycInfo(
-        firstName = firstName,
-        lastName = lastName,
-        idNumber = idNumber,
-        dateOfBirth = dob,
-        address = addressObj,
-      )
+      val kycInfoObj =
+        KycInfo(
+          firstName = firstName,
+          lastName = lastName,
+          idNumber = idNumber,
+          dateOfBirth = dob,
+          address = addressObj,
+        )
 
       when (val result = coordinator.attachKycInfo(kycInfoObj)) {
         is OnrampAttachKycInfoResult.Completed -> {
@@ -1721,11 +1733,15 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun updatePhoneNumber(phone: String, promise: Promise) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+  override fun updatePhoneNumber(
+    phone: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     CoroutineScope(Dispatchers.IO).launch {
       when (val result = coordinator.updatePhoneNumber(phone)) {
         OnrampUpdatePhoneNumberResult.Completed -> {
@@ -1740,10 +1756,11 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun authenticateUser(promise: Promise) {
-    val presenter = onrampPresenter ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
 
     authenticateUserPromise = promise
 
@@ -1752,10 +1769,11 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun verifyIdentity(promise: Promise) {
-    val presenter = onrampPresenter ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
 
     identityVerificationPromise = promise
 
@@ -1766,25 +1784,27 @@ class StripeSdkModule(
   override fun collectPaymentMethod(
     paymentMethod: String,
     platformPayParams: ReadableMap,
-    promise: Promise
+    promise: Promise,
   ) {
-    val presenter = onrampPresenter ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
-
-    val method = when (paymentMethod) {
-      "Card" -> PaymentMethodType.Card
-      "BankAccount" -> PaymentMethodType.BankAccount
-      else -> {
-        promise.resolve(
-          createFailedError(
-            IllegalArgumentException("Unsupported payment method: $paymentMethod")
-          )
-        )
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
         return
       }
-    }
+
+    val method =
+      when (paymentMethod) {
+        "Card" -> PaymentMethodType.Card
+        "BankAccount" -> PaymentMethodType.BankAccount
+        else -> {
+          promise.resolve(
+            createFailedError(
+              IllegalArgumentException("Unsupported payment method: $paymentMethod"),
+            ),
+          )
+          return
+        }
+      }
 
     collectPaymentPromise = promise
 
@@ -1793,10 +1813,11 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun createCryptoPaymentToken(promise: Promise) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
 
     CoroutineScope(Dispatchers.IO).launch {
       val result = coordinator.createCryptoPaymentToken()
@@ -1809,12 +1830,13 @@ class StripeSdkModule(
   @ReactMethod
   override fun performCheckout(
     onrampSessionId: String,
-    promise: Promise
+    promise: Promise,
   ) {
-    val presenter = onrampPresenter ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
 
     val checkoutHandler: suspend () -> String = {
       checkoutClientSecretDeferred = CompletableDeferred()
@@ -1839,11 +1861,15 @@ class StripeSdkModule(
   }
 
   @ReactMethod
-  override fun onrampAuthorize(linkAuthIntentId: String, promise: Promise) {
-    val presenter = onrampPresenter ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+  override fun onrampAuthorize(
+    linkAuthIntentId: String,
+    promise: Promise,
+  ) {
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
 
     authorizePromise = promise
 
@@ -1852,10 +1878,11 @@ class StripeSdkModule(
 
   @ReactMethod
   override fun logout(promise: Promise) {
-    val coordinator = onrampCoordinator ?: run {
-      promise.resolve(createOnrampNotConfiguredError())
-      return
-    }
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
     promise.resolve(createFailedError(NotImplementedError()))
   }
 
@@ -1931,7 +1958,10 @@ class StripeSdkModule(
     )
   }
 
-  private fun handleOnrampAuthenticationResult(result: OnrampAuthenticateResult, promise: Promise) {
+  private fun handleOnrampAuthenticationResult(
+    result: OnrampAuthenticateResult,
+    promise: Promise,
+  ) {
     when (result) {
       is OnrampAuthenticateResult.Completed -> {
         promise.resolveString("customerId", result.customerId)
@@ -1947,7 +1977,7 @@ class StripeSdkModule(
 
   private fun handleOnrampIdentityVerificationResult(
     result: OnrampVerifyIdentityResult,
-    promise: Promise
+    promise: Promise,
   ) {
     when (result) {
       is OnrampVerifyIdentityResult.Completed -> {
@@ -1964,14 +1994,15 @@ class StripeSdkModule(
 
   private fun handleOnrampCollectPaymentResult(
     result: OnrampCollectPaymentMethodResult,
-    promise: Promise
+    promise: Promise,
   ) {
     when (result) {
       is OnrampCollectPaymentMethodResult.Completed -> {
         val displayData = Arguments.createMap()
-        val icon = currentActivity
-          ?.let { ContextCompat.getDrawable(it, result.displayData.iconRes) }
-          ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
+        val icon =
+          currentActivity
+            ?.let { ContextCompat.getDrawable(it, result.displayData.iconRes) }
+            ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
         displayData.putString("icon", icon)
         displayData.putString("label", result.displayData.label)
         result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
@@ -1986,21 +2017,24 @@ class StripeSdkModule(
     }
   }
 
-  private fun handleOnrampAuthorizationResult(result: OnrampAuthorizeResult, promise: Promise) {
+  private fun handleOnrampAuthorizationResult(
+    result: OnrampAuthorizeResult,
+    promise: Promise,
+  ) {
     when (result) {
       is OnrampAuthorizeResult.Consented -> {
         promise.resolve(
           WritableNativeMap().apply {
             putString("status", "Consented")
             putString("customerId", result.customerId)
-          }
+          },
         )
       }
       is OnrampAuthorizeResult.Denied -> {
         promise.resolve(
           WritableNativeMap().apply {
             putString("status", "Denied")
-          }
+          },
         )
       }
       is OnrampAuthorizeResult.Canceled -> {
@@ -2012,7 +2046,10 @@ class StripeSdkModule(
     }
   }
 
-  private fun handleOnrampCheckoutResult(result: OnrampCheckoutResult, promise: Promise) {
+  private fun handleOnrampCheckoutResult(
+    result: OnrampCheckoutResult,
+    promise: Promise,
+  ) {
     when (result) {
       is OnrampCheckoutResult.Completed -> {
         promise.resolveVoid()
@@ -2028,7 +2065,7 @@ class StripeSdkModule(
 
   private fun handleOnrampCreateCryptoPaymentTokenResult(
     result: OnrampCreateCryptoPaymentTokenResult,
-    promise: Promise
+    promise: Promise,
   ) {
     when (result) {
       is OnrampCreateCryptoPaymentTokenResult.Completed -> {
@@ -2044,11 +2081,17 @@ class StripeSdkModule(
     resolve(createEmptyResult())
   }
 
-  private fun Promise.resolveString(key: String, value: String) {
+  private fun Promise.resolveString(
+    key: String,
+    value: String,
+  ) {
     resolve(WritableNativeMap().apply { putString(key, value) })
   }
 
-  private fun Promise.resolveBoolean(key: String, value: Boolean) {
+  private fun Promise.resolveBoolean(
+    key: String,
+    value: Boolean,
+  ) {
     resolve(WritableNativeMap().apply { putBoolean(key, value) })
   }
 
