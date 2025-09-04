@@ -1,7 +1,11 @@
 import { AndroidConfig } from '@expo/config-plugins';
 import { resolve } from 'path';
 
-import { setApplePayEntitlement, setGooglePayMetaData } from '../withStripe';
+import {
+  setApplePayEntitlement,
+  setGooglePayMetaData,
+  setOnrampGradleProperty,
+} from '../withStripe';
 
 jest.mock(
   '@stripe/stripe-react-native/package.json',
@@ -106,5 +110,68 @@ describe('setGooglePayMetaData', () => {
       (e) => e.$['android:name'] === 'com.google.android.gms.wallet.api.enabled'
     );
     expect(apiKeyItem).toHaveLength(0);
+  });
+});
+
+describe('setOnrampGradleProperty', () => {
+  it('adds StripeSdk_includeOnramp=true when includeOnramp is true', () => {
+    const initialProperties = [
+      {
+        type: 'property' as const,
+        key: 'StripeSdk_kotlinVersion',
+        value: '1.8.0',
+      },
+    ];
+
+    const result = setOnrampGradleProperty(true, initialProperties);
+
+    expect(result).toHaveLength(2);
+    expect(result[1]).toEqual({
+      type: 'property',
+      key: 'StripeSdk_includeOnramp',
+      value: 'true',
+    });
+  });
+
+  it('removes StripeSdk_includeOnramp when includeOnramp is false', () => {
+    const initialProperties = [
+      {
+        type: 'property' as const,
+        key: 'StripeSdk_kotlinVersion',
+        value: '1.8.0',
+      },
+      {
+        type: 'property' as const,
+        key: 'StripeSdk_includeOnramp',
+        value: 'true',
+      },
+    ];
+
+    const result = setOnrampGradleProperty(false, initialProperties);
+
+    expect(result).toHaveLength(1);
+    expect(
+      result.find(
+        (p) => p.type === 'property' && p.key === 'StripeSdk_includeOnramp'
+      )
+    ).toBeUndefined();
+  });
+
+  it('updates existing property value when includeOnramp is true', () => {
+    const initialProperties = [
+      {
+        type: 'property' as const,
+        key: 'StripeSdk_includeOnramp',
+        value: 'false',
+      },
+    ];
+
+    const result = setOnrampGradleProperty(true, initialProperties);
+
+    expect(result[0]).toEqual({
+      type: 'property',
+      key: 'StripeSdk_includeOnramp',
+      value: 'true',
+    });
   });
 });

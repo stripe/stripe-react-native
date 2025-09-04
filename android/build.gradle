@@ -45,7 +45,8 @@ def isNewArchitectureEnabled() {
 }
 
 def isOnrampIncluded() {
-  return getExtOrDefault('includeOnramp').toString().toBoolean()
+  return rootProject.ext.has("StripeSdk_includeOnramp") &&
+    rootProject.ext.StripeSdk_includeOnramp.toString().toLowerCase() == "true"
 }
 
 def reactNativeArchitectures() {
