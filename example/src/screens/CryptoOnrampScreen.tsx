@@ -301,6 +301,32 @@ export default function CryptoOnrampScreen() {
     }
   }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
 
+  const validateOnrampSessionParams = useCallback((): {
+    isValid: boolean;
+    message?: string;
+  } => {
+    const missingItems: string[] = [];
+
+    if (!customerId) missingItems.push('customer authentication');
+    if (!walletAddress) missingItems.push('wallet address registration');
+    if (!paymentDisplayData) missingItems.push('payment method selection');
+    if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
+    if (!authToken) missingItems.push('authentication token');
+
+    if (missingItems.length === 0) {
+      return { isValid: true };
+    }
+
+    let message = `Please complete the following steps first: ${missingItems.join(', ')}`;
+    return { isValid: false, message };
+  }, [
+    customerId,
+    walletAddress,
+    paymentDisplayData,
+    cryptoPaymentToken,
+    authToken,
+  ]);
+
   const handleCollectBankAccountPayment = useCallback(async () => {
     const result = await withReauth(
       () => collectPaymentMethod('BankAccount'),
@@ -375,7 +401,13 @@ export default function CryptoOnrampScreen() {
     } finally {
       setIsCreatingSession(false);
     }
-  }, [cryptoPaymentToken, walletAddress, customerId, authToken]);
+  }, [
+    validateOnrampSessionParams,
+    cryptoPaymentToken,
+    walletAddress,
+    customerId,
+    authToken,
+  ]);
 
   const handlePerformCheckout = useCallback(async () => {
     if (!onrampSessionId) {
