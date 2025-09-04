@@ -243,7 +243,7 @@ class StripeSdkModule(
         // Store the original ReadableMap for custom payment methods
         bundle.putSerializable(
           "customPaymentMethodConfigurationReadableMap",
-          customPaymentMethodConfig.toHashMap()
+          customPaymentMethodConfig.toHashMap(),
         )
       }
 
@@ -1400,7 +1400,8 @@ class StripeSdkModule(
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView =
-        composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext)
+        composeCompatView ?: StripeAbstractComposeView
+          .CompatView(context = reactApplicationContext)
           .also {
             currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
               it,
