@@ -6,6 +6,7 @@ import {
   withAndroidManifest,
   withEntitlementsPlist,
   withGradleProperties,
+  withPlugins,
 } from '@expo/config-plugins';
 
 const {
@@ -24,8 +25,9 @@ type StripePluginProps = {
   merchantIdentifier: string | string[];
   enableGooglePay: boolean;
   /**
-   * Whether to include Onramp functionality in the Android build.
-   * When true, adds StripeSdk_includeOnramp=true to gradle.properties.
+   * Whether to include Onramp functionality in the build.
+   * When true, adds StripeSdk_includeOnramp=true to gradle.properties for Android
+   * and includes the Onramp pod for iOS.
    * Defaults to false.
    */
   includeOnramp?: boolean;
@@ -40,15 +42,36 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 
 const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { merchantIdentifier }
+  { merchantIdentifier, includeOnramp = false }
 ) => {
-  return withEntitlementsPlist(expoConfig, (config) => {
-    config.modResults = setApplePayEntitlement(
+  let config = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
+    entitlementsConfig.modResults = setApplePayEntitlement(
       merchantIdentifier,
-      config.modResults
+      entitlementsConfig.modResults
     );
-    return config;
+    return entitlementsConfig;
   });
+
+  // Conditionally include Onramp pod for iOS
+  if (includeOnramp) {
+    config = withPlugins(config, [
+      [
+        'expo-build-properties',
+        {
+          ios: {
+            extraPods: [
+              {
+                name: 'stripe-react-native/Onramp',
+                path: '../node_modules/@stripe/stripe-react-native',
+              },
+            ],
+          },
+        },
+      ],
+    ]);
+  }
+
+  return config;
 };
 
 /**
@@ -112,7 +135,7 @@ const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
     return config;
   });
 
-  resultConfig = withGradleProperties(expoConfig, (config) => {
+  resultConfig = withGradleProperties(resultConfig, (config) => {
     config.modResults = setOnrampGradleProperty(
       includeOnramp,
       config.modResults
