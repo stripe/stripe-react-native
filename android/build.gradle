@@ -45,7 +45,7 @@ def isNewArchitectureEnabled() {
 }
 
 def isOnrampIncluded() {
-  return getExtOrDefault('includeOnramp') == true
+  return getExtOrDefault('includeOnramp').toString().toBoolean()
 }
 
 def reactNativeArchitectures() {

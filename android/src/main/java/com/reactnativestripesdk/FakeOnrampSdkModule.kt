@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
+import com.reactnativestripesdk.utils.createFailedError
 
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
 class FakeOnrampSdkModule(
@@ -20,21 +21,25 @@ class FakeOnrampSdkModule(
     config: ReadableMap?,
     promise: Promise?
   ) {
-    throw NotImplementedError(
-      "StripeCryptoOnramp is not available. " +
-        "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle."
+    promise?.resolve(
+      createFailedError(
+        NotImplementedError(
+          "StripeCryptoOnramp is not available. " +
+            "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle."
+        )
+      )
     )
   }
 
   override fun hasLinkAccount(email: String?, promise: Promise?) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun registerLinkUser(
     info: ReadableMap?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun registerWalletAddress(
@@ -42,29 +47,29 @@ class FakeOnrampSdkModule(
     network: String?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun attachKycInfo(
     kycInfo: ReadableMap?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun updatePhoneNumber(
     phone: String?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun authenticateUser(promise: Promise?) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun verifyIdentity(promise: Promise?) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun collectPaymentMethod(
@@ -72,32 +77,32 @@ class FakeOnrampSdkModule(
     platformPayParams: ReadableMap?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun provideCheckoutClientSecret(clientSecret: String?) {
-    throw NotImplementedError()
+    // No-op
   }
 
   override fun createCryptoPaymentToken(promise: Promise?) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun performCheckout(
     onrampSessionId: String?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun onrampAuthorize(
     linkAuthIntentId: String?,
     promise: Promise?
   ) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   override fun logout(promise: Promise?) {
-    throw NotImplementedError()
+    promise?.resolve(createFailedError(NotImplementedError()))
   }
 }
