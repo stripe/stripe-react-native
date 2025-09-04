@@ -48,33 +48,52 @@ export class OnrampBackend {
   }
 
   /**
-   * Creates an auth intent for the given email and OAuth scopes
-   * @param email User email address
-   * @param oauthScopes OAuth scopes
+   * Generic HTTP request helper with common error handling
    */
-  async createAuthIntent(
-    email: string,
-    oauthScopes: string = 'kyc.status:read,crypto:ramp'
-  ): Promise<ApiResult<CreateAuthIntentResponse>> {
+  private async makeRequest<T>(
+    endpoint: string,
+    requestBody: any,
+    options: {
+      useTimeout?: boolean;
+      authToken?: string;
+      transformResponse?: (data: any) => T;
+    } = {}
+  ): Promise<ApiResult<T>> {
+    const { useTimeout = false, authToken, transformResponse } = options;
+
     try {
-      const requestBody: CreateAuthIntentRequest = {
-        email,
-        oauth_scopes: oauthScopes,
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
       };
 
-      const response = await fetch(`${this.baseUrl}/auth_intent/create`, {
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
+      let controller: AbortController | undefined;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      if (useTimeout) {
+        controller = new AbortController();
+        timeoutId = setTimeout(() => controller!.abort(), 60000); // 60 seconds timeout
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(requestBody),
+        ...(controller && { signal: controller.signal }),
       });
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
 
       const responseData = await response.json();
 
       if (!response.ok) {
         console.error(
-          '[OnrampBackend] API request failed:',
+          `[OnrampBackend] Request to ${endpoint} failed:`,
           response.status,
           responseData
         );
@@ -88,12 +107,30 @@ export class OnrampBackend {
           },
         };
       }
+
+      const transformedData = transformResponse
+        ? transformResponse(responseData)
+        : responseData;
+
       return {
         success: true,
-        data: responseData,
+        data: transformedData,
       };
     } catch (error) {
-      console.error('[OnrampBackend] Error creating auth intent:', error);
+      console.error(
+        `[OnrampBackend] Error making request to ${endpoint}:`,
+        error
+      );
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        return {
+          success: false,
+          error: {
+            code: 'TIMEOUT_ERROR',
+            message: 'Request timed out after 60 seconds',
+          },
+        };
+      }
 
       return {
         success: false,
@@ -104,6 +141,26 @@ export class OnrampBackend {
         },
       };
     }
+  }
+
+  /**
+   * Creates an auth intent for the given email and OAuth scopes
+   * @param email User email address
+   * @param oauthScopes OAuth scopes
+   */
+  async createAuthIntent(
+    email: string,
+    oauthScopes: string = 'kyc.status:read,crypto:ramp'
+  ): Promise<ApiResult<CreateAuthIntentResponse>> {
+    const requestBody: CreateAuthIntentRequest = {
+      email,
+      oauth_scopes: oauthScopes,
+    };
+
+    return this.makeRequest<CreateAuthIntentResponse>(
+      '/auth_intent/create',
+      requestBody
+    );
   }
 
   /**
@@ -129,82 +186,30 @@ export class OnrampBackend {
     destinationCurrency: string = 'eth',
     customerIpAddress: string = '127.0.0.1'
   ): Promise<ApiResult<OnrampSessionResponse>> {
-    try {
-      const requestBody: CreateOnrampSessionRequest = {
-        ui_mode: 'headless',
-        payment_token: paymentToken,
-        source_amount: sourceAmount,
-        source_currency: sourceCurrency,
-        destination_currency: destinationCurrency,
-        destination_network: destinationNetwork,
-        wallet_address: walletAddress,
-        crypto_customer_id: cryptoCustomerId,
-        customer_ip_address: customerIpAddress,
-      };
+    const requestBody: CreateOnrampSessionRequest = {
+      ui_mode: 'headless',
+      payment_token: paymentToken,
+      source_amount: sourceAmount,
+      source_currency: sourceCurrency,
+      destination_currency: destinationCurrency,
+      destination_network: destinationNetwork,
+      wallet_address: walletAddress,
+      crypto_customer_id: cryptoCustomerId,
+      customer_ip_address: customerIpAddress,
+    };
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
-
-      const response = await fetch(`${this.baseUrl}/create_onramp_session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        console.error(
-          '[OnrampBackend] Create onramp session failed:',
-          response.status,
-          responseData
-        );
-        return {
-          success: false,
-          error: {
-            code: `HTTP_${response.status}`,
-            message:
-              responseData.error ||
-              `HTTP ${response.status}: ${response.statusText}`,
-          },
-        };
+    return this.makeRequest<OnrampSessionResponse>(
+      '/create_onramp_session',
+      requestBody,
+      {
+        useTimeout: true,
+        authToken,
+        transformResponse: (data) => ({
+          id: data.id,
+          client_secret: data.client_secret,
+        }),
       }
-
-      return {
-        success: true,
-        data: {
-          id: responseData.id,
-          client_secret: responseData.client_secret,
-        },
-      };
-    } catch (error) {
-      console.error('[OnrampBackend] Error creating onramp session:', error);
-
-      if (error instanceof Error && error.name === 'AbortError') {
-        return {
-          success: false,
-          error: {
-            code: 'TIMEOUT_ERROR',
-            message: 'Request timed out after 60 seconds',
-          },
-        };
-      }
-
-      return {
-        success: false,
-        error: {
-          code: 'NETWORK_ERROR',
-          message:
-            error instanceof Error ? error.message : 'Network error occurred',
-        },
-      };
-    }
+    );
   }
 
   /**
@@ -216,74 +221,18 @@ export class OnrampBackend {
     cosId: string,
     authToken: string
   ): Promise<ApiResult<OnrampSessionResponse>> {
-    try {
-      const requestBody: CheckoutRequest = {
-        cos_id: cosId,
-      };
+    const requestBody: CheckoutRequest = {
+      cos_id: cosId,
+    };
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
-
-      const response = await fetch(`${this.baseUrl}/checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        console.error(
-          '[OnrampBackend] Checkout failed:',
-          response.status,
-          responseData
-        );
-        return {
-          success: false,
-          error: {
-            code: `HTTP_${response.status}`,
-            message:
-              responseData.error ||
-              `HTTP ${response.status}: ${response.statusText}`,
-          },
-        };
-      }
-
-      return {
-        success: true,
-        data: {
-          id: responseData.id,
-          client_secret: responseData.client_secret,
-        },
-      };
-    } catch (error) {
-      console.error('[OnrampBackend] Error during checkout:', error);
-
-      if (error instanceof Error && error.name === 'AbortError') {
-        return {
-          success: false,
-          error: {
-            code: 'TIMEOUT_ERROR',
-            message: 'Request timed out after 60 seconds',
-          },
-        };
-      }
-
-      return {
-        success: false,
-        error: {
-          code: 'NETWORK_ERROR',
-          message:
-            error instanceof Error ? error.message : 'Network error occurred',
-        },
-      };
-    }
+    return this.makeRequest<OnrampSessionResponse>('/checkout', requestBody, {
+      useTimeout: true,
+      authToken,
+      transformResponse: (data) => ({
+        id: data.id,
+        client_secret: data.client_secret,
+      }),
+    });
   }
 }
 
