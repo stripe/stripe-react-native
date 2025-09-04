@@ -28,11 +28,10 @@ class StripeSdkPackage : BaseReactPackage() {
     }
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-    val moduleList: Array<Class<out NativeModule?>> =
-      arrayOf(
-        StripeSdkModule::class.java,
-        getOnrampModuleClass(),
-      )
+    val moduleList: Array<Class<out NativeModule?>> = arrayOf(
+      StripeSdkModule::class.java,
+      getOnrampModuleClass(),
+    )
     val reactModuleInfoMap: MutableMap<String, ReactModuleInfo> = HashMap()
     for (moduleClass in moduleList) {
       val reactModule = moduleClass.getAnnotation(ReactModule::class.java) ?: continue
