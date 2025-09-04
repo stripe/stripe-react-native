@@ -1539,19 +1539,23 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
 
         Task {
-            let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
-                self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
+            do {
+                let result = try await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
+                    self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
 
-                let clientSecret = try await withCheckedThrowingContinuation { [weak self] continuation in
-                    self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                    let clientSecret = try await withCheckedThrowingContinuation { [weak self] continuation in
+                        self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                    }
+
+                    return clientSecret
                 }
-
-                return clientSecret
-            }
-            switch result {
-            case .completed:
-                resolve([:])  // Return empty object on success
-            case let .failed(error):
+                switch result {
+                case .completed:
+                    resolve([:]) // Return empty object on success
+                case .canceled:
+                    resolve(nil) // Return nil on cancellation
+                }
+            } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
                 resolve(["error": errorResult["error"]!])
             }
