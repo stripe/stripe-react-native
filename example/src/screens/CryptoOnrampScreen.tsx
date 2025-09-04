@@ -53,6 +53,9 @@ export default function CryptoOnrampScreen() {
 
   const [customerId, setCustomerId] = useState<string | null>(null);
 
+  const [cardPaymentMethod] = useState('Card');
+  const [bankAccountPaymentMethod] = useState('BankAccount');
+
   const [paymentDisplayData, setPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
 
