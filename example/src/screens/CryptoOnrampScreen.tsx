@@ -308,15 +308,7 @@ export default function CryptoOnrampScreen() {
       return { isValid: true };
     }
 
-    let message: string;
-    if (missingItems.length === 1) {
-      message = `Please complete ${missingItems[0]} first`;
-    } else if (missingItems.length === 2) {
-      message = `Please complete ${missingItems[0]} and ${missingItems[1]} first`;
-    } else {
-      message = `Please complete the following steps first: ${missingItems.join(', ')}`;
-    }
-
+    let message = `Please complete the following steps first: ${missingItems.join(', ')}`;
     return { isValid: false, message };
   }, [
     customerId,

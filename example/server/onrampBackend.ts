@@ -47,9 +47,6 @@ export class OnrampBackend {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Generic HTTP request helper with common error handling
-   */
   private async makeRequest<T>(
     endpoint: string,
     requestBody: any,
@@ -236,12 +233,8 @@ export class OnrampBackend {
   }
 }
 
-// Create a default client instance for convenience functions
 const defaultClient = new OnrampBackend();
 
-/**
- * Convenience function to create an auth intent using the default client
- */
 export const createAuthIntent = async (
   email: string,
   oauthScopes?: string
@@ -249,9 +242,6 @@ export const createAuthIntent = async (
   return defaultClient.createAuthIntent(email, oauthScopes);
 };
 
-/**
- * Convenience function to create an onramp session using the default client
- */
 export const createOnrampSession = async (
   paymentToken: string,
   walletAddress: string,
@@ -276,9 +266,6 @@ export const createOnrampSession = async (
   );
 };
 
-/**
- * Convenience function to perform checkout using the default client
- */
 export const checkout = async (
   cosId: string,
   authToken: string
@@ -286,7 +273,6 @@ export const checkout = async (
   return defaultClient.checkout(cosId, authToken);
 };
 
-// Export types for use in other files
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
