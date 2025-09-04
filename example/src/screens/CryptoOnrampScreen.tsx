@@ -193,7 +193,7 @@ export default function CryptoOnrampScreen() {
   }, [attachKycInfo, firstName, lastName]);
 
   const handleCollectCardPayment = useCallback(async () => {
-    const result = await collectPaymentMethod('Card', {});
+    const result = await collectPaymentMethod('Card');
 
     if (result?.error) {
       Alert.alert(
@@ -211,7 +211,7 @@ export default function CryptoOnrampScreen() {
   }, [collectPaymentMethod]);
 
   const handleCollectBankAccountPayment = useCallback(async () => {
-    const result = await collectPaymentMethod('BankAccount', {});
+    const result = await collectPaymentMethod('BankAccount');
 
     if (result?.error) {
       Alert.alert(

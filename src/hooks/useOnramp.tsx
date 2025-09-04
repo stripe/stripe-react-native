@@ -85,7 +85,7 @@ export function useOnramp() {
   const _collectPaymentMethod: {
     (
       paymentMethod: 'Card' | 'BankAccount',
-      platformPayParams?: Record<string, never>
+      platformPayParams?: undefined
     ): Promise<Onramp.CollectPaymentMethodResult>;
     (
       paymentMethod: 'PlatformPay',
