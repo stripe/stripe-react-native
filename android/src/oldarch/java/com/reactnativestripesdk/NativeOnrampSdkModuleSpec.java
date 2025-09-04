@@ -39,6 +39,10 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void initialise(ReadableMap params, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void configureOnramp(ReadableMap config, Promise promise);
 
   @ReactMethod
