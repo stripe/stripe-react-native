@@ -1299,6 +1299,14 @@ class StripeSdkModule(
     // noop, iOS only
   }
 
+  override fun addListener(eventType: String?) {
+    // noop, iOS only
+  }
+
+  override fun removeListeners(count: Double) {
+    // noop, iOS only
+  }
+
   override fun handleURLCallback(
     url: String,
     promise: Promise,
