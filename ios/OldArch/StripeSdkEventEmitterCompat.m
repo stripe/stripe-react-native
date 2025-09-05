@@ -22,7 +22,8 @@
     @"embeddedPaymentElementFormSheetConfirmComplete",
     @"embeddedPaymentElementRowSelectionImmediateAction",
     @"embeddedPaymentElementLoadingFailed",
-    @"onCustomPaymentMethodConfirmHandlerCallback"
+    @"onCustomPaymentMethodConfirmHandlerCallback",
+    @"onCheckoutClientSecretRequested"
   ];
 }
 

@@ -23,7 +23,7 @@ RCT_EXPORT_MODULE(OnrampSdk)
 
 RCT_EXPORT_METHOD(configureOnramp:(nonnull NSDictionary *)config
                           resolve:(nonnull RCTPromiseResolveBlock)resolve
-                           reject:(nonnull RCTPromiseRejectBlock)reject) 
+                           reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   NSLog(@"[OnrampSdk] configureOnramp called with config: %@", config);
   [StripeSdkImpl.shared configureOnramp:config resolver:resolve rejecter:reject];

@@ -6,8 +6,9 @@ import {
   withAndroidManifest,
   withEntitlementsPlist,
   withGradleProperties,
-  withPlugins,
+  withPodfile,
 } from '@expo/config-plugins';
+import path from 'path';
 
 const {
   addMetaDataItemToMainApplication,
@@ -44,7 +45,7 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
   { merchantIdentifier, includeOnramp = false }
 ) => {
-  let config = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
+  let resultConfig = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
     entitlementsConfig.modResults = setApplePayEntitlement(
       merchantIdentifier,
       entitlementsConfig.modResults
@@ -52,26 +53,38 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
     return entitlementsConfig;
   });
 
-  // Conditionally include Onramp pod for iOS
+  // Conditionally include Onramp pod for iOS.
   if (includeOnramp) {
-    config = withPlugins(config, [
-      [
-        'expo-build-properties',
-        {
-          ios: {
-            extraPods: [
-              {
-                name: 'stripe-react-native/Onramp',
-                path: '../node_modules/@stripe/stripe-react-native',
-              },
-            ],
-          },
-        },
-      ],
-    ]);
+    resultConfig = withPodfile(resultConfig, (config) => {
+      const podfile = config.modResults.contents;
+
+      const localPodPath = path.dirname(
+        require.resolve('@stripe/stripe-react-native/package.json', {
+          paths: [config.modRequest.projectRoot],
+        })
+      );
+      const relativePodPath = path.relative(
+        path.join(config.modRequest.projectRoot, 'ios'),
+        localPodPath
+      );
+
+      // Using Expo BuildProperties with `extraPods` unfortunately results in
+      // an empty pod, so we're modifying the Podfile directly. The pod line
+      // *must* come after the use_native_modules! call.
+      const podLine = `  pod 'stripe-react-native/Onramp', :path => '${relativePodPath}'`;
+
+      if (!podfile.includes(podLine)) {
+        config.modResults.contents = podfile.replace(
+          'config = use_native_modules!(config_command)',
+          (match) => `${match}\n${podLine}`
+        );
+      }
+
+      return config;
+    });
   }
 
-  return config;
+  return resultConfig;
 };
 
 /**

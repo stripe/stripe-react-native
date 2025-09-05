@@ -52,12 +52,12 @@ Pod::Spec.new do |s|
     core.dependency 'StripeApplePay', stripe_version
     core.dependency 'StripeFinancialConnections', stripe_version
   end
-  
+
   s.subspec 'Onramp' do |onramp|
     onramp.dependency 'stripe-react-native/Core'
     onramp.dependency 'StripeCryptoOnramp', stripe_version
   end
-  
+
   if fabric_enabled
     install_modules_dependencies(s)
 
