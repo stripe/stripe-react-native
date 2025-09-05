@@ -146,6 +146,15 @@ export function useOnramp() {
     return NativeOnrampSdk.logout();
   }, []);
 
+  const _isAuthError = (error: any): boolean => {
+    const stripeErrorCode = error?.stripeErrorCode;
+    const authErrorCodes = [
+      'consumer_session_credentials_invalid',
+      'consumer_session_expired',
+    ];
+    return authErrorCodes.includes(stripeErrorCode);
+  };
+
   return {
     /**
      * Creates a `CryptoOnrampCoordinator` to facilitate authentication, identity verification, payment collection, and checkouts.
@@ -256,5 +265,14 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     logOut: _logOut,
+
+    /**
+     * Determines whether an error is an authentication-related error that requires re-authentication.
+     * Useful for implementing automatic re-authentication flows when sessions expire or become invalid.
+     *
+     * @param error The error object to check, typically from onramp method calls
+     * @returns True if the error indicates an authentication issue, false otherwise
+     */
+    isAuthError: _isAuthError,
   };
 }

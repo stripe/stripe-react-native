@@ -27,6 +27,9 @@ import {
   checkout,
 } from '../../server/onrampBackend';
 
+import type { StripeError } from '@stripe/stripe-react-native/src/types';
+import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
+
 export default function CryptoOnrampScreen() {
   const {
     hasLinkAccount,
@@ -36,6 +39,7 @@ export default function CryptoOnrampScreen() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
+    isAuthError,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [email, setEmail] = useState('');
@@ -73,6 +77,29 @@ export default function CryptoOnrampScreen() {
   const [onrampSessionId, setOnrampSessionId] = useState<string | null>(null);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  // Helper function to handle authentication errors with automatic retry
+  const withReauth = useCallback(
+    async <T extends { error?: StripeError<OnrampError> }>(
+      f: () => Promise<T>,
+      reauth: () => Promise<{ error?: StripeError<OnrampError> }>
+    ): Promise<T> => {
+      const result = await f();
+      if (isAuthError(result.error)) {
+        const reauthResult = await reauth();
+        if (reauthResult.error) {
+          Alert.alert(
+            'Error reauthenticating',
+            `${JSON.stringify(reauthResult.error, null, 2)}`
+          );
+          return result;
+        }
+        return await f();
+      }
+      return result;
+    },
+    [isAuthError]
+  );
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
@@ -162,7 +189,10 @@ export default function CryptoOnrampScreen() {
   }, [authorize, linkAuthIntentId]);
 
   const handleVerifyIdentity = useCallback(async () => {
-    const result = await verifyIdentity();
+    const result = await withReauth(
+      () => verifyIdentity(),
+      () => authorize(linkAuthIntentId)
+    );
 
     if (result?.error) {
       if (result.error.code === 'Canceled') {
@@ -173,13 +203,13 @@ export default function CryptoOnrampScreen() {
       } else {
         Alert.alert(
           'Error',
-          `Could not verify identity ${result.error.message}.`
+          `Could not verify identity: ${JSON.stringify(result.error, null, 2)}`
         );
       }
     } else {
       Alert.alert('Success', 'Identity Verification completed');
     }
-  }, [verifyIdentity]);
+  }, [verifyIdentity, withReauth, authorize, linkAuthIntentId]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
     const platformPayParams: PlatformPay.PaymentMethodParams = {
@@ -233,7 +263,10 @@ export default function CryptoOnrampScreen() {
       },
     };
 
-    const result = await attachKycInfo(kycInfo);
+    const result = await withReauth(
+      () => attachKycInfo(kycInfo),
+      () => authorize(linkAuthIntentId)
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -243,10 +276,20 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'KYC Attached');
     }
-  }, [attachKycInfo, firstName, lastName]);
+  }, [
+    attachKycInfo,
+    firstName,
+    lastName,
+    withReauth,
+    authorize,
+    linkAuthIntentId,
+  ]);
 
   const handleCollectCardPayment = useCallback(async () => {
-    const result = await collectPaymentMethod('Card');
+    const result = await withReauth(
+      () => collectPaymentMethod('Card'),
+      () => authorize(linkAuthIntentId)
+    );
 
     if (result?.error) {
       Alert.alert(
@@ -261,38 +304,7 @@ export default function CryptoOnrampScreen() {
         'Payment collection cancelled, please try again.'
       );
     }
-  }, [collectPaymentMethod]);
-
-  const handleCollectBankAccountPayment = useCallback(async () => {
-    const result = await collectPaymentMethod('BankAccount');
-
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not collect payment ${result.error.message}.`
-      );
-    } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
-    } else {
-      Alert.alert(
-        'Cancelled',
-        'Payment collection cancelled, please try again.'
-      );
-    }
-  }, [collectPaymentMethod]);
-
-  const handleCreateCryptoPaymentToken = useCallback(async () => {
-    const result = await createCryptoPaymentToken();
-
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not create crypto payment token ${result.error.message}.`
-      );
-    } else {
-      setCryptoPaymentToken(result.cryptoPaymentToken);
-    }
-  }, [createCryptoPaymentToken]);
+  }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
 
   // Map crypto networks to destination currencies and networks for onramp session
   const getDestinationParamsForNetwork = useCallback(
@@ -396,6 +408,43 @@ export default function CryptoOnrampScreen() {
     cryptoPaymentToken,
     authToken,
   ]);
+
+  const handleCollectBankAccountPayment = useCallback(async () => {
+    const result = await withReauth(
+      () => collectPaymentMethod('BankAccount'),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not collect payment ${result.error.message}.`
+      );
+    } else if (result?.displayData) {
+      setPaymentDisplayData(result.displayData);
+    } else {
+      Alert.alert(
+        'Cancelled',
+        'Payment collection cancelled, please try again.'
+      );
+    }
+  }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
+
+  const handleCreateCryptoPaymentToken = useCallback(async () => {
+    const result = await withReauth(
+      () => createCryptoPaymentToken(),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Could not create crypto payment token ${result.error.message}.`
+      );
+    } else {
+      setCryptoPaymentToken(result.cryptoPaymentToken);
+    }
+  }, [createCryptoPaymentToken, withReauth, authorize, linkAuthIntentId]);
 
   const handleCreateOnrampSession = useCallback(async () => {
     const validation = validateOnrampSessionParams();
