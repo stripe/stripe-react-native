@@ -52,7 +52,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
-    'GCC_PREPROCESSOR_DEFINITIONS' => fabric_enabled ? 'RCT_NEW_ARCH_ENABLED=1' : 'RCT_NEW_ARCH_ENABLED=0'
+    'GCC_PREPROCESSOR_DEFINITIONS' => fabric_enabled ? 'RCT_NEW_ARCH_ENABLED=1' : ''
   }
 
   s.test_spec 'Tests' do |test_spec|
