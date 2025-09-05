@@ -194,7 +194,7 @@ class PaymentSheetFragment :
             putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
           }
 
-        stripeSdkModule?.emitOnConfirmHandlerCallback(params)
+        stripeSdkModule?.eventEmitter?.emitOnConfirmHandlerCallback(params)
 
         val resultFromJavascript = paymentSheetIntentCreationCallback.await()
         // reset the completable
@@ -481,7 +481,7 @@ class PaymentSheetFragment :
         delay(100)
 
         // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
-        stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
+        stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
           mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
         )
 

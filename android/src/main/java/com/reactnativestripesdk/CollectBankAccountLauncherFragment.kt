@@ -35,7 +35,7 @@ class CollectBankAccountLauncherFragment : StripeFragment() {
     if (stripeSdkModule != null) {
       FinancialConnections.setEventListener { event ->
         val params = mapFromFinancialConnectionsEvent(event)
-        stripeSdkModule.emitOnFinancialConnectionsEvent(params)
+        stripeSdkModule.eventEmitter.emitOnFinancialConnectionsEvent(params)
       }
     }
 

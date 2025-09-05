@@ -12,40 +12,55 @@ import {
   NativeEventEmitter,
   Platform,
 } from 'react-native';
+import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
+import { PaymentMethod } from './types';
+import { UnsafeObject } from './specs/utils';
+import { FinancialConnectionsEvent } from './types/FinancialConnections';
 
 const compatEventEmitter =
-  // On new arch we use native module events. On old arch this doesn't exist
-  // so use NativeEventEmitter on iOS and DeviceEventEmitter on Android.
-  NativeStripeSdkModule.onConfirmHandlerCallback == null
-    ? Platform.OS === 'ios'
-      ? new NativeEventEmitter(NativeStripeSdkModule as any)
-      : DeviceEventEmitter
-    : null;
+  Platform.OS === 'ios'
+    ? new NativeEventEmitter(NativeStripeSdkModule as any)
+    : DeviceEventEmitter;
 
-type Events =
-  | 'onConfirmHandlerCallback'
-  | 'onFinancialConnectionsEvent'
-  | 'onOrderTrackingCallback'
-  | 'onCustomerAdapterFetchPaymentMethodsCallback'
-  | 'onCustomerAdapterAttachPaymentMethodCallback'
-  | 'onCustomerAdapterDetachPaymentMethodCallback'
-  | 'onCustomerAdapterSetSelectedPaymentOptionCallback'
-  | 'onCustomerAdapterFetchSelectedPaymentOptionCallback'
-  | 'onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback'
-  | 'embeddedPaymentElementFormSheetConfirmComplete'
-  | 'embeddedPaymentElementRowSelectionImmediateAction'
-  | 'embeddedPaymentElementDidUpdatePaymentOption'
-  | 'embeddedPaymentElementDidUpdateHeight'
-  | 'embeddedPaymentElementLoadingFailed'
-  | 'onCustomPaymentMethodConfirmHandlerCallback';
+// This is a temporary compat layer for event emitters on new arch.
+// Versions before RN 0.80 crash sometimes when setting the event emitter callback.
+// Move this back to the NativeStripeSdkModule spec once we drop support for RN < 0.80.
+type Events = {
+  onConfirmHandlerCallback: EventEmitter<{
+    paymentMethod: UnsafeObject<PaymentMethod.Result>;
+    shouldSavePaymentMethod: boolean;
+  }>;
+  onFinancialConnectionsEvent: EventEmitter<
+    UnsafeObject<FinancialConnectionsEvent>
+  >;
+  onOrderTrackingCallback: EventEmitter<void>;
+  onCustomerAdapterFetchPaymentMethodsCallback: EventEmitter<void>;
+  onCustomerAdapterAttachPaymentMethodCallback: EventEmitter<{
+    paymentMethodId: string;
+  }>;
+  onCustomerAdapterDetachPaymentMethodCallback: EventEmitter<{
+    paymentMethodId: string;
+  }>;
+  onCustomerAdapterSetSelectedPaymentOptionCallback: EventEmitter<{
+    paymentOption: string;
+  }>;
+  onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
+  onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
+  embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
+  embeddedPaymentElementWillPresent: EventEmitter<void>;
+  embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
+  embeddedPaymentElementFormSheetConfirmComplete: EventEmitter<
+    UnsafeObject<any>
+  >;
+  embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
+  embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
+  onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
+};
 
-export function addListener<EventT extends Events>(
+export function addListener<EventT extends keyof Events>(
   event: EventT,
-  handler: Parameters<(typeof NativeStripeSdkModule)[EventT]>[0]
+  handler: Parameters<Events[EventT]>[0]
 ): EventSubscription {
-  if (compatEventEmitter != null) {
-    return compatEventEmitter.addListener(event, handler);
-  }
-  return NativeStripeSdkModule[event](handler as any);
+  return compatEventEmitter.addListener(event, handler);
 }

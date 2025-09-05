@@ -97,6 +97,8 @@ class StripeSdkModule(
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
+  val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
+
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
   private val allStripeFragmentTags: List<String>
@@ -1294,6 +1296,14 @@ class StripeSdkModule(
     viewTag: Double,
     promise: Promise,
   ) {
+    // noop, iOS only
+  }
+
+  override fun addListener(eventType: String?) {
+    // noop, iOS only
+  }
+
+  override fun removeListeners(count: Double) {
     // noop, iOS only
   }
 

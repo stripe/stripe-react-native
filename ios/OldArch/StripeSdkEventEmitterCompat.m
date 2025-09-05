@@ -1,5 +1,3 @@
-#ifndef RCT_NEW_ARCH_ENABLED
-
 #import "StripeSdkEventEmitterCompat.h"
 
 @implementation StripeSdkEventEmitterCompat
@@ -107,5 +105,3 @@
 }
 
 @end
-
-#endif
