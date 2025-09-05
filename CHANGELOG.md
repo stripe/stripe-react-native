@@ -4,6 +4,9 @@
 **Features**
 - [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option
 
+**Fixes**
+- [#2092](https://github.com/stripe/stripe-react-native/pull/2092) Fix Android crash in release mode when using the new architecture.
+
 ## 0.51.0 - 2025-08-20
 
 **Features**
