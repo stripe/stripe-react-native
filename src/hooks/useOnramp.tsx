@@ -4,7 +4,6 @@ import type { Onramp, OnrampError, StripeError } from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
-import { isAuthError as isAuthErrorHelper } from '../helpers';
 
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
@@ -148,7 +147,12 @@ export function useOnramp() {
   }, []);
 
   const _isAuthError = (error: any): boolean => {
-    return isAuthErrorHelper(error);
+    const stripeErrorCode = error?.stripeErrorCode;
+    const authErrorCodes = [
+      'consumer_session_credentials_invalid',
+      'consumer_session_expired',
+    ];
+    return authErrorCodes.includes(stripeErrorCode);
   };
 
   return {
@@ -262,6 +266,13 @@ export function useOnramp() {
      */
     logOut: _logOut,
 
+    /**
+     * Determines whether an error is an authentication-related error that requires re-authentication.
+     * Useful for implementing automatic re-authentication flows when sessions expire or become invalid.
+     *
+     * @param error The error object to check, typically from onramp method calls
+     * @returns True if the error indicates an authentication issue, false otherwise
+     */
     isAuthError: _isAuthError,
   };
 }
