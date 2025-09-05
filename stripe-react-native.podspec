@@ -4,7 +4,29 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
 stripe_version = '~> 24.23.0'
 
-fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
+rct_new_arch = ENV['RCT_NEW_ARCH_ENABLED']
+fabric_enabled = false
+
+# Method 1: Check RCT_NEW_ARCH_ENABLED (traditional React Native)
+if !rct_new_arch.nil?
+  fabric_enabled = rct_new_arch == '1'
+else
+  # Method 2: Check for Expo's Podfile.properties.json
+  # Navigate up from node_modules/@stripe/stripe-react-native to the app root
+  app_root = File.expand_path('../../..', __dir__)
+  podfile_properties_path = File.join(app_root, 'ios', 'Podfile.properties.json')
+  if File.exist?(podfile_properties_path)
+    begin
+      podfile_properties = JSON.parse(File.read(podfile_properties_path))
+      if podfile_properties.key?('newArchEnabled')
+        fabric_enabled = podfile_properties['newArchEnabled'] == true || podfile_properties['newArchEnabled'] == 'true'
+      end
+    rescue JSON::ParserError
+      # Ignore parsing errors and keep fabric_enabled as false
+      fabric_enabled = false
+    end
+  end
+end
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'
@@ -30,6 +52,7 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
+    'GCC_PREPROCESSOR_DEFINITIONS' => fabric_enabled ? 'RCT_NEW_ARCH_ENABLED=1' : 'RCT_NEW_ARCH_ENABLED=0'
   }
 
   s.test_spec 'Tests' do |test_spec|
@@ -52,12 +75,12 @@ Pod::Spec.new do |s|
     core.dependency 'StripeApplePay', stripe_version
     core.dependency 'StripeFinancialConnections', stripe_version
   end
-  
+
   s.subspec 'Onramp' do |onramp|
     onramp.dependency 'stripe-react-native/Core'
     onramp.dependency 'StripeCryptoOnramp', stripe_version
   end
-  
+
   if fabric_enabled
     install_modules_dependencies(s)
 
