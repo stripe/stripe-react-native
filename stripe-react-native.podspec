@@ -4,12 +4,6 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
 stripe_version = '~> 24.23.0'
 
-app_path = File.expand_path("..", Pod::Config.instance.installation_root)
-podfile_properties = JSON.parse(File.read(File.join(app_path, 'ios', 'Podfile.properties.json'))) rescue {}
-
-if podfile_properties.key?('newArchEnabled')
-  ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'false' ? '0' : '1'
-end
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
 Pod::Spec.new do |s|
@@ -36,7 +30,6 @@ Pod::Spec.new do |s|
     'DEFINES_MODULE' => 'YES',
     'CLANG_CXX_LANGUAGE_STANDARD' => 'c++20',
     'SWIFT_COMPILATION_MODE' => 'wholemodule',
-    'GCC_PREPROCESSOR_DEFINITIONS' => fabric_enabled ? 'RCT_NEW_ARCH_ENABLED=1' : ''
   }
 
   s.test_spec 'Tests' do |test_spec|
