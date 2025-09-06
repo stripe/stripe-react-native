@@ -49,6 +49,7 @@ import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
+import AccountOnboardingScreen from './screens/AccountOnboardingScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -274,6 +275,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
             component={PaymentSheetWithPmoSfuScreen}
+          />
+          <Stack.Screen
+            name="AccountOnboardingScreen"
+            component={AccountOnboardingScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

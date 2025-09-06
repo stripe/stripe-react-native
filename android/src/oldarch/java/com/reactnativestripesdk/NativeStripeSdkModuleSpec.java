@@ -168,6 +168,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void presentAccountOnboardingScreen(ReadableMap options, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void confirmPaymentSheetPayment(Promise promise);
 
   @ReactMethod

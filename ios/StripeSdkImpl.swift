@@ -3,6 +3,7 @@ import PassKit
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 import StripeFinancialConnections
 import Foundation
+import StripeConnect
 
 @objc(StripeSdkImpl)
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
@@ -240,6 +241,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             } else {
                 resolve(Errors.createError(ErrorType.Failed, "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`."))
             }
+        }
+    }
+
+    @objc(presentAccountOnboardingScreen:resolver:rejecter:)
+    public func presentAccountOnboardingScreen(options: NSDictionary,
+                             resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+
+        DispatchQueue.main.async {
+            let manager = EmbeddedComponentManager(fetchClientSecret: {
+                return "" // TODO
+            })
+            let vc = manager.createAccountOnboardingController()
+            vc.delegate = AccountOnboardingDelegate(resolver: resolve, rejecter: reject)
+            let from = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            vc.present(from: from, animated: true)
         }
     }
 
@@ -1255,5 +1272,26 @@ extension FinancialConnectionsSheet.Configuration {
             }
         }()
         self.init(style: style)
+    }
+}
+
+class AccountOnboardingDelegate: AccountOnboardingControllerDelegate {
+    private let resolver: RCTPromiseResolveBlock
+    private let rejecter: RCTPromiseRejectBlock
+
+    init(resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
+        self.resolver = resolver
+        self.rejecter = rejecter
+    }
+
+    func accountOnboardingDidExit(_ accountOnboarding: AccountOnboardingController) {
+        print("accountOnboardingDidExit")
+        resolver([])
+    }
+
+    func accountOnboarding(_ accountOnboarding: AccountOnboardingController,
+                           didFailLoadWithError error: Error) {
+        print("accountOnboarding didFailLoadWithError")
+        rejecter("account_onboarding_error", error.localizedDescription, error)
     }
 }
