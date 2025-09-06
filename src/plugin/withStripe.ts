@@ -53,7 +53,7 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
     return entitlementsConfig;
   });
 
-  // Conditionally include Onramp pod for iOS
+  // Conditionally include Onramp pod for iOS.
   if (includeOnramp) {
     resultConfig = withPodfile(resultConfig, (config) => {
       const podfile = config.modResults.contents;
@@ -68,6 +68,9 @@ const withStripeIos: ConfigPlugin<StripePluginProps> = (
         localPodPath
       );
 
+      // Using Expo BuildProperties with `extraPods` unfortunately results in
+      // an empty pod, so we're modifying the Podfile directly. The pod line
+      // *must* come after the use_native_modules! call.
       const podLine = `  pod 'stripe-react-native/Onramp', :path => '${relativePodPath}'`;
 
       if (!podfile.includes(podLine)) {
