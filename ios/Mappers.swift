@@ -1,8 +1,8 @@
 import Stripe
+import StripePaymentSheet
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
 #endif
-@_spi(STP) import StripePaymentSheet
 
 class Mappers {
     class func createResult(_ key: String, _ value: NSDictionary?) -> NSDictionary {

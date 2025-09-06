@@ -4,29 +4,13 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
 stripe_version = '~> 24.23.0'
 
-rct_new_arch = ENV['RCT_NEW_ARCH_ENABLED']
-fabric_enabled = false
+app_path = File.expand_path("..", Pod::Config.instance.installation_root)
+podfile_properties = JSON.parse(File.read(File.join(app_path, 'ios', 'Podfile.properties.json'))) rescue {}
 
-# Method 1: Check RCT_NEW_ARCH_ENABLED (traditional React Native)
-if !rct_new_arch.nil?
-  fabric_enabled = rct_new_arch == '1'
-else
-  # Method 2: Check for Expo's Podfile.properties.json
-  # Navigate up from node_modules/@stripe/stripe-react-native to the app root
-  app_root = File.expand_path('../../..', __dir__)
-  podfile_properties_path = File.join(app_root, 'ios', 'Podfile.properties.json')
-  if File.exist?(podfile_properties_path)
-    begin
-      podfile_properties = JSON.parse(File.read(podfile_properties_path))
-      if podfile_properties.key?('newArchEnabled')
-        fabric_enabled = podfile_properties['newArchEnabled'] == true || podfile_properties['newArchEnabled'] == 'true'
-      end
-    rescue JSON::ParserError
-      # Ignore parsing errors and keep fabric_enabled as false
-      fabric_enabled = false
-    end
-  end
+if podfile_properties.key?('newArchEnabled')
+  ENV['RCT_NEW_ARCH_ENABLED'] = podfile_properties['newArchEnabled'] == 'false' ? '0' : '1'
 end
+fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
 Pod::Spec.new do |s|
   s.name         = 'stripe-react-native'

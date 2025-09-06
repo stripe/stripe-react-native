@@ -1619,7 +1619,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(provideCheckoutClientSecret:)
-    public func provideCheckoutClientSecret(clientSecret: String) {
+    public func provideCheckoutClientSecret(clientSecret: String?) {
         // no-op when Onramp is unavailable
     }
 
