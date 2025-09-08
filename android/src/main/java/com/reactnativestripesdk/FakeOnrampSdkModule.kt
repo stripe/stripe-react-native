@@ -24,14 +24,7 @@ class FakeOnrampSdkModule(
     config: ReadableMap?,
     promise: Promise?,
   ) {
-    promise?.resolve(
-      createFailedError(
-        NotImplementedError(
-          "StripeCryptoOnramp is not available. " +
-            "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle.",
-        ),
-      ),
-    )
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -39,7 +32,7 @@ class FakeOnrampSdkModule(
     email: String?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -47,7 +40,7 @@ class FakeOnrampSdkModule(
     info: ReadableMap?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -56,7 +49,7 @@ class FakeOnrampSdkModule(
     network: String?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -64,7 +57,7 @@ class FakeOnrampSdkModule(
     kycInfo: ReadableMap?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -72,17 +65,17 @@ class FakeOnrampSdkModule(
     phone: String?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
   override fun authenticateUser(promise: Promise?) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
   override fun verifyIdentity(promise: Promise?) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -91,7 +84,7 @@ class FakeOnrampSdkModule(
     platformPayParams: ReadableMap?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -101,7 +94,7 @@ class FakeOnrampSdkModule(
 
   @ReactMethod
   override fun createCryptoPaymentToken(promise: Promise?) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -109,7 +102,7 @@ class FakeOnrampSdkModule(
     onrampSessionId: String?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -117,11 +110,21 @@ class FakeOnrampSdkModule(
     linkAuthIntentId: String?,
     promise: Promise?,
   ) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
   }
 
   @ReactMethod
   override fun logout(promise: Promise?) {
-    promise?.resolve(createFailedError(NotImplementedError()))
+    promise?.resolveNotImplemented()
+  }
+
+  private fun Promise.resolveNotImplemented() {
+    this.resolve(
+      createFailedError(
+        NotImplementedError(
+          "To enable Onramp, add 'StripeSdk_includeOnramp=true' to gradle.properties.",
+        ),
+      ),
+    )
   }
 }
