@@ -39,7 +39,7 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     FinancialConnections.setEventListener { event ->
       val params = mapFromFinancialConnectionsEvent(event)
-      stripeSdkModule?.emitOnFinancialConnectionsEvent(params)
+      stripeSdkModule?.eventEmitter?.emitOnFinancialConnectionsEvent(params)
     }
 
     when (mode) {

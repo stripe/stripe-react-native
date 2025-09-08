@@ -221,14 +221,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             paymentSheetViewController = UIApplication.shared.rootViewControllerWithFallback()
             if let paymentSheetFlowController = self.paymentSheetFlowController {
                 paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
-                ) {
+                ) { didCancel in
                     paymentSheetViewController = nil
                     if let paymentOption = self.paymentSheetFlowController?.paymentOption {
                         let option: NSDictionary = [
                             "label": paymentOption.label,
                             "image": paymentOption.image.pngData()?.base64EncodedString() ?? ""
                         ]
-                        resolve(Mappers.createResult("paymentOption", option))
+                        resolve(Mappers.createResult("paymentOption", option, additionalFields: ["didCancel": didCancel]))
                     } else {
                         resolve(Errors.createError(ErrorType.Canceled, "The payment option selection flow has been canceled"))
                     }

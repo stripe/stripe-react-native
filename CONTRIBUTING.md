@@ -17,7 +17,7 @@ We want this community to be friendly and respectful to each other. Please follo
 
 The example app uses a pre-configured demo backend, so no server setup is required.
 
-To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
+To edit the Swift and Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
@@ -59,6 +59,12 @@ To install local/private packages across local environment we recommend use [yal
 - Run `yalc publish` in `@stripe/stripe-react-native` package to publish all the files that should be published in remote NPM registry.
 - Run `yalc add @stripe/stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/@stripe/stripe-react-native into package.json.
 - In your dependent project run `yarn install` and `cd ios && pod install`
+
+### Updating native SDKs
+
+The React Native SDK depends on underlying native iOS and Android SDKs, which should be kept on their latest, up-to-date versions.
+
+To set the native SDK dependency versions, set `StripeSdk_stripeVersion` in `android/gradle.properties`, `stripe_version` in `stripe-react-native.podspec`, and run `cd example/ios && pod update`.
 
 ### Commit message convention
 

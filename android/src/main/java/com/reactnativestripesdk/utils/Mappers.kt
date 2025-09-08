@@ -35,9 +35,11 @@ internal fun createEmptyResult(): WritableMap = WritableNativeMap()
 internal fun createResult(
   key: String,
   value: WritableMap,
+  additionalFields: Map<String, Any>? = null,
 ): WritableMap {
   val map = WritableNativeMap()
   map.putMap(key, value)
+  additionalFields?.let { map.merge(it.toReadableMap()) }
   return map
 }
 

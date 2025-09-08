@@ -435,7 +435,7 @@ export const presentPaymentSheet = async (
   options: PaymentSheet.PresentOptions = {}
 ): Promise<PresentPaymentSheetResult> => {
   try {
-    const { paymentOption, error } =
+    const { paymentOption, didCancel, error } =
       await NativeStripeSdk.presentPaymentSheet(options);
     if (error) {
       return {
@@ -444,6 +444,7 @@ export const presentPaymentSheet = async (
     }
     return {
       paymentOption: paymentOption!,
+      didCancel: didCancel,
     };
   } catch (error: any) {
     return {

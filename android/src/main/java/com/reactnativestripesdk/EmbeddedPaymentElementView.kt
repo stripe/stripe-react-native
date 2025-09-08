@@ -111,7 +111,7 @@ class EmbeddedPaymentElementView(
               delay(100)
 
               // Emit event so JS can show the Alert and eventually respond via `customPaymentMethodResultCallback`.
-              stripeSdkModule.emitOnCustomPaymentMethodConfirmHandlerCallback(
+              stripeSdkModule.eventEmitter.emitOnCustomPaymentMethodConfirmHandlerCallback(
                 mapFromCustomPaymentMethod(customPaymentMethod, billingDetails),
               )
 
@@ -181,7 +181,7 @@ class EmbeddedPaymentElementView(
                   putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
                 }
 
-              stripeSdkModule.emitOnConfirmHandlerCallback(params)
+              stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
 
               val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
               // reset the completable
@@ -217,7 +217,7 @@ class EmbeddedPaymentElementView(
                     }
                   }
                 }
-              requireStripeSdkModule().emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
+              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
             },
           ).confirmCustomPaymentMethodCallback(confirmCustomPaymentMethodCallback)
           .rowSelectionBehavior(
@@ -225,7 +225,7 @@ class EmbeddedPaymentElementView(
               EmbeddedPaymentElement.RowSelectionBehavior.default()
             } else {
               EmbeddedPaymentElement.RowSelectionBehavior.immediateAction {
-                requireStripeSdkModule().emitEmbeddedPaymentElementRowSelectionImmediateAction()
+                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementRowSelectionImmediateAction()
               }
             },
           )
@@ -259,7 +259,7 @@ class EmbeddedPaymentElementView(
                   Arguments.createMap().apply {
                     putString("message", msg)
                   }
-                requireStripeSdkModule().emitEmbeddedPaymentElementLoadingFailed(payload)
+                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
               }
             }
           }
@@ -281,7 +281,7 @@ class EmbeddedPaymentElementView(
           Arguments.createMap().apply {
             putMap("paymentOption", optMap)
           }
-        requireStripeSdkModule().emitEmbeddedPaymentElementDidUpdatePaymentOption(payload)
+        requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementDidUpdatePaymentOption(payload)
       }
     }
 
@@ -322,7 +322,7 @@ class EmbeddedPaymentElementView(
       Arguments.createMap().apply {
         putDouble("height", height.toDouble())
       }
-    requireStripeSdkModule().emitEmbeddedPaymentElementDidUpdateHeight(params)
+    requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementDidUpdateHeight(params)
   }
 
   // APIs
