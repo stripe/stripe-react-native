@@ -251,6 +251,16 @@ See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to 
 
 ## Troubleshooting
 
+### `UnsupportedModulePropertyParserError` on iOS
+
+While installing pods in your iOS project, you may encounter the following error.
+
+```
+UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
+```
+
+To fix, please follow our [guide to apply the fix patch](https://github.com/stripe/stripe-react-native/tree/master/patches).
+
 ### Android web browser windows close on backgrounding the app
 
 This is known limitation of using `singleTask` as your `launchMode` on Android. See [here](https://github.com/stripe/stripe-react-native/blob/master/docs/android-chrome-tab-closes-on-background.md) for a workaround.
