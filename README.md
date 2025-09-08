@@ -253,7 +253,7 @@ See the [contributor guidelines](CONTRIBUTING.md) to learn how to contribute to 
 
 ### `UnsupportedModulePropertyParserError` on iOS
 
-While installing pods in your iOS project, you may encounter the following error.
+While installing pods in your iOS project using the old architecture and React Native 0.74+, you may encounter the following error:
 
 ```
 UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
