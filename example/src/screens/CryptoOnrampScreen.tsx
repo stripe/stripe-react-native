@@ -39,6 +39,7 @@ export default function CryptoOnrampScreen() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
+    logOut,
     isAuthError,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
@@ -542,6 +543,30 @@ export default function CryptoOnrampScreen() {
     }
   }, [performCheckout, onrampSessionId, authToken]);
 
+  const handleLogOut = useCallback(async () => {
+    const result = await logOut();
+
+    if (result?.error) {
+      Alert.alert('Error', `Could not log out: ${result.error.message}.`);
+    } else {
+      Alert.alert('Success', 'Logged out successfully!');
+      // Reset all state to initial values
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setLinkAuthIntentId('');
+      setResponse(null);
+      setIsLinkUser(false);
+      setCustomerId(null);
+      setPaymentDisplayData(null);
+      setCryptoPaymentToken(null);
+      setAuthToken(null);
+      setWalletAddress(null);
+      setWalletNetwork(null);
+      setOnrampSessionId(null);
+    }
+  }, [logOut]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -783,6 +808,14 @@ export default function CryptoOnrampScreen() {
           )}
         </Collapse>
       )}
+
+      {customerId && (
+        <View style={styles.logoutContainer}>
+          <Button title="Log Out" onPress={handleLogOut} variant="primary" />
+        </View>
+      )}
+
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 }
@@ -935,5 +968,9 @@ const styles = StyleSheet.create({
   walletContainer: {
     paddingVertical: 16,
     gap: 4,
+  },
+  logoutContainer: {
+    paddingStart: 16,
+    paddingVertical: 16,
   },
 });

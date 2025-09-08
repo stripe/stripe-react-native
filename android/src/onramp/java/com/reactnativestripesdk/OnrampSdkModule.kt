@@ -39,6 +39,7 @@ import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
+import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
@@ -535,7 +536,13 @@ class OnrampSdkModule(
         promise.resolve(createOnrampNotConfiguredError())
         return
       }
-    promise.resolve(createFailedError(NotImplementedError()))
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator.logOut()
+      CoroutineScope(Dispatchers.Main).launch {
+        handleLogOutResult(result, promise)
+      }
+    }
   }
 
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
@@ -724,6 +731,20 @@ class OnrampSdkModule(
         promise.resolveString("cryptoPaymentToken", result.cryptoPaymentToken)
       }
       is OnrampCreateCryptoPaymentTokenResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleLogOutResult(
+    result: OnrampLogOutResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampLogOutResult.Completed -> {
+        promise.resolveVoid()
+      }
+      is OnrampLogOutResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
     }
