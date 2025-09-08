@@ -1,9 +1,7 @@
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Application
-import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
@@ -25,10 +23,7 @@ import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
-import com.reactnativestripesdk.utils.getMapOrNull
 import com.reactnativestripesdk.utils.getValOr
-import com.stripe.android.Stripe
-import com.stripe.android.core.AppInfo
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.DateOfBirth
@@ -83,19 +78,10 @@ class OnrampSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    // Note: This method depends on `StripeSdkModule#initialise()` being called as well.
     val publishableKey = getValOr(params, "publishableKey", null) as String
-    val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     this.publishableKey = publishableKey
-
-    val name = getValOr(appInfo, "name", "") as String
-    val partnerId = getValOr(appInfo, "partnerId", "")
-    val version = getValOr(appInfo, "version", "")
-
-    val url = getValOr(appInfo, "url", "")
-    Stripe.appInfo = AppInfo.create(name, version, url, partnerId)
-
-    preventActivityRecreation()
 
     promise.resolve(null)
   }
@@ -110,56 +96,6 @@ class OnrampSdkModule(
     }
     promise?.resolve(createMissingActivityError())
     return null
-  }
-
-  private var isRecreatingActivities = false
-  private val activityLifecycleCallbacks =
-    object : Application.ActivityLifecycleCallbacks {
-      override fun onActivityCreated(
-        activity: Activity,
-        bundle: Bundle?,
-      ) {
-        if (bundle != null) {
-          isRecreatingActivities = true
-        }
-        if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
-          activity.finish()
-        }
-      }
-
-      override fun onActivityStarted(activity: Activity) {
-      }
-
-      override fun onActivityResumed(activity: Activity) {
-        isRecreatingActivities = false
-      }
-
-      override fun onActivityPaused(activity: Activity) {
-      }
-
-      override fun onActivityStopped(activity: Activity) {
-      }
-
-      override fun onActivitySaveInstanceState(
-        activity: Activity,
-        bundle: Bundle,
-      ) {
-      }
-
-      override fun onActivityDestroyed(activity: Activity) {
-      }
-    }
-
-  /**
-   * React native apps do not properly handle activity re-creation so make
-   * sure to dismiss any stripe ui when that happens to make sure apps stay
-   * in a consistent state.
-   *
-   * Note that because of some restrictions on some system ui like google
-   * pay this might not always work.
-   */
-  private fun preventActivityRecreation() {
-    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   @ReactMethod
@@ -200,6 +136,7 @@ class OnrampSdkModule(
         OnrampConfiguration(
           merchantDisplayName = displayName,
           publishableKey = publishableKey,
+          stripeAccountId = stripeAccountId,
           appearance = appearance,
         )
 
