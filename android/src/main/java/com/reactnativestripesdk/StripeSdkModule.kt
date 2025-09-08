@@ -1299,6 +1299,14 @@ class StripeSdkModule(
     // noop, iOS only
   }
 
+  @ReactMethod
+  override fun setFinancialConnectionsForceNativeFlow(
+    enabled: Boolean,
+    promise: Promise,
+  ) {
+    // noop, iOS only
+  }
+
   override fun addListener(eventType: String?) {
     // noop, iOS only
   }
