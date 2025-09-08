@@ -2,7 +2,9 @@ import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
 @_spi(STP) import StripePaymentSheet
+#if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+#endif
 import StripeFinancialConnections
 import Foundation
 
@@ -11,6 +13,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
     @objc public weak var emitter: StripeSdkEmitter? = nil
+    @objc public weak var onrampEmitter: StripeOnrampSdkEmitter? = nil
     weak var cardFieldView: CardFieldView? = nil
     weak var cardFormView: CardFormView? = nil
 
@@ -66,8 +69,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
 
+#if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
-    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Never>?
+    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
+#endif
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -1154,14 +1159,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #endif
     }
 
+#if canImport(StripeCryptoOnramp)
     @objc(configureOnramp:resolver:rejecter:)
     public func configureOnramp(
         config: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
+        guard isPublishableKeyAvailable(resolve) else {
             return
         }
 
@@ -1173,7 +1178,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         Task {
             do {
-                try await cryptoOnrampCoordinator = CryptoOnrampCoordinator.create(appearance: appearance)
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance)
                 resolve([:])  // Return empty object on success
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1188,14 +1193,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1216,14 +1214,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1248,14 +1239,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1269,7 +1253,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case let .completed(customerId):
                     resolve(["customerId": customerId])
                 case .canceled:
-                    resolve([:])  // Return empty object for canceled (no customerId, no error)
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authentication was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1285,19 +1270,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
         guard let cryptoNetwork = CryptoNetwork(rawValue: network as String) else {
-            let errorResult = Errors.createError(ErrorType.Failed, "The specified crypto network is not supported: \(network)")
+            let errorResult = Errors.createError(ErrorType.Unknown, "Invalid network: \(network)")
             resolve(["error": errorResult["error"]!])
             return
         }
@@ -1319,14 +1297,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1342,8 +1313,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.attachKYCInfo(info: kycInfo)
                 resolve([:])  // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
-                resolve(["error": errorResult["error"]!])
+                if let missingFieldError = error as? Mappers.KycInfoError, case let .missingRequiredField(field) = missingFieldError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Missing required field: \(field)")
+                    resolve(["error": errorResult["error"]!])
+                } else {
+                    let errorResult = Errors.createError(ErrorType.Failed, error)
+                    resolve(["error": errorResult["error"]!])
+                }
             }
         }
     }
@@ -1354,13 +1330,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let _ = cryptoOnrampCoordinator else {
-            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
+        guard isPublishableKeyAvailable(resolve), let _ = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1373,13 +1343,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let _ = cryptoOnrampCoordinator else {
-            resolve(Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first"))
+        guard isPublishableKeyAvailable(resolve), let _ = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1392,14 +1356,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1413,7 +1370,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .completed:
                     resolve([:])  // Return empty object on success
                 case .canceled:
-                    resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was canceled")["error"]!])
+                    resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was cancelled")["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1429,14 +1386,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1460,7 +1410,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 return
             }
         default:
-            resolve(Errors.createError(ErrorType.Failed, "Unknown payment method: \(paymentMethod)"))
+            resolve(Errors.createError(ErrorType.Failed, "Unsupported payment method: \(paymentMethod)"))
             return
         }
 
@@ -1478,8 +1428,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     let displayData = Mappers.paymentMethodDisplayDataToMap(result)
                     resolve(["displayData": displayData])
                 } else {
-                    // cancelled
-                    resolve([:])
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Payment collection was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1493,14 +1443,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1521,31 +1464,29 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
         Task {
-            let result = await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
-                self?.emitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
+            do {
+                let result = try await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
+                    self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
 
-                let clientSecret: String = await withCheckedContinuation { [weak self] continuation in
-                    self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                    let clientSecret = try await withCheckedThrowingContinuation { [weak self] continuation in
+                        self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                    }
+
+                    return clientSecret
                 }
-
-                return clientSecret
-            }
-            switch result {
-            case .completed:
-                resolve([:])  // Return empty object on success
-            case let .failed(error):
+                switch result {
+                case .completed:
+                    resolve([:]) // Return empty object on success
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Checkout was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
                 resolve(["error": errorResult["error"]!])
             }
@@ -1553,8 +1494,17 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(provideCheckoutClientSecret:)
-    public func provideCheckoutClientSecret(clientSecret: String) {
-        cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+    public func provideCheckoutClientSecret(clientSecret: String?) {
+        if let clientSecret {
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+        } else {
+            let error = NSError(
+                domain: ErrorType.Failed,
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to provide checkout client secret"]
+            )
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(throwing: error)
+        }
         cryptoOnrampCheckoutClientSecretContinuation = nil
     }
 
@@ -1564,14 +1514,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if STPAPIClient.shared.publishableKey == nil {
-            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
-            return
-        }
-
-        guard let coordinator = cryptoOnrampCoordinator else {
-            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
-            resolve(["error": errorResult["error"]!])
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
@@ -1587,7 +1530,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .denied:
                     resolve(["status": "Denied"])
                 case.canceled:
-                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was canceled")
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was cancelled")
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
@@ -1596,6 +1539,106 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
     }
+
+    /// Checks for a `publishableKey`. Calls the resolve block with an error when one doesn’t exist.
+    /// - Parameter resolve: The resolve block that is called with an error if no `publishableKey` is found.
+    /// - Returns: `true` if a `publishableKey` was found. `false` otherwise.
+    private func isPublishableKeyAvailable(_ resolve: @escaping RCTPromiseResolveBlock) -> Bool {
+        if STPAPIClient.shared.publishableKey == nil {
+            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
+            return false
+        } else {
+            return true
+        }
+    }
+
+    /// Returns the shared `CryptoOnrampCoordinator`, calling the resolve block with an error if CryptoOnramp has not yet been configured.
+    /// - Parameter resolve: The resolve block that is called with an error if CryptoOnramp has not yet been configured.
+    /// - Returns: The shared `CryptoOnrampCoordinator`, nor `nil` if CryptoOnramp has not yet been configured.
+    private func requireOnrampCoordinator(_ resolve: @escaping RCTPromiseResolveBlock) -> CryptoOnrampCoordinator? {
+        guard let coordinator = cryptoOnrampCoordinator else {
+            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
+            resolve(["error": errorResult["error"]!])
+            return nil
+        }
+
+        return coordinator
+    }
+#else
+    @objc(configureOnramp:resolver:rejecter:)
+    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(hasLinkAccount:resolver:rejecter:)
+    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerLinkUser:resolver:rejecter:)
+    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(authenticateUser:rejecter:)
+    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerWalletAddress:network:resolver:rejecter:)
+    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(attachKycInfo:resolver:rejecter:)
+    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(updatePhoneNumber:resolver:rejecter:)
+    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(logout:rejecter:)
+    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(verifyIdentity:rejecter:)
+    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
+    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(createCryptoPaymentToken:rejecter:)
+    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(performCheckout:resolver:rejecter:)
+    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(provideCheckoutClientSecret:)
+    public func provideCheckoutClientSecret(clientSecret: String?) {
+        // no-op when Onramp is unavailable
+    }
+
+    @objc(onrampAuthorize:resolver:rejecter:)
+    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
+        resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
+    }
+#endif
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))

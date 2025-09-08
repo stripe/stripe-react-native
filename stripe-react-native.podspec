@@ -2,7 +2,7 @@ require 'json'
 
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 # Keep stripe_version in sync with https://github.com/stripe/stripe-identity-react-native/blob/main/stripe-identity-react-native.podspec
-stripe_version = '~> 24.22.0'
+stripe_version = '~> 24.23.0'
 
 fabric_enabled = ENV['RCT_NEW_ARCH_ENABLED'] == '1'
 
@@ -37,15 +37,27 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 
-  s.dependency 'React-Core'
-  s.dependency 'Stripe', stripe_version
-  s.dependency 'StripePaymentSheet', stripe_version
-  s.dependency 'StripePayments', stripe_version
-  s.dependency 'StripePaymentsUI', stripe_version
-  s.dependency 'StripeApplePay', stripe_version
-  s.dependency 'StripeFinancialConnections', stripe_version
-  s.dependency 'StripeCryptoOnramp', stripe_version
-  
+  if fabric_enabled
+    s.default_subspecs = 'Core', 'NewArch'
+  else
+    s.default_subspecs = 'Core'
+  end
+
+  s.subspec 'Core' do |core|
+    core.dependency 'React-Core'
+    core.dependency 'Stripe', stripe_version
+    core.dependency 'StripePaymentSheet', stripe_version
+    core.dependency 'StripePayments', stripe_version
+    core.dependency 'StripePaymentsUI', stripe_version
+    core.dependency 'StripeApplePay', stripe_version
+    core.dependency 'StripeFinancialConnections', stripe_version
+  end
+
+  s.subspec 'Onramp' do |onramp|
+    onramp.dependency 'stripe-react-native/Core'
+    onramp.dependency 'StripeCryptoOnramp', stripe_version
+  end
+
   if fabric_enabled
     install_modules_dependencies(s)
 

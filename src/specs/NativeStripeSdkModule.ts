@@ -24,7 +24,6 @@ import type {
   InitialiseParams,
   InitPaymentSheetResult,
   IsCardInWalletResult,
-  Onramp,
   OpenApplePaySetupResult,
   PaymentIntent,
   PaymentMethod,
@@ -45,7 +44,6 @@ import type {
 import type { FinancialConnectionsEvent } from '../types/FinancialConnections';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
-import type { LinkUserInfo, KycInfo, Configuration } from '../types/Onramp';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -220,31 +218,6 @@ export interface Spec extends TurboModule {
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
-  configureOnramp(
-    config: UnsafeObject<Configuration>
-  ): Promise<Onramp.VoidResult>;
-  hasLinkAccount(email: string): Promise<Onramp.HasLinkAccountResult>;
-  registerLinkUser(
-    info: UnsafeObject<LinkUserInfo>
-  ): Promise<Onramp.RegisterLinkUserResult>;
-  registerWalletAddress(
-    walletAddress: string,
-    network: string
-  ): Promise<Onramp.VoidResult>;
-  attachKycInfo(kycInfo: UnsafeObject<KycInfo>): Promise<Onramp.VoidResult>;
-  updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
-  authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
-  verifyIdentity(): Promise<Onramp.VoidResult>;
-  collectPaymentMethod(
-    paymentMethod: string,
-    platformPayParams: UnsafeObject<any>
-  ): Promise<Onramp.CollectPaymentMethodResult>;
-  provideCheckoutClientSecret(clientSecret: string): void;
-  onCheckoutClientSecretRequested: EventEmitter<UnsafeObject<any>>;
-  createCryptoPaymentToken(): Promise<Onramp.CreateCryptoPaymentTokenResult>;
-  performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
-  onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
-  logout(): Promise<Onramp.VoidResult>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

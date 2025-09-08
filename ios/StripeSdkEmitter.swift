@@ -17,5 +17,8 @@ import Foundation
     func emitEmbeddedPaymentElementRowSelectionImmediateAction()
     func emitEmbeddedPaymentElementLoadingFailed(_ value: [String: Any])
     func emitOnCustomPaymentMethodConfirmHandlerCallback(_ value: [String: Any])
+}
+
+@objc public protocol StripeOnrampSdkEmitter {
     func emitOnCheckoutClientSecretRequested(_ value: [String: Any])
 }

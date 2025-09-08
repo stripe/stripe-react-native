@@ -1,5 +1,7 @@
 import Stripe
+#if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+#endif
 @_spi(STP) import StripePaymentSheet
 
 class Mappers {
@@ -1072,6 +1074,7 @@ class Mappers {
       return mappedEvent
     }
 
+#if canImport(StripeCryptoOnramp)
     class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
         let darkColors = params["darkColors"] as? [String: Any?]
         let lightColors = params["lightColors"] as? [String: Any?]
@@ -1133,19 +1136,15 @@ class Mappers {
     }
 
     class func mapToKycInfo(_ params: [String: Any?]) throws -> KycInfo {
-        enum KycInfoError: Swift.Error {
-            case missingRequiredField(String)
-        }
-
-        guard let firstName = params["firstName"] as? String else {
+        guard let firstName = params["firstName"] as? String, !firstName.isEmpty else {
             throw KycInfoError.missingRequiredField("firstName")
         }
 
-        guard let lastName = params["lastName"] as? String else {
+        guard let lastName = params["lastName"] as? String, !lastName.isEmpty else {
             throw KycInfoError.missingRequiredField("lastName")
         }
 
-        guard let idNumber = params["idNumber"] as? String else {
+        guard let idNumber = params["idNumber"] as? String, !idNumber.isEmpty else {
             throw KycInfoError.missingRequiredField("idNumber")
         }
 
@@ -1199,4 +1198,9 @@ class Mappers {
 
         return result
     }
+
+    enum KycInfoError: Swift.Error {
+        case missingRequiredField(String)
+    }
+#endif
 }
