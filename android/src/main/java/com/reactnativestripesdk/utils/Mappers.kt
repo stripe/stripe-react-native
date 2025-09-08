@@ -30,9 +30,7 @@ import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
 
-internal fun createEmptyResult(): WritableMap {
-  return WritableNativeMap()
-}
+internal fun createEmptyResult(): WritableMap = WritableNativeMap()
 
 internal fun createResult(
   key: String,
@@ -561,7 +559,7 @@ internal fun mapNextAction(
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
     null,
-      -> {
+    -> {
       return null
     }
     NextActionType.DisplayBoletoDetails -> {
@@ -680,8 +678,7 @@ internal fun mapToBillingDetails(
   return paymentMethodBillingDetailsBuilder.build()
 }
 
-internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? =
-  metadata?.toHashMap()?.mapValues { it.value.toString() }
+internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? = metadata?.toHashMap()?.mapValues { it.value.toString() }
 
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
   if (shippingDetails == null) {

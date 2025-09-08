@@ -11,11 +11,10 @@ import com.reactnativestripesdk.utils.createFailedError
 class FakeOnrampSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeOnrampSdkModuleSpec(reactContext) {
-
   @ReactMethod
   override fun initialise(
     params: ReadableMap?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(null)
   }
@@ -23,27 +22,30 @@ class FakeOnrampSdkModule(
   @ReactMethod
   override fun configureOnramp(
     config: ReadableMap?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(
       createFailedError(
         NotImplementedError(
           "StripeCryptoOnramp is not available. " +
-            "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle."
-        )
-      )
+            "To enable, add the 'ext { includeOnramp = true }' to your app's build.gradle.",
+        ),
+      ),
     )
   }
 
   @ReactMethod
-  override fun hasLinkAccount(email: String?, promise: Promise?) {
+  override fun hasLinkAccount(
+    email: String?,
+    promise: Promise?,
+  ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
 
   @ReactMethod
   override fun registerLinkUser(
     info: ReadableMap?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -52,7 +54,7 @@ class FakeOnrampSdkModule(
   override fun registerWalletAddress(
     walletAddress: String?,
     network: String?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -60,7 +62,7 @@ class FakeOnrampSdkModule(
   @ReactMethod
   override fun attachKycInfo(
     kycInfo: ReadableMap?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -68,7 +70,7 @@ class FakeOnrampSdkModule(
   @ReactMethod
   override fun updatePhoneNumber(
     phone: String?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -87,7 +89,7 @@ class FakeOnrampSdkModule(
   override fun collectPaymentMethod(
     paymentMethod: String?,
     platformPayParams: ReadableMap?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -105,7 +107,7 @@ class FakeOnrampSdkModule(
   @ReactMethod
   override fun performCheckout(
     onrampSessionId: String?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
@@ -113,7 +115,7 @@ class FakeOnrampSdkModule(
   @ReactMethod
   override fun onrampAuthorize(
     linkAuthIntentId: String?,
-    promise: Promise?
+    promise: Promise?,
   ) {
     promise?.resolve(createFailedError(NotImplementedError()))
   }
