@@ -175,7 +175,7 @@ export default function CryptoOnrampScreen() {
       } else {
         Alert.alert(
           'Error',
-          `Could not authorize Link auth intent ${result.error.message}.`
+          `Could not authorize Link auth intent: ${result.error.message}.`
         );
       }
     } else if (result?.status) {
@@ -231,7 +231,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Could not collect payment ${result.error.message}.`
+        `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
       setPaymentDisplayData(result.displayData);
@@ -271,7 +271,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Failed to attach KYC info: ${result.error?.stripeErrorCode} ${result.error.message}.`
+        `Failed to attach KYC info: ${result.error.message}.`
       );
     } else {
       Alert.alert('Success', 'KYC Attached');
@@ -294,7 +294,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Could not collect payment ${result.error.message}.`
+        `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
       setPaymentDisplayData(result.displayData);
@@ -418,7 +418,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Could not collect payment ${result.error.message}.`
+        `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
       setPaymentDisplayData(result.displayData);
@@ -439,7 +439,7 @@ export default function CryptoOnrampScreen() {
     if (result?.error) {
       Alert.alert(
         'Error',
-        `Could not create crypto payment token ${result.error.message}.`
+        `Could not create crypto payment token: ${result.error.message}.`
       );
     } else {
       setCryptoPaymentToken(result.cryptoPaymentToken);
@@ -527,7 +527,7 @@ export default function CryptoOnrampScreen() {
       if (result?.error) {
         Alert.alert(
           'Error',
-          `Could not perform checkout ${result.error.message}.`
+          `Could not perform checkout: ${result.error.message}.`
         );
       } else if (result) {
         Alert.alert('Success', 'Checkout succeeded!');

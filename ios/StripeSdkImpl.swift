@@ -1253,7 +1253,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case let .completed(customerId):
                     resolve(["customerId": customerId])
                 case .canceled:
-                    resolve([:])  // Return empty object for canceled (no customerId, no error)
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authentication was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1274,7 +1275,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
 
         guard let cryptoNetwork = CryptoNetwork(rawValue: network as String) else {
-            let errorResult = Errors.createError(ErrorType.Failed, "The specified crypto network is not supported: \(network)")
+            let errorResult = Errors.createError(ErrorType.Unknown, "Invalid network: \(network)")
             resolve(["error": errorResult["error"]!])
             return
         }
@@ -1312,8 +1313,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.attachKYCInfo(info: kycInfo)
                 resolve([:])  // Return empty object on success
             } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
-                resolve(["error": errorResult["error"]!])
+                if let missingFieldError = error as? Mappers.KycInfoError, case let .missingRequiredField(field) = missingFieldError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Missing required field: \(field)")
+                    resolve(["error": errorResult["error"]!])
+                } else {
+                    let errorResult = Errors.createError(ErrorType.Failed, error)
+                    resolve(["error": errorResult["error"]!])
+                }
             }
         }
     }
@@ -1364,7 +1370,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .completed:
                     resolve([:])  // Return empty object on success
                 case .canceled:
-                    resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was canceled")["error"]!])
+                    resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was cancelled")["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1404,7 +1410,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 return
             }
         default:
-            resolve(Errors.createError(ErrorType.Failed, "Unknown payment method: \(paymentMethod)"))
+            resolve(Errors.createError(ErrorType.Failed, "Unsupported payment method: \(paymentMethod)"))
             return
         }
 
@@ -1422,8 +1428,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     let displayData = Mappers.paymentMethodDisplayDataToMap(result)
                     resolve(["displayData": displayData])
                 } else {
-                    // cancelled
-                    resolve([:])
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Payment collection was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1477,7 +1483,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .completed:
                     resolve([:]) // Return empty object on success
                 case .canceled:
-                    resolve(nil) // Return nil on cancellation
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Checkout was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
@@ -1523,7 +1530,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 case .denied:
                     resolve(["status": "Denied"])
                 case.canceled:
-                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was canceled")
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was cancelled")
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {

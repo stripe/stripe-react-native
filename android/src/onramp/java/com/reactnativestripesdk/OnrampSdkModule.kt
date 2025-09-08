@@ -682,7 +682,7 @@ class OnrampSdkModule(
         promise.resolveString("customerId", result.customerId)
       }
       is OnrampAuthenticateResult.Cancelled -> {
-        promise.resolve(createCanceledError())
+        promise.resolve(createCanceledError("Authentication was cancelled"))
       }
       is OnrampAuthenticateResult.Failed -> {
         promise.resolve(createFailedError(result.error))
@@ -699,7 +699,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampVerifyIdentityResult.Cancelled -> {
-        promise.resolve(createCanceledError())
+        promise.resolve(createCanceledError("Identity verification was cancelled"))
       }
       is OnrampVerifyIdentityResult.Failed -> {
         promise.resolve(createFailedError(result.error))
@@ -724,7 +724,7 @@ class OnrampSdkModule(
         promise.resolve(createResult("displayData", displayData))
       }
       is OnrampCollectPaymentMethodResult.Cancelled -> {
-        promise.resolve(createCanceledError())
+        promise.resolve(createCanceledError("Payment collection was cancelled"))
       }
       is OnrampCollectPaymentMethodResult.Failed -> {
         promise.resolve(createFailedError(result.error))
@@ -753,7 +753,7 @@ class OnrampSdkModule(
         )
       }
       is OnrampAuthorizeResult.Canceled -> {
-        promise.resolve(createCanceledError())
+        promise.resolve(createCanceledError("Authorization was cancelled"))
       }
       is OnrampAuthorizeResult.Failed -> {
         promise.resolve(createFailedError(result.error))
@@ -770,7 +770,7 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampCheckoutResult.Canceled -> {
-        promise.resolve(createCanceledError())
+        promise.resolve(createCanceledError("Checkout was cancelled"))
       }
       is OnrampCheckoutResult.Failed -> {
         promise.resolve(createFailedError(result.error))
