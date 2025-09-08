@@ -1330,12 +1330,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard isPublishableKeyAvailable(resolve), let _ = requireOnrampCoordinator(resolve) else {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
-        let errorResult = Errors.createError(ErrorType.Failed, "FUNCTION NOT IMPLEMENTED")
-        resolve(["error": errorResult["error"]!])
+        Task {
+            do {
+                try await coordinator.updatePhoneNumber(to: phone)
+                resolve([:]) // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
     }
 
     @objc(logout:rejecter:)
@@ -1343,12 +1350,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard isPublishableKeyAvailable(resolve), let _ = requireOnrampCoordinator(resolve) else {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
 
-        let errorResult = Errors.createError(ErrorType.Failed, "FUNCTION NOT IMPLEMENTED")
-        resolve(["error": errorResult["error"]!])
+        Task {
+            do {
+                try await coordinator.logOut()
+                resolve([:]) // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
     }
 
     @objc(verifyIdentity:rejecter:)
