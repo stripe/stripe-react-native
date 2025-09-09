@@ -30,6 +30,8 @@ import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
 
+internal fun createEmptyResult(): WritableMap = WritableNativeMap()
+
 internal fun createResult(
   key: String,
   value: WritableMap,
@@ -586,6 +588,12 @@ internal fun mapNextAction(
         nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
       }
     }
+    NextActionType.DisplayPayNowDetails -> {
+      (data as? NextActionData.DisplayPayNowDetails)?.let {
+        nextActionMap.putString("type", "paynow")
+        nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
+      }
+    }
   }
   return nextActionMap
 }
@@ -1073,7 +1081,8 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List
     return emptyList()
   }
 
-  val configHashMap = customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
+  val configHashMap =
+    customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
   if (configHashMap != null) {
     val customPaymentMethods = configHashMap["customPaymentMethods"] as? List<HashMap<String, Any>>
     if (customPaymentMethods != null) {
@@ -1083,7 +1092,8 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List
         val id = customPaymentMethodMap["id"] as? String
         if (id != null) {
           val subtitle = customPaymentMethodMap["subtitle"] as? String
-          val disableBillingDetailCollection = customPaymentMethodMap["disableBillingDetailCollection"] as? Boolean ?: false
+          val disableBillingDetailCollection =
+            customPaymentMethodMap["disableBillingDetailCollection"] as? Boolean ?: false
           result.add(
             PaymentSheet.CustomPaymentMethod(
               id = id,

@@ -71,6 +71,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+@SuppressLint("RestrictedApi")
 @ReactModule(name = StripeSdkModule.NAME)
 class StripeSdkModule(
   reactContext: ReactApplicationContext,
@@ -242,7 +243,10 @@ class StripeSdkModule(
       val customPaymentMethodConfig = params.getMap("customPaymentMethodConfiguration")
       if (customPaymentMethodConfig != null) {
         // Store the original ReadableMap for custom payment methods
-        bundle.putSerializable("customPaymentMethodConfigurationReadableMap", customPaymentMethodConfig.toHashMap())
+        bundle.putSerializable(
+          "customPaymentMethodConfigurationReadableMap",
+          customPaymentMethodConfig.toHashMap(),
+        )
       }
 
       paymentSheetFragment =
@@ -1405,11 +1409,14 @@ class StripeSdkModule(
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
-      }
+      composeCompatView =
+        composeCompatView ?: StripeAbstractComposeView
+          .CompatView(context = reactApplicationContext)
+          .also {
+            currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+              it,
+            )
+          }
     }
   }
 

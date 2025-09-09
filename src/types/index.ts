@@ -25,6 +25,7 @@ import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
 import * as FinancialConnections from './FinancialConnections';
 import * as PlatformPay from './PlatformPay';
+import * as Onramp from './Onramp';
 
 export {
   ApplePay,
@@ -39,6 +40,7 @@ export {
   Token,
   FinancialConnections,
   PlatformPay,
+  Onramp,
 };
 
 export * from './PushProvisioning';
@@ -278,3 +280,9 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
+
+export type PaymentOptionData = {
+  icon: string; // base64 string
+  label: string;
+  sublabel?: string;
+};

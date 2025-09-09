@@ -381,6 +381,7 @@ class PaymentLauncherFragment : StripeFragment() {
       StripeIntent.NextActionType.DisplayOxxoDetails,
       StripeIntent.NextActionType.DisplayBoletoDetails,
       StripeIntent.NextActionType.DisplayKonbiniDetails,
+      StripeIntent.NextActionType.DisplayPayNowDetails,
       StripeIntent.NextActionType.VerifyWithMicrodeposits,
       StripeIntent.NextActionType.DisplayMultibancoDetails,
       -> true

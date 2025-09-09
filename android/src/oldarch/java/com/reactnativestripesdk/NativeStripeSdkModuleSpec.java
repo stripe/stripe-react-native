@@ -118,6 +118,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
     invoke("onCustomPaymentMethodConfirmHandlerCallback", value);
   }
 
+  protected final void emitOnCheckoutClientSecretRequested(ReadableMap value) {
+    invoke("onCheckoutClientSecretRequested", value);
+  }
+
   @ReactMethod
   @DoNotStrip
   public abstract void initialise(ReadableMap params, Promise promise);

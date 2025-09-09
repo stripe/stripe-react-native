@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
+import NativeOnrampSdkModule from './specs/NativeOnrampSdkModule';
 import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
@@ -63,4 +64,25 @@ export function addListener<EventT extends keyof Events>(
   handler: Parameters<Events[EventT]>[0]
 ): EventSubscription {
   return compatEventEmitter.addListener(event, handler);
+}
+
+const compatOnrampEventEmitter =
+  // On new arch we use native module events. On old arch this doesn't exist
+  // so use NativeEventEmitter on iOS and DeviceEventEmitter on Android.
+  NativeOnrampSdkModule.onCheckoutClientSecretRequested == null
+    ? Platform.OS === 'ios'
+      ? new NativeEventEmitter(NativeOnrampSdkModule as any)
+      : DeviceEventEmitter
+    : null;
+
+type OnrampEvents = 'onCheckoutClientSecretRequested';
+
+export function addOnrampListener<EventT extends OnrampEvents>(
+  event: EventT,
+  handler: Parameters<(typeof NativeOnrampSdkModule)[EventT]>[0]
+): EventSubscription {
+  if (compatOnrampEventEmitter != null) {
+    return compatOnrampEventEmitter.addListener(event, handler);
+  }
+  return NativeOnrampSdkModule[event](handler as any);
 }

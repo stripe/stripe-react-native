@@ -178,8 +178,18 @@ internal fun createError(
   return mapError(code, error.message, error.localizedMessage, null, null, null)
 }
 
+internal fun createCanceledError(message: String? = null): WritableMap = createError(ErrorType.Canceled.toString(), message)
+
+internal fun createFailedError(error: Throwable): WritableMap = createError(ErrorType.Failed.toString(), error)
+
 internal fun createMissingInitError(): WritableMap =
   createError(
     ErrorType.Failed.toString(),
     "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.",
+  )
+
+internal fun createOnrampNotConfiguredError(): WritableMap =
+  createError(
+    ErrorType.Failed.toString(),
+    "Onramp is not configured.",
   )

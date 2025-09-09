@@ -1,6 +1,10 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(STP) import StripePaymentSheet
+#if canImport(StripeCryptoOnramp)
+@_spi(STP) import StripeCryptoOnramp
+#endif
 import StripeFinancialConnections
 import Foundation
 
@@ -9,6 +13,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
     @objc public weak var emitter: StripeSdkEmitter? = nil
+    @objc public weak var onrampEmitter: StripeOnrampSdkEmitter? = nil
     weak var cardFieldView: CardFieldView? = nil
     weak var cardFormView: CardFormView? = nil
 
@@ -63,6 +68,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+
+#if canImport(StripeCryptoOnramp)
+    var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
+    var cryptoOnrampCheckoutClientSecretContinuation: CheckedContinuation<String, Error>?
+#endif
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
@@ -169,7 +179,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
             if (self.paymentSheetFlowController != nil) {
-                self.paymentSheetFlowController?.confirm(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()) { paymentResult in
+                self.paymentSheetFlowController?.confirm(from: UIApplication.shared.rootViewControllerWithFallback()) { paymentResult in
                     switch paymentResult {
                     case .completed:
                         resolve([])
@@ -208,7 +218,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
         DispatchQueue.main.async {
-            paymentSheetViewController = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            paymentSheetViewController = UIApplication.shared.rootViewControllerWithFallback()
             if let paymentSheetFlowController = self.paymentSheetFlowController {
                 paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) { didCancel in
@@ -431,7 +441,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if let applePaymentAuthorizationController = self.applePaymentAuthorizationController {
             applePaymentAuthorizationController.delegate = self
             DispatchQueue.main.async {
-                let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+                let vc = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
                 vc.present(
                     applePaymentAuthorizationController,
                     animated: true,
@@ -764,7 +774,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+                    from: findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback()),
                     onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
@@ -791,7 +801,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+                    from: findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback()),
                     onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
@@ -1149,6 +1159,501 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 #endif
     }
 
+#if canImport(StripeCryptoOnramp)
+    @objc(configureOnramp:resolver:rejecter:)
+    public func configureOnramp(
+        config: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve) else {
+            return
+        }
+
+        let appearance: LinkAppearance = if let appearanceParams = config["appearance"] as? [String: Any?] {
+            Mappers.mapToLinkAppearance(appearanceParams)
+        } else {
+            LinkAppearance()
+        }
+
+        Task {
+            do {
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance)
+                resolve([:])  // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(hasLinkAccount:resolver:rejecter:)
+    public func hasLinkAccount(
+        email: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let hasLinkAccount = try await coordinator.hasLinkAccount(with: email)
+                resolve(["hasLinkAccount": hasLinkAccount])
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(registerLinkUser:resolver:rejecter:)
+    public func registerLinkUser(
+        info: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        let email = info["email"] as? String ?? ""
+        let phone = info["phone"] as? String ?? ""
+        let country = info["country"] as? String ?? ""
+        let fullName = info["fullName"] as? String
+
+        Task {
+            do {
+                let customerId = try await coordinator.registerLinkUser(email: email, fullName: fullName, phone: phone, country: country)
+                resolve(["customerId": customerId])
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(authenticateUser:rejecter:)
+    public func authenticateUser(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                let result = try await coordinator.authenticateUser(from: presentingViewController)
+                switch result {
+                case let .completed(customerId):
+                    resolve(["customerId": customerId])
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authentication was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(registerWalletAddress:network:resolver:rejecter:)
+    public func registerWalletAddress(
+        address: String,
+        network: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        guard let cryptoNetwork = CryptoNetwork(rawValue: network as String) else {
+            let errorResult = Errors.createError(ErrorType.Unknown, "Invalid network: \(network)")
+            resolve(["error": errorResult["error"]!])
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.registerWalletAddress(walletAddress: address, network: cryptoNetwork)
+                resolve([:])  // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(attachKycInfo:resolver:rejecter:)
+    public func attachKycInfo(
+        info: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        guard let kycInfoDictionary = info as? [String: Any?] else {
+            let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of KYC info dictionary. Expected String keys.")
+            resolve(["error": errorResult["error"]!])
+            return
+        }
+
+        Task {
+            do {
+                let kycInfo = try Mappers.mapToKycInfo(kycInfoDictionary)
+                try await coordinator.attachKYCInfo(info: kycInfo)
+                resolve([:])  // Return empty object on success
+            } catch {
+                if let missingFieldError = error as? Mappers.KycInfoError, case let .missingRequiredField(field) = missingFieldError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Missing required field: \(field)")
+                    resolve(["error": errorResult["error"]!])
+                } else {
+                    let errorResult = Errors.createError(ErrorType.Failed, error)
+                    resolve(["error": errorResult["error"]!])
+                }
+            }
+        }
+    }
+
+    @objc(updatePhoneNumber:resolver:rejecter:)
+    public func updatePhoneNumber(
+        phone: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.updatePhoneNumber(to: phone)
+                resolve([:]) // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(logout:rejecter:)
+    public func logout(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.logOut()
+                resolve([:]) // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(verifyIdentity:rejecter:)
+    public func verifyIdentity(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                let result = try await coordinator.verifyIdentity(from: presentingViewController)
+                switch result {
+                case .completed:
+                    resolve([:])  // Return empty object on success
+                case .canceled:
+                    resolve(["error": Errors.createError(ErrorType.Canceled, "Identity verification was cancelled")["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
+    public func collectPaymentMethod(
+        paymentMethod: String,
+        platformPayParams: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        var paymentMethodType: PaymentMethodType?
+        switch paymentMethod {
+        case "Card":
+            paymentMethodType = .card
+        case "BankAccount":
+            paymentMethodType = .bankAccount
+        case "PlatformPay":
+            guard let applePayParams = platformPayParams["applePay"] as? NSDictionary else {
+                resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
+                return
+            }
+
+            let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayParams)
+            if let paymentRequest {
+                paymentMethodType = .applePay(paymentRequest: paymentRequest)
+            } else {
+                resolve(Errors.createError(ErrorType.Failed, "Unable to create Apple Pay payment request: \(String(describing: error))"))
+                return
+            }
+        default:
+            resolve(Errors.createError(ErrorType.Failed, "Unsupported payment method: \(paymentMethod)"))
+            return
+        }
+
+        guard let paymentMethodType else {
+            // In all non-assignment branches above, we've already called `resolve` with error, so simply return.
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
+                    let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+                    resolve(["displayData": displayData])
+                } else {
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Payment collection was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(createCryptoPaymentToken:rejecter:)
+    public func createCryptoPaymentToken(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let token = try await coordinator.createCryptoPaymentToken()
+                resolve(["cryptoPaymentToken": token])
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(performCheckout:resolver:rejecter:)
+    public func performCheckout(
+        onrampSessionId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let result = try await coordinator.performCheckout(onrampSessionId: onrampSessionId, authenticationContext: self) { [weak self] onrampSessionId in
+                    self?.onrampEmitter?.emitOnCheckoutClientSecretRequested(["onrampSessionId": onrampSessionId])
+
+                    let clientSecret = try await withCheckedThrowingContinuation { [weak self] continuation in
+                        self?.cryptoOnrampCheckoutClientSecretContinuation = continuation
+                    }
+
+                    return clientSecret
+                }
+                switch result {
+                case .completed:
+                    resolve([:]) // Return empty object on success
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Checkout was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    @objc(provideCheckoutClientSecret:)
+    public func provideCheckoutClientSecret(clientSecret: String?) {
+        if let clientSecret {
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(returning: clientSecret)
+        } else {
+            let error = NSError(
+                domain: ErrorType.Failed,
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to provide checkout client secret"]
+            )
+            cryptoOnrampCheckoutClientSecretContinuation?.resume(throwing: error)
+        }
+        cryptoOnrampCheckoutClientSecretContinuation = nil
+    }
+
+    @objc(onrampAuthorize:resolver:rejecter:)
+    public func onrampAuthorize(
+        linkAuthIntentId: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                let authorizationResult = try await coordinator.authorize(linkAuthIntentId: linkAuthIntentId, from: presentingViewController)
+                switch authorizationResult {
+                case let .consented(customerId):
+                    resolve(["status": "Consented", "customerId": customerId])
+                case .denied:
+                    resolve(["status": "Denied"])
+                case.canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "Authorization was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
+    /// Checks for a `publishableKey`. Calls the resolve block with an error when one doesn’t exist.
+    /// - Parameter resolve: The resolve block that is called with an error if no `publishableKey` is found.
+    /// - Returns: `true` if a `publishableKey` was found. `false` otherwise.
+    private func isPublishableKeyAvailable(_ resolve: @escaping RCTPromiseResolveBlock) -> Bool {
+        if STPAPIClient.shared.publishableKey == nil {
+            resolve(["error": Errors.MISSING_INIT_ERROR["error"]!])
+            return false
+        } else {
+            return true
+        }
+    }
+
+    /// Returns the shared `CryptoOnrampCoordinator`, calling the resolve block with an error if CryptoOnramp has not yet been configured.
+    /// - Parameter resolve: The resolve block that is called with an error if CryptoOnramp has not yet been configured.
+    /// - Returns: The shared `CryptoOnrampCoordinator`, nor `nil` if CryptoOnramp has not yet been configured.
+    private func requireOnrampCoordinator(_ resolve: @escaping RCTPromiseResolveBlock) -> CryptoOnrampCoordinator? {
+        guard let coordinator = cryptoOnrampCoordinator else {
+            let errorResult = Errors.createError(ErrorType.Failed, "CryptoOnramp not configured. Call -configureOnramp:resolver:rejecter: successfully first")
+            resolve(["error": errorResult["error"]!])
+            return nil
+        }
+
+        return coordinator
+    }
+#else
+    @objc(configureOnramp:resolver:rejecter:)
+    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(hasLinkAccount:resolver:rejecter:)
+    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerLinkUser:resolver:rejecter:)
+    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(authenticateUser:rejecter:)
+    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(registerWalletAddress:network:resolver:rejecter:)
+    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(attachKycInfo:resolver:rejecter:)
+    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(updatePhoneNumber:resolver:rejecter:)
+    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(logout:rejecter:)
+    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(verifyIdentity:rejecter:)
+    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
+    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(createCryptoPaymentToken:rejecter:)
+    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(performCheckout:resolver:rejecter:)
+    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(provideCheckoutClientSecret:)
+    public func provideCheckoutClientSecret(clientSecret: String?) {
+        // no-op when Onramp is unavailable
+    }
+
+    @objc(onrampAuthorize:resolver:rejecter:)
+    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
+        resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
+    }
+#endif
+
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
     }
@@ -1210,9 +1715,15 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
     return presentingViewController
 }
 
+extension UIApplication {
+    func rootViewControllerWithFallback() -> UIViewController {
+        return delegate?.window??.rootViewController ?? UIViewController()
+    }
+}
+
 extension StripeSdkImpl: STPAuthenticationContext {
   public func authenticationPresentingViewController() -> UIViewController {
-        return findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+        return findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
     }
 }
 
