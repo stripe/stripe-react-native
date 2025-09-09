@@ -35,6 +35,7 @@ export default function CryptoOnrampScreen() {
     hasLinkAccount,
     verifyIdentity,
     attachKycInfo,
+    updatePhoneNumber,
     collectPaymentMethod,
     createCryptoPaymentToken,
     performCheckout,
@@ -47,6 +48,7 @@ export default function CryptoOnrampScreen() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   const [response, setResponse] = useState<string | null>(null);
@@ -285,6 +287,35 @@ export default function CryptoOnrampScreen() {
     authorize,
     linkAuthIntentId,
   ]);
+
+  const handleUpdatePhoneNumber = useCallback(async () => {
+    if (!phoneNumber) {
+      Alert.alert('Error', 'Please enter a phone number first.');
+      return;
+    }
+
+    // Validate E.164 format
+    const e164Regex = /^\+[1-9]\d{1,14}$/;
+    if (!e164Regex.test(phoneNumber)) {
+      Alert.alert(
+        'Invalid Phone Number',
+        'Please enter a valid phone number in E.164 format (e.g., +12125551234)'
+      );
+      return;
+    }
+
+    // Note: This is called before authentication, so no withReauth needed
+    const result = await updatePhoneNumber(phoneNumber);
+
+    if (result?.error) {
+      Alert.alert(
+        'Error',
+        `Failed to update phone number: ${result.error.message}.`
+      );
+    } else {
+      Alert.alert('Success', 'Phone number updated successfully!');
+    }
+  }, [phoneNumber, updatePhoneNumber]);
 
   const handleCollectCardPayment = useCallback(async () => {
     const result = await withReauth(
@@ -554,6 +585,7 @@ export default function CryptoOnrampScreen() {
       setEmail('');
       setFirstName('');
       setLastName('');
+      setPhoneNumber('');
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
@@ -668,6 +700,27 @@ export default function CryptoOnrampScreen() {
             {'Onramp Session ID: ' + onrampSessionId}
           </Text>
         </View>
+      )}
+
+      {isLinkUser === true && customerId === null && (
+        <Collapse title="Phone Number Update" initialExpanded={true}>
+          <Text style={styles.infoText}>
+            Update your phone number before authentication (optional):
+          </Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Phone Number (E.164 format, e.g., +12125551234)"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+          />
+          <Button
+            title="Update Phone Number"
+            onPress={handleUpdatePhoneNumber}
+            variant="primary"
+          />
+        </Collapse>
       )}
 
       {isLinkUser === true && customerId === null && (
