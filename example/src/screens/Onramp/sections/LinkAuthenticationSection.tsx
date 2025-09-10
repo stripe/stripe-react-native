@@ -1,7 +1,7 @@
 import React from 'react';
-import { Collapse } from '../../components/Collapse';
-import Button from '../../components/Button';
-import { FormField } from './FormField';
+import { Collapse } from '../../../components/Collapse';
+import Button from '../../../components/Button';
+import { FormField } from '../FormField';
 
 interface LinkAuthenticationSectionProps {
   linkAuthIntentId: string;

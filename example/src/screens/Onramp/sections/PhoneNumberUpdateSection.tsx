@@ -2,7 +2,7 @@ import React from 'react';
 import { Collapse } from '../../components/Collapse';
 import Button from '../../components/Button';
 import { FormField } from './FormField';
-import type { UserInfo } from './AttachKycInfoSection';
+import type { UserInfo } from './sections/AttachKycInfoSection';
 
 interface PhoneNumberUpdateSectionProps {
   userInfo: UserInfo;

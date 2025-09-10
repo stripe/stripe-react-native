@@ -24,17 +24,17 @@ import {
   createOnrampSession,
   checkout,
 } from '../../../server/onrampBackend';
-import { RegisterWalletAddressSection } from './RegisterWalletAddressSection';
+import { RegisterWalletAddressSection } from './sections/RegisterWalletAddressSection';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
-import { AttachKycInfoSection } from './AttachKycInfoSection';
-import { VerifyIdentitySection } from './VerifyIdentitySection';
-import { PhoneNumberUpdateSection } from './PhoneNumberUpdateSection';
-import { LinkAuthenticationSection } from './LinkAuthenticationSection';
-import { PaymentCollectionSection } from './PaymentCollectionSection';
-import { CryptoOperationsSection } from './CryptoOperationsSection';
-import { OnrampSessionCreationSection } from './OnrampSessionCreationSection';
+import { AttachKycInfoSection } from './sections/AttachKycInfoSection';
+import { VerifyIdentitySection } from './sections/VerifyIdentitySection';
+import { PhoneNumberUpdateSection } from './sections/PhoneNumberUpdateSection';
+import { LinkAuthenticationSection } from './sections/LinkAuthenticationSection';
+import { PaymentCollectionSection } from './sections/PaymentCollectionSection';
+import { CryptoOperationsSection } from './sections/CryptoOperationsSection';
+import { OnrampSessionCreationSection } from './sections/OnrampSessionCreationSection';
 
 export default function CryptoOnrampScreen() {
   const {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Collapse } from '../../components/Collapse';
-import Button from '../../components/Button';
+import { Collapse } from '../../../components/Collapse';
+import Button from '../../../components/Button';
 import { Text } from 'react-native';
 
 interface OnrampSessionCreationSectionProps {

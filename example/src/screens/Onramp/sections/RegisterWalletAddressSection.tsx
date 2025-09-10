@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { Collapse } from '../../components/Collapse';
-import Button from '../../components/Button';
-import { FormField } from './FormField';
+import { Collapse } from '../../../components/Collapse';
+import Button from '../../../components/Button';
+import { FormField } from '../FormField';
 import { useOnramp, Onramp } from '@stripe/stripe-react-native';
 
 interface RegisterWalletAddressSectionProps {

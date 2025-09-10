@@ -1,6 +1,6 @@
 import React from 'react';
-import { Collapse } from '../../components/Collapse';
-import Button from '../../components/Button';
+import { Collapse } from '../../../components/Collapse';
+import Button from '../../../components/Button';
 import { Platform, View } from 'react-native';
 import { PlatformPayButton } from '@stripe/stripe-react-native';
 
