@@ -15,17 +15,17 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-import { colors } from '../colors';
-import Button from '../components/Button';
-import { Collapse } from '../components/Collapse';
+import { colors } from '../../colors';
+import Button from '../../components/Button';
+import { FormField } from './FormField';
+import { Collapse } from '../../components/Collapse';
 import {
   createAuthIntent,
   createOnrampSession,
   checkout,
-} from '../../server/onrampBackend';
+} from '../../../server/onrampBackend';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
@@ -44,11 +44,12 @@ export default function CryptoOnrampScreen() {
     isAuthError,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
-  const [email, setEmail] = useState('');
-
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [userInfo, setUserInfo] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+  });
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   const [response, setResponse] = useState<string | null>(null);
@@ -106,7 +107,7 @@ export default function CryptoOnrampScreen() {
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
-    const result = await hasLinkAccount(email);
+    const result = await hasLinkAccount(userInfo.email);
 
     if (result?.error) {
       setResponse(
@@ -116,10 +117,10 @@ export default function CryptoOnrampScreen() {
       setIsLinkUser(result.hasLinkAccount);
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
-  }, [email, hasLinkAccount]);
+  }, [userInfo.email, hasLinkAccount]);
 
   const handlePresentVerification = useCallback(async () => {
-    if (!email) {
+    if (!userInfo.email) {
       Alert.alert('Error', 'Please enter an email address first.');
       return;
     }
@@ -127,7 +128,7 @@ export default function CryptoOnrampScreen() {
     try {
       // Step 1: Create auth intent using OnrampBackend API
       const authIntentResponse = await createAuthIntent(
-        email,
+        userInfo.email,
         'kyc.status:read,crypto:ramp'
       );
 
@@ -164,7 +165,7 @@ export default function CryptoOnrampScreen() {
       console.error('Error in authentication flow:', error);
       Alert.alert('Error', 'Failed to complete authentication flow.');
     }
-  }, [email, authorize]);
+  }, [userInfo.email, authorize]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     const result = await authorize(linkAuthIntentId);
@@ -248,8 +249,8 @@ export default function CryptoOnrampScreen() {
 
   const handleAttachKycInfo = useCallback(async () => {
     const kycInfo = {
-      firstName: firstName,
-      lastName: lastName,
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
       idNumber: '000000000',
       dateOfBirth: {
         day: 1,
@@ -281,22 +282,22 @@ export default function CryptoOnrampScreen() {
     }
   }, [
     attachKycInfo,
-    firstName,
-    lastName,
+    userInfo.firstName,
+    userInfo.lastName,
     withReauth,
     authorize,
     linkAuthIntentId,
   ]);
 
   const handleUpdatePhoneNumber = useCallback(async () => {
-    if (!phoneNumber) {
+    if (!userInfo.phoneNumber) {
       Alert.alert('Error', 'Please enter a phone number first.');
       return;
     }
 
     // Validate E.164 format
     const e164Regex = /^\+[1-9]\d{1,14}$/;
-    if (!e164Regex.test(phoneNumber)) {
+    if (!e164Regex.test(userInfo.phoneNumber)) {
       Alert.alert(
         'Invalid Phone Number',
         'Please enter a valid phone number in E.164 format (e.g., +12125551234)'
@@ -305,7 +306,7 @@ export default function CryptoOnrampScreen() {
     }
 
     // Note: This is called before authentication, so no withReauth needed
-    const result = await updatePhoneNumber(phoneNumber);
+    const result = await updatePhoneNumber(userInfo.phoneNumber);
 
     if (result?.error) {
       Alert.alert(
@@ -315,7 +316,7 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'Phone number updated successfully!');
     }
-  }, [phoneNumber, updatePhoneNumber]);
+  }, [userInfo.phoneNumber, updatePhoneNumber]);
 
   const handleCollectCardPayment = useCallback(async () => {
     const result = await withReauth(
@@ -582,10 +583,7 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'Logged out successfully!');
       // Reset all state to initial values
-      setEmail('');
-      setFirstName('');
-      setLastName('');
-      setPhoneNumber('');
+      setUserInfo({ email: '', firstName: '', lastName: '', phoneNumber: '' });
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
@@ -620,16 +618,12 @@ export default function CryptoOnrampScreen() {
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
         <Text style={styles.infoText}>Enter your email address:</Text>
-        <TextInput
-          style={styles.textInput}
+        <FormField
+          label="Email"
+          value={userInfo.email}
+          onChangeText={(text) => setUserInfo((u) => ({ ...u, email: text }))}
           placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!isLinkUser}
         />
-
         {isLinkUser === false && (
           <Button
             title="Verify Link User"
@@ -707,13 +701,13 @@ export default function CryptoOnrampScreen() {
           <Text style={styles.infoText}>
             Update your phone number before authentication (optional):
           </Text>
-          <TextInput
-            style={styles.textInput}
+          <FormField
+            label="Phone Number"
+            value={userInfo.phoneNumber}
+            onChangeText={(text) =>
+              setUserInfo((u) => ({ ...u, phoneNumber: text }))
+            }
             placeholder="Phone Number (E.164 format, e.g., +12125551234)"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
           />
           <Button
             title="Update Phone Number"
@@ -725,13 +719,11 @@ export default function CryptoOnrampScreen() {
 
       {isLinkUser === true && customerId === null && (
         <Collapse title="Link Authentication" initialExpanded={true}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Link auth intent id"
+          <FormField
+            label="Link Auth Intent ID"
             value={linkAuthIntentId}
             onChangeText={setLinkAuthIntentId}
-            keyboardType="default"
-            autoCapitalize="none"
+            placeholder="Link auth intent id"
           />
           <Button
             title="Create Auth Intent & Authenticate"
@@ -748,21 +740,21 @@ export default function CryptoOnrampScreen() {
 
       {isLinkUser === true && customerId != null && (
         <Collapse title="KYC Information" initialExpanded={true}>
-          <TextInput
-            style={styles.textInput}
+          <FormField
+            label="First Name"
+            value={userInfo.firstName}
+            onChangeText={(text) =>
+              setUserInfo((u) => ({ ...u, firstName: text }))
+            }
             placeholder="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            keyboardType="default"
-            autoCapitalize="none"
           />
-          <TextInput
-            style={styles.textInput}
+          <FormField
+            label="Last Name"
+            value={userInfo.lastName}
+            onChangeText={(text) =>
+              setUserInfo((u) => ({ ...u, lastName: text }))
+            }
             placeholder="Last Name"
-            value={lastName}
-            onChangeText={setLastName}
-            keyboardType="default"
-            autoCapitalize="none"
           />
           <Button
             title="Attach KYC Info"
@@ -946,11 +938,11 @@ export function RegisterWalletAddressScreen({
   return (
     <View style={styles.walletContainer}>
       <Text style={styles.infoText}>Wallet Address:</Text>
-      <TextInput
-        value={walletAddress}
+      <FormField
+        label="Wallet Address"
+        value={walletAddress ?? ''}
         onChangeText={setWalletAddress}
         placeholder={`Enter ${network} wallet address`}
-        style={styles.textInput}
       />
       <Text style={styles.responseText}>
         Current format: {network} address (auto-updated when network changes)

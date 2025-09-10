@@ -49,7 +49,7 @@ import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
-import CryptoOnrampScreen from './screens/CryptoOnrampScreen';
+import CryptoOnrampScreen from './screens/Onramp/CryptoOnrampScreen';
 import RegisterCryptoUserScreen from './screens/RegisterCryptoUserScreen';
 import VerifyCryptoLinkUserScreen from './screens/VerifyCryptoLinkUserScreen';
 
