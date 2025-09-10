@@ -1,9 +1,7 @@
-import { Picker } from '@react-native-picker/picker';
 import {
   Onramp,
   PaymentOptionData,
   PlatformPay,
-  PlatformPayButton,
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
@@ -26,9 +24,17 @@ import {
   createOnrampSession,
   checkout,
 } from '../../../server/onrampBackend';
+import { RegisterWalletAddressSection } from './RegisterWalletAddressSection';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
+import { AttachKycInfoSection } from './AttachKycInfoSection';
+import { VerifyIdentitySection } from './VerifyIdentitySection';
+import { PhoneNumberUpdateSection } from './PhoneNumberUpdateSection';
+import { LinkAuthenticationSection } from './LinkAuthenticationSection';
+import { PaymentCollectionSection } from './PaymentCollectionSection';
+import { CryptoOperationsSection } from './CryptoOperationsSection';
+import { OnrampSessionCreationSection } from './OnrampSessionCreationSection';
 
 export default function CryptoOnrampScreen() {
   const {
@@ -697,161 +703,55 @@ export default function CryptoOnrampScreen() {
       )}
 
       {isLinkUser === true && customerId === null && (
-        <Collapse title="Phone Number Update" initialExpanded={true}>
-          <Text style={styles.infoText}>
-            Update your phone number before authentication (optional):
-          </Text>
-          <FormField
-            label="Phone Number"
-            value={userInfo.phoneNumber}
-            onChangeText={(text) =>
-              setUserInfo((u) => ({ ...u, phoneNumber: text }))
-            }
-            placeholder="Phone Number (E.164 format, e.g., +12125551234)"
+        <>
+          <PhoneNumberUpdateSection
+            userInfo={userInfo}
+            setUserInfo={setUserInfo}
+            handleUpdatePhoneNumber={handleUpdatePhoneNumber}
           />
-          <Button
-            title="Update Phone Number"
-            onPress={handleUpdatePhoneNumber}
-            variant="primary"
+          <LinkAuthenticationSection
+            linkAuthIntentId={linkAuthIntentId}
+            setLinkAuthIntentId={setLinkAuthIntentId}
+            handlePresentVerification={handlePresentVerification}
+            handleAuthorizeLinkAuthIntent={handleAuthorizeLinkAuthIntent}
           />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId === null && (
-        <Collapse title="Link Authentication" initialExpanded={true}>
-          <FormField
-            label="Link Auth Intent ID"
-            value={linkAuthIntentId}
-            onChangeText={setLinkAuthIntentId}
-            placeholder="Link auth intent id"
-          />
-          <Button
-            title="Create Auth Intent & Authenticate"
-            onPress={handlePresentVerification}
-            variant="primary"
-          />
-          <Button
-            title="Authorize Link Auth Intent"
-            onPress={handleAuthorizeLinkAuthIntent}
-            variant="primary"
-          />
-        </Collapse>
+        </>
       )}
 
       {isLinkUser === true && customerId != null && (
-        <Collapse title="KYC Information" initialExpanded={true}>
-          <FormField
-            label="First Name"
-            value={userInfo.firstName}
-            onChangeText={(text) =>
-              setUserInfo((u) => ({ ...u, firstName: text }))
-            }
-            placeholder="First Name"
+        <>
+          <AttachKycInfoSection
+            userInfo={userInfo}
+            setUserInfo={setUserInfo}
+            handleAttachKycInfo={handleAttachKycInfo}
           />
-          <FormField
-            label="Last Name"
-            value={userInfo.lastName}
-            onChangeText={(text) =>
-              setUserInfo((u) => ({ ...u, lastName: text }))
-            }
-            placeholder="Last Name"
+          <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
+          <PaymentCollectionSection
+            isApplePaySupported={isApplePaySupported}
+            handleCollectApplePayPayment={handleCollectApplePayPayment}
+            handleCollectCardPayment={handleCollectCardPayment}
+            handleCollectBankAccountPayment={handleCollectBankAccountPayment}
           />
-          <Button
-            title="Attach KYC Info"
-            onPress={handleAttachKycInfo}
-            variant="primary"
+          <CryptoOperationsSection
+            cardPaymentMethod={cardPaymentMethod}
+            bankAccountPaymentMethod={bankAccountPaymentMethod}
+            handleCreateCryptoPaymentToken={handleCreateCryptoPaymentToken}
           />
-          <Button
-            title="Verify Identity"
-            onPress={handleVerifyIdentity}
-            variant="primary"
-          />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Payment Collection" initialExpanded={true}>
-          {Platform.OS === 'ios' && isApplePaySupported && (
-            <View style={styles.applePayButtonContainer}>
-              <PlatformPayButton
-                onPress={handleCollectApplePayPayment}
-                style={styles.applePayButton}
-              />
-            </View>
-          )}
-          <Button
-            title="Collect Card Payment"
-            onPress={handleCollectCardPayment}
-            variant="primary"
-          />
-          <Button
-            title="Collect Bank Account Payment"
-            onPress={handleCollectBankAccountPayment}
-            variant="primary"
-          />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Crypto Operations" initialExpanded={true}>
-          {(cardPaymentMethod != null || bankAccountPaymentMethod != null) && (
-            <Button
-              title="Create Crypto Payment Token"
-              onPress={handleCreateCryptoPaymentToken}
-              variant="primary"
-            />
-          )}
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Wallet Registration" initialExpanded={true}>
-          <RegisterWalletAddressScreen
+          <RegisterWalletAddressSection
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
             }}
           />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Onramp Session Creation" initialExpanded={true}>
-          <Button
-            title={
-              isCreatingSession
-                ? 'Creating Session...'
-                : 'Create Onramp Session'
-            }
-            onPress={handleCreateOnrampSession}
-            variant="primary"
-            disabled={
-              !validateOnrampSessionParams().isValid || isCreatingSession
-            }
+          <OnrampSessionCreationSection
+            isCreatingSession={isCreatingSession}
+            isCheckingOut={isCheckingOut}
+            onrampSessionId={onrampSessionId}
+            handleCreateOnrampSession={handleCreateOnrampSession}
+            handlePerformCheckout={handlePerformCheckout}
+            validateOnrampSessionParams={validateOnrampSessionParams}
           />
-          {!validateOnrampSessionParams().isValid && !isCreatingSession && (
-            <Text style={styles.infoText}>
-              {validateOnrampSessionParams().message}
-            </Text>
-          )}
-          {isCreatingSession && (
-            <Text style={styles.infoText}>Creating onramp session...</Text>
-          )}
-          <Button
-            title={isCheckingOut ? 'Checking Out...' : 'Check Out'}
-            onPress={handlePerformCheckout}
-            variant="primary"
-            disabled={!onrampSessionId || isCheckingOut}
-          />
-          {!onrampSessionId && !isCheckingOut && (
-            <Text style={styles.infoText}>
-              Please create an onramp session first
-            </Text>
-          )}
-          {isCheckingOut && (
-            <Text style={styles.infoText}>Processing checkout...</Text>
-          )}
-        </Collapse>
+        </>
       )}
 
       {customerId && (
@@ -862,115 +762,6 @@ export default function CryptoOnrampScreen() {
 
       <View style={{ height: 32 }} />
     </ScrollView>
-  );
-}
-
-export function RegisterWalletAddressScreen({
-  onWalletRegistered,
-}: {
-  onWalletRegistered?: (address: string, network: Onramp.CryptoNetwork) => void;
-}) {
-  const { registerWalletAddress } = useOnramp();
-  const [network, setNetwork] = useState<Onramp.CryptoNetwork>(
-    Onramp.CryptoNetwork.ethereum
-  );
-
-  // Sample addresses for different networks
-  const getDefaultAddressForNetwork = useCallback(
-    (cryptoNetwork: Onramp.CryptoNetwork): string => {
-      switch (cryptoNetwork) {
-        case Onramp.CryptoNetwork.ethereum:
-        case Onramp.CryptoNetwork.polygon:
-        case Onramp.CryptoNetwork.avalanche:
-        case Onramp.CryptoNetwork.base:
-        case Onramp.CryptoNetwork.optimism:
-        case Onramp.CryptoNetwork.worldchain:
-          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-        case Onramp.CryptoNetwork.solana:
-          return '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
-        case Onramp.CryptoNetwork.bitcoin:
-          return '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
-        case Onramp.CryptoNetwork.stellar:
-          return 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
-        case Onramp.CryptoNetwork.aptos:
-          return '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
-        case Onramp.CryptoNetwork.xrpl:
-          return 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH';
-        default:
-          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-      }
-    },
-    []
-  );
-
-  const [walletAddress, setWalletAddress] = useState(
-    getDefaultAddressForNetwork(Onramp.CryptoNetwork.ethereum)
-  );
-  const [response, setResponse] = useState<string | null>(null);
-
-  // Update wallet address when network changes
-  const handleNetworkChange = useCallback(
-    (newNetwork: Onramp.CryptoNetwork) => {
-      setNetwork(newNetwork);
-      setWalletAddress(getDefaultAddressForNetwork(newNetwork));
-    },
-    [getDefaultAddressForNetwork]
-  );
-
-  const handleRegisterWallet = useCallback(async () => {
-    setResponse(null);
-    const result = await registerWalletAddress(walletAddress, network);
-
-    if (result?.error) {
-      setResponse(
-        `Error: ${result.error.message || 'Failed to register wallet.'}`
-      );
-      Alert.alert(
-        'Error',
-        result.error.message || 'Failed to register wallet.'
-      );
-    } else {
-      setResponse(`Wallet registered`);
-      onWalletRegistered?.(walletAddress, network);
-    }
-  }, [walletAddress, network, registerWalletAddress, onWalletRegistered]);
-
-  return (
-    <View style={styles.walletContainer}>
-      <Text style={styles.infoText}>Wallet Address:</Text>
-      <FormField
-        label="Wallet Address"
-        value={walletAddress ?? ''}
-        onChangeText={setWalletAddress}
-        placeholder={`Enter ${network} wallet address`}
-      />
-      <Text style={styles.responseText}>
-        Current format: {network} address (auto-updated when network changes)
-      </Text>
-      <Text style={styles.infoText}>Network:</Text>
-      <Picker
-        selectedValue={network}
-        onValueChange={(itemValue) =>
-          handleNetworkChange(itemValue as Onramp.CryptoNetwork)
-        }
-        style={styles.textInput}
-      >
-        {Object.values(Onramp.CryptoNetwork).map((n) => (
-          <Picker.Item
-            key={String(n)}
-            label={String(n).charAt(0).toUpperCase() + String(n).slice(1)}
-            value={n}
-          />
-        ))}
-      </Picker>
-      <Text style={styles.infoText}>Selected Network: {String(network)}</Text>
-      <Button
-        title="Register Wallet Address"
-        onPress={handleRegisterWallet}
-        variant="primary"
-      />
-      {response && <Text style={styles.responseText}>{response}</Text>}
-    </View>
   );
 }
 
