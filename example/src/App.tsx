@@ -51,7 +51,6 @@ import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/RegisterCryptoUserScreen';
-import VerifyCryptoLinkUserScreen from './screens/VerifyCryptoLinkUserScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -105,7 +104,6 @@ export type RootStackParamList = {
   PaymentSheetWithPmoSfuScreen: undefined;
   CryptoOnrampFlow: undefined;
   RegisterCryptoUserScreen: undefined;
-  VerifyCryptoLinkUserScreen: undefined;
 };
 
 declare global {
@@ -285,10 +283,6 @@ export default function App() {
           <Stack.Screen
             name="RegisterCryptoUserScreen"
             component={RegisterCryptoUserScreen}
-          />
-          <Stack.Screen
-            name="VerifyCryptoLinkUserScreen"
-            component={VerifyCryptoLinkUserScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

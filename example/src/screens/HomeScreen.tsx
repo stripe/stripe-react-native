@@ -513,14 +513,6 @@ export default function HomeScreen() {
             </View>
             <View style={styles.buttonContainer}>
               <Button
-                title="Verify Crypto Link User"
-                onPress={() => {
-                  navigation.navigate('VerifyCryptoLinkUserScreen');
-                }}
-              />
-            </View>
-            <View style={styles.buttonContainer}>
-              <Button
                 title="Register Crypto Link User"
                 onPress={() => {
                   navigation.navigate('RegisterCryptoUserScreen');
