@@ -32,7 +32,7 @@ import {
   RegisterWalletAddressSection,
 } from './sections';
 
-export default function CryptoOnrampScreen() {
+export default function CryptoOnrampFlow() {
   const {
     hasLinkAccount,
     verifyIdentity,
