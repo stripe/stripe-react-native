@@ -50,7 +50,7 @@ import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
-import RegisterCryptoUserScreen from './screens/RegisterCryptoUserScreen';
+import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
