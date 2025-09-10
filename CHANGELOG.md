@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x.x.x
+
+**Fixes**
+- Fixed Android EmbeddedPaymentElement rendering issue where the element would sometimes not be visible but still respond to touch events.
+
 ## 0.52.0 - 2025-09-08
 **Features**
 - [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option

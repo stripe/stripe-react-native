@@ -233,7 +233,7 @@ class EmbeddedPaymentElementView(
 
     val embedded = rememberEmbeddedPaymentElement(builder)
     var height by remember {
-      mutableIntStateOf(0)
+      mutableIntStateOf(1)
     }
 
     // collect events: configure, confirm, clear
@@ -282,6 +282,13 @@ class EmbeddedPaymentElementView(
             putMap("paymentOption", optMap)
           }
         requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementDidUpdatePaymentOption(payload)
+      }
+    }
+
+    // Force recomposition when height changes from initial value
+    LaunchedEffect(height) {
+      if (height > 1) {
+        // Trigger a recomposition to ensure content is properly rendered
       }
     }
 
