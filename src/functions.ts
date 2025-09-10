@@ -893,3 +893,14 @@ export const openPlatformPaySetup = async (): Promise<void> => {
     await NativeStripeSdk.openApplePaySetup();
   }
 };
+
+export const setFinancialConnectionsForceNativeFlow = async (
+  enabled: boolean
+): Promise<void> => {
+  if (Platform.OS !== 'ios') return;
+  try {
+    await NativeStripeSdk.setFinancialConnectionsForceNativeFlow(enabled);
+  } catch (_) {
+    // no-op
+  }
+};
