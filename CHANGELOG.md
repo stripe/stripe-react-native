@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x.x.x
+
+**Fixes**
+- Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
+
 ## 0.52.0 - 2025-09-08
 **Features**
 - [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option
