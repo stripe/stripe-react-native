@@ -178,7 +178,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   test-ios:
     name: e2e-ios-test
@@ -234,11 +234,6 @@ jobs:
 
       - name: Generate bundle
         run: yarn example build:ios
-
-      - name: Install Pods
-        run: yarn pods
-        env:
-          NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
 
       - name: Install Maestro CLI
         run: |
@@ -326,7 +321,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # Reporter jobs that provide the status checks branch protection expects
   report-android-status:
