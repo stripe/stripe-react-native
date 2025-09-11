@@ -1,6 +1,6 @@
 # Old Architecture Codegen Fix
 
-This patch fixes the codegen issue that occurs when using `@stripe/stripe-react-native` with React Native 0.74+ in the old architecture.
+This patch fixes the codegen issue that occurs when using `@stripe/stripe-react-native` versions before 0.52 with React Native 0.74+ in the old architecture.
 
 ## The Problem
 
@@ -13,6 +13,8 @@ UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript i
 This occurs because the React Native codegen in the old architecture doesn't support `EventEmitter` properties in TurboModule interfaces.
 
 ## The Solution
+
+If possible, update to version 0.52 or above of the Streip React Native SDK. If you are unable to do so, use the `old-arch-codegen-fix` patch.
 
 This patch converts all `EventEmitter` properties to callback function methods, making them compatible with the old architecture codegen.
 
