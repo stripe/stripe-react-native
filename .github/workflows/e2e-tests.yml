@@ -240,9 +240,6 @@ jobs:
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
-      - name: Generate example app JS bundle
-        run: yarn example build:ios
-
       - name: Build iOS App
         env:
           NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
