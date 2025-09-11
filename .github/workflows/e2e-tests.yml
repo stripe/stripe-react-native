@@ -27,17 +27,6 @@ jobs:
       RETRY_SLEEP_FAST: 10
       RETRY_SLEEP_SLOW: 45
     steps:
-      - name: Delete unnecessary tools 🔧
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: false # Don't remove Android tools
-          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
-          dotnet: true # rm -rf /usr/share/dotnet
-          haskell: true # rm -rf /opt/ghc...
-          swap-storage: true # rm -f /mnt/swapfile (4GiB)
-          docker-images: false # Takes 16s, enable if needed in the future
-          large-packages: false # includes google-cloud-sdk and it's slow
-
       # Enable KVM to be able to use hardware accelerated emulators.
       # https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
       - name: Enable KVM group perms
@@ -76,17 +65,15 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Gradle cache
-        uses: actions/cache@v4
+      - name: Cache Gradle build
+        uses: gradle/actions/setup-gradle@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+          cache-read-only: false
 
       - name: Build Android App
         run: |
           cd example/android
+          yarn build:android
           ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
 
       - name: Install Maestro CLI
