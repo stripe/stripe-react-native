@@ -220,9 +220,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-${{ hashFiles('example/ios/Podfile.lock') }}
+          key: v2-${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-${{ hashFiles('example/ios/Podfile.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-
+            v2-${{ runner.os }}-pods-${{ env.NEW_ARCH_ENABLED }}-
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
