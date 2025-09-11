@@ -84,12 +84,17 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
+      - name: Build Android App
+        run: |
+          cd example/android
+          ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+
       - name: Install Maestro CLI
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
-      - name: Run Android Emulator and app
+      - name: Run Android Emulator and run tests
         id: android_tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -105,8 +110,7 @@ jobs:
           script: |
             # Wait for system to settle
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
-            # Retry once if necessary
-            yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED" || (sleep 60 && yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED")
+            adb install -r example/android/app/build/outputs/apk/release/app-release.apk
             yarn test:e2e:android
 
       - name: Upload test artifacts
@@ -178,7 +182,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   test-ios:
     name: e2e-ios-test
@@ -326,7 +330,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # Reporter jobs that provide the status checks branch protection expects
   report-android-status:
