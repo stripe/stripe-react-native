@@ -224,6 +224,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - uses: irgaly/xcode-cache@v1
+        with:
+          key: xcode-cache-deriveddata-${{ github.workflow }}-${{ github.sha }}
+          restore-keys: xcode-cache-deriveddata-${{ github.workflow }}-
+
       - name: CocoaPods cache
         uses: actions/cache@v4
         with:
@@ -235,17 +240,17 @@ jobs:
       - name: Install Dependencies
         run: yarn bootstrap
 
-      - name: Install Maestro CLI
-        run: |
-          curl -Ls "https://get.maestro.mobile.dev" | bash
-          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
-
       - name: Build iOS App
         env:
           NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}
           RCT_NEW_ARCH_ENABLED: ${{ env.RCT_NEW_ARCH_ENABLED }}
         run: |
           yarn run-example-ios:release
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
       - name: Run tests
         id: ios_tests
