@@ -6,7 +6,15 @@ import {
   useStripe,
 } from '@stripe/stripe-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, Platform, ScrollView, Text, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+  StyleSheet,
+} from 'react-native';
 import Button from '../../components/Button';
 import { FormField } from './FormField';
 import { Collapse } from '../../components/Collapse';
@@ -15,7 +23,6 @@ import {
   createOnrampSession,
   checkout,
 } from '../../../server/onrampBackend';
-import { styles } from './styles';
 import { getDestinationParamsForNetwork } from './utils';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
@@ -31,6 +38,7 @@ import {
   OnrampSessionCreationSection,
   RegisterWalletAddressSection,
 } from './sections';
+import { colors } from '../../colors';
 
 export default function CryptoOnrampFlow() {
   const {
@@ -684,3 +692,34 @@ export default function CryptoOnrampFlow() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+    paddingEnd: 16, // Hack.
+  },
+  buttonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomColor: colors.light_gray,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  infoText: {},
+  textInput: {
+    borderWidth: 1,
+    borderColor: colors.light_gray,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 8,
+  },
+  responseText: {
+    marginTop: 12,
+    fontSize: 12,
+    color: colors.dark_gray,
+  },
+  logoutContainer: {
+    paddingStart: 16,
+    paddingVertical: 16,
+  },
+});
