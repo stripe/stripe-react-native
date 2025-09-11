@@ -240,6 +240,13 @@ jobs:
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
+      - name: Install CocoaPods
+        run: |
+          cd example
+          bundle install
+          cd ios
+          bundle exec pod install
+
       - name: Build iOS App
         env:
           NEW_ARCH_ENABLED: ${{ env.NEW_ARCH_ENABLED }}

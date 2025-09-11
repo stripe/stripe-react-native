@@ -98,7 +98,8 @@
           "selector": "TSEnumDeclaration[const=true]",
           "message": "`const enum` declarations are not allowed"
         }
-      ]
+      ],
+      "@react-native/no-deep-imports": "off"
     }
   },
   "eslintIgnore": [
