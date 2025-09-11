@@ -135,6 +135,7 @@ class EmbeddedPaymentElementViewManager :
       }
 
     val googlePayConfig = buildGooglePayConfig(toBundleObject(map.getMap("googlePay")))
+    val linkConfig = PaymentSheetFragment.buildLinkConfig(toBundleObject(map.getMap("link")))
     val shippingDetails =
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
@@ -184,6 +185,7 @@ class EmbeddedPaymentElementViewManager :
         .defaultBillingDetails(defaultBillingDetails)
         .customer(customerConfiguration)
         .googlePay(googlePayConfig)
+        .link(linkConfig)
         .appearance(appearance)
         .shippingDetails(shippingDetails)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
