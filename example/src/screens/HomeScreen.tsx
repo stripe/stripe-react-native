@@ -507,15 +507,7 @@ export default function HomeScreen() {
               <Button
                 title="Crypto Onramp Flow"
                 onPress={() => {
-                  navigation.navigate('CryptoOnrampScreen');
-                }}
-              />
-            </View>
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Verify Crypto Link User"
-                onPress={() => {
-                  navigation.navigate('VerifyCryptoLinkUserScreen');
+                  navigation.navigate('CryptoOnrampFlow');
                 }}
               />
             </View>

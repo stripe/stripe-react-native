@@ -1,9 +1,7 @@
-import { Picker } from '@react-native-picker/picker';
 import {
   Onramp,
   PaymentOptionData,
   PlatformPay,
-  PlatformPayButton,
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
@@ -13,24 +11,36 @@ import {
   Image,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
   View,
+  StyleSheet,
 } from 'react-native';
-import { colors } from '../colors';
-import Button from '../components/Button';
-import { Collapse } from '../components/Collapse';
+import Button from '../../components/Button';
+import { FormField } from './FormField';
+import { Collapse } from '../../components/Collapse';
 import {
   createAuthIntent,
   createOnrampSession,
   checkout,
-} from '../../server/onrampBackend';
+} from '../../../server/onrampBackend';
+import { getDestinationParamsForNetwork } from './utils';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
 
-export default function CryptoOnrampScreen() {
+import {
+  AttachKycInfoSection,
+  VerifyIdentitySection,
+  PhoneNumberUpdateSection,
+  LinkAuthenticationSection,
+  PaymentCollectionSection,
+  CryptoOperationsSection,
+  OnrampSessionCreationSection,
+  RegisterWalletAddressSection,
+} from './sections';
+import { colors } from '../../colors';
+
+export default function CryptoOnrampFlow() {
   const {
     hasLinkAccount,
     verifyIdentity,
@@ -44,11 +54,12 @@ export default function CryptoOnrampScreen() {
     isAuthError,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
-  const [email, setEmail] = useState('');
-
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [userInfo, setUserInfo] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+  });
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
 
   const [response, setResponse] = useState<string | null>(null);
@@ -106,7 +117,7 @@ export default function CryptoOnrampScreen() {
 
   const checkIsLinkUser = useCallback(async () => {
     setResponse(null);
-    const result = await hasLinkAccount(email);
+    const result = await hasLinkAccount(userInfo.email);
 
     if (result?.error) {
       setResponse(
@@ -116,10 +127,10 @@ export default function CryptoOnrampScreen() {
       setIsLinkUser(result.hasLinkAccount);
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
-  }, [email, hasLinkAccount]);
+  }, [userInfo.email, hasLinkAccount]);
 
   const handlePresentVerification = useCallback(async () => {
-    if (!email) {
+    if (!userInfo.email) {
       Alert.alert('Error', 'Please enter an email address first.');
       return;
     }
@@ -127,7 +138,7 @@ export default function CryptoOnrampScreen() {
     try {
       // Step 1: Create auth intent using OnrampBackend API
       const authIntentResponse = await createAuthIntent(
-        email,
+        userInfo.email,
         'kyc.status:read,crypto:ramp'
       );
 
@@ -164,7 +175,7 @@ export default function CryptoOnrampScreen() {
       console.error('Error in authentication flow:', error);
       Alert.alert('Error', 'Failed to complete authentication flow.');
     }
-  }, [email, authorize]);
+  }, [userInfo.email, authorize]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     const result = await authorize(linkAuthIntentId);
@@ -248,8 +259,8 @@ export default function CryptoOnrampScreen() {
 
   const handleAttachKycInfo = useCallback(async () => {
     const kycInfo = {
-      firstName: firstName,
-      lastName: lastName,
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
       idNumber: '000000000',
       dateOfBirth: {
         day: 1,
@@ -281,22 +292,22 @@ export default function CryptoOnrampScreen() {
     }
   }, [
     attachKycInfo,
-    firstName,
-    lastName,
+    userInfo.firstName,
+    userInfo.lastName,
     withReauth,
     authorize,
     linkAuthIntentId,
   ]);
 
   const handleUpdatePhoneNumber = useCallback(async () => {
-    if (!phoneNumber) {
+    if (!userInfo.phoneNumber) {
       Alert.alert('Error', 'Please enter a phone number first.');
       return;
     }
 
     // Validate E.164 format
     const e164Regex = /^\+[1-9]\d{1,14}$/;
-    if (!e164Regex.test(phoneNumber)) {
+    if (!e164Regex.test(userInfo.phoneNumber)) {
       Alert.alert(
         'Invalid Phone Number',
         'Please enter a valid phone number in E.164 format (e.g., +12125551234)'
@@ -305,7 +316,7 @@ export default function CryptoOnrampScreen() {
     }
 
     // Note: This is called before authentication, so no withReauth needed
-    const result = await updatePhoneNumber(phoneNumber);
+    const result = await updatePhoneNumber(userInfo.phoneNumber);
 
     if (result?.error) {
       Alert.alert(
@@ -315,7 +326,7 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'Phone number updated successfully!');
     }
-  }, [phoneNumber, updatePhoneNumber]);
+  }, [userInfo.phoneNumber, updatePhoneNumber]);
 
   const handleCollectCardPayment = useCallback(async () => {
     const result = await withReauth(
@@ -337,81 +348,6 @@ export default function CryptoOnrampScreen() {
       );
     }
   }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
-
-  // Map crypto networks to destination currencies and networks for onramp session
-  const getDestinationParamsForNetwork = useCallback(
-    (
-      network: Onramp.CryptoNetwork
-    ): {
-      destinationNetwork: string;
-      destinationCurrency: string;
-    } => {
-      switch (network) {
-        case Onramp.CryptoNetwork.ethereum:
-          return {
-            destinationNetwork: 'ethereum',
-            destinationCurrency: 'eth',
-          };
-        case Onramp.CryptoNetwork.polygon:
-          return {
-            destinationNetwork: 'polygon',
-            destinationCurrency: 'eth',
-          };
-        case Onramp.CryptoNetwork.avalanche:
-          return {
-            destinationNetwork: 'avalanche',
-            destinationCurrency: 'avax',
-          };
-        case Onramp.CryptoNetwork.base:
-          return {
-            destinationNetwork: 'base',
-            destinationCurrency: 'eth',
-          };
-        case Onramp.CryptoNetwork.optimism:
-          return {
-            destinationNetwork: 'optimism',
-            destinationCurrency: 'eth',
-          };
-        case Onramp.CryptoNetwork.worldchain:
-          return {
-            destinationNetwork: 'worldchain',
-            destinationCurrency: 'eth',
-          };
-        case Onramp.CryptoNetwork.solana:
-          return {
-            destinationNetwork: 'solana',
-            destinationCurrency: 'sol',
-          };
-        case Onramp.CryptoNetwork.bitcoin:
-          return {
-            destinationNetwork: 'bitcoin',
-            destinationCurrency: 'btc',
-          };
-        case Onramp.CryptoNetwork.stellar:
-          return {
-            destinationNetwork: 'stellar',
-            destinationCurrency: 'xlm',
-          };
-        case Onramp.CryptoNetwork.aptos:
-          return {
-            destinationNetwork: 'aptos',
-            destinationCurrency: 'apt',
-          };
-        case Onramp.CryptoNetwork.xrpl:
-          return {
-            destinationNetwork: 'xrpl',
-            destinationCurrency: 'xrp',
-          };
-        default:
-          // Default to Ethereum for unknown networks
-          return {
-            destinationNetwork: 'ethereum',
-            destinationCurrency: 'eth',
-          };
-      }
-    },
-    []
-  );
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
@@ -525,7 +461,6 @@ export default function CryptoOnrampScreen() {
     }
   }, [
     validateOnrampSessionParams,
-    getDestinationParamsForNetwork,
     cryptoPaymentToken,
     walletAddress,
     walletNetwork,
@@ -582,10 +517,7 @@ export default function CryptoOnrampScreen() {
     } else {
       Alert.alert('Success', 'Logged out successfully!');
       // Reset all state to initial values
-      setEmail('');
-      setFirstName('');
-      setLastName('');
-      setPhoneNumber('');
+      setUserInfo({ email: '', firstName: '', lastName: '', phoneNumber: '' });
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
@@ -620,16 +552,12 @@ export default function CryptoOnrampScreen() {
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
         <Text style={styles.infoText}>Enter your email address:</Text>
-        <TextInput
-          style={styles.textInput}
+        <FormField
+          label="Email"
+          value={userInfo.email}
+          onChangeText={(text) => setUserInfo((u) => ({ ...u, email: text }))}
           placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!isLinkUser}
         />
-
         {isLinkUser === false && (
           <Button
             title="Verify Link User"
@@ -703,163 +631,55 @@ export default function CryptoOnrampScreen() {
       )}
 
       {isLinkUser === true && customerId === null && (
-        <Collapse title="Phone Number Update" initialExpanded={true}>
-          <Text style={styles.infoText}>
-            Update your phone number before authentication (optional):
-          </Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Phone Number (E.164 format, e.g., +12125551234)"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
+        <>
+          <PhoneNumberUpdateSection
+            userInfo={userInfo}
+            setUserInfo={setUserInfo}
+            handleUpdatePhoneNumber={handleUpdatePhoneNumber}
           />
-          <Button
-            title="Update Phone Number"
-            onPress={handleUpdatePhoneNumber}
-            variant="primary"
+          <LinkAuthenticationSection
+            linkAuthIntentId={linkAuthIntentId}
+            setLinkAuthIntentId={setLinkAuthIntentId}
+            handlePresentVerification={handlePresentVerification}
+            handleAuthorizeLinkAuthIntent={handleAuthorizeLinkAuthIntent}
           />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId === null && (
-        <Collapse title="Link Authentication" initialExpanded={true}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Link auth intent id"
-            value={linkAuthIntentId}
-            onChangeText={setLinkAuthIntentId}
-            keyboardType="default"
-            autoCapitalize="none"
-          />
-          <Button
-            title="Create Auth Intent & Authenticate"
-            onPress={handlePresentVerification}
-            variant="primary"
-          />
-          <Button
-            title="Authorize Link Auth Intent"
-            onPress={handleAuthorizeLinkAuthIntent}
-            variant="primary"
-          />
-        </Collapse>
+        </>
       )}
 
       {isLinkUser === true && customerId != null && (
-        <Collapse title="KYC Information" initialExpanded={true}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            keyboardType="default"
-            autoCapitalize="none"
+        <>
+          <AttachKycInfoSection
+            userInfo={userInfo}
+            setUserInfo={setUserInfo}
+            handleAttachKycInfo={handleAttachKycInfo}
           />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Last Name"
-            value={lastName}
-            onChangeText={setLastName}
-            keyboardType="default"
-            autoCapitalize="none"
+          <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
+          <PaymentCollectionSection
+            isApplePaySupported={isApplePaySupported}
+            handleCollectApplePayPayment={handleCollectApplePayPayment}
+            handleCollectCardPayment={handleCollectCardPayment}
+            handleCollectBankAccountPayment={handleCollectBankAccountPayment}
           />
-          <Button
-            title="Attach KYC Info"
-            onPress={handleAttachKycInfo}
-            variant="primary"
+          <CryptoOperationsSection
+            cardPaymentMethod={cardPaymentMethod}
+            bankAccountPaymentMethod={bankAccountPaymentMethod}
+            handleCreateCryptoPaymentToken={handleCreateCryptoPaymentToken}
           />
-          <Button
-            title="Verify Identity"
-            onPress={handleVerifyIdentity}
-            variant="primary"
-          />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Payment Collection" initialExpanded={true}>
-          {Platform.OS === 'ios' && isApplePaySupported && (
-            <View style={styles.applePayButtonContainer}>
-              <PlatformPayButton
-                onPress={handleCollectApplePayPayment}
-                style={styles.applePayButton}
-              />
-            </View>
-          )}
-          <Button
-            title="Collect Card Payment"
-            onPress={handleCollectCardPayment}
-            variant="primary"
-          />
-          <Button
-            title="Collect Bank Account Payment"
-            onPress={handleCollectBankAccountPayment}
-            variant="primary"
-          />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Crypto Operations" initialExpanded={true}>
-          {(cardPaymentMethod != null || bankAccountPaymentMethod != null) && (
-            <Button
-              title="Create Crypto Payment Token"
-              onPress={handleCreateCryptoPaymentToken}
-              variant="primary"
-            />
-          )}
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Wallet Registration" initialExpanded={true}>
-          <RegisterWalletAddressScreen
+          <RegisterWalletAddressSection
             onWalletRegistered={(address, network) => {
               setWalletAddress(address);
               setWalletNetwork(network);
             }}
           />
-        </Collapse>
-      )}
-
-      {isLinkUser === true && customerId != null && (
-        <Collapse title="Onramp Session Creation" initialExpanded={true}>
-          <Button
-            title={
-              isCreatingSession
-                ? 'Creating Session...'
-                : 'Create Onramp Session'
-            }
-            onPress={handleCreateOnrampSession}
-            variant="primary"
-            disabled={
-              !validateOnrampSessionParams().isValid || isCreatingSession
-            }
+          <OnrampSessionCreationSection
+            isCreatingSession={isCreatingSession}
+            isCheckingOut={isCheckingOut}
+            onrampSessionId={onrampSessionId}
+            handleCreateOnrampSession={handleCreateOnrampSession}
+            handlePerformCheckout={handlePerformCheckout}
+            validateOnrampSessionParams={validateOnrampSessionParams}
           />
-          {!validateOnrampSessionParams().isValid && !isCreatingSession && (
-            <Text style={styles.infoText}>
-              {validateOnrampSessionParams().message}
-            </Text>
-          )}
-          {isCreatingSession && (
-            <Text style={styles.infoText}>Creating onramp session...</Text>
-          )}
-          <Button
-            title={isCheckingOut ? 'Checking Out...' : 'Check Out'}
-            onPress={handlePerformCheckout}
-            variant="primary"
-            disabled={!onrampSessionId || isCheckingOut}
-          />
-          {!onrampSessionId && !isCheckingOut && (
-            <Text style={styles.infoText}>
-              Please create an onramp session first
-            </Text>
-          )}
-          {isCheckingOut && (
-            <Text style={styles.infoText}>Processing checkout...</Text>
-          )}
-        </Collapse>
+        </>
       )}
 
       {customerId && (
@@ -870,115 +690,6 @@ export default function CryptoOnrampScreen() {
 
       <View style={{ height: 32 }} />
     </ScrollView>
-  );
-}
-
-export function RegisterWalletAddressScreen({
-  onWalletRegistered,
-}: {
-  onWalletRegistered?: (address: string, network: Onramp.CryptoNetwork) => void;
-}) {
-  const { registerWalletAddress } = useOnramp();
-  const [network, setNetwork] = useState<Onramp.CryptoNetwork>(
-    Onramp.CryptoNetwork.ethereum
-  );
-
-  // Sample addresses for different networks
-  const getDefaultAddressForNetwork = useCallback(
-    (cryptoNetwork: Onramp.CryptoNetwork): string => {
-      switch (cryptoNetwork) {
-        case Onramp.CryptoNetwork.ethereum:
-        case Onramp.CryptoNetwork.polygon:
-        case Onramp.CryptoNetwork.avalanche:
-        case Onramp.CryptoNetwork.base:
-        case Onramp.CryptoNetwork.optimism:
-        case Onramp.CryptoNetwork.worldchain:
-          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-        case Onramp.CryptoNetwork.solana:
-          return '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
-        case Onramp.CryptoNetwork.bitcoin:
-          return '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
-        case Onramp.CryptoNetwork.stellar:
-          return 'GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOKY3B2WSQHG4W37';
-        case Onramp.CryptoNetwork.aptos:
-          return '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
-        case Onramp.CryptoNetwork.xrpl:
-          return 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH';
-        default:
-          return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
-      }
-    },
-    []
-  );
-
-  const [walletAddress, setWalletAddress] = useState(
-    getDefaultAddressForNetwork(Onramp.CryptoNetwork.ethereum)
-  );
-  const [response, setResponse] = useState<string | null>(null);
-
-  // Update wallet address when network changes
-  const handleNetworkChange = useCallback(
-    (newNetwork: Onramp.CryptoNetwork) => {
-      setNetwork(newNetwork);
-      setWalletAddress(getDefaultAddressForNetwork(newNetwork));
-    },
-    [getDefaultAddressForNetwork]
-  );
-
-  const handleRegisterWallet = useCallback(async () => {
-    setResponse(null);
-    const result = await registerWalletAddress(walletAddress, network);
-
-    if (result?.error) {
-      setResponse(
-        `Error: ${result.error.message || 'Failed to register wallet.'}`
-      );
-      Alert.alert(
-        'Error',
-        result.error.message || 'Failed to register wallet.'
-      );
-    } else {
-      setResponse(`Wallet registered`);
-      onWalletRegistered?.(walletAddress, network);
-    }
-  }, [walletAddress, network, registerWalletAddress, onWalletRegistered]);
-
-  return (
-    <View style={styles.walletContainer}>
-      <Text style={styles.infoText}>Wallet Address:</Text>
-      <TextInput
-        value={walletAddress}
-        onChangeText={setWalletAddress}
-        placeholder={`Enter ${network} wallet address`}
-        style={styles.textInput}
-      />
-      <Text style={styles.responseText}>
-        Current format: {network} address (auto-updated when network changes)
-      </Text>
-      <Text style={styles.infoText}>Network:</Text>
-      <Picker
-        selectedValue={network}
-        onValueChange={(itemValue) =>
-          handleNetworkChange(itemValue as Onramp.CryptoNetwork)
-        }
-        style={styles.textInput}
-      >
-        {Object.values(Onramp.CryptoNetwork).map((n) => (
-          <Picker.Item
-            key={String(n)}
-            label={String(n).charAt(0).toUpperCase() + String(n).slice(1)}
-            value={n}
-          />
-        ))}
-      </Picker>
-      <Text style={styles.infoText}>Selected Network: {String(network)}</Text>
-      <Button
-        title="Register Wallet Address"
-        onPress={handleRegisterWallet}
-        variant="primary"
-      />
-      {response && <Text style={styles.responseText}>{response}</Text>}
-    </View>
   );
 }
 
@@ -994,10 +705,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.light_gray,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  infoContainer: {
-    paddingVertical: 16,
-    gap: 4,
-  },
   infoText: {},
   textInput: {
     borderWidth: 1,
@@ -1010,17 +717,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 12,
     color: colors.dark_gray,
-  },
-  applePayButtonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  applePayButton: {
-    height: 50,
-  },
-  walletContainer: {
-    paddingVertical: 16,
-    gap: 4,
   },
   logoutContainer: {
     paddingStart: 16,
