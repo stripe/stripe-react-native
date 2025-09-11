@@ -46,7 +46,7 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
   }
 
   const extendedParams: InitialiseParams = { ...params, appInfo };
-  NativeStripeSdk.initialise(extendedParams);
+  await NativeStripeSdk.initialise(extendedParams);
 };
 
 /**
@@ -82,33 +82,37 @@ export function StripeProvider({
     if (!publishableKey) {
       return;
     }
-    if (isAndroid) {
-      NativeStripeSdk.initialise({
-        publishableKey,
-        appInfo,
-        stripeAccountId,
-        threeDSecureParams,
-        urlScheme,
-        setReturnUrlSchemeOnAndroid,
-      });
-      NativeOnrampSdk.initialise({
-        publishableKey,
-        appInfo,
-        stripeAccountId,
-        threeDSecureParams,
-        urlScheme,
-        setReturnUrlSchemeOnAndroid,
-      });
-    } else {
-      NativeStripeSdk.initialise({
-        publishableKey,
-        appInfo,
-        stripeAccountId,
-        threeDSecureParams,
-        merchantIdentifier,
-        urlScheme,
-      });
-    }
+    const initializeStripe = async () => {
+      if (isAndroid) {
+        await NativeStripeSdk.initialise({
+          publishableKey,
+          appInfo,
+          stripeAccountId,
+          threeDSecureParams,
+          urlScheme,
+          setReturnUrlSchemeOnAndroid,
+        });
+        await NativeOnrampSdk.initialise({
+          publishableKey,
+          appInfo,
+          stripeAccountId,
+          threeDSecureParams,
+          urlScheme,
+          setReturnUrlSchemeOnAndroid,
+        });
+      } else {
+        await NativeStripeSdk.initialise({
+          publishableKey,
+          appInfo,
+          stripeAccountId,
+          threeDSecureParams,
+          merchantIdentifier,
+          urlScheme,
+        });
+      }
+    };
+
+    initializeStripe();
   }, [
     publishableKey,
     merchantIdentifier,
