@@ -58,7 +58,8 @@ Next, add:
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": string | string [],
-          "enableGooglePay": boolean
+          "enableGooglePay": boolean,
+          "enableGooglePlacesSdk": boolean
         }
       ]
     ],
