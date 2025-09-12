@@ -2,6 +2,9 @@
 
 ## x.x.x - x.x.x
 
+**Features**
+- Added `isLoaded` flag to `useEmbeddedPaymentElement` hook that indicates when the embedded payment element has finished loading and is ready to display (height > 1). Useful for showing loading states and smooth UI transitions.
+
 **Fixes**
 - Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
 - Fixed Android EmbeddedPaymentElement layout measurement issues by improving height calculation and switching from `onPlaced` to `onSizeChanged` for better layout synchronization.
