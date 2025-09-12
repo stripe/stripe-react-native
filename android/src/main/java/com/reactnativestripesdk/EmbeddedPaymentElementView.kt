@@ -15,7 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -287,33 +287,56 @@ class EmbeddedPaymentElementView(
 
     val density = LocalDensity.current
 
+    Box {
+      measuredEmbeddedElement(
+        reportHeightChange = { h -> reportHeightChange(h) },
+      ) {
+        embedded.Content()
+      }
+    }
+  }
+
+  @Composable
+  private fun measuredEmbeddedElement(
+    reportHeightChange: (Float) -> Unit,
+    content: @Composable () -> Unit,
+  ) {
+    val density = LocalDensity.current
+    var heightDp by remember { mutableStateOf(1.dp) } // non-zero sentinel
+
     Box(
-      modifier =
-        Modifier
-          .requiredHeight(height.dp)
-          .layout { measurable, constraints ->
-            val minIntrinsicHeight = measurable.minIntrinsicHeight(constraints.maxWidth)
+      Modifier
+        // Clamp the host Android view height; drive it in Dp
+        .requiredHeight(heightDp)
+        // Post-layout: convert px -> dp, update RN & our dp state
+        .onSizeChanged { size ->
+          val h = with(density) { size.height.toDp() }
+          if (h != heightDp) {
+            heightDp = h
+            reportHeightChange(h.value) // send dp as Float to RN
+          }
+        }
+        // Custom measure path: force child to its min intrinsic height (in *px*)
+        .layout { measurable, constraints ->
+          val widthPx = constraints.maxWidth
+          val minHpx = measurable.minIntrinsicHeight(widthPx).coerceAtLeast(1)
 
-            height = minIntrinsicHeight
-
-            layout(constraints.maxWidth, minIntrinsicHeight) {
-              measurable
-                .measure(
-                  constraints.copy(
-                    minHeight = minIntrinsicHeight,
-                    maxHeight = minIntrinsicHeight,
-                  ),
-                ).placeRelative(IntOffset.Zero)
-            }
-          }.onPlaced {
-            reportHeightChange(
-              with(density) {
-                height.toDp().value
-              },
+          // Measure the child with a tight height equal to min intrinsic
+          val placeable =
+            measurable.measure(
+              constraints.copy(
+                minHeight = minHpx,
+                maxHeight = minHpx,
+              ),
             )
-          },
+
+          // Our own size: use the child’s measured size
+          layout(constraints.maxWidth, placeable.height) {
+            placeable.placeRelative(IntOffset.Zero)
+          }
+        },
     ) {
-      embedded.Content()
+      content()
     }
   }
 
