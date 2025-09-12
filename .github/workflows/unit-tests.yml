@@ -89,13 +89,8 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+      - name: Cache Gradle build
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Check code formatting
         run: yarn format:android:check
