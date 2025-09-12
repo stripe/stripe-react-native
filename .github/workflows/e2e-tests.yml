@@ -66,7 +66,7 @@ jobs:
           java-version: '17'
 
       - name: Cache Gradle build
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: false
 
