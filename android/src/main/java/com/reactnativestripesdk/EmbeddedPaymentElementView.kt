@@ -249,7 +249,15 @@ class EmbeddedPaymentElementView(
               )
 
             when (result) {
-              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(1f)
+              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
+                // Force a re-layout so Compose/Android view sizes reconcile after configure.
+                this@EmbeddedPaymentElementView.post {
+                  requestLayout()
+                  invalidate()
+                }
+
+                // Height will still be reported automatically via onSizeChanged in measuredEmbeddedElement
+              }
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
                 // send the error back to JS
                 val err = result.error
