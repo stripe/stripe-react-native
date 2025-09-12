@@ -27,17 +27,6 @@ jobs:
       RETRY_SLEEP_FAST: 10
       RETRY_SLEEP_SLOW: 45
     steps:
-      - name: Delete unnecessary tools 🔧
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: false # Don't remove Android tools
-          tool-cache: true # Remove image tool cache - rm -rf "$AGENT_TOOLSDIRECTORY"
-          dotnet: true # rm -rf /usr/share/dotnet
-          haskell: true # rm -rf /opt/ghc...
-          swap-storage: true # rm -f /mnt/swapfile (4GiB)
-          docker-images: false # Takes 16s, enable if needed in the future
-          large-packages: false # includes google-cloud-sdk and it's slow
-
       # Enable KVM to be able to use hardware accelerated emulators.
       # https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
       - name: Enable KVM group perms
@@ -76,20 +65,21 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Gradle cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+      - name: Cache Gradle build
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Android App
+        run: |
+          cd example/android
+          yarn build:android
+          ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
 
       - name: Install Maestro CLI
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> $GITHUB_PATH
 
-      - name: Run Android Emulator and app
+      - name: Run Android Emulator and run tests
         id: android_tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -105,8 +95,7 @@ jobs:
           script: |
             # Wait for system to settle
             adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
-            # Retry once if necessary
-            yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED" || (sleep 60 && yarn run-example-android:release --extra-params="-PnewArchEnabled=$NEW_ARCH_ENABLED")
+            adb install -r example/android/app/build/outputs/apk/release/app-release.apk
             yarn test:e2e:android
 
       - name: Upload test artifacts
@@ -178,7 +167,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": " *Nightly Build Failed* for e2e-android-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   test-ios:
     name: e2e-ios-test
@@ -326,7 +315,7 @@ jobs:
           webhook: ${{ secrets.SLACK_RUN_CHANNEL_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-              "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "text": "*Nightly Build Failed* for e2e-ios-test ( ${{ matrix.react_arch }} )\nSee details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   # Reporter jobs that provide the status checks branch protection expects
   report-android-status:
