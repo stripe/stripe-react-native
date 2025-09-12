@@ -385,6 +385,8 @@ export interface UseEmbeddedPaymentElementResult {
   clearPaymentOption: () => void;
   // Any error encountered during creation/update, or null
   loadingError: Error | null;
+  // Whether the embedded payment element has loaded (height > 1)
+  isLoaded: boolean;
 }
 
 /**
@@ -407,6 +409,10 @@ export function useEmbeddedPaymentElement(
   const [height, setHeight] = useState<number | undefined>();
   const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
+
+  const isLoaded = useMemo(() => {
+    return height !== undefined && height > 1;
+  }, [height]);
 
   function getElementOrThrow(ref: {
     current: EmbeddedPaymentElement | null;
@@ -550,5 +556,6 @@ export function useEmbeddedPaymentElement(
     update,
     clearPaymentOption,
     loadingError,
+    isLoaded,
   };
 }
