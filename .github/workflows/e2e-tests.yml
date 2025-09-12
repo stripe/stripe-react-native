@@ -67,8 +67,6 @@ jobs:
 
       - name: Cache Gradle build
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: false
 
       - name: Build Android App
         run: |
