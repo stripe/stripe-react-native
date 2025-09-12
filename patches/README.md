@@ -14,7 +14,7 @@ This occurs because the React Native codegen in the old architecture doesn't sup
 
 ## The Solution
 
-If possible, update to version 0.52 or above of the Streip React Native SDK. If you are unable to do so, use the `old-arch-codegen-fix` patch.
+If possible, update to version 0.52 or above of the Stripe React Native SDK. If you are unable to do so, use the `old-arch-codegen-fix` patch.
 
 This patch converts all `EventEmitter` properties to callback function methods, making them compatible with the old architecture codegen.
 
