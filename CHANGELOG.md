@@ -4,6 +4,7 @@
 
 **Fixes**
 - Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
+- Fixed Android EmbeddedPaymentElement layout measurement issues by improving height calculation and switching from `onPlaced` to `onSizeChanged` for better layout synchronization.
 
 ## 0.52.0 - 2025-09-08
 **Features**
