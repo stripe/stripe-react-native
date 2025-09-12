@@ -404,7 +404,9 @@ export function useEmbeddedPaymentElement(
   const [element, setElement] = useState<EmbeddedPaymentElement | null>(null);
   const [paymentOption, setPaymentOption] =
     useState<PaymentOptionDisplayData | null>(null);
-  const [height, setHeight] = useState<number | undefined>();
+  const [height, setHeight] = useState<number | undefined>(
+    isAndroid ? 1 : undefined
+  );
   const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
 
