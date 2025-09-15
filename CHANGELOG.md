@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x.x.x
+## 0.53.0 - 2025-09-15
 
 **Features**
 - Added `isLoaded` flag to `useEmbeddedPaymentElement` hook that indicates when the embedded payment element has finished loading and is ready to display (height > 1). Useful for showing loading states and smooth UI transitions.
