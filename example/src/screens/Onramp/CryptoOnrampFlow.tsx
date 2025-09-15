@@ -23,7 +23,12 @@ import {
   createOnrampSession,
   checkout,
 } from '../../../server/onrampBackend';
-import { getDestinationParamsForNetwork } from './utils';
+import {
+  getDestinationParamsForNetwork,
+  showError,
+  showSuccess,
+  showCanceled,
+} from './utils';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
@@ -102,9 +107,8 @@ export default function CryptoOnrampFlow() {
       if (isAuthError(result.error)) {
         const reauthResult = await reauth();
         if (reauthResult.error) {
-          Alert.alert(
-            'Error reauthenticating',
-            `${JSON.stringify(reauthResult.error, null, 2)}`
+          showError(
+            `Error reauthenticating: ${JSON.stringify(reauthResult.error, null, 2)}`
           );
           return result;
         }
@@ -131,7 +135,7 @@ export default function CryptoOnrampFlow() {
 
   const handlePresentVerification = useCallback(async () => {
     if (!userInfo.email) {
-      Alert.alert('Error', 'Please enter an email address first.');
+      showError('Please enter an email address first.');
       return;
     }
 
@@ -143,37 +147,32 @@ export default function CryptoOnrampFlow() {
       );
 
       if (!authIntentResponse.success) {
-        Alert.alert(
-          'Error Creating Auth Intent',
+        showError(
           `Code: ${authIntentResponse.error.code}\nMessage: ${authIntentResponse.error.message}`
         );
         return;
       }
 
       const authIntentId = authIntentResponse.data.data.id;
-      console.log(`Created auth intent: ${authIntentId}`);
 
       // Step 2: Authorize using the created auth intent ID
       const result = await authorize(authIntentId);
 
       if (result?.error) {
-        Alert.alert('Error', `Authentication Failed: ${result.error.message}.`);
+        showError(`Authentication Failed: ${result.error.message}.`);
       } else if (result?.status === 'Consented' && result.customerId) {
-        Alert.alert('Success', `Authentication successful!`);
+        showSuccess(`Authentication successful!`);
         setCustomerId(result.customerId);
         setLinkAuthIntentId(authIntentId);
         setAuthToken(authIntentResponse.data.token);
       } else if (result?.status === 'Denied') {
-        Alert.alert(
-          'Access Denied',
-          'User denied the authentication request. Please try again.'
-        );
+        showError('User denied the authentication request. Please try again.');
       } else {
-        Alert.alert('Cancelled', 'Authentication cancelled, please try again.');
+        showCanceled('Authentication cancelled, please try again.');
       }
     } catch (error) {
       console.error('Error in authentication flow:', error);
-      Alert.alert('Error', 'Failed to complete authentication flow.');
+      showError('Failed to complete authentication flow.');
     }
   }, [userInfo.email, authorize]);
 
@@ -193,12 +192,9 @@ export default function CryptoOnrampFlow() {
         );
       }
     } else if (result?.status) {
-      Alert.alert(
-        'Success',
-        `Link auth intent ${result.status.toLowerCase()}.`
-      );
+      showSuccess(`Link auth intent ${result.status.toLowerCase()}.`);
     } else {
-      Alert.alert('Cancelled', 'Link auth intent authorization was cancelled.');
+      showCanceled('Link auth intent authorization was cancelled.');
     }
   }, [authorize, linkAuthIntentId]);
 
@@ -210,18 +206,14 @@ export default function CryptoOnrampFlow() {
 
     if (result?.error) {
       if (result.error.code === 'Canceled') {
-        Alert.alert(
-          'Canceled',
-          'Identity Verification canceled, please try again.'
-        );
+        showCanceled('Identity Verification canceled, please try again.');
       } else {
-        Alert.alert(
-          'Error',
+        showError(
           `Could not verify identity: ${JSON.stringify(result.error, null, 2)}`
         );
       }
     } else {
-      Alert.alert('Success', 'Identity Verification completed');
+      showSuccess('Identity Verification completed');
     }
   }, [verifyIdentity, withReauth, authorize, linkAuthIntentId]);
 
@@ -251,12 +243,9 @@ export default function CryptoOnrampFlow() {
     );
 
     if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Failed to attach KYC info: ${result.error.message}.`
-      );
+      showError(`Failed to attach KYC info: ${result.error.message}.`);
     } else {
-      Alert.alert('Success', 'KYC Attached');
+      showSuccess('KYC Attached');
     }
   }, [
     attachKycInfo,
@@ -269,15 +258,14 @@ export default function CryptoOnrampFlow() {
 
   const handleUpdatePhoneNumber = useCallback(async () => {
     if (!userInfo.phoneNumber) {
-      Alert.alert('Error', 'Please enter a phone number first.');
+      showError('Please enter a phone number first.');
       return;
     }
 
     // Validate E.164 format
     const e164Regex = /^\+[1-9]\d{1,14}$/;
     if (!e164Regex.test(userInfo.phoneNumber)) {
-      Alert.alert(
-        'Invalid Phone Number',
+      showError(
         'Please enter a valid phone number in E.164 format (e.g., +12125551234)'
       );
       return;
@@ -287,12 +275,9 @@ export default function CryptoOnrampFlow() {
     const result = await updatePhoneNumber(userInfo.phoneNumber);
 
     if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Failed to update phone number: ${result.error.message}.`
-      );
+      showError(`Failed to update phone number: ${result.error.message}.`);
     } else {
-      Alert.alert('Success', 'Phone number updated successfully!');
+      showSuccess('Phone number updated successfully!');
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
@@ -312,17 +297,11 @@ export default function CryptoOnrampFlow() {
       );
 
       if (result?.error) {
-        Alert.alert(
-          'Error',
-          `Could not collect payment: ${result.error.message}.`
-        );
+        showError(`Could not collect payment: ${result.error.message}.`);
       } else if (result?.displayData) {
         setPaymentDisplayData(result.displayData);
       } else {
-        Alert.alert(
-          'Cancelled',
-          'Payment collection cancelled, please try again.'
-        );
+        showCanceled('Payment collection cancelled, please try again.');
       }
     },
     [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]
@@ -392,8 +371,7 @@ export default function CryptoOnrampFlow() {
     );
 
     if (result?.error) {
-      Alert.alert(
-        'Error',
+      showError(
         `Could not create crypto payment token: ${result.error.message}.`
       );
     } else {
@@ -430,19 +408,16 @@ export default function CryptoOnrampFlow() {
         // Cache the session ID for checkout
         setOnrampSessionId(result.data.id);
 
-        Alert.alert(
-          'Onramp Session Created',
-          `Session ID: ${result.data.id}\nClient Secret: ${result.data.client_secret.substring(0, 20)}...`
+        showSuccess(
+          `Onramp Session Created: Session ID: ${result.data.id}\nClient Secret: ${result.data.client_secret.substring(0, 20)}...`
         );
       } else {
-        Alert.alert(
-          'Error Creating Onramp Session',
-          `Code: ${result.error.code}\nMessage: ${result.error.message}`
+        showError(
+          `Failed to create onramp session: Code: ${result.error.code}\nMessage: ${result.error.message}`
         );
       }
     } catch (error) {
-      console.error('Error creating onramp session:', error);
-      Alert.alert('Error', 'Failed to create onramp session.');
+      showError('Failed to create onramp session.');
     } finally {
       setIsCreatingSession(false);
     }
@@ -457,7 +432,7 @@ export default function CryptoOnrampFlow() {
 
   const handlePerformCheckout = useCallback(async () => {
     if (!onrampSessionId) {
-      Alert.alert('Error', 'Please create an onramp session first.');
+      showError('Please create an onramp session first.');
       return;
     }
 
@@ -479,18 +454,14 @@ export default function CryptoOnrampFlow() {
       });
 
       if (result?.error) {
-        Alert.alert(
-          'Error',
-          `Could not perform checkout: ${result.error.message}.`
-        );
+        showError(`Could not perform checkout: ${result.error.message}.`);
       } else if (result) {
-        Alert.alert('Success', 'Checkout succeeded!');
+        showSuccess('Checkout succeeded!');
       } else {
-        Alert.alert('Cancelled', 'Checkout cancelled.');
+        showCanceled('Checkout cancelled.');
       }
     } catch (error) {
-      console.error('Error during checkout:', error);
-      Alert.alert('Error', 'Failed to complete checkout.');
+      showError('Failed to complete checkout.');
     } finally {
       setIsCheckingOut(false);
     }
@@ -500,9 +471,9 @@ export default function CryptoOnrampFlow() {
     const result = await logOut();
 
     if (result?.error) {
-      Alert.alert('Error', `Could not log out: ${result.error.message}.`);
+      showError(`Could not log out: ${result.error.message}.`);
     } else {
-      Alert.alert('Success', 'Logged out successfully!');
+      showSuccess('Logged out successfully!');
       // Reset all state to initial values
       setUserInfo({ email: '', firstName: '', lastName: '', phoneNumber: '' });
       setLinkAuthIntentId('');
