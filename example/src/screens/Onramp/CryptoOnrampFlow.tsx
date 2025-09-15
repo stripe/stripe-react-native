@@ -8,7 +8,6 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
-  Image,
   Platform,
   ScrollView,
   Text,
@@ -42,6 +41,7 @@ import {
   CryptoOperationsSection,
   OnrampSessionCreationSection,
   RegisterWalletAddressSection,
+  OnrampResponseStatusSection,
 } from './sections';
 import { colors } from '../../colors';
 
@@ -525,68 +525,16 @@ export default function CryptoOnrampFlow() {
         )}
       </Collapse>
 
-      {response && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText}>{response}</Text>
-        </View>
-      )}
-
-      {customerId && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText}>
-            {'Customer ID: ' + customerId}
-          </Text>
-        </View>
-      )}
-
-      {paymentDisplayData && (
-        <View style={styles.buttonContainer}>
-          <Image
-            source={{ uri: paymentDisplayData.icon }}
-            style={{ width: 32, height: 32 }}
-            resizeMode="contain"
-          />
-          <Text style={styles.responseText}>
-            {'Payment Method Label: ' + paymentDisplayData.label}
-          </Text>
-          <Text style={styles.responseText}>
-            {'Payment Method Sublabel: ' + paymentDisplayData.sublabel}
-          </Text>
-        </View>
-      )}
-
-      {cryptoPaymentToken && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText} selectable>
-            {'Crypto Payment Token: ' + cryptoPaymentToken}
-          </Text>
-        </View>
-      )}
-
-      {authToken && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText} selectable>
-            {'Auth Token: ' + authToken.substring(0, 20) + '...'}
-          </Text>
-        </View>
-      )}
-
-      {walletAddress && walletNetwork && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText} selectable>
-            {'Wallet Address: ' + walletAddress}
-          </Text>
-          <Text style={styles.responseText}>{'Network: ' + walletNetwork}</Text>
-        </View>
-      )}
-
-      {onrampSessionId && (
-        <View style={styles.buttonContainer}>
-          <Text style={styles.responseText} selectable>
-            {'Onramp Session ID: ' + onrampSessionId}
-          </Text>
-        </View>
-      )}
+      <OnrampResponseStatusSection
+        response={response}
+        customerId={customerId}
+        paymentDisplayData={paymentDisplayData}
+        cryptoPaymentToken={cryptoPaymentToken}
+        authToken={authToken}
+        walletAddress={walletAddress}
+        walletNetwork={walletNetwork}
+        onrampSessionId={onrampSessionId}
+      />
 
       {isLinkUser === true && customerId === null && (
         <>
@@ -657,25 +605,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingEnd: 16, // Hack.
   },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomColor: colors.light_gray,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
   infoText: {},
-  textInput: {
-    borderWidth: 1,
-    borderColor: colors.light_gray,
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
-  },
-  responseText: {
-    marginTop: 12,
-    fontSize: 12,
-    color: colors.dark_gray,
-  },
   logoutContainer: {
     paddingStart: 16,
     paddingVertical: 16,

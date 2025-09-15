@@ -6,3 +6,4 @@ export { PaymentCollectionSection } from './PaymentCollectionSection';
 export { CryptoOperationsSection } from './CryptoOperationsSection';
 export { OnrampSessionCreationSection } from './OnrampSessionCreationSection';
 export { RegisterWalletAddressSection } from './RegisterWalletAddressSection';
+export { OnrampResponseStatusSection } from './OnrampResponseStatusSection';
