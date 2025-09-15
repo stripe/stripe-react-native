@@ -225,38 +225,6 @@ export default function CryptoOnrampFlow() {
     }
   }, [verifyIdentity, withReauth, authorize, linkAuthIntentId]);
 
-  const handleCollectApplePayPayment = useCallback(async () => {
-    const platformPayParams: PlatformPay.PaymentMethodParams = {
-      applePay: {
-        cartItems: [
-          {
-            label: 'Example',
-            amount: '1.00',
-            paymentType: PlatformPay.PaymentType.Immediate,
-          },
-        ],
-        merchantCountryCode: 'US',
-        currencyCode: 'USD',
-      },
-    };
-
-    const result = await collectPaymentMethod('PlatformPay', platformPayParams);
-
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not collect payment: ${result.error.message}.`
-      );
-    } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
-    } else {
-      Alert.alert(
-        'Cancelled',
-        'Payment collection cancelled, please try again.'
-      );
-    }
-  }, [collectPaymentMethod]);
-
   const handleAttachKycInfo = useCallback(async () => {
     const kycInfo = {
       firstName: userInfo.firstName,
@@ -328,26 +296,66 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.phoneNumber, updatePhoneNumber]);
 
-  const handleCollectCardPayment = useCallback(async () => {
-    const result = await withReauth(
-      () => collectPaymentMethod('Card'),
-      () => authorize(linkAuthIntentId)
-    );
+  type CollectPaymentRequest =
+    | { type: 'Card' }
+    | { type: 'BankAccount' }
+    | { type: 'PlatformPay'; params: PlatformPay.PaymentMethodParams };
 
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not collect payment: ${result.error.message}.`
+  const handleCollectPaymentMethod = useCallback(
+    async (request: CollectPaymentRequest) => {
+      const result = await withReauth(
+        () =>
+          request.type === 'PlatformPay'
+            ? collectPaymentMethod(request.type, request.params)
+            : collectPaymentMethod(request.type),
+        () => authorize(linkAuthIntentId)
       );
-    } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
-    } else {
-      Alert.alert(
-        'Cancelled',
-        'Payment collection cancelled, please try again.'
-      );
-    }
-  }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
+
+      if (result?.error) {
+        Alert.alert(
+          'Error',
+          `Could not collect payment: ${result.error.message}.`
+        );
+      } else if (result?.displayData) {
+        setPaymentDisplayData(result.displayData);
+      } else {
+        Alert.alert(
+          'Cancelled',
+          'Payment collection cancelled, please try again.'
+        );
+      }
+    },
+    [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]
+  );
+
+  const handleCollectCardPayment = useCallback(async () => {
+    handleCollectPaymentMethod({ type: 'Card' });
+  }, [handleCollectPaymentMethod]);
+
+  const handleCollectBankAccountPayment = useCallback(async () => {
+    handleCollectPaymentMethod({ type: 'BankAccount' });
+  }, [handleCollectPaymentMethod]);
+
+  const handleCollectApplePayPayment = useCallback(async () => {
+    const platformPayParams: PlatformPay.PaymentMethodParams = {
+      applePay: {
+        cartItems: [
+          {
+            label: 'Example',
+            amount: '1.00',
+            paymentType: PlatformPay.PaymentType.Immediate,
+          },
+        ],
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+      },
+    };
+
+    handleCollectPaymentMethod({
+      type: 'PlatformPay',
+      params: platformPayParams,
+    });
+  }, [handleCollectPaymentMethod]);
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
@@ -376,27 +384,6 @@ export default function CryptoOnrampFlow() {
     cryptoPaymentToken,
     authToken,
   ]);
-
-  const handleCollectBankAccountPayment = useCallback(async () => {
-    const result = await withReauth(
-      () => collectPaymentMethod('BankAccount'),
-      () => authorize(linkAuthIntentId)
-    );
-
-    if (result?.error) {
-      Alert.alert(
-        'Error',
-        `Could not collect payment: ${result.error.message}.`
-      );
-    } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
-    } else {
-      Alert.alert(
-        'Cancelled',
-        'Payment collection cancelled, please try again.'
-      );
-    }
-  }, [collectPaymentMethod, withReauth, authorize, linkAuthIntentId]);
 
   const handleCreateCryptoPaymentToken = useCallback(async () => {
     const result = await withReauth(
