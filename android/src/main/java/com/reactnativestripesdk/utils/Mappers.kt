@@ -558,6 +558,7 @@ internal fun mapNextAction(
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
+    NextActionType.DisplayPayNowDetails,
     null,
     -> {
       return null
