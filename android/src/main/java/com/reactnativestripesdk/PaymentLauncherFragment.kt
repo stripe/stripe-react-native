@@ -383,6 +383,7 @@ class PaymentLauncherFragment : StripeFragment() {
       StripeIntent.NextActionType.DisplayKonbiniDetails,
       StripeIntent.NextActionType.VerifyWithMicrodeposits,
       StripeIntent.NextActionType.DisplayMultibancoDetails,
+      StripeIntent.NextActionType.DisplayPayNowDetails,
       -> true
       StripeIntent.NextActionType.RedirectToUrl,
       StripeIntent.NextActionType.UseStripeSdk,
