@@ -1554,6 +1554,19 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(paymentDisplayData:type:brand:lastFour:)
+    public func paymentDisplayData(
+        type: String,
+        brand: String,
+        lastFour: String
+    ) -> [String: Any] {
+        return [
+            "icon": "",
+            "label": "",
+            "sublabel": ""
+        ]
+    }
+
     /// Checks for a `publishableKey`. Calls the resolve block with an error when one doesn’t exist.
     /// - Parameter resolve: The resolve block that is called with an error if no `publishableKey` is found.
     /// - Returns: `true` if a `publishableKey` was found. `false` otherwise.
@@ -1647,6 +1660,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc(onrampAuthorize:resolver:rejecter:)
     public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(paymentDisplayData:type:brand:lastFour:)
+    public func paymentDisplayData(type: String, brand: String, lastFour: String) -> [String: Any]? {
+        return nil
     }
 
     private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {

@@ -50,6 +50,7 @@ export default function CryptoOnrampFlow() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
+    paymentDisplayData,
     logOut,
     isAuthError,
   } = useOnramp();
@@ -70,7 +71,7 @@ export default function CryptoOnrampFlow() {
   const [cardPaymentMethod] = useState('Card');
   const [bankAccountPaymentMethod] = useState('BankAccount');
 
-  const [paymentDisplayData, setPaymentDisplayData] =
+  const [currentPaymentDisplayData, setCurrentPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
 
   const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
@@ -128,6 +129,16 @@ export default function CryptoOnrampFlow() {
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
   }, [userInfo.email, hasLinkAccount]);
+
+  const showPaymentData = useCallback(() => {
+    const data = paymentDisplayData('card', 'visa', '4242');
+
+    if (data) {
+      setCurrentPaymentDisplayData(data);
+    } else {
+      Alert.alert('No Payment Data', 'No payment data available to display.');
+    }
+  }, [paymentDisplayData]);
 
   const handlePresentVerification = useCallback(async () => {
     if (!userInfo.email) {
@@ -248,7 +259,7 @@ export default function CryptoOnrampFlow() {
         `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
+      setCurrentPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -340,7 +351,7 @@ export default function CryptoOnrampFlow() {
         `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
+      setCurrentPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -358,7 +369,8 @@ export default function CryptoOnrampFlow() {
     if (!customerId) missingItems.push('customer authentication');
     if (!walletAddress || !walletNetwork)
       missingItems.push('wallet address registration');
-    if (!paymentDisplayData) missingItems.push('payment method selection');
+    if (!currentPaymentDisplayData)
+      missingItems.push('payment method selection');
     if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
     if (!authToken) missingItems.push('authentication token');
 
@@ -372,7 +384,7 @@ export default function CryptoOnrampFlow() {
     customerId,
     walletAddress,
     walletNetwork,
-    paymentDisplayData,
+    currentPaymentDisplayData,
     cryptoPaymentToken,
     authToken,
   ]);
@@ -389,7 +401,7 @@ export default function CryptoOnrampFlow() {
         `Could not collect payment: ${result.error.message}.`
       );
     } else if (result?.displayData) {
-      setPaymentDisplayData(result.displayData);
+      setCurrentPaymentDisplayData(result.displayData);
     } else {
       Alert.alert(
         'Cancelled',
@@ -522,7 +534,7 @@ export default function CryptoOnrampFlow() {
       setResponse(null);
       setIsLinkUser(false);
       setCustomerId(null);
-      setPaymentDisplayData(null);
+      setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
       setAuthToken(null);
       setWalletAddress(null);
@@ -581,18 +593,18 @@ export default function CryptoOnrampFlow() {
         </View>
       )}
 
-      {paymentDisplayData && (
+      {currentPaymentDisplayData && (
         <View style={styles.buttonContainer}>
           <Image
-            source={{ uri: paymentDisplayData.icon }}
+            source={{ uri: currentPaymentDisplayData.icon }}
             style={{ width: 32, height: 32 }}
             resizeMode="contain"
           />
           <Text style={styles.responseText}>
-            {'Payment Method Label: ' + paymentDisplayData.label}
+            {'Payment Method Label: ' + currentPaymentDisplayData.label}
           </Text>
           <Text style={styles.responseText}>
-            {'Payment Method Sublabel: ' + paymentDisplayData.sublabel}
+            {'Payment Method Sublabel: ' + currentPaymentDisplayData.sublabel}
           </Text>
         </View>
       )}
@@ -648,6 +660,13 @@ export default function CryptoOnrampFlow() {
 
       {isLinkUser === true && customerId != null && (
         <>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Alert Payment Data"
+              onPress={showPaymentData}
+              variant="primary"
+            />
+          </View>
           <AttachKycInfoSection
             userInfo={userInfo}
             setUserInfo={setUserInfo}

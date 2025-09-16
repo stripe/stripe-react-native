@@ -12,6 +12,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.ErrorType
@@ -24,6 +25,13 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
+
+import com.stripe.android.model.CardBrand
+import com.stripe.android.model.CvcCheck
+import com.stripe.android.model.ConsumerPaymentDetails
+import com.stripe.android.model.ConsumerPaymentDetails.Card
+import com.stripe.android.link.toPreview
+
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.DateOfBirth
@@ -527,6 +535,43 @@ class OnrampSdkModule(
     authorizePromise = promise
 
     presenter.authorize(linkAuthIntentId)
+  }
+
+  @ReactMethod
+  override fun paymentDisplayData(
+    type: String,
+    brand: String,
+    lastFour: String
+  ): WritableMap? {
+    val card = ConsumerPaymentDetails.Card(
+      id = "",
+      last4 = lastFour,
+      isDefault = false,
+      nickname = null,
+      billingAddress = null,
+      billingEmailAddress = null,
+      expiryYear = 2030, // placeholder
+      expiryMonth = 12,  // placeholder
+      brand = CardBrand.fromCode(brand),
+      networks = emptyList(),
+      cvcCheck = CvcCheck.Pass, // or appropriate value
+      funding = "credit" // or "debit"
+    )
+
+    val context = reactApplicationContext
+    val preview = card.toPreview(context)
+
+    val icon =
+      currentActivity
+        ?.let { ContextCompat.getDrawable(it, preview.iconRes) }
+        ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
+
+    val displayData = Arguments.createMap()
+    
+    displayData.putString("icon", icon)
+    displayData.putString("label", preview.label)
+    displayData.putString("sublabel", preview.sublabel)
+    return displayData
   }
 
   @ReactMethod

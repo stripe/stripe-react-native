@@ -1,6 +1,11 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
-import type { Onramp, OnrampError, StripeError } from '../types';
+import type {
+  Onramp,
+  OnrampError,
+  PaymentOptionData,
+  StripeError,
+} from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
@@ -140,6 +145,14 @@ export function useOnramp() {
     []
   );
 
+  const _paymentDisplayData = (
+    type: string,
+    brand: string,
+    lastFour: string
+  ): PaymentOptionData | null => {
+    return NativeOnrampSdk.paymentDisplayData(type, brand, lastFour);
+  };
+
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
@@ -258,6 +271,8 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with status and customerId or error
      */
     authorize: _authorize,
+
+    paymentDisplayData: _paymentDisplayData,
 
     /**
      * Logs out the current user from their Link account.
