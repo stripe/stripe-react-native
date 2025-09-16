@@ -131,7 +131,7 @@ export default function CryptoOnrampFlow() {
   }, [userInfo.email, hasLinkAccount]);
 
   const showPaymentData = useCallback(() => {
-    const data = paymentDisplayData('card', 'visa', '4242');
+    const data = paymentDisplayData('Card', 'visa', '4242');
 
     if (data) {
       setCurrentPaymentDisplayData(data);

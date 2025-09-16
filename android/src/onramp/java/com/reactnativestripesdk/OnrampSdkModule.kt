@@ -30,6 +30,7 @@ import com.stripe.android.model.CardBrand
 import com.stripe.android.model.CvcCheck
 import com.stripe.android.model.ConsumerPaymentDetails
 import com.stripe.android.model.ConsumerPaymentDetails.Card
+import com.stripe.android.model.ConsumerPaymentDetails.BankAccount
 import com.stripe.android.link.toPreview
 
 import com.stripe.android.crypto.onramp.OnrampCoordinator
@@ -543,23 +544,42 @@ class OnrampSdkModule(
     brand: String,
     lastFour: String
   ): WritableMap? {
-    val card = ConsumerPaymentDetails.Card(
-      id = "",
-      last4 = lastFour,
-      isDefault = false,
-      nickname = null,
-      billingAddress = null,
-      billingEmailAddress = null,
-      expiryYear = 2030, // placeholder
-      expiryMonth = 12,  // placeholder
-      brand = CardBrand.fromCode(brand),
-      networks = emptyList(),
-      cvcCheck = CvcCheck.Pass, // or appropriate value
-      funding = "credit" // or "debit"
-    )
+    val paymentDetails: ConsumerPaymentDetails.PaymentDetails
 
+    when (type) {
+        "Card" ->
+          paymentDetails = ConsumerPaymentDetails.Card(
+            id = "",
+            last4 = lastFour,
+            isDefault = false,
+            nickname = null,
+            billingAddress = null,
+            billingEmailAddress = null,
+            expiryYear = 9999,
+            expiryMonth = 12,
+            brand = CardBrand.fromCode(brand),
+            networks = emptyList(),
+            cvcCheck = CvcCheck.Pass,
+            funding = ""
+          )
+        "BankAccount" ->
+          paymentDetails = ConsumerPaymentDetails.BankAccount(
+            id = "",
+            last4 = lastFour,
+            isDefault = false,
+            nickname = null,
+            bankName = brand,
+            bankIconCode = null,
+            billingAddress = null,
+            billingEmailAddress = null
+          )
+        else -> {
+          return null
+        }
+      }
+    
     val context = reactApplicationContext
-    val preview = card.toPreview(context)
+    val preview = paymentDetails.toPreview(context)
 
     val icon =
       currentActivity
