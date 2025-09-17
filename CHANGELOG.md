@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## x.x.x - x.x.x
+
+**Fixes**
+
+- [#2128](https://github.com/stripe/stripe-react-native/pull/2128) Fix headless task not registered by StripeProvider.
+
 ## 0.53.0 - 2025-09-15
 
 **Features**
