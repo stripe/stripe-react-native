@@ -254,21 +254,6 @@ export type CreateCryptoPaymentTokenResult =
     };
 
 /**
- * Result of retrieving information about a payment method for display.
- */
-export type PaymentDisplayDataResult =
-  | {
-      /** Display data for the selected payment method. */
-      displayData: PaymentMethodDisplayData;
-      error?: undefined;
-    }
-  | {
-      displayData?: undefined;
-      /** Present if collection/selection failed with an error. */
-      error: StripeError<OnrampError>;
-    };
-
-/**
  * A representation of the crypto payment token, which contains details about the payment method used.
  */
 export type CryptoPaymentToken =

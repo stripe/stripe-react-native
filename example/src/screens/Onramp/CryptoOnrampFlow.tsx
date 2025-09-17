@@ -31,7 +31,6 @@ import {
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
-import type { CryptoPaymentToken } from '../../../../src/types/Onramp';
 
 import {
   AttachKycInfoSection,
@@ -136,7 +135,7 @@ export default function CryptoOnrampFlow() {
   }, [userInfo.email, hasLinkAccount]);
 
   const showPaymentData = useCallback(async () => {
-    const cardParams: CryptoPaymentToken = {
+    const cardParams: Onramp.CryptoPaymentToken = {
       card: {
         brand: 'visa',
         funding: 'credit',
@@ -144,7 +143,7 @@ export default function CryptoOnrampFlow() {
       },
     };
 
-    const bankParams: CryptoPaymentToken = {
+    const bankParams: Onramp.CryptoPaymentToken = {
       us_bank_account: {
         bank_name: 'Bank of America',
         last4: '5678',
