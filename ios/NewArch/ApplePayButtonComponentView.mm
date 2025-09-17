@@ -8,7 +8,7 @@
 #import <React/RCTConversions.h>
 #import <React/RCTFabricComponentsPlugins.h>
 
-#import "RCTFollyConvert.h"
+#import "StripeNewArchConversions.h"
 #import "StripeSwiftInterop.h"
 
 using namespace facebook::react;

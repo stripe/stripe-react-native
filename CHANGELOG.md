@@ -5,6 +5,7 @@
 **Fixes**
 
 - [#2128](https://github.com/stripe/stripe-react-native/pull/2128) Fix headless task not registered by StripeProvider.
+- [#2129](https://github.com/stripe/stripe-react-native/pull/2129) Fix iOS build on new arch 0.81 with static linkage
 
 ## 0.53.0 - 2025-09-15
 
