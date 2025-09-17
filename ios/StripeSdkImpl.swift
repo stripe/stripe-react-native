@@ -1574,7 +1574,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let funding = paymentParams["funding"] as? String ?? ""
             let last4 = paymentParams["last4"] as? String ?? ""
 
-            let cardBrand = Mappers.mapToCardBrand(brand)
+            let cardBrand = STPCard.brand(from: brand)
             let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
             let brandName = STPCardBrandUtilities.stringFrom(cardBrand)
 
