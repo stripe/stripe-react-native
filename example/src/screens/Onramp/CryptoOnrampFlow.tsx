@@ -148,8 +148,8 @@ export default function CryptoOnrampFlow() {
       last4: '5678',
     };
 
-    const cardData = await paymentDisplayData(cardParams);
-    const bankData = await paymentDisplayData(bankParams);
+    const cardData = (await paymentDisplayData(cardParams)).displayData;
+    const bankData = (await paymentDisplayData(bankParams)).displayData;
 
     if (cardData) {
       setCurrentPaymentDisplayData(cardData);

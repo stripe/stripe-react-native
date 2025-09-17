@@ -583,7 +583,6 @@ class OnrampSdkModule(
         }
     }
 
-
     val icon =
       currentActivity
         ?.let { ContextCompat.getDrawable(it, paymentDetails.iconRes) }

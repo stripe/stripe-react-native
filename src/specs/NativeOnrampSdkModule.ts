@@ -1,7 +1,7 @@
 import { TurboModuleRegistry } from 'react-native';
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
-import type { InitialiseParams, Onramp, PaymentOptionData } from '../types';
+import type { InitialiseParams, Onramp } from '../types';
 import type {
   CardPaymentMethodParams,
   BankAccountPaymentMethodParams,
@@ -39,7 +39,7 @@ export interface Spec extends TurboModule {
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   paymentDisplayData(
     type: CardPaymentMethodParams | BankAccountPaymentMethodParams
-  ): Promise<PaymentOptionData>;
+  ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
 }
 

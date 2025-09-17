@@ -1,11 +1,6 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
-import type {
-  Onramp,
-  OnrampError,
-  PaymentOptionData,
-  StripeError,
-} from '../types';
+import type { Onramp, OnrampError, StripeError } from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
@@ -152,7 +147,7 @@ export function useOnramp() {
   const _paymentDisplayData = useCallback(
     async (
       paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
-    ): Promise<PaymentOptionData> => {
+    ): Promise<Onramp.PaymentDisplayDataResult> => {
       return NativeOnrampSdk.paymentDisplayData(paymentParams);
     },
     []
