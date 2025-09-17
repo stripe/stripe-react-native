@@ -537,11 +537,11 @@ class OnrampSdkModule(
   override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
     val context = reactApplicationContext
 
-    val paymentDetails: PaymentMethodPreview = when (paymentParams.getString("type")) {
+    val paymentDetails: PaymentMethodPreview = when (token.getString("type")) {
         "Card" -> {
-            val brand = paymentParams.getString("brand") ?: ""
-            val funding = paymentParams.getString("funding") ?: ""
-            val last4 = paymentParams.getString("last4") ?: ""
+            val brand = token.getString("brand") ?: ""
+            val funding = token.getString("funding") ?: ""
+            val last4 = token.getString("last4") ?: ""
             val cardBrand = CardBrand.fromCode(brand)
 
             PaymentMethodPreview.create(
@@ -554,8 +554,8 @@ class OnrampSdkModule(
             )
         }
         "BankAccount" -> {
-            val bankName = paymentParams.getString("bankName")
-            val last4 = paymentParams.getString("last4") ?: ""
+            val bankName = token.getString("bankName")
+            val last4 = token.getString("last4") ?: ""
             PaymentMethodPreview.create(
               context = context,
               details = PaymentMethodPreviewDetails.BankAccount(

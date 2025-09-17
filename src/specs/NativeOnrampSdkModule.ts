@@ -37,7 +37,7 @@ export interface Spec extends TurboModule {
   performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   getCryptoTokenDisplayData(
-    token: CryptoPaymentToken
+    token: UnsafeObject<CryptoPaymentToken>
   ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
 }
