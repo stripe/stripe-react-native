@@ -1554,45 +1554,55 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(paymentDisplayData:)
-    public func paymentDisplayData(paymentParams: NSDictionary) -> [String: String]? {
+    @objc(paymentDisplayData:resolver:rejecter:)
+    public func paymentDisplayData(
+        paymentParams: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         guard let type = paymentParams["type"] as? String else {
-            return nil
+            let errorResult = Errors.createError(ErrorType.Unknown, "'type' parameter not found.")
+            resolve(["error": errorResult["error"]!])
+            return
         }
 
         let label = STPPaymentMethodType.link.displayName
 
         switch type {
         case "Card":
-            let brand = paymentParams.getString("brand") ?? ""
-            let funding = paymentParams.getString("funding") ?? ""
-            let last4 = paymentParams.getString("last4") ?? ""
+            let brand = paymentParams["brand"] as? String ?? ""
+            let funding = paymentParams["funding"] as? String ?? ""
+            let last4 = paymentParams["last4"] as? String ?? ""
 
-            let cardBrand = Mappers.mapToCardBrand(brand: brand)
+            let cardBrand = Mappers.mapToCardBrand(brand)
             let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
             let brandName = STPCardBrandUtilities.stringFrom(cardBrand)
-            let mappedFunding = Mappers.fundingTypeFromString(funding)
+
+            let mappedFunding = STPCardFundingType(funding)
             let formattedBrandName = String(format: mappedFunding.displayNameWithBrand, brandName ?? "")
             let sublabel = "\(formattedBrandName) •••• \(last4)"
             
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            return displayData
+            resolve(["displayData": displayData])
         case "BankAccount":
-            let bankName = paymentParams.getString("bankName") ?? ""
-            let last4 = paymentParams.getString("last4") ?? ""
+            let bankName = paymentParams["bankName"] as? String ?? ""
+            let last4 = paymentParams["last4"] as? String ?? ""
 
-            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
-            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
+            // TODO: get proper bank account icon. currently not exposed publicly.
+//            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
+//            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
+            let icon = STPImageLibrary.cardBrandImage(for: .visa)
             let sublabel = "\(bankName) •••• \(last4)"
 
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            return displayData
+            resolve(["displayData": displayData])
         default:
-            return nil
+            let errorResult = Errors.createError(ErrorType.Unknown, "Type '\(type)' not supported.")
+            resolve(["error": errorResult["error"]!])
         }
     }
 
@@ -1813,5 +1823,25 @@ extension FinancialConnectionsSheet.Configuration {
             }
         }()
         self.init(style: style)
+    }
+}
+
+private extension STPCardFundingType {
+    var displayNameWithBrand: String {
+        switch self {
+        case .credit: String.Localized.Funding.credit
+        case .debit: String.Localized.Funding.debit
+        case .prepaid: String.Localized.Funding.prepaid
+        case .other: String.Localized.Funding.default
+        }
+    }
+    
+    init(_ typeString: String) {
+        self = switch typeString {
+        case "debit": .debit
+        case "credit": .credit
+        case "prepaid": .prepaid
+        default: .other
+        }
     }
 }
