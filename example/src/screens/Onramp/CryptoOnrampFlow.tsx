@@ -144,7 +144,6 @@ export default function CryptoOnrampFlow() {
 
     const bankParams: BankAccountPaymentMethodParams = {
       type: 'BankAccount',
-      bankIconCode: null,
       bankName: 'Bank of America',
       last4: '5678',
     };

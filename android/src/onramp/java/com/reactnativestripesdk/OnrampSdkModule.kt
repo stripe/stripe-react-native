@@ -32,7 +32,7 @@ import com.stripe.android.model.ConsumerPaymentDetails
 import com.stripe.android.model.ConsumerPaymentDetails.Card
 import com.stripe.android.model.ConsumerPaymentDetails.BankAccount
 
-import com.stripe.android.link.PaymentIconDetails
+import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.link.LinkController
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 
@@ -551,25 +551,26 @@ class OnrampSdkModule(
             val funding = paymentParams.getString("funding") ?: ""
             val last4 = paymentParams.getString("last4") ?: ""
             val cardBrand = CardBrand.fromCode(brand)
-            PaymentMethodPreview.createOnrampPreview(
-                context = context,
-                iconType = PaymentIconDetails.Card(
+
+            PaymentMethodPreview.create(
+              context = context,
+              details = PaymentMethodPreviewDetails.Card(
                     brand = cardBrand,
                     funding = funding,
                     last4 = last4
-                ),
+              )
             )
         }
         "BankAccount" -> {
             val bankName = paymentParams.getString("bankName")
             val last4 = paymentParams.getString("last4") ?: ""
-            PaymentMethodPreview.createOnrampPreview(
-                context = context,
-                iconType = PaymentIconDetails.BankAccount(
+            PaymentMethodPreview.create(
+              context = context,
+              details = PaymentMethodPreviewDetails.BankAccount(
                     bankIconCode = null,
                     bankName = bankName,
                     last4 = last4
-                ),
+              )
             )
         }
         else -> return null
