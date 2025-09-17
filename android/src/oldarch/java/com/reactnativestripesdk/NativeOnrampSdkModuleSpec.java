@@ -95,7 +95,7 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract ReadableMap paymentDisplayData(ReadableMap type);
+  public abstract void paymentDisplayData(ReadableMap paymentParams, Promise promise);
 
   @ReactMethod
   @DoNotStrip

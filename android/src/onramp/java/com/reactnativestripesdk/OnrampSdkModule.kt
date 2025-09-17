@@ -542,7 +542,7 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun paymentDisplayData(paymentParams: ReadableMap): WritableMap? {
+  override fun paymentDisplayData(paymentParams: ReadableMap, promise: Promise) {
     val context = reactApplicationContext
 
     val paymentDetails: PaymentMethodPreview = when (paymentParams.getString("type")) {
@@ -573,7 +573,14 @@ class OnrampSdkModule(
               )
             )
         }
-        else -> return null
+        else -> {
+          promise.resolve(
+            createFailedError(
+              IllegalArgumentException("Unsupported payment method"),
+            ),
+          )
+          return
+        }
     }
 
 
@@ -587,7 +594,8 @@ class OnrampSdkModule(
     displayData.putString("icon", icon)
     displayData.putString("label", paymentDetails.label)
     displayData.putString("sublabel", paymentDetails.sublabel)
-    return displayData
+
+    promise.resolve(createResult("displayData", displayData))
   }
 
   @ReactMethod

@@ -149,11 +149,14 @@ export function useOnramp() {
     []
   );
 
-  const _paymentDisplayData = (
-    paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
-  ): PaymentOptionData | null => {
-    return NativeOnrampSdk.paymentDisplayData(paymentParams);
-  };
+  const _paymentDisplayData = useCallback(
+    async (
+      paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
+    ): Promise<PaymentOptionData> => {
+      return NativeOnrampSdk.paymentDisplayData(paymentParams);
+    },
+    []
+  );
 
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;

@@ -120,8 +120,8 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
-  override fun paymentDisplayData(paymentParams: ReadableMap): WritableMap? {
-    return null
+  override fun paymentDisplayData(paymentParams: ReadableMap, promise: Promise) {
+    promise?.resolveNotImplemented()
   }
 
   private fun Promise.resolveNotImplemented() {

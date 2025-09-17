@@ -134,7 +134,7 @@ export default function CryptoOnrampFlow() {
     }
   }, [userInfo.email, hasLinkAccount]);
 
-  const showPaymentData = useCallback(() => {
+  const showPaymentData = useCallback(async () => {
     const cardParams: CardPaymentMethodParams = {
       type: 'Card',
       brand: 'visa',
@@ -148,8 +148,8 @@ export default function CryptoOnrampFlow() {
       last4: '5678',
     };
 
-    const cardData = paymentDisplayData(cardParams);
-    const bankData = paymentDisplayData(bankParams);
+    const cardData = await paymentDisplayData(cardParams);
+    const bankData = await paymentDisplayData(bankParams);
 
     if (cardData) {
       setCurrentPaymentDisplayData(cardData);

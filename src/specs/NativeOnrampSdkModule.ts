@@ -39,7 +39,7 @@ export interface Spec extends TurboModule {
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   paymentDisplayData(
     type: CardPaymentMethodParams | BankAccountPaymentMethodParams
-  ): UnsafeObject<PaymentOptionData> | null;
+  ): Promise<PaymentOptionData>;
   logout(): Promise<Onramp.VoidResult>;
 }
 
