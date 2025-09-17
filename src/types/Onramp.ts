@@ -3,6 +3,7 @@ import type { OnrampError, StripeError } from './Errors';
 
 /**
  * Configuration used to initialize and customize the crypto onramp experience.
+ *
  * - `merchantDisplayName` is shown in Stripe-provided UI (e.g., Link, Identity).
  * - `appearance` customizes colors and primary button styling for Stripe UI.
  */
