@@ -329,7 +329,7 @@ export default function CryptoOnrampFlow() {
       if (result?.error) {
         showError(`Could not collect payment: ${result.error.message}.`);
       } else if (result?.displayData) {
-        setPaymentDisplayData(result.displayData);
+        setCurrentPaymentDisplayData(result.displayData);
       } else {
         showCanceled('Payment collection cancelled, please try again.');
       }
@@ -559,7 +559,7 @@ export default function CryptoOnrampFlow() {
       <OnrampResponseStatusSection
         response={response}
         customerId={customerId}
-        paymentDisplayData={paymentDisplayData}
+        paymentDisplayData={currentPaymentDisplayData}
         cryptoPaymentToken={cryptoPaymentToken}
         authToken={authToken}
         walletAddress={walletAddress}
