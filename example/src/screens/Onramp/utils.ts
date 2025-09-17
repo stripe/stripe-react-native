@@ -1,4 +1,5 @@
 import { Onramp } from '@stripe/stripe-react-native';
+import { Alert } from 'react-native';
 
 export function getDefaultAddressForNetwork(
   cryptoNetwork: Onramp.CryptoNetwork
@@ -57,3 +58,11 @@ export function getDestinationParamsForNetwork(network: Onramp.CryptoNetwork): {
       return { destinationNetwork: 'ethereum', destinationCurrency: 'eth' };
   }
 }
+
+const showAlert = (title: string, message: string) => {
+  Alert.alert(title, message);
+};
+
+export const showError = (message: string) => showAlert('Error', message);
+export const showSuccess = (message: string) => showAlert('Success', message);
+export const showCanceled = (message: string) => showAlert('Canceled', message);
