@@ -1554,16 +1554,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
-    public func getCryptoTokenDisplayData(
-        token: NSDictionary,
-        resolver resolve: @escaping RCTPromiseResolveBlock,
-        rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    @objc(getCryptoTokenDisplayData:)
+    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: String]? {
         guard let type = token["type"] as? String else {
-            let errorResult = Errors.createError(ErrorType.Unknown, "'type' parameter not found.")
-            resolve(["error": errorResult["error"]!])
-            return
+            return nil
         }
 
         let label = STPPaymentMethodType.link.displayName
@@ -1585,7 +1579,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            resolve(["displayData": displayData])
+            return displayData
         case "BankAccount":
             let bankName = token["bankName"] as? String ?? ""
             let last4 = token["last4"] as? String ?? ""
@@ -1597,10 +1591,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            resolve(["displayData": displayData])
+            return displayData
         default:
-            let errorResult = Errors.createError(ErrorType.Unknown, "Type '\(type)' not supported.")
-            resolve(["error": errorResult["error"]!])
+            return nil
         }
     }
 

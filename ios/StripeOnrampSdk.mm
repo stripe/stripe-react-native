@@ -116,13 +116,10 @@ RCT_EXPORT_METHOD(onrampAuthorize:(nonnull NSString *)linkAuthIntentId
   [StripeSdkImpl.shared onrampAuthorize:linkAuthIntentId resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(getCryptoTokenDisplayData:(nonnull NSDictionary *)token
-                                    resolve:(nonnull RCTPromiseResolveBlock)resolve
-                                     reject:(nonnull RCTPromiseRejectBlock)reject)
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSDictionary *, getCryptoTokenDisplayData:(nonnull NSDictionary *)token)
 {
-  [StripeSdkImpl.shared getCryptoTokenDisplayData:token resolver:resolve rejecter:reject];
+  return [StripeSdkImpl.shared getCryptoTokenDisplayData:token];
 }
-
 
 RCT_EXPORT_METHOD(initialise:(nonnull NSDictionary *)params
                      resolve:(nonnull RCTPromiseResolveBlock)resolve
