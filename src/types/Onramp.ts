@@ -27,16 +27,12 @@ export type CardPaymentMethodParams = {
  * Parameters used to retrieve display information about bank account payments.
  *
  * - `type` should be set to "BankAccount" for bank account payments.
- * - `bankIconCode` is used to determine the visual information of the bank.
  * - `bankName` is used to display the name of the bank.
  * - `last4` is used to display the last four digits of the bank account.
  */
 export type BankAccountPaymentMethodParams = {
   /** The type of payment method. Should be set to "BankAccount" for bank account payments. */
   type: string;
-
-  /** The bank icon code (e.g., "chase", "boa"). Used to determine the visual brand. */
-  bankIconCode: string | null;
 
   /** The name of the bank (e.g., "Chase", "Bank of America"). */
   bankName: string | null;

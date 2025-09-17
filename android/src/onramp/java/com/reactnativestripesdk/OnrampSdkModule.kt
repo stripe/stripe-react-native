@@ -561,13 +561,12 @@ class OnrampSdkModule(
             )
         }
         "BankAccount" -> {
-            val bankIconCode = paymentParams.getString("bankIconCode")
             val bankName = paymentParams.getString("bankName")
             val last4 = paymentParams.getString("last4") ?: ""
             PaymentMethodPreview.createOnrampPreview(
                 context = context,
                 iconType = PaymentIconDetails.BankAccount(
-                    bankIconCode = bankIconCode,
+                    bankIconCode = null,
                     bankName = bankName,
                     last4 = last4
                 ),
