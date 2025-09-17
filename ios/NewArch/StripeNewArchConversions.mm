@@ -1,10 +1,12 @@
+#import "StripeNewArchConversions.h"
+
 #import <Foundation/Foundation.h>
 #import <React/RCTConversions.h>
-#import "RCTFollyConvert.h"
 
 namespace stripe::react {
 
-NSArray<NSString *> * convertStringVectorToNSArray(const std::vector<std::string> &values) {
+NSArray<NSString *> *convertStringVectorToNSArray(const std::vector<std::string> &values)
+{
   NSMutableArray<NSString *> *result = [[NSMutableArray alloc] initWithCapacity:values.size()];
   for (const auto &value : values) {
     [result addObject:RCTNSStringFromString(value)];
@@ -12,7 +14,8 @@ NSArray<NSString *> * convertStringVectorToNSArray(const std::vector<std::string
   return result;
 }
 
-NSArray<NSNumber *> * convertIntVectorToNSArray(const std::vector<int> &values) {
+NSArray<NSNumber *> *convertIntVectorToNSArray(const std::vector<int> &values)
+{
   NSMutableArray<NSNumber *> *result = [[NSMutableArray alloc] initWithCapacity:values.size()];
   for (int value : values) {
     [result addObject:@(value)];
@@ -20,7 +23,7 @@ NSArray<NSNumber *> * convertIntVectorToNSArray(const std::vector<int> &values) 
   return result;
 }
 
-NSDictionary * _Nullable convertFollyDynamicToNSDictionaryOrNil(const folly::dynamic &dyn)
+NSDictionary *_Nullable convertFollyDynamicToNSDictionaryOrNil(const folly::dynamic &dyn)
 {
   switch (dyn.type()) {
     case folly::dynamic::OBJECT: {
@@ -39,9 +42,9 @@ NSDictionary * _Nullable convertFollyDynamicToNSDictionaryOrNil(const folly::dyn
   }
 }
 
-NSDictionary * convertFollyDynamicToNSDictionary(const folly::dynamic &dyn)
+NSDictionary *convertFollyDynamicToNSDictionary(const folly::dynamic &dyn)
 {
   return convertFollyDynamicToNSDictionaryOrNil(dyn) ?: [NSDictionary new];
 }
 
-}
+} // namespace stripe::react
