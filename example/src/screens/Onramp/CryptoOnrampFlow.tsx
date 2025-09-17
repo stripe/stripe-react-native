@@ -59,7 +59,7 @@ export default function CryptoOnrampFlow() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
-    paymentDisplayData,
+    getCryptoTokenDisplayData,
     logOut,
     isAuthError,
   } = useOnramp();
@@ -152,8 +152,8 @@ export default function CryptoOnrampFlow() {
       last4: '5678',
     };
 
-    const cardData = (await paymentDisplayData(cardParams)).displayData;
-    const bankData = (await paymentDisplayData(bankParams)).displayData;
+    const cardData = (await getCryptoTokenDisplayData(cardParams)).displayData;
+    const bankData = (await getCryptoTokenDisplayData(bankParams)).displayData;
 
     if (cardData) {
       setCurrentPaymentDisplayData(cardData);
@@ -161,7 +161,7 @@ export default function CryptoOnrampFlow() {
     } else {
       Alert.alert('No Payment Data', 'No payment data available to display.');
     }
-  }, [paymentDisplayData]);
+  }, [getCryptoTokenDisplayData]);
 
   const handlePresentVerification = useCallback(async () => {
     if (!userInfo.email) {

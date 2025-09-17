@@ -144,11 +144,11 @@ export function useOnramp() {
     []
   );
 
-  const _paymentDisplayData = useCallback(
+  const _getCryptoTokenDisplayData = useCallback(
     async (
       paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
     ): Promise<Onramp.PaymentDisplayDataResult> => {
-      return NativeOnrampSdk.paymentDisplayData(paymentParams);
+      return NativeOnrampSdk.getCryptoTokenDisplayData(paymentParams);
     },
     []
   );
@@ -279,7 +279,7 @@ export function useOnramp() {
      * @param paymentParams The payment method details (card or bank account) to get display data for
      * @returns Promise that resolves to an object with displayData or error
      */
-    paymentDisplayData: _paymentDisplayData,
+    getCryptoTokenDisplayData: _getCryptoTokenDisplayData,
 
     /**
      * Logs out the current user from their Link account.
