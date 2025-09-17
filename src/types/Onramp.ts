@@ -15,46 +15,6 @@ export type Configuration = {
 };
 
 /**
- * Parameters used to retrieve display information about card payments.
- *
- * - `type` should be set to "Card" for card payments.
- * - `brand` is used to determine the visual information of the brand.
- * - `funding` is used to determine the funding source.
- * - `last4` is used to display the last four digits of the card.
- */
-export type CardPaymentMethodParams = {
-  /** The type of payment method. Should be set to "Card" for card payments. */
-  type: string;
-
-  /** The card brand (e.g., "visa", "mastercard"). Used to determine the visual brand. */
-  brand: string;
-
-  /** The funding source of the card (e.g., "credit", "debit"). */
-  funding: string;
-
-  /** The last four digits of the card number. */
-  last4: string;
-};
-
-/**
- * Parameters used to retrieve display information about bank account payments.
- *
- * - `type` should be set to "BankAccount" for bank account payments.
- * - `bankName` is used to display the name of the bank.
- * - `last4` is used to display the last four digits of the bank account.
- */
-export type BankAccountPaymentMethodParams = {
-  /** The type of payment method. Should be set to "BankAccount" for bank account payments. */
-  type: string;
-
-  /** The name of the bank (e.g., "Chase", "Bank of America"). */
-  bankName: string | null;
-
-  /** The last four digits of the bank account number. */
-  last4: string;
-};
-
-/**
  * Customization options for Link/Stripe-provided UI.
  */
 export type LinkAppearance = {
@@ -306,4 +266,30 @@ export type PaymentDisplayDataResult =
       displayData?: undefined;
       /** Present if collection/selection failed with an error. */
       error: StripeError<OnrampError>;
+    };
+
+/**
+ * A representation of the crypto payment token, which contains details about the payment method used.
+ */
+export type CryptoPaymentToken =
+  | {
+      card: {
+        /** The card brand (e.g., "visa", "mastercard"). Used to determine the visual brand. */
+        brand: string;
+
+        /** The funding source of the card (e.g., "credit", "debit"). */
+        funding: string;
+
+        /** The last four digits of the card number. */
+        last4: string;
+      };
+    }
+  | {
+      us_bank_account: {
+        /** The name of the bank (e.g., "Chase", "Bank of America"). */
+        bank_name?: string | null | undefined;
+
+        /** The last four digits of the bank account number. */
+        last4: string;
+      };
     };

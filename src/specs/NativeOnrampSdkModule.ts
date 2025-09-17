@@ -3,8 +3,7 @@ import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import type { InitialiseParams, Onramp } from '../types';
 import type {
-  CardPaymentMethodParams,
-  BankAccountPaymentMethodParams,
+  CryptoPaymentToken,
   Configuration,
   KycInfo,
   LinkUserInfo,
@@ -38,7 +37,7 @@ export interface Spec extends TurboModule {
   performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   getCryptoTokenDisplayData(
-    type: CardPaymentMethodParams | BankAccountPaymentMethodParams
+    token: CryptoPaymentToken
   ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
 }

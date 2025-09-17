@@ -4,10 +4,7 @@ import type { Onramp, OnrampError, StripeError } from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
-import {
-  BankAccountPaymentMethodParams,
-  CardPaymentMethodParams,
-} from '../types/Onramp';
+import { CryptoPaymentToken } from '../types/Onramp';
 
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
@@ -146,9 +143,9 @@ export function useOnramp() {
 
   const _getCryptoTokenDisplayData = useCallback(
     async (
-      paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
+      token: CryptoPaymentToken
     ): Promise<Onramp.PaymentDisplayDataResult> => {
-      return NativeOnrampSdk.getCryptoTokenDisplayData(paymentParams);
+      return NativeOnrampSdk.getCryptoTokenDisplayData(token);
     },
     []
   );
@@ -276,7 +273,7 @@ export function useOnramp() {
      * Retrieves display data (icon, label, sublabel) for the given payment method details.
      * Suitable for rendering in the UI to summarize the selected payment method.
      *
-     * @param paymentParams The payment method details (card or bank account) to get display data for
+     * @param token The token containing payment method details (card or bank account) to get display data for
      * @returns Promise that resolves to an object with displayData or error
      */
     getCryptoTokenDisplayData: _getCryptoTokenDisplayData,

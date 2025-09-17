@@ -119,7 +119,7 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
-  override fun getCryptoTokenDisplayData(paymentParams: ReadableMap, promise: Promise) {
+  override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
     promise?.resolveNotImplemented()
   }
 

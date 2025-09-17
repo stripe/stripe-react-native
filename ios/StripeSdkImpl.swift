@@ -1556,11 +1556,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc(getCryptoTokenDisplayData:resolver:rejecter:)
     public func getCryptoTokenDisplayData(
-        paymentParams: NSDictionary,
+        token: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        guard let type = paymentParams["type"] as? String else {
+        guard let type = token["type"] as? String else {
             let errorResult = Errors.createError(ErrorType.Unknown, "'type' parameter not found.")
             resolve(["error": errorResult["error"]!])
             return
@@ -1570,9 +1570,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
         switch type {
         case "Card":
-            let brand = paymentParams["brand"] as? String ?? ""
-            let funding = paymentParams["funding"] as? String ?? ""
-            let last4 = paymentParams["last4"] as? String ?? ""
+            let brand = token["brand"] as? String ?? ""
+            let funding = token["funding"] as? String ?? ""
+            let last4 = token["last4"] as? String ?? ""
 
             let cardBrand = STPCard.brand(from: brand)
             let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
@@ -1587,8 +1587,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
             resolve(["displayData": displayData])
         case "BankAccount":
-            let bankName = paymentParams["bankName"] as? String ?? ""
-            let last4 = paymentParams["last4"] as? String ?? ""
+            let bankName = token["bankName"] as? String ?? ""
+            let last4 = token["last4"] as? String ?? ""
 
             let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
             let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
@@ -1700,7 +1700,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(getCryptoTokenDisplayData:)
-    public func getCryptoTokenDisplayData(paymentParams: NSDictionary) -> [String: Any]? {
+    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: Any]? {
         return nil
     }
 
