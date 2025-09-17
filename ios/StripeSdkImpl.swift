@@ -1556,17 +1556,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc(getCryptoTokenDisplayData:)
     public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: String]? {
-        guard let type = token["type"] as? String else {
-            return nil
-        }
-
         let label = STPPaymentMethodType.link.displayName
 
-        switch type {
-        case "Card":
-            let brand = token["brand"] as? String ?? ""
-            let funding = token["funding"] as? String ?? ""
-            let last4 = token["last4"] as? String ?? ""
+        if let cardDetails = token["card"] as? [String: Any] {
+            let brand = cardDetails["brand"] as? String ?? ""
+            let funding = cardDetails["funding"] as? String ?? ""
+            let last4 = cardDetails["last4"] as? String ?? ""
 
             let cardBrand = STPCard.brand(from: brand)
             let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
@@ -1575,14 +1570,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let mappedFunding = STPCardFundingType(funding)
             let formattedBrandName = String(format: mappedFunding.displayNameWithBrand, brandName ?? "")
             let sublabel = "\(formattedBrandName) •••• \(last4)"
-            
+
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
             return displayData
-        case "BankAccount":
-            let bankName = token["bankName"] as? String ?? ""
-            let last4 = token["last4"] as? String ?? ""
+        } else if let bankDetails = token["us_bank_account"] as? [String: Any] {
+            let bankName = bankDetails["bank_name"] as? String ?? ""
+            let last4 = bankDetails["last4"] as? String ?? ""
 
             let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
             let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
@@ -1592,7 +1587,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
             return displayData
-        default:
+        } else {
             return nil
         }
     }
