@@ -1590,10 +1590,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let bankName = paymentParams["bankName"] as? String ?? ""
             let last4 = paymentParams["last4"] as? String ?? ""
 
-            // TODO: get proper bank account icon. currently not exposed publicly.
-//            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
-//            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
-            let icon = STPImageLibrary.cardBrandImage(for: .visa)
+            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
+            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
             let sublabel = "\(bankName) •••• \(last4)"
 
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
