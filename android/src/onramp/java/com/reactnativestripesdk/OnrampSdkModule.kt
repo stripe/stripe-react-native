@@ -12,7 +12,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.ErrorType
@@ -27,15 +26,6 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
 
 import com.stripe.android.model.CardBrand
-import com.stripe.android.model.CvcCheck
-import com.stripe.android.model.ConsumerPaymentDetails
-import com.stripe.android.model.ConsumerPaymentDetails.Card
-import com.stripe.android.model.ConsumerPaymentDetails.BankAccount
-
-import com.stripe.android.link.PaymentMethodPreviewDetails
-import com.stripe.android.link.LinkController
-import com.stripe.android.link.LinkController.PaymentMethodPreview
-
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.DateOfBirth
@@ -61,6 +51,8 @@ import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.link.PaymentMethodPreviewDetails
+import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope

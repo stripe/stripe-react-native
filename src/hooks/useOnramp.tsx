@@ -272,6 +272,13 @@ export function useOnramp() {
      */
     authorize: _authorize,
 
+    /**
+     * Retrieves display data (icon, label, sublabel) for the given payment method details.
+     * Suitable for rendering in the UI to summarize the selected payment method.
+     *
+     * @param paymentParams The payment method details (card or bank account) to get display data for
+     * @returns Promise that resolves to an object with displayData or error
+     */
     paymentDisplayData: _paymentDisplayData,
 
     /**
