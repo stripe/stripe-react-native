@@ -38,7 +38,7 @@ export interface Spec extends TurboModule {
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   getCryptoTokenDisplayData(
     token: UnsafeObject<CryptoPaymentToken>
-  ): Promise<Onramp.PaymentDisplayDataResult>;
+  ): UnsafeObject<Onramp.PaymentMethodDisplayData> | null;
   logout(): Promise<Onramp.VoidResult>;
 }
 

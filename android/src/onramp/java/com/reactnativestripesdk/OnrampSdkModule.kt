@@ -12,6 +12,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.ErrorType
@@ -534,46 +535,47 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
+  override fun getCryptoTokenDisplayData(token: ReadableMap): WritableMap? {
     val context = reactApplicationContext
+    
+        val paymentDetails: PaymentMethodPreview? = when {
+        token.hasKey("card") -> {
+            val cardMap = token.getMap("card")
+            if (cardMap != null) {
+                val brand = cardMap.getString("brand") ?: ""
+                val funding = cardMap.getString("funding") ?: ""
+                val last4 = cardMap.getString("last4") ?: ""
+                val cardBrand = CardBrand.fromCode(brand)
 
-    val paymentDetails: PaymentMethodPreview = when (token.getString("type")) {
-        "Card" -> {
-            val brand = token.getString("brand") ?: ""
-            val funding = token.getString("funding") ?: ""
-            val last4 = token.getString("last4") ?: ""
-            val cardBrand = CardBrand.fromCode(brand)
-
-            PaymentMethodPreview.create(
-              context = context,
-              details = PaymentMethodPreviewDetails.Card(
-                    brand = cardBrand,
-                    funding = funding,
-                    last4 = last4
-              )
-            )
+                PaymentMethodPreview.create(
+                    context = context,
+                    details = PaymentMethodPreviewDetails.Card(
+                        brand = cardBrand,
+                        funding = funding,
+                        last4 = last4
+                    )
+                )
+            } else null
         }
-        "BankAccount" -> {
-            val bankName = token.getString("bankName")
-            val last4 = token.getString("last4") ?: ""
-            PaymentMethodPreview.create(
-              context = context,
-              details = PaymentMethodPreviewDetails.BankAccount(
-                    bankIconCode = null,
-                    bankName = bankName,
-                    last4 = last4
-              )
-            )
+        token.hasKey("us_bank_account") -> {
+            val bankMap = token.getMap("us_bank_account")
+            if (bankMap != null) {
+                val bankName = bankMap.getString("bank_name")
+                val last4 = bankMap.getString("last4") ?: ""
+                PaymentMethodPreview.create(
+                    context = context,
+                    details = PaymentMethodPreviewDetails.BankAccount(
+                        bankIconCode = null,
+                        bankName = bankName,
+                        last4 = last4
+                    )
+                )
+            } else null
         }
-        else -> {
-          promise.resolve(
-            createFailedError(
-              IllegalArgumentException("Unsupported payment method"),
-            ),
-          )
-          return
-        }
+        else -> null
     }
+
+    if (paymentDetails == null) return null
 
     val icon =
       currentActivity
@@ -586,7 +588,7 @@ class OnrampSdkModule(
     displayData.putString("label", paymentDetails.label)
     displayData.putString("sublabel", paymentDetails.sublabel)
 
-    promise.resolve(createResult("displayData", displayData))
+    return displayData
   }
 
   @ReactMethod

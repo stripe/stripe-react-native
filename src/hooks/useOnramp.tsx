@@ -1,6 +1,6 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
-import type { Onramp, OnrampError, StripeError } from '../types';
+import { Onramp, OnrampError, StripeError } from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
@@ -141,14 +141,11 @@ export function useOnramp() {
     []
   );
 
-  const _getCryptoTokenDisplayData = useCallback(
-    async (
-      token: CryptoPaymentToken
-    ): Promise<Onramp.PaymentDisplayDataResult> => {
-      return NativeOnrampSdk.getCryptoTokenDisplayData(token);
-    },
-    []
-  );
+  const _getCryptoTokenDisplayData = (
+    token: CryptoPaymentToken
+  ): Onramp.PaymentMethodDisplayData | null => {
+    return NativeOnrampSdk.getCryptoTokenDisplayData(token);
+  };
 
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
