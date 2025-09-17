@@ -585,7 +585,7 @@ export default function CryptoOnrampFlow() {
 
       {isLinkUser === true && customerId != null && (
         <>
-          <View style={styles.buttonContainer}>
+          <View style={{ paddingHorizontal: 16 }}>
             <Button
               title="Alert Payment Data"
               onPress={showPaymentData}
