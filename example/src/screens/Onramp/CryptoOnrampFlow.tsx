@@ -586,7 +586,7 @@ export default function CryptoOnrampFlow() {
         <>
           <View style={{ paddingHorizontal: 16 }}>
             <Button
-              title="Alert Payment Data"
+              title="Display Static Payment Data"
               onPress={showPaymentData}
               variant="primary"
             />
