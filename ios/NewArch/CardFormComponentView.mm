@@ -7,7 +7,6 @@
 
 #import <React/RCTConversions.h>
 #import <React/RCTFabricComponentsPlugins.h>
-#import "RCTFollyConvert.h"
 #import "StripeNewArchConversions.h"
 #import "StripeSwiftInterop.h"
 
@@ -68,7 +67,7 @@ using namespace stripe::react;
   _view.preferredNetworks = convertIntVectorToNSArray(newViewProps.preferredNetworks);
 
   [super updateProps:props oldProps:oldProps];
-  
+
   [_view didSetProps];
 }
 
