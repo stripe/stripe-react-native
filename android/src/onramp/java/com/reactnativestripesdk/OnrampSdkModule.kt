@@ -31,7 +31,10 @@ import com.stripe.android.model.CvcCheck
 import com.stripe.android.model.ConsumerPaymentDetails
 import com.stripe.android.model.ConsumerPaymentDetails.Card
 import com.stripe.android.model.ConsumerPaymentDetails.BankAccount
-import com.stripe.android.link.toPreview
+
+import com.stripe.android.link.PaymentIconDetails
+import com.stripe.android.link.LinkController
+import com.stripe.android.link.LinkController.PaymentMethodPreview
 
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
@@ -539,58 +542,51 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun paymentDisplayData(
-    type: String,
-    brand: String,
-    lastFour: String
-  ): WritableMap? {
-    val paymentDetails: ConsumerPaymentDetails.PaymentDetails
-
-    when (type) {
-        "Card" ->
-          paymentDetails = ConsumerPaymentDetails.Card(
-            id = "",
-            last4 = lastFour,
-            isDefault = false,
-            nickname = null,
-            billingAddress = null,
-            billingEmailAddress = null,
-            expiryYear = 9999,
-            expiryMonth = 12,
-            brand = CardBrand.fromCode(brand),
-            networks = emptyList(),
-            cvcCheck = CvcCheck.Pass,
-            funding = ""
-          )
-        "BankAccount" ->
-          paymentDetails = ConsumerPaymentDetails.BankAccount(
-            id = "",
-            last4 = lastFour,
-            isDefault = false,
-            nickname = null,
-            bankName = brand,
-            bankIconCode = null,
-            billingAddress = null,
-            billingEmailAddress = null
-          )
-        else -> {
-          return null
-        }
-      }
-    
+  override fun paymentDisplayData(paymentParams: ReadableMap): WritableMap? {
     val context = reactApplicationContext
-    val preview = paymentDetails.toPreview(context)
+
+    val paymentDetails: PaymentMethodPreview = when (paymentParams.getString("type")) {
+        "Card" -> {
+            val brand = paymentParams.getString("brand") ?: ""
+            val funding = paymentParams.getString("funding") ?: ""
+            val last4 = paymentParams.getString("last4") ?: ""
+            val cardBrand = CardBrand.fromCode(brand)
+            PaymentMethodPreview.createOnrampPreview(
+                context = context,
+                iconType = PaymentIconDetails.Card(
+                    brand = cardBrand,
+                    funding = funding,
+                    last4 = last4
+                ),
+            )
+        }
+        "BankAccount" -> {
+            val bankIconCode = paymentParams.getString("bankIconCode")
+            val bankName = paymentParams.getString("bankName")
+            val last4 = paymentParams.getString("last4") ?: ""
+            PaymentMethodPreview.createOnrampPreview(
+                context = context,
+                iconType = PaymentIconDetails.BankAccount(
+                    bankIconCode = bankIconCode,
+                    bankName = bankName,
+                    last4 = last4
+                ),
+            )
+        }
+        else -> return null
+    }
+
 
     val icon =
       currentActivity
-        ?.let { ContextCompat.getDrawable(it, preview.iconRes) }
+        ?.let { ContextCompat.getDrawable(it, paymentDetails.iconRes) }
         ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
 
     val displayData = Arguments.createMap()
-    
+
     displayData.putString("icon", icon)
-    displayData.putString("label", preview.label)
-    displayData.putString("sublabel", preview.sublabel)
+    displayData.putString("label", paymentDetails.label)
+    displayData.putString("sublabel", paymentDetails.sublabel)
     return displayData
   }
 

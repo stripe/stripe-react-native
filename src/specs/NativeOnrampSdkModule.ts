@@ -2,7 +2,13 @@ import { TurboModuleRegistry } from 'react-native';
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import type { InitialiseParams, Onramp, PaymentOptionData } from '../types';
-import type { Configuration, KycInfo, LinkUserInfo } from '../types/Onramp';
+import type {
+  CardPaymentMethodParams,
+  BankAccountPaymentMethodParams,
+  Configuration,
+  KycInfo,
+  LinkUserInfo,
+} from '../types/Onramp';
 import type { UnsafeObject } from './utils';
 
 export interface Spec extends TurboModule {
@@ -32,9 +38,7 @@ export interface Spec extends TurboModule {
   performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
   paymentDisplayData(
-    type: string,
-    brand: string,
-    lastFour: string
+    type: CardPaymentMethodParams | BankAccountPaymentMethodParams
   ): UnsafeObject<PaymentOptionData> | null;
   logout(): Promise<Onramp.VoidResult>;
 }

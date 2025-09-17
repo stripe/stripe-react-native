@@ -27,6 +27,10 @@ import { getDestinationParamsForNetwork } from './utils';
 
 import type { StripeError } from '@stripe/stripe-react-native/src/types';
 import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
+import type {
+  CardPaymentMethodParams,
+  BankAccountPaymentMethodParams,
+} from '../../../../src/types/Onramp';
 
 import {
   AttachKycInfoSection,
@@ -131,10 +135,26 @@ export default function CryptoOnrampFlow() {
   }, [userInfo.email, hasLinkAccount]);
 
   const showPaymentData = useCallback(() => {
-    const data = paymentDisplayData('Card', 'visa', '4242');
+    const cardParams: CardPaymentMethodParams = {
+      type: 'Card',
+      brand: 'visa',
+      funding: 'credit',
+      last4: '1234',
+    };
 
-    if (data) {
-      setCurrentPaymentDisplayData(data);
+    const bankParams: BankAccountPaymentMethodParams = {
+      type: 'BankAccount',
+      bankIconCode: null,
+      bankName: 'Bank of America',
+      last4: '5678',
+    };
+
+    const cardData = paymentDisplayData(cardParams);
+    const bankData = paymentDisplayData(bankParams);
+
+    if (cardData) {
+      setCurrentPaymentDisplayData(cardData);
+      console.log('Bank Payment Data:', bankData);
     } else {
       Alert.alert('No Payment Data', 'No payment data available to display.');
     }

@@ -120,11 +120,7 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
-  override fun paymentDisplayData(
-    type: String?,
-    brand: String?,
-    lastFour: String?
-  ): WritableMap? {
+  override fun paymentDisplayData(paymentParams: ReadableMap): WritableMap? {
     return null
   }
 

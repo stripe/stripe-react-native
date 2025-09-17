@@ -2,16 +2,47 @@ import type { Address } from './Common';
 import type { OnrampError, StripeError } from './Errors';
 
 /**
- * Configuration used to initialize and customize the crypto onramp experience.
+ * Parameters used to retrieve display information about card payments.
  *
- * - `merchantDisplayName` is shown in Stripe-provided UI (e.g., Link, Identity).
- * - `appearance` customizes colors and primary button styling for Stripe UI.
+ * - `type` should be set to "Card" for card payments.
+ * - `brand` is used to determine the visual information of the brand.
+ * - `funding` is used to determine the funding source.
+ * - `last4` is used to display the last four digits of the card.
  */
-export type Configuration = {
-  /** Merchant name to display in Stripe-provided UI. */
-  merchantDisplayName: string;
-  /** Appearance overrides for Stripe-provided UI used during onramp. */
-  appearance: LinkAppearance;
+export type CardPaymentMethodParams = {
+  /** The type of payment method. Should be set to "Card" for card payments. */
+  type: string;
+
+  /** The card brand (e.g., "visa", "mastercard"). Used to determine the visual brand. */
+  brand: string;
+
+  /** The funding source of the card (e.g., "credit", "debit"). */
+  funding: string;
+
+  /** The last four digits of the card number. */
+  last4: string;
+};
+
+/**
+ * Parameters used to retrieve display information about bank account payments.
+ *
+ * - `type` should be set to "BankAccount" for bank account payments.
+ * - `bankIconCode` is used to determine the visual information of the bank.
+ * - `bankName` is used to display the name of the bank.
+ * - `last4` is used to display the last four digits of the bank account.
+ */
+export type BankAccountPaymentMethodParams = {
+  /** The type of payment method. Should be set to "BankAccount" for bank account payments. */
+  type: string;
+
+  /** The bank icon code (e.g., "chase", "boa"). Used to determine the visual brand. */
+  bankIconCode: string | null;
+
+  /** The name of the bank (e.g., "Chase", "Bank of America"). */
+  bankName: string | null;
+
+  /** The last four digits of the bank account number. */
+  last4: string;
 };
 
 /**
@@ -125,6 +156,13 @@ export type KycInfo = {
   dateOfBirth: DateOfBirth;
   /** Customer’s address. */
   address: Address;
+};
+
+export type Configuration = {
+  /** Merchant name to display in Stripe-provided UI. */
+  merchantDisplayName: string;
+  /** Appearance overrides for Stripe-provided UI used during onramp. */
+  appearance: LinkAppearance;
 };
 
 /**

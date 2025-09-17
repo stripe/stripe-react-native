@@ -9,6 +9,10 @@ import type {
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
+import {
+  BankAccountPaymentMethodParams,
+  CardPaymentMethodParams,
+} from '../types/Onramp';
 
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
@@ -146,11 +150,9 @@ export function useOnramp() {
   );
 
   const _paymentDisplayData = (
-    type: string,
-    brand: string,
-    lastFour: string
+    paymentParams: CardPaymentMethodParams | BankAccountPaymentMethodParams
   ): PaymentOptionData | null => {
-    return NativeOnrampSdk.paymentDisplayData(type, brand, lastFour);
+    return NativeOnrampSdk.paymentDisplayData(paymentParams);
   };
 
   const _logOut = useCallback(async (): Promise<{

@@ -1554,17 +1554,46 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(paymentDisplayData:type:brand:lastFour:)
-    public func paymentDisplayData(
-        type: String,
-        brand: String,
-        lastFour: String
-    ) -> [String: Any] {
-        return [
-            "icon": "",
-            "label": "",
-            "sublabel": ""
-        ]
+    @objc(paymentDisplayData:)
+    public func paymentDisplayData(paymentParams: NSDictionary) -> [String: String]? {
+        guard let type = paymentParams["type"] as? String else {
+            return nil
+        }
+
+        let label = STPPaymentMethodType.link.displayName
+
+        switch type {
+        case "Card":
+            let brand = paymentParams.getString("brand") ?? ""
+            let funding = paymentParams.getString("funding") ?? ""
+            let last4 = paymentParams.getString("last4") ?? ""
+
+            let cardBrand = Mappers.mapToCardBrand(brand: brand)
+            let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
+            let brandName = STPCardBrandUtilities.stringFrom(cardBrand)
+            let mappedFunding = Mappers.fundingTypeFromString(funding)
+            let formattedBrandName = String(format: mappedFunding.displayNameWithBrand, brandName ?? "")
+            let sublabel = "\(formattedBrandName) •••• \(last4)"
+            
+            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+
+            return displayData
+        case "BankAccount":
+            let bankName = paymentParams.getString("bankName") ?? ""
+            let last4 = paymentParams.getString("last4") ?? ""
+
+            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
+            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
+            let sublabel = "\(bankName) •••• \(last4)"
+
+            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+
+            return displayData
+        default:
+            return nil
+        }
     }
 
     /// Checks for a `publishableKey`. Calls the resolve block with an error when one doesn’t exist.
@@ -1662,8 +1691,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
-    @objc(paymentDisplayData:type:brand:lastFour:)
-    public func paymentDisplayData(type: String, brand: String, lastFour: String) -> [String: Any]? {
+    @objc(paymentDisplayData:)
+    public func paymentDisplayData(paymentParams: NSDictionary) -> [String: Any]? {
         return nil
     }
 
