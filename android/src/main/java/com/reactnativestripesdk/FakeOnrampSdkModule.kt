@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.createFailedError
 
@@ -115,6 +116,11 @@ class FakeOnrampSdkModule(
 
   @ReactMethod
   override fun logout(promise: Promise?) {
+    promise?.resolveNotImplemented()
+  }
+
+  @ReactMethod
+  override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
     promise?.resolveNotImplemented()
   }
 

@@ -95,5 +95,9 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void getCryptoTokenDisplayData(ReadableMap token, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void logout(Promise promise);
 }

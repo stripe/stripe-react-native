@@ -55,6 +55,7 @@ export default function CryptoOnrampFlow() {
     createCryptoPaymentToken,
     performCheckout,
     authorize,
+    getCryptoTokenDisplayData,
     logOut,
     isAuthError,
   } = useOnramp();
@@ -75,7 +76,7 @@ export default function CryptoOnrampFlow() {
   const [cardPaymentMethod] = useState('Card');
   const [bankAccountPaymentMethod] = useState('BankAccount');
 
-  const [paymentDisplayData, setPaymentDisplayData] =
+  const [currentPaymentDisplayData, setCurrentPaymentDisplayData] =
     useState<PaymentOptionData | null>(null);
 
   const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
@@ -132,6 +133,33 @@ export default function CryptoOnrampFlow() {
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
   }, [userInfo.email, hasLinkAccount]);
+
+  const showPaymentData = useCallback(async () => {
+    const cardParams: Onramp.CryptoPaymentToken = {
+      card: {
+        brand: 'visa',
+        funding: 'credit',
+        last4: '1234',
+      },
+    };
+
+    const bankParams: Onramp.CryptoPaymentToken = {
+      us_bank_account: {
+        bank_name: 'Bank of America',
+        last4: '5678',
+      },
+    };
+
+    const cardData = (await getCryptoTokenDisplayData(cardParams)).displayData;
+    const bankData = (await getCryptoTokenDisplayData(bankParams)).displayData;
+
+    if (cardData) {
+      setCurrentPaymentDisplayData(cardData);
+      console.log('Bank Payment Data:', bankData);
+    } else {
+      Alert.alert('No Payment Data', 'No payment data available to display.');
+    }
+  }, [getCryptoTokenDisplayData]);
 
   const handlePresentVerification = useCallback(async () => {
     if (!userInfo.email) {
@@ -299,7 +327,7 @@ export default function CryptoOnrampFlow() {
       if (result?.error) {
         showError(`Could not collect payment: ${result.error.message}.`);
       } else if (result?.displayData) {
-        setPaymentDisplayData(result.displayData);
+        setCurrentPaymentDisplayData(result.displayData);
       } else {
         showCanceled('Payment collection cancelled, please try again.');
       }
@@ -345,7 +373,8 @@ export default function CryptoOnrampFlow() {
     if (!customerId) missingItems.push('customer authentication');
     if (!walletAddress || !walletNetwork)
       missingItems.push('wallet address registration');
-    if (!paymentDisplayData) missingItems.push('payment method selection');
+    if (!currentPaymentDisplayData)
+      missingItems.push('payment method selection');
     if (!cryptoPaymentToken) missingItems.push('crypto payment token creation');
     if (!authToken) missingItems.push('authentication token');
 
@@ -359,7 +388,7 @@ export default function CryptoOnrampFlow() {
     customerId,
     walletAddress,
     walletNetwork,
-    paymentDisplayData,
+    currentPaymentDisplayData,
     cryptoPaymentToken,
     authToken,
   ]);
@@ -480,7 +509,7 @@ export default function CryptoOnrampFlow() {
       setResponse(null);
       setIsLinkUser(false);
       setCustomerId(null);
-      setPaymentDisplayData(null);
+      setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
       setAuthToken(null);
       setWalletAddress(null);
@@ -528,7 +557,7 @@ export default function CryptoOnrampFlow() {
       <OnrampResponseStatusSection
         response={response}
         customerId={customerId}
-        paymentDisplayData={paymentDisplayData}
+        paymentDisplayData={currentPaymentDisplayData}
         cryptoPaymentToken={cryptoPaymentToken}
         authToken={authToken}
         walletAddress={walletAddress}
@@ -554,6 +583,13 @@ export default function CryptoOnrampFlow() {
 
       {isLinkUser === true && customerId != null && (
         <>
+          <View style={{ paddingHorizontal: 16 }}>
+            <Button
+              title="Display Static Payment Data"
+              onPress={showPaymentData}
+              variant="primary"
+            />
+          </View>
           <AttachKycInfoSection
             userInfo={userInfo}
             setUserInfo={setUserInfo}
