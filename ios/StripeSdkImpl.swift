@@ -1554,7 +1554,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
-    @objc(getCryptoTokenDisplayData:)
+    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
     public func getCryptoTokenDisplayData(
         token: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
