@@ -1,6 +1,7 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 @_spi(STP) import StripePaymentSheet
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
