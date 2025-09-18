@@ -278,3 +278,18 @@ export type CryptoPaymentToken =
         last4: string;
       };
     };
+
+/**
+ * Result of retrieving information about a payment method for display.
+ */
+export type PaymentDisplayDataResult =
+  | {
+      /** Display data for the selected payment method. */
+      displayData: PaymentMethodDisplayData;
+      error?: undefined;
+    }
+  | {
+      displayData?: undefined;
+      /** Present if collection/selection failed with an error. */
+      error: StripeError<OnrampError>;
+    };

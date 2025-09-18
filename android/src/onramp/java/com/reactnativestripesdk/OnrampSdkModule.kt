@@ -535,7 +535,7 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun getCryptoTokenDisplayData(token: ReadableMap): WritableMap? {
+  override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
     val context = reactApplicationContext
     
         val paymentDetails: PaymentMethodPreview? = when {
@@ -575,7 +575,14 @@ class OnrampSdkModule(
         else -> null
     }
 
-    if (paymentDetails == null) return null
+    if (paymentDetails == null) {
+      promise.resolve(
+        createFailedError(
+          IllegalArgumentException("Unsupported payment method"),
+        ),
+      )
+      return
+    }
 
     val icon =
       currentActivity
@@ -588,7 +595,7 @@ class OnrampSdkModule(
     displayData.putString("label", paymentDetails.label)
     displayData.putString("sublabel", paymentDetails.sublabel)
 
-    return displayData
+    promise.resolve(createResult("displayData", displayData))
   }
 
   @ReactMethod

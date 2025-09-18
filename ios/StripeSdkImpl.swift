@@ -1555,7 +1555,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(getCryptoTokenDisplayData:)
-    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: String]? {
+    public func getCryptoTokenDisplayData(
+        token: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         let label = STPPaymentMethodType.link.displayName
 
         if let cardDetails = token["card"] as? [String: Any] {
@@ -1574,7 +1578,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            return displayData
+            resolve(["displayData": displayData])
         } else if let bankDetails = token["us_bank_account"] as? [String: Any] {
             let bankName = bankDetails["bank_name"] as? String ?? ""
             let last4 = bankDetails["last4"] as? String ?? ""
@@ -1586,9 +1590,10 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
-            return displayData
+            resolve(["displayData": displayData])
         } else {
-            return nil
+            let errorResult = Errors.createError(ErrorType.Unknown, "'type' parameter not unknown.")
+            resolve(["error": errorResult["error"]!])
         }
     }
 

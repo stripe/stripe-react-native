@@ -150,8 +150,8 @@ export default function CryptoOnrampFlow() {
       },
     };
 
-    const cardData = getCryptoTokenDisplayData(cardParams);
-    const bankData = getCryptoTokenDisplayData(bankParams);
+    const cardData = (await getCryptoTokenDisplayData(cardParams)).displayData;
+    const bankData = (await getCryptoTokenDisplayData(bankParams)).displayData;
 
     if (cardData) {
       setCurrentPaymentDisplayData(cardData);

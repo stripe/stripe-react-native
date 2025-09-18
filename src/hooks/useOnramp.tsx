@@ -141,11 +141,14 @@ export function useOnramp() {
     []
   );
 
-  const _getCryptoTokenDisplayData = (
-    token: CryptoPaymentToken
-  ): Onramp.PaymentMethodDisplayData | null => {
-    return NativeOnrampSdk.getCryptoTokenDisplayData(token);
-  };
+  const _getCryptoTokenDisplayData = useCallback(
+    async (
+      token: CryptoPaymentToken
+    ): Promise<Onramp.PaymentDisplayDataResult> => {
+      return NativeOnrampSdk.getCryptoTokenDisplayData(token);
+    },
+    []
+  );
 
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
