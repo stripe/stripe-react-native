@@ -1,0 +1,528 @@
+---
+format_version: '11'
+default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
+project_type: react-native
+
+trigger_map:
+  - push_branch: 'master'
+    pipeline: main-trigger-pipeline
+  - pull_request_source_branch: '*'
+    pipeline: main-trigger-pipeline
+
+app:
+  envs:
+    - NODE_VERSION: '22'
+    - JAVA_VERSION: '17'
+    - XCODE_VERSION: '16.4'
+    - ANDROID_API_LEVEL: '33'
+    - SHARD_COUNT: 3
+    - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+    - RETRY_SLEEP_FAST: 10
+    - RETRY_SLEEP_SLOW: 45
+
+pipelines:
+  main-trigger-pipeline:
+    stages:
+      - stage-trigger-run-all: {}
+
+  nightly-pipeline:
+    stages:
+      - stage-nightly-all: {}
+
+stages:
+  stage-trigger-run-all:
+    workflows:
+      - js-tests: {}
+      - unit-test-ios: {}
+      - unit-test-android: {}
+      - e2e-android-old-arch-shard0: {}
+      - e2e-android-old-arch-shard1: {}
+      - e2e-android-old-arch-shard2: {}
+      - e2e-android-new-arch-shard0: {}
+      - e2e-android-new-arch-shard1: {}
+      - e2e-android-new-arch-shard2: {}
+      - e2e-ios-old-arch-shard0: {}
+      - e2e-ios-old-arch-shard1: {}
+      - e2e-ios-old-arch-shard2: {}
+      - e2e-ios-new-arch-shard0: {}
+      - e2e-ios-new-arch-shard1: {}
+      - e2e-ios-new-arch-shard2: {}
+
+  stage-nightly-all:
+    workflows:
+      - js-tests: {}
+      - unit-test-ios: {}
+      - unit-test-android: {}
+      - e2e-android-old-arch-shard0: {}
+      - e2e-android-new-arch-shard0: {}
+      - e2e-ios-old-arch-shard0: {}
+      - e2e-ios-new-arch-shard0: {}
+
+workflows:
+  # JavaScript Tests
+  js-tests:
+    before_run:
+      - _prepare_js
+    steps:
+      - script@1:
+          title: Run TypeScript checks
+          inputs:
+            - content: yarn typescript
+      - script@1:
+          title: Run ESLint
+          inputs:
+            - content: yarn lint
+      - script@1:
+          title: Run Jest tests
+          inputs:
+            - content: yarn test
+      - script@1:
+          title: Run example TypeScript checks
+          inputs:
+            - content: cd example && yarn typescript
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.medium
+
+  # iOS Unit Tests
+  unit-test-ios:
+    envs:
+      - NEW_ARCH_ENABLED: true
+    before_run:
+      - _prepare_ios
+    steps:
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
+      - script@1:
+          title: Run iOS unit tests
+          timeout: 1200
+          inputs:
+            - content: yarn test:unit:ios
+      - save-cache@1:
+          title: Save pods cache
+          is_always_run: true
+          inputs:
+            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  # Android Unit Tests
+  unit-test-android:
+    before_run:
+      - _prepare_android
+      - _start_android_emulator
+    steps:
+      - wait-for-android-emulator@1:
+          inputs:
+            - boot_timeout: 600
+      - script@1:
+          title: Check Android code formatting
+          inputs:
+            - content: yarn format:android:check
+      - script@1:
+          title: Run Android unit tests
+          timeout: 1200
+          inputs:
+            - content: yarn test:unit:android
+      - save-gradle-cache@1:
+          is_always_run: true
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  # Android E2E Tests - Old Architecture
+  e2e-android-old-arch-shard0:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 0
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-android-old-arch-shard1:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 1
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-android-old-arch-shard2:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 2
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  # Android E2E Tests - New Architecture
+  e2e-android-new-arch-shard0:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 0
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-android-new-arch-shard1:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 1
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-android-new-arch-shard2:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 2
+    before_run:
+      - _e2e_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  # iOS E2E Tests - Old Architecture
+  e2e-ios-old-arch-shard0:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 0
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  e2e-ios-old-arch-shard1:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 1
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  e2e-ios-old-arch-shard2:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - SHARD_INDEX: 2
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  # iOS E2E Tests - New Architecture
+  e2e-ios-new-arch-shard0:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 0
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  e2e-ios-new-arch-shard1:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 1
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  e2e-ios-new-arch-shard2:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - SHARD_INDEX: 2
+      - MAESTRO_DRIVER_STARTUP_TIMEOUT: 300000
+    before_run:
+      - _e2e_ios
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  _prepare_js_env:
+    steps:
+      - nvm@1:
+          inputs:
+            - node_version: $NODE_VERSION
+      - script@1:
+          title: Use Yarn v1
+          inputs:
+            - content: |
+                corepack disable || true
+                npm i -g yarn@1.22.22
+                YARN_CACHE_DIR="$(yarn cache dir)"
+                envman add --key YARN_CACHE_DIR --value "$YARN_CACHE_DIR"
+      - restore-cache@2:
+          title: Restore yarn cache
+          inputs:
+            - key: |
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-
+
+  _save_js_env:
+    steps:
+      - save-cache@1:
+          title: Save yarn cache
+          is_always_run: true
+          inputs:
+            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+            - paths: |
+                $YARN_CACHE_DIR
+
+  _prepare_js:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - yarn@0:
+          title: Install dependencies (no pods)
+          inputs:
+            - command: bootstrap-no-pods
+  _prepare_ios:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - restore-cache@2:
+          title: Restore pods cache
+          inputs:
+            - key: |
+                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
+      - yarn@0:
+          title: Bootstrap project
+          inputs:
+            - command: bootstrap-no-pods
+
+  _prepare_android:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - restore-gradle-cache@2: {}
+      - yarn@0:
+          title: Install dependencies (no pods)
+          inputs:
+            - command: bootstrap-no-pods
+      - set-java-version@1:
+          inputs:
+            - set_java_version: $JAVA_VERSION
+
+  _start_android_emulator:
+    steps:
+      - avd-manager@1:
+          inputs:
+            - profile: 'pixel_6'
+            - abi: 'x86_64'
+            - api_level: $ANDROID_API_LEVEL
+            - tag: 'google_apis'
+            - start_command_flags: >
+                -camera-back none
+                -camera-front none
+                -netdelay none
+                -netspeed full
+                -memory 8192
+                -no-snapshot
+                -no-audio
+                -no-window
+                -gpu swiftshader_indirect
+                -no-boot-anim
+
+  _e2e_android:
+    before_run:
+      - _prepare_android
+      - _start_android_emulator
+    after_run:
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
+    steps:
+      - script@1:
+          title: Build Android app
+          timeout: 1200
+          inputs:
+            - content: |
+                cd example/android
+                yarn build:android
+                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+      - script@1:
+          title: Install Maestro CLI
+          inputs:
+            - content: |
+                curl -Ls "https://get.maestro.mobile.dev" | bash
+                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+      - wait-for-android-emulator@1:
+          inputs:
+            - boot_timeout: 600
+      - script@1:
+          title: Install APK
+          inputs:
+            - content: |
+                adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+                adb install -r example/android/app/build/outputs/apk/release/app-release.apk
+      - script@1:
+          title: Run E2E tests
+          timeout: 2400
+          inputs:
+            - content: |
+                export PATH="${HOME}/.maestro/bin:$PATH"
+                yarn test:e2e:android
+      - save-gradle-cache@1:
+          is_always_run: true
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - notify_user_groups: none
+            - deploy_path: e2e-artifacts
+            - is_compress: true
+
+  _e2e_ios:
+    before_run:
+      - _prepare_ios
+    after_run:
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
+    steps:
+      - script@1:
+          title: Generate bundle
+          inputs:
+            - content: yarn example build:ios
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: |
+                export NEW_ARCH_ENABLED=$NEW_ARCH_ENABLED
+                yarn pods
+      - script@1:
+          title: Install Maestro CLI
+          inputs:
+            - content: |
+                curl -Ls "https://get.maestro.mobile.dev" | bash
+                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+      - script@1:
+          title: Build iOS app
+          timeout: 1800
+          inputs:
+            - content: |
+                export NEW_ARCH_ENABLED=$NEW_ARCH_ENABLED
+                export RCT_NEW_ARCH_ENABLED=$RCT_NEW_ARCH_ENABLED
+                yarn run-example-ios:release
+      - script@1:
+          title: Run E2E tests
+          timeout: 2400
+          inputs:
+            - content: |
+                export PATH="${HOME}/.maestro/bin:$PATH"
+                yarn test:e2e:ios
+      - save-cache@1:
+          title: Save pods cache
+          is_always_run: true
+          inputs:
+            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{getenv "NEW_ARCH_ENABLED"}}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - notify_user_groups: none
+            - deploy_path: e2e-artifacts
+            - is_compress: true
+
+  _notify_e2e_failure:
+    steps:
+      - slack@3:
+          is_always_run: true
+          run_if: '{{getenv "FINANCIAL_CONNECTIONS_TESTS_FAILED" | eq "true"}}'
+          inputs:
+            - webhook_url: $SLACK_LINK_MOBILE_ALERT_CHANNEL_WEBHOOK_URL
+            - text: |
+                🚨 *Financial Connections Tests Failed*
+                Platform: $BITRISE_PLATFORM
+                Architecture: $NEW_ARCH_ENABLED
+                Shard: $SHARD_INDEX
+                Build: $BITRISE_BUILD_URL
+      - slack@3:
+          is_always_run: true
+          run_if: '.IsBuildFailed && {{getenv "BITRISE_GIT_BRANCH" | eq "master"}}'
+          inputs:
+            - webhook_url: $SLACK_RUN_CHANNEL_WEBHOOK_URL
+            - text: |
+                *Nightly Build Failed*
+                Platform: $BITRISE_PLATFORM
+                Build: $BITRISE_BUILD_URL
+
+meta:
+  bitrise.io:
+    stack: linux-docker-android-22.04
+    machine_type_id: g2.linux.medium
