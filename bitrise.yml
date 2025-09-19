@@ -1,5 +1,4 @@
 ---
-# Build
 format_version: '11'
 default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
 project_type: react-native
@@ -12,9 +11,9 @@ trigger_map:
 
 app:
   envs:
-    - NODE_VERSION: '20'
+    - NODE_VERSION: '22'
     - JAVA_VERSION: '17'
-    - XCODE_VERSION: '16.3'
+    - XCODE_VERSION: '16.4'
     - ANDROID_API_LEVEL: '33'
     - SHARD_COUNT: 3
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
@@ -88,21 +87,34 @@ workflows:
 
   # iOS Unit Tests
   unit-test-ios:
+    envs:
+      - NEW_ARCH_ENABLED: true
     before_run:
       - _prepare_ios
     steps:
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
       - script@1:
           title: Run iOS unit tests
           timeout: 1200
           inputs:
             - content: yarn test:unit:ios
+      - save-cache@1:
+          title: Save pods cache
+          is_always_run: true
+          inputs:
+            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.large
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   # Android Unit Tests
   unit-test-android:
@@ -122,6 +134,8 @@ workflows:
           timeout: 1200
           inputs:
             - content: yarn test:unit:android
+      - save-gradle-cache@1:
+          is_always_run: true
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
@@ -215,8 +229,8 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   e2e-ios-old-arch-shard1:
     envs:
@@ -228,8 +242,8 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   e2e-ios-old-arch-shard2:
     envs:
@@ -241,8 +255,8 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   # iOS E2E Tests - New Architecture
   e2e-ios-new-arch-shard0:
@@ -255,8 +269,8 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   e2e-ios-new-arch-shard1:
     envs:
@@ -268,8 +282,8 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
   e2e-ios-new-arch-shard2:
     envs:
@@ -281,57 +295,83 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.3.x
-        machine_type_id: g2.mac.xlarge
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
 
-  # Private workflows (reusable components)
+  _prepare_js_env:
+    steps:
+      - nvm@1:
+          inputs:
+            - node_version: $NODE_VERSION
+      - script@1:
+          title: Use Yarn v1
+          inputs:
+            - content: |
+                corepack disable || true
+                npm i -g yarn@1.22.22
+                YARN_CACHE_DIR="$(yarn cache dir)"
+                envman add --key YARN_CACHE_DIR --value "$YARN_CACHE_DIR"
+      - restore-cache@2:
+          title: Restore yarn cache
+          inputs:
+            - key: |
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-
+
+  _save_js_env:
+    steps:
+      - save-cache@1:
+          title: Save yarn cache
+          is_always_run: true
+          inputs:
+            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+            - paths: |
+                $YARN_CACHE_DIR
+
   _prepare_js:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
-      - nvm@1:
-          inputs:
-            - node_version: $NODE_VERSION
       - yarn@0:
           title: Install dependencies (no pods)
           inputs:
             - command: bootstrap-no-pods
-      - cache-pull@2: {}
-      - cache-push@2:
-          inputs:
-            - cache_paths: |
-                node_modules -> yarn.lock
-                example/node_modules -> example/yarn.lock
-
   _prepare_ios:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
-      - nvm@1:
+      - restore-cache@2:
+          title: Restore pods cache
           inputs:
-            - node_version: $NODE_VERSION
+            - key: |
+                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
       - yarn@0:
           title: Bootstrap project
           inputs:
-            - command: bootstrap
-      - cache-pull@2: {}
-      - cache-push@2:
-          inputs:
-            - cache_paths: |
-                node_modules -> yarn.lock
-                example/node_modules -> example/yarn.lock
-                example/ios/Pods -> example/ios/Podfile.lock
+            - command: bootstrap-no-pods
 
   _prepare_android:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
     steps:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
-      - nvm@1:
-          inputs:
-            - node_version: $NODE_VERSION
+      - restore-gradle-cache@2: {}
       - yarn@0:
           title: Install dependencies (no pods)
           inputs:
@@ -339,13 +379,6 @@ workflows:
       - set-java-version@1:
           inputs:
             - set_java_version: $JAVA_VERSION
-      - cache-pull@2: {}
-      - cache-push@2:
-          inputs:
-            - cache_paths: |
-                node_modules -> yarn.lock
-                example/node_modules -> example/yarn.lock
-                ~/.gradle -> **/*.gradle*
 
   _start_android_emulator:
     steps:
@@ -372,7 +405,8 @@ workflows:
       - _prepare_android
       - _start_android_emulator
     after_run:
-      - _notify_e2e_failure
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
     steps:
       - script@1:
           title: Build Android app
@@ -404,6 +438,8 @@ workflows:
             - content: |
                 export PATH="${HOME}/.maestro/bin:$PATH"
                 yarn test:e2e:android
+      - save-gradle-cache@1:
+          is_always_run: true
       - deploy-to-bitrise-io@2:
           is_always_run: true
           inputs:
@@ -415,7 +451,8 @@ workflows:
     before_run:
       - _prepare_ios
     after_run:
-      - _notify_e2e_failure
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
     steps:
       - script@1:
           title: Generate bundle
@@ -448,6 +485,13 @@ workflows:
             - content: |
                 export PATH="${HOME}/.maestro/bin:$PATH"
                 yarn test:e2e:ios
+      - save-cache@1:
+          title: Save pods cache
+          is_always_run: true
+          inputs:
+            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{getenv "NEW_ARCH_ENABLED"}}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
       - deploy-to-bitrise-io@2:
           is_always_run: true
           inputs:
