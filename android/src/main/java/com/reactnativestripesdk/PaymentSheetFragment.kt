@@ -693,7 +693,7 @@ fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
       drawableCompat.intrinsicHeight,
       Bitmap.Config.ARGB_8888,
     )
-  bitmap.eraseColor(Color.WHITE)
+  bitmap.eraseColor(Color.TRANSPARENT)
   val canvas = Canvas(bitmap)
   drawable.setBounds(0, 0, canvas.width, canvas.height)
   drawable.draw(canvas)
