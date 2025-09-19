@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x.x.x
+## 0.53.1 - 2025-09-19
 
 **Fixes**
 
