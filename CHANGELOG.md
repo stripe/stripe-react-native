@@ -5,6 +5,7 @@
 **Fixes**
 
 - [#2129](https://github.com/stripe/stripe-react-native/pull/2129) Fix iOS build on new arch 0.81 with static linkage
+- Embedded Payment Element rendering invalid payment option images on Android
 
 ## 0.53.0 - 2025-09-15
 
