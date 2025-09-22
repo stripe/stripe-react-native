@@ -80,12 +80,14 @@ workflows:
           title: Run example TypeScript checks
           inputs:
             - content: cd example && yarn typescript
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.medium
 
-  # iOS Unit Tests
   unit-test-ios:
     envs:
       - NEW_ARCH_ENABLED: true
@@ -96,16 +98,17 @@ workflows:
           title: Install Pods
           inputs:
             - content: yarn pods
-      - script@1:
-          title: Run iOS unit tests
-          timeout: 1200
+      - xcode-test@4:
           inputs:
-            - content: yarn test:unit:ios
+            - project_path: example/ios/example.xcworkspace
+            - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
+            - scheme: stripe-react-native-Unit-Tests
+            - log_formatter: xcbeautify
       - save-cache@1:
           title: Save pods cache
           is_always_run: true
           inputs:
-            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
             - paths: |
                 example/ios/Pods
       - deploy-to-bitrise-io@2:
@@ -113,10 +116,9 @@ workflows:
             - notify_user_groups: none
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
-  # Android Unit Tests
   unit-test-android:
     before_run:
       - _prepare_android
@@ -136,6 +138,14 @@ workflows:
             - content: yarn test:unit:android
       - save-gradle-cache@1:
           is_always_run: true
+      - script@1:
+          title: Collect Android unit test results
+          is_always_run: true
+          inputs:
+            - content: |
+                OUT="$BITRISE_TEST_RESULT_DIR/android-unit"
+                mkdir -p "$OUT"
+                find example/android -type f -path "*/build/test-results/*UnitTest/*.xml" -exec cp {} "$OUT"/ \; || true
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
@@ -144,7 +154,6 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  # Android E2E Tests - Old Architecture
   e2e-android-old-arch-shard0:
     envs:
       - NEW_ARCH_ENABLED: false
@@ -181,7 +190,6 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  # Android E2E Tests - New Architecture
   e2e-android-new-arch-shard0:
     envs:
       - NEW_ARCH_ENABLED: true
@@ -218,7 +226,6 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: g2.linux.x-large
 
-  # iOS E2E Tests - Old Architecture
   e2e-ios-old-arch-shard0:
     envs:
       - NEW_ARCH_ENABLED: false
@@ -229,7 +236,7 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
   e2e-ios-old-arch-shard1:
@@ -242,7 +249,7 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
   e2e-ios-old-arch-shard2:
@@ -255,10 +262,9 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
-  # iOS E2E Tests - New Architecture
   e2e-ios-new-arch-shard0:
     envs:
       - NEW_ARCH_ENABLED: true
@@ -269,7 +275,7 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
   e2e-ios-new-arch-shard1:
@@ -282,7 +288,7 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
   e2e-ios-new-arch-shard2:
@@ -295,7 +301,7 @@ workflows:
       - _e2e_ios
     meta:
       bitrise.io:
-        stack: osx-xcode-16.4.x
+        stack: osx-xcode-26.0.x
         machine_type_id: g2.mac.4large
 
   _prepare_js_env:
@@ -355,8 +361,9 @@ workflows:
           title: Restore pods cache
           inputs:
             - key: |
-                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
-                pods-cache-{{ .OS }}-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
+                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
+      - activate-build-cache-for-xcode: {}
       - yarn@0:
           title: Bootstrap project
           inputs:
@@ -489,7 +496,7 @@ workflows:
           title: Save pods cache
           is_always_run: true
           inputs:
-            - key: pods-cache-{{ .OS }}-{{ .Arch }}-{{getenv "NEW_ARCH_ENABLED"}}-{{ checksum "example/ios/Podfile.lock" }}
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
             - paths: |
                 example/ios/Pods
       - deploy-to-bitrise-io@2:
