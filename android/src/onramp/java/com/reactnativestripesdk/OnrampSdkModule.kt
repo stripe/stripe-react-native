@@ -128,11 +128,14 @@ class OnrampSdkModule(
 
       val displayName = config.getString("merchantDisplayName") ?: ""
 
+      val cryptoCustomerId = config.getString("cryptoCustomerId")
+
       val configuration =
         OnrampConfiguration(
           merchantDisplayName = displayName,
           publishableKey = publishableKey,
           appearance = appearance,
+          cryptoCustomerId = cryptoCustomerId,
         )
 
       val configureResult = coordinator.configure(configuration)
