@@ -142,7 +142,6 @@ class OnrampSdkModule(
         OnrampConfiguration(
           merchantDisplayName = displayName,
           publishableKey = publishableKey,
-          stripeAccountId = stripeAccountId,
           appearance = appearance,
         )
 
