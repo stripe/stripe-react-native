@@ -104,11 +104,6 @@ class OnrampSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
-    if (onrampCoordinator != null && onrampPresenter != null) {
-      promise.resolveVoid()
-      return
-    }
-
     val application =
       currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
@@ -117,7 +112,7 @@ class OnrampSdkModule(
     }
 
     val coordinator =
-      OnrampCoordinator
+      onrampCoordinator ?: OnrampCoordinator
         .Builder()
         .build(application, SavedStateHandle())
         .also { this.onrampCoordinator = it }
@@ -137,7 +132,6 @@ class OnrampSdkModule(
         OnrampConfiguration(
           merchantDisplayName = displayName,
           publishableKey = publishableKey,
-          stripeAccountId = stripeAccountId,
           appearance = appearance,
         )
 
