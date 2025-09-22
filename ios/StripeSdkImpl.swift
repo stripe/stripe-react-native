@@ -1,6 +1,7 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
 @_spi(STP) import StripePaymentSheet
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
@@ -1556,6 +1557,49 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
+    public func getCryptoTokenDisplayData(
+        token: NSDictionary,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        let label = STPPaymentMethodType.link.displayName
+
+        if let cardDetails = token["card"] as? [String: Any] {
+            let brand = cardDetails["brand"] as? String ?? ""
+            let funding = cardDetails["funding"] as? String ?? ""
+            let last4 = cardDetails["last4"] as? String ?? ""
+
+            let cardBrand = STPCard.brand(from: brand)
+            let icon = STPImageLibrary.cardBrandImage(for: cardBrand)
+            let brandName = STPCardBrandUtilities.stringFrom(cardBrand)
+
+            let mappedFunding = STPCardFundingType(funding)
+            let formattedBrandName = String(format: mappedFunding.displayNameWithBrand, brandName ?? "")
+            let sublabel = "\(formattedBrandName) •••• \(last4)"
+
+            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+
+            resolve(["displayData": displayData])
+        } else if let bankDetails = token["us_bank_account"] as? [String: Any] {
+            let bankName = bankDetails["bank_name"] as? String ?? ""
+            let last4 = bankDetails["last4"] as? String ?? ""
+
+            let iconCode = PaymentSheetImageLibrary.bankIconCode(for: bankName)
+            let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
+            let sublabel = "\(bankName) •••• \(last4)"
+
+            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let displayData = Mappers.paymentMethodDisplayDataToMap(result)
+
+            resolve(["displayData": displayData])
+        } else {
+            let errorResult = Errors.createError(ErrorType.Unknown, "'type' parameter not unknown.")
+            resolve(["error": errorResult["error"]!])
+        }
+    }
+
     /// Checks for a `publishableKey`. Calls the resolve block with an error when one doesn’t exist.
     /// - Parameter resolve: The resolve block that is called with an error if no `publishableKey` is found.
     /// - Returns: `true` if a `publishableKey` was found. `false` otherwise.
@@ -1649,6 +1693,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc(onrampAuthorize:resolver:rejecter:)
     public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(getCryptoTokenDisplayData:)
+    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: Any]? {
+        return nil
     }
 
     private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
@@ -1768,5 +1817,25 @@ extension FinancialConnectionsSheet.Configuration {
             }
         }()
         self.init(style: style)
+    }
+}
+
+private extension STPCardFundingType {
+    var displayNameWithBrand: String {
+        switch self {
+        case .credit: String.Localized.Funding.credit
+        case .debit: String.Localized.Funding.debit
+        case .prepaid: String.Localized.Funding.prepaid
+        case .other: String.Localized.Funding.default
+        }
+    }
+    
+    init(_ typeString: String) {
+        self = switch typeString {
+        case "debit": .debit
+        case "credit": .credit
+        case "prepaid": .prepaid
+        default: .other
+        }
     }
 }

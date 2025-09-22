@@ -254,3 +254,44 @@ export type CreateCryptoPaymentTokenResult =
       /** Present if token creation failed with an error. */
       error: StripeError<OnrampError>;
     };
+
+/**
+ * A representation of the crypto payment token, which contains details about the payment method used.
+ */
+export type CryptoPaymentToken =
+  | {
+      card: {
+        /** The card brand (e.g., "visa", "mastercard"). Used to determine the visual brand. */
+        brand: string;
+
+        /** The funding source of the card (e.g., "credit", "debit"). */
+        funding: string;
+
+        /** The last four digits of the card number. */
+        last4: string;
+      };
+    }
+  | {
+      us_bank_account: {
+        /** The name of the bank (e.g., "Chase", "Bank of America"). */
+        bank_name?: string | null | undefined;
+
+        /** The last four digits of the bank account number. */
+        last4: string;
+      };
+    };
+
+/**
+ * Result of retrieving information about a payment method for display.
+ */
+export type PaymentDisplayDataResult =
+  | {
+      /** Display data for the selected payment method. */
+      displayData: PaymentMethodDisplayData;
+      error?: undefined;
+    }
+  | {
+      displayData?: undefined;
+      /** Present if collection/selection failed with an error. */
+      error: StripeError<OnrampError>;
+    };

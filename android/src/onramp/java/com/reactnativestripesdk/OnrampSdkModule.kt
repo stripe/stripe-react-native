@@ -49,6 +49,9 @@ import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.link.LinkController.PaymentMethodPreview
+import com.stripe.android.link.PaymentMethodPreviewDetails
+import com.stripe.android.model.CardBrand
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -524,6 +527,80 @@ class OnrampSdkModule(
     authorizePromise = promise
 
     presenter.authorize(linkAuthIntentId)
+  }
+
+  @ReactMethod
+  override fun getCryptoTokenDisplayData(
+    token: ReadableMap,
+    promise: Promise,
+  ) {
+    val context = reactApplicationContext
+
+    val paymentDetails: PaymentMethodPreview? =
+      when {
+        token.hasKey("card") -> {
+          val cardMap = token.getMap("card")
+          if (cardMap != null) {
+            val brand = cardMap.getString("brand") ?: ""
+            val funding = cardMap.getString("funding") ?: ""
+            val last4 = cardMap.getString("last4") ?: ""
+            val cardBrand = CardBrand.fromCode(brand)
+
+            PaymentMethodPreview.create(
+              context = context,
+              details =
+                PaymentMethodPreviewDetails.Card(
+                  brand = cardBrand,
+                  funding = funding,
+                  last4 = last4,
+                ),
+            )
+          } else {
+            null
+          }
+        }
+        token.hasKey("us_bank_account") -> {
+          val bankMap = token.getMap("us_bank_account")
+          if (bankMap != null) {
+            val bankName = bankMap.getString("bank_name")
+            val last4 = bankMap.getString("last4") ?: ""
+            PaymentMethodPreview.create(
+              context = context,
+              details =
+                PaymentMethodPreviewDetails.BankAccount(
+                  bankIconCode = null,
+                  bankName = bankName,
+                  last4 = last4,
+                ),
+            )
+          } else {
+            null
+          }
+        }
+        else -> null
+      }
+
+    if (paymentDetails == null) {
+      promise.resolve(
+        createFailedError(
+          IllegalArgumentException("Unsupported payment method"),
+        ),
+      )
+      return
+    }
+
+    val icon =
+      currentActivity
+        ?.let { ContextCompat.getDrawable(it, paymentDetails.iconRes) }
+        ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
+
+    val displayData = Arguments.createMap()
+
+    displayData.putString("icon", icon)
+    displayData.putString("label", paymentDetails.label)
+    displayData.putString("sublabel", paymentDetails.sublabel)
+
+    promise.resolve(createResult("displayData", displayData))
   }
 
   @ReactMethod

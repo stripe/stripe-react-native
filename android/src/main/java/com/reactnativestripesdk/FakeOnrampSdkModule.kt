@@ -118,6 +118,14 @@ class FakeOnrampSdkModule(
     promise?.resolveNotImplemented()
   }
 
+  @ReactMethod
+  override fun getCryptoTokenDisplayData(
+    token: ReadableMap,
+    promise: Promise,
+  ) {
+    promise?.resolveNotImplemented()
+  }
+
   private fun Promise.resolveNotImplemented() {
     this.resolve(
       createFailedError(

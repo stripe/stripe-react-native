@@ -1,9 +1,10 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
-import type { Onramp, OnrampError, StripeError } from '../types';
+import { Onramp, OnrampError, StripeError } from '../types';
 import type { PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
+import { CryptoPaymentToken } from '../types/Onramp';
 
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
@@ -140,6 +141,15 @@ export function useOnramp() {
     []
   );
 
+  const _getCryptoTokenDisplayData = useCallback(
+    async (
+      token: CryptoPaymentToken
+    ): Promise<Onramp.PaymentDisplayDataResult> => {
+      return NativeOnrampSdk.getCryptoTokenDisplayData(token);
+    },
+    []
+  );
+
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
@@ -258,6 +268,15 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with status and customerId or error
      */
     authorize: _authorize,
+
+    /**
+     * Retrieves display data (icon, label, sublabel) for the given payment method details.
+     * Suitable for rendering in the UI to summarize the selected payment method.
+     *
+     * @param token The token containing payment method details (card or bank account) to get display data for
+     * @returns Promise that resolves to an object with displayData or error
+     */
+    getCryptoTokenDisplayData: _getCryptoTokenDisplayData,
 
     /**
      * Logs out the current user from their Link account.
