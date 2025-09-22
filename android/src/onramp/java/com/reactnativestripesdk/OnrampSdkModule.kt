@@ -12,7 +12,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.utils.ErrorType
@@ -25,8 +24,6 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
-
-import com.stripe.android.model.CardBrand
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.DateOfBirth
@@ -52,8 +49,9 @@ import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
-import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.link.LinkController.PaymentMethodPreview
+import com.stripe.android.link.PaymentMethodPreviewDetails
+import com.stripe.android.model.CardBrand
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -532,45 +530,55 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-  override fun getCryptoTokenDisplayData(token: ReadableMap, promise: Promise) {
+  override fun getCryptoTokenDisplayData(
+    token: ReadableMap,
+    promise: Promise,
+  ) {
     val context = reactApplicationContext
-    
-        val paymentDetails: PaymentMethodPreview? = when {
-        token.hasKey("card") -> {
-            val cardMap = token.getMap("card")
-            if (cardMap != null) {
-                val brand = cardMap.getString("brand") ?: ""
-                val funding = cardMap.getString("funding") ?: ""
-                val last4 = cardMap.getString("last4") ?: ""
-                val cardBrand = CardBrand.fromCode(brand)
 
-                PaymentMethodPreview.create(
-                    context = context,
-                    details = PaymentMethodPreviewDetails.Card(
-                        brand = cardBrand,
-                        funding = funding,
-                        last4 = last4
-                    )
-                )
-            } else null
+    val paymentDetails: PaymentMethodPreview? =
+      when {
+        token.hasKey("card") -> {
+          val cardMap = token.getMap("card")
+          if (cardMap != null) {
+            val brand = cardMap.getString("brand") ?: ""
+            val funding = cardMap.getString("funding") ?: ""
+            val last4 = cardMap.getString("last4") ?: ""
+            val cardBrand = CardBrand.fromCode(brand)
+
+            PaymentMethodPreview.create(
+              context = context,
+              details =
+                PaymentMethodPreviewDetails.Card(
+                  brand = cardBrand,
+                  funding = funding,
+                  last4 = last4,
+                ),
+            )
+          } else {
+            null
+          }
         }
         token.hasKey("us_bank_account") -> {
-            val bankMap = token.getMap("us_bank_account")
-            if (bankMap != null) {
-                val bankName = bankMap.getString("bank_name")
-                val last4 = bankMap.getString("last4") ?: ""
-                PaymentMethodPreview.create(
-                    context = context,
-                    details = PaymentMethodPreviewDetails.BankAccount(
-                        bankIconCode = null,
-                        bankName = bankName,
-                        last4 = last4
-                    )
-                )
-            } else null
+          val bankMap = token.getMap("us_bank_account")
+          if (bankMap != null) {
+            val bankName = bankMap.getString("bank_name")
+            val last4 = bankMap.getString("last4") ?: ""
+            PaymentMethodPreview.create(
+              context = context,
+              details =
+                PaymentMethodPreviewDetails.BankAccount(
+                  bankIconCode = null,
+                  bankName = bankName,
+                  last4 = last4,
+                ),
+            )
+          } else {
+            null
+          }
         }
         else -> null
-    }
+      }
 
     if (paymentDetails == null) {
       promise.resolve(
