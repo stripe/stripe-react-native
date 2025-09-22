@@ -109,11 +109,6 @@ class OnrampSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
-    if (onrampCoordinator != null && onrampPresenter != null) {
-      promise.resolveVoid()
-      return
-    }
-
     val application =
       currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
@@ -122,7 +117,7 @@ class OnrampSdkModule(
     }
 
     val coordinator =
-      OnrampCoordinator
+      onrampCoordinator ?: OnrampCoordinator
         .Builder()
         .build(application, SavedStateHandle())
         .also { this.onrampCoordinator = it }
@@ -138,11 +133,14 @@ class OnrampSdkModule(
 
       val displayName = config.getString("merchantDisplayName") ?: ""
 
+      val cryptoCustomerId = config.getString("cryptoCustomerId")
+
       val configuration =
         OnrampConfiguration(
           merchantDisplayName = displayName,
           publishableKey = publishableKey,
           appearance = appearance,
+          cryptoCustomerId = cryptoCustomerId,
         )
 
       val configureResult = coordinator.configure(configuration)

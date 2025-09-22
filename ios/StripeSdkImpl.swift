@@ -1177,9 +1177,11 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             LinkAppearance()
         }
 
+        let cryptoCustomerId = config["cryptoCustomerId"] as? String
+
         Task {
             do {
-                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance)
+                cryptoOnrampCoordinator = try await CryptoOnrampCoordinator.create(appearance: appearance, cryptoCustomerID: cryptoCustomerId)
                 resolve([:])  // Return empty object on success
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
