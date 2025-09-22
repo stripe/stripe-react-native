@@ -12,6 +12,8 @@ export type Configuration = {
   merchantDisplayName: string;
   /** Appearance overrides for Stripe-provided UI used during onramp. */
   appearance: LinkAppearance;
+  /** The identifier of the Stripe crypto customer object. */
+  cryptoCustomerId?: string;
 };
 
 /**
