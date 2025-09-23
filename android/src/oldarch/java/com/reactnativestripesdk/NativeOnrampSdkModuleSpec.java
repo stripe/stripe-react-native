@@ -18,6 +18,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.turbomodule.core.interfaces.TurboModule;
 import javax.annotation.Nonnull;
 
@@ -33,8 +34,14 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
     return NAME;
   }
 
+  private void invoke(String eventName, Object params) {
+    getReactApplicationContext()
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit(eventName, params);
+  }
+
   protected final void emitOnCheckoutClientSecretRequested(ReadableMap value) {
-    mEventEmitterCallback.invoke("onCheckoutClientSecretRequested", value);
+    invoke("onCheckoutClientSecretRequested", value);
   }
 
   @ReactMethod
