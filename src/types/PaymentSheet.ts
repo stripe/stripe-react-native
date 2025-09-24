@@ -211,7 +211,25 @@ export type AppearanceParams = RecursivePartial<{
 
   /** Describes the inset values applied to Mobile Payment Element forms */
   formInsetValues: EdgeInsetsConfig;
+
+  /** Describes whether to apply liquid glass before applying customizations. (iOS only)
+   *  @default false
+   */
+  applyLiquidGlass?: boolean;
+
+  /** Describes the navigation bar style (iOS only)
+   *  @default Plain
+   */
+  navigationBarStyle?: NavigationBarStyle;
 }>;
+
+/** Display styles for the navigation bar */
+export enum NavigationBarStyle {
+  /** A flat style navigation bar compatible with <iOS26. */
+  Plain = 'plain',
+  /** A glassy navigation bar compatible with iOS26 liquid Glass. */
+  Glass = 'glass',
+}
 
 export type FontConfig = {
   /**
