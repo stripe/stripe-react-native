@@ -34,6 +34,12 @@ class ApplePayButtonView: UIView {
         if #available(iOS 12.0, *) {
             self.applePayButton?.cornerRadius = self.borderRadius as? CGFloat ?? 4.0
         }
+
+        // Apply corner radius to the button's layer for better visual effect
+        if let borderRadius = self.borderRadius as? CGFloat {
+            self.applePayButton?.layer.cornerRadius = borderRadius
+            self.applePayButton?.layer.masksToBounds = true
+        }
         
         if let applePayButton = self.applePayButton {
             applePayButton.isEnabled = !disabled
