@@ -19,7 +19,20 @@ import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { getClientSecretParams } from '../helpers';
-import appearance from './PaymentSheetAppearance';
+import {
+  appearance,
+  liquidGlassAppearance,
+  liquidGlassNavigationOnlyAppearance,
+  customAppearance,
+} from './PaymentSheetAppearance';
+import { Platform, View, Text, TouchableOpacity } from 'react-native';
+
+enum AppearanceSettings {
+  default = `default`,
+  glass = 'glass',
+  glassNavigation = 'glassNavigation',
+  custom = 'custom',
+}
 
 export default function PaymentsUICompleteScreen() {
   const { initPaymentSheet, presentPaymentSheet, resetPaymentSheetCustomer } =
@@ -27,6 +40,8 @@ export default function PaymentsUICompleteScreen() {
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [addressSheetVisible, setAddressSheetVisible] = useState(false);
+  const [appearanceSettings, setAppearanceSettings] =
+    useState<AppearanceSettings>(AppearanceSettings.default);
   const [clientSecret, setClientSecret] = useState<string>();
 
   const [customerKeyType, setCustomerKeyType] = useState<string>(
@@ -63,7 +78,6 @@ export default function PaymentsUICompleteScreen() {
       };
     }
   };
-
   const openPaymentSheet = async () => {
     if (!clientSecret) {
       return;
@@ -97,6 +111,19 @@ export default function PaymentsUICompleteScreen() {
       }
     }
     setLoading(false);
+  };
+
+  const getAppearanceForSetting = (setting: AppearanceSettings) => {
+    switch (setting) {
+      case AppearanceSettings.default:
+        return appearance;
+      case AppearanceSettings.glass:
+        return liquidGlassAppearance;
+      case AppearanceSettings.glassNavigation:
+        return liquidGlassNavigationOnlyAppearance;
+      case AppearanceSettings.custom:
+        return customAppearance;
+    }
   };
 
   const initialisePaymentSheet = useCallback(
@@ -139,7 +166,7 @@ export default function PaymentsUICompleteScreen() {
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         allowsDelayedPaymentMethods: true,
-        appearance,
+        appearance: getAppearanceForSetting(appearanceSettings),
         primaryButtonLabel: 'purchase!',
         paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
@@ -206,7 +233,7 @@ export default function PaymentsUICompleteScreen() {
         );
       }
     },
-    [customerKeyType, initPaymentSheet]
+    [customerKeyType, appearanceSettings, initPaymentSheet]
   );
 
   const toggleCustomerKeyType = (value: boolean) => {
@@ -242,6 +269,67 @@ export default function PaymentsUICompleteScreen() {
         onValueChange={toggleCustomerKeyType}
         value={customerKeyType === 'customer_session'}
       />
+      {Platform.OS === 'ios' && (
+        <View style={{ marginVertical: 10 }}>
+          <Text style={{ marginBottom: 8, fontWeight: '500', marginLeft: 10 }}>
+            Appearance Style
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: '#ccc',
+              overflow: 'hidden',
+            }}
+          >
+            {[
+              { title: 'Default', value: AppearanceSettings.default },
+              { title: 'Glass', value: AppearanceSettings.glass },
+              { title: 'Glass Nav', value: AppearanceSettings.glassNavigation },
+              { title: 'Custom', value: AppearanceSettings.custom },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.title}
+                style={{
+                  flex: 1,
+                  padding: 10,
+                  backgroundColor:
+                    appearanceSettings === option.value
+                      ? '#007AFF'
+                      : 'transparent',
+                  alignItems: 'center',
+                }}
+                onPress={() => {
+                  setAppearanceSettings(option.value);
+                  (async () => {
+                    setLoading(true);
+                    try {
+                      await initialisePaymentSheet();
+                    } catch (error) {
+                      console.error('Error initializing payment sheet:', error);
+                    } finally {
+                      setLoading(false);
+                    }
+                  })();
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color:
+                      appearanceSettings === option.value ? 'white' : '#333',
+                    fontWeight:
+                      appearanceSettings === option.value ? '600' : 'normal',
+                  }}
+                >
+                  {option.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
       <Button
         variant="primary"
         loading={loading}
