@@ -83,7 +83,7 @@ jobs:
         id: android_tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 30
           # This build is the most stable for API 33. Others appear to have a significant amount of ColorBuffer emulator errors.
           # While those errors don't affect the test outcome, best to be on the most stable build.
           emulator-build: 11237101
