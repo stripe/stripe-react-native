@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+**Features**
+- [#2140](https://github.com/stripe/stripe-react-native/pull/2140) Added support for the Alma payment method
+
 ## 0.53.1 - 2025-09-19
 
 **Fixes**

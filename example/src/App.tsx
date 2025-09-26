@@ -17,6 +17,7 @@ import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
+import AlmaPaymentScreen from './screens/AlmaPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
@@ -71,6 +72,7 @@ export type RootStackParamList = {
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   BilliePaymentScreen: undefined;
+  AlmaPaymentScreen: undefined;
   SepaPaymentScreen: undefined;
   SepaSetupFuturePaymentScreen: undefined;
   OxxoPaymentScreen: undefined;
@@ -274,6 +276,10 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
             component={PaymentSheetWithPmoSfuScreen}
+          />
+          <Stack.Screen
+            name="AlmaPaymentScreen"
+            component={AlmaPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
