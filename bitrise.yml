@@ -13,7 +13,6 @@ app:
   envs:
     - NODE_VERSION: '22'
     - JAVA_VERSION: '17'
-    - XCODE_VERSION: '16.4'
     - ANDROID_API_LEVEL: '33'
     - SHARD_COUNT: 3
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
@@ -24,10 +23,6 @@ pipelines:
   main-trigger-pipeline:
     stages:
       - stage-trigger-run-all: {}
-
-  nightly-pipeline:
-    stages:
-      - stage-nightly-all: {}
 
 stages:
   stage-trigger-run-all:
@@ -47,16 +42,6 @@ stages:
       - e2e-ios-new-arch-shard0: {}
       - e2e-ios-new-arch-shard1: {}
       - e2e-ios-new-arch-shard2: {}
-
-  stage-nightly-all:
-    workflows:
-      - js-tests: {}
-      - unit-test-ios: {}
-      - unit-test-android: {}
-      - e2e-android-old-arch-shard0: {}
-      - e2e-android-new-arch-shard0: {}
-      - e2e-ios-old-arch-shard0: {}
-      - e2e-ios-new-arch-shard0: {}
 
 workflows:
   # JavaScript Tests
@@ -122,11 +107,7 @@ workflows:
   unit-test-android:
     before_run:
       - _prepare_android
-      - _start_android_emulator
     steps:
-      - wait-for-android-emulator@1:
-          inputs:
-            - boot_timeout: 600
       - script@1:
           title: Check Android code formatting
           inputs:
@@ -389,7 +370,7 @@ workflows:
 
   _start_android_emulator:
     steps:
-      - avd-manager@1:
+      - avd-manager@2:
           inputs:
             - profile: 'pixel_6'
             - abi: 'x86_64'
@@ -421,8 +402,9 @@ workflows:
           inputs:
             - content: |
                 cd example/android
-                yarn build:android
-                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+                yarn build:android &
+                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan &
+                wait
       - script@1:
           title: Install Maestro CLI
           inputs:
@@ -462,10 +444,6 @@ workflows:
       # - _notify_e2e_failure
     steps:
       - script@1:
-          title: Generate bundle
-          inputs:
-            - content: yarn example build:ios
-      - script@1:
           title: Install Pods
           inputs:
             - content: |
@@ -484,7 +462,9 @@ workflows:
             - content: |
                 export NEW_ARCH_ENABLED=$NEW_ARCH_ENABLED
                 export RCT_NEW_ARCH_ENABLED=$RCT_NEW_ARCH_ENABLED
-                yarn run-example-ios:release
+                yarn example build:ios &
+                yarn run-example-ios:release &
+                wait
       - script@1:
           title: Run E2E tests
           timeout: 2400
