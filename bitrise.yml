@@ -159,8 +159,8 @@ workflows:
       - NEW_ARCH_ENABLED: false
       - RCT_NEW_ARCH_ENABLED: 0
       - BUILD_WORKFLOW: e2e-build-android-old-arch
-      - SHARD_INDEX: "${BITRISE_IO_PARALLEL_INDEX}"
-      - SHARD_COUNT: "${BITRISE_IO_PARALLEL_TOTAL}"
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
       - _e2e_tests_android
     meta:
@@ -173,8 +173,8 @@ workflows:
       - NEW_ARCH_ENABLED: true
       - RCT_NEW_ARCH_ENABLED: 1
       - BUILD_WORKFLOW: e2e-build-android-new-arch
-      - SHARD_INDEX: "${BITRISE_IO_PARALLEL_INDEX}"
-      - SHARD_COUNT: "${BITRISE_IO_PARALLEL_TOTAL}"
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
       - _e2e_tests_android
     meta:
@@ -209,8 +209,8 @@ workflows:
       - NEW_ARCH_ENABLED: false
       - RCT_NEW_ARCH_ENABLED: 0
       - BUILD_WORKFLOW: e2e-build-ios-old-arch
-      - SHARD_INDEX: "${BITRISE_IO_PARALLEL_INDEX}"
-      - SHARD_COUNT: "${BITRISE_IO_PARALLEL_TOTAL}"
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
       - _e2e_tests_ios
     meta:
@@ -223,8 +223,8 @@ workflows:
       - NEW_ARCH_ENABLED: true
       - RCT_NEW_ARCH_ENABLED: 1
       - BUILD_WORKFLOW: e2e-build-ios-new-arch
-      - SHARD_INDEX: "${BITRISE_IO_PARALLEL_INDEX}"
-      - SHARD_COUNT: "${BITRISE_IO_PARALLEL_TOTAL}"
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
     before_run:
       - _e2e_tests_ios
     meta:
@@ -351,7 +351,7 @@ workflows:
           is_always_run: true
       - deploy-to-bitrise-io@2:
           inputs:
-            - pipeline_intermediate_files: "$BITRISE_SOURCE_DIR/example/android/app/build/outputs/apk/release/app-release.apk:APK"
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/example/android/app/build/outputs/apk/release/app-release.apk:APK'
 
   _e2e_tests_android:
     before_run:
@@ -439,7 +439,7 @@ workflows:
                 example/ios/Pods
       - deploy-to-bitrise-io@2:
           inputs:
-            - pipeline_intermediate_files: "$BITRISE_SOURCE_DIR/app-release.app.zip:IOS_APP_ZIP"
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/app-release.app.zip:IOS_APP_ZIP'
 
   _e2e_tests_ios:
     before_run:
