@@ -1381,7 +1381,6 @@ class StripeSdkModule(
       }
 
       override fun onActivityResumed(activity: Activity) {
-
       }
 
       override fun onActivityPaused(activity: Activity) {
