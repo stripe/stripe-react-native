@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.utils
 
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
@@ -33,7 +34,14 @@ internal class KeepJsAwakeTask(
   fun stop() {
     val taskId = taskId ?: return
     val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
-    headlessJsTaskContext.finishTask(taskId)
-    this.taskId = null
+
+    try {
+      headlessJsTaskContext.finishTask(taskId)
+    } catch (e: AssertionError) {
+      // Ignore if task already finished
+      Log.w("KeepJsAwakeTask", "Tried to stop a non-existent task (id=$taskId)")
+    } finally {
+      this.taskId = null
+    }
   }
 }

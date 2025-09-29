@@ -7,6 +7,9 @@ appId: ${APP_ID}
 - assertVisible:
     text: "Collect session"
 - tapOn:
+    id: "force_native_flow_switch"
+    optional: true
+- tapOn:
     text: "Collect session"
     retryTapIfNoChange: false
 - assertVisible:

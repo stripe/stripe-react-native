@@ -1,5 +1,12 @@
 import React from 'react';
-import { Alert, View, Text, Modal, Image } from 'react-native';
+import {
+  Alert,
+  View,
+  Text,
+  Modal,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -35,6 +42,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
     confirm,
     clearPaymentOption,
     loadingError,
+    isLoaded,
   } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
 
   // Payment action
@@ -60,7 +68,15 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         </View>
       )}
 
-      {embeddedPaymentElementView}
+      <View style={{ opacity: isLoaded ? 1 : 0 }}>
+        {embeddedPaymentElementView}
+      </View>
+
+      {!loadingError && !isLoaded && (
+        <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+          <ActivityIndicator />
+        </View>
+      )}
 
       <View style={{ paddingVertical: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

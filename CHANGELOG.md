@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+## 0.54.0 - 2025-09-29
+
+**Features**
+- [#2140](https://github.com/stripe/stripe-react-native/pull/2140) Added support for the Alma payment method
+
+## 0.53.1 - 2025-09-19
+
+**Fixes**
+
+- [#2128](https://github.com/stripe/stripe-react-native/pull/2128) Fix headless task not registered by StripeProvider.
+- [#2129](https://github.com/stripe/stripe-react-native/pull/2129) Fix iOS build on new arch 0.81 with static linkage
+- Embedded Payment Element rendering invalid payment option images on Android
+
+## 0.53.0 - 2025-09-15
+
+**Features**
+- Added `isLoaded` flag to `useEmbeddedPaymentElement` hook that indicates when the embedded payment element has finished loading and is ready to display (height > 1). Useful for showing loading states and smooth UI transitions.
+
+**Fixes**
+- Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
+- Fixed Android EmbeddedPaymentElement layout measurement issues by improving height calculation and switching from `onPlaced` to `onSizeChanged` for better layout synchronization.
+
 ## 0.52.0 - 2025-09-08
 **Features**
 - [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option

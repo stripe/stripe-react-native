@@ -184,6 +184,8 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
 
+  setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;

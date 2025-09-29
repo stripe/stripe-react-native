@@ -1,6 +1,7 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(STP) import StripePayments
 import StripeFinancialConnections
 import Foundation
 
@@ -1147,6 +1148,16 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
 #endif
+    }
+
+    @objc(setFinancialConnectionsForceNativeFlow:resolver:rejecter:)
+    public func setFinancialConnectionsForceNativeFlow(
+        enabled: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        UserDefaults.standard.set(enabled, forKey: "FINANCIAL_CONNECTIONS_EXAMPLE_APP_ENABLE_NATIVE")
+        resolve(nil)
     }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

@@ -128,6 +128,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
   when (type) {
     PaymentMethod.Type.AfterpayClearpay -> "AfterpayClearpay"
     PaymentMethod.Type.Alipay -> "Alipay"
+    PaymentMethod.Type.Alma -> "Alma"
     PaymentMethod.Type.AuBecsDebit -> "AuBecsDebit"
     PaymentMethod.Type.BacsDebit -> "BacsDebit"
     PaymentMethod.Type.Bancontact -> "Bancontact"
@@ -159,6 +160,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Card" -> PaymentMethod.Type.Card
     "Ideal" -> PaymentMethod.Type.Ideal
     "Alipay" -> PaymentMethod.Type.Alipay
+    "Alma" -> PaymentMethod.Type.Alma
     "AuBecsDebit" -> PaymentMethod.Type.AuBecsDebit
     "BacsDebit" -> PaymentMethod.Type.BacsDebit
     "Bancontact" -> PaymentMethod.Type.Bancontact
@@ -558,6 +560,7 @@ internal fun mapNextAction(
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
+    NextActionType.DisplayPayNowDetails,
     null,
     -> {
       return null

@@ -354,6 +354,13 @@ RCT_EXPORT_METHOD(updatePlatformPaySheet:(nonnull NSArray *)summaryItems
                                       rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(setFinancialConnectionsForceNativeFlow:(BOOL)enabled
+                                                 resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared setFinancialConnectionsForceNativeFlow:enabled resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent
                          clientSecret:(nonnull NSString *)clientSecret
                                params:(nonnull NSDictionary *)params
