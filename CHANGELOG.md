@@ -2,6 +2,8 @@
 
 ## x.x.x - x-x-x
 
+## 0.54.0 - 2025-09-29
+
 **Features**
 - [#2140](https://github.com/stripe/stripe-react-native/pull/2140) Added support for the Alma payment method
 
