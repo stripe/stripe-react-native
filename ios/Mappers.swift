@@ -276,6 +276,7 @@ class Mappers {
         switch type {
         case STPPaymentMethodType.card: return "Card"
         case STPPaymentMethodType.alipay: return "Alipay"
+        case STPPaymentMethodType.alma: return "Alma"
         case STPPaymentMethodType.grabPay: return "GrabPay"
         case STPPaymentMethodType.iDEAL: return "Ideal"
         case STPPaymentMethodType.FPX: return "Fpx"
@@ -307,6 +308,7 @@ class Mappers {
             switch type {
             case "Card": return STPPaymentMethodType.card
             case "Alipay": return STPPaymentMethodType.alipay
+            case "Alma": return STPPaymentMethodType.alma
             case "GrabPay": return STPPaymentMethodType.grabPay
             case "Ideal": return STPPaymentMethodType.iDEAL
             case "Fpx": return STPPaymentMethodType.FPX
