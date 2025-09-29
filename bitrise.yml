@@ -82,7 +82,7 @@ workflows:
           inputs:
             - content: yarn pods
       - xcode-test@4:
-          title: Run iOS Unit Tests
+          title: Xcode Test for iOS
           inputs:
             - project_path: example/ios/example.xcworkspace
             - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
