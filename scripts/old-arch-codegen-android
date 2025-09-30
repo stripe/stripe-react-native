@@ -25,3 +25,8 @@ done
 # diff -u android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpecNew.java > scripts/NativeStripeSdkModuleSpec.patch
 patch android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java < scripts/NativeStripeSdkModuleSpec.patch
 sed -i '' 's/mEventEmitterCallback\.invoke/invoke/g' android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java
+
+patch android/src/oldarch/java/com/reactnativestripesdk/NativeOnrampSdkModuleSpec.java < scripts/NativeOnrampSdkModuleSpec.patch
+sed -i '' 's/mEventEmitterCallback\.invoke/invoke/g' android/src/oldarch/java/com/reactnativestripesdk/NativeOnrampSdkModuleSpec.java
+
+find android/src/oldarch/java -type f -name '*.orig' -delete
