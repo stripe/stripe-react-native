@@ -2,6 +2,12 @@
 
 ## x.x.x - x-x-x
 
+## 0.54.1 - 2025-10-01
+
+**Fixes**
+
+- [#2147](https://github.com/stripe/stripe-react-native/pull/2147) Fix Stripe UI errors when rotating screen
+
 ## 0.54.0 - 2025-09-29
 
 **Features**
