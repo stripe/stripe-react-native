@@ -11,9 +11,8 @@ internal class PaymentSheetAppearance {
         var appearance = PaymentSheet.Appearance()
         guard let userParams = userParams else { return appearance }
 
-        #if compiler(>=6.2)
         if #available(iOS 26.0, *), let applyLiquidGlass = userParams[PaymentSheetAppearanceKeys.APPLY_LIQUID_GLASS] as? Bool,
-           applyLiquidGlass, #available(iOS 26.0, *) {
+           applyLiquidGlass {
             appearance.applyLiquidGlass()
         }
 
@@ -24,7 +23,6 @@ internal class PaymentSheetAppearance {
                 appearance.navigationBarStyle = .glass
             }
         }
-        #endif
 
         if let fontParams = userParams[PaymentSheetAppearanceKeys.FONT] as? NSDictionary {
             appearance.font = try buildFont(params: fontParams)

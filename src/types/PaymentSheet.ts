@@ -192,8 +192,12 @@ export type AppearanceParams = RecursivePartial<{
     | { light: GlobalColorConfig; dark: GlobalColorConfig };
   /** Describes the appearance of shapes in the PaymentSheet, such as buttons, inputs, and tabs. */
   shapes: {
-    /** The border radius used for buttons, inputs, and tabs in your PaymentSheet.
-     * @default 6.0
+    /** The border radius used for buttons, inputs, tabs in PaymentSheet
+     *   - Note: On iOS, the behavior of this property is consistent with the behavior of corner radius on `CALayer`
+     *   - Note: On iOS, When `nil`, the behavior depends:
+     *     - iOS 26+ and `UIDesignRequiresCompatibility = NO`: Various `UICornerConfiguration` values are used to match Liquid Glass.
+     *     - Pre-iOS 26: A 6.0 corner radius is applied.
+     *   - Note: On Android, a 6.0 corner radius is applied.
      */
     borderRadius: number;
     /** The border width used for inputs and tabs in your PaymentSheet.
