@@ -8,6 +8,10 @@ import com.stripe.android.core.exception.InvalidRequestException
 import com.stripe.android.exception.CardException
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
+import com.stripe.android.crypto.onramp.exception.MissingConsumerSecretException
+import com.stripe.android.crypto.onramp.exception.MissingCryptoCustomerException
+import com.stripe.android.crypto.onramp.exception.MissingPaymentMethodException
+import com.stripe.android.crypto.onramp.exception.PaymentFailedException
 
 enum class ErrorType {
   Failed,
@@ -180,7 +184,17 @@ internal fun createError(
 
 internal fun createCanceledError(message: String? = null): WritableMap = createError(ErrorType.Canceled.toString(), message)
 
-internal fun createFailedError(error: Throwable): WritableMap = createError(ErrorType.Failed.toString(), error)
+internal fun createFailedError(error: Throwable): WritableMap {
+  val code = when (error) {
+    is MissingConsumerSecretException -> "MissingCSCS"
+    is MissingCryptoCustomerException -> "MissingCryptoCustomer"
+    is MissingPaymentMethodException -> "MissingPaymentMethod"
+    is PaymentFailedException -> "PaymentFailed"
+    else -> ErrorType.Failed.toString()
+  }
+
+  return createError(code, error)
+}
 
 internal fun createMissingInitError(): WritableMap =
   createError(

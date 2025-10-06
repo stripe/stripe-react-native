@@ -48,6 +48,10 @@ export enum OnrampError {
   Failed = 'Failed',
   Canceled = 'Canceled',
   Unknown = 'Unknown',
+  MissingCSCS = 'MissingCSCS',
+  MissingCryptoCustomer = 'MissingCryptoCustomer',
+  MissingPaymentMethod = 'MissingPaymentMethod',
+  PaymentFailed = 'PaymentFailed',
 }
 
 export type ErrorType =
