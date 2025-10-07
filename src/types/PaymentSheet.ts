@@ -216,8 +216,11 @@ export type AppearanceParams = RecursivePartial<{
   /** Describes the inset values applied to Mobile Payment Element forms */
   formInsetValues: EdgeInsetsConfig;
 
-  /** Describes whether to apply liquid glass before applying customizations. (iOS only)
-   *  @default false
+  /** Setting this boolean to `true` will call the iOS applyLiquidGlass() method
+   * (https://stripe.dev/stripe-ios/stripepaymentsheet/documentation/stripepaymentsheet/paymentsheet/appearance/applyliquidglass())
+   * on the Appearance object prior to applying other appearance customizations set on AppearanceParams.
+   * Requires iOS26 and Xcode 26, and will be ignored if these requirements are not met.
+   * @default false
    */
   applyLiquidGlass?: boolean;
 
@@ -227,11 +230,11 @@ export type AppearanceParams = RecursivePartial<{
   navigationBarStyle?: NavigationBarStyle;
 }>;
 
-/** Display styles for the navigation bar */
+/** Display styles for the navigation bar (iOS only) */
 export enum NavigationBarStyle {
-  /** A flat style navigation bar compatible with <iOS26. */
+  /** Default style */
   Plain = 'plain',
-  /** A glassy navigation bar compatible with iOS26 liquid Glass. */
+  /** Style to match iOS 26 Liquid Glass. Requires: iOS26 and Xcode 26, and will be ignored if these requirements are not met. */
   Glass = 'glass',
 }
 
