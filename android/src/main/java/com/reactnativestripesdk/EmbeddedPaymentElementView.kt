@@ -249,7 +249,7 @@ class EmbeddedPaymentElementView(
               )
 
             when (result) {
-              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(1f)
+              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> reportHeightChange(2f)
               is EmbeddedPaymentElement.ConfigureResult.Failed -> {
                 // send the error back to JS
                 val err = result.error
