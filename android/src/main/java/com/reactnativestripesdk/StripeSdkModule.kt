@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -1361,17 +1362,17 @@ class StripeSdkModule(
     return null
   }
 
-  private var isRecreatingActivities = false
+  private var isRecreatingReactActivity = false
   private val activityLifecycleCallbacks =
     object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(
         activity: Activity,
         bundle: Bundle?,
       ) {
-        if (bundle != null) {
-          isRecreatingActivities = true
+        if (activity is ReactActivity) {
+          isRecreatingReactActivity = true
         }
-        if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
+        if (isRecreatingReactActivity && activity.javaClass.name.startsWith("com.stripe.android")) {
           activity.finish()
         }
       }
@@ -1380,7 +1381,6 @@ class StripeSdkModule(
       }
 
       override fun onActivityResumed(activity: Activity) {
-        isRecreatingActivities = false
       }
 
       override fun onActivityPaused(activity: Activity) {
@@ -1408,6 +1408,8 @@ class StripeSdkModule(
    * pay this might not always work.
    */
   private fun preventActivityRecreation() {
+    isRecreatingReactActivity = false
+    currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
     currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
