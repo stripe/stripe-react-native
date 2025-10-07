@@ -302,16 +302,6 @@ export default function PaymentsUICompleteScreen() {
                 }}
                 onPress={() => {
                   setAppearanceSettings(option.value);
-                  (async () => {
-                    setLoading(true);
-                    try {
-                      await initialisePaymentSheet();
-                    } catch (error) {
-                      console.error('Error initializing payment sheet:', error);
-                    } finally {
-                      setLoading(false);
-                    }
-                  })();
                 }}
               >
                 <Text
