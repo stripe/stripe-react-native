@@ -7,7 +7,7 @@ import {
   Address,
   PaymentSheetError,
   PaymentSheet,
-  PaymentMethod,
+  ConfirmationToken,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -124,9 +124,8 @@ export default function PaymentSheetDeferredIntentScreen() {
           brands: [PaymentSheet.CardBrandCategory.Amex],
         },
         intentConfiguration: {
-          confirmHandler: async (
-            paymentMethod: PaymentMethod.Result,
-            _shouldSavePaymentMethod: boolean,
+          confirmationTokenConfirmHandler: async (
+            confirmationToken: ConfirmationToken.Result,
             intentCreationCallback: (
               result: PaymentSheet.IntentCreationCallbackParams
             ) => void
@@ -139,7 +138,6 @@ export default function PaymentSheetDeferredIntentScreen() {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  paymentMethodId: paymentMethod.id,
                   customerId: customer,
                 }),
               }

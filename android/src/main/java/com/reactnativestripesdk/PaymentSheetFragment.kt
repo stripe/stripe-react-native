@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -30,6 +31,7 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
@@ -38,6 +40,7 @@ import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
+import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
@@ -73,8 +76,10 @@ class PaymentSheetFragment :
   private var presentPromise: Promise? = null
   private var paymentSheetTimedOut = false
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
 
+  @SuppressLint("RestrictedApi")
   @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun prepare() {
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
@@ -212,6 +217,32 @@ class PaymentSheetFragment :
           }
       }
 
+    val createConfirmationTokenCallback =
+      CreateIntentWithConfirmationTokenCallback { confirmationToken ->
+        val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
+        val params =
+          Arguments.createMap().apply {
+            putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
+          }
+
+        stripeSdkModule?.eventEmitter?.emitOnConfirmationTokenHandlerCallback(params)
+
+        val resultFromJavascript = paymentSheetConfirmationTokenCreationCallback.await()
+        // reset the completable
+        paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+
+        return@CreateIntentWithConfirmationTokenCallback resultFromJavascript.getString("clientSecret")?.let {
+          CreateIntentResult.Success(clientSecret = it)
+        }
+          ?: run {
+            val errorMap = resultFromJavascript.getMap("error")
+            CreateIntentResult.Failure(
+              cause = Exception(errorMap?.getString("message")),
+              displayMessage = errorMap?.getString("localizedMessage"),
+            )
+          }
+      }
+
     val billingDetailsConfig =
       PaymentSheet.BillingDetailsCollectionConfiguration(
         name = mapToCollectionMode(billingConfigParams?.getString("name")),
@@ -276,6 +307,7 @@ class PaymentSheetFragment :
               resultCallback = paymentResultCallback,
               paymentOptionResultCallback = paymentOptionCallback,
             ).createIntentCallback(createIntentCallback)
+            .createIntentCallback(createConfirmationTokenCallback)
             .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {
@@ -293,6 +325,7 @@ class PaymentSheetFragment :
           PaymentSheet
             .Builder(paymentResultCallback)
             .createIntentCallback(createIntentCallback)
+            .createIntentCallback(createConfirmationTokenCallback)
             .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {

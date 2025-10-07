@@ -1116,3 +1116,67 @@ internal fun mapFromCustomPaymentMethod(
     )
     putMap("billingDetails", mapFromBillingDetails(billingDetails))
   }
+
+internal fun mapFromConfirmationToken(confirmationToken: com.stripe.android.model.ConfirmationToken): WritableMap {
+  val token: WritableMap = WritableNativeMap()
+
+  token.putString("id", confirmationToken.id)
+  token.putDouble("created", confirmationToken.created.toDouble())
+  token.putDouble("expiresAt", confirmationToken.expiresAt?.toDouble() ?: 0.0)
+  token.putBoolean("liveMode", confirmationToken.liveMode)
+  token.putString("paymentIntentId", confirmationToken.paymentIntentId)
+  token.putString("setupIntentId", confirmationToken.setupIntentId)
+  token.putString("returnURL", confirmationToken.returnURL)
+  token.putString("setupFutureUsage", mapFromSetupFutureUsage(confirmationToken.setupFutureUsage))
+
+  // PaymentMethodPreview
+  confirmationToken.paymentMethodPreview?.let { preview ->
+    val paymentMethodPreview = WritableNativeMap()
+    paymentMethodPreview.putString("type", mapPaymentMethodType(preview.type))
+    paymentMethodPreview.putMap("billingDetails", mapFromBillingDetails(preview.billingDetails))
+    paymentMethodPreview.putString("allowRedisplay", mapFromAllowRedisplay(preview.allowRedisplay))
+    paymentMethodPreview.putString("customerId", preview.customerId)
+    paymentMethodPreview.putMap("allResponseFields", preview.allResponseFields?.toReadableMap() ?: WritableNativeMap())
+    token.putMap("paymentMethodPreview", paymentMethodPreview)
+  } ?: run {
+    token.putNull("paymentMethodPreview")
+  }
+
+  // Shipping details
+  confirmationToken.shipping?.let { shippingDetails ->
+    val shipping = WritableNativeMap()
+    shipping.putString("name", shippingDetails.name)
+    shipping.putString("phone", shippingDetails.phone)
+
+    shippingDetails.address?.let { address ->
+      val addressMap = WritableNativeMap()
+      addressMap.putString("city", address.city)
+      addressMap.putString("country", address.country)
+      addressMap.putString("line1", address.line1)
+      addressMap.putString("line2", address.line2)
+      addressMap.putString("postalCode", address.postalCode)
+      addressMap.putString("state", address.state)
+      shipping.putMap("address", addressMap)
+    } ?: run {
+      shipping.putMap("address", WritableNativeMap())
+    }
+
+    token.putMap("shipping", shipping)
+  } ?: run {
+    token.putNull("shipping")
+  }
+
+  token.putMap("allResponseFields", confirmationToken.allResponseFields?.toReadableMap() ?: WritableNativeMap())
+
+  return token
+}
+
+private fun mapFromSetupFutureUsage(setupFutureUsage: Any?): String? {
+  // This will need to be implemented based on the actual SetupFutureUsage enum when available
+  return setupFutureUsage?.toString()
+}
+
+private fun mapFromAllowRedisplay(allowRedisplay: Any?): String? {
+  // This will need to be implemented based on the actual AllowRedisplay enum when available
+  return allowRedisplay?.toString()
+}

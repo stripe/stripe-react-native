@@ -13,6 +13,7 @@ import type {
   CardBrand,
 } from './Common';
 import type { PaymentMethod } from '.';
+import type * as ConfirmationToken from './ConfirmationToken';
 import * as PaymentSheetTypes from './PaymentSheet';
 import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
 import {
@@ -253,6 +254,7 @@ class EmbeddedPaymentElement {
 // JS Factory: createEmbeddedPaymentElement
 // -----------------------------------------------------------------------------
 let confirmHandlerCallback: EventSubscription | null = null;
+let confirmationTokenHandlerCallback: EventSubscription | null = null;
 let formSheetActionConfirmCallback: EventSubscription | null = null;
 let customPaymentMethodConfirmCallback: EventSubscription | null = null;
 let rowSelectionCallback: EventSubscription | null = null;
@@ -290,6 +292,25 @@ function setupConfirmAndSelectionHandlers(
           paymentMethod,
           shouldSavePaymentMethod,
           NativeStripeSdkModule.intentCreationCallback
+        );
+      }
+    );
+  }
+
+  const confirmationTokenConfirmHandler =
+    intentConfig.confirmationTokenConfirmHandler;
+  if (confirmationTokenConfirmHandler) {
+    confirmationTokenHandlerCallback?.remove();
+    confirmationTokenHandlerCallback = addListener(
+      'onConfirmationTokenHandlerCallback',
+      ({
+        confirmationToken,
+      }: {
+        confirmationToken: ConfirmationToken.Result;
+      }) => {
+        confirmationTokenConfirmHandler(
+          confirmationToken,
+          NativeStripeSdkModule.confirmationTokenCreationCallback
         );
       }
     );

@@ -22,15 +22,24 @@ extension StripeSdkImpl {
       resolve(Errors.createError(ErrorType.Failed, "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration.mode` is required"))
       return
     }
-    if intentConfig.object(forKey: "confirmHandler") == nil {
-      resolve(Errors.createError(ErrorType.Failed, "You must provide `intentConfiguration.confirmHandler` if you are not passing an intent client secret"))
+    let hasConfirmHandler = intentConfig.object(forKey: "confirmHandler") != nil
+    let hasConfirmationTokenHandler = intentConfig.object(forKey: "confirmationTokenConfirmHandler") != nil
+
+    if !hasConfirmHandler && !hasConfirmationTokenHandler {
+      resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
+      return
+    }
+
+    if hasConfirmHandler && hasConfirmationTokenHandler {
+      resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
       return
     }
     let captureMethodString = intentConfig["captureMethod"] as? String
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      captureMethod: mapCaptureMethod(captureMethodString)
+      captureMethod: mapCaptureMethod(captureMethodString),
+      useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
     guard let configuration = buildEmbeddedPaymentElementConfiguration(params: configuration).configuration else {
@@ -103,11 +112,24 @@ extension StripeSdkImpl {
       ))
       return
     }
+    let hasConfirmHandler = intentConfig.object(forKey: "confirmHandler") != nil
+    let hasConfirmationTokenHandler = intentConfig.object(forKey: "confirmationTokenConfirmHandler") != nil
+
+    if !hasConfirmHandler && !hasConfirmationTokenHandler {
+      resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration.confirmHandler` or `intentConfiguration.confirmationTokenConfirmHandler` if you are not passing an intent client secret"))
+      return
+    }
+
+    if hasConfirmHandler && hasConfirmationTokenHandler {
+      resolve(Errors.createError(ErrorType.Failed, "You must provide either `confirmHandler` or `confirmationTokenConfirmHandler`, but not both"))
+      return
+    }
     let captureMethodString = intentConfig["captureMethod"] as? String
     let intentConfiguration = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      captureMethod: mapCaptureMethod(captureMethodString)
+      captureMethod: mapCaptureMethod(captureMethodString),
+      useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
     Task {

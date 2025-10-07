@@ -5,6 +5,7 @@
 
 @interface StripeSdkEventEmitterCompat : RCTEventEmitter
 - (void)emitOnConfirmHandlerCallback:(NSDictionary *)value;
+- (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value;
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value;
 - (void)emitOnOrderTrackingCallback;
 - (void)emitOnCustomerAdapterFetchPaymentMethodsCallback;

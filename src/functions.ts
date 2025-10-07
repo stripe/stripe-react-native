@@ -343,6 +343,7 @@ export const verifyMicrodepositsForSetup = async (
 };
 
 let confirmHandlerCallback: EventSubscription | null = null;
+let confirmationTokenHandlerCallback: EventSubscription | null = null;
 let orderTrackingCallbackListener: EventSubscription | null = null;
 let financialConnectionsEventListener: EventSubscription | null = null;
 let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
@@ -362,6 +363,21 @@ export const initPaymentSheet = async (
           paymentMethod,
           shouldSavePaymentMethod,
           NativeStripeSdk.intentCreationCallback
+        );
+      }
+    );
+  }
+
+  const confirmationTokenHandler =
+    params?.intentConfiguration?.confirmationTokenConfirmHandler;
+  if (confirmationTokenHandler) {
+    confirmationTokenHandlerCallback?.remove();
+    confirmationTokenHandlerCallback = addListener(
+      'onConfirmationTokenHandlerCallback',
+      ({ confirmationToken }) => {
+        confirmationTokenHandler(
+          confirmationToken,
+          NativeStripeSdk.confirmationTokenCreationCallback
         );
       }
     );

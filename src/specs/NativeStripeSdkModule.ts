@@ -79,6 +79,9 @@ export interface Spec extends TurboModule {
   intentCreationCallback(
     result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
   ): Promise<void>;
+  confirmationTokenCreationCallback(
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
+  ): Promise<void>;
   customPaymentMethodResultCallback(
     result: UnsafeObject<PaymentSheet.CustomPaymentMethodResult>
   ): Promise<void>;
