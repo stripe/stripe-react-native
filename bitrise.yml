@@ -281,9 +281,7 @@ workflows:
       - restore-cache@2:
           title: Restore Pods Cache
           inputs:
-            - key: |
-                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
-                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
       - activate-build-cache-for-xcode: {}
       - yarn@0:
           title: Bootstrap Project
