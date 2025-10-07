@@ -278,12 +278,10 @@ workflows:
       - activate-ssh-key@4:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@8: {}
-      - restore-cache@2:
-          title: Restore Pods Cache
-          inputs:
-            - key: |
-                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
-                pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-
+      # - restore-cache@2:
+      #     title: Restore Pods Cache
+      #     inputs:
+      #       - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
       - activate-build-cache-for-xcode: {}
       - yarn@0:
           title: Bootstrap Project
