@@ -12,6 +12,7 @@ import type {
   StripeError,
   VerifyMicrodepositsError,
   CollectBankAccountError,
+  RadarError,
 } from './Errors';
 import * as ApplePay from './ApplePay';
 import * as PaymentIntent from './PaymentIntent';
@@ -173,6 +174,16 @@ export type CreateTokenResult =
 export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;
 };
+
+export type CreateRadarSessionResult =
+  | {
+      id: string;
+      error?: undefined;
+    }
+  | {
+      id?: undefined;
+      error: StripeError<RadarError>;
+    };
 
 export type ApplePayResult =
   | {
