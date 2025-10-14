@@ -1283,12 +1283,14 @@ class StripeSdkModule(
       stripeAccountId = stripeAccountId,
       callback =
         object : com.stripe.android.ApiResultCallback<RadarSession> {
-          override fun onSuccess(result: RadarSession) {
-            promise.resolve(result.id)
+          override fun onSuccess(session: RadarSession) {
+            val result = WritableNativeMap()
+            result.putString("id", session.id)
+            promise.resolve(result)
           }
 
           override fun onError(e: Exception) {
-            promise.resolve(e)
+            promise.resolve(createError(ErrorType.Failed.toString(), e))
           }
         },
       activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
