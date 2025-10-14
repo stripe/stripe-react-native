@@ -1,6 +1,7 @@
 import Stripe
 import StripePaymentSheet
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
+import Contacts
 
 class Mappers {
     class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]? = nil) -> NSDictionary {

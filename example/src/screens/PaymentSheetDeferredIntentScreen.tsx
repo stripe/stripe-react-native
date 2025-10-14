@@ -130,6 +130,7 @@ export default function PaymentSheetDeferredIntentScreen() {
               result: PaymentSheet.IntentCreationCallbackParams
             ) => void
           ) => {
+            console.log('confirmationToken', confirmationToken.id);
             const response = await fetch(
               `${API_URL}/payment-intent-for-payment-sheet`,
               {
@@ -161,7 +162,6 @@ export default function PaymentSheetDeferredIntentScreen() {
             amount: 6099,
             currencyCode: 'USD',
           },
-          paymentMethodTypes: ['card'],
         },
       });
       if (!error) {
