@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+## 0.54.1 - 2025-10-01
+
+**Fixes**
+
+- [#2147](https://github.com/stripe/stripe-react-native/pull/2147) Fix Stripe UI errors when rotating screen
+
+## 0.54.0 - 2025-09-29
+
+**Features**
+- [#2140](https://github.com/stripe/stripe-react-native/pull/2140) Added support for the Alma payment method
+
 ## 0.53.1 - 2025-09-19
 
 **Fixes**
