@@ -1281,15 +1281,17 @@ class StripeSdkModule(
 
     stripe.createRadarSession(
       stripeAccountId = stripeAccountId,
-      callback = object : com.stripe.android.ApiResultCallback<RadarSession> {
+      callback =
+        object : com.stripe.android.ApiResultCallback<RadarSession> {
           override fun onSuccess(result: RadarSession) {
             promise.resolve(result.id)
-          } 
+          }
+
           override fun onError(e: Exception) {
             promise.resolve(e)
           }
-      },
-      activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity
+        },
+      activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
     )
   }
 
