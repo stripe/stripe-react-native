@@ -594,6 +594,12 @@ internal fun mapNextAction(
         nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
       }
     }
+    NextActionType.DisplayPromptPayDetails -> {
+      (data as? NextActionData.DisplayPromptPayDetails)?.let {
+        nextActionMap.putString("type", "promptpay")
+        nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
+      } 
+    }
   }
   return nextActionMap
 }
