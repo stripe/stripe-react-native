@@ -17,6 +17,7 @@ import NativeStripeSdkModule from './specs/NativeStripeSdkModule';
 import { PaymentMethod } from './types';
 import { UnsafeObject } from './specs/utils';
 import { FinancialConnectionsEvent } from './types/FinancialConnections';
+import { Result as ConfirmationTokenResult } from './types/ConfirmationToken';
 
 const compatEventEmitter =
   Platform.OS === 'ios'
@@ -30,6 +31,9 @@ type Events = {
   onConfirmHandlerCallback: EventEmitter<{
     paymentMethod: UnsafeObject<PaymentMethod.Result>;
     shouldSavePaymentMethod: boolean;
+  }>;
+  onConfirmationTokenHandlerCallback: EventEmitter<{
+    confirmationToken: UnsafeObject<ConfirmationTokenResult>;
   }>;
   onFinancialConnectionsEvent: EventEmitter<
     UnsafeObject<FinancialConnectionsEvent>

@@ -7,6 +7,7 @@
   return @[
     @"onOrderTrackingCallback",
     @"onConfirmHandlerCallback",
+    @"onConfirmationTokenHandlerCallback",
     @"onCustomerAdapterFetchPaymentMethodsCallback",
     @"onCustomerAdapterAttachPaymentMethodCallback",
     @"onCustomerAdapterDetachPaymentMethodCallback",
@@ -27,6 +28,11 @@
 - (void)emitOnConfirmHandlerCallback:(NSDictionary *)value
 {
   [self sendEventWithName:@"onConfirmHandlerCallback" body:value];
+}
+
+- (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onConfirmationTokenHandlerCallback" body:value];
 }
 
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value
