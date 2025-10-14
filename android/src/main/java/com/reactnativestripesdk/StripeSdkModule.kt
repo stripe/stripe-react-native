@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
@@ -61,6 +62,7 @@ import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.RadarSession
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -1268,6 +1270,27 @@ class StripeSdkModule(
       promise.resolve(CustomerSheetFragment.createMissingInitError())
       return
     }
+  }
+
+  @ReactMethod
+  override fun createRadarSession(promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    stripe.createRadarSession(
+      stripeAccountId = stripeAccountId,
+      callback = object : com.stripe.android.ApiResultCallback<RadarSession> {
+          override fun onSuccess(result: RadarSession) {
+            promise.resolve(result.id)
+          } 
+          override fun onError(e: Exception) {
+            promise.resolve(e)
+          }
+      },
+      activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity
+    )
   }
 
   @ReactMethod
