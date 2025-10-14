@@ -18,11 +18,10 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
 import { Onramp } from '@stripe/stripe-react-native';
-import { CreateRadarSessionResult } from '../../../src/types';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { handleURLCallback, createRadarSession } = useStripe();
+  const { handleURLCallback } = useStripe();
   const { configure } = useOnramp();
 
   const handleDeepLink = useCallback(
@@ -523,19 +522,6 @@ export default function HomeScreen() {
           </>
         </Collapse>
       </StripeProvider>
-      <Button
-        title="Test Create Radar Session"
-        onPress={() => {
-          // call the createRadarSession function and show the result in an alert
-          createRadarSession().then((result: CreateRadarSessionResult) => {
-            if (result.error) {
-              Alert.alert('Radar Session Error', result.error.message);
-            } else {
-              Alert.alert('Radar Session Created', `ID: ${result.id}`);
-            }
-          });
-        }}
-      />
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}
