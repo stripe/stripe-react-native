@@ -7,6 +7,7 @@ import PassKit
 @_spi(STP) import StripeCryptoOnramp
 #endif
 import StripeFinancialConnections
+import StripePaymentsUI
 import Foundation
 
 @objc(StripeSdkImpl)
@@ -1158,6 +1159,26 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
 #endif
+    }
+
+    @objc(createRadarSession:rejecter:)
+    public func createRadarSession(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        STPAPIClient.shared.createRadarSession { (session, error) in
+            if let error = error as NSError? {
+                resolve(Errors.createError(ErrorType.Failed, error))
+                return
+            }
+
+            guard let session else {
+                resolve(Errors.createError(ErrorType.Unknown, "Radar session not available"))
+                return
+            }
+
+            resolve(["id": session.id])
+        }
     }
 
 #if canImport(StripeCryptoOnramp)
