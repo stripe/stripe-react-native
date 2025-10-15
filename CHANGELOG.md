@@ -29,8 +29,12 @@
 **Fixes**
 - Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
 - Fixed Android EmbeddedPaymentElement layout measurement issues by improving height calculation and switching from `onPlaced` to `onSizeChanged` for better layout synchronization.
+- Fixed an issue on Android when adding US bank accounts via the Mobile Payment Element for Stripe Connect accounts.
 
 ## 0.52.0 - 2025-09-08
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Features**
 - [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option
 
@@ -38,6 +42,8 @@
 - [#2092](https://github.com/stripe/stripe-react-native/pull/2092) Fix Android crash in release mode when using the new architecture.
 
 ## 0.51.0 - 2025-08-20
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Features**
 - [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
@@ -52,10 +58,14 @@
 
 ## 0.50.3 - 2025-08-07
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Fixed**
 - Fixed Android crash when using `RowSelectionBehavior.ImmediateAction` with `FormSheetAction.Confirm` in EmbeddedPaymentElement.
 
 ## 0.50.2 - 2025-08-06
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Changes**
 - Renamed `RowStyle.FlatWithChevron` to `RowStyle.FlatWithDisclosure` and updated related interfaces (`ChevronConfig` → `DisclosureConfig`).
@@ -69,12 +79,16 @@
 
 ## 0.50.1 - 2025-07-22
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Fixes**
 - Fixed embedded payment element color support to accept both single color strings and light/dark color objects for `ThemedColor` properties (separatorColor, selectedColor, unselectedColor, checkmark color, chevron color).
 - Fixed Android crash when providing partial `billingDetailsCollectionConfiguration` objects. Now gracefully handles missing fields like `attachDefaultsToPaymentMethod` by using safe accessor methods with default values.
 - Fixed Android Kotlin compilation errors where nullable `ReadableMap?` was passed to functions expecting non-nullable `ReadableMap`. Added null checks in `EmbeddedPaymentElementViewManager` and `AddToWalletButtonManager`. [#1988](https://github.com/stripe/stripe-react-native/issues/1988)
 
 ## 0.50.0 - 2025-07-17
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Features**
 - Added support for Custom Payment Methods in PaymentSheet and Embedded Payment Element.
@@ -86,6 +100,8 @@
 
 ## 0.49.0 - 2025-07-02
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Features**
 - Added rowSelectionBehavior to `EmbeddedPaymentElementConfiguration` with `immediateAction` option
 - Added `flatWithChevron` to `AppearanceParams.embeddedPaymentElement.rowConfig.style`
@@ -94,11 +110,15 @@
 
 ## 0.48.0 - 2025-06-11
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Feature**
 - Added `height` to `PrimaryButtonConfig.shapes`.
 - Added `formInsetValues` to `AppearanceParams`.
 
 ## 0.47.1 - 2025-05-29
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Fixes**
 - Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.
@@ -106,15 +126,21 @@
 
 ## 0.47.0 - 2025-05-21
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Features**
 - Added `customerEphemeralKeySecret` and `customerSessionClientSecret` to EmbeddedPaymentElement
 
 ## 0.46.0 - 2025-05-08
 
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
 **Features**
 - Added support for the Embedded Payment Element. Learn more by visiting the [docs](https://docs.stripe.com/payments/mobile/embedded).
 
 ## 0.45.0 - 2025-04-29
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 ** Features **
 - Support for the New Architecture in React Native v0.68 or later.
@@ -125,6 +151,8 @@
 - Updated `stripe-android` to 21.12.\*
 
 ## 0.44.0 - 2025-04-15
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Features**
 
@@ -137,6 +165,8 @@
 - Fixed an issue where launching a Financial Connections flow would fail on Android.
 
 ## 0.43.0 - 2025-03-11
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
 
 **Features**
 
