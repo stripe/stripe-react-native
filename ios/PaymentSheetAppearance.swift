@@ -11,6 +11,19 @@ internal class PaymentSheetAppearance {
         var appearance = PaymentSheet.Appearance()
         guard let userParams = userParams else { return appearance }
 
+        if #available(iOS 26.0, *), let applyLiquidGlass = userParams[PaymentSheetAppearanceKeys.APPLY_LIQUID_GLASS] as? Bool,
+           applyLiquidGlass {
+            appearance.applyLiquidGlass()
+        }
+
+        if #available(iOS 26.0, *), let navigationBarStyle = userParams[PaymentSheetAppearanceKeys.NAVIGATION_BAR_STYLE] as? String {
+            if navigationBarStyle == "plain" {
+                appearance.navigationBarStyle = .plain
+            } else if navigationBarStyle == "glass" {
+                appearance.navigationBarStyle = .glass
+            }
+        }
+
         if let fontParams = userParams[PaymentSheetAppearanceKeys.FONT] as? NSDictionary {
             appearance.font = try buildFont(params: fontParams)
         }
@@ -426,6 +439,8 @@ private struct PaymentSheetAppearanceKeys {
     static let BLUR_RADIUS = "blurRadius"
     static let X = "x"
     static let Y = "y"
+    static let APPLY_LIQUID_GLASS = "applyLiquidGlass"
+    static let NAVIGATION_BAR_STYLE = "navigationBarStyle"
 
     static let PRIMARY_BUTTON = "primaryButton"
     static let TEXT = "text"
