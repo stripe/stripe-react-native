@@ -9,7 +9,6 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromSetupIntentResult
-import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.financialconnections.FinancialConnections
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
@@ -96,7 +95,6 @@ class CollectBankAccountLauncherFragment : StripeFragment() {
           promise.resolve(createError(ErrorType.Failed.toString(), result.error))
         }
       }
-      removeFragment(context)
     }
 
   companion object {

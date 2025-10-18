@@ -59,7 +59,7 @@ class AddressSheetView(
   private fun launchAddressSheet() {
     val appearance =
       try {
-        buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
+        buildPaymentSheetAppearance(appearanceParams, context)
       } catch (error: PaymentSheetAppearanceException) {
         onError(createError(ErrorType.Failed.toString(), error))
         return

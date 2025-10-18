@@ -27,14 +27,17 @@ import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetErrorType
 import com.reactnativestripesdk.utils.PaymentSheetException
-import com.reactnativestripesdk.utils.StripeFragment
+import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
+import com.reactnativestripesdk.utils.forEachKey
+import com.reactnativestripesdk.utils.getBooleanOr
+import com.reactnativestripesdk.utils.getIntOr
+import com.reactnativestripesdk.utils.isEmpty
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
-import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
@@ -49,6 +52,8 @@ import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
+import com.stripe.android.reactnative.ReactNativeSdkInternal
+import com.stripe.android.reactnative.UnregisterSignal
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,12 +62,17 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
 
-@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomPaymentMethodsApi::class)
-class PaymentSheetFragment :
-  StripeFragment(),
+@OptIn(
+  ReactNativeSdkInternal::class,
+  ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
+  ExperimentalCustomPaymentMethodsApi::class,
+)
+class PaymentSheetManager(
+  context: ReactApplicationContext,
+  initPromise: Promise,
+) : StripeUIManager(context, initPromise),
   ConfirmCustomPaymentMethodCallback {
-  private lateinit var context: ReactApplicationContext
-  private lateinit var initPromise: Promise
+  private var arguments: ReadableMap? = null
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -77,6 +87,7 @@ class PaymentSheetFragment :
 
   @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun prepare() {
+    val activity = getCurrentActivityOrResolveWithError() ?: return
     val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       initPromise.resolve(
@@ -85,26 +96,26 @@ class PaymentSheetFragment :
       return
     }
     val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
-    val googlePayConfig = buildGooglePayConfig(arguments?.getBundle("googlePay"))
-    val linkConfig = buildLinkConfig(arguments?.getBundle("link"))
+    val googlePayConfig = buildGooglePayConfig(arguments?.getMap("googlePay"))
+    val linkConfig = buildLinkConfig(arguments?.getMap("link"))
     val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
-    val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
-    val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
+    val billingDetailsBundle = arguments?.getMap("defaultBillingDetails")
+    val billingConfigParams = arguments?.getMap("billingDetailsCollectionConfiguration")
     val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
-      arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
+      arguments?.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
     paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
       try {
-        buildIntentConfiguration(arguments?.getBundle("intentConfiguration"))
+        buildIntentConfiguration(arguments?.getMap("intentConfiguration"))
       } catch (error: PaymentSheetException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
     val appearance =
       try {
-        buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
+        buildPaymentSheetAppearance(arguments?.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
@@ -119,7 +130,7 @@ class PaymentSheetFragment :
       }
 
     val shippingDetails =
-      arguments?.getBundle("defaultShippingDetails")?.let {
+      arguments?.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
       }
 
@@ -175,9 +186,6 @@ class PaymentSheetFragment :
 
             is PaymentSheetResult.Completed -> {
               resolvePaymentResult(WritableNativeMap())
-              // Remove the fragment now, we can be sure it won't be needed again if an intent is
-              // successful
-              removeFragment(context)
               paymentSheet = null
               flowController = null
             }
@@ -219,12 +227,12 @@ class PaymentSheetFragment :
         email = mapToCollectionMode(billingConfigParams?.getString("email")),
         address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
         attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBoolean("attachDefaultsToPaymentMethod", false) ?: false,
+          billingConfigParams?.getBooleanOr("attachDefaultsToPaymentMethod", false) ?: false,
       )
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     if (billingDetailsBundle != null) {
-      val addressBundle = billingDetailsBundle.getBundle("address")
+      val addressBundle = billingDetailsBundle.getMap("address")
       val address =
         PaymentSheet.Address(
           addressBundle?.getString("city"),
@@ -277,14 +285,14 @@ class PaymentSheetFragment :
               paymentOptionResultCallback = paymentOptionCallback,
             ).createIntentCallback(createIntentCallback)
             .confirmCustomPaymentMethodCallback(this)
-            .build(this)
+            .build(activity)
         } else {
           PaymentSheet.FlowController
             .Builder(
               resultCallback = paymentResultCallback,
               paymentOptionResultCallback = paymentOptionCallback,
             ).confirmCustomPaymentMethodCallback(this)
-            .build(this)
+            .build(activity)
         }
       configureFlowController()
     } else {
@@ -294,12 +302,12 @@ class PaymentSheetFragment :
             .Builder(paymentResultCallback)
             .createIntentCallback(createIntentCallback)
             .confirmCustomPaymentMethodCallback(this)
-            .build(this)
+            .build(activity, signal)
         } else {
           PaymentSheet
             .Builder(paymentResultCallback)
             .confirmCustomPaymentMethodCallback(this)
-            .build(this)
+            .build(activity, signal)
         }
       initPromise.resolve(WritableNativeMap())
     }
@@ -523,13 +531,12 @@ class PaymentSheetFragment :
 
     internal fun create(
       context: ReactApplicationContext,
-      arguments: Bundle,
+      arguments: ReadableMap,
       initPromise: Promise,
-    ): PaymentSheetFragment {
-      val instance = PaymentSheetFragment()
-      instance.context = context
-      instance.initPromise = initPromise
+    ): PaymentSheetManager {
+      val instance = PaymentSheetManager(context, initPromise)
       instance.arguments = arguments
+      instance.initialize()
       return instance
     }
 
@@ -551,8 +558,8 @@ class PaymentSheetFragment :
         "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.",
       )
 
-    internal fun buildGooglePayConfig(params: Bundle?): PaymentSheet.GooglePayConfiguration? {
-      if (params == null || params.isEmpty) {
+    internal fun buildGooglePayConfig(params: ReadableMap?): PaymentSheet.GooglePayConfiguration? {
+      if (params == null || params.isEmpty()) {
         return null
       }
 
@@ -562,7 +569,7 @@ class PaymentSheetFragment :
       val amount = params.getString("amount")?.toLongOrNull()
       val label = params.getString("label")
       val buttonType =
-        mapIntToButtonType.get(params.getInt("buttonType"))
+        mapIntToButtonType.get(params.getIntOr("buttonType", 0))
           ?: PaymentSheet.GooglePayConfiguration.ButtonType.Pay
 
       return PaymentSheet.GooglePayConfiguration(
@@ -580,7 +587,7 @@ class PaymentSheetFragment :
       )
     }
 
-    internal fun buildLinkConfig(params: Bundle?): PaymentSheet.LinkConfiguration {
+    internal fun buildLinkConfig(params: ReadableMap?): PaymentSheet.LinkConfiguration {
       if (params == null) {
         return PaymentSheet.LinkConfiguration()
       }
@@ -600,12 +607,12 @@ class PaymentSheetFragment :
       }
 
     @Throws(PaymentSheetException::class)
-    internal fun buildIntentConfiguration(intentConfigurationParams: Bundle?): PaymentSheet.IntentConfiguration? {
+    internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): PaymentSheet.IntentConfiguration? {
       if (intentConfigurationParams == null) {
         return null
       }
       val modeParams =
-        intentConfigurationParams.getBundle("mode")
+        intentConfigurationParams.getMap("mode")
           ?: throw PaymentSheetException(
             "If `intentConfiguration` is provided, `intentConfiguration.mode` is required",
           )
@@ -619,8 +626,8 @@ class PaymentSheetFragment :
     }
 
     @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-    private fun buildIntentConfigurationMode(modeParams: Bundle): PaymentSheet.IntentConfiguration.Mode =
-      if (modeParams.containsKey("amount")) {
+    private fun buildIntentConfigurationMode(modeParams: ReadableMap): PaymentSheet.IntentConfiguration.Mode =
+      if (modeParams.hasKey("amount")) {
         val currencyCode =
           modeParams.getString("currencyCode")
             ?: throw PaymentSheetException(
@@ -631,7 +638,7 @@ class PaymentSheetFragment :
           currency = currencyCode,
           setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
           captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
-          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getBundle("paymentMethodOptions")),
+          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getMap("paymentMethodOptions")),
         )
       } else {
         val setupFutureUsage =
@@ -647,7 +654,7 @@ class PaymentSheetFragment :
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
-    internal fun buildCustomerConfiguration(bundle: Bundle?): PaymentSheet.CustomerConfiguration? {
+    internal fun buildCustomerConfiguration(bundle: ReadableMap?): PaymentSheet.CustomerConfiguration? {
       val customerId = bundle?.getString("customerId").orEmpty()
       val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
       val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()
@@ -752,11 +759,11 @@ fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureM
   }
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-fun mapToPaymentMethodOptions(options: Bundle?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
-  val sfuBundle = options?.getBundle("setupFutureUsageValues")
+fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
+  val sfuBundle = options?.getMap("setupFutureUsageValues")
   val paymentMethodToSfuMap = mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
-  sfuBundle?.keySet()?.forEach { code ->
-    val sfuValue = mapToSetupFutureUse(sfuBundle?.getString(code))
+  sfuBundle?.forEachKey { code ->
+    val sfuValue = mapToSetupFutureUse(sfuBundle.getString(code))
     val paymentMethodType = PaymentMethod.Type.fromCode(code)
     if (paymentMethodType != null && sfuValue != null) {
       paymentMethodToSfuMap[paymentMethodType] = sfuValue
@@ -771,8 +778,8 @@ fun mapToPaymentMethodOptions(options: Bundle?): PaymentSheet.IntentConfiguratio
   }
 }
 
-fun mapToCardBrandAcceptance(params: Bundle?): PaymentSheet.CardBrandAcceptance {
-  val cardBrandAcceptanceParams = params?.getBundle("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
+fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBrandAcceptance {
+  val cardBrandAcceptanceParams = params?.getMap("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
   val filter = cardBrandAcceptanceParams.getString("filter") ?: return PaymentSheet.CardBrandAcceptance.all()
 
   return when (filter) {
