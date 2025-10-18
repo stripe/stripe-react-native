@@ -205,7 +205,6 @@ class EmbeddedPaymentElementViewManager :
             true // default value
           },
         )
-        // Serialize original ReadableMap because toBundleObject cannot keep arrays of objects
         .customPaymentMethods(
           parseCustomPaymentMethods(
             map.getMap("customPaymentMethodConfiguration"),
