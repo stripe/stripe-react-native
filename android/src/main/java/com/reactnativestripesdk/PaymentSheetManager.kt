@@ -15,9 +15,6 @@ import android.util.Base64
 import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -64,18 +61,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
-
-class ReactNativeLifecycleOwner : LifecycleOwner {
-  override val lifecycle = LifecycleRegistry(this)
-
-  fun create() {
-    lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-  }
-
-  fun destroy() {
-    lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-  }
-}
 
 @OptIn(
   ReactNativeSdkInternal::class,
