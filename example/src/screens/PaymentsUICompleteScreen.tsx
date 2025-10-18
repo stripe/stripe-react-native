@@ -204,7 +204,10 @@ export default function PaymentsUICompleteScreen() {
           `PaymentSheet init was canceled with code: ${error.code}`,
           error.message
         );
+      } else {
+        Alert.alert(`PaymentSheet init error: ${error.code}`, error.message);
       }
+      console.error(error?.message);
     },
     [customerKeyType, initPaymentSheet]
   );

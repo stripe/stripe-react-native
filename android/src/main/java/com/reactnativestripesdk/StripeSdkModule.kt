@@ -87,7 +87,7 @@ class StripeSdkModule(
   private var createPlatformPayPaymentMethodPromise: Promise? = null
   private var platformPayUsesDeprecatedTokenFlow = false
 
-  private var paymentSheetFragment: PaymentSheetFragment? = null
+  private var paymentSheetManager: PaymentSheetManager? = null
   private var paymentLauncherFragment: PaymentLauncherFragment? = null
   private var collectBankAccountLauncherFragment: CollectBankAccountLauncherFragment? = null
 
@@ -105,7 +105,6 @@ class StripeSdkModule(
   private val allStripeFragmentTags: List<String>
     get() =
       listOf(
-        PaymentSheetFragment.TAG,
         PaymentLauncherFragment.TAG,
         CollectBankAccountLauncherFragment.TAG,
         FinancialConnectionsSheetFragment.TAG,
@@ -236,26 +235,8 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      paymentSheetFragment?.removeFragment(reactApplicationContext)
-      val bundle = toBundleObject(params)
-
-      // Handle custom payment methods separately since toBundleObject cannot handle arrays of objects
-      val customPaymentMethodConfig = params.getMap("customPaymentMethodConfiguration")
-      if (customPaymentMethodConfig != null) {
-        // Store the original ReadableMap for custom payment methods
-        bundle.putSerializable("customPaymentMethodConfigurationReadableMap", customPaymentMethodConfig.toHashMap())
-      }
-
-      paymentSheetFragment =
-        PaymentSheetFragment.create(reactApplicationContext, bundle, promise)
-      try {
-        activity.supportFragmentManager
-          .beginTransaction()
-          .add(paymentSheetFragment!!, PaymentSheetFragment.TAG)
-          .commit()
-      } catch (error: IllegalStateException) {
-        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
-      }
+      paymentSheetManager =
+        PaymentSheetManager.create(reactApplicationContext, params, promise)
     }
   }
 
@@ -264,30 +245,30 @@ class StripeSdkModule(
     options: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetFragment == null) {
-      promise.resolve(PaymentSheetFragment.createMissingInitError())
+    if (paymentSheetManager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
       return
     }
 
     val timeoutKey = "timeout"
     if (options.hasKey(timeoutKey)) {
-      paymentSheetFragment?.presentWithTimeout(
+      paymentSheetManager?.presentWithTimeout(
         options.getInt(timeoutKey).toLong(),
         promise,
       )
     } else {
-      paymentSheetFragment?.present(promise)
+      paymentSheetManager?.present(promise)
     }
   }
 
   @ReactMethod
   override fun confirmPaymentSheetPayment(promise: Promise) {
-    if (paymentSheetFragment == null) {
-      promise.resolve(PaymentSheetFragment.createMissingInitError())
+    if (paymentSheetManager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
       return
     }
 
-    paymentSheetFragment?.confirmPayment(promise)
+    paymentSheetManager?.confirmPayment(promise)
   }
 
   @ReactMethod
@@ -303,12 +284,12 @@ class StripeSdkModule(
   ) {
     embeddedIntentCreationCallback.complete(params)
 
-    if (paymentSheetFragment == null) {
-      promise.resolve(PaymentSheetFragment.createMissingInitError())
+    if (paymentSheetManager == null) {
+      promise.resolve(PaymentSheetManager.createMissingInitError())
       return
     }
 
-    paymentSheetFragment?.paymentSheetIntentCreationCallback?.complete(params)
+    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
   }
 
   @ReactMethod

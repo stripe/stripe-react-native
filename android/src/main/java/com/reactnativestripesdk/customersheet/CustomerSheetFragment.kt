@@ -13,16 +13,13 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
-import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
 import com.reactnativestripesdk.mapToAddressCollectionMode
-import com.reactnativestripesdk.mapToCardBrandAcceptance
 import com.reactnativestripesdk.mapToCollectionMode
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
-import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.StripeFragment
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -96,24 +93,24 @@ class CustomerSheetFragment : StripeFragment() {
       return
     }
 
-    val appearance =
-      try {
-        buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
-      } catch (error: PaymentSheetAppearanceException) {
-        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
-        return
-      }
+//    val appearance =
+//      try {
+//        buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
+//      } catch (error: PaymentSheetAppearanceException) {
+//        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+//        return
+//      }
 
     val configuration =
       CustomerSheet.Configuration
         .builder(merchantDisplayName ?: "")
-        .appearance(appearance)
+//        .appearance(appearance)
         .googlePayEnabled(googlePayEnabled)
         .headerTextForSelectionScreen(headerTextForSelectionScreen)
         .preferredNetworks(
           mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
-        .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
+//        .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
     billingDetailsBundle?.let {

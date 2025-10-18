@@ -561,6 +561,7 @@ internal fun mapNextAction(
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
     NextActionType.DisplayPayNowDetails,
+    NextActionType.DisplayPromptPayDetails,
     null,
     -> {
       return null
@@ -1004,7 +1005,7 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   return map
 }
 
-internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardBrand> {
+internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand> {
   if (networksAsInts == null) {
     return emptyList()
   }
@@ -1071,22 +1072,22 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 
 @OptIn(ExperimentalCustomPaymentMethodsApi::class)
 @SuppressLint("RestrictedApi")
-internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List<PaymentSheet.CustomPaymentMethod> {
+internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {
     return emptyList()
   }
 
-  val configHashMap = customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
+  val configHashMap = customPaymentMethodConfig.getMap("customPaymentMethodConfigurationReadableMap")
   if (configHashMap != null) {
-    val customPaymentMethods = configHashMap["customPaymentMethods"] as? List<HashMap<String, Any>>
+    val customPaymentMethods = configHashMap.getArray("customPaymentMethods")
     if (customPaymentMethods != null) {
       val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
 
-      for (customPaymentMethodMap in customPaymentMethods) {
-        val id = customPaymentMethodMap["id"] as? String
+      customPaymentMethods.forEachMap { customPaymentMethodMap ->
+        val id = customPaymentMethodMap.getString("id")
         if (id != null) {
-          val subtitle = customPaymentMethodMap["subtitle"] as? String
-          val disableBillingDetailCollection = customPaymentMethodMap["disableBillingDetailCollection"] as? Boolean ?: false
+          val subtitle = customPaymentMethodMap.getString("subtitle")
+          val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
           result.add(
             PaymentSheet.CustomPaymentMethod(
               id = id,

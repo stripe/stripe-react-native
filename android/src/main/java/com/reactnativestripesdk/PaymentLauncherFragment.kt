@@ -393,6 +393,7 @@ class PaymentLauncherFragment : StripeFragment() {
       StripeIntent.NextActionType.UpiAwaitNotification,
       StripeIntent.NextActionType.CashAppRedirect,
       StripeIntent.NextActionType.SwishRedirect,
+      StripeIntent.NextActionType.DisplayPromptPayDetails,
       null,
       -> false
     }
