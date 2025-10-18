@@ -12,15 +12,14 @@ import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerDelegate
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerInterface
-import com.reactnativestripesdk.PaymentSheetFragment.Companion.buildCustomerConfiguration
-import com.reactnativestripesdk.PaymentSheetFragment.Companion.buildGooglePayConfig
+import com.reactnativestripesdk.PaymentSheetManager.Companion.buildCustomerConfiguration
+import com.reactnativestripesdk.PaymentSheetManager.Companion.buildGooglePayConfig
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
-import com.reactnativestripesdk.utils.toBundleObject
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
@@ -134,20 +133,20 @@ class EmbeddedPaymentElementViewManager :
 
     val customerConfiguration =
       try {
-        buildCustomerConfiguration(toBundleObject(map))
+        buildCustomerConfiguration(map)
       } catch (error: PaymentSheetException) {
         throw Error() // TODO handle error
       }
 
-    val googlePayConfig = buildGooglePayConfig(toBundleObject(map.getMap("googlePay")))
-    val linkConfig = PaymentSheetFragment.buildLinkConfig(toBundleObject(map.getMap("link")))
+    val googlePayConfig = buildGooglePayConfig(map.getMap("googlePay"))
+    val linkConfig = PaymentSheetManager.buildLinkConfig(map.getMap("link"))
     val shippingDetails =
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
       }
     val appearance =
       try {
-        buildPaymentSheetAppearance(toBundleObject(map.getMap("appearance")), context)
+        buildPaymentSheetAppearance(map.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
         throw Error() // TODO handle error
       }
@@ -201,7 +200,7 @@ class EmbeddedPaymentElementViewManager :
               ?.let { ArrayList(it) },
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
-        .cardBrandAcceptance(mapToCardBrandAcceptance(toBundleObject(map)))
+        .cardBrandAcceptance(mapToCardBrandAcceptance(map))
         .embeddedViewDisplaysMandateText(
           if (map.hasKey("embeddedViewDisplaysMandateText") &&
             map.getType("embeddedViewDisplaysMandateText") == ReadableType.Boolean
@@ -210,15 +209,9 @@ class EmbeddedPaymentElementViewManager :
           } else {
             true // default value
           },
-        )
-        // Serialize original ReadableMap because toBundleObject cannot keep arrays of objects
-        .customPaymentMethods(
+        ).customPaymentMethods(
           parseCustomPaymentMethods(
-            toBundleObject(map.getMap("customPaymentMethodConfiguration")).apply {
-              map.getMap("customPaymentMethodConfiguration")?.let { readable ->
-                putSerializable("customPaymentMethodConfigurationReadableMap", readable.toHashMap())
-              }
-            },
+            map.getMap("customPaymentMethodConfiguration"),
           ),
         )
 
@@ -244,7 +237,7 @@ class EmbeddedPaymentElementViewManager :
   }
 
   private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
-    val intentConfig = PaymentSheetFragment.buildIntentConfiguration(toBundleObject(map))
+    val intentConfig = PaymentSheetManager.buildIntentConfiguration(map)
     return intentConfig ?: throw IllegalArgumentException("IntentConfiguration is null")
   }
 

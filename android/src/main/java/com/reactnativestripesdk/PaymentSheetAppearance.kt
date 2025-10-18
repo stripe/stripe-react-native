@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
-import android.os.Bundle
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.stripe.android.paymentelement.AppearanceAPIAdditionsPreview
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -12,30 +14,30 @@ import com.stripe.android.uicore.StripeThemeDefaults
 
 @SuppressLint("RestrictedApi")
 fun buildPaymentSheetAppearance(
-  userParams: Bundle?,
+  userParams: ReadableMap?,
   context: Context,
 ): PaymentSheet.Appearance {
-  val colorParams = userParams?.getBundle(PaymentSheetAppearanceKeys.COLORS)
-  val lightColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
-  val insetParams = userParams?.getBundle(PaymentSheetAppearanceKeys.FORM_INSETS)
+  val colorParams = userParams?.getMap(PaymentSheetAppearanceKeys.COLORS)
+  val lightColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
+  val darkColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val insetParams = userParams?.getMap(PaymentSheetAppearanceKeys.FORM_INSETS)
 
   val embeddedAppearance =
     buildEmbeddedAppearance(
-      userParams?.getBundle(PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT),
+      userParams?.getMap(PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT),
       lightColorParams,
       context,
     )
 
   embeddedAppearance?.let {
     return PaymentSheet.Appearance(
-      typography = buildTypography(userParams?.getBundle(PaymentSheetAppearanceKeys.FONT), context),
+      typography = buildTypography(userParams?.getMap(PaymentSheetAppearanceKeys.FONT), context),
       colorsLight = buildColors(lightColorParams, PaymentSheet.Colors.defaultLight),
       colorsDark = buildColors(darkColorParams, PaymentSheet.Colors.defaultDark),
-      shapes = buildShapes(userParams?.getBundle(PaymentSheetAppearanceKeys.SHAPES)),
+      shapes = buildShapes(userParams?.getMap(PaymentSheetAppearanceKeys.SHAPES)),
       primaryButton =
         buildPrimaryButton(
-          userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
+          userParams?.getMap(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
           context,
         ),
       embeddedAppearance = embeddedAppearance,
@@ -44,13 +46,13 @@ fun buildPaymentSheetAppearance(
   }
 
   return PaymentSheet.Appearance(
-    typography = buildTypography(userParams?.getBundle(PaymentSheetAppearanceKeys.FONT), context),
+    typography = buildTypography(userParams?.getMap(PaymentSheetAppearanceKeys.FONT), context),
     colorsLight = buildColors(lightColorParams, PaymentSheet.Colors.defaultLight),
     colorsDark = buildColors(darkColorParams, PaymentSheet.Colors.defaultDark),
-    shapes = buildShapes(userParams?.getBundle(PaymentSheetAppearanceKeys.SHAPES)),
+    shapes = buildShapes(userParams?.getMap(PaymentSheetAppearanceKeys.SHAPES)),
     primaryButton =
       buildPrimaryButton(
-        userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
+        userParams?.getMap(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
         context,
       ),
     formInsetValues = buildFormInsets(insetParams),
@@ -59,7 +61,7 @@ fun buildPaymentSheetAppearance(
 
 @OptIn(AppearanceAPIAdditionsPreview::class)
 private fun buildTypography(
-  fontParams: Bundle?,
+  fontParams: ReadableMap?,
   context: Context,
 ): PaymentSheet.Typography {
   val scale = getDoubleOrNull(fontParams, PaymentSheetAppearanceKeys.SCALE)
@@ -96,7 +98,7 @@ private fun colorFromHexOrDefault(
 }
 
 private fun buildColors(
-  colorParams: Bundle?,
+  colorParams: ReadableMap?,
   default: PaymentSheet.Colors,
 ): PaymentSheet.Colors {
   if (colorParams == null) {
@@ -162,7 +164,7 @@ private fun buildColors(
   )
 }
 
-private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
+private fun buildShapes(shapeParams: ReadableMap?): PaymentSheet.Shapes =
   PaymentSheet.Shapes.default.copy(
     cornerRadiusDp =
       getFloatOr(
@@ -179,18 +181,18 @@ private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
   )
 
 private fun buildPrimaryButton(
-  params: Bundle?,
+  params: ReadableMap?,
   context: Context,
 ): PaymentSheet.PrimaryButton {
   if (params == null) {
     return PaymentSheet.PrimaryButton()
   }
 
-  val fontParams = params.getBundle(PaymentSheetAppearanceKeys.FONT) ?: Bundle.EMPTY
-  val shapeParams = params.getBundle(PaymentSheetAppearanceKeys.SHAPES) ?: Bundle.EMPTY
-  val colorParams = params.getBundle(PaymentSheetAppearanceKeys.COLORS) ?: Bundle.EMPTY
-  val lightColorParams = colorParams.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val fontParams = params.getMap(PaymentSheetAppearanceKeys.FONT) ?: Arguments.createMap()
+  val shapeParams = params.getMap(PaymentSheetAppearanceKeys.SHAPES) ?: Arguments.createMap()
+  val colorParams = params.getMap(PaymentSheetAppearanceKeys.COLORS) ?: Arguments.createMap()
+  val lightColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
+  val darkColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
 
   return PaymentSheet.PrimaryButton(
     colorsLight =
@@ -215,7 +217,7 @@ private fun buildPrimaryButton(
 
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildPrimaryButtonColors(
-  colorParams: Bundle,
+  colorParams: ReadableMap,
   default: PaymentSheet.PrimaryButtonColors,
   context: Context,
 ): PaymentSheet.PrimaryButtonColors =
@@ -263,8 +265,8 @@ private fun buildPrimaryButtonColors(
 @SuppressLint("RestrictedApi")
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildEmbeddedAppearance(
-  embeddedParams: Bundle?,
-  defaultColorsBundle: Bundle?,
+  embeddedParams: ReadableMap?,
+  defaultColorsBundle: ReadableMap?,
   context: Context,
 ): PaymentSheet.Appearance.Embedded? {
   if (embeddedParams == null) {
@@ -272,13 +274,13 @@ private fun buildEmbeddedAppearance(
   }
 
   val rowParams =
-    getBundleOrNull(embeddedParams, PaymentSheetAppearanceKeys.ROW)
+    getMapOrNull(embeddedParams, PaymentSheetAppearanceKeys.ROW)
       ?: return null
 
   val defaultColors = buildColors(defaultColorsBundle, PaymentSheet.Colors.defaultLight)
 
   // Default style
-  val styleString = rowParams.getString(PaymentSheetAppearanceKeys.STYLE, "flatWithRadio")
+  val styleString = rowParams.getString(PaymentSheetAppearanceKeys.STYLE) ?: "flatWithRadio"
 
   val defaultAdditionalInsetsDp = 6.0f
   val defaultSeparatorThicknessDp = 1.0f
@@ -290,9 +292,9 @@ private fun buildEmbeddedAppearance(
   val rowStyle: PaymentSheet.Appearance.Embedded.RowStyle =
     when (styleString) {
       "flatWithRadio" -> {
-        val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
-        val radioParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.RADIO)
-        val separatorInsetsParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+        val flatParams = getMapOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
+        val radioParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.RADIO)
+        val separatorInsetsParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
 
         // Default separator insets specific to FlatWithRadio
         val defaultSeparatorStartInsetDp = 30.0f
@@ -352,9 +354,9 @@ private fun buildEmbeddedAppearance(
         )
       }
       "flatWithCheckmark" -> {
-        val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
-        val checkmarkParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.CHECKMARK)
-        val separatorInsetsParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+        val flatParams = getMapOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
+        val checkmarkParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.CHECKMARK)
+        val separatorInsetsParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
 
         // Default separator insets specific to FlatWithCheckmark and FlatWithDisclosure
         val defaultSeparatorStartInsetDp = 0.0f
@@ -408,9 +410,9 @@ private fun buildEmbeddedAppearance(
         )
       }
       "flatWithDisclosure" -> {
-        val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
-        val disclosureParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.DISCLOSURE)
-        val separatorInsetsParams = getBundleOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+        val flatParams = getMapOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
+        val disclosureParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.DISCLOSURE)
+        val separatorInsetsParams = getMapOrNull(flatParams, PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
 
         // Default separator insets specific to FlatWithCheckmark and FlatWithDisclosure
         val defaultSeparatorStartInsetDp = 0.0f
@@ -462,7 +464,7 @@ private fun buildEmbeddedAppearance(
           .build()
       }
       "floatingButton" -> {
-        val floatingParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLOATING)
+        val floatingParams = getMapOrNull(rowParams, PaymentSheetAppearanceKeys.FLOATING)
         PaymentSheet.Appearance.Embedded.RowStyle.FloatingButton(
           additionalInsetsDp = additionalInsets,
           spacingDp = getFloatOr(floatingParams, PaymentSheetAppearanceKeys.SPACING, defaultSpacingDp),
@@ -478,7 +480,7 @@ private fun buildEmbeddedAppearance(
 }
 
 @SuppressLint("RestrictedApi")
-private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
+private fun buildFormInsets(insetParams: ReadableMap?): PaymentSheet.Insets {
   val defaults = StripeThemeDefaults.formInsets
   val left = getFloatOr(insetParams, PaymentSheetAppearanceKeys.LEFT, defaults.start)
   val top = getFloatOr(insetParams, PaymentSheetAppearanceKeys.TOP, defaults.top)
@@ -502,7 +504,7 @@ private fun buildFormInsets(insetParams: Bundle?): PaymentSheet.Insets {
  */
 private fun dynamicColorFromParams(
   context: Context,
-  params: Bundle?,
+  params: ReadableMap?,
   key: String,
   defaultColor: Int,
 ): Int {
@@ -511,7 +513,7 @@ private fun dynamicColorFromParams(
   }
 
   // First check if it's a nested Bundle { "light": "#RRGGBB", "dark": "#RRGGBB" }
-  val colorBundle = params.getBundle(key)
+  val colorBundle = params.getMap(key)
   if (colorBundle != null) {
     val isDark =
       (
@@ -540,85 +542,56 @@ private fun dynamicColorFromParams(
 }
 
 private fun getDoubleOrNull(
-  bundle: Bundle?,
+  map: ReadableMap?,
   key: String,
-): Double? {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Double) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toDouble()
-    } else if (valueOfUnknownType is Float) {
-      return valueOfUnknownType.toDouble()
-    }
+): Double? =
+  if (map?.hasKey(key) == true && map.getType(key) == ReadableType.Number) {
+    map.getDouble(key)
+  } else {
+    null
   }
-
-  return null
-}
 
 private fun getFloatOr(
-  bundle: Bundle?,
+  map: ReadableMap?,
   key: String,
   defaultValue: Float,
-): Float {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Float) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toFloat()
-    } else if (valueOfUnknownType is Double) {
-      return valueOfUnknownType.toFloat()
-    }
-  }
+): Float = getFloatOrNull(map, key) ?: defaultValue
 
-  return defaultValue
-}
-
-private fun getBundleOrNull(
-  bundle: Bundle?,
+private fun getMapOrNull(
+  bundle: ReadableMap?,
   key: String,
-): Bundle? = bundle?.getBundle(key)
+): ReadableMap? = bundle?.getMap(key)
 
 private fun getBooleanOr(
-  bundle: Bundle?,
+  bundle: ReadableMap?,
   key: String,
   defaultValue: Boolean,
 ): Boolean =
-  if (bundle?.containsKey(key) == true) {
+  if (bundle?.hasKey(key) == true) {
     bundle.getBoolean(key)
   } else {
     defaultValue
   }
 
 private fun getFloatOrNull(
-  bundle: Bundle?,
+  map: ReadableMap?,
   key: String,
-): Float? {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Float) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toFloat()
-    } else if (valueOfUnknownType is Double) {
-      return valueOfUnknownType.toFloat()
-    }
+): Float? =
+  if (map?.hasKey(key) == true && map.getType(key) == ReadableType.Number) {
+    map.getDouble(key).toFloat()
+  } else {
+    null
   }
-
-  return null
-}
 
 @Throws(PaymentSheetAppearanceException::class)
 private fun getFontResId(
-  bundle: Bundle?,
+  bundle: ReadableMap?,
   key: String,
   defaultValue: Int?,
   context: Context,
 ): Int? {
   val fontErrorPrefix = "Encountered an error when setting a custom font:"
-  if (bundle?.containsKey(key) != true) {
+  if (bundle?.hasKey(key) != true) {
     return defaultValue
   }
 

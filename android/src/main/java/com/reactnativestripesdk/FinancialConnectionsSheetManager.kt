@@ -1,19 +1,18 @@
 package com.reactnativestripesdk
 
-import androidx.fragment.app.FragmentActivity
+import android.annotation.SuppressLint
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.utils.ErrorType
-import com.reactnativestripesdk.utils.StripeFragment
+import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.mapFromFinancialConnectionsEvent
 import com.reactnativestripesdk.utils.mapFromToken
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.financialconnections.FinancialConnections
 import com.stripe.android.financialconnections.FinancialConnectionsSheet
 import com.stripe.android.financialconnections.FinancialConnectionsSheetForTokenResult
@@ -24,18 +23,28 @@ import com.stripe.android.financialconnections.model.FinancialConnectionsAccount
 import com.stripe.android.financialconnections.model.FinancialConnectionsAccountList
 import com.stripe.android.financialconnections.model.FinancialConnectionsSession
 
-class FinancialConnectionsSheetFragment : StripeFragment() {
+@OptIn(ReactNativeSdkInternal::class)
+class FinancialConnectionsSheetManager(
+  context: ReactApplicationContext,
+  clientSecret: String,
+  private var mode: Mode,
+  publishableKey: String,
+  stripeAccountId: String?,
+) : StripeUIManager(context) {
   enum class Mode {
     ForToken,
     ForSession,
   }
 
-  private lateinit var promise: Promise
-  private lateinit var context: ReactApplicationContext
-  private lateinit var configuration: FinancialConnectionsSheet.Configuration
-  private lateinit var mode: Mode
+  private var configuration =
+    FinancialConnectionsSheet.Configuration(
+      financialConnectionsSessionClientSecret = clientSecret,
+      publishableKey = publishableKey,
+      stripeAccountId = stripeAccountId,
+    )
 
-  override fun prepare() {
+  override fun onPresent() {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val stripeSdkModule: StripeSdkModule? = context.getNativeModule(StripeSdkModule::class.java)
     FinancialConnections.setEventListener { event ->
       val params = mapFromFinancialConnectionsEvent(event)
@@ -44,16 +53,19 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
 
     when (mode) {
       Mode.ForToken -> {
+        @SuppressLint("RestrictedApi")
         FinancialConnectionsSheet
           .createForBankAccountToken(
-            this,
+            activity,
+            signal,
             ::onFinancialConnectionsSheetForTokenResult,
           ).present(configuration = configuration)
       }
 
       Mode.ForSession -> {
+        @SuppressLint("RestrictedApi")
         FinancialConnectionsSheet
-          .create(this, ::onFinancialConnectionsSheetForDataResult)
+          .create(activity, signal, ::onFinancialConnectionsSheetForDataResult)
           .present(configuration = configuration)
       }
     }
@@ -61,7 +73,6 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
 
   override fun onDestroy() {
     super.onDestroy()
-
     // Remove any event listener that might be set
     FinancialConnections.clearEventListener()
   }
@@ -69,20 +80,15 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
   private fun onFinancialConnectionsSheetForTokenResult(result: FinancialConnectionsSheetForTokenResult) {
     when (result) {
       is FinancialConnectionsSheetForTokenResult.Canceled -> {
-        promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
+        promise?.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
 
       is FinancialConnectionsSheetForTokenResult.Failed -> {
-        promise.resolve(createError(ErrorType.Failed.toString(), result.error))
+        promise?.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
 
       is FinancialConnectionsSheetForTokenResult.Completed -> {
-        promise.resolve(createTokenResult(result))
-        (context.currentActivity as? FragmentActivity)
-          ?.supportFragmentManager
-          ?.beginTransaction()
-          ?.remove(this)
-          ?.commitAllowingStateLoss()
+        promise?.resolve(createTokenResult(result))
       }
     }
   }
@@ -90,77 +96,24 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
   private fun onFinancialConnectionsSheetForDataResult(result: FinancialConnectionsSheetResult) {
     when (result) {
       is FinancialConnectionsSheetResult.Canceled -> {
-        promise.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
+        promise?.resolve(createError(ErrorType.Canceled.toString(), "The flow has been canceled"))
       }
 
       is FinancialConnectionsSheetResult.Failed -> {
-        promise.resolve(createError(ErrorType.Failed.toString(), result.error))
+        promise?.resolve(createError(ErrorType.Failed.toString(), result.error))
       }
 
       is FinancialConnectionsSheetResult.Completed -> {
-        promise.resolve(
+        promise?.resolve(
           WritableNativeMap().also {
             it.putMap("session", mapFromSession(result.financialConnectionsSession))
           },
         )
-        (context.currentActivity as? FragmentActivity)
-          ?.supportFragmentManager
-          ?.beginTransaction()
-          ?.remove(this)
-          ?.commitAllowingStateLoss()
       }
-    }
-  }
-
-  fun presentFinancialConnectionsSheet(
-    clientSecret: String,
-    mode: Mode,
-    publishableKey: String,
-    stripeAccountId: String?,
-    promise: Promise,
-    context: ReactApplicationContext,
-  ) {
-    this.promise = promise
-    this.context = context
-    this.mode = mode
-    this.configuration =
-      FinancialConnectionsSheet.Configuration(
-        financialConnectionsSessionClientSecret = clientSecret,
-        publishableKey = publishableKey,
-        stripeAccountId = stripeAccountId,
-      )
-
-    (context.currentActivity as? FragmentActivity)?.let {
-      attemptToCleanupPreviousFragment(it)
-      commitFragmentAndStartFlow(it)
-    }
-      ?: run {
-        promise.resolve(createMissingActivityError())
-        return
-      }
-  }
-
-  private fun attemptToCleanupPreviousFragment(currentActivity: FragmentActivity) {
-    currentActivity.supportFragmentManager
-      .beginTransaction()
-      .remove(this)
-      .commitAllowingStateLoss()
-  }
-
-  private fun commitFragmentAndStartFlow(currentActivity: FragmentActivity) {
-    try {
-      currentActivity.supportFragmentManager
-        .beginTransaction()
-        .add(this, TAG)
-        .commit()
-    } catch (error: IllegalStateException) {
-      promise.resolve(createError(ErrorType.Failed.toString(), error.message))
     }
   }
 
   companion object {
-    internal const val TAG = "financial_connections_sheet_launch_fragment"
-
     private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap =
       WritableNativeMap().also {
         it.putMap("session", mapFromSession(result.financialConnectionsSession))
@@ -298,7 +251,6 @@ class FinancialConnectionsSheetFragment : StripeFragment() {
         FinancialConnectionsAccount.Permissions.TRANSACTIONS -> "transactions"
         FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
         FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
-        FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
       }
 
     private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String =

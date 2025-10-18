@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
 import android.annotation.SuppressLint
-import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
@@ -13,7 +12,7 @@ import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.toBundleObject
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -31,6 +30,14 @@ class AddressSheetView(
   private var googlePlacesApiKey: String? = null
   private var autocompleteCountries: Set<String> = emptySet()
   private var additionalFields: AddressLauncher.AdditionalFieldsConfiguration? = null
+  private var addressSheetManager: AddressLauncherManager? = null
+
+  override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+
+    addressSheetManager?.destroy()
+    addressSheetManager = null
+  }
 
   private fun onSubmit(params: WritableMap) {
     UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(
@@ -59,29 +66,37 @@ class AddressSheetView(
   private fun launchAddressSheet() {
     val appearance =
       try {
-        buildPaymentSheetAppearance(toBundleObject(appearanceParams), context)
+        buildPaymentSheetAppearance(appearanceParams, context)
       } catch (error: PaymentSheetAppearanceException) {
         onError(createError(ErrorType.Failed.toString(), error))
         return
       }
-    AddressLauncherFragment().presentAddressSheet(
-      context,
-      appearance,
-      defaultAddress,
-      allowedCountries,
-      buttonTitle,
-      sheetTitle,
-      googlePlacesApiKey,
-      autocompleteCountries,
-      additionalFields,
-    ) { error, address ->
-      if (address != null) {
-        onSubmit(buildResult(address))
-      } else {
-        onError(error)
+    addressSheetManager?.destroy()
+    addressSheetManager =
+      AddressLauncherManager(
+        context.reactApplicationContext,
+        appearance,
+        defaultAddress,
+        allowedCountries,
+        buttonTitle,
+        sheetTitle,
+        googlePlacesApiKey,
+        autocompleteCountries,
+        additionalFields,
+      ) { error, address ->
+        addressSheetManager?.destroy()
+        addressSheetManager = null
+
+        if (address != null) {
+          onSubmit(buildResult(address))
+        } else {
+          onError(error)
+        }
+        isVisible = false
+      }.also {
+        it.create()
+        it.present()
       }
-      isVisible = false
-    }
   }
 
   fun setAppearance(appearanceParams: ReadableMap?) {
@@ -117,17 +132,15 @@ class AddressSheetView(
   }
 
   companion object {
-    internal fun buildAddressDetails(bundle: Bundle): AddressDetails =
+    internal fun buildAddressDetails(bundle: ReadableMap): AddressDetails =
       AddressDetails(
         name = bundle.getString("name"),
-        address = buildAddress(bundle.getBundle("address")),
+        address = buildAddress(bundle.getMap("address")),
         phoneNumber = bundle.getString("phone"),
-        isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
+        isCheckboxSelected = bundle.getBooleanOr("isCheckboxSelected", false),
       )
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
-
-    internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
+    internal fun buildAddress(bundle: ReadableMap?): PaymentSheet.Address? {
       if (bundle == null) {
         return null
       }
