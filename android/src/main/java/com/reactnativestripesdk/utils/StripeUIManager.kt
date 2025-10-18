@@ -4,17 +4,26 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
+import com.stripe.android.reactnative.ReactNativeSdkInternal
+import com.stripe.android.reactnative.UnregisterSignal
 
+@ReactNativeSdkInternal
 abstract class StripeUIManager(
   protected val context: ReactApplicationContext,
-  protected val initPromise: Promise,
+  protected val initPromise: Promise
 ) {
+  protected val signal = UnregisterSignal()
+
   protected abstract fun prepare()
 
   fun initialize() {
     UiThreadUtil.runOnUiThread {
       prepare()
     }
+  }
+
+  fun unregister() {
+    signal.unregister()
   }
 
   /**

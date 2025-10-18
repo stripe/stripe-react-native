@@ -153,6 +153,12 @@ class StripeSdkModule(
     reactContext.addActivityEventListener(mActivityEventListener)
   }
 
+  override fun invalidate() {
+    super.invalidate()
+
+    paymentSheetManager?.unregister()
+  }
+
   // Necessary on older versions of React Native (~0.65 and below)
   private fun dispatchActivityResultsToFragments(
     requestCode: Int,
@@ -235,6 +241,7 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
+      paymentSheetManager?.unregister()
       paymentSheetManager =
         PaymentSheetManager.create(reactApplicationContext, params, promise)
     }

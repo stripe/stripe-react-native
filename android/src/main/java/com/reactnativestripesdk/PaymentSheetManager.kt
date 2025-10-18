@@ -276,8 +276,6 @@ class PaymentSheetManager(
 
     paymentSheetConfiguration = configurationBuilder.build()
 
-    val signal = UnregisterSignal()
-
     if (arguments?.getBoolean("customFlow") == true) {
       flowController =
         if (intentConfiguration != null) {
