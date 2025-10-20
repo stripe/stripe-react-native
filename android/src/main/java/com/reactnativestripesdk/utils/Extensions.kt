@@ -40,10 +40,13 @@ fun ReadableMap.getBooleanOr(
   default: Boolean,
 ): Boolean = if (this.hasKey(key) && this.getType(key) == ReadableType.Boolean) this.getBoolean(key) else default
 
+fun ReadableMap.getIntOrNull(key: String): Int? =
+  if (this.hasKey(key) && this.getType(key) == ReadableType.Number) this.getInt(key) else null
+
 fun ReadableMap.getIntOr(
   key: String,
   default: Int,
-): Int = if (this.hasKey(key) && this.getType(key) == ReadableType.Number) this.getInt(key) else default
+): Int = getIntOrNull(key) ?: default
 
 fun ReadableMap.isEmpty() = !this.keySetIterator().hasNextKey()
 

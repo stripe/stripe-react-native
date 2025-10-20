@@ -39,6 +39,7 @@ import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
@@ -52,8 +53,6 @@ import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import com.stripe.android.paymentsheet.PaymentSheetResultCallback
-import com.stripe.android.reactnative.ReactNativeSdkInternal
-import com.stripe.android.reactnative.UnregisterSignal
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,10 +68,10 @@ import kotlin.Exception
 )
 class PaymentSheetManager(
   context: ReactApplicationContext,
-  initPromise: Promise,
-) : StripeUIManager(context, initPromise),
+  private val arguments: ReadableMap,
+  private val initPromise: Promise,
+) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
-  private var arguments: ReadableMap? = null
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -80,42 +79,41 @@ class PaymentSheetManager(
   private var intentConfiguration: PaymentSheet.IntentConfiguration? = null
   private lateinit var paymentSheetConfiguration: PaymentSheet.Configuration
   private var confirmPromise: Promise? = null
-  private var presentPromise: Promise? = null
   private var paymentSheetTimedOut = false
   internal var paymentSheetIntentCreationCallback = CompletableDeferred<ReadableMap>()
   private var keepJsAwake: KeepJsAwakeTask? = null
 
   @OptIn(ExperimentalCustomPaymentMethodsApi::class)
-  override fun prepare() {
-    val activity = getCurrentActivityOrResolveWithError() ?: return
-    val merchantDisplayName = arguments?.getString("merchantDisplayName").orEmpty()
+  override fun onCreate() {
+    val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
+    val merchantDisplayName = arguments.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       initPromise.resolve(
         createError(ErrorType.Failed.toString(), "merchantDisplayName cannot be empty or null."),
       )
       return
     }
-    val primaryButtonLabel = arguments?.getString("primaryButtonLabel")
-    val googlePayConfig = buildGooglePayConfig(arguments?.getMap("googlePay"))
-    val linkConfig = buildLinkConfig(arguments?.getMap("link"))
-    val allowsDelayedPaymentMethods = arguments?.getBoolean("allowsDelayedPaymentMethods")
-    val billingDetailsBundle = arguments?.getMap("defaultBillingDetails")
-    val billingConfigParams = arguments?.getMap("billingDetailsCollectionConfiguration")
-    val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
+    val primaryButtonLabel = arguments.getString("primaryButtonLabel")
+    val googlePayConfig = buildGooglePayConfig(arguments.getMap("googlePay"))
+    val linkConfig = buildLinkConfig(arguments.getMap("link"))
+    val allowsDelayedPaymentMethods = arguments.getBooleanOr("allowsDelayedPaymentMethods", false)
+    val billingDetailsBundle = arguments.getMap("defaultBillingDetails")
+    val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
+    val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
-      arguments?.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
-    paymentIntentClientSecret = arguments?.getString("paymentIntentClientSecret").orEmpty()
-    setupIntentClientSecret = arguments?.getString("setupIntentClientSecret").orEmpty()
+      arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    paymentIntentClientSecret = arguments.getString("paymentIntentClientSecret").orEmpty()
+    setupIntentClientSecret = arguments.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
       try {
-        buildIntentConfiguration(arguments?.getMap("intentConfiguration"))
+        buildIntentConfiguration(arguments.getMap("intentConfiguration"))
       } catch (error: PaymentSheetException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
     val appearance =
       try {
-        buildPaymentSheetAppearance(arguments?.getMap("appearance"), context)
+        buildPaymentSheetAppearance(arguments.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
@@ -130,7 +128,7 @@ class PaymentSheetManager(
       }
 
     val shippingDetails =
-      arguments?.getMap("defaultShippingDetails")?.let {
+      arguments.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
       }
 
@@ -262,7 +260,7 @@ class PaymentSheetManager(
         .link(linkConfig)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
         .preferredNetworks(
-          mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
+          mapToPreferredNetworks(arguments.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
         .customPaymentMethods(parseCustomPaymentMethods(arguments))
@@ -271,12 +269,12 @@ class PaymentSheetManager(
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 
     configurationBuilder.paymentMethodLayout(
-      mapToPaymentMethodLayout(arguments?.getString("paymentMethodLayout")),
+      mapToPaymentMethodLayout(arguments.getString("paymentMethodLayout")),
     )
 
     paymentSheetConfiguration = configurationBuilder.build()
 
-    if (arguments?.getBoolean("customFlow") == true) {
+    if (arguments.getBoolean("customFlow") == true) {
       flowController =
         if (intentConfiguration != null) {
           PaymentSheet.FlowController
@@ -313,9 +311,8 @@ class PaymentSheetManager(
     }
   }
 
-  fun present(promise: Promise) {
+  override fun onPresent() {
     keepJsAwake = KeepJsAwakeTask(context).apply { start() }
-    presentPromise = promise
     if (paymentSheet != null) {
       if (!paymentIntentClientSecret.isNullOrEmpty()) {
         paymentSheet?.presentWithPaymentIntent(
@@ -333,7 +330,7 @@ class PaymentSheetManager(
     } else if (flowController != null) {
       flowController?.presentPaymentOptions()
     } else {
-      promise.resolve(createMissingInitError())
+      promise?.resolve(createMissingInitError())
     }
   }
 
@@ -441,7 +438,7 @@ class PaymentSheetManager(
 
   private fun resolvePresentPromise(value: Any?) {
     keepJsAwake?.stop()
-    presentPromise?.resolve(value)
+    promise?.resolve(value)
   }
 
   private fun resolvePaymentResult(map: WritableMap) {
@@ -527,19 +524,6 @@ class PaymentSheetManager(
   }
 
   companion object {
-    internal const val TAG = "payment_sheet_launch_fragment"
-
-    internal fun create(
-      context: ReactApplicationContext,
-      arguments: ReadableMap,
-      initPromise: Promise,
-    ): PaymentSheetManager {
-      val instance = PaymentSheetManager(context, initPromise)
-      instance.arguments = arguments
-      instance.initialize()
-      return instance
-    }
-
     private val mapIntToButtonType =
       mapOf(
         1 to PaymentSheet.GooglePayConfiguration.ButtonType.Buy,

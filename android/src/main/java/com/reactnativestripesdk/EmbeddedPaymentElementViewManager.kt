@@ -204,8 +204,7 @@ class EmbeddedPaymentElementViewManager :
           } else {
             true // default value
           },
-        )
-        .customPaymentMethods(
+        ).customPaymentMethods(
           parseCustomPaymentMethods(
             map.getMap("customPaymentMethodConfiguration"),
           ),

@@ -31,6 +31,14 @@ class AddressSheetView(
   private var googlePlacesApiKey: String? = null
   private var autocompleteCountries: Set<String> = emptySet()
   private var additionalFields: AddressLauncher.AdditionalFieldsConfiguration? = null
+  private var addressSheetManager: AddressLauncherManager? = null
+
+  override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+
+    addressSheetManager?.destroy()
+    addressSheetManager = null
+  }
 
   private fun onSubmit(params: WritableMap) {
     UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(
@@ -64,8 +72,8 @@ class AddressSheetView(
         onError(createError(ErrorType.Failed.toString(), error))
         return
       }
-    AddressLauncherFragment().presentAddressSheet(
-      context,
+    addressSheetManager?.destroy()
+    addressSheetManager = AddressLauncherManager(context.reactApplicationContext,
       appearance,
       defaultAddress,
       allowedCountries,
@@ -75,12 +83,18 @@ class AddressSheetView(
       autocompleteCountries,
       additionalFields,
     ) { error, address ->
+      addressSheetManager?.destroy()
+      addressSheetManager = null
+
       if (address != null) {
         onSubmit(buildResult(address))
       } else {
         onError(error)
       }
       isVisible = false
+    }.also {
+      it.create()
+      it.present()
     }
   }
 

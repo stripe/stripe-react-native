@@ -4,37 +4,57 @@ import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.UiThreadUtil
-import com.stripe.android.reactnative.ReactNativeSdkInternal
-import com.stripe.android.reactnative.UnregisterSignal
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
+import com.stripe.android.core.reactnative.UnregisterSignal
 
 @ReactNativeSdkInternal
 abstract class StripeUIManager(
   protected val context: ReactApplicationContext,
-  protected val initPromise: Promise
 ) {
   protected val signal = UnregisterSignal()
+  protected var promise: Promise? = null
+  protected var timeout: Long? = null
 
-  protected abstract fun prepare()
+  protected open fun onCreate() {}
 
-  fun initialize() {
+  protected abstract fun onPresent()
+
+  protected open fun onDestroy() {
+    signal.unregister()
+  }
+
+  fun create() {
     UiThreadUtil.runOnUiThread {
-      prepare()
+      onCreate()
     }
   }
 
-  fun unregister() {
-    signal.unregister()
+  fun present(
+    promise: Promise? = null,
+    timeout: Long? = null,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      this.promise = promise
+      this.timeout = timeout
+      onPresent()
+    }
+  }
+
+  fun destroy() {
+    UiThreadUtil.runOnUiThread {
+      onDestroy()
+    }
   }
 
   /**
    * Safely get and cast the current activity as an AppCompatActivity. If that fails, the promise
    * provided will be resolved with an error message instructing the user to retry the method.
    */
-  protected fun getCurrentActivityOrResolveWithError(): FragmentActivity? {
+  protected fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
     (context.currentActivity as? FragmentActivity)?.let {
       return it
     }
-    initPromise.resolve(createMissingActivityError())
+    promise?.resolve(createMissingActivityError())
     return null
   }
 }
