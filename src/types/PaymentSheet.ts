@@ -14,6 +14,7 @@ import type {
 import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
+import type { Result as ConfirmationTokenResult } from './ConfirmationToken';
 
 export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
@@ -563,19 +564,42 @@ export type IntentCreationCallbackParams =
     };
 
 export type IntentConfiguration = {
-  /*
-    Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
-    - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
-    - Parameters:
-      - paymentMethod: The PaymentMethod representing the customer's payment details.
-      - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
-      - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
-  */
-  confirmHandler: (
+  /**
+   * Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+   * - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+   * - Note: Either `confirmHandler` or `confirmationTokenConfirmHandler` must be provided, but not both.
+   * - Parameters:
+   *   - paymentMethod: The PaymentMethod representing the customer's payment details.
+   *   - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
+   *   - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
+   */
+  confirmHandler?: (
     paymentMethod: Result,
     shouldSavePaymentMethod: boolean,
     intentCreationCallback: (result: IntentCreationCallbackParams) => void
   ) => void;
+
+  /**
+   * @internal DO NOT USE - This API is under active development and is not ready for use.
+   * The API is subject to breaking changes without notice. Do not use in production or development.
+   *
+   * Called when the customer confirms payment using confirmation tokens.
+   * Your implementation should follow the guide to create (and optionally confirm) a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+   *
+   * - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+   * - Note: When confirming the PaymentIntent or SetupIntent on your server, use the confirmation token ID (`confirmationToken.id`) as the `confirmation_token` parameter.
+   * - Note: Either `confirmHandler` or `confirmationTokenConfirmHandler` must be provided, but not both.
+   *
+   * @param confirmationToken - The ConfirmationToken representing the customer's payment details and any additional information collected during checkout (e.g., billing details, shipping address). This token contains a secure, non-PII preview of the payment method that can be safely passed to your server. Use `confirmationToken.id` when confirming the intent on your server.
+   * @param intentCreationCallback - Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using PaymentSheet, the error's localizedMessage will be displayed to the customer in the sheet. If you're using PaymentSheet.FlowController, the `confirm` method fails with the error.
+   *
+   * @see https://stripe.com/docs/api/confirmation_tokens
+   */
+  confirmationTokenConfirmHandler?: (
+    confirmationToken: ConfirmationTokenResult,
+    intentCreationCallback: (result: IntentCreationCallbackParams) => void
+  ) => void;
+
   /* Information about the payment (PaymentIntent) or setup (SetupIntent).*/
   mode: Mode;
   /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */

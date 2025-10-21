@@ -80,6 +80,11 @@ class EmbeddedPaymentElementViewManager :
   ) {
     val readableMap = cfg.asMap()
     if (readableMap == null) return
+
+    // Detect which callback type to use based on the presence of the confirmation token handler
+    val useConfirmationTokenCallback = readableMap.hasKey("confirmationTokenConfirmHandler")
+    view.setUseConfirmationTokenCallback(useConfirmationTokenCallback)
+
     val intentConfig = parseIntentConfiguration(readableMap)
     view.latestIntentConfig = intentConfig
     view.latestElementConfig?.let { elemCfg ->

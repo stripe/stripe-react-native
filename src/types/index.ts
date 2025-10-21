@@ -25,6 +25,7 @@ import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
 import * as FinancialConnections from './FinancialConnections';
 import * as PlatformPay from './PlatformPay';
+import * as ConfirmationToken from './ConfirmationToken';
 
 export {
   ApplePay,
@@ -39,6 +40,7 @@ export {
   Token,
   FinancialConnections,
   PlatformPay,
+  ConfirmationToken,
 };
 
 export * from './PushProvisioning';
