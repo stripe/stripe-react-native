@@ -160,6 +160,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void confirmationTokenCreationCallback(ReadableMap result, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void customPaymentMethodResultCallback(ReadableMap result, Promise promise);
 
   @ReactMethod
