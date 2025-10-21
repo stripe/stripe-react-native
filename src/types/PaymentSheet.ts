@@ -193,8 +193,12 @@ export type AppearanceParams = RecursivePartial<{
     | { light: GlobalColorConfig; dark: GlobalColorConfig };
   /** Describes the appearance of shapes in the PaymentSheet, such as buttons, inputs, and tabs. */
   shapes: {
-    /** The border radius used for buttons, inputs, and tabs in your PaymentSheet.
-     * @default 6.0
+    /** The border radius used for buttons, inputs, tabs in PaymentSheet
+     *   - Note: On iOS, the behavior of this property is consistent with the behavior of corner radius on `CALayer`
+     *   - Note: On iOS, When `nil`, the behavior depends:
+     *     - iOS 26+ and `UIDesignRequiresCompatibility = NO`: Various `UICornerConfiguration` values are used to match Liquid Glass.
+     *     - Pre-iOS 26: A 6.0 corner radius is applied.
+     *   - Note: On Android, a 6.0 corner radius is applied.
      */
     borderRadius: number;
     /** The border width used for inputs and tabs in your PaymentSheet.
@@ -212,7 +216,28 @@ export type AppearanceParams = RecursivePartial<{
 
   /** Describes the inset values applied to Mobile Payment Element forms */
   formInsetValues: EdgeInsetsConfig;
+
+  /** Setting this boolean to `true` will call the iOS applyLiquidGlass() method
+   * (https://stripe.dev/stripe-ios/stripepaymentsheet/documentation/stripepaymentsheet/paymentsheet/appearance/applyliquidglass())
+   * on the Appearance object prior to applying other appearance customizations set on AppearanceParams.
+   * Requires iOS26 and Xcode 26, and will be ignored if these requirements are not met.
+   * @default false
+   */
+  applyLiquidGlass?: boolean;
+
+  /** Describes the navigation bar style (iOS only)
+   *  @default Plain
+   */
+  navigationBarStyle?: NavigationBarStyle;
 }>;
+
+/** Display styles for the navigation bar (iOS only) */
+export enum NavigationBarStyle {
+  /** Default style */
+  Plain = 'plain',
+  /** Style to match iOS 26 Liquid Glass. Requires: iOS26 and Xcode 26, and will be ignored if these requirements are not met. */
+  Glass = 'glass',
+}
 
 export type FontConfig = {
   /**
