@@ -23,6 +23,7 @@ import {
   CustomPaymentMethod,
   CustomPaymentMethodResult,
   CustomPaymentMethodResultStatus,
+  ConfirmationToken,
 } from '@stripe/stripe-react-native';
 import {
   useEmbeddedPaymentElement,
