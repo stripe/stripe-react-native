@@ -171,7 +171,7 @@ class PaymentLauncherManager(
   }
 
   private fun createPaymentLauncher(activity: ComponentActivity): PaymentLauncher =
-    PaymentLauncher.create(activity, publishableKey, stripeAccountId) { paymentResult ->
+    PaymentLauncher.create(activity, signal, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
           paymentIntentClientSecret?.let {
