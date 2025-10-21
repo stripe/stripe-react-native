@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+
+**Fixes**
+- Fixes an issue with `FinancialConnectionsEvent` not being populated properly on Android
+
 ## 0.55.0 - 2025-10-20
 * [Added] Added appearance.applyLiquidGlass. When set to `true`, changes the values of various properties on the Appearance object used by PaymentSheet, PaymentSheet.FlowController, EmbeddedPaymentElement, CustomerSheet, and AddressViewController to match Liquid Glass when building with Xcode 26 or later and running on iOS 26. This includes appearance.cornerRadius, appearance.borderWidth, appearance.navigationBarStyle, colors.background, navigationBarStyle, and others. This feature is in public preview while we gather feedback and is subject to change. Please use https://github.com/stripe/stripe-ios/issues to file feedback!
 

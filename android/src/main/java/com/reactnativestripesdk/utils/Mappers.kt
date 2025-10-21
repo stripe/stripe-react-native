@@ -1028,7 +1028,16 @@ internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardB
 internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent): WritableMap =
   Arguments.createMap().apply {
     putString("name", event.name.value)
-    putMap("metadata", event.metadata.toMap().toReadableMap())
+
+    // We require keys to use pascal case, but the original map uses snake case.
+    val tweakedMap =
+      buildMap {
+        put("institutionName", event.metadata.institutionName)
+        put("manualEntry", event.metadata.manualEntry)
+        put("errorCode", event.metadata.errorCode)
+      }
+
+    putMap("metadata", tweakedMap.toReadableMap())
   }
 
 private fun List<Any?>.toWritableArray(): WritableArray {
