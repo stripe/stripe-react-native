@@ -94,6 +94,7 @@ class StripeSdkModule(
   private var customerSheetFragment: CustomerSheetFragment? = null
 
   internal var embeddedIntentCreationCallback = CompletableDeferred<ReadableMap>()
+  internal var embeddedConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
 
@@ -329,6 +330,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
+    embeddedConfirmationTokenCreationCallback.complete(params)
     paymentSheetConfirmationTokenCreationCallback.complete(params)
 
     if (paymentSheetFragment == null) {

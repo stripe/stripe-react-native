@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -23,6 +24,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.reactnativestripesdk.toWritableMap
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
+import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.stripe.android.model.PaymentMethod
@@ -63,10 +65,16 @@ class EmbeddedPaymentElementView(
   var latestElementConfig: EmbeddedPaymentElement.Configuration? = null
 
   val rowSelectionBehaviorType = mutableStateOf<RowSelectionBehaviorType?>(null)
+  val useConfirmationTokenCallback = mutableStateOf(false)
 
   private val reactContext get() = context as ThemedReactContext
   private val events = Channel<Event>(Channel.UNLIMITED)
 
+  fun setUseConfirmationTokenCallback(value: Boolean) {
+    useConfirmationTokenCallback.value = value
+  }
+
+  @SuppressLint("RestrictedApi")
   @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   @Composable
   override fun Content() {
@@ -153,73 +161,128 @@ class EmbeddedPaymentElementView(
         }
       }
 
+    val useConfirmationToken by remember { useConfirmationTokenCallback }
+
+    val resultCallback =
+      remember {
+        { result: EmbeddedPaymentElement.Result ->
+          val map =
+            Arguments.createMap().apply {
+              when (result) {
+                is EmbeddedPaymentElement.Result.Completed -> {
+                  putString("status", "completed")
+                }
+
+                is EmbeddedPaymentElement.Result.Canceled -> {
+                  putString("status", "canceled")
+                }
+
+                is EmbeddedPaymentElement.Result.Failed -> {
+                  putString("status", "failed")
+                  putString("error", result.error.message ?: "Unknown error")
+                }
+              }
+            }
+          requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
+        }
+      }
+
     val builder =
-      remember(type) {
-        EmbeddedPaymentElement
-          .Builder(
-            createIntentCallback = { paymentMethod, shouldSavePaymentMethod ->
-              val stripeSdkModule =
-                try {
-                  requireStripeSdkModule()
-                } catch (ex: IllegalArgumentException) {
-                  return@Builder CreateIntentResult.Failure(
-                    cause =
-                      Exception(
-                        "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-                      ),
-                    displayMessage = "An unexpected error occurred",
+      remember(type, useConfirmationToken) {
+        if (useConfirmationToken) {
+          EmbeddedPaymentElement
+            .Builder(
+              createIntentCallback = { confirmationToken ->
+                val stripeSdkModule =
+                  try {
+                    requireStripeSdkModule()
+                  } catch (ex: IllegalArgumentException) {
+                    return@Builder CreateIntentResult.Failure(
+                      cause =
+                        Exception(
+                          "Tried to call confirmationTokenConfirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                        ),
+                      displayMessage = "An unexpected error occurred",
+                    )
+                  }
+
+                // Make sure that JS is active since the activity will be paused when stripe ui is presented.
+                val keepJsAwakeTask =
+                  KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
+
+                val params =
+                  Arguments.createMap().apply {
+                    putMap("confirmationToken", mapFromConfirmationToken(confirmationToken))
+                  }
+
+                stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
+
+                val resultFromJavascript = stripeSdkModule.embeddedConfirmationTokenCreationCallback.await()
+                // reset the completable
+                stripeSdkModule.embeddedConfirmationTokenCreationCallback = CompletableDeferred()
+
+                keepJsAwakeTask.stop()
+
+                resultFromJavascript.getString("clientSecret")?.let {
+                  CreateIntentResult.Success(clientSecret = it)
+                } ?: run {
+                  val errorMap = resultFromJavascript.getMap("error")
+                  CreateIntentResult.Failure(
+                    cause = Exception(errorMap?.getString("message")),
+                    displayMessage = errorMap?.getString("localizedMessage"),
                   )
                 }
-
-              // Make sure that JS is active since the activity will be paused when stripe ui is presented.
-              val keepJsAwakeTask =
-                KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
-
-              val params =
-                Arguments.createMap().apply {
-                  putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
-                  putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
-                }
-
-              stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
-
-              val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
-              // reset the completable
-              stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
-
-              keepJsAwakeTask.stop()
-
-              resultFromJavascript.getString("clientSecret")?.let {
-                CreateIntentResult.Success(clientSecret = it)
-              } ?: run {
-                val errorMap = resultFromJavascript.getMap("error")
-                CreateIntentResult.Failure(
-                  cause = Exception(errorMap?.getString("message")),
-                  displayMessage = errorMap?.getString("localizedMessage"),
-                )
-              }
-            },
-            resultCallback = { result ->
-              val map =
-                Arguments.createMap().apply {
-                  when (result) {
-                    is EmbeddedPaymentElement.Result.Completed -> {
-                      putString("status", "completed")
-                    }
-
-                    is EmbeddedPaymentElement.Result.Canceled -> {
-                      putString("status", "canceled")
-                    }
-
-                    is EmbeddedPaymentElement.Result.Failed -> {
-                      putString("status", "failed")
-                      putString("error", result.error.message ?: "Unknown error")
-                    }
+              },
+              resultCallback = resultCallback,
+            )
+        } else {
+          EmbeddedPaymentElement
+            .Builder(
+              createIntentCallback = { paymentMethod, shouldSavePaymentMethod ->
+                val stripeSdkModule =
+                  try {
+                    requireStripeSdkModule()
+                  } catch (ex: IllegalArgumentException) {
+                    return@Builder CreateIntentResult.Failure(
+                      cause =
+                        Exception(
+                          "Tried to call confirmHandler, but no callback was found. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
+                        ),
+                      displayMessage = "An unexpected error occurred",
+                    )
                   }
+
+                // Make sure that JS is active since the activity will be paused when stripe ui is presented.
+                val keepJsAwakeTask =
+                  KeepJsAwakeTask(reactContext.reactApplicationContext).apply { start() }
+
+                val params =
+                  Arguments.createMap().apply {
+                    putMap("paymentMethod", mapFromPaymentMethod(paymentMethod))
+                    putBoolean("shouldSavePaymentMethod", shouldSavePaymentMethod)
+                  }
+
+                stripeSdkModule.eventEmitter.emitOnConfirmHandlerCallback(params)
+
+                val resultFromJavascript = stripeSdkModule.embeddedIntentCreationCallback.await()
+                // reset the completable
+                stripeSdkModule.embeddedIntentCreationCallback = CompletableDeferred()
+
+                keepJsAwakeTask.stop()
+
+                resultFromJavascript.getString("clientSecret")?.let {
+                  CreateIntentResult.Success(clientSecret = it)
+                } ?: run {
+                  val errorMap = resultFromJavascript.getMap("error")
+                  CreateIntentResult.Failure(
+                    cause = Exception(errorMap?.getString("message")),
+                    displayMessage = errorMap?.getString("localizedMessage"),
+                  )
                 }
-              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementFormSheetConfirmComplete(map)
-            },
-          ).confirmCustomPaymentMethodCallback(confirmCustomPaymentMethodCallback)
+              },
+              resultCallback = resultCallback,
+            )
+        }.confirmCustomPaymentMethodCallback(confirmCustomPaymentMethodCallback)
           .rowSelectionBehavior(
             if (type == RowSelectionBehaviorType.Default) {
               EmbeddedPaymentElement.RowSelectionBehavior.default()
