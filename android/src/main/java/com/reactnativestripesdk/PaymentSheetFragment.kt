@@ -231,9 +231,10 @@ class PaymentSheetFragment :
 
         stripeSdkModule?.eventEmitter?.emitOnConfirmationTokenHandlerCallback(params)
 
-        val resultFromJavascript = paymentSheetConfirmationTokenCreationCallback.await()
-        // reset the completable
+        // Save reference and reset BEFORE awaiting to prevent race conditions
+        val callback = paymentSheetConfirmationTokenCreationCallback
         paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
+        val resultFromJavascript = callback.await()
 
         return@CreateIntentWithConfirmationTokenCallback resultFromJavascript.getString("clientSecret")?.let {
           CreateIntentResult.Success(clientSecret = it)

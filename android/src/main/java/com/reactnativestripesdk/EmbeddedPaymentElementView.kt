@@ -217,9 +217,10 @@ class EmbeddedPaymentElementView(
 
                 stripeSdkModule.eventEmitter.emitOnConfirmationTokenHandlerCallback(params)
 
-                val resultFromJavascript = stripeSdkModule.embeddedConfirmationTokenCreationCallback.await()
-                // reset the completable
+                // Save reference and reset BEFORE awaiting to prevent race conditions
+                val callback = stripeSdkModule.embeddedConfirmationTokenCreationCallback
                 stripeSdkModule.embeddedConfirmationTokenCreationCallback = CompletableDeferred()
+                val resultFromJavascript = callback.await()
 
                 keepJsAwakeTask.stop()
 
