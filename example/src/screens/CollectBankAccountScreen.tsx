@@ -81,6 +81,7 @@ export default function CollectBankAccountScreen() {
       {
         onEvent: (event: FinancialConnectionsEvent) => {
           console.log('Event received:', event);
+          console.log('Institution name:', event.metadata.institutionName);
         },
       }
     );
