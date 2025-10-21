@@ -1173,12 +1173,22 @@ internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): Wri
   return token
 }
 
-private fun mapFromSetupFutureUsage(setupFutureUsage: Any?): String? {
-  // This will need to be implemented based on the actual SetupFutureUsage enum when available
-  return setupFutureUsage?.toString()
+@SuppressLint("RestrictedApi")
+private fun mapFromSetupFutureUsage(setupFutureUsage: ConfirmPaymentIntentParams.SetupFutureUsage?): String? {
+  return when (setupFutureUsage) {
+    ConfirmPaymentIntentParams.SetupFutureUsage.OnSession -> "on_session"
+    ConfirmPaymentIntentParams.SetupFutureUsage.OffSession -> "off_session"
+    ConfirmPaymentIntentParams.SetupFutureUsage.Blank -> ""
+    ConfirmPaymentIntentParams.SetupFutureUsage.None -> "none"
+    null -> null
+  }
 }
 
-private fun mapFromAllowRedisplay(allowRedisplay: Any?): String? {
-  // This will need to be implemented based on the actual AllowRedisplay enum when available
-  return allowRedisplay?.toString()
+private fun mapFromAllowRedisplay(allowRedisplay: PaymentMethod.AllowRedisplay?): String? {
+  return when (allowRedisplay) {
+    PaymentMethod.AllowRedisplay.ALWAYS -> "always"
+    PaymentMethod.AllowRedisplay.LIMITED -> "limited"
+    PaymentMethod.AllowRedisplay.UNSPECIFIED -> "unspecified"
+    null -> null
+  }
 }
