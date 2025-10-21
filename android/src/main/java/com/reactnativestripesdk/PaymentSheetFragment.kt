@@ -107,6 +107,10 @@ class PaymentSheetFragment :
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
+
+    // Determine which callback type to use based on what's provided
+    val intentConfigBundle = arguments?.getBundle("intentConfiguration")
+    val useConfirmationTokenCallback = intentConfigBundle?.containsKey("confirmationTokenConfirmHandler") == true
     val appearance =
       try {
         buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
@@ -302,12 +306,18 @@ class PaymentSheetFragment :
     if (arguments?.getBoolean("customFlow") == true) {
       flowController =
         if (intentConfiguration != null) {
-          PaymentSheet.FlowController
-            .Builder(
-              resultCallback = paymentResultCallback,
-              paymentOptionResultCallback = paymentOptionCallback,
-            ).createIntentCallback(createIntentCallback)
-            .createIntentCallback(createConfirmationTokenCallback)
+          val builder =
+            PaymentSheet.FlowController
+              .Builder(
+                resultCallback = paymentResultCallback,
+                paymentOptionResultCallback = paymentOptionCallback,
+              )
+          if (useConfirmationTokenCallback) {
+            builder.createIntentCallback(createConfirmationTokenCallback)
+          } else {
+            builder.createIntentCallback(createIntentCallback)
+          }
+          builder
             .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {
@@ -322,10 +332,13 @@ class PaymentSheetFragment :
     } else {
       paymentSheet =
         if (intentConfiguration != null) {
-          PaymentSheet
-            .Builder(paymentResultCallback)
-            .createIntentCallback(createIntentCallback)
-            .createIntentCallback(createConfirmationTokenCallback)
+          val builder = PaymentSheet.Builder(paymentResultCallback)
+          if (useConfirmationTokenCallback) {
+            builder.createIntentCallback(createConfirmationTokenCallback)
+          } else {
+            builder.createIntentCallback(createIntentCallback)
+          }
+          builder
             .confirmCustomPaymentMethodCallback(this)
             .build(this)
         } else {

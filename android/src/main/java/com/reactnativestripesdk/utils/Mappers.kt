@@ -18,6 +18,7 @@ import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.Card
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.ConfirmPaymentIntentParams
+import com.stripe.android.model.ConfirmationToken
 import com.stripe.android.model.GooglePayResult
 import com.stripe.android.model.MicrodepositType
 import com.stripe.android.model.PaymentIntent
@@ -561,6 +562,7 @@ internal fun mapNextAction(
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
     NextActionType.DisplayPayNowDetails,
+    NextActionType.DisplayPromptPayDetails,
     null,
     -> {
       return null
@@ -1119,7 +1121,8 @@ internal fun mapFromCustomPaymentMethod(
     putMap("billingDetails", mapFromBillingDetails(billingDetails))
   }
 
-internal fun mapFromConfirmationToken(confirmationToken: com.stripe.android.model.ConfirmationToken): WritableMap {
+@SuppressLint("RestrictedApi")
+internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): WritableMap {
   val token: WritableMap = WritableNativeMap()
 
   token.putString("id", confirmationToken.id)
@@ -1128,7 +1131,7 @@ internal fun mapFromConfirmationToken(confirmationToken: com.stripe.android.mode
   token.putBoolean("liveMode", confirmationToken.liveMode)
   token.putString("paymentIntentId", confirmationToken.paymentIntentId)
   token.putString("setupIntentId", confirmationToken.setupIntentId)
-  token.putString("returnURL", confirmationToken.returnURL)
+  token.putString("returnURL", confirmationToken.returnUrl)
   token.putString("setupFutureUsage", mapFromSetupFutureUsage(confirmationToken.setupFutureUsage))
 
   // PaymentMethodPreview
@@ -1138,7 +1141,6 @@ internal fun mapFromConfirmationToken(confirmationToken: com.stripe.android.mode
     paymentMethodPreview.putMap("billingDetails", mapFromBillingDetails(preview.billingDetails))
     paymentMethodPreview.putString("allowRedisplay", mapFromAllowRedisplay(preview.allowRedisplay))
     paymentMethodPreview.putString("customerId", preview.customerId)
-    paymentMethodPreview.putMap("allResponseFields", preview.allResponseFields?.toReadableMap() ?: WritableNativeMap())
     token.putMap("paymentMethodPreview", paymentMethodPreview)
   } ?: run {
     token.putNull("paymentMethodPreview")
@@ -1167,8 +1169,6 @@ internal fun mapFromConfirmationToken(confirmationToken: com.stripe.android.mode
   } ?: run {
     token.putNull("shipping")
   }
-
-  token.putMap("allResponseFields", confirmationToken.allResponseFields?.toReadableMap() ?: WritableNativeMap())
 
   return token
 }
