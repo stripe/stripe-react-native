@@ -6,7 +6,7 @@ import Foundation
 import StripeConnect
 
 @objc(StripeSdkImpl)
-public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
+public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate, AccountOnboardingControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
     @objc public weak var emitter: StripeSdkEmitter? = nil
@@ -67,6 +67,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
+
+    var accountOnboardingResolver: RCTPromiseResolveBlock? = nil
+    var accountOnboardingRejecter: RCTPromiseRejectBlock? = nil
 
     @objc public func getConstants() -> [AnyHashable : Any] {
         return [
@@ -250,11 +253,25 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
 
         DispatchQueue.main.async {
-            let manager = EmbeddedComponentManager(fetchClientSecret: {
-                return "" // TODO
+            self.accountOnboardingResolver = resolve
+            self.accountOnboardingRejecter = reject
+            let publishableKey = STPAPIClient.shared.publishableKey ?? ""
+            print(">> publishableKey \(publishableKey)")
+            
+            let apiClient = STPAPIClient.init(publishableKey: publishableKey)
+            if let stripeAccount = options["stripeAccount"] as? String {
+                print(">> stripeAccountId \(stripeAccount)")
+                apiClient.stripeAccount = stripeAccount
+            }
+
+            let clientSecret = options["clientSecret"] as? String ?? ""
+            let manager = EmbeddedComponentManager(apiClient: apiClient, fetchClientSecret: {
+                print(">> clientSecret \(clientSecret)")
+                return clientSecret
             })
+
             let vc = manager.createAccountOnboardingController()
-            vc.delegate = AccountOnboardingDelegate(resolver: resolve, rejecter: reject)
+            vc.delegate = self
             let from = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
             vc.present(from: from, animated: true)
         }
@@ -1210,6 +1227,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         return errorMessage
       }
     }
+
+    // MARK: - AccountOnboardingControllerDelegate
+
+    public func accountOnboardingDidExit(_ accountOnboarding: AccountOnboardingController) {
+        accountOnboardingRejecter?(ErrorType.Failed, "Something bad happened", nil)
+        // accountOnboardingResolver?([])
+        accountOnboardingResolver = nil
+        accountOnboardingRejecter = nil
+    }
+
+    public func accountOnboarding(_ accountOnboarding: AccountOnboardingController,
+                                  didFailLoadWithError error: Error) {
+        accountOnboardingRejecter?(ErrorType.Failed, error.localizedDescription, error)
+        accountOnboardingResolver = nil
+        accountOnboardingRejecter = nil
+    }
 }
 
 func findViewControllerPresenter(from uiViewController: UIViewController) -> UIViewController {
@@ -1272,26 +1305,5 @@ extension FinancialConnectionsSheet.Configuration {
             }
         }()
         self.init(style: style)
-    }
-}
-
-class AccountOnboardingDelegate: AccountOnboardingControllerDelegate {
-    private let resolver: RCTPromiseResolveBlock
-    private let rejecter: RCTPromiseRejectBlock
-
-    init(resolver: @escaping RCTPromiseResolveBlock, rejecter: @escaping RCTPromiseRejectBlock) {
-        self.resolver = resolver
-        self.rejecter = rejecter
-    }
-
-    func accountOnboardingDidExit(_ accountOnboarding: AccountOnboardingController) {
-        print("accountOnboardingDidExit")
-        resolver([])
-    }
-
-    func accountOnboarding(_ accountOnboarding: AccountOnboardingController,
-                           didFailLoadWithError error: Error) {
-        print("accountOnboarding didFailLoadWithError")
-        rejecter("account_onboarding_error", error.localizedDescription, error)
     }
 }

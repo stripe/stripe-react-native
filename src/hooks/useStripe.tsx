@@ -28,6 +28,7 @@ import type {
   PlatformPay,
   PlatformPayError,
   AccountOnboarding,
+  PresentAccountOnboardingScreenResult,
 } from '../types';
 import { useCallback } from 'react';
 import {
@@ -169,8 +170,8 @@ export function useStripe() {
 
   const _presentAccountOnboardingScreen = useCallback(
     async (
-      options?: AccountOnboarding.PresentOptions
-    ): Promise<AccountOnboarding.PresentResult> => {
+      options: AccountOnboarding.PresentOptions
+    ): Promise<PresentAccountOnboardingScreenResult> => {
       return presentAccountOnboardingScreen(options);
     },
     []

@@ -8,8 +8,14 @@ export default function AccountOnboardingScreen() {
     <PaymentScreen>
       <Button
         variant="primary"
-        onPress={() => {
-          presentAccountOnboardingScreen({});
+        onPress={async () => {
+          const result = await presentAccountOnboardingScreen({
+            clientSecret: '',
+            stripeAccount: 'acct_1FnKA8GcISz6E1h7',
+            liveMode: false,
+          });
+
+          console.log('result', result.error);
         }}
         title="Present onboarding screen"
       />

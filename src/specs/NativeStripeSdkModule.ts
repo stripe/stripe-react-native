@@ -30,6 +30,7 @@ import type {
   PaymentMethod,
   PaymentSheet,
   PlatformPay,
+  PresentAccountOnboardingScreenResult,
   PresentPaymentSheetResult,
   RetrievePaymentIntentResult,
   RetrieveSetupIntentResult,
@@ -92,7 +93,7 @@ export interface Spec extends TurboModule {
   ): Promise<PresentPaymentSheetResult>;
   presentAccountOnboardingScreen(
     options: UnsafeObject<AccountOnboarding.PresentOptions>
-  ): Promise<void>;
+  ): Promise<PresentAccountOnboardingScreenResult>;
   confirmPaymentSheetPayment(): Promise<ConfirmPaymentSheetPaymentResult>;
   createTokenForCVCUpdate(cvc: string): Promise<CreateTokenForCVCUpdateResult>;
   handleURLCallback(url: string): Promise<boolean>;

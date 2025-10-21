@@ -1,3 +1,5 @@
-export type PresentOptions = {};
-
-export type PresentResult = {};
+export type PresentOptions = {
+  clientSecret: string;
+  stripeAccount?: string;
+  liveMode?: boolean;
+};

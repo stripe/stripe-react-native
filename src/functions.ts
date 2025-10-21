@@ -32,6 +32,7 @@ import type {
   FinancialConnections,
   PlatformPay,
   AccountOnboarding,
+  PresentAccountOnboardingScreenResult,
 } from './types';
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
@@ -455,11 +456,10 @@ export const presentPaymentSheet = async (
 };
 
 export const presentAccountOnboardingScreen = async (
-  options: AccountOnboarding.PresentOptions = {}
-): Promise<AccountOnboarding.PresentResult> => {
+  options: AccountOnboarding.PresentOptions
+): Promise<PresentAccountOnboardingScreenResult> => {
   try {
-    await NativeStripeSdk.presentAccountOnboardingScreen(options);
-    return {};
+    return await NativeStripeSdk.presentAccountOnboardingScreen(options);
   } catch (error: any) {
     return {
       error,

@@ -162,7 +162,6 @@ export type PresentPaymentSheetResult = {
 };
 
 export type PresentAccountOnboardingScreenResult = {
-  didCancel?: boolean;
   error?: StripeError<AccountOnboardingError> | undefined;
 };
 

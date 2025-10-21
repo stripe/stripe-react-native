@@ -66,6 +66,7 @@ import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.connect.EmbeddedComponentManager
+import com.stripe.android.connect.StripeComponentController
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -97,6 +98,8 @@ class StripeSdkModule(
   internal var customPaymentMethodResultCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
+
+  private var embeddedComponentManager: EmbeddedComponentManager? = null
 
   // If you create a new Fragment, you must put the tag here, otherwise result callbacks for that
   // Fragment will not work on RN < 0.65
@@ -222,6 +225,7 @@ class StripeSdkModule(
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
+    Log.d("StripeReactNative", "preventActivityRecreation()")
     preventActivityRecreation()
     setupComposeCompatView()
 
@@ -284,15 +288,34 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      val manager = EmbeddedComponentManager(
-        publishableKey = "",
-        fetchClientSecret = { "" }
-      )
-      val accountOnboardingController = manager.createAccountOnboardingController(activity)
-      val delegate = AccountOnboardingDelegate(promise)
-      accountOnboardingController.listener = delegate
-      // TODO: onDismissListener?
-      accountOnboardingController.show()
+      UiThreadUtil.runOnUiThread {
+        try {
+          Log.d("StripeReactNative", "Creating EmbeddedComponentManager with publishableKey: ${this.publishableKey}")
+
+          // Initialize the manager if not already created
+          if (embeddedComponentManager == null) {
+            embeddedComponentManager = EmbeddedComponentManager(
+              publishableKey = this.publishableKey,
+              fetchClientSecret = {
+                Log.d("StripeReactNative", "fetchClientSecret called")
+                ""
+              }
+            )
+          }
+
+          Log.d("StripeReactNative", "Creating AccountOnboardingController")
+          val accountOnboardingController = embeddedComponentManager!!.createAccountOnboardingController(activity)
+          val delegate = AccountOnboardingDelegate(promise)
+          accountOnboardingController.listener = delegate
+          accountOnboardingController.onDismissListener = delegate
+          Log.d("StripeReactNative", "Calling show() on AccountOnboardingController")
+          accountOnboardingController.show()
+          Log.d("StripeReactNative", "show() called successfully")
+        } catch (e: Exception) {
+          Log.e("StripeReactNative", "Error presenting account onboarding: ${e.message}", e)
+          promise.resolve(createError(ErrorType.Failed.toString(), e.message))
+        }
+      }
     }
   }
 
@@ -1369,11 +1392,16 @@ class StripeSdkModule(
         activity: Activity,
         bundle: Bundle?,
       ) {
+        Log.d("StripeReactNative", "onActivityCreated: ${activity is androidx.activity.ComponentActivity}")
         if (bundle != null) {
           isRecreatingActivities = true
         }
         if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
           activity.finish()
+        }
+
+        if (activity is androidx.activity.ComponentActivity) {
+          EmbeddedComponentManager.onActivityCreate(activity)
         }
       }
 
@@ -1429,7 +1457,7 @@ class StripeSdkModule(
 
 class AccountOnboardingDelegate(
   private val promise: Promise
-) : com.stripe.android.connect.AccountOnboardingListener {
+) : com.stripe.android.connect.AccountOnboardingListener, StripeComponentController.OnDismissListener {
 
   override fun onExit() {
     promise.resolve(Arguments.createMap())
@@ -1441,5 +1469,9 @@ class AccountOnboardingDelegate(
 
   override fun onLoaderStart() {
 
+  }
+
+  override fun onDismiss() {
+    promise.resolve(Arguments.createMap())
   }
 }

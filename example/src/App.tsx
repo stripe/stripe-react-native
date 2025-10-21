@@ -47,7 +47,7 @@ import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPayme
 import EmbeddedPaymentElementConfirmScreen from './screens/EmbeddedPaymentElementConfirmScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
-import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
+import { type EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import AccountOnboardingScreen from './screens/AccountOnboardingScreen';
 
