@@ -580,6 +580,9 @@ export type IntentConfiguration = {
   ) => void;
 
   /**
+   * @internal DO NOT USE - This API is under active development and is not ready for use.
+   * The API is subject to breaking changes without notice. Do not use in production or development.
+   *
    * Called when the customer confirms payment using confirmation tokens.
    * Your implementation should follow the guide to create (and optionally confirm) a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
    *
