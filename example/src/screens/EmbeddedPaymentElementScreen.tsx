@@ -19,7 +19,6 @@ import {
   BillingDetails,
   Address,
   IntentCreationCallbackParams,
-  PaymentMethod,
   EmbeddedPaymentElementResult,
   CustomPaymentMethod,
   CustomPaymentMethodResult,
@@ -325,9 +324,8 @@ export default function EmbeddedPaymentElementScreen() {
 
       // 5. Intent config
       const newIntentConfig: IntentConfiguration = {
-        confirmHandler: async (
-          paymentMethod: PaymentMethod.Result,
-          _save,
+        confirmationTokenConfirmHandler: async (
+          confirmationToken: ConfirmationToken.Result,
           callback: (res: IntentCreationCallbackParams) => void
         ) => {
           const resp = await fetch(
@@ -336,7 +334,6 @@ export default function EmbeddedPaymentElementScreen() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                paymentMethodId: paymentMethod.id,
                 customerId: customer,
               }),
             }
@@ -353,7 +350,6 @@ export default function EmbeddedPaymentElementScreen() {
           else callback({ clientSecret });
         },
         mode: { amount: 6099, currencyCode: 'USD' },
-        paymentMethodTypes: ['card', 'klarna', 'cashapp'],
       };
 
       setElementConfig(uiConfig);
