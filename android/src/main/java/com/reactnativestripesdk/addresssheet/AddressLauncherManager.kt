@@ -1,6 +1,5 @@
 package com.reactnativestripesdk.addresssheet
 
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.ErrorType

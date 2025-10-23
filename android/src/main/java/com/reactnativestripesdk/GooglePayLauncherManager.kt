@@ -1,6 +1,5 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -53,6 +52,7 @@ class GooglePayLauncherManager(
     launcher =
       GooglePayLauncher(
         activity = activity,
+        signal = signal,
         config = configuration,
         readyCallback = ::onGooglePayReady,
         resultCallback = ::onGooglePayResult,

@@ -1,7 +1,6 @@
 package com.reactnativestripesdk
 
 import androidx.activity.ComponentActivity
-import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.StripeUIManager

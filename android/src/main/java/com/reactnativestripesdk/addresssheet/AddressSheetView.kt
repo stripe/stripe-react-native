@@ -73,29 +73,31 @@ class AddressSheetView(
         return
       }
     addressSheetManager?.destroy()
-    addressSheetManager = AddressLauncherManager(context.reactApplicationContext,
-      appearance,
-      defaultAddress,
-      allowedCountries,
-      buttonTitle,
-      sheetTitle,
-      googlePlacesApiKey,
-      autocompleteCountries,
-      additionalFields,
-    ) { error, address ->
-      addressSheetManager?.destroy()
-      addressSheetManager = null
+    addressSheetManager =
+      AddressLauncherManager(
+        context.reactApplicationContext,
+        appearance,
+        defaultAddress,
+        allowedCountries,
+        buttonTitle,
+        sheetTitle,
+        googlePlacesApiKey,
+        autocompleteCountries,
+        additionalFields,
+      ) { error, address ->
+        addressSheetManager?.destroy()
+        addressSheetManager = null
 
-      if (address != null) {
-        onSubmit(buildResult(address))
-      } else {
-        onError(error)
+        if (address != null) {
+          onSubmit(buildResult(address))
+        } else {
+          onError(error)
+        }
+        isVisible = false
+      }.also {
+        it.create()
+        it.present()
       }
-      isVisible = false
-    }.also {
-      it.create()
-      it.present()
-    }
   }
 
   fun setAppearance(appearanceParams: ReadableMap?) {
