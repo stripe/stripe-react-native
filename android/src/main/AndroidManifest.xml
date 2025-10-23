@@ -2,12 +2,17 @@
           package="com.reactnativestripesdk">
 
     <application>
-        <activity 
+        <activity
             android:name=".CustomPaymentMethodActivity"
             android:theme="@style/Theme.StripeReactNative.Transparent"
             android:exported="false"
             android:launchMode="singleTop"
             android:excludeFromRecents="true"
             android:noHistory="true" />
+
+      <provider
+        android:name=".StripeSdkContentProvider"
+        android:authorities="com.reactnativestripesdk.initializationprovider"
+        android:exported="false" />
     </application>
 </manifest>

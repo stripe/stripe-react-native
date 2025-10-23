@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
@@ -303,7 +304,7 @@ class StripeSdkModule(
             )
           }
 
-          Log.d("StripeReactNative", "Creating AccountOnboardingController")
+          Log.d("StripeReactNative", "Creating AccountOnboardingController for $activity")
           val accountOnboardingController = embeddedComponentManager!!.createAccountOnboardingController(activity)
           val delegate = AccountOnboardingDelegate(promise)
           accountOnboardingController.listener = delegate
@@ -1398,10 +1399,6 @@ class StripeSdkModule(
         }
         if (isRecreatingActivities && activity.javaClass.name.startsWith("com.stripe.android")) {
           activity.finish()
-        }
-
-        if (activity is androidx.activity.ComponentActivity) {
-          EmbeddedComponentManager.onActivityCreate(activity)
         }
       }
 
