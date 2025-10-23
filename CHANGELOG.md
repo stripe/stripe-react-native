@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.55.1 - 2025-10-23
 
 **Fixes**
 - Fixes an issue with `FinancialConnectionsEvent` not being populated properly on Android
