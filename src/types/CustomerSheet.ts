@@ -7,17 +7,13 @@ import type {
   CardBrand,
 } from '../types';
 
-export type CustomerSheetInitParams = {
+type CustomerSheetInitParamsBase = {
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. iOS only. */
   style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
   /** Configuration for the look and feel of the UI. */
   appearance?: PaymentSheet.AppearanceParams;
-  /** Optional but recommended for cards, required for other payment methods. The SetupIntent client secret that will be used to confirm a new payment method. If this is missing, you will only be able to add cards without authentication steps. */
-  setupIntentClientSecret?: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId: string;
-  /** A short-lived token that allows the SDK to access a Customer's payment methods. */
-  customerEphemeralKeySecret: string;
   /** Your customer-facing business name. The default value is the name of your app. */
   merchantDisplayName?: string;
   /** Optional configuration for setting the header text of the Payment Method selection screen */
@@ -37,11 +33,6 @@ export type CustomerSheetInitParams = {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
-  /** Optional override. It is generally recommended to rely on the default behavior, but- provide a CustomerAdapter here if
-   * you would prefer retrieving and updating your Stripe customer object via your own backend instead.
-   * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
-   */
-  customerAdapter?: CustomerAdapter;
   /** This is an experimental feature that may be removed at any time.
    *  Defaults to true. If true, the customer can delete all saved payment methods.
    *  If false, the customer can't delete if they only have one saved payment method remaining.
@@ -55,6 +46,30 @@ export type CustomerSheetInitParams = {
    */
   cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
 };
+
+export type CustomerSheetInitParams =
+  | (CustomerSheetInitParamsBase & {
+      /** Optional but recommended for cards, required for other payment methods. The SetupIntent client secret that will be used to confirm a new payment method. If this is missing, you will only be able to add cards without authentication steps. */
+      setupIntentClientSecret?: string;
+      /** A short-lived token that allows the SDK to access a Customer's payment methods. */
+      customerEphemeralKeySecret: string;
+      /** Optional override. It is generally recommended to rely on the default behavior, but- provide a CustomerAdapter here if
+       * you would prefer retrieving and updating your Stripe customer object via your own backend instead.
+       * WARNING: When implementing your own CustomerAdapter, ensure your application complies with all applicable laws and regulations, including data privacy and consumer protection.
+       */
+      customerAdapter?: CustomerAdapter;
+      intentConfiguration?: never;
+      clientSecretProvider?: never;
+    })
+  | (CustomerSheetInitParamsBase & {
+      setupIntentClientSecret?: never;
+      customerEphemeralKeySecret?: never;
+      customerAdapter?: never;
+      /** An object that configures the intent used to display saved payment methods to a customer.*/
+      intentConfiguration: CustomerSheetIntentConfiguration;
+      /** An object that provides the client secret for the customer session. */
+      clientSecretProvider: ClientSecretProvider;
+    });
 
 export type CustomerSheetPresentParams = {
   /** Controls how the modal is presented (after animation). iOS only. Defaults to `popover`. See https://developer.apple.com/documentation/uikit/uimodalpresentationstyle for more info. */
@@ -131,3 +146,41 @@ export type CustomerPaymentOption =
   | 'google_pay'
   | 'link'
   | string;
+
+export abstract class ClientSecretProvider {
+  /**
+   * Provides the `SetupIntent` client secret that is used when attaching a payment method
+   * to a customer.
+   *
+   * @param customerId - The Stripe identifier of the customer. This will be equivalent to
+   *    the customer identifier passed through with the CustomerSessionClientSecret.
+   */
+  abstract provideSetupIntentClientSecret(customerId: string): Promise<string>;
+
+  /**
+   * Provides the CustomerSessionClientSecret that will be claimed and used to access a
+   * customer's saved payment methods.
+   */
+  abstract providesCustomerSessionClientSecret(): Promise<CustomerSessionClientSecret>;
+}
+
+export type CustomerSheetIntentConfiguration = {
+  /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
+  paymentMethodTypes?: Array<string>;
+  /** The connected account whose payment method configurations will apply to the CustomerSheet session.
+   * Affects the allowed payment methods and whether card brand choice is enabled.
+   * When provided, the payment method will be saved to your platform account. See our
+   * [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of)
+   * for more information.
+   */
+  onBehalfOf?: string;
+};
+
+export type CustomerSessionClientSecret = {
+  /*
+   * @param customerId the Stripe identifier for a customer
+   * @param clientSecret the customer session client secret value
+   */
+  customerId: string;
+  clientSecret: string;
+};

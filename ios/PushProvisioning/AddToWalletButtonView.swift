@@ -7,6 +7,7 @@
 
 import Foundation
 import Stripe
+import StripeApplePay
 
 @objc(AddToWalletButtonView)
 public class AddToWalletButtonView: UIView {
