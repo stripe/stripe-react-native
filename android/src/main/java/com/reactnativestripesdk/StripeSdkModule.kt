@@ -291,26 +291,23 @@ class StripeSdkModule(
       UiThreadUtil.runOnUiThread {
         try {
           Log.d("StripeReactNative", "Creating EmbeddedComponentManager with publishableKey: ${this.publishableKey}")
+          val clientSecret = options.getString("clientSecret")
 
           // Initialize the manager if not already created
           if (embeddedComponentManager == null) {
             embeddedComponentManager = EmbeddedComponentManager(
               publishableKey = this.publishableKey,
               fetchClientSecret = {
-                Log.d("StripeReactNative", "fetchClientSecret called")
-                ""
+                clientSecret
               }
             )
           }
 
-          Log.d("StripeReactNative", "Creating AccountOnboardingController for $activity")
           val accountOnboardingController = embeddedComponentManager!!.createAccountOnboardingController(activity)
           val delegate = AccountOnboardingDelegate(promise)
           accountOnboardingController.listener = delegate
           accountOnboardingController.onDismissListener = delegate
-          Log.d("StripeReactNative", "Calling show() on AccountOnboardingController")
           accountOnboardingController.show()
-          Log.d("StripeReactNative", "show() called successfully")
         } catch (e: Exception) {
           Log.e("StripeReactNative", "Error presenting account onboarding: ${e.message}", e)
           promise.resolve(createError(ErrorType.Failed.toString(), e.message))

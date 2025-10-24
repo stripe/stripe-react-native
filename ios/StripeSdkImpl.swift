@@ -256,23 +256,20 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate, 
             self.accountOnboardingResolver = resolve
             self.accountOnboardingRejecter = reject
             let publishableKey = STPAPIClient.shared.publishableKey ?? ""
-            print(">> publishableKey \(publishableKey)")
             
             let apiClient = STPAPIClient.init(publishableKey: publishableKey)
-            if let stripeAccount = options["stripeAccount"] as? String {
-                print(">> stripeAccountId \(stripeAccount)")
-                apiClient.stripeAccount = stripeAccount
-            }
+            apiClient.stripeAccount = STPAPIClient.shared.stripeAccount
 
             let clientSecret = options["clientSecret"] as? String ?? ""
             let manager = EmbeddedComponentManager(apiClient: apiClient, fetchClientSecret: {
-                print(">> clientSecret \(clientSecret)")
                 return clientSecret
             })
 
+            let liveMode = options["liveMode"] as? Bool ?? true // TODO
+
             let vc = manager.createAccountOnboardingController()
             vc.delegate = self
-            let from = UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()
+            let from = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
             vc.present(from: from, animated: true)
         }
     }
@@ -1231,8 +1228,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate, 
     // MARK: - AccountOnboardingControllerDelegate
 
     public func accountOnboardingDidExit(_ accountOnboarding: AccountOnboardingController) {
-        accountOnboardingRejecter?(ErrorType.Failed, "Something bad happened", nil)
-        // accountOnboardingResolver?([])
+        accountOnboardingResolver?([])
         accountOnboardingResolver = nil
         accountOnboardingRejecter = nil
     }
