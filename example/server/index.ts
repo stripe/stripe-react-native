@@ -968,6 +968,111 @@ app.post('/detach-payment-method', async (req, res) => {
   });
 });
 
+app.post('/customersheet-customersession-customer', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  try {
+    const customer = await stripe.customers.create();
+
+    if (!customer) {
+      return res.send({
+        error: 'There was an error creating a customer',
+      });
+    }
+
+    return res.json({
+      customer: customer.id,
+    });
+  } catch (ex) {
+    return res.send({ error: ex });
+  }
+});
+
+app.post('/customersheet-customersession-setup-intent', async (req, res) => {
+  // get the customer id from the request body
+  const { customer_id }: { customer_id: string } = req.body;
+
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  try {
+    if (!customer_id) {
+      return res.send({
+        error: 'No Customer ID provided',
+      });
+    }
+
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customer_id,
+      payment_method_types: ['card', 'us_bank_account'],
+    });
+
+    return res.json({
+      client_secret: setupIntent.client_secret,
+    });
+  } catch (ex) {
+    return res.send({ error: ex });
+  }
+});
+
+app.post('/customersheet-customer-session-client-secret', async (req, res) => {
+  // get the customer id from the request body
+  const { customer_id }: { customer_id: string } = req.body;
+
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  try {
+    if (!customer_id) {
+      return res.send({
+        error: 'No Customer ID provided',
+      });
+    }
+
+    const customerSession = await stripe.customerSessions.create(
+      {
+        customer: customer_id,
+        components: {
+          // This needs to be ignored because `customer_sheet` is not specified as a type in `stripe-node` yet.
+          // @ts-ignore
+          customer_sheet: {
+            enabled: true,
+            features: {
+              payment_method_remove: 'enabled',
+              payment_method_allow_redisplay_filters: [
+                'unspecified',
+                'limited',
+                'always',
+              ],
+            },
+          },
+        },
+      },
+      { apiVersion: '2023-10-16' }
+    );
+
+    return res.json({
+      customer: customerSession.customer,
+      customerSessionClientSecret: customerSession.client_secret,
+    });
+  } catch (ex) {
+    return res.send({ error: ex });
+  }
+});
+
 // Mocks a Database. In your code, you should use a persistent database.
 let savedPaymentOptions = new Map<string, string>();
 
