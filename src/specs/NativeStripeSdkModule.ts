@@ -11,6 +11,7 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   CustomerAdapter,
+  CustomerSessionClientSecret,
   CustomerSheetError,
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
@@ -174,6 +175,12 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
   customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
     clientSecret: string
+  ): Promise<void>;
+  clientSecretProviderProvideSetupIntentClientSecretCallback(
+    setupIntentClientSecret: string
+  ): Promise<void>;
+  clientSecretProviderProvidesCustomerSessionClientSecretCallback(
+    customerSessionClientSecret: UnsafeObject<CustomerSessionClientSecret>
   ): Promise<void>;
   createEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>,

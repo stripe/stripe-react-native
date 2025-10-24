@@ -55,6 +55,7 @@ import com.stripe.android.PaymentConfiguration
 import com.stripe.android.Stripe
 import com.stripe.android.core.ApiVersion
 import com.stripe.android.core.AppInfo
+import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.CardParams
@@ -65,6 +66,7 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
+import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -1279,6 +1281,50 @@ class StripeSdkModule(
   ) {
     customerSheetFragment?.let {
       it.customerAdapter?.setupIntentClientSecretForCustomerAttachCallback?.complete(clientSecret)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @OptIn(ExperimentalCustomerSessionApi::class)
+  @ReactMethod
+  override fun clientSecretProviderProvideSetupIntentClientSecretCallback(
+    setupIntentClientSecret: String,
+    promise: Promise,
+  ) {
+    customerSheetFragment?.let {
+      it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.complete(setupIntentClientSecret)
+    } ?: run {
+      promise.resolve(CustomerSheetFragment.createMissingInitError())
+      return
+    }
+  }
+
+  @OptIn(ExperimentalCustomerSessionApi::class)
+  @ReactMethod
+  override fun clientSecretProviderProvidesCustomerSessionClientSecretCallback(
+    customerSessionClientSecretJson: ReadableMap,
+    promise: Promise,
+  ) {
+    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
+    val customerId = customerSessionClientSecretJson.getString("customerId")
+
+    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
+      Log.e(
+        "StripeReactNative",
+        "There was an error converting customerSessionClientSecretJson to a customerSessionClientSecret",
+      )
+      return
+    }
+
+    customerSheetFragment?.let {
+      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
+        CustomerSheet.CustomerSessionClientSecret.create(
+          customerId = customerId!!,
+          clientSecret = clientSecret!!,
+        ),
+      )
     } ?: run {
       promise.resolve(CustomerSheetFragment.createMissingInitError())
       return

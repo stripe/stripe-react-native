@@ -51,6 +51,8 @@ type Events = {
   }>;
   onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
   onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
+  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
+  onCustomerSessionProviderCustomerSessionClientSecret: EventEmitter<void>;
   embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
   embeddedPaymentElementWillPresent: EventEmitter<void>;
   embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
