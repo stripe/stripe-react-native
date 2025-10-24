@@ -73,7 +73,7 @@ if (isNewArchitectureEnabled()) {
 }
 
 android {
-  namespace "com.stripe.reactnative"
+  namespace "com.reactnativestripesdk"
   buildFeatures {
     buildConfig true
   }
