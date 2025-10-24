@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
@@ -49,6 +50,7 @@ class GooglePayLauncherManager(
 
   override fun onPresent() {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    @SuppressLint("RestrictedApi")
     launcher =
       GooglePayLauncher(
         activity = activity,

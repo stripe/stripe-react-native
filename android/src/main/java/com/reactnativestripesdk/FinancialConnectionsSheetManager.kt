@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -52,6 +53,7 @@ class FinancialConnectionsSheetManager(
 
     when (mode) {
       Mode.ForToken -> {
+        @SuppressLint("RestrictedApi")
         FinancialConnectionsSheet
           .createForBankAccountToken(
             activity,
@@ -61,6 +63,7 @@ class FinancialConnectionsSheetManager(
       }
 
       Mode.ForSession -> {
+        @SuppressLint("RestrictedApi")
         FinancialConnectionsSheet
           .create(activity, signal, ::onFinancialConnectionsSheetForDataResult)
           .present(configuration = configuration)

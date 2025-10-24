@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.utils
 
+import android.annotation.SuppressLint
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -8,6 +9,7 @@ import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.core.reactnative.UnregisterSignal
 
 @ReactNativeSdkInternal
+@SuppressLint("RestrictedApi")
 abstract class StripeUIManager(
   protected val context: ReactApplicationContext,
 ) {

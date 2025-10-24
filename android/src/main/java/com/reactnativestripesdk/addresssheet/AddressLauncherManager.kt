@@ -1,5 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
+import android.annotation.SuppressLint
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.ErrorType
@@ -44,6 +45,7 @@ class AddressLauncherManager(
   override fun onPresent() {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     publishableKey?.let { publishableKey ->
+      @SuppressLint("RestrictedApi")
       addressLauncher =
         AddressLauncher(activity, signal, ::onAddressLauncherResult).also {
           it.present(publishableKey = publishableKey, configuration = configuration)

@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -296,12 +297,14 @@ class PaymentSheetManager(
     } else {
       paymentSheet =
         if (intentConfiguration != null) {
+          @SuppressLint("RestrictedApi")
           PaymentSheet
             .Builder(paymentResultCallback)
             .createIntentCallback(createIntentCallback)
             .confirmCustomPaymentMethodCallback(this)
             .build(activity, signal)
         } else {
+          @SuppressLint("RestrictedApi")
           PaymentSheet
             .Builder(paymentResultCallback)
             .confirmCustomPaymentMethodCallback(this)

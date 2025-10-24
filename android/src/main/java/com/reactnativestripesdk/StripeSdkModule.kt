@@ -95,6 +95,7 @@ class StripeSdkModule(
   private var collectBankAccountLauncherManager: CollectBankAccountLauncherManager? = null
   private var financialConnectionsSheetManager: FinancialConnectionsSheetManager? = null
   private var googlePayLauncherManager: GooglePayLauncherManager? = null
+  private var googlePayPaymentMethodLauncherManager: GooglePayPaymentMethodLauncherManager? = null
 
   private var customerSheetManager: CustomerSheetManager? = null
 
@@ -707,23 +708,14 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     val googlePayParams = params?.getMap("googlePay")
-    val fragment =
-      GooglePayPaymentMethodLauncherFragment.create(
-        reactApplicationContext,
-        getBooleanOrFalse(googlePayParams, "testEnv"),
-        getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
-        promise,
-      )
-
-    getCurrentActivityOrResolveWithError(promise)?.let {
-      try {
-        it.supportFragmentManager
-          .beginTransaction()
-          .add(fragment, GooglePayPaymentMethodLauncherFragment.TAG)
-          .commit()
-      } catch (error: IllegalStateException) {
-        promise.resolve(createError(ErrorType.Failed.toString(), error.message))
-      }
+    unregisterStripeUIManager(googlePayPaymentMethodLauncherManager)
+    googlePayPaymentMethodLauncherManager = GooglePayPaymentMethodLauncherManager(
+      reactApplicationContext,
+      getBooleanOrFalse(googlePayParams, "testEnv"),
+      getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
+    ).also {
+      registerStripeUIManager(it)
+      it.present(promise)
     }
   }
 
