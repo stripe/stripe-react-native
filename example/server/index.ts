@@ -107,6 +107,10 @@ function getKeys(payment_method?: string) {
   return { secret_key, publishable_key };
 }
 
+app.get('/', (req, res) => {
+  res.send('Hi This is the react native example code sandbox');
+});
+
 app.get(
   '/stripe-key',
   (req: express.Request, res: express.Response): express.Response<any> => {
@@ -968,7 +972,8 @@ app.post('/detach-payment-method', async (req, res) => {
   });
 });
 
-app.post('/customersheet-customersession-customer', async (req, res) => {
+app.post('/customer-sheet-customersession', async (req, res) => {
+  console.log('customersheet-customersession-customer');
   const { secret_key } = getKeys();
 
   const stripe = new Stripe(secret_key as string, {
@@ -984,67 +989,27 @@ app.post('/customersheet-customersession-customer', async (req, res) => {
         error: 'There was an error creating a customer',
       });
     }
-
-    return res.json({
-      customer: customer.id,
-    });
-  } catch (ex) {
-    return res.send({ error: ex });
-  }
-});
-
-app.post('/customersheet-customersession-setup-intent', async (req, res) => {
-  // get the customer id from the request body
-  const { customer_id }: { customer_id: string } = req.body;
-
-  const { secret_key } = getKeys();
-
-  const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2023-10-16',
-    typescript: true,
-  });
-
-  try {
-    if (!customer_id) {
-      return res.send({
-        error: 'No Customer ID provided',
-      });
-    }
+    console.log('customersheet-customersession-customer result', customer.id);
 
     const setupIntent = await stripe.setupIntents.create({
-      customer: customer_id,
+      customer: customer.id,
       payment_method_types: ['card', 'us_bank_account'],
     });
 
-    return res.json({
-      client_secret: setupIntent.client_secret,
-    });
-  } catch (ex) {
-    return res.send({ error: ex });
-  }
-});
+    console.log(
+      'customersheet-customersession-setupintent result',
+      setupIntent.client_secret
+    );
 
-app.post('/customersheet-customer-session-client-secret', async (req, res) => {
-  // get the customer id from the request body
-  const { customer_id }: { customer_id: string } = req.body;
-
-  const { secret_key } = getKeys();
-
-  const stripe = new Stripe(secret_key as string, {
-    apiVersion: '2023-10-16',
-    typescript: true,
-  });
-
-  try {
-    if (!customer_id) {
+    if (!setupIntent) {
       return res.send({
-        error: 'No Customer ID provided',
+        error: 'There was an error creating a setup intent',
       });
     }
 
     const customerSession = await stripe.customerSessions.create(
       {
-        customer: customer_id,
+        customer: customer.id,
         components: {
           // This needs to be ignored because `customer_sheet` is not specified as a type in `stripe-node` yet.
           // @ts-ignore
@@ -1064,8 +1029,20 @@ app.post('/customersheet-customer-session-client-secret', async (req, res) => {
       { apiVersion: '2023-10-16' }
     );
 
+    console.log(
+      'customersheet-customersession-customersession result',
+      customerSession.client_secret
+    );
+
+    if (!customerSession) {
+      return res.send({
+        error: 'There was an error creating a customer session',
+      });
+    }
+
     return res.json({
-      customer: customerSession.customer,
+      customer: customer.id,
+      setupIntent: setupIntent.client_secret,
       customerSessionClientSecret: customerSession.client_secret,
     });
   } catch (ex) {
