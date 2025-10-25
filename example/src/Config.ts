@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 // =============================================================================
 
 // Option 1: Demo Backend (Default - No setup required)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEMO_BACKEND_URL =
   'https://rigorous-heartbreaking-cephalopod.stripedemos.com';
 
