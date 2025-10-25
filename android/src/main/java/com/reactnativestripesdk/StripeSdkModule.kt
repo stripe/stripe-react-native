@@ -709,14 +709,15 @@ class StripeSdkModule(
   ) {
     val googlePayParams = params?.getMap("googlePay")
     unregisterStripeUIManager(googlePayPaymentMethodLauncherManager)
-    googlePayPaymentMethodLauncherManager = GooglePayPaymentMethodLauncherManager(
-      reactApplicationContext,
-      getBooleanOrFalse(googlePayParams, "testEnv"),
-      getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
-    ).also {
-      registerStripeUIManager(it)
-      it.present(promise)
-    }
+    googlePayPaymentMethodLauncherManager =
+      GooglePayPaymentMethodLauncherManager(
+        reactApplicationContext,
+        getBooleanOrFalse(googlePayParams, "testEnv"),
+        getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
+      ).also {
+        registerStripeUIManager(it)
+        it.present(promise)
+      }
   }
 
   @ReactMethod

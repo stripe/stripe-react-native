@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.addresssheet
 
 import android.annotation.SuppressLint
-import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
 import com.facebook.react.bridge.ReadableMap
@@ -13,7 +12,7 @@ import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.toBundleObject
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -133,17 +132,15 @@ class AddressSheetView(
   }
 
   companion object {
-    internal fun buildAddressDetails(bundle: Bundle): AddressDetails =
+    internal fun buildAddressDetails(bundle: ReadableMap): AddressDetails =
       AddressDetails(
         name = bundle.getString("name"),
-        address = buildAddress(bundle.getBundle("address")),
+        address = buildAddress(bundle.getMap("address")),
         phoneNumber = bundle.getString("phone"),
-        isCheckboxSelected = bundle.getBoolean("isCheckboxSelected"),
+        isCheckboxSelected = bundle.getBooleanOr("isCheckboxSelected", false),
       )
 
-    internal fun buildAddressDetails(map: ReadableMap): AddressDetails = buildAddressDetails(toBundleObject(map))
-
-    internal fun buildAddress(bundle: Bundle?): PaymentSheet.Address? {
+    internal fun buildAddress(bundle: ReadableMap?): PaymentSheet.Address? {
       if (bundle == null) {
         return null
       }

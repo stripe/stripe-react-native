@@ -1,17 +1,26 @@
 package com.reactnativestripesdk
 
-import android.os.Bundle
-import androidx.core.os.bundleOf
+import androidx.test.core.app.ApplicationProvider
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.facebook.soloader.SoLoader
+import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 
 class PaymentSheetManagerTest {
+  @Before
+  fun setup() {
+    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
+  }
+
   @Test
   fun buildGooglePayConfig() {
     val config =
-      PaymentSheetFragment.buildGooglePayConfig(
-        bundleOf(
+      PaymentSheetManager.buildGooglePayConfig(
+        readableMapOf(
           "merchantCountryCode" to "US",
           "currencyCode" to "USD",
           "testEnv" to true,
@@ -31,13 +40,13 @@ class PaymentSheetManagerTest {
 
   @Test
   fun buildGooglePayConfig_returnsNull() {
-    val config = PaymentSheetFragment.buildGooglePayConfig(null)
+    val config = PaymentSheetManager.buildGooglePayConfig(null)
     Assert.assertNull(config)
   }
 
   @Test
   fun buildGooglePayConfig_returnsNullForEmptyBundle() {
-    val config = PaymentSheetFragment.buildGooglePayConfig(Bundle.EMPTY)
+    val config = PaymentSheetManager.buildGooglePayConfig(Arguments.createMap())
     Assert.assertNull(config)
   }
 }

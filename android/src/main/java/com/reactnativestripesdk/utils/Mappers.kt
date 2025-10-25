@@ -29,6 +29,7 @@ import com.stripe.android.model.StripeIntent.NextActionType
 import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
+import java.lang.IllegalArgumentException
 
 internal fun createResult(
   key: String,
@@ -1118,4 +1119,25 @@ internal fun mapFromCustomPaymentMethod(
       },
     )
     putMap("billingDetails", mapFromBillingDetails(billingDetails))
+  }
+
+fun readableMapOf(vararg pairs: Pair<String, Any?>): ReadableMap =
+  Arguments.createMap().apply {
+    for ((key, value) in pairs) {
+      when (value) {
+        null -> putNull(key)
+        is String -> putString(key, value)
+        is Boolean -> putBoolean(key, value)
+        is Double -> putDouble(key, value)
+        is Float -> putDouble(key, value.toDouble())
+        is Int -> putInt(key, value)
+        is Long -> putLong(key, value)
+        is ReadableMap -> putMap(key, value)
+        is ReadableArray -> putArray(key, value)
+        else -> {
+          val valueType = value.javaClass.canonicalName
+          throw IllegalArgumentException("Illegal value type $valueType for key \"$key\"")
+        }
+      }
+    }
   }
