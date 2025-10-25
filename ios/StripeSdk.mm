@@ -221,7 +221,7 @@ RCT_EXPORT_METHOD(clientSecretProviderProvideSetupIntentClientSecretCallback:(no
   [StripeSdkImpl.shared clientSecretProviderProvideSetupIntentClientSecretCallback:setupIntentClientSecret resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(clientSecretProviderProvidesCustomerSessionClientSecretCallback:(nonnull NSString *)customerSessionClientSecret
+RCT_EXPORT_METHOD(clientSecretProviderProvidesCustomerSessionClientSecretCallback:(nonnull NSDictionary *)customerSessionClientSecret
                                                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
                                                                        reject:(nonnull RCTPromiseRejectBlock)reject)
 {
