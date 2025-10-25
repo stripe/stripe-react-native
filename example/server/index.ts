@@ -1042,7 +1042,7 @@ app.post('/customer-sheet-customersession', async (req, res) => {
 
     return res.json({
       customer: customer.id,
-      setupIntent: setupIntent.client_secret,
+      setupIntentClientSecret: setupIntent.client_secret,
       customerSessionClientSecret: customerSession.client_secret,
     });
   } catch (ex) {
