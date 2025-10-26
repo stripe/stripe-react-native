@@ -127,7 +127,7 @@ extension StripeSdkImpl {
     @objc(retrieveCustomerSheetPaymentOptionSelection:rejecter:)
     public func retrieveCustomerSheetPaymentOptionSelection(resolver resolve: @escaping RCTPromiseResolveBlock,
                               rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        guard let customerAdapter = customerAdapter else {
+        guard let customerSheet = customerSheet else {
             resolve(Errors.createError(ErrorType.Failed, "CustomerSheet has not been properly initialized."))
             return
         }
@@ -136,7 +136,7 @@ extension StripeSdkImpl {
             var payload: NSDictionary = [:]
             var paymentMethodOption: CustomerSheet.PaymentOptionSelection? = nil
             do {
-                paymentMethodOption = try await customerAdapter.retrievePaymentOptionSelection()
+                paymentMethodOption = try await customerSheet.retrievePaymentOptionSelection()
             } catch {
                 resolve(Errors.createError(ErrorType.Failed, error as NSError))
                 return
