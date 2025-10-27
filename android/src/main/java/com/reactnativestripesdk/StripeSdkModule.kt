@@ -291,15 +291,11 @@ class StripeSdkModule(
       UiThreadUtil.runOnUiThread {
         try {
           Log.d("StripeReactNative", "Creating EmbeddedComponentManager with publishableKey: ${this.publishableKey}")
-          val clientSecret = options.getString("clientSecret")
 
           // Initialize the manager if not already created
           if (embeddedComponentManager == null) {
             embeddedComponentManager = EmbeddedComponentManager(
-              publishableKey = this.publishableKey,
-              fetchClientSecret = {
-                clientSecret
-              }
+              publishableKey = this.publishableKey
             )
           }
 

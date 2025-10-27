@@ -1,5 +1,1 @@
-export type PresentOptions = {
-  clientSecret: string;
-  stripeAccount?: string;
-  liveMode?: boolean;
-};
+export type PresentOptions = Record<string, never>;

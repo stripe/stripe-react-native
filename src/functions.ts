@@ -456,7 +456,7 @@ export const presentPaymentSheet = async (
 };
 
 export const presentAccountOnboardingScreen = async (
-  options: AccountOnboarding.PresentOptions
+  options: AccountOnboarding.PresentOptions = {}
 ): Promise<PresentAccountOnboardingScreenResult> => {
   try {
     return await NativeStripeSdk.presentAccountOnboardingScreen(options);

@@ -260,12 +260,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate, 
             let apiClient = STPAPIClient.init(publishableKey: publishableKey)
             apiClient.stripeAccount = STPAPIClient.shared.stripeAccount
 
-            let clientSecret = options["clientSecret"] as? String ?? ""
-            let manager = EmbeddedComponentManager(apiClient: apiClient, fetchClientSecret: {
-                return clientSecret
-            })
-
-            let liveMode = options["liveMode"] as? Bool ?? true // TODO
+            let manager = EmbeddedComponentManager(apiClient: apiClient)
 
             let vc = manager.createAccountOnboardingController()
             vc.delegate = self

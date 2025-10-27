@@ -9,11 +9,7 @@ export default function AccountOnboardingScreen() {
       <Button
         variant="primary"
         onPress={async () => {
-          const result = await presentAccountOnboardingScreen({
-            clientSecret: '',
-            stripeAccount: 'acct_1FnKA8GcISz6E1h7',
-            liveMode: false,
-          });
+          const result = await presentAccountOnboardingScreen({});
 
           console.log('result', result.error);
         }}

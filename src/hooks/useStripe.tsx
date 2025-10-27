@@ -170,7 +170,7 @@ export function useStripe() {
 
   const _presentAccountOnboardingScreen = useCallback(
     async (
-      options: AccountOnboarding.PresentOptions
+      options: AccountOnboarding.PresentOptions = {}
     ): Promise<PresentAccountOnboardingScreenResult> => {
       return presentAccountOnboardingScreen(options);
     },
