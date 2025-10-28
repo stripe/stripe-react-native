@@ -135,11 +135,6 @@ class StripeSdkModule(
                   it,
                 )
                 createPlatformPayPaymentMethodPromise = null
-              } ?: run {
-                Log.d(
-                  "StripeReactNative",
-                  "No promise was found, Google Pay result went unhandled,",
-                )
               }
             }
 
@@ -225,7 +220,6 @@ class StripeSdkModule(
 
     PaymentConfiguration.init(reactApplicationContext, publishableKey, stripeAccountId)
 
-    Log.d("StripeReactNative", "preventActivityRecreation()")
     preventActivityRecreation()
     setupComposeCompatView()
 
@@ -288,26 +282,29 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     getCurrentActivityOrResolveWithError(promise)?.let { activity ->
-      UiThreadUtil.runOnUiThread {
-        try {
-          Log.d("StripeReactNative", "Creating EmbeddedComponentManager with publishableKey: ${this.publishableKey}")
-
-          // Initialize the manager if not already created
-          if (embeddedComponentManager == null) {
-            embeddedComponentManager = EmbeddedComponentManager(
-              publishableKey = this.publishableKey
-            )
-          }
-
-          val accountOnboardingController = embeddedComponentManager!!.createAccountOnboardingController(activity)
-          val delegate = AccountOnboardingDelegate(promise)
-          accountOnboardingController.listener = delegate
-          accountOnboardingController.onDismissListener = delegate
-          accountOnboardingController.show()
-        } catch (e: Exception) {
-          Log.e("StripeReactNative", "Error presenting account onboarding: ${e.message}", e)
-          promise.resolve(createError(ErrorType.Failed.toString(), e.message))
+      try {
+        if (embeddedComponentManager == null) {
+          // Create the manager outside of the UI thread to keep initialization lightweight.
+          embeddedComponentManager = EmbeddedComponentManager(
+            publishableKey = this.publishableKey
+          )
         }
+
+        val accountOnboardingController = embeddedComponentManager!!.createAccountOnboardingController(activity)
+        val delegate = AccountOnboardingDelegate(promise)
+        accountOnboardingController.listener = delegate
+        accountOnboardingController.onDismissListener = delegate
+
+        UiThreadUtil.runOnUiThread {
+          // Only invoke the presentation on the UI thread to avoid unnecessary main-thread work.
+          try {
+            accountOnboardingController.show()
+          } catch (e: Exception) {
+            promise.resolve(createError(ErrorType.Failed.toString(), e.message))
+          }
+        }
+      } catch (e: Exception) {
+        promise.resolve(createError(ErrorType.Failed.toString(), e.message))
       }
     }
   }
@@ -1385,7 +1382,6 @@ class StripeSdkModule(
         activity: Activity,
         bundle: Bundle?,
       ) {
-        Log.d("StripeReactNative", "onActivityCreated: ${activity is androidx.activity.ComponentActivity}")
         if (bundle != null) {
           isRecreatingActivities = true
         }
