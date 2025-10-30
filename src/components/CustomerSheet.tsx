@@ -259,9 +259,6 @@ function Component({
   animationStyle,
   style,
   appearance,
-  setupIntentClientSecret,
-  customerId,
-  customerEphemeralKeySecret,
   merchantDisplayName,
   headerTextForSelectionScreen,
   defaultBillingDetails,
@@ -272,16 +269,20 @@ function Component({
   googlePayEnabled,
   timeout,
   onResult,
+  // CustomerAdapter Init Params
+  setupIntentClientSecret,
+  customerId,
+  customerEphemeralKeySecret,
   customerAdapter,
+  // CustomerSession Init Params
+  intentConfiguration,
+  clientSecretProvider,
 }: Props) {
   React.useEffect(() => {
     if (visible) {
-      initialize({
+      const optionalParams = {
         style,
         appearance,
-        setupIntentClientSecret,
-        customerId,
-        customerEphemeralKeySecret,
         merchantDisplayName,
         headerTextForSelectionScreen,
         defaultBillingDetails,
@@ -290,8 +291,27 @@ function Component({
         removeSavedPaymentMethodMessage,
         applePayEnabled,
         googlePayEnabled,
-        customerAdapter,
-      }).then((initResult) => {
+      };
+
+      const requiredParams =
+        intentConfiguration != null && clientSecretProvider != null
+          ? {
+              intentConfiguration: intentConfiguration,
+              clientSecretProvider: clientSecretProvider,
+            }
+          : {
+              customerId: customerId,
+              setupIntentClientSecret,
+              customerEphemeralKeySecret,
+              customerAdapter,
+            };
+
+      const params: CustomerSheetInitParams = {
+        ...optionalParams,
+        ...requiredParams,
+      };
+
+      initialize(params).then((initResult) => {
         if (initResult.error) {
           onResult(initResult);
         } else {
