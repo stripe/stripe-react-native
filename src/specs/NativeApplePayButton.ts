@@ -26,7 +26,7 @@ export interface NativeProps extends ViewProps {
   disabled: boolean;
   type: Int32;
   buttonStyle: Int32;
-  borderRadius?: WithDefault<Int32, 4>;
+  buttonBorderRadius?: WithDefault<Int32, 4>;
   onShippingMethodSelectedAction?: DirectEventHandler<OnShippingMethodSelectedActionEvent>;
   onShippingContactSelectedAction?: DirectEventHandler<OnShippingContactSelectedActionEvent>;
   onCouponCodeEnteredAction?: DirectEventHandler<OnCouponCodeEnteredActionEvent>;
