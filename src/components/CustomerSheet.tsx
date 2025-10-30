@@ -8,6 +8,7 @@ import type {
   CustomerAdapter,
   StripeError,
   CustomerSheetError,
+  ClientSecretProvider,
 } from '../types';
 import { addListener } from '../events';
 
@@ -17,6 +18,10 @@ let detachPaymentMethodCallback: EventSubscription | null = null;
 let setSelectedPaymentOptionCallback: EventSubscription | null = null;
 let fetchSelectedPaymentOptionCallback: EventSubscription | null = null;
 let setupIntentClientSecretForCustomerAttachCallback: EventSubscription | null =
+  null;
+
+let setupIntentClientSecretProviderCallback: EventSubscription | null = null;
+let customerSessionClientSecretProviderCallback: EventSubscription | null =
   null;
 
 /** Initialize an instance of Customer Sheet with your desired configuration. */
@@ -30,6 +35,10 @@ const initialize = async (
     customerAdapterOverrides = configureCustomerAdapterEventListeners(
       params.customerAdapter
     );
+  }
+
+  if (params.clientSecretProvider) {
+    configureClientSecretProviderEventListeners(params.clientSecretProvider);
   }
 
   try {
@@ -177,6 +186,33 @@ const configureCustomerAdapterEventListeners = (
       !!customerAdapter.setupIntentClientSecretForCustomerAttach,
   };
 };
+
+function configureClientSecretProviderEventListeners(
+  clientSecretProvider: ClientSecretProvider
+): void {
+  setupIntentClientSecretProviderCallback?.remove();
+  setupIntentClientSecretProviderCallback = addListener(
+    'onCustomerSessionProviderSetupIntentClientSecret',
+    async () => {
+      const setupIntentClientSecret =
+        await clientSecretProvider.provideSetupIntentClientSecret();
+      await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+        setupIntentClientSecret
+      );
+    }
+  );
+  customerSessionClientSecretProviderCallback?.remove();
+  customerSessionClientSecretProviderCallback = addListener(
+    'onCustomerSessionProviderCustomerSessionClientSecret',
+    async () => {
+      const customerSessionClientSecret =
+        await clientSecretProvider.provideCustomerSessionClientSecret();
+      await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
+        customerSessionClientSecret
+      );
+    }
+  );
+}
 
 /** Launches the Customer Sheet UI. */
 const present = async (
