@@ -96,7 +96,7 @@ using namespace facebook::react;
   _view.type = @(newViewProps.type);
   _view.buttonStyle = @(newViewProps.buttonStyle);
   _view.disabled = newViewProps.disabled;
-  _view.borderRadius = @(newViewProps.borderRadius);
+  _view.buttonBorderRadius = @(newViewProps.buttonBorderRadius);
 
   // Set the boolean flags from props
   _view.hasShippingMethodCallback = newViewProps.hasShippingMethodCallback;
