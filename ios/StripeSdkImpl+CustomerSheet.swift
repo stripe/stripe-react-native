@@ -42,7 +42,7 @@ extension StripeSdkImpl {
         } else if let intentConfigurationBase = intentConfigurationBase {
             let intentConfiguration: CustomerSheet.IntentConfiguration = CustomerSheet.IntentConfiguration(
                 paymentMethodTypes: intentConfigurationBase["paymentMethodTypes"] as? [String],
-                // onBehalfOf: intentConfigurationBase["onBehalfOf"] as? String,
+                onBehalfOf: intentConfigurationBase["onBehalfOf"] as? String,
                 setupIntentClientSecretProvider: {
                     return try await withCheckedThrowingContinuation { continuation in
                         // Store the continuation to be resumed later
