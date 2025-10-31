@@ -2,6 +2,8 @@
 
 ## x.x.x - x.x.x
 
+## 0.56.0 - 2025-10-31
+
 **Changes**
 - CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
 - ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
