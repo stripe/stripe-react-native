@@ -37,6 +37,22 @@ fun ReadableMap?.getIntOr(
   default: Int,
 ): Int = getIntOrNull(key) ?: default
 
+fun ReadableMap?.getDoubleOrNull(key: String): Double? =
+  if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Number) this.getDouble(key) else null
+
+fun ReadableMap?.getDoubleOr(
+  key: String,
+  default: Double,
+): Double = getDoubleOrNull(key) ?: default
+
+fun ReadableMap?.getFloatOrNull(key: String): Float? =
+  if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Number) this.getDouble(key).toFloat() else null
+
+fun ReadableMap?.getFloatOr(
+  key: String,
+  default: Float,
+): Float = getFloatOrNull(key) ?: default
+
 fun ReadableMap.isEmpty() = !this.keySetIterator().hasNextKey()
 
 fun ReadableMap.forEachKey(callback: (key: String) -> Unit) {

@@ -666,7 +666,7 @@ internal fun mapToBillingDetails(
   if (billingDetails == null && cardAddress == null) {
     return null
   }
-  val address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
+  val address = mapToAddress(billingDetails?.getMap("address"), cardAddress)
   val paymentMethodBillingDetailsBuilder = PaymentMethod.BillingDetails.Builder()
 
   if (billingDetails != null) {
@@ -687,7 +687,7 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
     return null
   }
 
-  val address = mapToAddress(getMapOrNull(shippingDetails, "address"), null)
+  val address = mapToAddress(shippingDetails?.getMap("address"), null)
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
@@ -700,16 +700,6 @@ private fun getStringOrNull(
   key: String,
 ): String? = if (map?.hasKey(key) == true) map.getString(key) else null
 
-fun getIntOrNull(
-  map: ReadableMap?,
-  key: String,
-): Int? = if (map?.hasKey(key) == true) map.getInt(key) else null
-
-fun getMapOrNull(
-  map: ReadableMap?,
-  key: String,
-): ReadableMap? = if (map?.hasKey(key) == true) map.getMap(key) else null
-
 fun getBooleanOrFalse(
   map: ReadableMap?,
   key: String,
@@ -718,14 +708,14 @@ fun getBooleanOrFalse(
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
-  val labelCustomization = getMapOrNull(params, "label")
+  val labelCustomization = params.getMap("label")
   val navigationBarCustomization = params.getMap("navigationBar")
-  val textBoxCustomization = getMapOrNull(params, "textField")
-  val submitButtonCustomization = getMapOrNull(params, "submitButton")
-  val cancelButtonCustomization = getMapOrNull(params, "cancelButton")
-  val nextButtonCustomization = getMapOrNull(params, "nextButton")
-  val continueButtonCustomization = getMapOrNull(params, "continueButton")
-  val resendButtonCustomization = getMapOrNull(params, "resendButton")
+  val textBoxCustomization = params.getMap("textField")
+  val submitButtonCustomization = params.getMap("submitButton")
+  val cancelButtonCustomization = params.getMap("cancelButton")
+  val nextButtonCustomization = params.getMap("nextButton")
+  val continueButtonCustomization = params.getMap("continueButton")
+  val resendButtonCustomization = params.getMap("resendButton")
 
   val labelCustomizationBuilder = PaymentAuthConfig.Stripe3ds2LabelCustomization.Builder()
   val toolbarCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ToolbarCustomization.Builder()
@@ -743,10 +733,10 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(labelCustomization, "textColor")?.let {
     labelCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(labelCustomization, "headingFontSize")?.let {
+  labelCustomization.getIntOrNull("headingFontSize")?.let {
     labelCustomizationBuilder.setHeadingTextFontSize(it)
   }
-  getIntOrNull(labelCustomization, "textFontSize")?.let {
+  labelCustomization.getIntOrNull("textFontSize")?.let {
     labelCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -765,7 +755,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(navigationBarCustomization, "backgroundColor")?.let {
     toolbarCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(navigationBarCustomization, "textFontSize")?.let {
+  navigationBarCustomization.getIntOrNull("textFontSize")?.let {
     toolbarCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -775,13 +765,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(textBoxCustomization, "textColor")?.let {
     textBoxCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(textBoxCustomization, "borderWidth")?.let {
+  textBoxCustomization.getIntOrNull("borderWidth")?.let {
     textBoxCustomizationBuilder.setBorderWidth(it)
   }
-  getIntOrNull(textBoxCustomization, "borderRadius")?.let {
+  textBoxCustomization.getIntOrNull("borderRadius")?.let {
     textBoxCustomizationBuilder.setCornerRadius(it)
   }
-  getIntOrNull(textBoxCustomization, "textFontSize")?.let {
+  textBoxCustomization.getIntOrNull("textFontSize")?.let {
     textBoxCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -789,13 +779,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(submitButtonCustomization, "backgroundColor")?.let {
     submitButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(submitButtonCustomization, "borderRadius")?.let {
+  submitButtonCustomization.getIntOrNull("borderRadius")?.let {
     submitButtonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(submitButtonCustomization, "textColor")?.let {
     submitButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(submitButtonCustomization, "textFontSize")?.let {
+  submitButtonCustomization.getIntOrNull("textFontSize")?.let {
     submitButtonCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -803,13 +793,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(cancelButtonCustomization, "backgroundColor")?.let {
     cancelButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(cancelButtonCustomization, "borderRadius")?.let {
+  cancelButtonCustomization.getIntOrNull("borderRadius")?.let {
     cancelButtonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(cancelButtonCustomization, "textColor")?.let {
     cancelButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(cancelButtonCustomization, "textFontSize")?.let {
+  cancelButtonCustomization.getIntOrNull("textFontSize")?.let {
     cancelButtonCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -817,13 +807,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(continueButtonCustomization, "backgroundColor")?.let {
     continueButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(continueButtonCustomization, "borderRadius")?.let {
+  continueButtonCustomization.getIntOrNull("borderRadius")?.let {
     continueButtonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(continueButtonCustomization, "textColor")?.let {
     continueButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(continueButtonCustomization, "textFontSize")?.let {
+  continueButtonCustomization.getIntOrNull("textFontSize")?.let {
     continueButtonCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -831,13 +821,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(nextButtonCustomization, "backgroundColor")?.let {
     nextButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(nextButtonCustomization, "borderRadius")?.let {
+  nextButtonCustomization.getIntOrNull("borderRadius")?.let {
     nextButtonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(nextButtonCustomization, "textColor")?.let {
     nextButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(nextButtonCustomization, "textFontSize")?.let {
+  nextButtonCustomization.getIntOrNull("textFontSize")?.let {
     nextButtonCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -845,13 +835,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   getStringOrNull(resendButtonCustomization, "backgroundColor")?.let {
     resendButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(resendButtonCustomization, "borderRadius")?.let {
+  resendButtonCustomization.getIntOrNull("borderRadius")?.let {
     resendButtonCustomizationBuilder.setCornerRadius(it)
   }
   getStringOrNull(resendButtonCustomization, "textColor")?.let {
     resendButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(resendButtonCustomization, "textFontSize")?.let {
+  resendButtonCustomization.getIntOrNull("textFontSize")?.let {
     resendButtonCustomizationBuilder.setTextFontSize(it)
   }
 

@@ -103,12 +103,12 @@ class CardFieldView(
   }
 
   fun setCardStyle(value: ReadableMap?) {
-    val borderWidth = getIntOrNull(value, "borderWidth")
+    val borderWidth = value.getIntOrNull("borderWidth")
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val borderColor = getValOr(value, "borderColor", null)
-    val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
+    val borderRadius = value.getIntOrNull("borderRadius") ?: 0
     val textColor = getValOr(value, "textColor", null)
-    val fontSize = getIntOrNull(value, "fontSize")
+    val fontSize = value.getIntOrNull("fontSize")
     val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)

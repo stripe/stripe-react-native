@@ -45,7 +45,7 @@ class GooglePayLauncherManager(
       allowCreditCards = googlePayParams.getBooleanOr("allowCreditCards", true),
     )
   private var currencyCode = googlePayParams.getString("currencyCode") ?: "USD"
-  private var amount = getIntOrNull(googlePayParams, "amount")
+  private var amount = googlePayParams.getIntOrNull("amount")
   private var label = googlePayParams.getString("label")
 
   override fun onPresent() {

@@ -36,7 +36,6 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getBooleanOrFalse
 import com.reactnativestripesdk.utils.getIntOrNull
-import com.reactnativestripesdk.utils.getMapOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -194,13 +193,13 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     val publishableKey = getValOr(params, "publishableKey", null) as String
-    val appInfo = getMapOrNull(params, "appInfo") as ReadableMap
+    val appInfo = params.getMap("appInfo") as ReadableMap
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
     val setReturnUrlSchemeOnAndroid = getBooleanOrFalse(params, "setReturnUrlSchemeOnAndroid")
     this.urlScheme = if (setReturnUrlSchemeOnAndroid) urlScheme else null
 
-    getMapOrNull(params, "threeDSecureParams")?.let {
+    params.getMap("threeDSecureParams")?.let {
       configure3dSecure(it)
     }
 
@@ -331,7 +330,7 @@ class StripeSdkModule(
         )
         return
       }
-    val paymentMethodData = getMapOrNull(data, "paymentMethodData")
+    val paymentMethodData = data.getMap("paymentMethodData")
     val factory =
       PaymentMethodCreateParamsFactory(paymentMethodData, options, cardFieldView, cardFormView)
     try {
@@ -466,7 +465,7 @@ class StripeSdkModule(
         }
 
     val cardAddress = cardFieldView?.cardAddress ?: cardFormView?.cardAddress
-    val address = getMapOrNull(params, "address")
+    val address = params.getMap("address")
     val cardParams =
       CardParams(
         number = cardParamsMap["number"] as String,
@@ -583,7 +582,7 @@ class StripeSdkModule(
     options: ReadableMap?,
     promise: Promise,
   ) {
-    val paymentMethodData = getMapOrNull(params, "paymentMethodData")
+    val paymentMethodData = params?.getMap("paymentMethodData")
     val paymentMethodType =
       if (params != null) {
         mapToPaymentMethodType(params.getString("paymentMethodType")) ?: run {
@@ -623,7 +622,7 @@ class StripeSdkModule(
         confirmParams.returnUrl = mapToReturnURL(urlScheme)
       }
       confirmParams.shipping =
-        mapToShippingDetails(getMapOrNull(paymentMethodData, "shippingDetails"))
+        mapToShippingDetails(paymentMethodData?.getMap("shippingDetails"))
       unregisterStripeUIManager(paymentLauncherManager)
       paymentLauncherManager =
         PaymentLauncherManager
@@ -685,7 +684,7 @@ class StripeSdkModule(
 
     val factory =
       PaymentMethodCreateParamsFactory(
-        getMapOrNull(params, "paymentMethodData"),
+        params.getMap("paymentMethodData"),
         options,
         cardFieldView,
         cardFormView,
@@ -927,7 +926,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    val paymentMethodData = getMapOrNull(params, "paymentMethodData")
+    val paymentMethodData = params.getMap("paymentMethodData")
     val paymentMethodType = mapToPaymentMethodType(getValOr(params, "paymentMethodType", null))
     if (paymentMethodType != PaymentMethod.Type.USBankAccount) {
       promise.resolve(
@@ -939,7 +938,7 @@ class StripeSdkModule(
       return
     }
 
-    val billingDetails = getMapOrNull(paymentMethodData, "billingDetails")
+    val billingDetails = paymentMethodData?.getMap("billingDetails")
 
     val name = billingDetails?.getString("name")
     if (name.isNullOrEmpty()) {
