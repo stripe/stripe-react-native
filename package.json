@@ -63,11 +63,14 @@
     "url": "https://github.com/stripe/stripe-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react-native-webview": "^13.16.0"
+  },
   "devDependencies": {
     "@expo/config-plugins": "^9.0.16",
     "@react-native/babel-preset": "^0.78.0",
     "@react-native/eslint-config": "^0.78.0",
+    "@stripe/connect-js": "^3.3.31",
     "@types/jest": "^29.5.14",
     "@types/react": "^19.0.10",
     "eslint": "^8.57.0",
@@ -86,7 +89,8 @@
   "peerDependencies": {
     "expo": ">=46.0.9",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": ">=13.16.0"
   },
   "peerDependenciesMeta": {
     "expo": {
