@@ -515,7 +515,7 @@ private fun dynamicColorFromParams(
   }
 
   // First check if it's a nested map { "light": "#RRGGBB", "dark": "#RRGGBB" }
-  if (params.getType(key) == ReadableType.Map) {
+  if (params.hasKey(key) && params.getType(key) == ReadableType.Map) {
     val colorMap = params.getMap(key)
     val isDark =
       (
