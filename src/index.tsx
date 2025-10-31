@@ -34,3 +34,6 @@ export type { Props as CustomerSheetProps } from './components/CustomerSheet';
 export * from './types/EmbeddedPaymentElement';
 export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
+
+export { ConnectComponentsProvider } from './connect/ConnectComponentsProvider';
+export * from './connect/Components';

@@ -50,6 +50,9 @@ import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
+import ConnectPaymentsListScreen from './screens/ConnectPaymentsListScreen';
+import ConnectAccountOnboardingScreen from './screens/ConnectAccountOnboardingScreen';
+import ConnectPayoutsListScreen from './screens/ConnectPayoutsListScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -102,6 +105,9 @@ export type RootStackParamList = {
   CustomerSheetScreen: undefined;
   RevolutPayScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
+  ConnectAccountOnboardingScreen: undefined;
+  ConnectPaymentsListScreen: undefined;
+  ConnectPayoutsListScreen: undefined;
 };
 
 declare global {
@@ -280,6 +286,18 @@ export default function App() {
           <Stack.Screen
             name="AlmaPaymentScreen"
             component={AlmaPaymentScreen}
+          />
+          <Stack.Screen
+            name="ConnectAccountOnboardingScreen"
+            component={ConnectAccountOnboardingScreen}
+          />
+          <Stack.Screen
+            name="ConnectPaymentsListScreen"
+            component={ConnectPaymentsListScreen}
+          />
+          <Stack.Screen
+            name="ConnectPayoutsListScreen"
+            component={ConnectPayoutsListScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

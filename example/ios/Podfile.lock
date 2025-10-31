@@ -1304,6 +1304,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-webview (13.16.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - React-NativeModulesApple (0.78.0):
     - glog
     - hermes-engine
@@ -1691,7 +1712,7 @@ PODS:
     - StripePayments (= 24.24.3)
     - StripePaymentsUI (= 24.24.3)
     - StripeUICore (= 24.24.3)
-  - stripe-react-native (0.54.1):
+  - stripe-react-native (0.55.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1712,14 +1733,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Stripe (~> 24.24.0)
-    - stripe-react-native/NewArch (= 0.54.1)
+    - stripe-react-native/NewArch (= 0.55.1)
     - StripeApplePay (~> 24.24.0)
     - StripeFinancialConnections (~> 24.24.0)
     - StripePayments (~> 24.24.0)
     - StripePaymentSheet (~> 24.24.0)
     - StripePaymentsUI (~> 24.24.0)
     - Yoga
-  - stripe-react-native/NewArch (0.54.1):
+  - stripe-react-native/NewArch (0.55.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1746,7 +1767,7 @@ PODS:
     - StripePaymentSheet (~> 24.24.0)
     - StripePaymentsUI (~> 24.24.0)
     - Yoga
-  - stripe-react-native/Tests (0.54.1):
+  - stripe-react-native/Tests (0.55.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1838,6 +1859,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-performancetimeline (from `../node_modules/react-native/ReactCommon/react/performance/timeline`)
@@ -1965,6 +1987,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -2075,6 +2099,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 3c11cee7737609275c7b66bd0b1de475f094cedf
   React-microtasksnativemodule: 843f352b32aacbe13a9c750190d34df44c3e6c2c
   react-native-safe-area-context: 7e513d737b0b5c1d10bbe0e5fcc9f925a7be144c
+  react-native-webview: b729d1bcf8fbd141237355dcfd6bb65b9a1d3b1a
   React-NativeModulesApple: 88433b6946778bea9c153e27b671de15411bf225
   React-perflogger: 9e8d3c0dc0194eb932162812a168aa5dc662f418
   React-performancetimeline: 5a2d6efef52bdcefac079c7baa30934978acd023
@@ -2110,7 +2135,7 @@ SPEC CHECKSUMS:
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: ac7d3c4016797553c259eff5def200b1c8cbe4f8
-  stripe-react-native: 4ae717eb5d039bbc63e3d3e1d8b3cd6a786698e3
+  stripe-react-native: cbcce918b434011bbccd7e2fd27c4dfd1734b26c
   StripeApplePay: efa314f02c07b4df2894be0790a85f0245334da0
   StripeCore: 0ebe42adefb26092389443b2a5d0744056a36fac
   StripeFinancialConnections: cc252f040e50aae6924affcf9883a519715a6ba4
@@ -2118,7 +2143,7 @@ SPEC CHECKSUMS:
   StripePaymentSheet: 8f6456410fa2671458292db6b38986d53564e990
   StripePaymentsUI: 5645028620aca78ab5b95fae975379902d860fef
   StripeUICore: 1e8fd6e1eda92ed45bb300b61560ae897a0232fd
-  Yoga: 9b7fb56e7b08cde60e2153344fa6afbd88e5d99f
+  Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
 
 PODFILE CHECKSUM: a2ed964678852d4cc306ff4add3e4fa90be77ea6
 

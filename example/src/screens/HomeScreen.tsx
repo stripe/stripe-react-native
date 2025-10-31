@@ -458,6 +458,32 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <Collapse title="Connect embedded components">
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Account onboarding"
+            onPress={() => {
+              navigation.navigate('ConnectAccountOnboardingScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payments list"
+            onPress={() => {
+              navigation.navigate('ConnectPaymentsListScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payouts list"
+            onPress={() => {
+              navigation.navigate('ConnectPayoutsListScreen');
+            }}
+          />
+        </View>
+      </Collapse>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}
