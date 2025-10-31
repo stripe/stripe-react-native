@@ -95,7 +95,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
 
       <Button
         variant="primary"
-        title="Pay"
+        title="Complete payment"
         onPress={handlePay}
         loading={loading}
         disabled={!paymentOption}

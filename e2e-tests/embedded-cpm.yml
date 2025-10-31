@@ -12,10 +12,10 @@ appId: ${APP_ID}
     text: "BufoPay (test)"
 - scrollUntilVisible:
     element:
-      text: "Pay"
+      text: "Complete payment"
     timeout: 30000
 - tapOn:
-    text: "Pay"
+    text: "Complete payment"
 - extendedWaitUntil:
     visible: "Custom Payment Method"
     timeout: 30000
