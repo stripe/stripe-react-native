@@ -1,6 +1,6 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripeFinancialConnections
 import Foundation
@@ -65,6 +65,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+    var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)? = nil
+    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)? = nil
 
     var embeddedInstance: EmbeddedPaymentElement? = nil
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)

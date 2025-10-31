@@ -50,6 +50,7 @@ import CustomerSheetScreen from './screens/CustomerSheetScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
+import CustomerSheetScreenCustomerSession from './screens/CustomerSheetScreenCustomerSession';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -100,6 +101,7 @@ export type RootStackParamList = {
     confirm: () => Promise<EmbeddedPaymentElementResult>;
   };
   CustomerSheetScreen: undefined;
+  CustomerSheetScreenCustomerSession: undefined;
   RevolutPayScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
 };
@@ -271,6 +273,10 @@ export default function App() {
           <Stack.Screen
             name="CustomerSheetScreen"
             component={CustomerSheetScreen}
+          />
+          <Stack.Screen
+            name="CustomerSheetScreenCustomerSession"
+            component={CustomerSheetScreenCustomerSession}
           />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
           <Stack.Screen

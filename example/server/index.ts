@@ -107,6 +107,10 @@ function getKeys(payment_method?: string) {
   return { secret_key, publishable_key };
 }
 
+app.get('/', (req, res) => {
+  res.send('Hi This is the react native example code sandbox');
+});
+
 app.get(
   '/stripe-key',
   (req: express.Request, res: express.Response): express.Response<any> => {
@@ -967,6 +971,63 @@ app.post('/detach-payment-method', async (req, res) => {
     paymentMethod,
   });
 });
+
+app.post('/customer-sheet-customer-session-customer', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  // if customerId is provided, use it, otherwise create a new customer
+  let customerId = req.body.customerId;
+  if (!customerId) {
+    let customer = await stripe.customers.create();
+    customerId = customer.id;
+  }
+
+  const customerSession = await stripe.customerSessions.create({
+    customer: customerId,
+    components: {
+      // This needs to be ignored because `customer_sheet` is not specified as a type in `stripe-node` yet.
+      // @ts-ignore
+      customer_sheet: {
+        enabled: true,
+        features: {
+          payment_method_remove: 'enabled',
+        },
+      },
+    },
+  });
+
+  res.json({
+    customer: customerId,
+    customerSessionClientSecret: customerSession.client_secret,
+  });
+});
+
+app.post(
+  '/customer-sheet-customer-session-create-setup-intent',
+  async (req, res) => {
+    const { secret_key } = getKeys();
+
+    const stripe = new Stripe(secret_key as string, {
+      apiVersion: '2023-10-16',
+      typescript: true,
+    });
+
+    // Use existing Customer created in /customer
+    const customerId = req.body.customerId;
+
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customerId,
+    });
+    res.json({
+      setupIntent: setupIntent.client_secret,
+    });
+  }
+);
 
 // Mocks a Database. In your code, you should use a persistent database.
 let savedPaymentOptions = new Map<string, string>();

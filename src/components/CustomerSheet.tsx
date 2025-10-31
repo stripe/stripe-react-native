@@ -8,6 +8,7 @@ import type {
   CustomerAdapter,
   StripeError,
   CustomerSheetError,
+  ClientSecretProvider,
 } from '../types';
 import { addListener } from '../events';
 
@@ -17,6 +18,10 @@ let detachPaymentMethodCallback: EventSubscription | null = null;
 let setSelectedPaymentOptionCallback: EventSubscription | null = null;
 let fetchSelectedPaymentOptionCallback: EventSubscription | null = null;
 let setupIntentClientSecretForCustomerAttachCallback: EventSubscription | null =
+  null;
+
+let setupIntentClientSecretProviderCallback: EventSubscription | null = null;
+let customerSessionClientSecretProviderCallback: EventSubscription | null =
   null;
 
 /** Initialize an instance of Customer Sheet with your desired configuration. */
@@ -30,6 +35,10 @@ const initialize = async (
     customerAdapterOverrides = configureCustomerAdapterEventListeners(
       params.customerAdapter
     );
+  }
+
+  if (params.clientSecretProvider) {
+    configureClientSecretProviderEventListeners(params.clientSecretProvider);
   }
 
   try {
@@ -178,6 +187,33 @@ const configureCustomerAdapterEventListeners = (
   };
 };
 
+function configureClientSecretProviderEventListeners(
+  clientSecretProvider: ClientSecretProvider
+): void {
+  setupIntentClientSecretProviderCallback?.remove();
+  setupIntentClientSecretProviderCallback = addListener(
+    'onCustomerSessionProviderSetupIntentClientSecret',
+    async () => {
+      const setupIntentClientSecret =
+        await clientSecretProvider.provideSetupIntentClientSecret();
+      await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+        setupIntentClientSecret
+      );
+    }
+  );
+  customerSessionClientSecretProviderCallback?.remove();
+  customerSessionClientSecretProviderCallback = addListener(
+    'onCustomerSessionProviderCustomerSessionClientSecret',
+    async () => {
+      const customerSessionClientSecret =
+        await clientSecretProvider.provideCustomerSessionClientSecret();
+      await NativeStripeSdk.clientSecretProviderCustomerSessionClientSecretCallback(
+        customerSessionClientSecret
+      );
+    }
+  );
+}
+
 /** Launches the Customer Sheet UI. */
 const present = async (
   params: CustomerSheetPresentParams = {}
@@ -259,9 +295,6 @@ function Component({
   animationStyle,
   style,
   appearance,
-  setupIntentClientSecret,
-  customerId,
-  customerEphemeralKeySecret,
   merchantDisplayName,
   headerTextForSelectionScreen,
   defaultBillingDetails,
@@ -272,16 +305,20 @@ function Component({
   googlePayEnabled,
   timeout,
   onResult,
+  // CustomerAdapter Init Params
+  setupIntentClientSecret,
+  customerId,
+  customerEphemeralKeySecret,
   customerAdapter,
+  // CustomerSession Init Params
+  intentConfiguration,
+  clientSecretProvider,
 }: Props) {
   React.useEffect(() => {
     if (visible) {
-      initialize({
+      const optionalParams = {
         style,
         appearance,
-        setupIntentClientSecret,
-        customerId,
-        customerEphemeralKeySecret,
         merchantDisplayName,
         headerTextForSelectionScreen,
         defaultBillingDetails,
@@ -290,8 +327,27 @@ function Component({
         removeSavedPaymentMethodMessage,
         applePayEnabled,
         googlePayEnabled,
-        customerAdapter,
-      }).then((initResult) => {
+      };
+
+      const requiredParams =
+        intentConfiguration != null && clientSecretProvider != null
+          ? {
+              intentConfiguration: intentConfiguration,
+              clientSecretProvider: clientSecretProvider,
+            }
+          : {
+              customerId: customerId,
+              setupIntentClientSecret,
+              customerEphemeralKeySecret,
+              customerAdapter,
+            };
+
+      const params: CustomerSheetInitParams = {
+        ...optionalParams,
+        ...requiredParams,
+      };
+
+      initialize(params).then((initResult) => {
         if (initResult.error) {
           onResult(initResult);
         } else {

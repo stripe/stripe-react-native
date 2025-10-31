@@ -242,6 +242,14 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void clientSecretProviderSetupIntentClientSecretCallback(String setupIntentClientSecret, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void clientSecretProviderCustomerSessionClientSecretCallback(ReadableMap customerSessionClientSecret, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void createEmbeddedPaymentElement(ReadableMap intentConfig, ReadableMap configuration, Promise promise);
 
   @ReactMethod
