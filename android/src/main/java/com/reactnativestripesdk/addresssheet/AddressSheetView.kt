@@ -132,25 +132,25 @@ class AddressSheetView(
   }
 
   companion object {
-    internal fun buildAddressDetails(bundle: ReadableMap): AddressDetails =
+    internal fun buildAddressDetails(map: ReadableMap): AddressDetails =
       AddressDetails(
-        name = bundle.getString("name"),
-        address = buildAddress(bundle.getMap("address")),
-        phoneNumber = bundle.getString("phone"),
-        isCheckboxSelected = bundle.getBooleanOr("isCheckboxSelected", false),
+        name = map.getString("name"),
+        address = buildAddress(map.getMap("address")),
+        phoneNumber = map.getString("phone"),
+        isCheckboxSelected = map.getBooleanOr("isCheckboxSelected", false),
       )
 
-    internal fun buildAddress(bundle: ReadableMap?): PaymentSheet.Address? {
-      if (bundle == null) {
+    internal fun buildAddress(map: ReadableMap?): PaymentSheet.Address? {
+      if (map == null) {
         return null
       }
       return PaymentSheet.Address(
-        city = bundle.getString("city"),
-        country = bundle.getString("country"),
-        line1 = bundle.getString("line1"),
-        line2 = bundle.getString("line2"),
-        state = bundle.getString("state"),
-        postalCode = bundle.getString("postalCode"),
+        city = map.getString("city"),
+        country = map.getString("country"),
+        line1 = map.getString("line1"),
+        line2 = map.getString("line2"),
+        state = map.getString("state"),
+        postalCode = map.getString("postalCode"),
       )
     }
 

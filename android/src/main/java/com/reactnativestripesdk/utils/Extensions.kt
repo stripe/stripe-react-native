@@ -3,10 +3,7 @@ package com.reactnativestripesdk.utils
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.facebook.react.bridge.Dynamic
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
@@ -27,23 +24,15 @@ fun View.hideSoftKeyboard() {
   }
 }
 
-fun Fragment.removeFragment(context: ReactApplicationContext) {
-  (context.currentActivity as? FragmentActivity)?.supportFragmentManager?.let {
-    if (it.findFragmentByTag(this.tag) != null) {
-      it.beginTransaction().remove(this).commitAllowingStateLoss()
-    }
-  }
-}
-
-fun ReadableMap.getBooleanOr(
+fun ReadableMap?.getBooleanOr(
   key: String,
   default: Boolean,
-): Boolean = if (this.hasKey(key) && this.getType(key) == ReadableType.Boolean) this.getBoolean(key) else default
+): Boolean = if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Boolean) this.getBoolean(key) else default
 
-fun ReadableMap.getIntOrNull(key: String): Int? =
-  if (this.hasKey(key) && this.getType(key) == ReadableType.Number) this.getInt(key) else null
+fun ReadableMap?.getIntOrNull(key: String): Int? =
+  if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Number) this.getInt(key) else null
 
-fun ReadableMap.getIntOr(
+fun ReadableMap?.getIntOr(
   key: String,
   default: Int,
 ): Int = getIntOrNull(key) ?: default

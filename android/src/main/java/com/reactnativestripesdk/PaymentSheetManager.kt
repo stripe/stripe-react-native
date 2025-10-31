@@ -31,11 +31,11 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
-import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.forEachKey
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.isEmpty
+import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
@@ -102,7 +102,7 @@ class PaymentSheetManager(
     val googlePayConfig = buildGooglePayConfig(arguments.getMap("googlePay"))
     val linkConfig = buildLinkConfig(arguments.getMap("link"))
     val allowsDelayedPaymentMethods = arguments.getBooleanOr("allowsDelayedPaymentMethods", false)
-    val billingDetailsBundle = arguments.getMap("defaultBillingDetails")
+    val billingDetailsMap = arguments.getMap("defaultBillingDetails")
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
     val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
@@ -118,8 +118,8 @@ class PaymentSheetManager(
       }
 
     // Determine which callback type to use based on what's provided
-    val intentConfigBundle = arguments.getMap("intentConfiguration")
-    val useConfirmationTokenCallback = intentConfigBundle?.hasKey("confirmationTokenConfirmHandler") == true
+    val intentConfigMap = arguments.getMap("intentConfiguration")
+    val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
     val appearance =
       try {
         buildPaymentSheetAppearance(arguments.getMap("appearance"), context)
@@ -264,23 +264,23 @@ class PaymentSheetManager(
       )
 
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
-    if (billingDetailsBundle != null) {
-      val addressBundle = billingDetailsBundle.getMap("address")
+    if (billingDetailsMap != null) {
+      val addressMap = billingDetailsMap.getMap("address")
       val address =
         PaymentSheet.Address(
-          addressBundle?.getString("city"),
-          addressBundle?.getString("country"),
-          addressBundle?.getString("line1"),
-          addressBundle?.getString("line2"),
-          addressBundle?.getString("postalCode"),
-          addressBundle?.getString("state"),
+          addressMap?.getString("city"),
+          addressMap?.getString("country"),
+          addressMap?.getString("line1"),
+          addressMap?.getString("line2"),
+          addressMap?.getString("postalCode"),
+          addressMap?.getString("state"),
         )
       defaultBillingDetails =
         PaymentSheet.BillingDetails(
           address,
-          billingDetailsBundle.getString("email"),
-          billingDetailsBundle.getString("name"),
-          billingDetailsBundle.getString("phone"),
+          billingDetailsMap.getString("email"),
+          billingDetailsMap.getString("name"),
+          billingDetailsMap.getString("phone"),
         )
     }
     val configurationBuilder =
@@ -686,10 +686,10 @@ class PaymentSheetManager(
 
     @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
-    internal fun buildCustomerConfiguration(bundle: ReadableMap?): PaymentSheet.CustomerConfiguration? {
-      val customerId = bundle?.getString("customerId").orEmpty()
-      val customerEphemeralKeySecret = bundle?.getString("customerEphemeralKeySecret").orEmpty()
-      val customerSessionClientSecret = bundle?.getString("customerSessionClientSecret").orEmpty()
+    internal fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.CustomerConfiguration? {
+      val customerId = map?.getString("customerId").orEmpty()
+      val customerEphemeralKeySecret = map?.getString("customerEphemeralKeySecret").orEmpty()
+      val customerSessionClientSecret = map?.getString("customerSessionClientSecret").orEmpty()
       return if (customerSessionClientSecret.isNotEmpty() &&
         customerEphemeralKeySecret.isNotEmpty()
       ) {
@@ -792,10 +792,10 @@ fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureM
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
 fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
-  val sfuBundle = options?.getMap("setupFutureUsageValues")
+  val sfuMap = options?.getMap("setupFutureUsageValues")
   val paymentMethodToSfuMap = mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
-  sfuBundle?.forEachKey { code ->
-    val sfuValue = mapToSetupFutureUse(sfuBundle.getString(code))
+  sfuMap?.forEachKey { code ->
+    val sfuValue = mapToSetupFutureUse(sfuMap.getString(code))
     val paymentMethodType = PaymentMethod.Type.fromCode(code)
     if (paymentMethodType != null && sfuValue != null) {
       paymentMethodToSfuMap[paymentMethodType] = sfuValue

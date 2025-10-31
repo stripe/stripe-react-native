@@ -266,7 +266,7 @@ private fun buildPrimaryButtonColors(
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildEmbeddedAppearance(
   embeddedParams: ReadableMap?,
-  defaultColorsBundle: ReadableMap?,
+  defaultColorsMap: ReadableMap?,
   context: Context,
 ): PaymentSheet.Appearance.Embedded? {
   if (embeddedParams == null) {
@@ -277,7 +277,7 @@ private fun buildEmbeddedAppearance(
     getMapOrNull(embeddedParams, PaymentSheetAppearanceKeys.ROW)
       ?: return null
 
-  val defaultColors = buildColors(defaultColorsBundle, PaymentSheet.Colors.defaultLight)
+  val defaultColors = buildColors(defaultColorsMap, PaymentSheet.Colors.defaultLight)
 
   // Default style
   val styleString = rowParams.getString(PaymentSheetAppearanceKeys.STYLE) ?: "flatWithRadio"
@@ -513,8 +513,8 @@ private fun dynamicColorFromParams(
   }
 
   // First check if it's a nested Bundle { "light": "#RRGGBB", "dark": "#RRGGBB" }
-  val colorBundle = params.getMap(key)
-  if (colorBundle != null) {
+  val colorMap = params.getMap(key)
+  if (colorMap != null) {
     val isDark =
       (
         context.resources.configuration.uiMode
@@ -524,9 +524,9 @@ private fun dynamicColorFromParams(
     // Pick the hex for current mode, or null
     val hex =
       if (isDark) {
-        colorBundle.getString(PaymentSheetAppearanceKeys.DARK)
+        colorMap.getString(PaymentSheetAppearanceKeys.DARK)
       } else {
-        colorBundle.getString(PaymentSheetAppearanceKeys.LIGHT)
+        colorMap.getString(PaymentSheetAppearanceKeys.LIGHT)
       }
 
     return colorFromHexOrDefault(hex, defaultColor)
@@ -558,17 +558,17 @@ private fun getFloatOr(
 ): Float = getFloatOrNull(map, key) ?: defaultValue
 
 private fun getMapOrNull(
-  bundle: ReadableMap?,
+  map: ReadableMap?,
   key: String,
-): ReadableMap? = bundle?.getMap(key)
+): ReadableMap? = map?.getMap(key)
 
 private fun getBooleanOr(
-  bundle: ReadableMap?,
+  map: ReadableMap?,
   key: String,
   defaultValue: Boolean,
 ): Boolean =
-  if (bundle?.hasKey(key) == true) {
-    bundle.getBoolean(key)
+  if (map?.hasKey(key) == true) {
+    map.getBoolean(key)
   } else {
     defaultValue
   }
@@ -585,18 +585,18 @@ private fun getFloatOrNull(
 
 @Throws(PaymentSheetAppearanceException::class)
 private fun getFontResId(
-  bundle: ReadableMap?,
+  map: ReadableMap?,
   key: String,
   defaultValue: Int?,
   context: Context,
 ): Int? {
   val fontErrorPrefix = "Encountered an error when setting a custom font:"
-  if (bundle?.hasKey(key) != true) {
+  if (map?.hasKey(key) != true) {
     return defaultValue
   }
 
   val fontFileName =
-    bundle.getString(key)
+    map.getString(key)
       ?: throw PaymentSheetAppearanceException(
         "$fontErrorPrefix expected String for font.$key, but received null.",
       )

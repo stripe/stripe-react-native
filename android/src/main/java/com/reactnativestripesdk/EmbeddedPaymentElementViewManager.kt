@@ -112,15 +112,15 @@ class EmbeddedPaymentElementViewManager :
     var defaultBillingDetails: PaymentSheet.BillingDetails? = null
     val billingDetailsMap = map.getMap("defaultBillingDetails")
     if (billingDetailsMap != null) {
-      val addressBundle = billingDetailsMap.getMap("address")
+      val addressMap = billingDetailsMap.getMap("address")
       val address =
         PaymentSheet.Address(
-          addressBundle?.getString("city"),
-          addressBundle?.getString("country"),
-          addressBundle?.getString("line1"),
-          addressBundle?.getString("line2"),
-          addressBundle?.getString("postalCode"),
-          addressBundle?.getString("state"),
+          addressMap?.getString("city"),
+          addressMap?.getString("country"),
+          addressMap?.getString("line1"),
+          addressMap?.getString("line2"),
+          addressMap?.getString("postalCode"),
+          addressMap?.getString("state"),
         )
       defaultBillingDetails =
         PaymentSheet.BillingDetails(

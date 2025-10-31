@@ -60,7 +60,7 @@ class CustomerSheetManager(
     val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
     val merchantDisplayName = arguments.getString("merchantDisplayName")
     val googlePayEnabled = arguments.getBooleanOr("googlePayEnabled", false)
-    val billingDetailsBundle = arguments.getMap("defaultBillingDetails")
+    val billingDetailsMap = arguments.getMap("defaultBillingDetails")
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
     val setupIntentClientSecret = arguments.getString("setupIntentClientSecret")
     val customerId = arguments.getString("customerId")
@@ -104,8 +104,8 @@ class CustomerSheetManager(
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
-    billingDetailsBundle?.let {
-      configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsBundle))
+    billingDetailsMap?.let {
+      configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsMap))
     }
     billingConfigParams?.let {
       configuration.billingDetailsCollectionConfiguration(
@@ -271,32 +271,32 @@ class CustomerSheetManager(
     internal fun createMissingInitError(): WritableMap =
       createError(ErrorType.Failed.toString(), "No customer sheet has been initialized yet.")
 
-    internal fun createDefaultBillingDetails(bundle: ReadableMap): PaymentSheet.BillingDetails {
-      val addressBundle = bundle.getMap("address")
+    internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails {
+      val addressMap = map.getMap("address")
       val address =
         PaymentSheet.Address(
-          addressBundle?.getString("city"),
-          addressBundle?.getString("country"),
-          addressBundle?.getString("line1"),
-          addressBundle?.getString("line2"),
-          addressBundle?.getString("postalCode"),
-          addressBundle?.getString("state"),
+          addressMap?.getString("city"),
+          addressMap?.getString("country"),
+          addressMap?.getString("line1"),
+          addressMap?.getString("line2"),
+          addressMap?.getString("postalCode"),
+          addressMap?.getString("state"),
         )
       return PaymentSheet.BillingDetails(
         address,
-        bundle.getString("email"),
-        bundle.getString("name"),
-        bundle.getString("phone"),
+        map.getString("email"),
+        map.getString("name"),
+        map.getString("phone"),
       )
     }
 
-    internal fun createBillingDetailsCollectionConfiguration(bundle: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
+    internal fun createBillingDetailsCollectionConfiguration(map: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
       PaymentSheet.BillingDetailsCollectionConfiguration(
-        name = mapToCollectionMode(bundle.getString("name")),
-        phone = mapToCollectionMode(bundle.getString("phone")),
-        email = mapToCollectionMode(bundle.getString("email")),
-        address = mapToAddressCollectionMode(bundle.getString("address")),
-        attachDefaultsToPaymentMethod = bundle.getBooleanOr("attachDefaultsToPaymentMethod", false),
+        name = mapToCollectionMode(map.getString("name")),
+        phone = mapToCollectionMode(map.getString("phone")),
+        email = mapToCollectionMode(map.getString("email")),
+        address = mapToAddressCollectionMode(map.getString("address")),
+        attachDefaultsToPaymentMethod = map.getBooleanOr("attachDefaultsToPaymentMethod", false),
       )
 
     internal fun createCustomerAdapter(
@@ -337,18 +337,17 @@ class CustomerSheetManager(
         context = context,
         adapter = customerAdapter,
         overridesFetchPaymentMethods =
-          customerAdapterOverrideParams?.getBooleanOr("fetchPaymentMethods", false) ?: false,
+          customerAdapterOverrideParams.getBooleanOr("fetchPaymentMethods", false),
         overridesAttachPaymentMethod =
-          customerAdapterOverrideParams?.getBooleanOr("attachPaymentMethod", false) ?: false,
+          customerAdapterOverrideParams.getBooleanOr("attachPaymentMethod", false),
         overridesDetachPaymentMethod =
-          customerAdapterOverrideParams?.getBooleanOr("detachPaymentMethod", false) ?: false,
+          customerAdapterOverrideParams.getBooleanOr("detachPaymentMethod", false),
         overridesSetSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBooleanOr("setSelectedPaymentOption", false) ?: false,
+          customerAdapterOverrideParams.getBooleanOr("setSelectedPaymentOption", false),
         overridesFetchSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBooleanOr("fetchSelectedPaymentOption", false) ?: false,
+          customerAdapterOverrideParams.getBooleanOr("fetchSelectedPaymentOption", false),
         overridesSetupIntentClientSecretForCustomerAttach =
-          customerAdapterOverrideParams?.getBooleanOr("setupIntentClientSecretForCustomerAttach", false)
-            ?: false,
+          customerAdapterOverrideParams.getBooleanOr("setupIntentClientSecretForCustomerAttach", false),
       )
     }
 
