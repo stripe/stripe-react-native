@@ -1070,29 +1070,26 @@ internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?):
     return emptyList()
   }
 
-  val configHashMap = customPaymentMethodConfig.getMap("customPaymentMethodConfigurationReadableMap")
-  if (configHashMap != null) {
-    val customPaymentMethods = configHashMap.getArray("customPaymentMethods")
-    if (customPaymentMethods != null) {
-      val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
+  val customPaymentMethods = customPaymentMethodConfig.getArray("customPaymentMethods")
+  if (customPaymentMethods != null) {
+    val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
 
-      customPaymentMethods.forEachMap { customPaymentMethodMap ->
-        val id = customPaymentMethodMap.getString("id")
-        if (id != null) {
-          val subtitle = customPaymentMethodMap.getString("subtitle")
-          val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
-          result.add(
-            PaymentSheet.CustomPaymentMethod(
-              id = id,
-              subtitle = subtitle,
-              disableBillingDetailCollection = disableBillingDetailCollection,
-            ),
-          )
-        }
+    customPaymentMethods.forEachMap { customPaymentMethodMap ->
+      val id = customPaymentMethodMap.getString("id")
+      if (id != null) {
+        val subtitle = customPaymentMethodMap.getString("subtitle")
+        val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
+        result.add(
+          PaymentSheet.CustomPaymentMethod(
+            id = id,
+            subtitle = subtitle,
+            disableBillingDetailCollection = disableBillingDetailCollection,
+          ),
+        )
       }
-
-      return result
     }
+
+    return result
   }
 
   return emptyList()
