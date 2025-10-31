@@ -10,6 +10,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.stripe.android.databinding.StripeBecsDebitWidgetBinding
@@ -45,7 +46,7 @@ class AuBECSDebitFormView(
     val borderWidth = value.getIntOrNull("borderWidth")
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val borderColor = getValOr(value, "borderColor", null)
-    val borderRadius = value.getIntOrNull("borderRadius") ?: 0
+    val borderRadius = value.getIntOr("borderRadius", 0)
 
     textColor?.let {
       (binding.accountNumberEditText as StripeEditText).setTextColor(Color.parseColor(it))

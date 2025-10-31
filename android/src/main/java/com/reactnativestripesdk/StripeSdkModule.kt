@@ -34,7 +34,6 @@ import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
-import com.reactnativestripesdk.utils.getBooleanOrFalse
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
@@ -196,7 +195,7 @@ class StripeSdkModule(
     val appInfo = params.getMap("appInfo") as ReadableMap
     this.stripeAccountId = getValOr(params, "stripeAccountId", null)
     val urlScheme = getValOr(params, "urlScheme", null)
-    val setReturnUrlSchemeOnAndroid = getBooleanOrFalse(params, "setReturnUrlSchemeOnAndroid")
+    val setReturnUrlSchemeOnAndroid = params.getBooleanOr("setReturnUrlSchemeOnAndroid", false)
     this.urlScheme = if (setReturnUrlSchemeOnAndroid) urlScheme else null
 
     params.getMap("threeDSecureParams")?.let {
@@ -729,8 +728,8 @@ class StripeSdkModule(
     googlePayPaymentMethodLauncherManager =
       GooglePayPaymentMethodLauncherManager(
         reactApplicationContext,
-        getBooleanOrFalse(googlePayParams, "testEnv"),
-        getBooleanOrFalse(googlePayParams, "existingPaymentMethodRequired"),
+        googlePayParams?.getBooleanOr("testEnv", false) ?: false,
+        googlePayParams?.getBooleanOr("existingPaymentMethodRequired", false) ?: false,
       ).also {
         registerStripeUIManager(it)
         it.present(promise)

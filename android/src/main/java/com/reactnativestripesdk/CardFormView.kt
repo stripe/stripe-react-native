@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.os.Build
 import android.text.InputFilter
 import android.view.View
-import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
 import androidx.core.view.setMargins
 import com.facebook.react.bridge.ReadableMap
@@ -18,6 +17,7 @@ import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import com.reactnativestripesdk.utils.PostalCodeUtilities
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.hideSoftKeyboard
@@ -145,7 +145,7 @@ class CardFormView(
     val textColor = getValOr(value, "textColor", null)
     val borderWidth = value.getIntOrNull("borderWidth")
     val borderColor = getValOr(value, "borderColor", null)
-    val borderRadius = value.getIntOrNull("borderRadius") ?: 0
+    val borderRadius = value.getIntOr("borderRadius", 0)
     val fontSize = value.getIntOrNull("fontSize")
     val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)

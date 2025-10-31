@@ -695,16 +695,6 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
   )
 }
 
-private fun getStringOrNull(
-  map: ReadableMap?,
-  key: String,
-): String? = if (map?.hasKey(key) == true) map.getString(key) else null
-
-fun getBooleanOrFalse(
-  map: ReadableMap?,
-  key: String,
-): Boolean = if (map?.hasKey(key) == true) map.getBoolean(key) else false
-
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
@@ -727,10 +717,10 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   val continueButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
   val resendButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
 
-  getStringOrNull(labelCustomization, "headingTextColor")?.let {
+  labelCustomization?.getString("headingTextColor")?.let {
     labelCustomizationBuilder.setHeadingTextColor(it)
   }
-  getStringOrNull(labelCustomization, "textColor")?.let {
+  labelCustomization?.getString("textColor")?.let {
     labelCustomizationBuilder.setTextColor(it)
   }
   labelCustomization.getIntOrNull("headingFontSize")?.let {
@@ -740,29 +730,29 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
     labelCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(navigationBarCustomization, "headerText")?.let {
+  navigationBarCustomization?.getString("headerText")?.let {
     toolbarCustomizationBuilder.setHeaderText(it)
   }
-  getStringOrNull(navigationBarCustomization, "buttonText")?.let {
+  navigationBarCustomization?.getString("buttonText")?.let {
     toolbarCustomizationBuilder.setButtonText(it)
   }
-  getStringOrNull(navigationBarCustomization, "textColor")?.let {
+  navigationBarCustomization?.getString("textColor")?.let {
     toolbarCustomizationBuilder.setTextColor(it)
   }
-  getStringOrNull(navigationBarCustomization, "statusBarColor")?.let {
+  navigationBarCustomization?.getString("statusBarColor")?.let {
     toolbarCustomizationBuilder.setStatusBarColor(it)
   }
-  getStringOrNull(navigationBarCustomization, "backgroundColor")?.let {
+  navigationBarCustomization?.getString("backgroundColor")?.let {
     toolbarCustomizationBuilder.setBackgroundColor(it)
   }
   navigationBarCustomization.getIntOrNull("textFontSize")?.let {
     toolbarCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(textBoxCustomization, "borderColor")?.let {
+  textBoxCustomization?.getString("borderColor")?.let {
     textBoxCustomizationBuilder.setBorderColor(it)
   }
-  getStringOrNull(textBoxCustomization, "textColor")?.let {
+  textBoxCustomization?.getString("textColor")?.let {
     textBoxCustomizationBuilder.setTextColor(it)
   }
   textBoxCustomization.getIntOrNull("borderWidth")?.let {
@@ -776,13 +766,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   }
 
   // Submit button
-  getStringOrNull(submitButtonCustomization, "backgroundColor")?.let {
+  submitButtonCustomization?.getString("backgroundColor")?.let {
     submitButtonCustomizationBuilder.setBackgroundColor(it)
   }
   submitButtonCustomization.getIntOrNull("borderRadius")?.let {
     submitButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(submitButtonCustomization, "textColor")?.let {
+  submitButtonCustomization?.getString("textColor")?.let {
     submitButtonCustomizationBuilder.setTextColor(it)
   }
   submitButtonCustomization.getIntOrNull("textFontSize")?.let {
@@ -790,13 +780,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   }
 
   // Cancel button
-  getStringOrNull(cancelButtonCustomization, "backgroundColor")?.let {
+  cancelButtonCustomization?.getString("backgroundColor")?.let {
     cancelButtonCustomizationBuilder.setBackgroundColor(it)
   }
   cancelButtonCustomization.getIntOrNull("borderRadius")?.let {
     cancelButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(cancelButtonCustomization, "textColor")?.let {
+  cancelButtonCustomization?.getString("textColor")?.let {
     cancelButtonCustomizationBuilder.setTextColor(it)
   }
   cancelButtonCustomization.getIntOrNull("textFontSize")?.let {
@@ -804,13 +794,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   }
 
   // Continue button
-  getStringOrNull(continueButtonCustomization, "backgroundColor")?.let {
+  continueButtonCustomization?.getString("backgroundColor")?.let {
     continueButtonCustomizationBuilder.setBackgroundColor(it)
   }
   continueButtonCustomization.getIntOrNull("borderRadius")?.let {
     continueButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(continueButtonCustomization, "textColor")?.let {
+  continueButtonCustomization?.getString("textColor")?.let {
     continueButtonCustomizationBuilder.setTextColor(it)
   }
   continueButtonCustomization.getIntOrNull("textFontSize")?.let {
@@ -818,13 +808,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   }
 
   // Next button
-  getStringOrNull(nextButtonCustomization, "backgroundColor")?.let {
+  nextButtonCustomization?.getString("backgroundColor")?.let {
     nextButtonCustomizationBuilder.setBackgroundColor(it)
   }
   nextButtonCustomization.getIntOrNull("borderRadius")?.let {
     nextButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(nextButtonCustomization, "textColor")?.let {
+  nextButtonCustomization?.getString("textColor")?.let {
     nextButtonCustomizationBuilder.setTextColor(it)
   }
   nextButtonCustomization.getIntOrNull("textFontSize")?.let {
@@ -832,13 +822,13 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   }
 
   // Resend button
-  getStringOrNull(resendButtonCustomization, "backgroundColor")?.let {
+  resendButtonCustomization?.getString("backgroundColor")?.let {
     resendButtonCustomizationBuilder.setBackgroundColor(it)
   }
   resendButtonCustomization.getIntOrNull("borderRadius")?.let {
     resendButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(resendButtonCustomization, "textColor")?.let {
+  resendButtonCustomization?.getString("textColor")?.let {
     resendButtonCustomizationBuilder.setTextColor(it)
   }
   resendButtonCustomization.getIntOrNull("textFontSize")?.let {
@@ -867,7 +857,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
         PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.RESEND,
       )
 
-  getStringOrNull(params, "accentColor")?.let { uiCustomization.setAccentColor(it) }
+  params.getString("accentColor")?.let { uiCustomization.setAccentColor(it) }
 
   return uiCustomization.build()
 }

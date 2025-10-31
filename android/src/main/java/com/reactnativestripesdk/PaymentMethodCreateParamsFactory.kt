@@ -1,7 +1,7 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
-import com.reactnativestripesdk.utils.getBooleanOrFalse
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToMetadata
@@ -166,7 +166,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createFpxParams(): PaymentMethodCreateParams {
-    val bank = getBooleanOrFalse(paymentMethodData, "testOfflineBank").let { "test_offline_bank" }
+    val bank = paymentMethodData.getBooleanOr("testOfflineBank", false).let { "test_offline_bank" }
     return PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Fpx(bank),
       metadata = metadataParams,
