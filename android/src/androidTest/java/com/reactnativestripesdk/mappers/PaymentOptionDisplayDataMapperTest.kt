@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.toHtmlString
@@ -20,14 +19,9 @@ import org.junit.Before
 import org.junit.Test
 
 class PaymentOptionDisplayDataMapperTest {
-  private val reactApplicationContext =
-    BridgeReactContext(
-      ApplicationProvider.getApplicationContext(),
-    )
-
   @Before
   fun setup() {
-    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
+    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
   }
 
   @Test

@@ -10,6 +10,7 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.stripe.android.databinding.StripeBecsDebitWidgetBinding
@@ -41,11 +42,11 @@ class AuBECSDebitFormView(
     val textColor = getValOr(value, "textColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
     val placeholderColor = getValOr(value, "placeholderColor", null)
-    val fontSize = getIntOrNull(value, "fontSize")
-    val borderWidth = getIntOrNull(value, "borderWidth")
+    val fontSize = value.getIntOrNull("fontSize")
+    val borderWidth = value.getIntOrNull("borderWidth")
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val borderColor = getValOr(value, "borderColor", null)
-    val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
+    val borderRadius = value.getIntOr("borderRadius", 0)
 
     textColor?.let {
       (binding.accountNumberEditText as StripeEditText).setTextColor(Color.parseColor(it))
