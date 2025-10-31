@@ -917,55 +917,6 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
     else -> null
   }
 
-fun toBundleObject(readableMap: ReadableMap?): Bundle {
-  val result = Bundle()
-  if (readableMap == null) {
-    return result
-  }
-  val iterator = readableMap.keySetIterator()
-  while (iterator.hasNextKey()) {
-    val key = iterator.nextKey()
-    when (readableMap.getType(key)) {
-      ReadableType.Null -> result.putString(key, null)
-      ReadableType.Boolean -> result.putBoolean(key, readableMap.getBoolean(key))
-      ReadableType.Number ->
-        try {
-          val numAsInt = readableMap.getInt(key)
-          val numAsDouble = readableMap.getDouble(key)
-          if (numAsDouble - numAsInt != 0.0) {
-            result.putDouble(key, numAsDouble)
-          } else {
-            result.putInt(key, numAsInt)
-          }
-        } catch (e: Exception) {
-          Log.e("toBundleException", "Failed to add number to bundle. Failed on: $key.")
-        }
-      ReadableType.String -> result.putString(key, readableMap.getString(key))
-      ReadableType.Map -> result.putBundle(key, toBundleObject(readableMap.getMap(key)))
-      ReadableType.Array -> {
-        val list = readableMap.getArray(key)?.toArrayList()
-        if (list == null) {
-          result.putString(key, null)
-        } else if (list.isEmpty()) {
-          result.putStringArrayList(key, ArrayList())
-        } else {
-          when (list.first()) {
-            is String -> result.putStringArrayList(key, list as java.util.ArrayList<String>)
-            is Int -> result.putIntegerArrayList(key, list as java.util.ArrayList<Int>)
-            else ->
-              Log.e(
-                "toBundleException",
-                "Cannot put arrays of objects into bundles. Failed on: $key.",
-              )
-          }
-        }
-      }
-      else -> Log.e("toBundleException", "Could not convert object with key: $key.")
-    }
-  }
-  return result
-}
-
 internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableMap {
   val map = WritableNativeMap()
   map.putString("emailAddress", googlePayResult.email)
