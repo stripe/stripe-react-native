@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getDoubleOrNull
@@ -514,8 +515,8 @@ private fun dynamicColorFromParams(
   }
 
   // First check if it's a nested map { "light": "#RRGGBB", "dark": "#RRGGBB" }
-  val colorMap = params.getMap(key)
-  if (colorMap != null) {
+  if (params.getType(key) == ReadableType.Map) {
+    val colorMap = params.getMap(key)
     val isDark =
       (
         context.resources.configuration.uiMode
@@ -525,9 +526,9 @@ private fun dynamicColorFromParams(
     // Pick the hex for current mode, or null
     val hex =
       if (isDark) {
-        colorMap.getString(PaymentSheetAppearanceKeys.DARK)
+        colorMap?.getString(PaymentSheetAppearanceKeys.DARK)
       } else {
-        colorMap.getString(PaymentSheetAppearanceKeys.LIGHT)
+        colorMap?.getString(PaymentSheetAppearanceKeys.LIGHT)
       }
 
     return colorFromHexOrDefault(hex, defaultColor)
