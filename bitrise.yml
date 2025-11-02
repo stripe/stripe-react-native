@@ -315,14 +315,11 @@ workflows:
 
   _test_projects_base:
     before_run:
-      - _prepare_js_env
+      - _prepare_js
     steps:
       - set-java-version@1:
           inputs:
             - set_java_version: $JAVA_VERSION
-      - activate-ssh-key@4:
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@8: {}
 
   _prepare_js_env:
     steps:
