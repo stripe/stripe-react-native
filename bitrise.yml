@@ -314,10 +314,9 @@ workflows:
             - content: ./scripts/test-project --version "$RN_VERSION"
 
   _test_projects_base:
+    before_run:
+      - _prepare_js_env
     steps:
-      - nvm@1:
-          inputs:
-            - node_version: $NODE_VERSION
       - set-java-version@1:
           inputs:
             - set_java_version: $JAVA_VERSION
