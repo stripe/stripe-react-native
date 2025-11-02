@@ -170,6 +170,9 @@ echo "Adding local stripe-react-native tarball to the new project"
 cd "$PROJECT_DIR"
 npm install "file:$TARBALL_PATH"
 
+ANDROID_BUILD_GRADLE="$PROJECT_DIR/android/build.gradle"
+node "$SCRIPT_DIR/update-rn-build-gradle.js" "$ANDROID_BUILD_GRADLE" "$RN_VERSION"
+
 if [[ $RUN_ANDROID -eq 1 ]]; then
   echo "Building Android project"
   (
