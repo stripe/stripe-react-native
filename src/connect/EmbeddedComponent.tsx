@@ -1,11 +1,11 @@
-import type { LoadError, LoaderStart } from '@stripe/connect-js';
+import type { LoadError, LoaderStart } from './connectTypes';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import type { WebView } from 'react-native-webview';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import pjson from '../../package.json';
 
-const DEVELOPMENT_MODE = true;
+const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
   Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'http://localhost:3001';
 const PRODUCTION_URL = 'https://connect-js.stripe.com';

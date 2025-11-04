@@ -2,7 +2,7 @@ import type {
   CollectionOptions,
   PaymentsListDefaultFilters,
   StepChange,
-} from '@stripe/connect-js';
+} from './connectTypes';
 import React, { useMemo } from 'react';
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
 

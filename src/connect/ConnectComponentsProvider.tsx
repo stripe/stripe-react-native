@@ -1,5 +1,5 @@
 import React, { JSX, useMemo } from 'react';
-import type { IStripeConnectInitParams } from '@stripe/connect-js';
+import type { IStripeConnectInitParams } from './connectTypes';
 
 type ConnectComponentsPayload = {
   publishableKey: string;
