@@ -90,10 +90,13 @@
     "expo": ">=46.0.9",
     "react": "*",
     "react-native": "*",
-    "react-native-webview": ">=13.16.0"
+    "react-native-webview": "*"
   },
   "peerDependenciesMeta": {
     "expo": {
+      "optional": true
+    },
+    "react-native-webview": {
       "optional": true
     }
   },

@@ -1,11 +1,24 @@
 import type { LoadError, LoaderStart } from '@stripe/connect-js';
-import React, { useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
-import { WebView } from 'react-native-webview';
+import type { WebView } from 'react-native-webview';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import pjson from '../../package.json';
 
 const DEVELOPMENT_MODE = true;
+const DEVELOPMENT_URL =
+  Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'http://localhost:3001';
+const PRODUCTION_URL = 'https://connect-js.stripe.com';
+const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
+
+const sdkVersion = pjson.version;
+
+// react-native-webview.html will only load versions in the format X.Y.Z
+if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
+  throw new Error(
+    `Invalid SDK version: ${sdkVersion}. Must be in format X.Y.Z`
+  );
+}
 
 export interface CommonComponentProps {
   onLoaderStart?: ({ elementTagName }: LoaderStart) => void;
@@ -76,6 +89,27 @@ type EmbeddedComponentProps = CommonComponentProps & {
 };
 
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
+  const [dynamicWebview, setDynamicWebview] = useState<{
+    WebView: typeof WebView | null;
+  } | null>(null);
+
+  const loadWebViewComponent = useCallback(async () => {
+    if (dynamicWebview) return;
+
+    setDynamicWebview({ WebView: null });
+
+    try {
+      const mod = await import('react-native-webview');
+      setDynamicWebview({ WebView: mod.WebView });
+    } catch (err) {
+      console.error('Failed to import react-native-webview:', err);
+    }
+  }, [dynamicWebview]);
+
+  useEffect(() => {
+    loadWebViewComponent();
+  }, [loadWebViewComponent]);
+
   const {
     publishableKey,
     fetchClientSecret,
@@ -112,16 +146,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     )
     .join('&');
 
-  const platform = Platform.OS.toLowerCase();
-  const sdkVersion = pjson.version;
-
-  const baseURL = DEVELOPMENT_MODE
-    ? Platform.select({
-        ios: 'http://localhost:3001',
-        android: 'http://10.0.2.2:3001',
-      })
-    : 'https://connect-js.stripe.com';
-  const connectURL = `${baseURL}/v1.0/${platform}_webview.html#${hash}`;
+  const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
 
   const ref = useRef<WebView>(null);
 
@@ -132,7 +157,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     ref.current?.injectJavaScript(`
       (function() {
         window.updateConnectInstance(${JSON.stringify({ appearance })});
-
         true;
       })();
     `);
@@ -180,26 +204,17 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
   }
 
+  const WebViewComponent = dynamicWebview?.WebView;
+
+  if (!WebViewComponent) return null;
+
   return (
-    <WebView
+    <WebViewComponent
       ref={ref}
       style={style}
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={{ uri: connectURL }}
-      userAgent={`Mobile - Stripe ReactNative SDK ${Platform.OS}/${Platform.Version} - stripe-${platform}/${sdkVersion}`}
-      injectedJavaScript={`
-        // add a style witn a sans serif font by default
-        (function() {
-          const style = document.createElement('style');
-          style.innerHTML = \`
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-                Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            }
-          \`;
-          document.head.appendChild(style);
-        })();
-      `}
+      userAgent={`Mobile - Stripe ReactNative SDK ${Platform.OS}/${Platform.Version} - stripe-react_native/${sdkVersion}`}
       injectedJavaScriptObject={{
         initParams: {
           appearance,
@@ -209,16 +224,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         initComponentProps: componentProps,
         appInfo: { applicationId: undefined },
       }}
+      // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
+      injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={async (event) => {
         const message = JSON.parse(event.nativeEvent.data) as {
           type: string;
           data?: unknown;
         };
-        console.log('Received message from WebView:', message);
 
         if (message.type === 'fetchClientSecret') {
           const clientSecret = await fetchClientSecret();
-
           ref.current?.injectJavaScript(`
             window.clientSecretDeferred.resolve(${JSON.stringify(
               clientSecret

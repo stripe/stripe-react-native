@@ -34,8 +34,7 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
 export default ConnectScreen;
 
 const fetchClientSecret = async () => {
-  // TODO: use a different endpoint
-  const response = await fetch(`${API_URL}/create-payment-intent`, {
+  const response = await fetch(`${API_URL}/account_session`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
