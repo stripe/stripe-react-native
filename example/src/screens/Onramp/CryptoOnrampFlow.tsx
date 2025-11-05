@@ -171,7 +171,7 @@ export default function CryptoOnrampFlow() {
       // Step 1: Create auth intent using OnrampBackend API
       const authIntentResponse = await createAuthIntent(
         userInfo.email,
-        'kyc.status:read,crypto:ramp'
+        'kyc.status:read,crypto:ramp,auth.persist_login:read'
       );
 
       if (!authIntentResponse.success) {

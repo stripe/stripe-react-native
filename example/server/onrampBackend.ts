@@ -13,6 +13,23 @@ interface CreateAuthIntentResponse {
   token: string;
 }
 
+interface SignupRequest {
+  email: string;
+  livemode: boolean;
+  password: string;
+}
+
+interface SignupUser {
+  user_id: number;
+  email: string;
+  created_at: string;
+}
+
+interface SignupResponse {
+  token: string;
+  user: SignupUser;
+}
+
 interface CreateOnrampSessionRequest {
   ui_mode: string;
   payment_token: string;
@@ -147,7 +164,7 @@ export class OnrampBackend {
    */
   async createAuthIntent(
     email: string,
-    oauthScopes: string = 'kyc.status:read,crypto:ramp'
+    oauthScopes: string = 'kyc.status:read,crypto:ramp,auth.persist_login:read'
   ): Promise<ApiResult<CreateAuthIntentResponse>> {
     const requestBody: CreateAuthIntentRequest = {
       email,
@@ -158,6 +175,31 @@ export class OnrampBackend {
       '/auth_intent/create',
       requestBody
     );
+  }
+
+  /**
+   * Signs up a new user for the demo backend
+   * @param email User email address
+   * @param password User password
+   * @param livemode Whether to use livemode (defaults to false)
+   */
+  async signup(
+    email: string,
+    password: string,
+    livemode: boolean = false
+  ): Promise<ApiResult<SignupResponse>> {
+    const requestBody: SignupRequest = {
+      email,
+      livemode,
+      password,
+    };
+
+    return this.makeRequest<SignupResponse>('/v1/auth/signup', requestBody, {
+      transformResponse: (data) => ({
+        token: data.token,
+        user: data.user,
+      }),
+    });
   }
 
   /**
@@ -273,10 +315,21 @@ export const checkout = async (
   return defaultClient.checkout(cosId, authToken);
 };
 
+export const signup = async (
+  email: string,
+  password: string,
+  livemode?: boolean
+): Promise<ApiResult<SignupResponse>> => {
+  return defaultClient.signup(email, password, livemode);
+};
+
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
   AuthIntentData,
+  SignupRequest,
+  SignupResponse,
+  SignupUser,
   CreateOnrampSessionRequest,
   OnrampSessionResponse,
   CheckoutRequest,
