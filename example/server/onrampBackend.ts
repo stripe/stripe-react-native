@@ -9,6 +9,11 @@ interface CreateAuthIntentResponse {
   token: string;
 }
 
+interface CreateLinkAuthTokenResponse {
+  link_auth_token_client_secret: string;
+  expires_in: number;
+}
+
 interface SignupRequest {
   email: string;
   password: string;
@@ -185,6 +190,26 @@ export class OnrampBackend {
   }
 
   /**
+   * Creates a Link Auth Token client secret for token-based Link authentication
+   * @param authToken Bearer auth token from signup/login
+   */
+  async createLinkAuthToken(
+    authToken: string
+  ): Promise<ApiResult<CreateLinkAuthTokenResponse>> {
+    return this.makeRequest<CreateLinkAuthTokenResponse>(
+      '/v1/auth/create_link_auth_token',
+      {},
+      {
+        authToken,
+        transformResponse: (data) => ({
+          link_auth_token_client_secret: data.link_auth_token_client_secret,
+          expires_in: data.expires_in,
+        }),
+      }
+    );
+  }
+
+  /**
    * Signs up a new user for the demo backend
    * @param email User email address
    * @param password User password
@@ -340,6 +365,12 @@ export const createOnrampSession = async (
   );
 };
 
+export const createLinkAuthToken = async (
+  authToken: string
+): Promise<ApiResult<CreateLinkAuthTokenResponse>> => {
+  return defaultClient.createLinkAuthToken(authToken);
+};
+
 export const checkout = async (
   cosId: string,
   authToken: string
@@ -366,6 +397,7 @@ export const login = async (
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
+  CreateLinkAuthTokenResponse,
   SignupRequest,
   SignupResponse,
   SignupUser,
