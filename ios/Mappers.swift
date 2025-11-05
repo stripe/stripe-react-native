@@ -738,7 +738,7 @@ class Mappers {
 
 
         let types = setupIntent.paymentMethodTypes.map {
-            mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
+            mapPaymentMethodType(type: $0)
         }
 
         intent.setValue(types, forKey: "paymentMethodTypes")
