@@ -639,7 +639,6 @@ app.post('/payment-sheet', async (req, res) => {
         // 'sepa_debit',
         // 'bancontact',
         // 'p24',
-        // 'giropay',
         // 'eps',
         // 'afterpay_clearpay',
         // 'klarna',

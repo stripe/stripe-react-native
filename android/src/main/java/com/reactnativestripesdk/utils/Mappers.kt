@@ -138,7 +138,6 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.CardPresent -> "CardPresent"
     PaymentMethod.Type.Eps -> "Eps"
     PaymentMethod.Type.Fpx -> "Fpx"
-    PaymentMethod.Type.Giropay -> "Giropay"
     PaymentMethod.Type.GrabPay -> "GrabPay"
     PaymentMethod.Type.Ideal -> "Ideal"
     PaymentMethod.Type.Netbanking -> "Netbanking"
@@ -169,7 +168,6 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "CardPresent" -> PaymentMethod.Type.CardPresent
     "Eps" -> PaymentMethod.Type.Eps
     "Fpx" -> PaymentMethod.Type.Fpx
-    "Giropay" -> PaymentMethod.Type.Giropay
     "GrabPay" -> PaymentMethod.Type.GrabPay
     "Netbanking" -> PaymentMethod.Type.Netbanking
     "Oxxo" -> PaymentMethod.Type.Oxxo
@@ -591,6 +589,12 @@ internal fun mapNextAction(
     NextActionType.DisplayPayNowDetails -> {
       (data as? NextActionData.DisplayPayNowDetails)?.let {
         nextActionMap.putString("type", "paynow")
+        nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
+      }
+    }
+    NextActionType.DisplayPromptPayDetails -> {
+      (data as? NextActionData.DisplayPromptPayDetails)?.let {
+        nextActionMap.putString("type", "promptpay")
         nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
       }
     }

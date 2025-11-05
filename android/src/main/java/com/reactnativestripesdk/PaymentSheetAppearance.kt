@@ -70,7 +70,8 @@ private fun buildTypography(
       PaymentSheet.Typography.default.fontResId,
       context,
     )
-  return PaymentSheet.Typography.default.copy(
+  
+  return PaymentSheet.Typography(
     sizeScaleFactor = scale?.toFloat() ?: PaymentSheet.Typography.default.sizeScaleFactor,
     fontResId = resId,
   )
@@ -103,7 +104,7 @@ private fun buildColors(
     return default
   }
 
-  return default.copy(
+  return PaymentSheet.Colors(
     primary =
       colorFromHexOrDefault(
         colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY),
@@ -163,7 +164,7 @@ private fun buildColors(
 }
 
 private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
-  PaymentSheet.Shapes.default.copy(
+  PaymentSheet.Shapes(
     cornerRadiusDp =
       getFloatOr(
         shapeParams,
@@ -176,6 +177,7 @@ private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
         PaymentSheetAppearanceKeys.BORDER_WIDTH,
         PaymentSheet.Shapes.default.borderStrokeWidthDp,
       ),
+    bottomSheetCornerRadiusDp = PaymentSheet.Shapes.default.bottomSheetCornerRadiusDp,
   )
 
 private fun buildPrimaryButton(
