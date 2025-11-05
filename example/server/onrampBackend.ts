@@ -14,6 +14,14 @@ interface CreateLinkAuthTokenResponse {
   expires_in: number;
 }
 
+interface SaveUserRequest {
+  crypto_customer_id: string;
+}
+
+interface SaveUserResponse {
+  success: boolean;
+}
+
 interface SignupRequest {
   email: string;
   password: string;
@@ -260,6 +268,29 @@ export class OnrampBackend {
   }
 
   /**
+   * Saves the authenticated user with their crypto customer id on the demo backend
+   * @param cryptoCustomerId The crypto customer id to associate with the user
+   * @param authToken Bearer auth token from signup/login
+   */
+  async saveUser(
+    cryptoCustomerId: string,
+    authToken: string
+  ): Promise<ApiResult<SaveUserResponse>> {
+    const requestBody: SaveUserRequest = {
+      crypto_customer_id: cryptoCustomerId,
+    };
+
+    return this.makeRequest<SaveUserResponse>(
+      '/v1/auth/save_user',
+      requestBody,
+      {
+        authToken,
+        transformResponse: (data) => ({ success: !!data.success }),
+      }
+    );
+  }
+
+  /**
    * Creates an onramp session for crypto purchase
    * @param paymentToken Payment token from collectPaymentMethod
    * @param walletAddress Destination wallet address
@@ -378,6 +409,13 @@ export const checkout = async (
   return defaultClient.checkout(cosId, authToken);
 };
 
+export const saveUser = async (
+  cryptoCustomerId: string,
+  authToken: string
+): Promise<ApiResult<SaveUserResponse>> => {
+  return defaultClient.saveUser(cryptoCustomerId, authToken);
+};
+
 export const signup = async (
   email: string,
   password: string,
@@ -398,6 +436,8 @@ export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
   CreateLinkAuthTokenResponse,
+  SaveUserRequest,
+  SaveUserResponse,
   SignupRequest,
   SignupResponse,
   SignupUser,
