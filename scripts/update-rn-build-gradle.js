@@ -13,7 +13,7 @@ const rnVersion = process.argv[3];
 
 const parts = rnVersion.split('.');
 const minor = Number.parseInt(parts[1], 10);
-const needsPatch = minor <= 77;
+const needsPatch = minor <= 76;
 
 if (!needsPatch) {
   console.log(
@@ -23,17 +23,21 @@ if (!needsPatch) {
 }
 
 const resolvedPath = path.resolve(buildGradlePath);
-let contents = fs.readFileSync(resolvedPath, 'utf8');
+const contents = fs.readFileSync(resolvedPath, 'utf8');
 
-contents = contents.replace(
-  /(targetSdkVersion\s*=\s*'[^']*')/,
-  `$1\nkotlinVersion = '2.0.21'`
+let updatedContents = contents.replace(
+  /kotlinVersion.*/,
+  `kotlinVersion = "2.0.21"`
 );
 
-contents = contents.replace(
-  /classpath\(['"]org\.jetbrains\.kotlin:kotlin-gradle-plugin[^'"]*['"]\)/g,
+updatedContents = updatedContents.replace(
+  'classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")',
   'classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")'
 );
 
-fs.writeFileSync(resolvedPath, contents, 'utf8');
+if (contents === updatedContents) {
+  throw new Error('Failed to apply Kotlin version patch to build.gradle');
+}
+
+fs.writeFileSync(resolvedPath, updatedContents, 'utf8');
 console.log(`Updated ${resolvedPath}`);

@@ -140,18 +140,12 @@ echo "Installing local stripe-react-native tarball"
 npm install "$TARBALL_PATH"
 
 APP_JSON_PATH="$PROJECT_DIR/app.json"
-if [[ ! -f "$APP_JSON_PATH" ]]; then
-  echo "Error! Could not locate app.json in generated Expo project."
-  exit 1
-fi
 
 echo "Configuring Expo plugins in app.json"
 node "$SCRIPT_DIR/update-expo-plugins.js" --app-json "$APP_JSON_PATH" --expo-version "$EXPO_SDK_VERSION"
 
-if grep -q '"expo-build-properties"' "$APP_JSON_PATH"; then
-  echo "Ensuring expo-build-properties dependency is installed"
-  npx expo install expo-build-properties
-fi
+echo "Ensuring expo-build-properties dependency is installed"
+npx expo install expo-build-properties
 
 PREBUILD_TARGET="all"
 if [[ $RUN_ANDROID -eq 1 && $RUN_IOS -eq 0 ]]; then
