@@ -286,7 +286,6 @@ class Mappers {
         case STPPaymentMethodType.SEPADebit: return "SepaDebit"
         case STPPaymentMethodType.AUBECSDebit: return "AuBecsDebit"
         case STPPaymentMethodType.bacsDebit: return "BacsDebit"
-        case STPPaymentMethodType.giropay: return "Giropay"
         case STPPaymentMethodType.przelewy24: return "P24"
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
@@ -319,7 +318,6 @@ class Mappers {
             case "SepaDebit": return STPPaymentMethodType.SEPADebit
             case "AuBecsDebit": return STPPaymentMethodType.AUBECSDebit
             case "BacsDebit": return STPPaymentMethodType.bacsDebit
-            case "Giropay": return STPPaymentMethodType.giropay
             case "P24": return STPPaymentMethodType.przelewy24
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
@@ -666,7 +664,7 @@ class Mappers {
             "accountType": mapFromUSBankAccountType(type: paymentMethod.usBankAccount?.accountType),
             "last4": paymentMethod.usBankAccount?.last4 ?? NSNull(),
             "bankName": paymentMethod.usBankAccount?.bankName ?? NSNull(),
-            "linkedAccount": paymentMethod.usBankAccount?.linkedAccount ?? NSNull(),
+            "linkedAccount": paymentMethod.usBankAccount?.financialConnectionsAccount ?? NSNull(),
             "fingerprint": paymentMethod.usBankAccount?.fingerprint ?? NSNull(),
             "preferredNetworks": paymentMethod.usBankAccount?.networks?.preferred ?? NSNull(),
             "supportedNetworks": paymentMethod.usBankAccount?.networks?.supported ?? NSNull(),
@@ -839,7 +837,7 @@ class Mappers {
 
 
         let types = setupIntent.paymentMethodTypes.map {
-            mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
+            mapPaymentMethodType(type: $0)
         }
 
         intent.setValue(types, forKey: "paymentMethodTypes")
