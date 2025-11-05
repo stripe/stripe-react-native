@@ -180,7 +180,7 @@ if [[ $RUN_ANDROID -eq 1 ]]; then
   echo "Building Android project"
   (
     cd android
-    GRADLE_COMMAND=(./gradlew assembleDebug)
+    GRADLE_COMMAND=(./gradlew assembleRelease)
     if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
       GRADLE_COMMAND+=("-PnewArchEnabled=${BOOLS[$IS_NEW_ARCH]}")
     fi
@@ -200,7 +200,7 @@ if [[ $RUN_IOS -eq 1 ]]; then
     fi
     xcodebuild \
       -workspace "$PROJECT_NAME.xcworkspace" \
-      -configuration Debug \
+      -configuration Release \
       -scheme "$PROJECT_NAME" \
       -destination 'generic/platform=iOS Simulator' \
       -derivedDataPath "$TMP_DIR/DerivedData"

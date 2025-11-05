@@ -14,6 +14,7 @@ app:
     - NODE_VERSION: '22'
     - JAVA_VERSION: '17'
     - ANDROID_API_LEVEL: '33'
+    - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     - RETRY_SLEEP_FAST: 10
     - RETRY_SLEEP_SLOW: 45
