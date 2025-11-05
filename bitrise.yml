@@ -14,7 +14,6 @@ app:
     - NODE_VERSION: '22'
     - JAVA_VERSION: '17'
     - ANDROID_API_LEVEL: '33'
-    - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
     - RETRY_SLEEP_FAST: 10
     - RETRY_SLEEP_SLOW: 45
@@ -47,7 +46,6 @@ pipelines:
       rn-074: {}
       rn-076: {}
       rn-078: {}
-      rn-080: {}
       rn-081: {}
       rn-082: {}
 
@@ -250,6 +248,7 @@ workflows:
   rn-074:
     envs:
       - RN_VERSION: '0.74'
+      - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
     before_run:
       - _test_projects_base
     steps:
@@ -261,6 +260,7 @@ workflows:
   rn-076:
     envs:
       - RN_VERSION: '0.76'
+      - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
     before_run:
       - _test_projects_base
     steps:
@@ -277,17 +277,6 @@ workflows:
     steps:
       - script@1:
           title: Build React Native 0.78 project
-          inputs:
-            - content: ./scripts/test-project --version "$RN_VERSION"
-
-  rn-080:
-    envs:
-      - RN_VERSION: '0.80'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build React Native 0.80 project
           inputs:
             - content: ./scripts/test-project --version "$RN_VERSION"
 
