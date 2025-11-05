@@ -214,6 +214,20 @@ RCT_EXPORT_METHOD(customerAdapterSetupIntentClientSecretForCustomerAttachCallbac
                                                                                rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
+                                                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(clientSecretProviderCustomerSessionClientSecretCallback:(nonnull NSDictionary *)customerSessionClientSecret
+                                                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(dismissPlatformPay:(nonnull RCTPromiseResolveBlock)resolve
                               reject:(nonnull RCTPromiseRejectBlock)reject)
 {

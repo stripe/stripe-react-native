@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
+import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
@@ -34,15 +35,17 @@ import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.customersheet.CustomerSheetResult
 import com.stripe.android.customersheet.PaymentOptionSelection
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
+@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomerSessionApi::class)
 class CustomerSheetFragment : StripeFragment() {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
+  internal var customerSessionProvider: ReactNativeCustomerSessionProvider? = null
   internal var context: ReactApplicationContext? = null
   internal var initPromise: Promise? = null
   private var presentPromise: Promise? = null
@@ -73,28 +76,9 @@ class CustomerSheetFragment : StripeFragment() {
     val googlePayEnabled = arguments?.getBoolean("googlePayEnabled") ?: false
     val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
     val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
-    val setupIntentClientSecret = arguments?.getString("setupIntentClientSecret")
-    val customerId = arguments?.getString("customerId")
-    val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
-    val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
     val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
-    if (customerId == null) {
-      initPromise.resolve(
-        createError(ErrorType.Failed.toString(), "You must provide a value for `customerId`"),
-      )
-      return
-    }
-    if (customerEphemeralKeySecret == null) {
-      initPromise.resolve(
-        createError(
-          ErrorType.Failed.toString(),
-          "You must provide a value for `customerEphemeralKeySecret`",
-        ),
-      )
-      return
-    }
 
     val appearance =
       try {
@@ -125,21 +109,62 @@ class CustomerSheetFragment : StripeFragment() {
       )
     }
 
-    val customerAdapter =
-      createCustomerAdapter(
-        context,
-        customerId,
-        customerEphemeralKeySecret,
-        setupIntentClientSecret,
-        customerAdapterOverrideParams,
-      ).also { this.customerAdapter = it }
-
-    customerSheet =
-      CustomerSheet.create(
-        fragment = this,
-        customerAdapter = customerAdapter,
-        callback = ::handleResult,
+    val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
+    val intentConfiguration = createIntentConfiguration(arguments?.getBundle("intentConfiguration"))
+    if (customerEphemeralKeySecret == null && intentConfiguration == null) {
+      initPromise.resolve(
+        createError(
+          ErrorType.Failed.toString(),
+          "You must provide either `customerEphemeralKeySecret` or `intentConfiguration`",
+        ),
       )
+      return
+    } else if (customerEphemeralKeySecret == null) {
+      val customerSessionProvider =
+        ReactNativeCustomerSessionProvider(
+          context = context,
+          intentConfiguration = intentConfiguration!!,
+        ).also { this.customerSessionProvider = it }
+
+      customerSheet =
+        CustomerSheet.create(
+          fragment = this,
+          customerSessionProvider = customerSessionProvider,
+          callback = ::handleResult,
+        )
+    } else if (intentConfiguration == null) {
+      val customerId = arguments?.getString("customerId")
+      if (customerId == null) {
+        initPromise.resolve(
+          createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
+        )
+        return
+      }
+      val setupIntentClientSecret = arguments?.getString("setupIntentClientSecret")
+      val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
+      val customerAdapter =
+        createCustomerAdapter(
+          context,
+          customerId!!,
+          customerEphemeralKeySecret,
+          setupIntentClientSecret,
+          customerAdapterOverrideParams,
+        ).also { this.customerAdapter = it }
+
+      customerSheet =
+        CustomerSheet.create(
+          fragment = this,
+          customerAdapter = customerAdapter,
+          callback = ::handleResult,
+        )
+    } else {
+      initPromise.resolve(
+        createError(
+          ErrorType.Failed.toString(),
+          "You must provide either `customerEphemeralKeySecret` or `intentConfiguration`, but not both",
+        ),
+      )
+    }
 
     customerSheet?.configure(configuration.build())
 
@@ -388,6 +413,19 @@ class CustomerSheetFragment : StripeFragment() {
 
       return paymentOptionResult
     }
+
+    internal fun createIntentConfiguration(intentConfigurationBundle: Bundle?): CustomerSheet.IntentConfiguration? =
+      intentConfigurationBundle?.let { bundle ->
+        val onBehalfOf = bundle?.getString("onBehalfOf")
+        CustomerSheet.IntentConfiguration
+          .Builder()
+          .paymentMethodTypes(bundle?.getStringArrayList("paymentMethodTypes") ?: emptyList())
+          .apply {
+            if (onBehalfOf != null) {
+              this.onBehalfOf(onBehalfOf!!)
+            }
+          }.build()
+      }
 
     private fun buildResult(
       label: String,

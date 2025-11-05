@@ -14,6 +14,8 @@
     @"onCustomerAdapterSetSelectedPaymentOptionCallback",
     @"onCustomerAdapterFetchSelectedPaymentOptionCallback",
     @"onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback",
+    @"onCustomerSessionProviderSetupIntentClientSecret",
+    @"onCustomerSessionProviderCustomerSessionClientSecret",
     @"onFinancialConnectionsEvent",
     @"embeddedPaymentElementDidUpdateHeight",
     @"embeddedPaymentElementWillPresent",
@@ -73,6 +75,16 @@
 - (void)emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback
 {
   [self sendEventWithName:@"onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback" body:@{}];
+}
+
+- (void)emitOnCustomerSessionProviderSetupIntentClientSecret
+{
+  [self sendEventWithName:@"onCustomerSessionProviderSetupIntentClientSecret" body:@{}];
+}
+
+- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret
+{
+  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:@{}];
 }
 
 - (void)emitEmbeddedPaymentElementDidUpdateHeight:(NSDictionary *)value
