@@ -1266,6 +1266,27 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(authenticateUserWithToken:resolver:rejecter:)
+    public func authenticateUserWithToken(
+        _ linkAuthTokenClientSecret: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        Task {
+            do {
+                try await coordinator.authenticateUserWithToken(linkAuthTokenClientSecret)
+                resolve([:])  // Return empty object on success
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(registerWalletAddress:network:resolver:rejecter:)
     public func registerWalletAddress(
         address: String,
