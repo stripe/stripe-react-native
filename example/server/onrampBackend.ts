@@ -326,7 +326,7 @@ export class OnrampBackend {
     };
 
     return this.makeRequest<OnrampSessionResponse>(
-      '/create_onramp_session',
+      '/v1/create_onramp_session',
       requestBody,
       {
         useTimeout: true,
@@ -352,14 +352,18 @@ export class OnrampBackend {
       cos_id: cosId,
     };
 
-    return this.makeRequest<OnrampSessionResponse>('/checkout', requestBody, {
-      useTimeout: true,
-      authToken,
-      transformResponse: (data) => ({
-        id: data.id,
-        client_secret: data.client_secret,
-      }),
-    });
+    return this.makeRequest<OnrampSessionResponse>(
+      '/v1/checkout',
+      requestBody,
+      {
+        useTimeout: true,
+        authToken,
+        transformResponse: (data) => ({
+          id: data.id,
+          client_secret: data.client_secret,
+        }),
+      }
+    );
   }
 }
 
