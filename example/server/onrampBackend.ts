@@ -15,8 +15,8 @@ interface CreateAuthIntentResponse {
 
 interface SignupRequest {
   email: string;
-  livemode: boolean;
   password: string;
+  livemode: boolean;
 }
 
 interface SignupUser {
@@ -26,6 +26,17 @@ interface SignupUser {
 }
 
 interface SignupResponse {
+  token: string;
+  user: SignupUser;
+}
+
+interface LoginRequest {
+  email: string;
+  password: string;
+  livemode: boolean;
+}
+
+interface LoginResponse {
   token: string;
   user: SignupUser;
 }
@@ -190,11 +201,36 @@ export class OnrampBackend {
   ): Promise<ApiResult<SignupResponse>> {
     const requestBody: SignupRequest = {
       email,
-      livemode,
       password,
+      livemode,
     };
 
     return this.makeRequest<SignupResponse>('/v1/auth/signup', requestBody, {
+      transformResponse: (data) => ({
+        token: data.token,
+        user: data.user,
+      }),
+    });
+  }
+
+  /**
+   * Logs in an existing user
+   * @param email User email address
+   * @param password User password
+   * @param livemode Whether to use livemode (defaults to false)
+   */
+  async login(
+    email: string,
+    password: string,
+    livemode: boolean = false
+  ): Promise<ApiResult<LoginResponse>> {
+    const requestBody: LoginRequest = {
+      email,
+      password,
+      livemode,
+    };
+
+    return this.makeRequest<LoginResponse>('/v1/auth/login', requestBody, {
       transformResponse: (data) => ({
         token: data.token,
         user: data.user,
@@ -323,6 +359,14 @@ export const signup = async (
   return defaultClient.signup(email, password, livemode);
 };
 
+export const login = async (
+  email: string,
+  password: string,
+  livemode?: boolean
+): Promise<ApiResult<LoginResponse>> => {
+  return defaultClient.login(email, password, livemode);
+};
+
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
@@ -330,6 +374,8 @@ export type {
   SignupRequest,
   SignupResponse,
   SignupUser,
+  LoginRequest,
+  LoginResponse,
   CreateOnrampSessionRequest,
   OnrampSessionResponse,
   CheckoutRequest,
