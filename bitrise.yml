@@ -43,6 +43,7 @@ pipelines:
       expo-sdk-52: {}
       expo-sdk-53: {}
       expo-sdk-54: {}
+      rn-074: {}
       rn-076: {}
       rn-078: {}
       rn-080: {}
@@ -213,17 +214,6 @@ workflows:
     before_run:
       - _e2e_tests_ios
 
-  expo-sdk-51:
-    envs:
-      - EXPO_SDK_VERSION: '51'
-    before_run:
-      - _test_projects_base
-    steps:
-      - script@1:
-          title: Build Expo SDK 51 project
-          inputs:
-            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
-
   expo-sdk-52:
     envs:
       - EXPO_SDK_VERSION: '52'
@@ -256,6 +246,16 @@ workflows:
           title: Build Expo SDK 54 project
           inputs:
             - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
+  rn-074:
+    envs:
+      - RN_VERSION: '0.74'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build React Native 0.74 project
+          inputs:
+            - content: ./scripts/test-project --version "$RN_VERSION"
 
   rn-076:
     envs:
