@@ -85,7 +85,7 @@ export default function CryptoOnrampFlow() {
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
 
-  // Auth token from CreateAuthIntentResponse
+  // Auth token from SignupResponse, LoginResponse, or CreateAuthIntentResponse
   const [authToken, setAuthToken] = useState<string | null>(null);
 
   // Wallet address from registration

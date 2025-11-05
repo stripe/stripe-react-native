@@ -1,15 +1,11 @@
 interface CreateAuthIntentRequest {
-  email: string;
   oauth_scopes: string;
 }
 
-interface AuthIntentData {
-  id: string;
-  expiresAt: number; // Unix timestamp
-}
-
 interface CreateAuthIntentResponse {
-  data: AuthIntentData;
+  authIntentId: string;
+  existing: boolean;
+  state: string;
   token: string;
 }
 
@@ -169,22 +165,22 @@ export class OnrampBackend {
   }
 
   /**
-   * Creates an auth intent for the given email and OAuth scopes
-   * @param email User email address
+   * Creates an auth intent using an existing user session token
+   * @param authToken Bearer auth token from signup/login
    * @param oauthScopes OAuth scopes
    */
   async createAuthIntent(
-    email: string,
+    authToken: string,
     oauthScopes: string = 'kyc.status:read,crypto:ramp,auth.persist_login:read'
   ): Promise<ApiResult<CreateAuthIntentResponse>> {
     const requestBody: CreateAuthIntentRequest = {
-      email,
       oauth_scopes: oauthScopes,
     };
 
     return this.makeRequest<CreateAuthIntentResponse>(
-      '/auth_intent/create',
-      requestBody
+      '/v1/auth/create',
+      requestBody,
+      { authToken }
     );
   }
 
@@ -314,10 +310,10 @@ export class OnrampBackend {
 const defaultClient = new OnrampBackend();
 
 export const createAuthIntent = async (
-  email: string,
+  authToken: string,
   oauthScopes?: string
 ): Promise<ApiResult<CreateAuthIntentResponse>> => {
-  return defaultClient.createAuthIntent(email, oauthScopes);
+  return defaultClient.createAuthIntent(authToken, oauthScopes);
 };
 
 export const createOnrampSession = async (
@@ -370,7 +366,6 @@ export const login = async (
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
-  AuthIntentData,
   SignupRequest,
   SignupResponse,
   SignupUser,
