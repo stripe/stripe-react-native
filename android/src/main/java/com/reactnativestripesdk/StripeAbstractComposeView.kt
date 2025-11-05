@@ -107,7 +107,22 @@ abstract class StripeAbstractComposeView(
   }
 
   fun handleOnDropViewInstance() {
-    // Update the lifecycle state to DESTROYED to cause the composition to be destroyed.
-    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    when (lifecycleRegistry.currentState) {
+      Lifecycle.State.INITIALIZED -> {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+      }
+      Lifecycle.State.CREATED -> {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+      }
+      Lifecycle.State.STARTED, Lifecycle.State.RESUMED -> {
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+      }
+      Lifecycle.State.DESTROYED -> {
+        // Already destroyed, nothing to do
+      }
+    }
   }
 }
