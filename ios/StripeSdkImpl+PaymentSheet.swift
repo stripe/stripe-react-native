@@ -373,12 +373,16 @@ extension StripeSdkImpl {
                 RCTMakeAndLogError(error.localizedDescription, nil, nil)
             }
             return request
-        }, authorizationResultHandler: { result, completion in
+        }, authorizationResultHandler: { result in
             if applePayParams.object(forKey: "setOrderTracking") != nil {
-                self.orderTrackingHandler = (result, completion)
-                self.emitter?.emitOnOrderTrackingCallback()
+                return await withCheckedContinuation { continuation in
+                    self.orderTrackingHandler = (result: result, handler: { updatedResult in
+                        continuation.resume(returning: updatedResult)
+                    })
+                    self.emitter?.emitOnOrderTrackingCallback()
+                }
             } else {
-                completion(result)
+                return result
             }
         })
     }
