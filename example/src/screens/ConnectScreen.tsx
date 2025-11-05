@@ -25,6 +25,12 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
     <ConnectComponentsProvider
       publishableKey={publishableKey}
       fetchClientSecret={fetchClientSecret}
+      appearance={{
+        variables: {
+          fontFamily:
+            "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
+        },
+      }}
     >
       {children}
     </ConnectComponentsProvider>
