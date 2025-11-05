@@ -163,6 +163,7 @@ private fun buildColors(
   )
 }
 
+@OptIn(AppearanceAPIAdditionsPreview::class)
 private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes =
   PaymentSheet.Shapes(
     cornerRadiusDp =

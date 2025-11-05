@@ -245,21 +245,22 @@ class CardFormView(
   private fun setListeners() {
     cardForm.setCardValidCallback { isValid, _ ->
       if (isValid) {
-        cardForm.cardParams?.let {
-          val cardParamsMap = it.toParamMap()["card"] as HashMap<*, *>
+        cardForm.paymentMethodCreateParams?.let { params ->
+          val card = params.card
+          val cardParamsMap = card?.toParamMap() ?: emptyMap<String, Any>()
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
-              "expiryMonth" to cardParamsMap["exp_month"] as Int,
-              "expiryYear" to cardParamsMap["exp_year"] as Int,
-              "last4" to it.last4,
-              "brand" to mapCardBrand(it.brand),
-              "postalCode" to (it.address?.postalCode ?: ""),
-              "country" to (it.address?.country ?: ""),
+              "expiryMonth" to (cardParamsMap["exp_month"] as? Int ?: 0),
+              "expiryYear" to (cardParamsMap["exp_year"] as? Int ?: 0),
+              "last4" to (params.cardLast4() ?: ""),
+              "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
+              "postalCode" to (cardAddress?.postalCode ?: ""),
+              "country" to (cardAddress?.country ?: "")
             )
 
           if (dangerouslyGetFullCardDetails) {
-            cardDetails["number"] = cardParamsMap["number"] as String
-            cardDetails["cvc"] = cardParamsMap["cvc"] as String
+            cardDetails["number"] = card?.number ?: ""
+            cardDetails["cvc"] = cardParamsMap["cvc"] as? String ?: ""
           }
 
           UIManagerHelper
@@ -277,10 +278,11 @@ class CardFormView(
           cardAddress =
             Address
               .Builder()
-              .setPostalCode(it.address?.postalCode)
-              .setCountry(it.address?.country)
+              .setPostalCode(cardAddress?.postalCode)
+              .setCountry(cardAddress?.country)
               .build()
 
+          //cardParams = card
           cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params ->
             cardParams = params
           }

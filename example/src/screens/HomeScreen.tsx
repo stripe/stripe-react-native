@@ -315,15 +315,6 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="giropay"
-              onPress={() => {
-                navigation.navigate('GiropayPaymentScreen');
-              }}
-            />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
               title="iDEAL payment"
               onPress={() => {
                 navigation.navigate('IdealPaymentScreen');

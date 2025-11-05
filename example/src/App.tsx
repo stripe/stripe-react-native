@@ -24,7 +24,6 @@ import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
-import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
@@ -76,7 +75,6 @@ export type RootStackParamList = {
   SepaPaymentScreen: undefined;
   SepaSetupFuturePaymentScreen: undefined;
   OxxoPaymentScreen: undefined;
-  GiropayPaymentScreen: undefined;
   EPSPaymentScreen: undefined;
   GrabPayPaymentScreen: undefined;
   P24PaymentScreen: undefined;
@@ -247,10 +245,6 @@ export default function App() {
           <Stack.Screen
             name="OxxoPaymentScreen"
             component={OxxoPaymentScreen}
-          />
-          <Stack.Screen
-            name="GiropayPaymentScreen"
-            component={GiropayPaymentScreen}
           />
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
