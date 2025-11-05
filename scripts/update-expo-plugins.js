@@ -11,9 +11,10 @@ const expoMajor = expoMajorMatch ? parseInt(expoMajorMatch[1], 10) : null;
 const needsBuildProperties = expoMajor !== null && expoMajor <= 52;
 
 const appConfig = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
-const plugins = appConfig.expo.plugins;
+const expoConfig = appConfig.expo ?? (appConfig.expo = {});
+expoConfig.plugins = expoConfig.plugins || [];
 
-plugins.push([
+expoConfig.plugins.push([
   '@stripe/stripe-react-native',
   {
     merchantIdentifier: 'com.stripe.test',
@@ -22,7 +23,7 @@ plugins.push([
 ]);
 
 if (needsBuildProperties) {
-  plugins.push([
+  expoConfig.plugins.push([
     'expo-build-properties',
     {
       android: {
@@ -31,5 +32,11 @@ if (needsBuildProperties) {
     },
   ]);
 }
+
+expoConfig.android = expoConfig.android ?? {};
+expoConfig.android.package = 'com.stripe.expotestapp';
+
+expoConfig.ios = expoConfig.ios ?? {};
+expoConfig.ios.bundleIdentifier = 'com.stripe.expotestapp';
 
 fs.writeFileSync(appJsonPath, `${JSON.stringify(appConfig, null, 2)}\n`);
