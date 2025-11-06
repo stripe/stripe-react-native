@@ -1721,9 +1721,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
-    @objc(getCryptoTokenDisplayData:)
-    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: Any]? {
-        return nil
+    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
+    public func getCryptoTokenDisplayData(token: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
