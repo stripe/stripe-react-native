@@ -21,7 +21,7 @@ export interface Spec extends TurboModule {
     kycInfo: UnsafeObject<Onramp.KycInfo>
   ): Promise<Onramp.VoidResult>;
   presentKycInfoVerification: (
-    updatedAddress: Address | null
+    updatedAddress: UnsafeObject<Address> | null
   ) => Promise<Onramp.VerifyKycResult>;
   updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
   authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
