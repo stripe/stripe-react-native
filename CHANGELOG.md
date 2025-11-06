@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x.x.x
+## 0.56.0 - 2025-11-06
 
 **Changes**
 - CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
