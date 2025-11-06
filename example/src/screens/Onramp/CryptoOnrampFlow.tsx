@@ -83,6 +83,7 @@ export default function CryptoOnrampFlow() {
     token: string;
   } | null>(null);
   const [hasSeamlessSignIn, setHasSeamlessSignIn] = useState(false);
+  const [isSeamlessSigningIn, setIsSeamlessSigningIn] = useState(false);
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
@@ -604,6 +605,7 @@ export default function CryptoOnrampFlow() {
 
   const handleSeamlessSignIn = useCallback(async () => {
     if (!storedDemoAuth) return;
+    setIsSeamlessSigningIn(true);
     try {
       const latRes = await createLinkAuthToken(storedDemoAuth.token);
       if (!latRes.success) {
@@ -649,6 +651,8 @@ export default function CryptoOnrampFlow() {
         'Seamless Sign-In Unavailable',
         `Please sign in manually. ${e?.message ?? ''}`
       );
+    } finally {
+      setIsSeamlessSigningIn(false);
     }
   }, [storedDemoAuth, authenticateUserWithToken, clearPersistedDemoAuth]);
 
@@ -663,14 +667,18 @@ export default function CryptoOnrampFlow() {
                 <Text style={styles.boldText}>{storedDemoAuth.email}</Text>.
               </Text>
               <Button
-                title="Seamless Sign-In"
+                title={
+                  isSeamlessSigningIn ? 'Signing In...' : 'Seamless Sign-In'
+                }
                 onPress={handleSeamlessSignIn}
                 variant="primary"
+                disabled={isSeamlessSigningIn}
               />
               <Button
                 title="Manual Sign-In"
                 onPress={clearPersistedDemoAuth}
                 variant="primary"
+                disabled={isSeamlessSigningIn}
               />
             </>
           ) : (
