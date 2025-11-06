@@ -21,6 +21,8 @@ import {
   createAuthIntent,
   createOnrampSession,
   checkout,
+  signup,
+  login,
 } from '../../../server/onrampBackend';
 import {
   getDestinationParamsForNetwork,
@@ -62,6 +64,7 @@ export default function CryptoOnrampFlow() {
   const { isPlatformPaySupported } = useStripe();
   const [userInfo, setUserInfo] = useState({
     email: '',
+    password: '',
     firstName: '',
     lastName: '',
     phoneNumber: '',
@@ -133,6 +136,32 @@ export default function CryptoOnrampFlow() {
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
     }
   }, [userInfo.email, hasLinkAccount]);
+
+  const handleLogin = useCallback(async () => {
+    if (!userInfo.email || !userInfo.password) {
+      Alert.alert('Missing Info', 'Please enter both email and password.');
+      return;
+    }
+    const res = await login(userInfo.email, userInfo.password);
+    if (res.success) {
+      setAuthToken(res.data.token);
+    } else {
+      Alert.alert('Login Failed', `${res.error.code}: ${res.error.message}`);
+    }
+  }, [userInfo.email, userInfo.password]);
+
+  const handleSignup = useCallback(async () => {
+    if (!userInfo.email || !userInfo.password) {
+      Alert.alert('Missing Info', 'Please enter both email and password.');
+      return;
+    }
+    const res = await signup(userInfo.email, userInfo.password);
+    if (res.success) {
+      setAuthToken(res.data.token);
+    } else {
+      Alert.alert('Signup Failed', `${res.error.code}: ${res.error.message}`);
+    }
+  }, [userInfo.email, userInfo.password]);
 
   const showPaymentData = useCallback(async () => {
     const cardParams: Onramp.CryptoPaymentToken = {
@@ -538,14 +567,35 @@ export default function CryptoOnrampFlow() {
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
-        <Text style={styles.infoText}>Enter your email address:</Text>
+        <Text style={styles.infoText}>
+          Enter an email and password to continue:
+        </Text>
         <FormField
           label="Email"
           value={userInfo.email}
           onChangeText={(text) => setUserInfo((u) => ({ ...u, email: text }))}
           placeholder="Email"
         />
-        {isLinkUser === false && (
+        <FormField
+          label="Password"
+          value={userInfo.password}
+          onChangeText={(text) =>
+            setUserInfo((u) => ({ ...u, password: text }))
+          }
+          placeholder="Password"
+          secureTextEntry
+        />
+        <View style={{ paddingHorizontal: 16 }}>
+          <Button title="Log In" onPress={handleLogin} variant="primary" />
+          <View style={{ height: 8 }} />
+          <Button title="Sign Up" onPress={handleSignup} variant="primary" />
+          {authToken && (
+            <Text style={styles.authenticatedLabel}>
+              Authenticated with demo backend
+            </Text>
+          )}
+        </View>
+        {authToken && isLinkUser === false && (
           <Button
             title="Verify Link User"
             onPress={checkIsLinkUser}
@@ -645,5 +695,10 @@ const styles = StyleSheet.create({
   logoutContainer: {
     paddingStart: 16,
     paddingVertical: 16,
+  },
+  authenticatedLabel: {
+    marginTop: 8,
+    color: 'green',
+    fontWeight: '600',
   },
 });
