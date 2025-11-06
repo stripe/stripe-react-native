@@ -161,6 +161,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Customer Sheet with Customer Session"
+              onPress={() => {
+                navigation.navigate('CustomerSheetScreenCustomerSession');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Card element only"
               onPress={() => {
                 navigation.navigate('WebhookPaymentScreen');
@@ -365,6 +373,14 @@ export default function HomeScreen() {
               title="Billie"
               onPress={() => {
                 navigation.navigate('BilliePaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Alma"
+              onPress={() => {
+                navigation.navigate('AlmaPaymentScreen');
               }}
             />
           </View>

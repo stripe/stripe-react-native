@@ -138,7 +138,7 @@ echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
 yarn version --"$RELEASE_TYPE"
 
 echo "Publishing release"
-yarn --ignore-scripts publish --non-interactive --access=public
+npm publish --ignore-scripts --access=public
 echo "Published to npm!"
 
 echo "Pushing git commit and tag"

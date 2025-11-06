@@ -2,6 +2,7 @@ import Foundation
 
 @objc public protocol StripeSdkEmitter {
     func emitOnConfirmHandlerCallback(_ value: [String: Any])
+    func emitOnConfirmationTokenHandlerCallback(_ value: [String: Any])
     func emitOnFinancialConnectionsEvent(_ value: [String: Any])
     func emitOnOrderTrackingCallback()
     func emitOnCustomerAdapterFetchPaymentMethodsCallback()
@@ -10,6 +11,8 @@ import Foundation
     func emitOnCustomerAdapterSetSelectedPaymentOptionCallback(_ value: [String: Any])
     func emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
     func emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
+    func emitOnCustomerSessionProviderSetupIntentClientSecret()
+    func emitOnCustomerSessionProviderCustomerSessionClientSecret()
     func emitEmbeddedPaymentElementDidUpdateHeight(_ value: [String: Any])
     func emitEmbeddedPaymentElementWillPresent()
     func emitEmbeddedPaymentElementDidUpdatePaymentOption(_ value: [String: Any])

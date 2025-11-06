@@ -28,13 +28,15 @@ const appInfo: AppInfo = {
   partnerId: shouldAttributeExpo() ? EXPO_PARTNER_ID : undefined,
 };
 
+let didRegisterHeadlessTask = false;
+
 export const initStripe = async (params: InitStripeParams): Promise<void> => {
   // On Android when the activity is paused, JS timers are paused,
   // which causes network requests to hang indefinitely on new arch.
   // To work around this, we register a headless task that will keep
   // the JS runtime running while the Stripe UI is opened.
   // This task is started and stopped by the native module.
-  if (Platform.OS === 'android') {
+  if (Platform.OS === 'android' && !didRegisterHeadlessTask) {
     function stripeHeadlessTask() {
       return new Promise<void>(() => {});
     }
@@ -43,6 +45,7 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
       'StripeKeepJsAwakeTask',
       () => stripeHeadlessTask
     );
+    didRegisterHeadlessTask = true;
   }
 
   const extendedParams: InitialiseParams = { ...params, appInfo };
@@ -84,14 +87,14 @@ export function StripeProvider({
     }
     const initializeStripe = async () => {
       if (isAndroid) {
-        await NativeStripeSdk.initialise({
+        await initStripe({
           publishableKey,
-          appInfo,
           stripeAccountId,
           threeDSecureParams,
           urlScheme,
           setReturnUrlSchemeOnAndroid,
         });
+
         await NativeOnrampSdk.initialise({
           publishableKey,
           appInfo,
@@ -101,9 +104,8 @@ export function StripeProvider({
           setReturnUrlSchemeOnAndroid,
         });
       } else {
-        await NativeStripeSdk.initialise({
+        await initStripe({
           publishableKey,
-          appInfo,
           stripeAccountId,
           threeDSecureParams,
           merchantIdentifier,

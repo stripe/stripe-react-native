@@ -282,3 +282,14 @@ If you're still having troubles, please [open an issue](https://github.com/strip
 ### `Apple Pay Is Not Available in "My App Name"`
 
 This can occur if you attempt to process an Apple Pay payment on a physical device (even in test mode) without having created **and uploaded** your Apple Pay Certificate to the Stripe Dashboard. Learn how to do that [here](https://stripe.com/docs/apple-pay#csr).
+
+### `UnsupportedModulePropertyParserError` on iOS
+
+While installing pods in your iOS project using a Stripe React Native version before 0.52, the old architecture, and a React Native version after 0.74, you may encounter the following error:
+
+```
+UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
+```
+
+If possible, update to version 0.52 or above of the Stripe React Native SDK. 
+If you are unable to do so, please follow our [guide to apply the fix patch](https://github.com/stripe/stripe-react-native/tree/master/patches).
