@@ -1353,6 +1353,50 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(presentKycInfoVerification:resolver:rejecter:)
+    public func presentKycInfoVerification(
+        updatedAddressDictionary: NSDictionary?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        let updatedAddress: Address?
+        if let updatedAddressDictionary {
+            guard let typedDictionary = updatedAddressDictionary as? [String: String] else {
+                let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of address dictionary. Expected String keys and values.")
+                resolve(["error": errorResult["error"]!])
+                return
+            }
+
+            updatedAddress = Mappers.mapToKycAddress(typedDictionary)
+        } else {
+            updatedAddress = nil
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                }
+                let result = try await coordinator.verifyKYCInfo(updatedAddress: updatedAddress, from: presentingViewController)
+                switch result {
+                case .confirmed:
+                    break
+                case .updateAddress:
+                    break
+                case .canceled:
+                    resolve(["error": Errors.createError(ErrorType.Canceled, "KYC info verification was cancelled")["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(updatePhoneNumber:resolver:rejecter:)
     public func updatePhoneNumber(
         phone: String,
