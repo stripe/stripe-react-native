@@ -6,6 +6,7 @@ import {
   useStripe,
 } from '@stripe/stripe-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Alert,
   Platform,
@@ -24,6 +25,7 @@ import {
   signup,
   login,
   saveUser,
+  createLinkAuthToken,
 } from '../../../server/onrampBackend';
 import {
   getDestinationParamsForNetwork,
@@ -61,6 +63,7 @@ export default function CryptoOnrampFlow() {
     getCryptoTokenDisplayData,
     logOut,
     isAuthError,
+    authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [userInfo, setUserInfo] = useState({
@@ -71,6 +74,15 @@ export default function CryptoOnrampFlow() {
     phoneNumber: '',
   });
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
+
+  // Seamless sign-in persistence
+  const STORAGE_KEY_DEMO_AUTH = 'demoAuthCredentials';
+  const [storedDemoAuth, setStoredDemoAuth] = useState<{
+    email: string;
+    token: string;
+  } | null>(null);
+  const [forceManualSignIn, setForceManualSignIn] = useState(false);
+  const [hasSeamlessSignIn, setHasSeamlessSignIn] = useState(false);
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
@@ -215,6 +227,14 @@ export default function CryptoOnrampFlow() {
       const newToken = authIntentResponse.data.token;
       if (newToken) {
         setAuthToken(newToken);
+        // Persist for seamless sign-in (email + token)
+        try {
+          await AsyncStorage.setItem(
+            STORAGE_KEY_DEMO_AUTH,
+            JSON.stringify({ email: userInfo.email, token: newToken })
+          );
+          setStoredDemoAuth({ email: userInfo.email, token: newToken });
+        } catch {}
       }
       const latestAuthToken = newToken ?? authToken;
 
@@ -246,7 +266,7 @@ export default function CryptoOnrampFlow() {
       console.error('Error in authentication flow:', error);
       showError('Failed to complete authentication flow.');
     }
-  }, [authToken, authorize]);
+  }, [authToken, authorize, userInfo.email]);
 
   const handleVerifyIdentity = useCallback(async () => {
     const result = await withReauth(
@@ -534,6 +554,10 @@ export default function CryptoOnrampFlow() {
       setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
       setAuthToken(null);
+      await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
+      setStoredDemoAuth(null);
+      setForceManualSignIn(false);
+      setHasSeamlessSignIn(false);
       setWalletAddress(null);
       setWalletNetwork(null);
       setOnrampSessionId(null);
@@ -557,34 +581,120 @@ export default function CryptoOnrampFlow() {
     };
   }, [isPlatformPaySupported]);
 
+  // Load persisted demo auth for seamless sign-in
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY_DEMO_AUTH);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.email && parsed?.token) {
+            setStoredDemoAuth({ email: parsed.email, token: parsed.token });
+          }
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const clearPersistedDemoAuth = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
+    } catch {}
+    setStoredDemoAuth(null);
+  }, []);
+
+  const handleSeamlessSignIn = useCallback(async () => {
+    if (!storedDemoAuth) return;
+    try {
+      const latRes = await createLinkAuthToken(storedDemoAuth.token);
+      if (!latRes.success) {
+        await clearPersistedDemoAuth();
+        Alert.alert(
+          'Seamless Sign-In Unavailable',
+          `${latRes.error.code}: ${latRes.error.message}. Please sign in manually.`
+        );
+        setForceManualSignIn(true);
+        return;
+      }
+
+      const clientSecret = latRes.data.link_auth_token_client_secret;
+      const result = await authenticateUserWithToken(clientSecret);
+      if (result?.error) {
+        await clearPersistedDemoAuth();
+        Alert.alert(
+          'Seamless Sign-In Unavailable',
+          `${result.error.code}: ${result.error.message}. Please sign in manually.`
+        );
+        setForceManualSignIn(true);
+        return;
+      }
+
+      // Success: consider user authenticated with Link; use stored token for backend
+      setAuthToken(storedDemoAuth.token);
+      setUserInfo((u) => ({ ...u, email: storedDemoAuth.email }));
+      setHasSeamlessSignIn(true);
+      setForceManualSignIn(false);
+      setIsLinkUser(true); // user is authenticated with Link
+    } catch (e: any) {
+      await clearPersistedDemoAuth();
+      Alert.alert(
+        'Seamless Sign-In Unavailable',
+        `Please sign in manually. ${e?.message ?? ''}`
+      );
+      setForceManualSignIn(true);
+    }
+  }, [storedDemoAuth, authenticateUserWithToken, clearPersistedDemoAuth]);
+
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
         {!authToken ? (
-          <>
-            <Text style={styles.infoText}>
-              Enter an email and password to continue:
-            </Text>
-            <FormField
-              label="Email"
-              value={userInfo.email}
-              onChangeText={(text) =>
-                setUserInfo((u) => ({ ...u, email: text }))
-              }
-              placeholder="Email"
-            />
-            <FormField
-              label="Password"
-              value={userInfo.password}
-              onChangeText={(text) =>
-                setUserInfo((u) => ({ ...u, password: text }))
-              }
-              placeholder="Password"
-              secureTextEntry
-            />
-            <Button title="Log In" onPress={handleLogin} variant="primary" />
-            <Button title="Sign Up" onPress={handleSignup} variant="primary" />
-          </>
+          storedDemoAuth && !forceManualSignIn ? (
+            <>
+              <Text style={styles.infoText}>
+                Previously signed-in as {storedDemoAuth.email}.
+              </Text>
+              <Button
+                title="Seamless Sign-In"
+                onPress={handleSeamlessSignIn}
+                variant="primary"
+              />
+              <Button
+                title="Manual Sign-In"
+                onPress={() => setForceManualSignIn(true)}
+                variant="primary"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.infoText}>
+                Enter an email and password to continue:
+              </Text>
+              <FormField
+                label="Email"
+                value={userInfo.email}
+                onChangeText={(text) =>
+                  setUserInfo((u) => ({ ...u, email: text }))
+                }
+                placeholder="Email"
+              />
+              <FormField
+                label="Password"
+                value={userInfo.password}
+                onChangeText={(text) =>
+                  setUserInfo((u) => ({ ...u, password: text }))
+                }
+                placeholder="Password"
+                secureTextEntry
+              />
+              <Button title="Log In" onPress={handleLogin} variant="primary" />
+              <Button
+                title="Sign Up"
+                onPress={handleSignup}
+                variant="primary"
+              />
+            </>
+          )
         ) : (
           <Text style={styles.authenticatedLabel}>
             Authenticated with demo backend
@@ -610,7 +720,7 @@ export default function CryptoOnrampFlow() {
         onrampSessionId={onrampSessionId}
       />
 
-      {isLinkUser === true && customerId === null && (
+      {isLinkUser === true && customerId === null && !hasSeamlessSignIn && (
         <>
           <PhoneNumberUpdateSection
             userInfo={userInfo}
