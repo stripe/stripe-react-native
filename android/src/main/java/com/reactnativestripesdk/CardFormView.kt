@@ -248,18 +248,20 @@ class CardFormView(
         cardForm.paymentMethodCreateParams?.let { params ->
           val card = params.card
           val cardParamsMap = card?.toParamMap() ?: emptyMap<String, Any>()
+          val address = params.billingDetails?.address
+
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
               "expiryMonth" to (cardParamsMap["exp_month"] as? Int ?: 0),
               "expiryYear" to (cardParamsMap["exp_year"] as? Int ?: 0),
               "last4" to (params.cardLast4() ?: ""),
               "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
-              "postalCode" to (cardAddress?.postalCode ?: ""),
-              "country" to (cardAddress?.country ?: "")
+              "postalCode" to (address?.postalCode ?: ""),
+              "country" to (address?.country ?: ""),
             )
 
           if (dangerouslyGetFullCardDetails) {
-            cardDetails["number"] = card?.number ?: ""
+            cardDetails["number"] = cardParamsMap["number"] as? String ?: ""
             cardDetails["cvc"] = cardParamsMap["cvc"] as? String ?: ""
           }
 
@@ -278,11 +280,11 @@ class CardFormView(
           cardAddress =
             Address
               .Builder()
-              .setPostalCode(cardAddress?.postalCode)
-              .setCountry(cardAddress?.country)
+              .setPostalCode(address?.postalCode)
+              .setCountry(address?.country)
               .build()
 
-          //cardParams = card
+          // cardParams = card
           cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params ->
             cardParams = params
           }

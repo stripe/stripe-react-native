@@ -70,7 +70,7 @@ private fun buildTypography(
       PaymentSheet.Typography.default.fontResId,
       context,
     )
-  
+
   return PaymentSheet.Typography(
     sizeScaleFactor = scale?.toFloat() ?: PaymentSheet.Typography.default.sizeScaleFactor,
     fontResId = resId,
