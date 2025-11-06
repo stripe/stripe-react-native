@@ -23,7 +23,7 @@ export interface Spec extends TurboModule {
   updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
   authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
   authenticateUserWithToken(
-    linkAuthTokenClientSecret: String
+    linkAuthTokenClientSecret: string
   ): Promise<Onramp.VoidResult>;
   verifyIdentity(): Promise<Onramp.VoidResult>;
   collectPaymentMethod(
