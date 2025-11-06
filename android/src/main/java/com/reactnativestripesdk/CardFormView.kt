@@ -245,16 +245,15 @@ class CardFormView(
   private fun setListeners() {
     cardForm.setCardValidCallback { isValid, _ ->
       if (isValid) {
-        cardForm.paymentMethodCreateParams?.let { params ->
-          val card = params.card
-          val cardParamsMap = card?.toParamMap() ?: emptyMap<String, Any>()
-          val address = params.billingDetails?.address
+        cardForm.paymentMethodCreateParams?.let {
+          val cardParamsMap = it.card?.toParamMap() ?: emptyMap<String, Any>()
+          val address = it.billingDetails?.address
 
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
-              "expiryMonth" to (cardParamsMap["exp_month"] as Int),
-              "expiryYear" to (cardParamsMap["exp_year"] as Int),
-              "last4" to (params.cardLast4() ?: ""),
+              "expiryMonth" to cardParamsMap["exp_month"] as Int,
+              "expiryYear" to cardParamsMap["exp_year"] as Int,
+              "last4" to (it.cardLast4() ?: ""),
               "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
               "postalCode" to (address?.postalCode ?: ""),
               "country" to (address?.country ?: ""),
@@ -284,7 +283,6 @@ class CardFormView(
               .setCountry(address?.country)
               .build()
 
-          // cardParams = card
           cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params ->
             cardParams = params
           }
