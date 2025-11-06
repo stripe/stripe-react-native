@@ -5,7 +5,7 @@
 @interface RCT_EXTERN_MODULE(ApplePayButtonManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(type, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(buttonStyle, NSNumber)
-RCT_EXPORT_VIEW_PROPERTY(borderRadius, NSNumber)
+RCT_EXPORT_VIEW_PROPERTY(buttonBorderRadius, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(disabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(onShippingMethodSelectedAction, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onShippingContactSelectedAction, RCTDirectEventBlock)

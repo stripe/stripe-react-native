@@ -14,9 +14,10 @@ class Errors {
 
     static internal let isSetiClientSecretValidRegex: NSRegularExpression? = try? NSRegularExpression(
         pattern: "^seti_[^_]+_secret_[^_]+$", options: [])
-    
+
+    // The `uk_` prefix is used by the Stripe Dashboard Mobile App for MOTO
     static internal let isEKClientSecretValidRegex: NSRegularExpression? = try? NSRegularExpression(
-        pattern: "^ek_[^_](.)+$", options: [])
+        pattern: "^(ek_|uk_)[^_](.)+$", options: [])
 
     class func isPIClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isPIClientSecretValidRegex?.numberOfMatches(

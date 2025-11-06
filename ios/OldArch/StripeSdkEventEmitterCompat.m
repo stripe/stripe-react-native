@@ -7,12 +7,15 @@
   return @[
     @"onOrderTrackingCallback",
     @"onConfirmHandlerCallback",
+    @"onConfirmationTokenHandlerCallback",
     @"onCustomerAdapterFetchPaymentMethodsCallback",
     @"onCustomerAdapterAttachPaymentMethodCallback",
     @"onCustomerAdapterDetachPaymentMethodCallback",
     @"onCustomerAdapterSetSelectedPaymentOptionCallback",
     @"onCustomerAdapterFetchSelectedPaymentOptionCallback",
     @"onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback",
+    @"onCustomerSessionProviderSetupIntentClientSecret",
+    @"onCustomerSessionProviderCustomerSessionClientSecret",
     @"onFinancialConnectionsEvent",
     @"embeddedPaymentElementDidUpdateHeight",
     @"embeddedPaymentElementWillPresent",
@@ -28,6 +31,11 @@
 - (void)emitOnConfirmHandlerCallback:(NSDictionary *)value
 {
   [self sendEventWithName:@"onConfirmHandlerCallback" body:value];
+}
+
+- (void)emitOnConfirmationTokenHandlerCallback:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onConfirmationTokenHandlerCallback" body:value];
 }
 
 - (void)emitOnFinancialConnectionsEvent:(NSDictionary *)value
@@ -68,6 +76,16 @@
 - (void)emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback
 {
   [self sendEventWithName:@"onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback" body:@{}];
+}
+
+- (void)emitOnCustomerSessionProviderSetupIntentClientSecret
+{
+  [self sendEventWithName:@"onCustomerSessionProviderSetupIntentClientSecret" body:@{}];
+}
+
+- (void)emitOnCustomerSessionProviderCustomerSessionClientSecret
+{
+  [self sendEventWithName:@"onCustomerSessionProviderCustomerSessionClientSecret" body:@{}];
 }
 
 - (void)emitEmbeddedPaymentElementDidUpdateHeight:(NSDictionary *)value

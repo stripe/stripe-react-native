@@ -13,6 +13,7 @@ import type {
   CardBrand,
 } from './Common';
 import type { PaymentMethod } from '.';
+import type * as ConfirmationToken from './ConfirmationToken';
 import * as PaymentSheetTypes from './PaymentSheet';
 import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
 import {
@@ -134,11 +135,9 @@ export interface EmbeddedPaymentElementConfiguration {
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
-  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+  /** A short-lived token that allows the SDK to access a Customer's payment methods. */
   customerEphemeralKeySecret?: string;
-  /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
-   *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
-   */
+  /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
   customerSessionClientSecret?: string;
   /** iOS only. Enable Apple Pay in the Payment Sheet by passing an ApplePayParams object.  */
   applePay?: PaymentSheetTypes.ApplePayParams;
@@ -253,6 +252,7 @@ class EmbeddedPaymentElement {
 // JS Factory: createEmbeddedPaymentElement
 // -----------------------------------------------------------------------------
 let confirmHandlerCallback: EventSubscription | null = null;
+let confirmationTokenHandlerCallback: EventSubscription | null = null;
 let formSheetActionConfirmCallback: EventSubscription | null = null;
 let customPaymentMethodConfirmCallback: EventSubscription | null = null;
 let rowSelectionCallback: EventSubscription | null = null;
@@ -290,6 +290,25 @@ function setupConfirmAndSelectionHandlers(
           paymentMethod,
           shouldSavePaymentMethod,
           NativeStripeSdkModule.intentCreationCallback
+        );
+      }
+    );
+  }
+
+  const confirmationTokenConfirmHandler =
+    intentConfig.confirmationTokenConfirmHandler;
+  if (confirmationTokenConfirmHandler) {
+    confirmationTokenHandlerCallback?.remove();
+    confirmationTokenHandlerCallback = addListener(
+      'onConfirmationTokenHandlerCallback',
+      ({
+        confirmationToken,
+      }: {
+        confirmationToken: ConfirmationToken.Result;
+      }) => {
+        confirmationTokenConfirmHandler(
+          confirmationToken,
+          NativeStripeSdkModule.confirmationTokenCreationCallback
         );
       }
     );
@@ -385,6 +404,8 @@ export interface UseEmbeddedPaymentElementResult {
   clearPaymentOption: () => void;
   // Any error encountered during creation/update, or null
   loadingError: Error | null;
+  // Whether the embedded payment element has loaded (height > 1)
+  isLoaded: boolean;
 }
 
 /**
@@ -407,6 +428,10 @@ export function useEmbeddedPaymentElement(
   const [height, setHeight] = useState<number | undefined>();
   const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
   const [loadingError, setLoadingError] = useState<Error | null>(null);
+
+  const isLoaded = useMemo(() => {
+    return height !== undefined && height > 1;
+  }, [height]);
 
   function getElementOrThrow(ref: {
     current: EmbeddedPaymentElement | null;
@@ -550,5 +575,6 @@ export function useEmbeddedPaymentElement(
     update,
     clearPaymentOption,
     loadingError,
+    isLoaded,
   };
 }

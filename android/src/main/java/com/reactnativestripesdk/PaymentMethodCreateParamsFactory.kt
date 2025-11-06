@@ -38,6 +38,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
         PaymentMethod.Type.Ideal -> createIDEALParams()
         PaymentMethod.Type.Alipay -> createAlipayParams()
+        PaymentMethod.Type.Alma -> createAlmaParams()
         PaymentMethod.Type.Bancontact -> createBancontactParams()
         PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
@@ -78,6 +79,13 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAlipayParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createAlipay()
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAlmaParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createAlma(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactParams(): PaymentMethodCreateParams {
@@ -253,6 +261,7 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
+        PaymentMethod.Type.Alma,
         PaymentMethod.Type.Bancontact,
         PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
