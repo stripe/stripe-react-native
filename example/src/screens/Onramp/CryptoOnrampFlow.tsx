@@ -5,6 +5,7 @@ import {
   useOnramp,
   useStripe,
 } from '@stripe/stripe-react-native';
+import type { Address } from '@stripe/stripe-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -86,6 +87,17 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+
+  // KYC Refresh state
+  const [needsKycAddressUpdate, setNeedsKycAddressUpdate] = useState(false);
+  const [kycUpdatedAddress, setKycUpdatedAddress] = useState({
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: 'US',
+  });
 
   // Auth token from CreateAuthIntentResponse
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -286,30 +298,33 @@ export default function CryptoOnrampFlow() {
     linkAuthIntentId,
   ]);
 
-  const handlePresentKycVerification = useCallback(async () => {
-    const result = await withReauth(
-      () => presentKycInfoVerification(null),
-      () => authorize(linkAuthIntentId)
-    );
-
-    if (result?.error) {
-      if (result.error.code === 'Canceled') {
-        showCanceled('KYC verification cancelled, please try again.');
-      } else {
-        showError(
-          `Could not verify KYC info: ${JSON.stringify(result.error, null, 2)}`
-        );
-      }
-    } else if (result?.status === 'Confirmed') {
-      showSuccess('KYC information verified.');
-    } else if (result?.status === 'UpdateAddress') {
-      showSuccess(
-        'User chose to update address. Please collect updated address and call again.'
+  const handlePresentKycVerification = useCallback(
+    async (updatedAddress: Address | null) => {
+      const result = await withReauth(
+        () => presentKycInfoVerification(updatedAddress),
+        () => authorize(linkAuthIntentId)
       );
-    } else {
-      showCanceled('KYC verification cancelled.');
-    }
-  }, [presentKycInfoVerification, withReauth, authorize, linkAuthIntentId]);
+
+      if (result?.error) {
+        if (result.error.code === 'Canceled') {
+          showCanceled('KYC verification cancelled, please try again.');
+        } else {
+          showError(
+            `Could not verify KYC info: ${JSON.stringify(result.error, null, 2)}`
+          );
+        }
+      } else if (result?.status === 'Confirmed') {
+        setNeedsKycAddressUpdate(false);
+        showSuccess('KYC information verified.');
+      } else if (result?.status === 'UpdateAddress') {
+        // Show form to collect updated address
+        setNeedsKycAddressUpdate(true);
+      } else {
+        showCanceled('KYC verification cancelled.');
+      }
+    },
+    [presentKycInfoVerification, withReauth, authorize, linkAuthIntentId]
+  );
 
   const handleUpdatePhoneNumber = useCallback(async () => {
     if (!userInfo.phoneNumber) {
@@ -623,7 +638,10 @@ export default function CryptoOnrampFlow() {
             handleAttachKycInfo={handleAttachKycInfo}
           />
           <KycRefreshSection
-            handlePresentKycVerification={handlePresentKycVerification}
+            needsAddressUpdate={needsKycAddressUpdate}
+            updatedAddress={kycUpdatedAddress}
+            setUpdatedAddress={setKycUpdatedAddress}
+            onVerifyKyc={(addr) => handlePresentKycVerification(addr)}
           />
           <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
           <PaymentCollectionSection
