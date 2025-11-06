@@ -582,34 +582,36 @@ export default function CryptoOnrampFlow() {
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
-        <Text style={styles.infoText}>
-          Enter an email and password to continue:
-        </Text>
-        <FormField
-          label="Email"
-          value={userInfo.email}
-          onChangeText={(text) => setUserInfo((u) => ({ ...u, email: text }))}
-          placeholder="Email"
-        />
-        <FormField
-          label="Password"
-          value={userInfo.password}
-          onChangeText={(text) =>
-            setUserInfo((u) => ({ ...u, password: text }))
-          }
-          placeholder="Password"
-          secureTextEntry
-        />
-        <View style={{ paddingHorizontal: 16 }}>
-          <Button title="Log In" onPress={handleLogin} variant="primary" />
-          <View style={{ height: 8 }} />
-          <Button title="Sign Up" onPress={handleSignup} variant="primary" />
-          {authToken && (
-            <Text style={styles.authenticatedLabel}>
-              Authenticated with demo backend
+        {!authToken ? (
+          <>
+            <Text style={styles.infoText}>
+              Enter an email and password to continue:
             </Text>
-          )}
-        </View>
+            <FormField
+              label="Email"
+              value={userInfo.email}
+              onChangeText={(text) =>
+                setUserInfo((u) => ({ ...u, email: text }))
+              }
+              placeholder="Email"
+            />
+            <FormField
+              label="Password"
+              value={userInfo.password}
+              onChangeText={(text) =>
+                setUserInfo((u) => ({ ...u, password: text }))
+              }
+              placeholder="Password"
+              secureTextEntry
+            />
+            <Button title="Log In" onPress={handleLogin} variant="primary" />
+            <Button title="Sign Up" onPress={handleSignup} variant="primary" />
+          </>
+        ) : (
+          <Text style={styles.authenticatedLabel}>
+            Authenticated with demo backend
+          </Text>
+        )}
         {authToken && isLinkUser === false && (
           <Button
             title="Verify Link User"
@@ -713,7 +715,10 @@ const styles = StyleSheet.create({
   },
   authenticatedLabel: {
     marginTop: 8,
+    marginBottom: 12,
     color: 'green',
     fontWeight: '600',
+    alignSelf: 'center',
+    textAlign: 'center',
   },
 });
