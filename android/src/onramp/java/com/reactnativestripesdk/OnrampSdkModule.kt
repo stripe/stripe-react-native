@@ -625,19 +625,19 @@ class OnrampSdkModule(
     token: String,
     promise: Promise,
   ) {
-      val coordinator =
+    val coordinator =
       onrampCoordinator ?: run {
         promise.resolve(createOnrampNotConfiguredError())
         return
       }
 
-      CoroutineScope(Dispatchers.IO).launch {
-        val result = coordinator.authenticateUserWithToken(token)
-        
-        CoroutineScope(Dispatchers.Main).launch {
-          handleAuthenticateUserWithTokenResult(result, promise)
-        }
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator.authenticateUserWithToken(token)
+
+      CoroutineScope(Dispatchers.Main).launch {
+        handleAuthenticateUserWithTokenResult(result, promise)
       }
+    }
   }
 
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
