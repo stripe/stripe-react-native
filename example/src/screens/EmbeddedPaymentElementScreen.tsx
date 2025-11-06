@@ -1,5 +1,12 @@
 import React from 'react';
-import { Alert, View, Text, Modal, Image } from 'react-native';
+import {
+  Alert,
+  View,
+  Text,
+  Modal,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -12,11 +19,11 @@ import {
   BillingDetails,
   Address,
   IntentCreationCallbackParams,
-  PaymentMethod,
   EmbeddedPaymentElementResult,
   CustomPaymentMethod,
   CustomPaymentMethodResult,
   CustomPaymentMethodResultStatus,
+  ConfirmationToken,
 } from '@stripe/stripe-react-native';
 import {
   useEmbeddedPaymentElement,
@@ -35,6 +42,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
     confirm,
     clearPaymentOption,
     loadingError,
+    isLoaded,
   } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
 
   // Payment action
@@ -60,7 +68,15 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         </View>
       )}
 
-      {embeddedPaymentElementView}
+      <View style={{ opacity: isLoaded ? 1 : 0 }}>
+        {embeddedPaymentElementView}
+      </View>
+
+      {!loadingError && !isLoaded && (
+        <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+          <ActivityIndicator />
+        </View>
+      )}
 
       <View style={{ paddingVertical: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -79,7 +95,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
 
       <Button
         variant="primary"
-        title="Pay"
+        title="Complete payment"
         onPress={handlePay}
         loading={loading}
         disabled={!paymentOption}
@@ -91,6 +107,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         onPress={clearPaymentOption}
         disabled={!paymentOption}
       />
+      <View style={{ height: 40 }} />
     </>
   );
 }
@@ -309,9 +326,8 @@ export default function EmbeddedPaymentElementScreen() {
 
       // 5. Intent config
       const newIntentConfig: IntentConfiguration = {
-        confirmHandler: async (
-          paymentMethod: PaymentMethod.Result,
-          _save,
+        confirmationTokenConfirmHandler: async (
+          confirmationToken: ConfirmationToken.Result,
           callback: (res: IntentCreationCallbackParams) => void
         ) => {
           const resp = await fetch(
@@ -320,7 +336,6 @@ export default function EmbeddedPaymentElementScreen() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                paymentMethodId: paymentMethod.id,
                 customerId: customer,
               }),
             }
@@ -337,7 +352,6 @@ export default function EmbeddedPaymentElementScreen() {
           else callback({ clientSecret });
         },
         mode: { amount: 6099, currencyCode: 'USD' },
-        paymentMethodTypes: ['card', 'klarna', 'cashapp'],
       };
 
       setElementConfig(uiConfig);

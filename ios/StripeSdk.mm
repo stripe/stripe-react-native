@@ -214,6 +214,20 @@ RCT_EXPORT_METHOD(customerAdapterSetupIntentClientSecretForCustomerAttachCallbac
                                                                                rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
+                                                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(clientSecretProviderCustomerSessionClientSecretCallback:(nonnull NSDictionary *)customerSessionClientSecret
+                                                                      resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                                       reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clientSecretProviderCustomerSessionClientSecretCallback:customerSessionClientSecret resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(dismissPlatformPay:(nonnull RCTPromiseResolveBlock)resolve
                               reject:(nonnull RCTPromiseRejectBlock)reject)
 {
@@ -279,6 +293,13 @@ RCT_EXPORT_METHOD(intentCreationCallback:(nonnull NSDictionary *)result
                                   reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared intentCreationCallback:result resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(confirmationTokenCreationCallback:(nonnull NSDictionary *)result
+                                            resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                             reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared confirmationTokenCreationCallback:result resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(isCardInWallet:(nonnull NSDictionary *)params
@@ -352,6 +373,13 @@ RCT_EXPORT_METHOD(updatePlatformPaySheet:(nonnull NSArray *)summaryItems
                                         errors:errors
                                       resolver:resolve
                                       rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(setFinancialConnectionsForceNativeFlow:(BOOL)enabled
+                                                 resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared setFinancialConnectionsForceNativeFlow:enabled resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent

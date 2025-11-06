@@ -8,7 +8,7 @@
 #import <React/RCTConversions.h>
 #import <React/RCTFabricComponentsPlugins.h>
 
-#import "RCTFollyConvert.h"
+#import "StripeNewArchConversions.h"
 #import "StripeSwiftInterop.h"
 
 using namespace facebook::react;
@@ -96,7 +96,7 @@ using namespace facebook::react;
   _view.type = @(newViewProps.type);
   _view.buttonStyle = @(newViewProps.buttonStyle);
   _view.disabled = newViewProps.disabled;
-  _view.borderRadius = @(newViewProps.borderRadius);
+  _view.buttonBorderRadius = @(newViewProps.buttonBorderRadius);
 
   // Set the boolean flags from props
   _view.hasShippingMethodCallback = newViewProps.hasShippingMethodCallback;

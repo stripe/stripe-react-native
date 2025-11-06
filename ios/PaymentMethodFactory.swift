@@ -31,6 +31,8 @@ class PaymentMethodFactory {
                 return try createFPXPaymentMethodParams()
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodParams()
+            case STPPaymentMethodType.alma:
+                return try createAlmaPaymentMethodParams()
             case STPPaymentMethodType.bancontact:
                 return try createBancontactPaymentMethodParams()
             case STPPaymentMethodType.billie:
@@ -82,6 +84,8 @@ class PaymentMethodFactory {
                 return nil
             case STPPaymentMethodType.alipay:
                 return try createAlipayPaymentMethodOptions()
+            case STPPaymentMethodType.alma:
+                return nil
             case STPPaymentMethodType.bancontact:
                 return nil
             case STPPaymentMethodType.billie:
@@ -244,6 +248,10 @@ class PaymentMethodFactory {
         let options = STPConfirmPaymentMethodOptions()
         options.alipayOptions = STPConfirmAlipayOptions()
         return options
+    }
+
+    private func createAlmaPaymentMethodParams() throws -> STPPaymentMethodParams {
+        return STPPaymentMethodParams(alma: STPPaymentMethodAlmaParams(), billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createBancontactPaymentMethodParams() throws -> STPPaymentMethodParams {

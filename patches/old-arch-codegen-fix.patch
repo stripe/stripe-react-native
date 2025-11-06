@@ -17,6 +17,7 @@
 -    paymentMethod: UnsafeObject<PaymentMethod.Result>;
 -    shouldSavePaymentMethod: boolean;
 -  }>;
+-  onConfirmationTokenHandlerCallback: EventEmitter<UnsafeObject<any>>;
 -  onFinancialConnectionsEvent: EventEmitter<
 -    UnsafeObject<FinancialConnectionsEvent>
 -  >;
@@ -48,6 +49,9 @@
 +      paymentMethod: UnsafeObject<PaymentMethod.Result>;
 +      shouldSavePaymentMethod: boolean;
 +    }) => void
++  ): void;
++  onConfirmationTokenHandlerCallback(
++    callback: (event: UnsafeObject<any>) => void
 +  ): void;
 +  onFinancialConnectionsEvent(
 +    callback: (event: UnsafeObject<FinancialConnectionsEvent>) => void

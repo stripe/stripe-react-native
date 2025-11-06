@@ -24,6 +24,10 @@ class EventEmitterCompat(
     invoke("onConfirmHandlerCallback", value)
   }
 
+  fun emitOnConfirmationTokenHandlerCallback(value: ReadableMap?) {
+    invoke("onConfirmationTokenHandlerCallback", value)
+  }
+
   fun emitOnFinancialConnectionsEvent(value: ReadableMap?) {
     invoke("onFinancialConnectionsEvent", value)
   }
@@ -54,6 +58,14 @@ class EventEmitterCompat(
 
   fun emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback() {
     invoke("onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback")
+  }
+
+  fun emitOnCustomerSessionProviderSetupIntentClientSecret() {
+    invoke("onCustomerSessionProviderSetupIntentClientSecret")
+  }
+
+  fun emitOnCustomerSessionProviderCustomerSessionClientSecret() {
+    invoke("onCustomerSessionProviderCustomerSessionClientSecret")
   }
 
   fun emitEmbeddedPaymentElementDidUpdateHeight(value: ReadableMap?) {

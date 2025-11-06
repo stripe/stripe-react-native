@@ -163,7 +163,7 @@ export function PlatformPayButton({
         <NativeApplePayButton
           type={type}
           buttonStyle={appearance}
-          borderRadius={borderRadius}
+          buttonBorderRadius={borderRadius}
           disabled={disabled ?? false}
           style={styles.nativeButtonStyle}
           {...callbackProps}

@@ -18,6 +18,7 @@ import com.stripe.android.model.BankAccountTokenParams
 import com.stripe.android.model.Card
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.ConfirmPaymentIntentParams
+import com.stripe.android.model.ConfirmationToken
 import com.stripe.android.model.GooglePayResult
 import com.stripe.android.model.MicrodepositType
 import com.stripe.android.model.PaymentIntent
@@ -130,6 +131,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
   when (type) {
     PaymentMethod.Type.AfterpayClearpay -> "AfterpayClearpay"
     PaymentMethod.Type.Alipay -> "Alipay"
+    PaymentMethod.Type.Alma -> "Alma"
     PaymentMethod.Type.AuBecsDebit -> "AuBecsDebit"
     PaymentMethod.Type.BacsDebit -> "BacsDebit"
     PaymentMethod.Type.Bancontact -> "Bancontact"
@@ -153,6 +155,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.Affirm -> "Affirm"
     PaymentMethod.Type.CashAppPay -> "CashApp"
     PaymentMethod.Type.RevolutPay -> "RevolutPay"
+    PaymentMethod.Type.Link -> "Link"
     else -> "Unknown"
   }
 
@@ -161,6 +164,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Card" -> PaymentMethod.Type.Card
     "Ideal" -> PaymentMethod.Type.Ideal
     "Alipay" -> PaymentMethod.Type.Alipay
+    "Alma" -> PaymentMethod.Type.Alma
     "AuBecsDebit" -> PaymentMethod.Type.AuBecsDebit
     "BacsDebit" -> PaymentMethod.Type.BacsDebit
     "Bancontact" -> PaymentMethod.Type.Bancontact
@@ -183,6 +187,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Affirm" -> PaymentMethod.Type.Affirm
     "CashApp" -> PaymentMethod.Type.CashAppPay
     "RevolutPay" -> PaymentMethod.Type.RevolutPay
+    "Link" -> PaymentMethod.Type.Link
     else -> null
   }
 
@@ -560,6 +565,8 @@ internal fun mapNextAction(
     NextActionType.BlikAuthorize,
     NextActionType.UseStripeSdk,
     NextActionType.UpiAwaitNotification,
+    NextActionType.DisplayPayNowDetails,
+    NextActionType.DisplayPromptPayDetails,
     null,
     -> {
       return null
@@ -1033,7 +1040,16 @@ internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardB
 internal fun mapFromFinancialConnectionsEvent(event: FinancialConnectionsEvent): WritableMap =
   Arguments.createMap().apply {
     putString("name", event.name.value)
-    putMap("metadata", event.metadata.toMap().toReadableMap())
+
+    // We require keys to use pascal case, but the original map uses snake case.
+    val tweakedMap =
+      buildMap {
+        put("institutionName", event.metadata.institutionName)
+        put("manualEntry", event.metadata.manualEntry)
+        put("errorCode", event.metadata.errorCode)
+      }
+
+    putMap("metadata", tweakedMap.toReadableMap())
   }
 
 private fun List<Any?>.toWritableArray(): WritableArray {
@@ -1124,4 +1140,74 @@ internal fun mapFromCustomPaymentMethod(
       },
     )
     putMap("billingDetails", mapFromBillingDetails(billingDetails))
+  }
+
+@SuppressLint("RestrictedApi")
+internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): WritableMap {
+  val token: WritableMap = WritableNativeMap()
+
+  token.putString("id", confirmationToken.id)
+  token.putDouble("created", confirmationToken.created.toDouble())
+  token.putDouble("expiresAt", confirmationToken.expiresAt?.toDouble() ?: 0.0)
+  token.putBoolean("liveMode", confirmationToken.liveMode)
+  token.putString("paymentIntentId", confirmationToken.paymentIntentId)
+  token.putString("setupIntentId", confirmationToken.setupIntentId)
+  token.putString("returnURL", confirmationToken.returnUrl)
+  token.putString("setupFutureUsage", mapFromSetupFutureUsage(confirmationToken.setupFutureUsage))
+
+  // PaymentMethodPreview
+  confirmationToken.paymentMethodPreview?.let { preview ->
+    val paymentMethodPreview = WritableNativeMap()
+    paymentMethodPreview.putString("type", mapPaymentMethodType(preview.type))
+    paymentMethodPreview.putMap("billingDetails", mapFromBillingDetails(preview.billingDetails))
+    paymentMethodPreview.putString("allowRedisplay", mapFromAllowRedisplay(preview.allowRedisplay))
+    paymentMethodPreview.putString("customerId", preview.customerId)
+    token.putMap("paymentMethodPreview", paymentMethodPreview)
+  } ?: run {
+    token.putNull("paymentMethodPreview")
+  }
+
+  // Shipping details
+  confirmationToken.shipping?.let { shippingDetails ->
+    val shipping = WritableNativeMap()
+    shipping.putString("name", shippingDetails.name)
+    shipping.putString("phone", shippingDetails.phone)
+
+    shippingDetails.address?.let { address ->
+      val addressMap = WritableNativeMap()
+      addressMap.putString("city", address.city)
+      addressMap.putString("country", address.country)
+      addressMap.putString("line1", address.line1)
+      addressMap.putString("line2", address.line2)
+      addressMap.putString("postalCode", address.postalCode)
+      addressMap.putString("state", address.state)
+      shipping.putMap("address", addressMap)
+    } ?: run {
+      shipping.putMap("address", WritableNativeMap())
+    }
+
+    token.putMap("shipping", shipping)
+  } ?: run {
+    token.putNull("shipping")
+  }
+
+  return token
+}
+
+@SuppressLint("RestrictedApi")
+private fun mapFromSetupFutureUsage(setupFutureUsage: ConfirmPaymentIntentParams.SetupFutureUsage?): String? =
+  when (setupFutureUsage) {
+    ConfirmPaymentIntentParams.SetupFutureUsage.OnSession -> "on_session"
+    ConfirmPaymentIntentParams.SetupFutureUsage.OffSession -> "off_session"
+    ConfirmPaymentIntentParams.SetupFutureUsage.Blank -> ""
+    ConfirmPaymentIntentParams.SetupFutureUsage.None -> "none"
+    null -> null
+  }
+
+private fun mapFromAllowRedisplay(allowRedisplay: PaymentMethod.AllowRedisplay?): String? =
+  when (allowRedisplay) {
+    PaymentMethod.AllowRedisplay.ALWAYS -> "always"
+    PaymentMethod.AllowRedisplay.LIMITED -> "limited"
+    PaymentMethod.AllowRedisplay.UNSPECIFIED -> "unspecified"
+    null -> null
   }
