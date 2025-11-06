@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
+import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
@@ -39,12 +40,13 @@ import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.customersheet.CustomerSheetResult
 import com.stripe.android.customersheet.PaymentOptionSelection
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ReactNativeSdkInternal::class, ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
+@OptIn(ReactNativeSdkInternal::class, ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomerSessionApi::class)
 class CustomerSheetManager(
   context: ReactApplicationContext,
   private var arguments: ReadableMap,
@@ -53,6 +55,7 @@ class CustomerSheetManager(
 ) : StripeUIManager(context) {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
+  internal var customerSessionProvider: ReactNativeCustomerSessionProvider? = null
   private var presentPromise: Promise? = null
   private var keepJsAwake: KeepJsAwakeTask? = null
 
@@ -62,27 +65,9 @@ class CustomerSheetManager(
     val googlePayEnabled = arguments.getBooleanOr("googlePayEnabled", false)
     val billingDetailsMap = arguments.getMap("defaultBillingDetails")
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
-    val setupIntentClientSecret = arguments.getString("setupIntentClientSecret")
-    val customerId = arguments.getString("customerId")
-    val customerEphemeralKeySecret = arguments.getString("customerEphemeralKeySecret")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
     val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
-    if (customerId == null) {
-      initPromise.resolve(
-        createError(ErrorType.Failed.toString(), "You must provide a value for `customerId`"),
-      )
-      return
-    }
-    if (customerEphemeralKeySecret == null) {
-      initPromise.resolve(
-        createError(
-          ErrorType.Failed.toString(),
-          "You must provide a value for `customerEphemeralKeySecret`",
-        ),
-      )
-      return
-    }
 
     val appearance =
       try {
@@ -113,23 +98,63 @@ class CustomerSheetManager(
       )
     }
 
-    val customerAdapter =
-      createCustomerAdapter(
-        context,
-        customerId,
-        customerEphemeralKeySecret,
-        setupIntentClientSecret,
-        customerAdapterOverrides,
-      ).also { this.customerAdapter = it }
-
     val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
 
-    customerSheet =
-      CustomerSheet.create(
-        activity = activity,
-        customerAdapter = customerAdapter,
-        callback = ::handleResult,
+    val customerEphemeralKeySecret = arguments.getString("customerEphemeralKeySecret")
+    val intentConfiguration = createIntentConfiguration(arguments.getMap("intentConfiguration"))
+    if (customerEphemeralKeySecret == null && intentConfiguration == null) {
+      initPromise.resolve(
+        createError(
+          ErrorType.Failed.toString(),
+          "You must provide either `customerEphemeralKeySecret` or `intentConfiguration`",
+        ),
       )
+      return
+    } else if (customerEphemeralKeySecret == null) {
+      val customerSessionProvider =
+        ReactNativeCustomerSessionProvider(
+          context = context,
+          intentConfiguration = intentConfiguration!!,
+        ).also { this.customerSessionProvider = it }
+
+      customerSheet =
+        CustomerSheet.create(
+          activity = activity,
+          customerSessionProvider = customerSessionProvider,
+          callback = ::handleResult,
+        )
+    } else if (intentConfiguration == null) {
+      val customerId = arguments.getString("customerId")
+      if (customerId == null) {
+        initPromise.resolve(
+          createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
+        )
+        return
+      }
+      val setupIntentClientSecret = arguments.getString("setupIntentClientSecret")
+      val customerAdapter =
+        createCustomerAdapter(
+          context,
+          customerId,
+          customerEphemeralKeySecret,
+          setupIntentClientSecret,
+          customerAdapterOverrides,
+        ).also { this.customerAdapter = it }
+
+      customerSheet =
+        CustomerSheet.create(
+          activity = activity,
+          customerAdapter = customerAdapter,
+          callback = ::handleResult,
+        )
+    } else {
+      initPromise.resolve(
+        createError(
+          ErrorType.Failed.toString(),
+          "You must provide either `customerEphemeralKeySecret` or `intentConfiguration`, but not both",
+        ),
+      )
+    }
 
     customerSheet?.configure(configuration.build())
 
@@ -374,6 +399,19 @@ class CustomerSheetManager(
 
       return paymentOptionResult
     }
+
+    internal fun createIntentConfiguration(intentConfigurationBundle: ReadableMap?): CustomerSheet.IntentConfiguration? =
+      intentConfigurationBundle?.let { bundle ->
+        val onBehalfOf = bundle.getString("onBehalfOf")
+        CustomerSheet.IntentConfiguration
+          .Builder()
+          .paymentMethodTypes(bundle.getStringArrayList("paymentMethodTypes") ?: emptyList())
+          .apply {
+            if (onBehalfOf != null) {
+              this.onBehalfOf(onBehalfOf)
+            }
+          }.build()
+      }
 
     private fun buildResult(
       label: String,

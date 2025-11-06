@@ -107,6 +107,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         onPress={clearPaymentOption}
         disabled={!paymentOption}
       />
+      <View style={{ height: 40 }} />
     </>
   );
 }

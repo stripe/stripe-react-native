@@ -4,7 +4,11 @@ appId: ${APP_ID}
     clearState: true
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
 - scrollUntilVisible:
+    centerElement: true
     element:
       text: "BufoPay (test)"
     timeout: 150000
