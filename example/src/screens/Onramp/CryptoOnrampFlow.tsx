@@ -152,27 +152,27 @@ export default function CryptoOnrampFlow() {
 
   const handleLogin = useCallback(async () => {
     if (!userInfo.email || !userInfo.password) {
-      Alert.alert('Missing Info', 'Please enter both email and password.');
+      showError('Please enter both email and password.');
       return;
     }
     const res = await login(userInfo.email, userInfo.password);
     if (res.success) {
       setAuthToken(res.data.token);
     } else {
-      Alert.alert('Login Failed', `${res.error.code}: ${res.error.message}`);
+      showError(`${res.error.code}: ${res.error.message}`);
     }
   }, [userInfo.email, userInfo.password]);
 
   const handleSignup = useCallback(async () => {
     if (!userInfo.email || !userInfo.password) {
-      Alert.alert('Missing Info', 'Please enter both email and password.');
+      showError('Please enter both email and password.');
       return;
     }
     const res = await signup(userInfo.email, userInfo.password);
     if (res.success) {
       setAuthToken(res.data.token);
     } else {
-      Alert.alert('Signup Failed', `${res.error.code}: ${res.error.message}`);
+      showError(`${res.error.code}: ${res.error.message}`);
     }
   }, [userInfo.email, userInfo.password]);
 
@@ -608,8 +608,7 @@ export default function CryptoOnrampFlow() {
       const latRes = await createLinkAuthToken(storedDemoAuth.token);
       if (!latRes.success) {
         await clearPersistedDemoAuth();
-        Alert.alert(
-          'Seamless Sign-In Unavailable',
+        showError(
           `${latRes.error.code}: ${latRes.error.message}. Please sign in manually.`
         );
         return;
@@ -619,8 +618,7 @@ export default function CryptoOnrampFlow() {
       const result = await authenticateUserWithToken(clientSecret);
       if (result?.error) {
         await clearPersistedDemoAuth();
-        Alert.alert(
-          'Seamless Sign-In Unavailable',
+        showError(
           `${result.error.code}: ${result.error.message}. Please sign in manually.`
         );
         return;
@@ -633,8 +631,7 @@ export default function CryptoOnrampFlow() {
       const customerResponse = await getCryptoCustomerId(storedDemoAuth.token);
       if (!customerResponse.success) {
         await clearPersistedDemoAuth();
-        Alert.alert(
-          'Seamless Sign-In Unavailable',
+        showError(
           `${customerResponse.error.code}: ${customerResponse.error.message}. Please sign in manually.`
         );
         return;
@@ -644,10 +641,7 @@ export default function CryptoOnrampFlow() {
       setIsLinkUser(true); // user is authenticated with Link
     } catch (e: any) {
       await clearPersistedDemoAuth();
-      Alert.alert(
-        'Seamless Sign-In Unavailable',
-        `Please sign in manually. ${e?.message ?? ''}`
-      );
+      showError(`Please sign in manually. ${e?.message ?? ''}`);
     } finally {
       setIsSeamlessSigningIn(false);
     }
