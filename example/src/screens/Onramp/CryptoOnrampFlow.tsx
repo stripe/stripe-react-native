@@ -150,6 +150,12 @@ export default function CryptoOnrampFlow() {
     } else {
       setIsLinkUser(result.hasLinkAccount);
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
+      if (!result.hasLinkAccount) {
+        Alert.alert(
+          'Link account not found',
+          "Return to the Home Screen and choose 'Register Crypto Link User' to complete registration before returning here to sign in."
+        );
+      }
     }
   }, [userInfo.email, hasLinkAccount]);
 
