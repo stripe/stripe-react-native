@@ -2,10 +2,8 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.stripe.android.customersheet.CustomerSheet
-import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import kotlinx.coroutines.CompletableDeferred
 
-@OptIn(ExperimentalCustomerSessionApi::class)
 class ReactNativeCustomerSessionProvider(
   val context: ReactApplicationContext,
   val intentConfiguration: CustomerSheet.IntentConfiguration,

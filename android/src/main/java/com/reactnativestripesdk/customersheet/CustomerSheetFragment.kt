@@ -35,13 +35,12 @@ import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.customersheet.CustomerSheetResult
 import com.stripe.android.customersheet.PaymentOptionSelection
 import com.stripe.android.model.PaymentMethod
-import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomerSessionApi::class)
+@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class)
 class CustomerSheetFragment : StripeFragment() {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null

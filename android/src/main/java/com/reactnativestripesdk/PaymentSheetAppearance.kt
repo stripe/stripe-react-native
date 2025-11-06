@@ -342,17 +342,29 @@ private fun buildEmbeddedAppearance(
             selectedColor = parsedSelectedColor,
           )
 
-        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio(
-          separatorThicknessDp = separatorThickness,
-          startSeparatorInsetDp = startSeparatorInset,
-          endSeparatorInsetDp = endSeparatorInset,
-          topSeparatorEnabled = topEnabled,
-          bottomSeparatorEnabled = bottomEnabled,
-          additionalVerticalInsetsDp = additionalInsets,
-          horizontalInsetsDp = 0.0F, // We do not have an iOS equal for this API so it's not configurable in React Native
-          colorsLight = flatRadioColors,
-          colorsDark = flatRadioColors,
-        )
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Builder()
+          .separatorThicknessDp(separatorThickness)
+          .startSeparatorInsetDp(startSeparatorInset)
+          .endSeparatorInsetDp(endSeparatorInset)
+          .topSeparatorEnabled(topEnabled)
+          .bottomSeparatorEnabled(bottomEnabled)
+          .additionalVerticalInsetsDp(additionalInsets)
+          .horizontalInsetsDp(0.0F) // We do not have an iOS equal for this API so it's not configurable in React Native
+          .colorsLight(flatRadioColors)
+          .colorsDark(flatRadioColors)
+          .build()
+
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Builder()
+          .separatorThicknessDp(separatorThickness)
+          .startSeparatorInsetDp(startSeparatorInset)
+          .endSeparatorInsetDp(endSeparatorInset)
+          .topSeparatorEnabled(topEnabled)
+          .bottomSeparatorEnabled(bottomEnabled)
+          .additionalVerticalInsetsDp(additionalInsets)
+          .horizontalInsetsDp(0.0F) // We do not have an iOS equal for this API so it's not configurable in React Native
+          .colorsLight(flatRadioColors)
+          .colorsDark(flatRadioColors)
+          .build()
       }
       "flatWithCheckmark" -> {
         val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
@@ -397,18 +409,18 @@ private fun buildEmbeddedAppearance(
             checkmarkColor = parsedCheckmarkColor,
           )
 
-        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark(
-          separatorThicknessDp = separatorThickness,
-          startSeparatorInsetDp = startSeparatorInset,
-          endSeparatorInsetDp = endSeparatorInset,
-          topSeparatorEnabled = topEnabled,
-          bottomSeparatorEnabled = bottomEnabled,
-          checkmarkInsetDp = checkmarkInset,
-          additionalVerticalInsetsDp = additionalInsets,
-          horizontalInsetsDp = 0.0F, // We do not have an iOS equal for this API so it's not configurable in React Native
-          colorsLight = flatCheckmarkColors,
-          colorsDark = flatCheckmarkColors,
-        )
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Builder()
+          .separatorThicknessDp(separatorThickness)
+          .startSeparatorInsetDp(startSeparatorInset)
+          .endSeparatorInsetDp(endSeparatorInset)
+          .topSeparatorEnabled(topEnabled)
+          .bottomSeparatorEnabled(bottomEnabled)
+          .checkmarkInsetDp(checkmarkInset)
+          .additionalVerticalInsetsDp(additionalInsets)
+          .horizontalInsetsDp(0.0F) // We do not have an iOS equal for this API so it's not configurable in React Native
+          .colorsLight(flatCheckmarkColors)
+          .colorsDark(flatCheckmarkColors)
+          .build()
       }
       "flatWithDisclosure" -> {
         val flatParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLAT)
@@ -466,10 +478,10 @@ private fun buildEmbeddedAppearance(
       }
       "floatingButton" -> {
         val floatingParams = getBundleOrNull(rowParams, PaymentSheetAppearanceKeys.FLOATING)
-        PaymentSheet.Appearance.Embedded.RowStyle.FloatingButton(
-          additionalInsetsDp = additionalInsets,
-          spacingDp = getFloatOr(floatingParams, PaymentSheetAppearanceKeys.SPACING, defaultSpacingDp),
-        )
+        PaymentSheet.Appearance.Embedded.RowStyle.FloatingButton.Builder()
+          .additionalInsetsDp(additionalInsets)
+          .spacingDp(getFloatOr(floatingParams, PaymentSheetAppearanceKeys.SPACING, defaultSpacingDp))
+          .build()
       }
       else -> {
         System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")
