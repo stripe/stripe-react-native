@@ -680,9 +680,6 @@ export default function CryptoOnrampFlow() {
             </>
           ) : (
             <>
-              <Text style={styles.infoText}>
-                Enter an email and password to continue:
-              </Text>
               <FormField
                 label="Email"
                 value={userInfo.email}
