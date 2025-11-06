@@ -80,6 +80,11 @@ class EmbeddedPaymentElementViewManager :
   ) {
     val readableMap = cfg.asMap()
     if (readableMap == null) return
+
+    // Detect which callback type to use based on the presence of the confirmation token handler
+    val useConfirmationTokenCallback = readableMap.hasKey("confirmationTokenConfirmHandler")
+    view.setUseConfirmationTokenCallback(useConfirmationTokenCallback)
+
     val intentConfig = parseIntentConfiguration(readableMap)
     view.latestIntentConfig = intentConfig
     view.latestElementConfig?.let { elemCfg ->
@@ -135,6 +140,7 @@ class EmbeddedPaymentElementViewManager :
       }
 
     val googlePayConfig = buildGooglePayConfig(toBundleObject(map.getMap("googlePay")))
+    val linkConfig = PaymentSheetFragment.buildLinkConfig(toBundleObject(map.getMap("link")))
     val shippingDetails =
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
@@ -184,6 +190,7 @@ class EmbeddedPaymentElementViewManager :
         .defaultBillingDetails(defaultBillingDetails)
         .customer(customerConfiguration)
         .googlePay(googlePayConfig)
+        .link(linkConfig)
         .appearance(appearance)
         .shippingDetails(shippingDetails)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)

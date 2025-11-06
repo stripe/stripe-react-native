@@ -1,11 +1,18 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
-@_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
-@_spi(STP) import StripePaymentSheet
+@_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+
+@_spi(STP) 
+@_spi(EmbeddedPaymentElementPrivateBeta) 
+@_spi(CustomerSessionBetaAccess) 
+@_spi(AppearanceAPIAdditionsPreview)
+import StripePaymentSheet
+#else
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
 #endif
+
 import StripeFinancialConnections
 import Foundation
 
@@ -23,6 +30,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
+    var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
     var urlScheme: String? = nil
 
@@ -69,6 +77,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+    var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)? = nil
+    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)? = nil
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
@@ -145,6 +155,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
           let errorParams = result["error"] as? NSDictionary
           let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
           paymentSheetIntentCreationCallback(.failure(error))
+        }
+    }
+
+    @objc(confirmationTokenCreationCallback:resolver:rejecter:)
+    @MainActor public func confirmationTokenCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        guard let paymentSheetConfirmationTokenIntentCreationCallback = self.paymentSheetConfirmationTokenIntentCreationCallback else {
+            resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
+            return
+        }
+        if let clientSecret = result["clientSecret"] as? String {
+            paymentSheetConfirmationTokenIntentCreationCallback(.success(clientSecret))
+        } else {
+          let errorParams = result["error"] as? NSDictionary
+          let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+          paymentSheetConfirmationTokenIntentCreationCallback(.failure(error))
         }
     }
 
@@ -1695,15 +1721,25 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
-    @objc(getCryptoTokenDisplayData:)
-    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: Any]? {
-        return nil
+    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
+    public func getCryptoTokenDisplayData(token: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
         resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
     }
 #endif
+
+    @objc(setFinancialConnectionsForceNativeFlow:resolver:rejecter:)
+    public func setFinancialConnectionsForceNativeFlow(
+        enabled: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        UserDefaults.standard.set(enabled, forKey: "FINANCIAL_CONNECTIONS_EXAMPLE_APP_ENABLE_NATIVE")
+        resolve(nil)
+    }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))

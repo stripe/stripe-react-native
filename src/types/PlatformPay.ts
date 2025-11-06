@@ -51,7 +51,7 @@ export type ApplePayBaseParams = {
   currencyCode: string;
   /** The SDK accepts Amex, Mastercard, Visa, and Discover for Apple Pay by default. Set this property to enable other card networks, for example: ["JCB", "barcode", "chinaUnionPay"]. A full list of possible networks can be found at https://developer.apple.com/documentation/passkit/pkpaymentnetwork. */
   additionalEnabledNetworks?: Array<string>;
-  /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. */
+  /** The list of items that describe a purchase. For example: total, tax, discount, and grand total. The final item should represent your company and the total; it'll be prepended with the word "Pay" (for example, "Pay Example Company $50"). */
   cartItems: Array<CartSummaryItem>;
   /** The list of fields that you need for a shipping contact in order to process the transaction. If you include ContactField.PostalAddress in this array, you must implement the PlatformPayButton component's `onShippingContactSelected` callback and call `updatePlatformPaySheet` from there.*/
   requiredShippingAddressFields?: Array<ContactField>;
@@ -303,7 +303,9 @@ export type DeferredCartSummaryItem = {
   paymentType: PaymentType.Deferred;
   /** The unix timestamp of the date, in the future, of the payment. Measured in seconds. */
   deferredDate: number;
+  /** A label for the item. For the final item, this should be the name of your company. */
   label: string;
+  /** The amount for the item. For the final item, this should be the total. */
   amount: string;
 };
 
@@ -312,7 +314,9 @@ export type ImmediateCartSummaryItem = {
   paymentType: PaymentType.Immediate;
   /** When creating items for estimates or charges whose final value is not yet known, set this to true. */
   isPending?: boolean;
+  /** A label for the item. For the final item, this should be the name of your company. */
   label: string;
+  /** The amount for the item. For the final item, this should be the total. */
   amount: string;
 };
 
@@ -327,7 +331,9 @@ export type RecurringCartSummaryItem = {
   startDate?: number;
   /** The unix timestamp of the end date. Measured in seconds. */
   endDate?: number;
+  /** A label for the item. For the final item, this should be the name of your company. */
   label: string;
+  /** The amount for the item. For the final item, this should be the total. */
   amount: string;
 };
 

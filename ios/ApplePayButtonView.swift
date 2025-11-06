@@ -18,7 +18,7 @@ public class ApplePayButtonView: UIView {
     
     @objc public var type: NSNumber?
     @objc public var buttonStyle: NSNumber?
-    @objc public var borderRadius: NSNumber?
+    @objc public var buttonBorderRadius: NSNumber?
     @objc public var disabled = false
     
     @objc func handleApplePayButtonTapped() {
@@ -37,7 +37,7 @@ public class ApplePayButtonView: UIView {
         let paymentButtonStyle = PKPaymentButtonStyle(rawValue: self.buttonStyle as? Int ?? 2) ?? .black
         self.applePayButton = PKPaymentButton(paymentButtonType: paymentButtonType, paymentButtonStyle: paymentButtonStyle)
         if #available(iOS 12.0, *) {
-            self.applePayButton?.cornerRadius = self.borderRadius as? CGFloat ?? 4.0
+            self.applePayButton?.cornerRadius = self.buttonBorderRadius as? CGFloat ?? 4.0
         }
         
         if let applePayButton = self.applePayButton {

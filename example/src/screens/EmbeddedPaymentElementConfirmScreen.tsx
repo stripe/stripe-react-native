@@ -38,7 +38,7 @@ export default function EmbeddedPaymentElementConfirmScreen({
 
       <Button
         variant="primary"
-        title="Pay"
+        title="Complete payment"
         onPress={handlePay}
         loading={loading}
       />
