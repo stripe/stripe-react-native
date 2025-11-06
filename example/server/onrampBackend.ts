@@ -50,6 +50,10 @@ interface LoginResponse {
   user: SignupUser;
 }
 
+interface GetCryptoCustomerResponse {
+  crypto_customer_id: string;
+}
+
 interface CreateOnrampSessionRequest {
   ui_mode: string;
   payment_token: string;
@@ -74,10 +78,6 @@ interface CheckoutRequest {
 type ApiResult<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
-
-interface GetCryptoCustomerResponse {
-  crypto_customer_id: string;
-}
 
 export class OnrampBackend {
   private baseUrl: string;
@@ -481,6 +481,7 @@ export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
   CreateLinkAuthTokenResponse,
+  GetCryptoCustomerResponse,
   SaveUserRequest,
   SaveUserResponse,
   SignupRequest,
@@ -492,7 +493,6 @@ export type {
   OnrampSessionResponse,
   CheckoutRequest,
   ApiResult,
-  GetCryptoCustomerResponse,
 };
 
 export default OnrampBackend;
