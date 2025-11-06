@@ -252,8 +252,8 @@ class CardFormView(
 
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
-              "expiryMonth" to (cardParamsMap["exp_month"] as? Int ?: 0),
-              "expiryYear" to (cardParamsMap["exp_year"] as? Int ?: 0),
+              "expiryMonth" to (cardParamsMap["exp_month"] as Int),
+              "expiryYear" to (cardParamsMap["exp_year"] as Int),
               "last4" to (params.cardLast4() ?: ""),
               "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
               "postalCode" to (address?.postalCode ?: ""),
@@ -261,8 +261,8 @@ class CardFormView(
             )
 
           if (dangerouslyGetFullCardDetails) {
-            cardDetails["number"] = cardParamsMap["number"] as? String ?: ""
-            cardDetails["cvc"] = cardParamsMap["cvc"] as? String ?: ""
+            cardDetails["number"] = cardParamsMap["number"] as String
+            cardDetails["cvc"] = cardParamsMap["cvc"] as String
           }
 
           UIManagerHelper
