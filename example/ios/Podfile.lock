@@ -1918,25 +1918,25 @@ DEPENDENCIES:
   - ReactTestApp-Resources (from `..`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
+  - Stripe (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
+  - StripeApplePay (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeCore (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeCryptoOnramp (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeFinancialConnections (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripePayments (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripePaymentSheet (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripePaymentsUI (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
+  - StripeUICore (from `https://github.com/stripe/stripe-ios.git`, branch `master`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - SocketRocket
-    - Stripe
-    - StripeApplePay
     - StripeCameraCore
-    - StripeCore
-    - StripeCryptoOnramp
-    - StripeFinancialConnections
     - StripeIdentity
-    - StripePayments
-    - StripePaymentSheet
-    - StripePaymentsUI
-    - StripeUICore
 
 EXTERNAL SOURCES:
   boost:
@@ -2082,10 +2082,66 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  Stripe:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
   stripe-react-native:
     :path: "../node_modules/@stripe/stripe-react-native"
+  StripeApplePay:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCore:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCryptoOnramp:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeFinancialConnections:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePayments:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePaymentSheet:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePaymentsUI:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :branch: master
+    :git: https://github.com/stripe/stripe-ios.git
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
+
+CHECKOUT OPTIONS:
+  Stripe:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeApplePay:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCore:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeCryptoOnramp:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeFinancialConnections:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePayments:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePaymentSheet:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripePaymentsUI:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
+  StripeUICore:
+    :commit: 60d09ef3672d3cd03f50dcdbe0bed9f9f3fed80f
+    :git: https://github.com/stripe/stripe-ios.git
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
@@ -2174,6 +2230,6 @@ SPEC CHECKSUMS:
   StripeUICore: a8f8f38daf0eddb8f6c43ac9d7f051290af9bf2a
   Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
 
-PODFILE CHECKSUM: 0e8d697b2e2384b55c224afb61b755b153a2962a
+PODFILE CHECKSUM: 6f4f98401325876ca508d1314dde44f26c7843e0
 
 COCOAPODS: 1.16.2

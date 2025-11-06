@@ -17,4 +17,20 @@ options = {
 use_test_app! options do |target|
   pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  # Override Stripe iOS pods to use the latest from the repo instead of '~> 25.0.0'
+  stripe_ios = { :git => 'https://github.com/stripe/stripe-ios.git', :branch => 'master' }
+  %w[
+    Stripe
+    StripeCore
+    StripeUICore
+    StripePaymentSheet
+    StripePayments
+    StripePaymentsUI
+    StripeApplePay
+    StripeFinancialConnections
+    StripeCryptoOnramp
+  ].each do |p|
+    pod p, stripe_ios
+  end
 end
