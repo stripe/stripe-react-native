@@ -79,6 +79,14 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
+  override fun presentKycInfoVerification(
+    updatedAddress: ReadableMap?,
+    promise: Promise,
+  ) {
+    promise?.resolveNotImplemented()
+  }
+
+  @ReactMethod
   override fun collectPaymentMethod(
     paymentMethod: String?,
     platformPayParams: ReadableMap?,
