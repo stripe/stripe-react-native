@@ -26,6 +26,7 @@ import {
   login,
   saveUser,
   createLinkAuthToken,
+  getCryptoCustomerId,
 } from '../../../server/onrampBackend';
 import {
   getDestinationParamsForNetwork,
@@ -625,9 +626,21 @@ export default function CryptoOnrampFlow() {
         return;
       }
 
-      // Success: consider user authenticated with Link; use stored token for backend
+      // At this point, Link authentication succeeded. Persist token and fetch crypto customer id.
       setAuthToken(storedDemoAuth.token);
       setUserInfo((u) => ({ ...u, email: storedDemoAuth.email }));
+
+      const customerResponse = await getCryptoCustomerId(storedDemoAuth.token);
+      if (!customerResponse.success) {
+        await clearPersistedDemoAuth();
+        Alert.alert(
+          'Seamless Sign-In Unavailable',
+          `${customerResponse.error.code}: ${customerResponse.error.message}. Please sign in manually.`
+        );
+        return;
+      }
+
+      setCustomerId(customerResponse.data.crypto_customer_id);
       setHasSeamlessSignIn(true);
       setIsLinkUser(true); // user is authenticated with Link
     } catch (e: any) {

@@ -75,6 +75,10 @@ type ApiResult<T> =
   | { success: true; data: T }
   | { success: false; error: { code: string; message: string } };
 
+interface GetCryptoCustomerResponse {
+  crypto_customer_id: string;
+}
+
 export class OnrampBackend {
   private baseUrl: string;
 
@@ -91,9 +95,15 @@ export class OnrampBackend {
       useTimeout?: boolean;
       authToken?: string;
       transformResponse?: (data: any) => T;
+      method?: 'GET' | 'POST';
     } = {}
   ): Promise<ApiResult<T>> {
-    const { useTimeout = false, authToken, transformResponse } = options;
+    const {
+      useTimeout = false,
+      authToken,
+      transformResponse,
+      method = 'POST',
+    } = options;
 
     try {
       const headers: Record<string, string> = {
@@ -112,12 +122,17 @@ export class OnrampBackend {
         timeoutId = setTimeout(() => controller!.abort(), 60000); // 60 seconds timeout
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
+      const fetchOptions: RequestInit & { headers: Record<string, string> } = {
+        method,
         headers,
-        body: JSON.stringify(requestBody),
         ...(controller && { signal: controller.signal }),
-      });
+      } as any;
+
+      if (method !== 'GET') {
+        (fetchOptions as any).body = JSON.stringify(requestBody);
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -365,6 +380,26 @@ export class OnrampBackend {
       }
     );
   }
+
+  /**
+   * Retrieves the crypto customer id for the currently authenticated user
+   * @param authToken Authorization token
+   */
+  async getCryptoCustomerId(
+    authToken: string
+  ): Promise<ApiResult<GetCryptoCustomerResponse>> {
+    return this.makeRequest<GetCryptoCustomerResponse>(
+      '/v1/auth/crypto_customer',
+      null,
+      {
+        authToken,
+        method: 'GET',
+        transformResponse: (data) => ({
+          crypto_customer_id: data.crypto_customer_id,
+        }),
+      }
+    );
+  }
 }
 
 const defaultClient = new OnrampBackend();
@@ -413,6 +448,12 @@ export const checkout = async (
   return defaultClient.checkout(cosId, authToken);
 };
 
+export const getCryptoCustomerId = async (
+  authToken: string
+): Promise<ApiResult<GetCryptoCustomerResponse>> => {
+  return defaultClient.getCryptoCustomerId(authToken);
+};
+
 export const saveUser = async (
   cryptoCustomerId: string,
   authToken: string
@@ -451,6 +492,7 @@ export type {
   OnrampSessionResponse,
   CheckoutRequest,
   ApiResult,
+  GetCryptoCustomerResponse,
 };
 
 export default OnrampBackend;
