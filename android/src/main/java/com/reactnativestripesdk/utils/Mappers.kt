@@ -666,6 +666,21 @@ internal fun mapToAddress(
   return address.build()
 }
 
+internal fun mapToPaymentSheetAddress(addressMap: ReadableMap?): PaymentSheet.Address? {
+  if (addressMap == null) {
+    return null
+  }
+  
+  return PaymentSheet.Address(
+    city = addressMap.getString("city"),
+    country = addressMap.getString("country"),
+    line1 = addressMap.getString("line1"),
+    line2 = addressMap.getString("line2"),
+    postalCode = addressMap.getString("postalCode"),
+    state = addressMap.getString("state"),
+  )
+}
+
 internal fun mapToBillingDetails(
   billingDetails: ReadableMap?,
   cardAddress: Address?,
