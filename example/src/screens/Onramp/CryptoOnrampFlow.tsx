@@ -645,8 +645,9 @@ export default function CryptoOnrampFlow() {
         {!authToken ? (
           storedDemoAuth ? (
             <>
-              <Text style={styles.infoText}>
-                Previously signed-in as {storedDemoAuth.email}.
+              <Text style={[styles.infoText, styles.previouslySignedInLabel]}>
+                Previously signed in as{' '}
+                <Text style={styles.boldText}>{storedDemoAuth.email}</Text>.
               </Text>
               <Button
                 title="Seamless Sign-In"
@@ -788,6 +789,13 @@ const styles = StyleSheet.create({
     paddingEnd: 16, // Hack.
   },
   infoText: {},
+  previouslySignedInLabel: {
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  boldText: {
+    fontWeight: '700',
+  },
   logoutContainer: {
     paddingStart: 16,
     paddingVertical: 16,
