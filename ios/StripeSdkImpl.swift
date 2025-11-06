@@ -1384,11 +1384,12 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let result = try await coordinator.verifyKYCInfo(updatedAddress: updatedAddress, from: presentingViewController)
                 switch result {
                 case .confirmed:
-                    break
+                    resolve(["status": "Confirmed"])
                 case .updateAddress:
-                    break
+                    resolve(["status": "UpdateAddress"])
                 case .canceled:
-                    resolve(["error": Errors.createError(ErrorType.Canceled, "KYC info verification was cancelled")["error"]!])
+                    let errorResult = Errors.createError(ErrorType.Canceled, "KYC info verification was cancelled")
+                    resolve(["error": errorResult["error"]!])
                 }
             } catch {
                 let errorResult = Errors.createError(ErrorType.Failed, error)
