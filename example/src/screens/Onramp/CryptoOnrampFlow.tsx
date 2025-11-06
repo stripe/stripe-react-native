@@ -248,28 +248,6 @@ export default function CryptoOnrampFlow() {
     }
   }, [authToken, authorize]);
 
-  const handleAuthorizeLinkAuthIntent = useCallback(async () => {
-    const result = await authorize(linkAuthIntentId);
-
-    if (result?.error) {
-      if (result.error.code === 'Canceled') {
-        Alert.alert(
-          'Cancelled',
-          'Link auth intent authorization was cancelled.'
-        );
-      } else {
-        Alert.alert(
-          'Error',
-          `Could not authorize Link auth intent: ${result.error.message}.`
-        );
-      }
-    } else if (result?.status) {
-      showSuccess(`Link auth intent ${result.status.toLowerCase()}.`);
-    } else {
-      showCanceled('Link auth intent authorization was cancelled.');
-    }
-  }, [authorize, linkAuthIntentId]);
-
   const handleVerifyIdentity = useCallback(async () => {
     const result = await withReauth(
       () => verifyIdentity(),
@@ -640,10 +618,7 @@ export default function CryptoOnrampFlow() {
             handleUpdatePhoneNumber={handleUpdatePhoneNumber}
           />
           <LinkAuthenticationSection
-            linkAuthIntentId={linkAuthIntentId}
-            setLinkAuthIntentId={setLinkAuthIntentId}
             handlePresentVerification={handlePresentVerification}
-            handleAuthorizeLinkAuthIntent={handleAuthorizeLinkAuthIntent}
           />
         </>
       )}
