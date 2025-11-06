@@ -29,6 +29,7 @@ import com.stripe.android.core.model.CountryCode
 import com.stripe.android.core.model.CountryUtils
 import com.stripe.android.databinding.StripeCardInputWidgetBinding
 import com.stripe.android.model.Address
+import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardInputListener
 import com.stripe.android.view.CardInputWidget
@@ -282,7 +283,9 @@ class CardFieldView(
     }
 
     mCardWidget.paymentMethodCreateParams?.let {
-      cardDetails["brand"] = mapCardBrand(cardInputWidgetBinding.cardNumberEditText.cardBrand)
+      val cardParamsMap = it.card?.toParamMap() ?: emptyMap<String, Any>()
+
+      cardDetails["brand"] = mapCardBrand(CardBrand.fromCardNumber(cardParamsMap["number"] as String))
       cardDetails["last4"] = it.cardLast4()
     } ?: run {
       cardDetails["brand"] = null

@@ -28,6 +28,7 @@ import com.stripe.android.core.model.CountryCode
 import com.stripe.android.databinding.StripeCardFormViewBinding
 import com.stripe.android.databinding.StripeCardMultilineWidgetBinding
 import com.stripe.android.model.Address
+import com.stripe.android.model.CardBrand
 import com.stripe.android.model.PaymentMethodCreateParams
 import com.stripe.android.view.CardFormView
 import com.stripe.android.view.CardInputListener
@@ -253,7 +254,7 @@ class CardFormView(
               "expiryMonth" to cardParamsMap["exp_month"] as Int,
               "expiryYear" to cardParamsMap["exp_year"] as Int,
               "last4" to (it.cardLast4() ?: ""),
-              "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
+              "brand" to mapCardBrand(CardBrand.fromCardNumber(cardParamsMap["number"] as String)),
               "postalCode" to (it.billingDetails?.address?.postalCode ?: ""),
               "country" to (it.billingDetails?.address?.country ?: ""),
             )
