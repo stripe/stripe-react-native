@@ -1,8 +1,10 @@
 import Stripe
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
-#endif
+@_spi(STP) import StripePaymentSheet
+#else
 import StripePaymentSheet
+#endif
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import Contacts
 
