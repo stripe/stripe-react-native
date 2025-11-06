@@ -82,7 +82,6 @@ export default function CryptoOnrampFlow() {
     email: string;
     token: string;
   } | null>(null);
-  const [hasSeamlessSignIn, setHasSeamlessSignIn] = useState(false);
   const [isSeamlessSigningIn, setIsSeamlessSigningIn] = useState(false);
 
   const [response, setResponse] = useState<string | null>(null);
@@ -557,7 +556,6 @@ export default function CryptoOnrampFlow() {
       setAuthToken(null);
       await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
       setStoredDemoAuth(null);
-      setHasSeamlessSignIn(false);
       setWalletAddress(null);
       setWalletNetwork(null);
       setOnrampSessionId(null);
@@ -643,7 +641,6 @@ export default function CryptoOnrampFlow() {
       }
 
       setCustomerId(customerResponse.data.crypto_customer_id);
-      setHasSeamlessSignIn(true);
       setIsLinkUser(true); // user is authenticated with Link
     } catch (e: any) {
       await clearPersistedDemoAuth();
@@ -736,7 +733,7 @@ export default function CryptoOnrampFlow() {
         onrampSessionId={onrampSessionId}
       />
 
-      {isLinkUser === true && customerId === null && !hasSeamlessSignIn && (
+      {isLinkUser === true && customerId === null && (
         <>
           <PhoneNumberUpdateSection
             userInfo={userInfo}
