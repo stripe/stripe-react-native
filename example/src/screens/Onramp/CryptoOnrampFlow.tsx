@@ -229,7 +229,7 @@ export default function CryptoOnrampFlow() {
     }
 
     try {
-      // Step 1: Create auth intent using OnrampBackend API (uses current auth token)
+      // Step 1: Create auth intent using OnrampBackend API
       const authIntentResponse = await createAuthIntent(
         authToken,
         'kyc.status:read,crypto:ramp,auth.persist_login:read'
