@@ -191,15 +191,15 @@ export default function CryptoOnrampFlow() {
   }, [getCryptoTokenDisplayData]);
 
   const handlePresentVerification = useCallback(async () => {
-    if (!userInfo.email) {
-      showError('Please enter an email address first.');
+    if (!authToken) {
+      showError('Please log in to the demo backend first.');
       return;
     }
 
     try {
-      // Step 1: Create auth intent using OnrampBackend API
+      // Step 1: Create auth intent using OnrampBackend API (uses current auth token)
       const authIntentResponse = await createAuthIntent(
-        userInfo.email,
+        authToken,
         'kyc.status:read,crypto:ramp,auth.persist_login:read'
       );
 
@@ -210,7 +210,12 @@ export default function CryptoOnrampFlow() {
         return;
       }
 
-      const authIntentId = authIntentResponse.data.data.id;
+      // Overwrite stored auth token with the latest token from the response, which includes the LAI.
+      if ((authIntentResponse.data as any)?.token) {
+        setAuthToken((authIntentResponse.data as any).token);
+      }
+
+      const authIntentId = authIntentResponse.data.authIntentId;
 
       // Step 2: Authorize using the created auth intent ID
       const result = await authorize(authIntentId);
@@ -221,7 +226,6 @@ export default function CryptoOnrampFlow() {
         showSuccess(`Authentication successful!`);
         setCustomerId(result.customerId);
         setLinkAuthIntentId(authIntentId);
-        setAuthToken(authIntentResponse.data.token);
       } else if (result?.status === 'Denied') {
         showError('User denied the authentication request. Please try again.');
       } else {
@@ -231,7 +235,7 @@ export default function CryptoOnrampFlow() {
       console.error('Error in authentication flow:', error);
       showError('Failed to complete authentication flow.');
     }
-  }, [userInfo.email, authorize]);
+  }, [authToken, authorize]);
 
   const handleAuthorizeLinkAuthIntent = useCallback(async () => {
     const result = await authorize(linkAuthIntentId);
