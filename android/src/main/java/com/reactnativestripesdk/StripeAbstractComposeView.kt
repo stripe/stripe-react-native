@@ -107,22 +107,11 @@ abstract class StripeAbstractComposeView(
   }
 
   fun handleOnDropViewInstance() {
-    when (lifecycleRegistry.currentState) {
-      Lifecycle.State.INITIALIZED -> {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-      }
-      Lifecycle.State.CREATED -> {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-      }
-      Lifecycle.State.STARTED, Lifecycle.State.RESUMED -> {
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-      }
-      Lifecycle.State.DESTROYED -> {
-        // Already destroyed, nothing to do
-      }
+    // Skip ON_DESTROY if the lifecycle was never CREATED. Some OEMs (e.g., Samsung
+    // freeform/transform) can emit ON_DESTROY while the lifecycle is still INITIALIZED,
+    // which would otherwise crash (see b/444594991).
+    if (lifecycleRegistry.currentState != Lifecycle.State.INITIALIZED) {
+      lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
   }
 }
