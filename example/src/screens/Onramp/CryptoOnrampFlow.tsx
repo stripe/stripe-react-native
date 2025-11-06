@@ -100,6 +100,9 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [authInProgress, setAuthInProgress] = useState<
+    null | 'login' | 'signup'
+  >(null);
 
   // Auth token from SignupResponse, LoginResponse, or CreateAuthIntentResponse
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -155,11 +158,16 @@ export default function CryptoOnrampFlow() {
       showError('Please enter both email and password.');
       return;
     }
-    const res = await login(userInfo.email, userInfo.password);
-    if (res.success) {
-      setAuthToken(res.data.token);
-    } else {
-      showError(`${res.error.code}: ${res.error.message}`);
+    setAuthInProgress('login');
+    try {
+      const res = await login(userInfo.email, userInfo.password);
+      if (res.success) {
+        setAuthToken(res.data.token);
+      } else {
+        showError(`${res.error.code}: ${res.error.message}`);
+      }
+    } finally {
+      setAuthInProgress(null);
     }
   }, [userInfo.email, userInfo.password]);
 
@@ -168,11 +176,16 @@ export default function CryptoOnrampFlow() {
       showError('Please enter both email and password.');
       return;
     }
-    const res = await signup(userInfo.email, userInfo.password);
-    if (res.success) {
-      setAuthToken(res.data.token);
-    } else {
-      showError(`${res.error.code}: ${res.error.message}`);
+    setAuthInProgress('signup');
+    try {
+      const res = await signup(userInfo.email, userInfo.password);
+      if (res.success) {
+        setAuthToken(res.data.token);
+      } else {
+        showError(`${res.error.code}: ${res.error.message}`);
+      }
+    } finally {
+      setAuthInProgress(null);
     }
   }, [userInfo.email, userInfo.password]);
 
@@ -691,11 +704,19 @@ export default function CryptoOnrampFlow() {
                 placeholder="Password"
                 secureTextEntry
               />
-              <Button title="Log In" onPress={handleLogin} variant="primary" />
               <Button
-                title="Sign Up"
+                title={authInProgress === 'login' ? 'Logging In...' : 'Log In'}
+                onPress={handleLogin}
+                variant="primary"
+                disabled={authInProgress !== null}
+              />
+              <Button
+                title={
+                  authInProgress === 'signup' ? 'Signing Up...' : 'Sign Up'
+                }
                 onPress={handleSignup}
                 variant="primary"
+                disabled={authInProgress !== null}
               />
             </>
           )
