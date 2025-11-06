@@ -23,6 +23,7 @@ import {
   checkout,
   signup,
   login,
+  saveUser,
 } from '../../../server/onrampBackend';
 import {
   getDestinationParamsForNetwork,
@@ -210,10 +211,12 @@ export default function CryptoOnrampFlow() {
         return;
       }
 
-      // Overwrite stored auth token with the latest token from the response, which includes the LAI.
-      if ((authIntentResponse.data as any)?.token) {
-        setAuthToken((authIntentResponse.data as any).token);
+      // Overwrite stored auth token with the latest token from the response
+      const newToken = authIntentResponse.data.token;
+      if (newToken) {
+        setAuthToken(newToken);
       }
+      const latestAuthToken = newToken ?? authToken;
 
       const authIntentId = authIntentResponse.data.authIntentId;
 
@@ -226,6 +229,14 @@ export default function CryptoOnrampFlow() {
         showSuccess(`Authentication successful!`);
         setCustomerId(result.customerId);
         setLinkAuthIntentId(authIntentId);
+
+        // Persist user to demo backend with their crypto customer id
+        const saveUserRes = await saveUser(result.customerId, latestAuthToken);
+        if (!saveUserRes.success) {
+          showError(
+            `Failed to save user: ${saveUserRes.error.code} - ${saveUserRes.error.message}`
+          );
+        }
       } else if (result?.status === 'Denied') {
         showError('User denied the authentication request. Please try again.');
       } else {
