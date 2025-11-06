@@ -34,6 +34,7 @@ import type { OnrampError } from '@stripe/stripe-react-native/src/types/Errors';
 
 import {
   AttachKycInfoSection,
+  KycRefreshSection,
   VerifyIdentitySection,
   PhoneNumberUpdateSection,
   LinkAuthenticationSection,
@@ -50,6 +51,7 @@ export default function CryptoOnrampFlow() {
     hasLinkAccount,
     verifyIdentity,
     attachKycInfo,
+    presentKycInfoVerification,
     updatePhoneNumber,
     collectPaymentMethod,
     createCryptoPaymentToken,
@@ -283,6 +285,31 @@ export default function CryptoOnrampFlow() {
     authorize,
     linkAuthIntentId,
   ]);
+
+  const handlePresentKycVerification = useCallback(async () => {
+    const result = await withReauth(
+      () => presentKycInfoVerification(null),
+      () => authorize(linkAuthIntentId)
+    );
+
+    if (result?.error) {
+      if (result.error.code === 'Canceled') {
+        showCanceled('KYC verification cancelled, please try again.');
+      } else {
+        showError(
+          `Could not verify KYC info: ${JSON.stringify(result.error, null, 2)}`
+        );
+      }
+    } else if (result?.status === 'Confirmed') {
+      showSuccess('KYC information verified.');
+    } else if (result?.status === 'UpdateAddress') {
+      showSuccess(
+        'User chose to update address. Please collect updated address and call again.'
+      );
+    } else {
+      showCanceled('KYC verification cancelled.');
+    }
+  }, [presentKycInfoVerification, withReauth, authorize, linkAuthIntentId]);
 
   const handleUpdatePhoneNumber = useCallback(async () => {
     if (!userInfo.phoneNumber) {
@@ -594,6 +621,9 @@ export default function CryptoOnrampFlow() {
             userInfo={userInfo}
             setUserInfo={setUserInfo}
             handleAttachKycInfo={handleAttachKycInfo}
+          />
+          <KycRefreshSection
+            handlePresentKycVerification={handlePresentKycVerification}
           />
           <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
           <PaymentCollectionSection
