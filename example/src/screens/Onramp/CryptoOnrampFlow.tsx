@@ -81,7 +81,6 @@ export default function CryptoOnrampFlow() {
     email: string;
     token: string;
   } | null>(null);
-  const [forceManualSignIn, setForceManualSignIn] = useState(false);
   const [hasSeamlessSignIn, setHasSeamlessSignIn] = useState(false);
 
   const [response, setResponse] = useState<string | null>(null);
@@ -556,7 +555,6 @@ export default function CryptoOnrampFlow() {
       setAuthToken(null);
       await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
       setStoredDemoAuth(null);
-      setForceManualSignIn(false);
       setHasSeamlessSignIn(false);
       setWalletAddress(null);
       setWalletNetwork(null);
@@ -613,7 +611,6 @@ export default function CryptoOnrampFlow() {
           'Seamless Sign-In Unavailable',
           `${latRes.error.code}: ${latRes.error.message}. Please sign in manually.`
         );
-        setForceManualSignIn(true);
         return;
       }
 
@@ -625,7 +622,6 @@ export default function CryptoOnrampFlow() {
           'Seamless Sign-In Unavailable',
           `${result.error.code}: ${result.error.message}. Please sign in manually.`
         );
-        setForceManualSignIn(true);
         return;
       }
 
@@ -633,7 +629,6 @@ export default function CryptoOnrampFlow() {
       setAuthToken(storedDemoAuth.token);
       setUserInfo((u) => ({ ...u, email: storedDemoAuth.email }));
       setHasSeamlessSignIn(true);
-      setForceManualSignIn(false);
       setIsLinkUser(true); // user is authenticated with Link
     } catch (e: any) {
       await clearPersistedDemoAuth();
@@ -641,7 +636,6 @@ export default function CryptoOnrampFlow() {
         'Seamless Sign-In Unavailable',
         `Please sign in manually. ${e?.message ?? ''}`
       );
-      setForceManualSignIn(true);
     }
   }, [storedDemoAuth, authenticateUserWithToken, clearPersistedDemoAuth]);
 
@@ -649,7 +643,7 @@ export default function CryptoOnrampFlow() {
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
         {!authToken ? (
-          storedDemoAuth && !forceManualSignIn ? (
+          storedDemoAuth ? (
             <>
               <Text style={styles.infoText}>
                 Previously signed-in as {storedDemoAuth.email}.
@@ -661,7 +655,7 @@ export default function CryptoOnrampFlow() {
               />
               <Button
                 title="Manual Sign-In"
-                onPress={() => setForceManualSignIn(true)}
+                onPress={clearPersistedDemoAuth}
                 variant="primary"
               />
             </>
