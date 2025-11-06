@@ -6,7 +6,10 @@
 - CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
 - ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
 - [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet).
-* [Added] Added support for `onBehalfOf` to CustomerSheet.IntentConfiguration. This parameter makes CustomerSheet use a connected account to determine the payment method that users see and whether CardBrandChoice is enabled. For more information, see the [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of). 
+* [Added] Added support for `onBehalfOf` to CustomerSheet.IntentConfiguration. This parameter makes CustomerSheet use a connected account to determine the payment method that users see and whether CardBrandChoice is enabled. For more information, see the [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of).
+
+**Fixes**
+- Fixed Android crash `IllegalStateException: State must be at least CREATED to move to DESTROYED` when removing payment methods in EmbeddedPaymentElement. The crash occurred when views were destroyed before completing the lifecycle initialization. 
 
 ## 0.55.1 - 2025-10-23
 
