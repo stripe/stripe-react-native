@@ -247,7 +247,6 @@ class CardFormView(
       if (isValid) {
         cardForm.paymentMethodCreateParams?.let {
           val cardParamsMap = it.card?.toParamMap() ?: emptyMap<String, Any>()
-          val address = it.billingDetails?.address
 
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
@@ -255,8 +254,8 @@ class CardFormView(
               "expiryYear" to cardParamsMap["exp_year"] as Int,
               "last4" to (it.cardLast4() ?: ""),
               "brand" to mapCardBrand(multilineWidgetBinding.etCardNumber.cardBrand),
-              "postalCode" to (address?.postalCode ?: ""),
-              "country" to (address?.country ?: ""),
+              "postalCode" to (it.billingDetails?.address?.postalCode ?: ""),
+              "country" to (it.billingDetails?.address?.country ?: ""),
             )
 
           if (dangerouslyGetFullCardDetails) {
@@ -279,8 +278,8 @@ class CardFormView(
           cardAddress =
             Address
               .Builder()
-              .setPostalCode(address?.postalCode)
-              .setCountry(address?.country)
+              .setPostalCode(it.billingDetails?.address?.postalCode)
+              .setCountry(it.billingDetails?.address?.country)
               .build()
 
           cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params ->
