@@ -291,7 +291,6 @@ class Mappers {
         case STPPaymentMethodType.SEPADebit: return "SepaDebit"
         case STPPaymentMethodType.AUBECSDebit: return "AuBecsDebit"
         case STPPaymentMethodType.bacsDebit: return "BacsDebit"
-        case STPPaymentMethodType.giropay: return "Giropay"
         case STPPaymentMethodType.przelewy24: return "P24"
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
@@ -324,7 +323,6 @@ class Mappers {
             case "SepaDebit": return STPPaymentMethodType.SEPADebit
             case "AuBecsDebit": return STPPaymentMethodType.AUBECSDebit
             case "BacsDebit": return STPPaymentMethodType.bacsDebit
-            case "Giropay": return STPPaymentMethodType.giropay
             case "P24": return STPPaymentMethodType.przelewy24
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
@@ -844,7 +842,7 @@ class Mappers {
 
 
         let types = setupIntent.paymentMethodTypes.map {
-            mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
+            mapPaymentMethodType(type: $0)
         }
 
         intent.setValue(types, forKey: "paymentMethodTypes")
