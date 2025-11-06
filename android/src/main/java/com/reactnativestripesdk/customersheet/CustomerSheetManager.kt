@@ -10,6 +10,7 @@ import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
@@ -17,6 +18,8 @@ import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
+import com.reactnativestripesdk.getIntegerArrayList
+import com.reactnativestripesdk.getStringArrayList
 import com.reactnativestripesdk.mapToAddressCollectionMode
 import com.reactnativestripesdk.mapToCardBrandAcceptance
 import com.reactnativestripesdk.mapToCollectionMode
@@ -24,11 +27,13 @@ import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
-import com.reactnativestripesdk.utils.StripeFragment
+import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.customersheet.CustomerAdapter
 import com.stripe.android.customersheet.CustomerEphemeralKey
 import com.stripe.android.customersheet.CustomerSheet
@@ -41,48 +46,32 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomerSessionApi::class)
-class CustomerSheetFragment : StripeFragment() {
+@OptIn(ReactNativeSdkInternal::class, ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class, ExperimentalCustomerSessionApi::class)
+class CustomerSheetManager(
+  context: ReactApplicationContext,
+  private var arguments: ReadableMap,
+  private var customerAdapterOverrides: ReadableMap,
+  private var initPromise: Promise,
+) : StripeUIManager(context) {
   private var customerSheet: CustomerSheet? = null
   internal var customerAdapter: ReactNativeCustomerAdapter? = null
   internal var customerSessionProvider: ReactNativeCustomerSessionProvider? = null
-  internal var context: ReactApplicationContext? = null
-  internal var initPromise: Promise? = null
   private var presentPromise: Promise? = null
   private var keepJsAwake: KeepJsAwakeTask? = null
 
-  override fun prepare() {
-    val context =
-      context
-        ?: run {
-          Log.e(
-            "StripeReactNative",
-            "No context found during CustomerSheet.initialize. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-          )
-          return
-        }
-    val initPromise =
-      initPromise
-        ?: run {
-          Log.e(
-            "StripeReactNative",
-            "No promise found for CustomerSheet.initialize. Please file an issue: https://github.com/stripe/stripe-react-native/issues",
-          )
-          return
-        }
-
-    val headerTextForSelectionScreen = arguments?.getString("headerTextForSelectionScreen")
-    val merchantDisplayName = arguments?.getString("merchantDisplayName")
-    val googlePayEnabled = arguments?.getBoolean("googlePayEnabled") ?: false
-    val billingDetailsBundle = arguments?.getBundle("defaultBillingDetails")
-    val billingConfigParams = arguments?.getBundle("billingDetailsCollectionConfiguration")
+  override fun onCreate() {
+    val headerTextForSelectionScreen = arguments.getString("headerTextForSelectionScreen")
+    val merchantDisplayName = arguments.getString("merchantDisplayName")
+    val googlePayEnabled = arguments.getBooleanOr("googlePayEnabled", false)
+    val billingDetailsMap = arguments.getMap("defaultBillingDetails")
+    val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
     val allowsRemovalOfLastSavedPaymentMethod =
-      arguments?.getBoolean("allowsRemovalOfLastSavedPaymentMethod", true) ?: true
-    val paymentMethodOrder = arguments?.getStringArrayList("paymentMethodOrder")
+      arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
 
     val appearance =
       try {
-        buildPaymentSheetAppearance(arguments?.getBundle("appearance"), context)
+        buildPaymentSheetAppearance(arguments.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
@@ -95,13 +84,13 @@ class CustomerSheetFragment : StripeFragment() {
         .googlePayEnabled(googlePayEnabled)
         .headerTextForSelectionScreen(headerTextForSelectionScreen)
         .preferredNetworks(
-          mapToPreferredNetworks(arguments?.getIntegerArrayList("preferredNetworks")),
+          mapToPreferredNetworks(arguments.getIntegerArrayList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
-    billingDetailsBundle?.let {
-      configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsBundle))
+    billingDetailsMap?.let {
+      configuration.defaultBillingDetails(createDefaultBillingDetails(billingDetailsMap))
     }
     billingConfigParams?.let {
       configuration.billingDetailsCollectionConfiguration(
@@ -109,8 +98,10 @@ class CustomerSheetFragment : StripeFragment() {
       )
     }
 
-    val customerEphemeralKeySecret = arguments?.getString("customerEphemeralKeySecret")
-    val intentConfiguration = createIntentConfiguration(arguments?.getBundle("intentConfiguration"))
+    val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
+
+    val customerEphemeralKeySecret = arguments.getString("customerEphemeralKeySecret")
+    val intentConfiguration = createIntentConfiguration(arguments.getMap("intentConfiguration"))
     if (customerEphemeralKeySecret == null && intentConfiguration == null) {
       initPromise.resolve(
         createError(
@@ -128,32 +119,31 @@ class CustomerSheetFragment : StripeFragment() {
 
       customerSheet =
         CustomerSheet.create(
-          fragment = this,
+          activity = activity,
           customerSessionProvider = customerSessionProvider,
           callback = ::handleResult,
         )
     } else if (intentConfiguration == null) {
-      val customerId = arguments?.getString("customerId")
+      val customerId = arguments.getString("customerId")
       if (customerId == null) {
         initPromise.resolve(
           createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
         )
         return
       }
-      val setupIntentClientSecret = arguments?.getString("setupIntentClientSecret")
-      val customerAdapterOverrideParams = arguments?.getBundle("customerAdapter")
+      val setupIntentClientSecret = arguments.getString("setupIntentClientSecret")
       val customerAdapter =
         createCustomerAdapter(
           context,
-          customerId!!,
+          customerId,
           customerEphemeralKeySecret,
           setupIntentClientSecret,
-          customerAdapterOverrideParams,
+          customerAdapterOverrides,
         ).also { this.customerAdapter = it }
 
       customerSheet =
         CustomerSheet.create(
-          fragment = this,
+          activity = activity,
           customerAdapter = customerAdapter,
           callback = ::handleResult,
         )
@@ -193,16 +183,15 @@ class CustomerSheetFragment : StripeFragment() {
     resolvePresentPromise(promiseResult)
   }
 
-  fun present(
-    timeout: Long?,
-    promise: Promise,
-  ) {
-    keepJsAwake = context?.let { KeepJsAwakeTask(it).apply { start() } }
+  override fun onPresent() {
+    keepJsAwake = context.let { KeepJsAwakeTask(it).apply { start() } }
     presentPromise = promise
+    val timeout = timeout
     if (timeout != null) {
       presentWithTimeout(timeout)
+    } else {
+      customerSheet?.present() ?: run { resolvePresentPromise(createMissingInitError()) }
     }
-    customerSheet?.present() ?: run { resolvePresentPromise(createMissingInitError()) }
   }
 
   private fun presentWithTimeout(timeout: Long) {
@@ -232,7 +221,7 @@ class CustomerSheetFragment : StripeFragment() {
 
         override fun onActivityDestroyed(activity: Activity) {
           activities = mutableListOf()
-          context?.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
+          context.currentActivity?.application?.unregisterActivityLifecycleCallbacks(this)
         }
       }
 
@@ -248,7 +237,7 @@ class CustomerSheetFragment : StripeFragment() {
       )
 
     context
-      ?.currentActivity
+      .currentActivity
       ?.application
       ?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
 
@@ -304,37 +293,35 @@ class CustomerSheetFragment : StripeFragment() {
   }
 
   companion object {
-    internal const val TAG = "customer_sheet_launch_fragment"
-
     internal fun createMissingInitError(): WritableMap =
       createError(ErrorType.Failed.toString(), "No customer sheet has been initialized yet.")
 
-    internal fun createDefaultBillingDetails(bundle: Bundle): PaymentSheet.BillingDetails {
-      val addressBundle = bundle.getBundle("address")
+    internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails {
+      val addressMap = map.getMap("address")
       val address =
         PaymentSheet.Address(
-          addressBundle?.getString("city"),
-          addressBundle?.getString("country"),
-          addressBundle?.getString("line1"),
-          addressBundle?.getString("line2"),
-          addressBundle?.getString("postalCode"),
-          addressBundle?.getString("state"),
+          addressMap?.getString("city"),
+          addressMap?.getString("country"),
+          addressMap?.getString("line1"),
+          addressMap?.getString("line2"),
+          addressMap?.getString("postalCode"),
+          addressMap?.getString("state"),
         )
       return PaymentSheet.BillingDetails(
         address,
-        bundle.getString("email"),
-        bundle.getString("name"),
-        bundle.getString("phone"),
+        map.getString("email"),
+        map.getString("name"),
+        map.getString("phone"),
       )
     }
 
-    internal fun createBillingDetailsCollectionConfiguration(bundle: Bundle): PaymentSheet.BillingDetailsCollectionConfiguration =
+    internal fun createBillingDetailsCollectionConfiguration(map: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
       PaymentSheet.BillingDetailsCollectionConfiguration(
-        name = mapToCollectionMode(bundle.getString("name")),
-        phone = mapToCollectionMode(bundle.getString("phone")),
-        email = mapToCollectionMode(bundle.getString("email")),
-        address = mapToAddressCollectionMode(bundle.getString("address")),
-        attachDefaultsToPaymentMethod = bundle.getBoolean("attachDefaultsToPaymentMethod", false),
+        name = mapToCollectionMode(map.getString("name")),
+        phone = mapToCollectionMode(map.getString("phone")),
+        email = mapToCollectionMode(map.getString("email")),
+        address = mapToAddressCollectionMode(map.getString("address")),
+        attachDefaultsToPaymentMethod = map.getBooleanOr("attachDefaultsToPaymentMethod", false),
       )
 
     internal fun createCustomerAdapter(
@@ -342,7 +329,7 @@ class CustomerSheetFragment : StripeFragment() {
       customerId: String,
       customerEphemeralKeySecret: String,
       setupIntentClientSecret: String?,
-      customerAdapterOverrideParams: Bundle?,
+      customerAdapterOverrideParams: ReadableMap?,
     ): ReactNativeCustomerAdapter {
       val ephemeralKeyProvider = {
         CustomerAdapter.Result.success(
@@ -375,18 +362,17 @@ class CustomerSheetFragment : StripeFragment() {
         context = context,
         adapter = customerAdapter,
         overridesFetchPaymentMethods =
-          customerAdapterOverrideParams?.getBoolean("fetchPaymentMethods") ?: false,
+          customerAdapterOverrideParams.getBooleanOr("fetchPaymentMethods", false),
         overridesAttachPaymentMethod =
-          customerAdapterOverrideParams?.getBoolean("attachPaymentMethod") ?: false,
+          customerAdapterOverrideParams.getBooleanOr("attachPaymentMethod", false),
         overridesDetachPaymentMethod =
-          customerAdapterOverrideParams?.getBoolean("detachPaymentMethod") ?: false,
+          customerAdapterOverrideParams.getBooleanOr("detachPaymentMethod", false),
         overridesSetSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBoolean("setSelectedPaymentOption") ?: false,
+          customerAdapterOverrideParams.getBooleanOr("setSelectedPaymentOption", false),
         overridesFetchSelectedPaymentOption =
-          customerAdapterOverrideParams?.getBoolean("fetchSelectedPaymentOption") ?: false,
+          customerAdapterOverrideParams.getBooleanOr("fetchSelectedPaymentOption", false),
         overridesSetupIntentClientSecretForCustomerAttach =
-          customerAdapterOverrideParams?.getBoolean("setupIntentClientSecretForCustomerAttach")
-            ?: false,
+          customerAdapterOverrideParams.getBooleanOr("setupIntentClientSecretForCustomerAttach", false),
       )
     }
 
@@ -414,15 +400,15 @@ class CustomerSheetFragment : StripeFragment() {
       return paymentOptionResult
     }
 
-    internal fun createIntentConfiguration(intentConfigurationBundle: Bundle?): CustomerSheet.IntentConfiguration? =
+    internal fun createIntentConfiguration(intentConfigurationBundle: ReadableMap?): CustomerSheet.IntentConfiguration? =
       intentConfigurationBundle?.let { bundle ->
-        val onBehalfOf = bundle?.getString("onBehalfOf")
+        val onBehalfOf = bundle.getString("onBehalfOf")
         CustomerSheet.IntentConfiguration
           .Builder()
-          .paymentMethodTypes(bundle?.getStringArrayList("paymentMethodTypes") ?: emptyList())
+          .paymentMethodTypes(bundle.getStringArrayList("paymentMethodTypes") ?: emptyList())
           .apply {
             if (onBehalfOf != null) {
-              this.onBehalfOf(onBehalfOf!!)
+              this.onBehalfOf(onBehalfOf)
             }
           }.build()
       }
