@@ -48,6 +48,9 @@ fun ReadableMap?.getDoubleOr(
 fun ReadableMap?.getFloatOrNull(key: String): Float? =
   if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Number) this.getDouble(key).toFloat() else null
 
+fun ReadableMap?.getBooleanOrNull(key: String): Boolean? =
+  if (this?.hasKey(key) == true && this.getType(key) == ReadableType.Boolean) this.getBoolean(key) else null
+
 fun ReadableMap?.getFloatOr(
   key: String,
   default: Float,

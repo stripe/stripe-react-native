@@ -282,9 +282,9 @@ class CardFieldView(
       cardAddress = null
     }
 
-    mCardWidget.cardParams?.let {
-      cardDetails["brand"] = mapCardBrand(it.brand)
-      cardDetails["last4"] = it.last4
+    mCardWidget.paymentMethodCreateParams?.let {
+      cardDetails["brand"] = mapCardBrand(mCardWidget.brand)
+      cardDetails["last4"] = it.cardLast4()
     } ?: run {
       cardDetails["brand"] = null
       cardDetails["last4"] = null

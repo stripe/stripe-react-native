@@ -65,7 +65,6 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
-import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -1247,7 +1246,6 @@ class StripeSdkModule(
     }
   }
 
-  @OptIn(ExperimentalCustomerSessionApi::class)
   @ReactMethod
   override fun clientSecretProviderSetupIntentClientSecretCallback(
     setupIntentClientSecret: String,
@@ -1261,7 +1259,6 @@ class StripeSdkModule(
     }
   }
 
-  @OptIn(ExperimentalCustomerSessionApi::class)
   @ReactMethod
   override fun clientSecretProviderCustomerSessionClientSecretCallback(
     customerSessionClientSecretJson: ReadableMap,
