@@ -11,7 +11,6 @@ import com.stripe.android.paymentsheet.addresselement.AddressLauncher
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import kotlin.math.exp
 
 class AddressSheetViewTest {
   private val testCity = "testCity"
@@ -137,7 +136,11 @@ class AddressSheetViewTest {
       }
 
     val received = AddressSheetView.buildAdditionalFieldsConfiguration(params)
-    val expected = AddressLauncher.AdditionalFieldsConfiguration(AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED, label)
+    val expected =
+      AddressLauncher.AdditionalFieldsConfiguration(
+        AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
+        label,
+      )
     Assert.assertEquals(received, expected)
   }
 
