@@ -2,9 +2,9 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.app.Activity
 import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.google.android.gms.tasks.Task
 import com.reactnativestripesdk.utils.createError
 
@@ -108,7 +108,7 @@ object TapAndPayProxy {
   }
 
   private fun mapFromTokenInfo(token: Any?): WritableMap {
-    val result = WritableNativeMap()
+    val result = Arguments.createMap()
     token?.let {
       try {
         val tokenInfoClass = Class.forName("com.google.android.gms.tapandpay.issuer.TokenInfo")

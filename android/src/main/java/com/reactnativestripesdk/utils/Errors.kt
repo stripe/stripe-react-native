@@ -1,7 +1,7 @@
 package com.reactnativestripesdk.utils
 
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.core.exception.APIException
 import com.stripe.android.core.exception.AuthenticationException
 import com.stripe.android.core.exception.InvalidRequestException
@@ -66,8 +66,8 @@ internal fun mapError(
   type: String?,
   stripeErrorCode: String?,
 ): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  val details: WritableMap = WritableNativeMap()
+  val map: WritableMap = Arguments.createMap()
+  val details: WritableMap = Arguments.createMap()
   details.putString("code", code)
   details.putString("message", message)
   details.putString("localizedMessage", localizedMessage)
