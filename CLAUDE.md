@@ -149,209 +149,462 @@ The SDK maintains compatibility with React Native's Old Architecture via `patche
 
 ## How to add features to React Native SDK
 
-### Step by step guide for adding a feature to the React Native SDK
+This guide explains how to add new features that require communication between React Native (JavaScript) and native code (iOS/Android). Use this when adding new native functionality, payment methods, or extending existing components with platform-specific capabilities.
 
-#### Passing data to our native SDKs
+### Overview
 
-##### 1. Update your relevant data type like `PaymentSheet.IntentConfiguration` in `PaymentSheet.ts`
+The SDK uses a **bidirectional communication pattern**:
+1. **Native → JavaScript**: Native code emits events that JavaScript listens for
+2. **JavaScript → Native**: JavaScript invokes callbacks to return data to native code
 
-```
+
+### Part 1: Passing Simple Data to Native SDKs
+
+Use this when adding new configuration parameters that flow one-way from JavaScript to native code.
+
+#### Step 1: Update TypeScript Types
+
+Add your new parameter to the relevant type definition in `src/types/`.
+
+**Example:** Adding `onBehalfOf` to `PaymentSheet.IntentConfiguration`
+
+**File:** `src/types/PaymentSheet.ts`
+
+```typescript
 export type IntentConfiguration = {
-    onBehalfOf: string;
-}
+  mode: Mode;
+  paymentMethodTypes?: PaymentMethod.Type[];
+  onBehalfOf?: string; // New parameter
+};
 ```
 
-##### 2. Parse your parameter from `arguments` in Android, and `params` in iOS and pass it into our Native Code
+#### Step 2: Parse Parameters in Native Code
 
-Android
-```
-PaymentSheetManager.kt
+Extract the parameter from the bridge arguments and pass it to the native SDK.
 
+##### Android Implementation
+
+**File:** `android/src/main/java/com/reactnativestripesdk/PaymentSheetManager.kt` (or similar)
+
+```kotlin
 override fun onCreate() {
-    val onBehalfOf = arguments.getString("onBehalfOf")
-
-    val intentConfiguration = PaymentSheet.IntentConfiguration(
-        ...
-        onBehalfOf = onBehalfOf
-    )
+  // Parse the parameter from arguments
+  val onBehalfOf = arguments?.getString("onBehalfOf")
+  
+  // Pass it to the native SDK
+  val intentConfiguration = PaymentSheet.IntentConfiguration(
+    mode = mode,
+    // ... other existing parameters ...
+    onBehalfOf = onBehalfOf
+  )
 }
 ```
 
-iOS
-```
-StripeSDKImpl+PaymentSheet.swift
+##### iOS Implementation
 
-guard let intentConfiguration = params["intentConfiguration"] as? NSDictionary
+**File:** `ios/StripeSdkImpl+PaymentSheet.swift`
 
-let intentConfig = buildIntentConfiguration(
-    onBehalfOf: intentConfiguration["onBehalfOf"]
+```swift
+guard let intentConfiguration = params["intentConfiguration"] as? NSDictionary else {
+  // handle error
+  return
+}
+
+// Extract the parameter
+let onBehalfOf = intentConfiguration["onBehalfOf"] as? String
+
+// Build the configuration
+let intentConfig = PaymentSheet.IntentConfiguration(
+  mode: mode,
+  // ... other existing parameters ...
+  onBehalfOf: onBehalfOf
 )
-
-PaymentSheet.IntentConfiguration.init(intentConfiguration: intentConfig)
 ```
 
-#### Implementing a bridge to communicate between Native and ReactNative SDKs
+---
 
-We will be implementing in Native code (Android & iOS)
-1. Emitters to send events to React Native
-2. Callbacks that React Native will invoke so we can get data back
+### Part 2: Implementing Bidirectional Communication
 
-and in React Native we will be
-1. Listening for emitted events
-2. Invoking native callbacks to pass information back
-3. Updating specs so two sides know which events & callbacks to implement
+Use this when native code needs to request data from JavaScript (e.g., fetching client secrets, custom validation).
 
-##### 1. Emit an event in native iOS or Android code
+#### Communication Flow
 
-Android
 ```
-ReactNativeCustomerSessionProvider.kt
+React Native (JS)  →  Registers Event Listener  
+                  ↓
+Native Code (iOS/Android)  →  Emits Event  →  JS Listener Triggered
+                  ↓
+JS Executes Logic (API call, user input, etc.)
+                  ↓
+JS Invokes Native Callback  →  Native Code Receives Result
+                  ↓
+Native Code Continues Execution
+```
+
+#### Step 1: Emit an Event from Native Code
+
+Create the native code that will request data from JavaScript.
+
+##### Android Implementation
+
+**File:** `android/src/main/java/com/reactnativestripesdk/ReactNativeCustomerSessionProvider.kt` (or similar)
+
+```kotlin
+internal var provideSetupIntentClientSecretCallback: CompletableDeferred<String>? = null
 
 override suspend fun provideSetupIntentClientSecret(customerId: String): Result<String> {
-    ...
+  return suspendCancellableCoroutine { continuation ->
+    // Store the continuation to resume later
+    provideSetupIntentClientSecretCallback = continuation
+    
+    // Emit the event to JavaScript
     stripeSdkModule?.eventEmitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
-    val resultFromJavascript = it.await()
-    return Result.success(resultFromJavascript)
+  }
 }
 ```
-iOS
 
-```
-StripeSdkImpl.swift
+##### iOS Implementation
 
+**File:** `ios/StripeSdkImpl.swift`
+
+```swift
+// Store the continuation as a property
 var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)? = nil
+```
 
+**File:** `ios/StripeSdkImpl+CustomerSheet.swift`
 
-StripeSdkImpl+CustomerSheet.swift
-
-let intentConfiguration: CustomerSheet.IntentConfiguration = CustomerSheet.IntentConfiguration(
-    ...
-    setupIntentClientSecretProvider: {
-        return try await withCheckedThrowingContinuation { 
-            continuation in
-            // Store the continuation to be resumed later
-            self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
-                continuation.resume(returning: clientSecret)
-            }
-            // Emit the event to JS
-            self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
-        }
+```swift
+let intentConfiguration = CustomerSheet.IntentConfiguration(
+  // ... other parameters ...
+  setupIntentClientSecretProvider: {
+    return try await withCheckedThrowingContinuation { continuation in
+      // Store the continuation to be resumed later
+      self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
+        continuation.resume(returning: clientSecret)
+      }
+      
+      // Emit the event to JavaScript
+      self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
     }
+  }
 )
-
-```
-##### 2. Add the event, and implement the emitter.
-
-Shared code
-```
-events.ts
-
-onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<UnsafeObject<any>>;
-
-//or if no params 
-onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>;
 ```
 
+#### Step 2: Define and Implement the Event Emitter
 
-Android 
+##### 2a. Define the Event Type
+
+**File:** `src/events.ts`
+
+Add your event to the `Events` type:
+
+```typescript
+type Events = {
+  // ... existing events ...
+  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<void>; // No parameters
+  // OR if you need to pass data:
+  onCustomerSessionProviderSetupIntentClientSecret: EventEmitter<{
+    customerId: string;
+  }>;
+};
 ```
-EventEmitterCompat.kt
 
-fun emitOnCustomerSessionProviderSetupIntentClientSecret(value: ReadableMap?) {
-    invoke("onCustomerSessionProviderSetupIntentClientSecret", value)
+**Guidelines:**
+- Use `EventEmitter<void>` if no data is passed from native to JS
+- Use `EventEmitter<{ param: type }>` for simple parameters
+- Use `EventEmitter<UnsafeObject<any>>` for complex objects (use sparingly)
+
+##### 2b. Implement Android Emitter
+
+**File:** `android/src/main/java/com/reactnativestripesdk/EventEmitterCompat.kt`
+
+```kotlin
+fun emitOnCustomerSessionProviderSetupIntentClientSecret(value: ReadableMap? = null) {
+  invoke("onCustomerSessionProviderSetupIntentClientSecret", value)
+}
+
+// For events with no parameters:
+fun emitOnCustomerSessionProviderSetupIntentClientSecret() {
+  invoke("onCustomerSessionProviderSetupIntentClientSecret")
 }
 ```
 
-iOS
+##### 2c. Implement iOS Emitter
 
-```
-StripeSdkEmitter.swift
+**File:** `ios/StripeSdkEmitter.swift`
 
-func emitOnCustomerSessionProviderSetupIntentClientSecret(_ value: [String: Any])
-```
-
-##### 3. Write the function signatures for native callbacks
-
-React Native
-
-```
-NativeStripeSdkModule.ts
-
-clientSecretProviderSetupIntentClientSecretCallback(
-setupIntentClientSecret: string
-): Promise<void>;
+```swift
+@objc public protocol StripeSdkEmitter {
+  // ... existing methods ...
+  
+  // For events with parameters:
+  func emitOnCustomerSessionProviderSetupIntentClientSecret(_ value: [String: Any])
+  
+  // For events without parameters:
+  func emitOnCustomerSessionProviderSetupIntentClientSecret()
+}
 ```
 
+#### Step 3: Define Native Callback Signatures
 
-Android
+These are the methods JavaScript will call to return data to native code.
+
+##### 3a. TypeScript Spec
+
+**File:** `src/specs/NativeStripeSdkModule.ts`
+
+```typescript
+export interface Spec extends TurboModule {
+  // ... existing methods ...
+  
+  clientSecretProviderSetupIntentClientSecretCallback(
+    setupIntentClientSecret: string
+  ): Promise<void>;
+}
 ```
-NativeStripeSDKModuleSpec.java 
 
+##### 3b. Android Spec
+
+**File:** `android/src/oldarch/java/com/reactnativestripesdk/NativeStripeSdkModuleSpec.java`
+
+```java
 @ReactMethod
 @DoNotStrip
-public abstract void clientSecretProviderSetupIntentClientSecretCallback(String setupIntentClientSecret, Promise promise);
-```
-
-iOS
-```
-StripeSdk.mm
-
-RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
-    resolve:(nonnull RCTPromiseResolveBlock)resolve
-    reject:(nonnull RCTPromiseRejectBlock)reject)
-{
-  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret resolver:resolve rejecter:reject];
-}
-```
-
-##### 4. Implement the shared React Native listener code and invoke native callbacks
-
-```
-CustomerSheet.tsx
-
-let customerSessionClientSecretProviderCallback: EventSubscription | null = null;
-
-setupIntentClientSecretProviderCallback?.remove();
-setupIntentClientSecretProviderCallback = addListener(
-'onCustomerSessionProviderSetupIntentClientSecret',
-async ({param_from_native_code}) => {
-    const setupIntentClientSecret = await params.provideSetupIntentClientSecret(param_from_native_code);
-
-    await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
-        setupIntentClientSecret
-    );
-}
+public abstract void clientSecretProviderSetupIntentClientSecretCallback(
+  String setupIntentClientSecret, 
+  Promise promise
 );
-
 ```
 
-##### 5. Listen for the results from React Native to complete the callbacks created in step 1
+##### 3c. iOS Bridge Declaration
 
-Android
+**File:** `ios/StripeSdk.mm`
+
+```objc
+RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull NSString *)setupIntentClientSecret
+                  resolve:(nonnull RCTPromiseResolveBlock)resolve
+                  reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret 
+                                                                   resolver:resolve 
+                                                                   rejecter:reject];
+}
 ```
-StripeSdkModule.kt
 
-override fun clientSecretProviderSetupIntentClientSecretCallback(
-    setupIntentClientSecret: String,
-    promise: Promise,
-) {
-    customerSheetFragment?.let {
-        it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.complete(setupIntentClientSecret)
-    } ?: run {
-        promise.resolve(CustomerSheetFragment.createMissingInitError())
-        return
+#### Step 4: Implement JavaScript Event Listener
+
+Listen for the native event and invoke the callback with the result.
+
+**File:** `src/components/CustomerSheet.tsx` (or relevant component)
+
+```typescript
+// Declare the EventSubscription at the top of the file
+let setupIntentClientSecretProviderCallback: EventSubscription | null = null;
+
+const configureClientSecretProviderEventListeners = (
+  clientSecretProvider: ClientSecretProvider
+): void => {
+  // Remove existing listener to prevent duplicates
+  setupIntentClientSecretProviderCallback?.remove();
+  
+  // Register the event listener
+  setupIntentClientSecretProviderCallback = addListener(
+    'onCustomerSessionProviderSetupIntentClientSecret',
+    async () => {
+      try {
+        // Execute the user-provided function (e.g., API call)
+        const setupIntentClientSecret = 
+          await clientSecretProvider.provideSetupIntentClientSecret();
+        
+        // Return the result to native code
+        await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+          setupIntentClientSecret
+        );
+      } catch (error) {
+        // Handle errors appropriately
+        console.error('Failed to provide setup intent client secret:', error);
+      }
     }
+  );
+};
+```
+
+**If the event includes parameters from native:**
+
+```typescript
+setupIntentClientSecretProviderCallback = addListener(
+  'onCustomerSessionProviderSetupIntentClientSecret',
+  async ({ customerId }) => { // Destructure parameters
+    const setupIntentClientSecret = 
+      await clientSecretProvider.provideSetupIntentClientSecret(customerId);
+    
+    await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
+      setupIntentClientSecret
+    );
+  }
+);
+```
+
+**Important:** Don't forget to clean up listeners when the component unmounts or is reconfigured.
+
+#### Step 5: Complete the Native Callback Implementation
+
+Resume the async operation started in Step 1 with the data from JavaScript.
+
+##### Android Implementation
+
+**File:** `android/src/main/java/com/reactnativestripesdk/StripeSdkModule.kt`
+
+```kotlin
+override fun clientSecretProviderSetupIntentClientSecretCallback(
+  setupIntentClientSecret: String,
+  promise: Promise
+) {
+  customerSheetFragment?.let {
+    // Resume the coroutine with the result from JavaScript
+    it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.resume(
+      Result.success(setupIntentClientSecret)
+    )
+    promise.resolve(null)
+  } ?: run {
+    promise.reject(
+      "CustomerSheetNotInitialized",
+      "Customer Sheet must be initialized before calling this callback"
+    )
+  }
 }
 ```
 
-iOS
-```
-StripeSdkImpl+CustomerSheet.swift
+##### iOS Implementation
 
+**File:** `ios/StripeSdkImpl+CustomerSheet.swift`
+
+```swift
 @objc(clientSecretProviderSetupIntentClientSecretCallback:resolver:rejecter:)
-public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-    self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
-    resolve([])
+public func clientSecretProviderSetupIntentClientSecretCallback(
+  setupIntentClientSecret: String,
+  resolver resolve: @escaping RCTPromiseResolveBlock,
+  rejecter reject: @escaping RCTPromiseRejectBlock
+) -> Void {
+  // Resume the continuation with the result from JavaScript
+  self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
+  
+  // Clear the callback
+  self.clientSecretProviderSetupIntentClientSecretCallback = nil
+  
+  resolve([])
 }
 ```
+---
+
+### Implementation Checklist
+
+Use this checklist to ensure you've completed all necessary steps:
+
+### Part 1: Simple Data Passing
+- [ ] TypeScript types updated in `src/types/`
+- [ ] Android parameter parsing implemented
+- [ ] iOS parameter parsing implemented
+
+### Part 2: Bidirectional Communication
+- [ ] Event emission added in Android native code
+- [ ] Event emission added in iOS native code
+- [ ] Event type defined in `src/events.ts`
+- [ ] Android emitter implemented in `EventEmitterCompat.kt`
+- [ ] iOS emitter declared in `StripeSdkEmitter.swift`
+- [ ] TypeScript callback spec added to `NativeStripeSdkModule.ts`
+- [ ] Android callback spec added to `NativeStripeSdkModuleSpec.java`
+- [ ] iOS bridge method added to `StripeSdk.mm`
+- [ ] JavaScript event listener implemented in component
+- [ ] Android callback completion implemented in `StripeSdkModule.kt`
+- [ ] iOS callback completion implemented in Swift
+
+### Testing & Documentation
+- [ ] Unit tests written for TypeScript code
+- [ ] Native tests written (iOS XCTest / Android)
+- [ ] Example app updated to demonstrate feature
+- [ ] E2E tests written using Maestro
+- [ ] Code runs without linter errors (`yarn lint`)
+- [ ] TypeScript compiles without errors (`yarn typescript`)
+- [ ] Tested on both iOS and Android
+- [ ] Tested with both Old and New Architecture
+
+---
+
+### Common Pitfalls
+
+#### Memory Leaks
+**Problem:** Forgetting to remove event listeners.
+**Solution:** Always call `.remove()` on subscriptions before creating new ones or when unmounting.
+
+```typescript
+useEffect(() => {
+  // Setup listener
+  const subscription = addListener('myEvent', handler);
+  
+  return () => {
+    // Cleanup on unmount
+    subscription?.remove();
+  };
+}, []);
+```
+
+#### Missing Error Handling
+**Problem:** Not handling errors in async callbacks.
+**Solution:** Wrap callback logic in try-catch blocks and handle failures gracefully.
+
+```typescript
+async () => {
+  try {
+    const result = await userProvidedFunction();
+    await NativeStripeSdk.callback(result);
+  } catch (error) {
+    console.error('Error:', error);
+    // Consider how to communicate errors back to native
+  }
+}
+```
+
+#### Thread Safety (iOS)
+**Problem:** Updating UI from background threads.
+**Solution:** Ensure UI updates happen on the main thread:
+
+```swift
+DispatchQueue.main.async {
+  // UI updates here
+}
+```
+
+#### Incomplete Callback Resolution
+**Problem:** Not calling `promise.resolve()` or `promise.reject()` in native code.
+**Solution:** Always resolve or reject promises, even in error cases.
+
+### Type Mismatches
+**Problem:** TypeScript types don't match native expectations.
+**Solution:** Use `UnsafeObject<T>` for complex types and validate in native code.
+
+---
+
+### Platform-Specific Considerations
+
+#### iOS
+- **Async/Await:** Uses Swift continuations (`withCheckedThrowingContinuation`)
+- **Callbacks:** Stored as optional closures (`((String) -> Void)?`)
+- **Threading:** UI operations must run on main thread
+- **Memory:** Be careful with retain cycles; use `[weak self]` when needed
+
+#### Android
+- **Async/Await:** Uses Kotlin coroutines and `suspendCancellableCoroutine`
+- **Callbacks:** Uses `CancellableContinuation` or `CompletableDeferred`
+- **Threading:** React Native bridge handles threading automatically
+- **Lifecycle:** Be aware of Activity/Fragment lifecycle when storing callbacks
+
+---
+
+### Additional Resources
+
+- React Native TurboModules: https://reactnative.dev/docs/the-new-architecture/pillars-turbomodules
+- Stripe iOS SDK: https://stripe.dev/stripe-ios
+- Stripe Android SDK: https://stripe.dev/stripe-android
 
