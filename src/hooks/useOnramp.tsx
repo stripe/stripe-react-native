@@ -237,7 +237,7 @@ export function useOnramp() {
 
     /**
      * Authenticates the user with an encrypted Link auth token.
-     * This token can be obtained by exchanging a previously consented Link OAuth token from your backend using Stripe's /v1/link/auth_token API.
+     * This token can be obtained by exchanging a previously consented Link OAuth token from your backend using Stripe's /v1/link/auth_token API. The response of this backend API includes information on token expiry.
      *
      * @param linkAuthTokenClientSecret An encrypted one-time-use auth token that, upon successful validation, leaves the Link account’s consumer session in an already-verified state, allowing the client to skip verification.
      * @returns Promise that resolves to an object with an optional error property if authentication fails due to an invalid token that is expired, already used, revoked, or not found, or if a network error occurs.
