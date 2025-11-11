@@ -1,10 +1,13 @@
 # CHANGELOG
 
-## x.x.x - x.x.x
+## x.x.x - 2025-x-x
 **Changes**
 - [Changed] Updated Stripe iOS SDK from 24.25.0 to 25.0.0
 - [Changed] Updated Stripe Android SDK from 21.29.+ to 22.0.+
 - [Removed] Removed Giropay. Use alternative payment methods instead. See [this page](https://docs.stripe.com/payments/giropay) for more information.
+
+**Fixes**
+- [#2201](https://github.com/stripe/stripe-react-native/issues/2201) Fixed iOS sheets (PaymentSheet, CustomerSheet, AddressSheet, etc.) not presenting in scene-based lifecycle apps. The SDK now properly supports both traditional app delegates and scene-based lifecycles (iOS 13+) by using `RCTKeyWindow`.
 
 ## 0.56.0 - 2025-11-06
 

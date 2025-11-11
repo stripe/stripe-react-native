@@ -30,7 +30,6 @@ export type CreateParams =
   | OxxoParams
   | P24Params
   | AlipayParams
-  | GiropayParams
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
@@ -114,13 +113,6 @@ export interface SepaParams {
   paymentMethodType: 'SepaDebit';
   paymentMethodData: {
     iban: string;
-    billingDetails: BillingDetails;
-  };
-}
-
-export interface GiropayParams {
-  paymentMethodType: 'Giropay';
-  paymentMethodData: {
     billingDetails: BillingDetails;
   };
 }
@@ -281,7 +273,6 @@ export type Type =
   | 'SepaDebit'
   | 'AuBecsDebit'
   | 'BacsDebit'
-  | 'Giropay'
   | 'P24'
   | 'Eps'
   | 'Bancontact'

@@ -107,7 +107,7 @@ extension StripeSdkImpl {
         }
 
         DispatchQueue.main.async {
-            self.customerSheetViewController = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+            self.customerSheetViewController = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
             if let customerSheetViewController = self.customerSheetViewController {
                 customerSheetViewController.modalPresentationStyle = CustomerSheetUtils.getModalPresentationStyle(params["presentationStyle"] as? String)
                 customerSheetViewController.modalTransitionStyle = CustomerSheetUtils.getModalTransitionStyle(params["animationStyle"] as? String)
