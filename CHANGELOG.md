@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - 2025-x-x
+
+**Fixes**
+- [#2201](https://github.com/stripe/stripe-react-native/issues/2201) Fixed iOS sheets (PaymentSheet, CustomerSheet, AddressSheet, etc.) not presenting in scene-based lifecycle apps. The SDK now properly supports both traditional app delegates and scene-based lifecycles (iOS 13+) by using `RCTKeyWindow`.
+
 ## 0.56.0 - 2025-11-06
 
 **Changes**
