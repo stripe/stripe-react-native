@@ -26,7 +26,6 @@ import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
-import com.stripe.android.crypto.onramp.model.DateOfBirth
 import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.crypto.onramp.model.LinkUserInfo
 import com.stripe.android.crypto.onramp.model.OnrampAttachKycInfoResult
@@ -52,6 +51,7 @@ import com.stripe.android.link.LinkAppearance.Style
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
+import com.stripe.android.model.DateOfBirth
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -188,6 +188,9 @@ class OnrampSdkModule(
         },
         checkoutCallback = { result ->
           handleOnrampCheckoutResult(result, checkoutPromise!!)
+        },
+        verifyKycCallback = { result ->
+          // Currently unimplemented
         },
       )
 

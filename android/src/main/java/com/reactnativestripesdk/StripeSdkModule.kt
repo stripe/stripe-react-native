@@ -65,7 +65,6 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
-import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -1286,50 +1285,6 @@ class StripeSdkModule(
       )
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
-    }
-  }
-
-  @OptIn(ExperimentalCustomerSessionApi::class)
-  @ReactMethod
-  override fun clientSecretProviderSetupIntentClientSecretCallback(
-    setupIntentClientSecret: String,
-    promise: Promise,
-  ) {
-    customerSheetFragment?.let {
-      it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.complete(setupIntentClientSecret)
-    } ?: run {
-      promise.resolve(CustomerSheetFragment.createMissingInitError())
-      return
-    }
-  }
-
-  @OptIn(ExperimentalCustomerSessionApi::class)
-  @ReactMethod
-  override fun clientSecretProviderCustomerSessionClientSecretCallback(
-    customerSessionClientSecretJson: ReadableMap,
-    promise: Promise,
-  ) {
-    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
-    val customerId = customerSessionClientSecretJson.getString("customerId")
-
-    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
-      Log.e(
-        "StripeReactNative",
-        "Invalid CustomerSessionClientSecret format",
-      )
-      return
-    }
-
-    customerSheetFragment?.let {
-      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
-        CustomerSheet.CustomerSessionClientSecret.create(
-          customerId = customerId!!,
-          clientSecret = clientSecret!!,
-        ),
-      )
-    } ?: run {
-      promise.resolve(CustomerSheetFragment.createMissingInitError())
       return
     }
   }
