@@ -1,13 +1,12 @@
 import React, { JSX, useMemo } from 'react';
 import type { IStripeConnectInitParams } from './connectTypes';
 
-type ConnectComponentsPayload = {
+export type ConnectComponentsPayload = {
   publishableKey: string;
   fetchClientSecret: IStripeConnectInitParams['fetchClientSecret'];
   appearance?: IStripeConnectInitParams['appearance'];
   locale?: IStripeConnectInitParams['locale'];
   fonts?: IStripeConnectInitParams['fonts'];
-  overrides?: Record<string, string>;
 };
 
 const ConnectComponentsContext =

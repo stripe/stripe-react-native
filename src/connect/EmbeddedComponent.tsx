@@ -1,8 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import type { WebView } from 'react-native-webview';
 import pjson from '../../package.json';
-import { useConnectComponents } from './ConnectComponentsProvider';
+import {
+  ConnectComponentsPayload,
+  useConnectComponents,
+} from './ConnectComponentsProvider';
 import type { LoadError, LoaderStart } from './connectTypes';
 
 const DEVELOPMENT_MODE = false;
@@ -88,6 +97,10 @@ type EmbeddedComponentProps = CommonComponentProps & {
   callbacks?: Record<string, ((data: any) => void) | undefined>;
 };
 
+type ConnectComponentsPayloadInternal = ConnectComponentsPayload & {
+  overrides?: Record<string, string>;
+};
+
 export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const [dynamicWebview, setDynamicWebview] = useState<{
     WebView: typeof WebView | null;
@@ -117,7 +130,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     locale,
     fonts,
     overrides,
-  } = useConnectComponents();
+  } = useConnectComponents() as ConnectComponentsPayloadInternal;
 
   const {
     component,
@@ -147,10 +160,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     .join('&');
 
   const connectURL = `${BASE_URL}/v1.0/react_native_webview.html#${hash}`;
+  const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebView>(null);
 
-  const [prevAppearance, setPrevAppearance] = React.useState(appearance);
+  const [prevAppearance, setPrevAppearance] = useState(appearance);
   if (prevAppearance !== appearance) {
     setPrevAppearance(appearance);
 
@@ -162,7 +176,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     `);
   }
 
-  const [prevLocale, setPrevLocale] = React.useState(locale);
+  const [prevLocale, setPrevLocale] = useState(locale);
   if (prevLocale !== locale) {
     setPrevLocale(locale);
 
@@ -174,7 +188,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     `);
   }
 
-  const [prevFonts, setPrevFonts] = React.useState(fonts);
+  const [prevFonts, setPrevFonts] = useState(fonts);
   if (prevFonts !== fonts) {
     setPrevFonts(fonts);
 
@@ -186,8 +200,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     `);
   }
 
-  const [prevComponentProps, setPrevComponentProps] =
-    React.useState(componentProps);
+  const [prevComponentProps, setPrevComponentProps] = useState(componentProps);
   if (prevComponentProps !== componentProps) {
     setPrevComponentProps(componentProps);
 
@@ -213,7 +226,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       ref={ref}
       style={style}
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
-      source={{ uri: connectURL }}
+      source={source}
       userAgent={`Mobile - Stripe ReactNative SDK ${Platform.OS}/${Platform.Version} - stripe-react_native/${sdkVersion}`}
       injectedJavaScriptObject={{
         initParams: {
@@ -222,7 +235,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           fonts,
         },
         initComponentProps: componentProps,
-        appInfo: { applicationId: undefined },
+        appInfo: { applicationId: overrides?.applicationId },
       }}
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
