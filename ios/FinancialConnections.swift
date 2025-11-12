@@ -26,7 +26,7 @@ class FinancialConnections {
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.present(
-              from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+              from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
               completion: { result in
                   switch result {
                   case .completed(session: let session):
@@ -55,7 +55,7 @@ class FinancialConnections {
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.presentForToken(
-              from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
+              from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
               completion: { result in
                   switch result {
                   case .completed(result: let result):

@@ -1,1 +1,1 @@
-yarn lint && yarn typescript
+yarn lint && yarn typescript && yarn format:android:write
