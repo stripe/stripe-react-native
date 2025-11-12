@@ -128,10 +128,10 @@ class FakeOnrampSdkModule(
 
   @ReactMethod
   override fun authenticateUserWithToken(
-    token: String?,
-    promise: Promise?,
+    token: String,
+    promise: Promise,
   ) {
-    promise?.resolveNotImplemented()
+    promise.resolveNotImplemented()
   }
 
   private fun Promise.resolveNotImplemented() {

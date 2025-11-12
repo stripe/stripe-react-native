@@ -106,5 +106,9 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void authenticateUserWithToken(String token, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void logout(Promise promise);
 }
