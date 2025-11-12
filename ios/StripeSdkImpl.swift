@@ -1275,7 +1275,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let result = try await coordinator.authenticateUser(from: presentingViewController)
                 switch result {
@@ -1406,7 +1406,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let result = try await coordinator.verifyIdentity(from: presentingViewController)
                 switch result {
@@ -1465,7 +1465,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
                     let displayData = Mappers.paymentMethodDisplayDataToMap(result)
@@ -1564,7 +1564,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let authorizationResult = try await coordinator.authorize(linkAuthIntentId: linkAuthIntentId, from: presentingViewController)
                 switch authorizationResult {
@@ -1800,12 +1800,6 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
     }
 
     return presentingViewController
-}
-
-extension UIApplication {
-    func rootViewControllerWithFallback() -> UIViewController {
-        return delegate?.window??.rootViewController ?? UIViewController()
-    }
 }
 
 extension StripeSdkImpl: STPAuthenticationContext {
