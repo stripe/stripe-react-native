@@ -669,7 +669,7 @@ class Mappers {
             "accountType": mapFromUSBankAccountType(type: paymentMethod.usBankAccount?.accountType),
             "last4": paymentMethod.usBankAccount?.last4 ?? NSNull(),
             "bankName": paymentMethod.usBankAccount?.bankName ?? NSNull(),
-            "linkedAccount": paymentMethod.usBankAccount?.linkedAccount ?? NSNull(),
+            "linkedAccount": paymentMethod.usBankAccount?.financialConnectionsAccount ?? NSNull(),
             "fingerprint": paymentMethod.usBankAccount?.fingerprint ?? NSNull(),
             "preferredNetworks": paymentMethod.usBankAccount?.networks?.preferred ?? NSNull(),
             "supportedNetworks": paymentMethod.usBankAccount?.networks?.supported ?? NSNull(),
