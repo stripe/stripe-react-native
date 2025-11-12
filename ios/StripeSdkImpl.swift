@@ -1379,7 +1379,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let result = try await coordinator.verifyKYCInfo(updatedAddress: updatedAddress, from: presentingViewController)
                 switch result {
