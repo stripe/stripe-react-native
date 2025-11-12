@@ -31,10 +31,10 @@ appId: ${APP_ID}
     optional: true
 
 - extendedWaitUntil:
-    visible: "Pay"
+    visible: "Complete payment"
     timeout: 150000
 - tapOn:
-    text: "Pay"
+    text: "Complete payment"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"

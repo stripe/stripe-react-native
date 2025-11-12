@@ -324,11 +324,20 @@ extension StripeSdkImpl {
             return PaymentSheet.IntentConfiguration.init(
                 mode: mode,
                 paymentMethodTypes: paymentMethodTypes,
-                confirmationTokenConfirmHandler: { confirmationToken, intentCreationCallback in
-                    self.paymentSheetConfirmationTokenIntentCreationCallback = intentCreationCallback
-                    self.emitter?.emitOnConfirmationTokenHandlerCallback([
-                        "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull()
-                    ])
+                confirmationTokenConfirmHandler: { confirmationToken in
+                    return try await withCheckedThrowingContinuation { continuation in  
+                        self.paymentSheetConfirmationTokenIntentCreationCallback = { result in
+                            switch result {
+                            case .success(let clientSecret):
+                                continuation.resume(returning: clientSecret)
+                            case .failure(let error):
+                                continuation.resume(throwing: error)
+                            }
+                        }
+                        self.emitter?.emitOnConfirmationTokenHandlerCallback([
+                            "confirmationToken": Mappers.mapFromConfirmationToken(confirmationToken) ?? NSNull()
+                        ])
+                    }
                 })
         } else {
             return PaymentSheet.IntentConfiguration.init(
@@ -387,6 +396,20 @@ extension StripeSdkImpl {
         if (applePayParams["request"] == nil) {
             return nil
         }
+        let authorizationResultHandler: PaymentSheet.ApplePayConfiguration.Handlers.AuthorizationResultHandler? = {
+            guard applePayParams.object(forKey: "setOrderTracking") != nil else {
+                return nil
+            }
+            return { result in
+                await withCheckedContinuation { continuation in
+                    // Set the handler first: this will be called from JS land after we `emitOnOrderTrackingCallback()`.
+                    self.orderTrackingHandler = (result, { result in
+                        continuation.resume(returning: result)
+                    })
+                    self.emitter?.emitOnOrderTrackingCallback()
+                }
+            }
+        }()
         return PaymentSheet.ApplePayConfiguration.Handlers(paymentRequestHandler: { request in
             do {
                 try request.configureRequestType(requestParams: applePayParams)
@@ -395,14 +418,7 @@ extension StripeSdkImpl {
                 RCTMakeAndLogError(error.localizedDescription, nil, nil)
             }
             return request
-        }, authorizationResultHandler: { result, completion in
-            if applePayParams.object(forKey: "setOrderTracking") != nil {
-                self.orderTrackingHandler = (result, completion)
-                self.emitter?.emitOnOrderTrackingCallback()
-            } else {
-                completion(result)
-            }
-        })
+        }, authorizationResultHandler: authorizationResultHandler)
     }
 
     internal static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {

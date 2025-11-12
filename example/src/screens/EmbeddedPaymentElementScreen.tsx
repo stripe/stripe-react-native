@@ -95,7 +95,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
 
       <Button
         variant="primary"
-        title="Pay"
+        title="Complete payment"
         onPress={handlePay}
         loading={loading}
         disabled={!paymentOption}
@@ -107,6 +107,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         onPress={clearPaymentOption}
         disabled={!paymentOption}
       />
+      <View style={{ height: 40 }} />
     </>
   );
 }

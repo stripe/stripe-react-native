@@ -1,12 +1,9 @@
 package com.reactnativestripesdk.utils
 
 import android.annotation.SuppressLint
-import android.os.Bundle
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
@@ -30,6 +27,7 @@ import com.stripe.android.model.StripeIntent.NextActionType
 import com.stripe.android.model.Token
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
+import java.lang.IllegalArgumentException
 
 internal fun createResult(
   key: String,
@@ -138,7 +136,6 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.CardPresent -> "CardPresent"
     PaymentMethod.Type.Eps -> "Eps"
     PaymentMethod.Type.Fpx -> "Fpx"
-    PaymentMethod.Type.Giropay -> "Giropay"
     PaymentMethod.Type.GrabPay -> "GrabPay"
     PaymentMethod.Type.Ideal -> "Ideal"
     PaymentMethod.Type.Netbanking -> "Netbanking"
@@ -171,7 +168,6 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "CardPresent" -> PaymentMethod.Type.CardPresent
     "Eps" -> PaymentMethod.Type.Eps
     "Fpx" -> PaymentMethod.Type.Fpx
-    "Giropay" -> PaymentMethod.Type.Giropay
     "GrabPay" -> PaymentMethod.Type.GrabPay
     "Netbanking" -> PaymentMethod.Type.Netbanking
     "Oxxo" -> PaymentMethod.Type.Oxxo
@@ -665,7 +661,7 @@ internal fun mapToBillingDetails(
   if (billingDetails == null && cardAddress == null) {
     return null
   }
-  val address = mapToAddress(getMapOrNull(billingDetails, "address"), cardAddress)
+  val address = mapToAddress(billingDetails?.getMap("address"), cardAddress)
   val paymentMethodBillingDetailsBuilder = PaymentMethod.BillingDetails.Builder()
 
   if (billingDetails != null) {
@@ -686,7 +682,7 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
     return null
   }
 
-  val address = mapToAddress(getMapOrNull(shippingDetails, "address"), null)
+  val address = mapToAddress(shippingDetails?.getMap("address"), null)
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
@@ -694,37 +690,17 @@ internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPayment
   )
 }
 
-private fun getStringOrNull(
-  map: ReadableMap?,
-  key: String,
-): String? = if (map?.hasKey(key) == true) map.getString(key) else null
-
-fun getIntOrNull(
-  map: ReadableMap?,
-  key: String,
-): Int? = if (map?.hasKey(key) == true) map.getInt(key) else null
-
-fun getMapOrNull(
-  map: ReadableMap?,
-  key: String,
-): ReadableMap? = if (map?.hasKey(key) == true) map.getMap(key) else null
-
-fun getBooleanOrFalse(
-  map: ReadableMap?,
-  key: String,
-): Boolean = if (map?.hasKey(key) == true) map.getBoolean(key) else false
-
 private fun convertToUnixTimestamp(timestamp: Long): String = (timestamp * 1000).toString()
 
 fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCustomization {
-  val labelCustomization = getMapOrNull(params, "label")
+  val labelCustomization = params.getMap("label")
   val navigationBarCustomization = params.getMap("navigationBar")
-  val textBoxCustomization = getMapOrNull(params, "textField")
-  val submitButtonCustomization = getMapOrNull(params, "submitButton")
-  val cancelButtonCustomization = getMapOrNull(params, "cancelButton")
-  val nextButtonCustomization = getMapOrNull(params, "nextButton")
-  val continueButtonCustomization = getMapOrNull(params, "continueButton")
-  val resendButtonCustomization = getMapOrNull(params, "resendButton")
+  val textBoxCustomization = params.getMap("textField")
+  val submitButtonCustomization = params.getMap("submitButton")
+  val cancelButtonCustomization = params.getMap("cancelButton")
+  val nextButtonCustomization = params.getMap("nextButton")
+  val continueButtonCustomization = params.getMap("continueButton")
+  val resendButtonCustomization = params.getMap("resendButton")
 
   val labelCustomizationBuilder = PaymentAuthConfig.Stripe3ds2LabelCustomization.Builder()
   val toolbarCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ToolbarCustomization.Builder()
@@ -736,121 +712,121 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
   val continueButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
   val resendButtonCustomizationBuilder = PaymentAuthConfig.Stripe3ds2ButtonCustomization.Builder()
 
-  getStringOrNull(labelCustomization, "headingTextColor")?.let {
+  labelCustomization?.getString("headingTextColor")?.let {
     labelCustomizationBuilder.setHeadingTextColor(it)
   }
-  getStringOrNull(labelCustomization, "textColor")?.let {
+  labelCustomization?.getString("textColor")?.let {
     labelCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(labelCustomization, "headingFontSize")?.let {
+  labelCustomization.getIntOrNull("headingFontSize")?.let {
     labelCustomizationBuilder.setHeadingTextFontSize(it)
   }
-  getIntOrNull(labelCustomization, "textFontSize")?.let {
+  labelCustomization.getIntOrNull("textFontSize")?.let {
     labelCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(navigationBarCustomization, "headerText")?.let {
+  navigationBarCustomization?.getString("headerText")?.let {
     toolbarCustomizationBuilder.setHeaderText(it)
   }
-  getStringOrNull(navigationBarCustomization, "buttonText")?.let {
+  navigationBarCustomization?.getString("buttonText")?.let {
     toolbarCustomizationBuilder.setButtonText(it)
   }
-  getStringOrNull(navigationBarCustomization, "textColor")?.let {
+  navigationBarCustomization?.getString("textColor")?.let {
     toolbarCustomizationBuilder.setTextColor(it)
   }
-  getStringOrNull(navigationBarCustomization, "statusBarColor")?.let {
+  navigationBarCustomization?.getString("statusBarColor")?.let {
     toolbarCustomizationBuilder.setStatusBarColor(it)
   }
-  getStringOrNull(navigationBarCustomization, "backgroundColor")?.let {
+  navigationBarCustomization?.getString("backgroundColor")?.let {
     toolbarCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(navigationBarCustomization, "textFontSize")?.let {
+  navigationBarCustomization.getIntOrNull("textFontSize")?.let {
     toolbarCustomizationBuilder.setTextFontSize(it)
   }
 
-  getStringOrNull(textBoxCustomization, "borderColor")?.let {
+  textBoxCustomization?.getString("borderColor")?.let {
     textBoxCustomizationBuilder.setBorderColor(it)
   }
-  getStringOrNull(textBoxCustomization, "textColor")?.let {
+  textBoxCustomization?.getString("textColor")?.let {
     textBoxCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(textBoxCustomization, "borderWidth")?.let {
+  textBoxCustomization.getIntOrNull("borderWidth")?.let {
     textBoxCustomizationBuilder.setBorderWidth(it)
   }
-  getIntOrNull(textBoxCustomization, "borderRadius")?.let {
+  textBoxCustomization.getIntOrNull("borderRadius")?.let {
     textBoxCustomizationBuilder.setCornerRadius(it)
   }
-  getIntOrNull(textBoxCustomization, "textFontSize")?.let {
+  textBoxCustomization.getIntOrNull("textFontSize")?.let {
     textBoxCustomizationBuilder.setTextFontSize(it)
   }
 
   // Submit button
-  getStringOrNull(submitButtonCustomization, "backgroundColor")?.let {
+  submitButtonCustomization?.getString("backgroundColor")?.let {
     submitButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(submitButtonCustomization, "borderRadius")?.let {
+  submitButtonCustomization.getIntOrNull("borderRadius")?.let {
     submitButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(submitButtonCustomization, "textColor")?.let {
+  submitButtonCustomization?.getString("textColor")?.let {
     submitButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(submitButtonCustomization, "textFontSize")?.let {
+  submitButtonCustomization.getIntOrNull("textFontSize")?.let {
     submitButtonCustomizationBuilder.setTextFontSize(it)
   }
 
   // Cancel button
-  getStringOrNull(cancelButtonCustomization, "backgroundColor")?.let {
+  cancelButtonCustomization?.getString("backgroundColor")?.let {
     cancelButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(cancelButtonCustomization, "borderRadius")?.let {
+  cancelButtonCustomization.getIntOrNull("borderRadius")?.let {
     cancelButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(cancelButtonCustomization, "textColor")?.let {
+  cancelButtonCustomization?.getString("textColor")?.let {
     cancelButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(cancelButtonCustomization, "textFontSize")?.let {
+  cancelButtonCustomization.getIntOrNull("textFontSize")?.let {
     cancelButtonCustomizationBuilder.setTextFontSize(it)
   }
 
   // Continue button
-  getStringOrNull(continueButtonCustomization, "backgroundColor")?.let {
+  continueButtonCustomization?.getString("backgroundColor")?.let {
     continueButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(continueButtonCustomization, "borderRadius")?.let {
+  continueButtonCustomization.getIntOrNull("borderRadius")?.let {
     continueButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(continueButtonCustomization, "textColor")?.let {
+  continueButtonCustomization?.getString("textColor")?.let {
     continueButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(continueButtonCustomization, "textFontSize")?.let {
+  continueButtonCustomization.getIntOrNull("textFontSize")?.let {
     continueButtonCustomizationBuilder.setTextFontSize(it)
   }
 
   // Next button
-  getStringOrNull(nextButtonCustomization, "backgroundColor")?.let {
+  nextButtonCustomization?.getString("backgroundColor")?.let {
     nextButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(nextButtonCustomization, "borderRadius")?.let {
+  nextButtonCustomization.getIntOrNull("borderRadius")?.let {
     nextButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(nextButtonCustomization, "textColor")?.let {
+  nextButtonCustomization?.getString("textColor")?.let {
     nextButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(nextButtonCustomization, "textFontSize")?.let {
+  nextButtonCustomization.getIntOrNull("textFontSize")?.let {
     nextButtonCustomizationBuilder.setTextFontSize(it)
   }
 
   // Resend button
-  getStringOrNull(resendButtonCustomization, "backgroundColor")?.let {
+  resendButtonCustomization?.getString("backgroundColor")?.let {
     resendButtonCustomizationBuilder.setBackgroundColor(it)
   }
-  getIntOrNull(resendButtonCustomization, "borderRadius")?.let {
+  resendButtonCustomization.getIntOrNull("borderRadius")?.let {
     resendButtonCustomizationBuilder.setCornerRadius(it)
   }
-  getStringOrNull(resendButtonCustomization, "textColor")?.let {
+  resendButtonCustomization?.getString("textColor")?.let {
     resendButtonCustomizationBuilder.setTextColor(it)
   }
-  getIntOrNull(resendButtonCustomization, "textFontSize")?.let {
+  resendButtonCustomization.getIntOrNull("textFontSize")?.let {
     resendButtonCustomizationBuilder.setTextFontSize(it)
   }
 
@@ -876,7 +852,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
         PaymentAuthConfig.Stripe3ds2UiCustomization.ButtonType.RESEND,
       )
 
-  getStringOrNull(params, "accentColor")?.let { uiCustomization.setAccentColor(it) }
+  params.getString("accentColor")?.let { uiCustomization.setAccentColor(it) }
 
   return uiCustomization.build()
 }
@@ -936,55 +912,6 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
     else -> null
   }
 
-fun toBundleObject(readableMap: ReadableMap?): Bundle {
-  val result = Bundle()
-  if (readableMap == null) {
-    return result
-  }
-  val iterator = readableMap.keySetIterator()
-  while (iterator.hasNextKey()) {
-    val key = iterator.nextKey()
-    when (readableMap.getType(key)) {
-      ReadableType.Null -> result.putString(key, null)
-      ReadableType.Boolean -> result.putBoolean(key, readableMap.getBoolean(key))
-      ReadableType.Number ->
-        try {
-          val numAsInt = readableMap.getInt(key)
-          val numAsDouble = readableMap.getDouble(key)
-          if (numAsDouble - numAsInt != 0.0) {
-            result.putDouble(key, numAsDouble)
-          } else {
-            result.putInt(key, numAsInt)
-          }
-        } catch (e: Exception) {
-          Log.e("toBundleException", "Failed to add number to bundle. Failed on: $key.")
-        }
-      ReadableType.String -> result.putString(key, readableMap.getString(key))
-      ReadableType.Map -> result.putBundle(key, toBundleObject(readableMap.getMap(key)))
-      ReadableType.Array -> {
-        val list = readableMap.getArray(key)?.toArrayList()
-        if (list == null) {
-          result.putString(key, null)
-        } else if (list.isEmpty()) {
-          result.putStringArrayList(key, ArrayList())
-        } else {
-          when (list.first()) {
-            is String -> result.putStringArrayList(key, list as java.util.ArrayList<String>)
-            is Int -> result.putIntegerArrayList(key, list as java.util.ArrayList<Int>)
-            else ->
-              Log.e(
-                "toBundleException",
-                "Cannot put arrays of objects into bundles. Failed on: $key.",
-              )
-          }
-        }
-      }
-      else -> Log.e("toBundleException", "Could not convert object with key: $key.")
-    }
-  }
-  return result
-}
-
 internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableMap {
   val map = WritableNativeMap()
   map.putString("emailAddress", googlePayResult.email)
@@ -1008,7 +935,7 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   return map
 }
 
-internal fun mapToPreferredNetworks(networksAsInts: ArrayList<Int>?): List<CardBrand> {
+internal fun mapToPreferredNetworks(networksAsInts: List<Int>?): List<CardBrand> {
   if (networksAsInts == null) {
     return emptyList()
   }
@@ -1084,34 +1011,31 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
 
 @OptIn(ExperimentalCustomPaymentMethodsApi::class)
 @SuppressLint("RestrictedApi")
-internal fun parseCustomPaymentMethods(customPaymentMethodConfig: Bundle?): List<PaymentSheet.CustomPaymentMethod> {
+internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {
     return emptyList()
   }
 
-  val configHashMap = customPaymentMethodConfig.getSerializable("customPaymentMethodConfigurationReadableMap") as? HashMap<String, Any>
-  if (configHashMap != null) {
-    val customPaymentMethods = configHashMap["customPaymentMethods"] as? List<HashMap<String, Any>>
-    if (customPaymentMethods != null) {
-      val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
+  val customPaymentMethods = customPaymentMethodConfig.getArray("customPaymentMethods")
+  if (customPaymentMethods != null) {
+    val result = mutableListOf<PaymentSheet.CustomPaymentMethod>()
 
-      for (customPaymentMethodMap in customPaymentMethods) {
-        val id = customPaymentMethodMap["id"] as? String
-        if (id != null) {
-          val subtitle = customPaymentMethodMap["subtitle"] as? String
-          val disableBillingDetailCollection = customPaymentMethodMap["disableBillingDetailCollection"] as? Boolean ?: false
-          result.add(
-            PaymentSheet.CustomPaymentMethod(
-              id = id,
-              subtitle = subtitle,
-              disableBillingDetailCollection = disableBillingDetailCollection,
-            ),
-          )
-        }
+    customPaymentMethods.forEachMap { customPaymentMethodMap ->
+      val id = customPaymentMethodMap.getString("id")
+      if (id != null) {
+        val subtitle = customPaymentMethodMap.getString("subtitle")
+        val disableBillingDetailCollection = customPaymentMethodMap.getBooleanOr("disableBillingDetailCollection", false)
+        result.add(
+          PaymentSheet.CustomPaymentMethod(
+            id = id,
+            subtitle = subtitle,
+            disableBillingDetailCollection = disableBillingDetailCollection,
+          ),
+        )
       }
-
-      return result
     }
+
+    return result
   }
 
   return emptyList()
@@ -1200,4 +1124,25 @@ private fun mapFromAllowRedisplay(allowRedisplay: PaymentMethod.AllowRedisplay?)
     PaymentMethod.AllowRedisplay.LIMITED -> "limited"
     PaymentMethod.AllowRedisplay.UNSPECIFIED -> "unspecified"
     null -> null
+  }
+
+fun readableMapOf(vararg pairs: Pair<String, Any?>): ReadableMap =
+  Arguments.createMap().apply {
+    for ((key, value) in pairs) {
+      when (value) {
+        null -> putNull(key)
+        is String -> putString(key, value)
+        is Boolean -> putBoolean(key, value)
+        is Double -> putDouble(key, value)
+        is Float -> putDouble(key, value.toDouble())
+        is Int -> putInt(key, value)
+        is Long -> putLong(key, value)
+        is ReadableMap -> putMap(key, value)
+        is ReadableArray -> putArray(key, value)
+        else -> {
+          val valueType = value.javaClass.canonicalName
+          throw IllegalArgumentException("Illegal value type $valueType for key \"$key\"")
+        }
+      }
+    }
   }

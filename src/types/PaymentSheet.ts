@@ -97,9 +97,7 @@ export type SetupParams =
     })
   | (SetupParamsBase & {
       customerEphemeralKeySecret?: never;
-      /** (Experimental) This parameter can be changed or removed at any time (use at your own risk).
-       *  The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
-       */
+      /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
       customerSessionClientSecret: string;
     })
   | SetupParamsBase;
@@ -580,9 +578,6 @@ export type IntentConfiguration = {
   ) => void;
 
   /**
-   * @internal DO NOT USE - This API is under active development and is not ready for use.
-   * The API is subject to breaking changes without notice. Do not use in production or development.
-   *
    * Called when the customer confirms payment using confirmation tokens.
    * Your implementation should follow the guide to create (and optionally confirm) a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
    *

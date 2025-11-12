@@ -4,9 +4,6 @@ import type { Type as PaymentMethodType } from './PaymentMethod';
 
 /**
  * ConfirmationToken result type.
- *
- * @internal DO NOT USE - This API is under active development and is not ready for use.
- * The API is subject to breaking changes without notice. Do not use in production or development.
  */
 export interface Result {
   /** Unique identifier for the object (e.g. `ctoken_...`). */

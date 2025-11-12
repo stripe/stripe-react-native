@@ -11,6 +11,8 @@ import Foundation
     func emitOnCustomerAdapterSetSelectedPaymentOptionCallback(_ value: [String: Any])
     func emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
     func emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
+    func emitOnCustomerSessionProviderSetupIntentClientSecret()
+    func emitOnCustomerSessionProviderCustomerSessionClientSecret()
     func emitEmbeddedPaymentElementDidUpdateHeight(_ value: [String: Any])
     func emitEmbeddedPaymentElementWillPresent()
     func emitEmbeddedPaymentElementDidUpdatePaymentOption(_ value: [String: Any])

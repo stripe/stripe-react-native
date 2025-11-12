@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.os.Build
 import android.text.InputFilter
 import android.view.View
-import android.view.View.OnFocusChangeListener
 import android.widget.FrameLayout
 import androidx.core.view.setMargins
 import com.facebook.react.bridge.ReadableMap
@@ -18,6 +17,7 @@ import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
 import com.reactnativestripesdk.utils.PostalCodeUtilities
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.hideSoftKeyboard
@@ -143,10 +143,10 @@ class CardFormView(
   fun setCardStyle(value: ReadableMap?) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
-    val borderWidth = getIntOrNull(value, "borderWidth")
+    val borderWidth = value.getIntOrNull("borderWidth")
     val borderColor = getValOr(value, "borderColor", null)
-    val borderRadius = getIntOrNull(value, "borderRadius") ?: 0
-    val fontSize = getIntOrNull(value, "fontSize")
+    val borderRadius = value.getIntOr("borderRadius", 0)
+    val fontSize = value.getIntOrNull("fontSize")
     val fontFamily = getValOr(value, "fontFamily")
     val placeholderColor = getValOr(value, "placeholderColor", null)
     val textErrorColor = getValOr(value, "textErrorColor", null)
@@ -245,16 +245,16 @@ class CardFormView(
   private fun setListeners() {
     cardForm.setCardValidCallback { isValid, _ ->
       if (isValid) {
-        cardForm.cardParams?.let {
+        cardForm.paymentMethodCreateParams?.let {
           val cardParamsMap = it.toParamMap()["card"] as HashMap<*, *>
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
               "expiryMonth" to cardParamsMap["exp_month"] as Int,
               "expiryYear" to cardParamsMap["exp_year"] as Int,
-              "last4" to it.last4,
-              "brand" to mapCardBrand(it.brand),
-              "postalCode" to (it.address?.postalCode ?: ""),
-              "country" to (it.address?.country ?: ""),
+              "last4" to (it.cardLast4() ?: ""),
+              "brand" to mapCardBrand(cardForm.brand),
+              "postalCode" to (it.billingDetails?.address?.postalCode ?: ""),
+              "country" to (it.billingDetails?.address?.country ?: ""),
             )
 
           if (dangerouslyGetFullCardDetails) {
@@ -277,8 +277,8 @@ class CardFormView(
           cardAddress =
             Address
               .Builder()
-              .setPostalCode(it.address?.postalCode)
-              .setCountry(it.address?.country)
+              .setPostalCode(it.billingDetails?.address?.postalCode)
+              .setCountry(it.billingDetails?.address?.country)
               .build()
 
           cardFormViewBinding.cardMultilineWidget.paymentMethodCard?.let { params ->

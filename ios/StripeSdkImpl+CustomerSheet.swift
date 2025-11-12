@@ -6,8 +6,7 @@
 //
 
 import Foundation
-@_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
-
+@_spi(PrivateBetaCustomerSheet) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
     public func initCustomerSheet(params: NSDictionary, customerAdapterOverrides: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -34,24 +33,56 @@ extension StripeSdkImpl {
             return
         }
 
-        guard let customerId = params["customerId"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide `customerId`"))
+        let intentConfigurationBase = params["intentConfiguration"] as? NSDictionary
+        let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
+
+        if (intentConfigurationBase != nil && customerEphemeralKeySecret != nil) {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration` or `customerEphemeralKeySecret`, but not both"))
+            return
+        } else if let intentConfigurationBase = intentConfigurationBase {
+            let intentConfiguration: CustomerSheet.IntentConfiguration = CustomerSheet.IntentConfiguration(
+                paymentMethodTypes: intentConfigurationBase["paymentMethodTypes"] as? [String],
+                onBehalfOf: intentConfigurationBase["onBehalfOf"] as? String,
+                setupIntentClientSecretProvider: {
+                    return try await withCheckedThrowingContinuation { continuation in
+                        // Store the continuation to be resumed later
+                        self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
+                            continuation.resume(returning: clientSecret)
+                        }
+                        // Emit the event to JS
+                        self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
+                    }
+                }
+            )
+
+            let customerSessionClientSecretProvider: () async throws -> CustomerSessionClientSecret = {
+                return try await withCheckedThrowingContinuation { continuation in
+                    StripeSdkImpl.shared.clientSecretProviderCustomerSessionClientSecretCallback = { customerSessionClientSecret in
+                        continuation.resume(returning: customerSessionClientSecret)
+                    }
+                    self.emitter?.emitOnCustomerSessionProviderCustomerSessionClientSecret()
+                }
+            }
+
+            customerSheet = CustomerSheet(configuration: customerSheetConfiguration, intentConfiguration: intentConfiguration, customerSessionClientSecretProvider: customerSessionClientSecretProvider)
+        } else if (customerEphemeralKeySecret != nil) {
+            guard let customerId = params["customerId"] as? String else {
+                resolve(Errors.createError(ErrorType.Failed, "You must provide `customerId`"))
+                return
+            }
+
+            customerAdapter = CustomerSheetUtils.buildStripeCustomerAdapter(
+                customerId: customerId,
+                ephemeralKeySecret: customerEphemeralKeySecret!,
+                setupIntentClientSecret: params["setupIntentClientSecret"] as? String,
+                customerAdapter: customerAdapterOverrides,
+                stripeSdk: self
+            )
+            customerSheet = CustomerSheet(configuration: customerSheetConfiguration, customer: customerAdapter!)
+        } else {
+            resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration` or `customerEphemeralKeySecret`"))
             return
         }
-        guard let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String else {
-            resolve(Errors.createError(ErrorType.Failed, "You must provide `customerEphemeralKeySecret`"))
-            return
-        }
-
-        customerAdapter = CustomerSheetUtils.buildStripeCustomerAdapter(
-            customerId: customerId,
-            ephemeralKeySecret: customerEphemeralKeySecret,
-            setupIntentClientSecret: params["setupIntentClientSecret"] as? String,
-            customerAdapter: customerAdapterOverrides,
-            stripeSdk: self
-        )
-
-        customerSheet = CustomerSheet(configuration: customerSheetConfiguration, customer: customerAdapter!)
 
         resolve([])
     }
@@ -76,7 +107,7 @@ extension StripeSdkImpl {
         }
 
         DispatchQueue.main.async {
-            self.customerSheetViewController = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+            self.customerSheetViewController = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
             if let customerSheetViewController = self.customerSheetViewController {
                 customerSheetViewController.modalPresentationStyle = CustomerSheetUtils.getModalPresentationStyle(params["presentationStyle"] as? String)
                 customerSheetViewController.modalTransitionStyle = CustomerSheetUtils.getModalTransitionStyle(params["animationStyle"] as? String)
@@ -96,7 +127,7 @@ extension StripeSdkImpl {
     @objc(retrieveCustomerSheetPaymentOptionSelection:rejecter:)
     public func retrieveCustomerSheetPaymentOptionSelection(resolver resolve: @escaping RCTPromiseResolveBlock,
                               rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        guard let customerAdapter = customerAdapter else {
+        guard let customerSheet = customerSheet else {
             resolve(Errors.createError(ErrorType.Failed, "CustomerSheet has not been properly initialized."))
             return
         }
@@ -105,7 +136,7 @@ extension StripeSdkImpl {
             var payload: NSDictionary = [:]
             var paymentMethodOption: CustomerSheet.PaymentOptionSelection? = nil
             do {
-                paymentMethodOption = try await customerAdapter.retrievePaymentOptionSelection()
+                paymentMethodOption = try await customerSheet.retrievePaymentOptionSelection()
             } catch {
                 resolve(Errors.createError(ErrorType.Failed, error as NSError))
                 return
@@ -165,6 +196,26 @@ extension StripeSdkImpl {
     @objc(customerAdapterSetupIntentClientSecretForCustomerAttachCallback:resolver:rejecter:)
     public func customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         self.setupIntentClientSecretForCustomerAttachCallback?(clientSecret)
+        resolve([])
+    }
+
+    @objc(clientSecretProviderSetupIntentClientSecretCallback:resolver:rejecter:)
+    public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
+        resolve([])
+    }
+
+
+    @objc(clientSecretProviderCustomerSessionClientSecretCallback:resolver:rejecter:)
+    public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        guard let customerId = customerSessionClientSecretDict["customerId"] as? String,
+              let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSessionClientSecret format"))
+            return
+        }
+        
+        let customerSessionClientSecret = CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
+        self.clientSecretProviderCustomerSessionClientSecretCallback?(customerSessionClientSecret)
         resolve([])
     }
 }
