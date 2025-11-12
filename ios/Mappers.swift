@@ -1,8 +1,12 @@
 import Stripe
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
-#endif
 @_spi(STP) import StripePaymentSheet
+#else
+import StripePaymentSheet
+#endif
+@_spi(ConfirmationTokensPublicPreview) import StripePayments
+import Contacts
 
 class Mappers {
     class func createResult(_ key: String, _ value: NSDictionary?, additionalFields: [String: Any]? = nil) -> NSDictionary {
@@ -279,6 +283,7 @@ class Mappers {
         switch type {
         case STPPaymentMethodType.card: return "Card"
         case STPPaymentMethodType.alipay: return "Alipay"
+        case STPPaymentMethodType.alma: return "Alma"
         case STPPaymentMethodType.grabPay: return "GrabPay"
         case STPPaymentMethodType.iDEAL: return "Ideal"
         case STPPaymentMethodType.FPX: return "Fpx"
@@ -286,7 +291,6 @@ class Mappers {
         case STPPaymentMethodType.SEPADebit: return "SepaDebit"
         case STPPaymentMethodType.AUBECSDebit: return "AuBecsDebit"
         case STPPaymentMethodType.bacsDebit: return "BacsDebit"
-        case STPPaymentMethodType.giropay: return "Giropay"
         case STPPaymentMethodType.przelewy24: return "P24"
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
@@ -300,6 +304,7 @@ class Mappers {
         case STPPaymentMethodType.affirm: return "Affirm"
         case STPPaymentMethodType.cashApp: return "CashApp"
         case STPPaymentMethodType.revolutPay: return "RevolutPay"
+        case STPPaymentMethodType.link: return "Link"
         case STPPaymentMethodType.unknown: return "Unknown"
         default: return "Unknown"
         }
@@ -310,6 +315,7 @@ class Mappers {
             switch type {
             case "Card": return STPPaymentMethodType.card
             case "Alipay": return STPPaymentMethodType.alipay
+            case "Alma": return STPPaymentMethodType.alma
             case "GrabPay": return STPPaymentMethodType.grabPay
             case "Ideal": return STPPaymentMethodType.iDEAL
             case "Fpx": return STPPaymentMethodType.FPX
@@ -317,7 +323,6 @@ class Mappers {
             case "SepaDebit": return STPPaymentMethodType.SEPADebit
             case "AuBecsDebit": return STPPaymentMethodType.AUBECSDebit
             case "BacsDebit": return STPPaymentMethodType.bacsDebit
-            case "Giropay": return STPPaymentMethodType.giropay
             case "P24": return STPPaymentMethodType.przelewy24
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
@@ -332,6 +337,7 @@ class Mappers {
             case "Affirm": return STPPaymentMethodType.affirm
             case "CashApp": return STPPaymentMethodType.cashApp
             case "RevolutPay": return STPPaymentMethodType.revolutPay
+            case "Link": return STPPaymentMethodType.link
             default: return STPPaymentMethodType.unknown
             }
         }
@@ -558,18 +564,31 @@ class Mappers {
     }
 
     class func mapFromBillingDetails(billingDetails: STPPaymentMethodBillingDetails?) -> NSDictionary {
+        let email: Any = billingDetails?.email ?? NSNull()
+        let phone: Any = billingDetails?.phone ?? NSNull()
+        let name: Any = billingDetails?.name ?? NSNull()
+
+        let addressCity: Any = billingDetails?.address?.city ?? NSNull()
+        let addressPostalCode: Any = billingDetails?.address?.postalCode ?? NSNull()
+        let addressCountry: Any = billingDetails?.address?.country ?? NSNull()
+        let addressLine1: Any = billingDetails?.address?.line1 ?? NSNull()
+        let addressLine2: Any = billingDetails?.address?.line2 ?? NSNull()
+        let addressState: Any = billingDetails?.address?.state ?? NSNull()
+
+        let address: NSDictionary = [
+            "city": addressCity,
+            "postalCode": addressPostalCode,
+            "country": addressCountry,
+            "line1": addressLine1,
+            "line2": addressLine2,
+            "state": addressState,
+        ]
+
         let billing: NSDictionary = [
-            "email": billingDetails?.email ?? NSNull(),
-            "phone": billingDetails?.phone ?? NSNull(),
-            "name": billingDetails?.name ?? NSNull(),
-            "address": [
-                "city": billingDetails?.address?.city,
-                "postalCode": billingDetails?.address?.postalCode,
-                "country": billingDetails?.address?.country,
-                "line1": billingDetails?.address?.line1,
-                "line2": billingDetails?.address?.line2,
-                "state": billingDetails?.address?.state,
-            ],
+            "email": email,
+            "phone": phone,
+            "name": name,
+            "address": address,
         ]
 
         return billing
@@ -650,7 +669,7 @@ class Mappers {
             "accountType": mapFromUSBankAccountType(type: paymentMethod.usBankAccount?.accountType),
             "last4": paymentMethod.usBankAccount?.last4 ?? NSNull(),
             "bankName": paymentMethod.usBankAccount?.bankName ?? NSNull(),
-            "linkedAccount": paymentMethod.usBankAccount?.linkedAccount ?? NSNull(),
+            "linkedAccount": paymentMethod.usBankAccount?.financialConnectionsAccount ?? NSNull(),
             "fingerprint": paymentMethod.usBankAccount?.fingerprint ?? NSNull(),
             "preferredNetworks": paymentMethod.usBankAccount?.networks?.preferred ?? NSNull(),
             "supportedNetworks": paymentMethod.usBankAccount?.networks?.supported ?? NSNull(),
@@ -678,6 +697,89 @@ class Mappers {
             "USBankAccount": USBankAccount
         ]
         return method
+    }
+
+    class func mapFromConfirmationToken(_ confirmationToken: STPConfirmationToken?) -> NSDictionary? {
+        guard let confirmationToken = confirmationToken else {
+            return nil
+        }
+
+        var paymentMethodPreview: NSDictionary? = nil
+        if let preview = confirmationToken.paymentMethodPreview {
+            paymentMethodPreview = [
+                "type": Mappers.mapPaymentMethodType(type: preview.type),
+                "billingDetails": Mappers.mapFromBillingDetails(billingDetails: preview.billingDetails),
+                "allowRedisplay": mapFromAllowRedisplay(allowRedisplay: preview.allowRedisplay) ?? NSNull(),
+                "customerId": preview.customerId ?? NSNull(),
+                "allResponseFields": preview.allResponseFields
+            ]
+        }
+
+        var shipping: NSDictionary? = nil
+        if let shippingDetails = confirmationToken.shipping {
+            var addressDetails: NSDictionary = [:]
+            if let address = shippingDetails.address {
+                addressDetails = [
+                    "city": address.city ?? NSNull(),
+                    "state": address.state ?? NSNull(),
+                    "country": address.country ?? NSNull(),
+                    "line1": address.line1 ?? NSNull(),
+                    "line2": address.line2 ?? NSNull(),
+                    "postalCode": address.postalCode ?? NSNull(),
+                ]
+            }
+            shipping = [
+                "address": addressDetails,
+                "name": shippingDetails.name ?? NSNull(),
+                "phone": shippingDetails.phone ?? NSNull()
+            ]
+        }
+
+        let token: NSDictionary = [
+            "id": confirmationToken.stripeId,
+            "created": convertDateToUnixTimestampSeconds(date: confirmationToken.created) ?? NSNull(),
+            "expiresAt": convertDateToUnixTimestampSeconds(date: confirmationToken.expiresAt) ?? NSNull(),
+            "liveMode": confirmationToken.liveMode,
+            "paymentIntentId": confirmationToken.paymentIntentId ?? NSNull(),
+            "setupIntentId": confirmationToken.setupIntentId ?? NSNull(),
+            "returnURL": confirmationToken.returnURL ?? NSNull(),
+            "setupFutureUsage": mapFromSetupFutureUsage(setupFutureUsage: confirmationToken.setupFutureUsage) ?? NSNull(),
+            "paymentMethodPreview": paymentMethodPreview ?? NSNull(),
+            "shipping": shipping ?? NSNull(),
+            "allResponseFields": confirmationToken.allResponseFields
+        ]
+        return token
+    }
+
+    class func mapFromAllowRedisplay(allowRedisplay: STPPaymentMethodAllowRedisplay?) -> String? {
+        guard let allowRedisplay = allowRedisplay else {
+            return nil
+        }
+        switch allowRedisplay {
+        case .always: return "always"
+        case .limited: return "limited"
+        case .unspecified: return "unspecified"
+        @unknown default: return "unspecified"
+        }
+    }
+
+    class func mapFromSetupFutureUsage(setupFutureUsage: STPPaymentIntentSetupFutureUsage?) -> String? {
+        guard let setupFutureUsage = setupFutureUsage else {
+            return nil
+        }
+        switch setupFutureUsage {
+        case .offSession: return "OffSession"
+        case .onSession: return "OnSession"
+        case .none: return "None"
+        default: return nil
+        }
+    }
+
+    class func convertDateToUnixTimestampSeconds(date: Date?) -> NSNumber? {
+        guard let date = date else {
+            return nil
+        }
+        return NSNumber(value: date.timeIntervalSince1970)
     }
 
     class func mapIntentStatus(status: STPSetupIntentStatus?) -> String {
@@ -740,7 +842,7 @@ class Mappers {
 
 
         let types = setupIntent.paymentMethodTypes.map {
-            mapPaymentMethodType(type: STPPaymentMethodType.init(rawValue: Int(truncating: $0))!)
+            mapPaymentMethodType(type: $0)
         }
 
         intent.setValue(types, forKey: "paymentMethodTypes")
@@ -962,13 +1064,6 @@ class Mappers {
         return nil
     }
 
-    class func convertDateToUnixTimestampSeconds(date: Date?) -> String? {
-        if let date = date {
-            let value = date.timeIntervalSince1970
-            return String(format: "%.0f", value)
-        }
-        return nil
-    }
 
     class func mapFromCardValidationState(state: STPCardValidationState?) -> String {
         if let state = state {

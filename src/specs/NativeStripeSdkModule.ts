@@ -11,6 +11,7 @@ import type {
   CreateTokenForCVCUpdateResult,
   CreateTokenResult,
   CustomerAdapter,
+  CustomerSessionClientSecret,
   CustomerSheetError,
   CustomerSheetInitParams,
   CustomerSheetPresentParams,
@@ -78,6 +79,9 @@ export interface Spec extends TurboModule {
     params: UnsafeObject<PaymentSheet.SetupParams>
   ): Promise<InitPaymentSheetResult>;
   intentCreationCallback(
+    result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
+  ): Promise<void>;
+  confirmationTokenCreationCallback(
     result: UnsafeObject<PaymentSheet.IntentCreationCallbackParams>
   ): Promise<void>;
   customPaymentMethodResultCallback(
@@ -173,6 +177,12 @@ export interface Spec extends TurboModule {
   customerAdapterSetupIntentClientSecretForCustomerAttachCallback(
     clientSecret: string
   ): Promise<void>;
+  clientSecretProviderSetupIntentClientSecretCallback(
+    setupIntentClientSecret: string
+  ): Promise<void>;
+  clientSecretProviderCustomerSessionClientSecretCallback(
+    customerSessionClientSecret: UnsafeObject<CustomerSessionClientSecret>
+  ): Promise<void>;
   createEmbeddedPaymentElement(
     intentConfig: UnsafeObject<IntentConfiguration>,
     configuration: UnsafeObject<EmbeddedPaymentElementConfiguration>
@@ -185,6 +195,8 @@ export interface Spec extends TurboModule {
   ): Promise<void>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
   createRadarSession(): Promise<CreateRadarSessionResult>;
+
+  setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
   // Events
   addListener: (eventType: string) => void;

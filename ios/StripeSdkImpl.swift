@@ -1,11 +1,18 @@
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
-@_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
-@_spi(AppearanceAPIAdditionsPreview) import StripePaymentSheet
-@_spi(STP) import StripePaymentSheet
+@_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
+
+@_spi(STP) 
+@_spi(EmbeddedPaymentElementPrivateBeta) 
+@_spi(CustomerSessionBetaAccess) 
+@_spi(AppearanceAPIAdditionsPreview)
+import StripePaymentSheet
+#else
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
 #endif
+
 import StripeFinancialConnections
 import StripePaymentsUI
 import Foundation
@@ -24,6 +31,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     internal var paymentSheet: PaymentSheet?
     internal var paymentSheetFlowController: PaymentSheet.FlowController?
     var paymentSheetIntentCreationCallback: ((Result<String, Error>) -> Void)?
+    var paymentSheetConfirmationTokenIntentCreationCallback: ((Result<String, Error>) -> Void)?
 
     var urlScheme: String? = nil
 
@@ -70,6 +78,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var fetchSelectedPaymentOptionCallback: ((CustomerPaymentOption?) -> Void)? = nil
     var setupIntentClientSecretForCustomerAttachCallback: ((String) -> Void)? = nil
     var customPaymentMethodResultCallback: ((PaymentSheetResult) -> Void)?
+    var clientSecretProviderSetupIntentClientSecretCallback: ((String) -> Void)? = nil
+    var clientSecretProviderCustomerSessionClientSecretCallback: ((CustomerSessionClientSecret) -> Void)? = nil
 
 #if canImport(StripeCryptoOnramp)
     var cryptoOnrampCoordinator: CryptoOnrampCoordinator?
@@ -149,6 +159,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(confirmationTokenCreationCallback:resolver:rejecter:)
+    @MainActor public func confirmationTokenCreationCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+        guard let paymentSheetConfirmationTokenIntentCreationCallback = self.paymentSheetConfirmationTokenIntentCreationCallback else {
+            resolve(Errors.createError(ErrorType.Failed, "No confirmation token intent creation callback was set"))
+            return
+        }
+        if let clientSecret = result["clientSecret"] as? String {
+            paymentSheetConfirmationTokenIntentCreationCallback(.success(clientSecret))
+        } else {
+          let errorParams = result["error"] as? NSDictionary
+          let error = ConfirmationError.init(errorMessage: errorParams?["localizedMessage"] as? String ?? "An unknown error occurred.")
+          paymentSheetConfirmationTokenIntentCreationCallback(.failure(error))
+        }
+    }
+
     @objc(customPaymentMethodResultCallback:resolver:rejecter:)
     @MainActor public func customPaymentMethodResultCallback(result: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
@@ -181,7 +207,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
         DispatchQueue.main.async {
             if (self.paymentSheetFlowController != nil) {
-                self.paymentSheetFlowController?.confirm(from: UIApplication.shared.rootViewControllerWithFallback()) { paymentResult in
+                self.paymentSheetFlowController?.confirm(from: RCTKeyWindow()?.rootViewController ?? UIViewController()) { paymentResult in
                     switch paymentResult {
                     case .completed:
                         resolve([])
@@ -220,7 +246,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
         DispatchQueue.main.async {
-            paymentSheetViewController = UIApplication.shared.rootViewControllerWithFallback()
+            paymentSheetViewController = RCTKeyWindow()?.rootViewController ?? UIViewController()
             if let paymentSheetFlowController = self.paymentSheetFlowController {
                 paymentSheetFlowController.presentPaymentOptions(from: findViewControllerPresenter(from: paymentSheetViewController!)
                 ) { didCancel in
@@ -443,7 +469,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         if let applePaymentAuthorizationController = self.applePaymentAuthorizationController {
             applePaymentAuthorizationController.delegate = self
             DispatchQueue.main.async {
-                let vc = findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 vc.present(
                     applePaymentAuthorizationController,
                     animated: true,
@@ -776,7 +802,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback()),
+                    from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
@@ -803,7 +829,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                     clientSecret: clientSecret as String,
                     returnURL: connectionsReturnURL,
                     params: collectParams,
-                    from: findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback()),
+                    from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
                     onEvent: onEvent
                 ) { intent, error in
                     if let error = error {
@@ -1270,7 +1296,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let result = try await coordinator.authenticateUser(from: presentingViewController)
                 switch result {
@@ -1401,7 +1427,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let result = try await coordinator.verifyIdentity(from: presentingViewController)
                 switch result {
@@ -1460,7 +1486,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
                     let displayData = Mappers.paymentMethodDisplayDataToMap(result)
@@ -1559,7 +1585,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         Task {
             do {
                 let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
                 let authorizationResult = try await coordinator.authorize(linkAuthIntentId: linkAuthIntentId, from: presentingViewController)
                 switch authorizationResult {
@@ -1716,15 +1742,25 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
-    @objc(getCryptoTokenDisplayData:)
-    public func getCryptoTokenDisplayData(token: NSDictionary) -> [String: Any]? {
-        return nil
+    @objc(getCryptoTokenDisplayData:resolver:rejecter:)
+    public func getCryptoTokenDisplayData(token: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     private func resolveWithCryptoOnrampNotAvailableError(_ resolver: @escaping RCTPromiseResolveBlock) {
         resolver(Errors.createError(ErrorType.Failed, "StripeCryptoOnramp is not available. To enable, add the 'stripe-react-native/Onramp' subspec to your Podfile."))
     }
 #endif
+
+    @objc(setFinancialConnectionsForceNativeFlow:resolver:rejecter:)
+    public func setFinancialConnectionsForceNativeFlow(
+        enabled: Bool,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        UserDefaults.standard.set(enabled, forKey: "FINANCIAL_CONNECTIONS_EXAMPLE_APP_ENABLE_NATIVE")
+        resolve(nil)
+    }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         confirmPaymentResolver?(Errors.createError(ErrorType.Canceled, "FPX Payment has been canceled"))
@@ -1787,15 +1823,9 @@ func findViewControllerPresenter(from uiViewController: UIViewController) -> UIV
     return presentingViewController
 }
 
-extension UIApplication {
-    func rootViewControllerWithFallback() -> UIViewController {
-        return delegate?.window??.rootViewController ?? UIViewController()
-    }
-}
-
 extension StripeSdkImpl: STPAuthenticationContext {
   public func authenticationPresentingViewController() -> UIViewController {
-        return findViewControllerPresenter(from: UIApplication.shared.rootViewControllerWithFallback())
+        return findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
     }
 }
 

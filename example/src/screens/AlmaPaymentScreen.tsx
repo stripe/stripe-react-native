@@ -1,18 +1,22 @@
-import type { BillingDetails } from '@stripe/stripe-react-native';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, TextInput } from 'react-native';
-import { useConfirmPayment } from '@stripe/stripe-react-native';
+import {
+  BillingDetails,
+  useConfirmPayment,
+  useConfirmSetupIntent,
+} from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import { colors } from '../colors';
 
-export default function GiropayPaymentScreen() {
+export default function AlmaPaymentScreen() {
   const [email, setEmail] = useState('');
   const { confirmPayment, loading } = useConfirmPayment();
+  const { confirmSetupIntent, loading: setupLoading } = useConfirmSetupIntent();
 
-  const fetchPaymentIntentClientSecret = async () => {
-    const response = await fetch(`${API_URL}/create-payment-intent`, {
+  const fetchClientSecret = async (intentType: 'setup' | 'payment') => {
+    const response = await fetch(`${API_URL}/create-${intentType}-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +25,7 @@ export default function GiropayPaymentScreen() {
         email,
         currency: 'eur',
         items: ['id-1'],
-        payment_method_types: ['giropay'],
+        payment_method_types: ['alma'],
       }),
     });
     const { clientSecret, error } = await response.json();
@@ -31,7 +35,7 @@ export default function GiropayPaymentScreen() {
 
   const handlePayPress = async () => {
     const { clientSecret, error: clientSecretError } =
-      await fetchPaymentIntentClientSecret();
+      await fetchClientSecret('payment');
 
     if (clientSecretError) {
       Alert.alert(`Error`, clientSecretError);
@@ -40,10 +44,11 @@ export default function GiropayPaymentScreen() {
 
     const billingDetails: BillingDetails = {
       name: 'John Doe',
+      email,
     };
 
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
-      paymentMethodType: 'Giropay',
+      paymentMethodType: 'Alma',
       paymentMethodData: {
         billingDetails,
       },
@@ -57,6 +62,36 @@ export default function GiropayPaymentScreen() {
         'Success',
         `The payment was confirmed successfully! currency: ${paymentIntent.currency}`
       );
+    }
+  };
+
+  const handleSetupPress = async () => {
+    const { clientSecret, error: clientSecretError } =
+      await fetchClientSecret('setup');
+
+    if (clientSecretError) {
+      Alert.alert(`Error`, clientSecretError);
+      return;
+    }
+
+    const { error, setupIntent } = await confirmSetupIntent(clientSecret, {
+      paymentMethodType: 'Alma',
+      paymentMethodData: {
+        billingDetails: {
+          email: 'stripe@test.com',
+          address: {
+            country: 'US',
+          },
+        },
+      },
+    });
+
+    if (error) {
+      Alert.alert(`Error code: ${error.code}`, error.message);
+      console.log('Setup confirmation error', error.message);
+    } else if (setupIntent) {
+      Alert.alert('Success', `Status: ${setupIntent.status}`);
+      console.log('Success from promise', setupIntent);
     }
   };
 
@@ -76,6 +111,14 @@ export default function GiropayPaymentScreen() {
         title="Pay"
         accessibilityLabel="Pay"
         loading={loading}
+      />
+
+      <Button
+        variant="primary"
+        onPress={handleSetupPress}
+        title="Setup"
+        accessibilityLabel="Setup"
+        loading={setupLoading}
       />
     </PaymentScreen>
   );

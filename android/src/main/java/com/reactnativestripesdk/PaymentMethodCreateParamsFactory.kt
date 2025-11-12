@@ -1,8 +1,7 @@
 package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
-import com.reactnativestripesdk.utils.getBooleanOrFalse
-import com.reactnativestripesdk.utils.getMapOrNull
+import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToMetadata
@@ -25,11 +24,11 @@ class PaymentMethodCreateParamsFactory(
 ) {
   private val billingDetailsParams =
     mapToBillingDetails(
-      getMapOrNull(paymentMethodData, "billingDetails"),
+      paymentMethodData?.getMap("billingDetails"),
       cardFieldView?.cardAddress ?: cardFormView?.cardAddress,
     )
   private val metadataParams: Map<String, String>? =
-    mapToMetadata(getMapOrNull(paymentMethodData, "metadata"))
+    mapToMetadata(paymentMethodData?.getMap("metadata"))
 
   @Throws(PaymentMethodCreateParamsException::class)
   fun createPaymentMethodParams(paymentMethodType: PaymentMethod.Type): PaymentMethodCreateParams {
@@ -38,11 +37,11 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Card -> createCardPaymentMethodParams()
         PaymentMethod.Type.Ideal -> createIDEALParams()
         PaymentMethod.Type.Alipay -> createAlipayParams()
+        PaymentMethod.Type.Alma -> createAlmaParams()
         PaymentMethod.Type.Bancontact -> createBancontactParams()
         PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
-        PaymentMethod.Type.Giropay -> createGiropayParams()
         PaymentMethod.Type.Eps -> createEPSParams()
         PaymentMethod.Type.GrabPay -> createGrabPayParams()
         PaymentMethod.Type.P24 -> createP24Params()
@@ -78,6 +77,13 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAlipayParams(): PaymentMethodCreateParams = PaymentMethodCreateParams.createAlipay()
+
+  @Throws(PaymentMethodCreateParamsException::class)
+  private fun createAlmaParams(): PaymentMethodCreateParams =
+    PaymentMethodCreateParams.createAlma(
+      billingDetails = billingDetailsParams,
+      metadata = metadataParams,
+    )
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createBancontactParams(): PaymentMethodCreateParams {
@@ -125,15 +131,6 @@ class PaymentMethodCreateParamsFactory(
   }
 
   @Throws(PaymentMethodCreateParamsException::class)
-  private fun createGiropayParams(): PaymentMethodCreateParams {
-    billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createGiropay(billingDetails = it, metadata = metadataParams)
-    }
-
-    throw PaymentMethodCreateParamsException("You must provide billing details")
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
   private fun createEPSParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
       return PaymentMethodCreateParams.createEps(billingDetails = it, metadata = metadataParams)
@@ -159,7 +156,7 @@ class PaymentMethodCreateParamsFactory(
 
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createFpxParams(): PaymentMethodCreateParams {
-    val bank = getBooleanOrFalse(paymentMethodData, "testOfflineBank").let { "test_offline_bank" }
+    val bank = paymentMethodData.getBooleanOr("testOfflineBank", false).let { "test_offline_bank" }
     return PaymentMethodCreateParams.create(
       PaymentMethodCreateParams.Fpx(bank),
       metadata = metadataParams,
@@ -181,7 +178,7 @@ class PaymentMethodCreateParamsFactory(
   @Throws(PaymentMethodCreateParamsException::class)
   private fun createAuBecsDebitParams(): PaymentMethodCreateParams {
     val formDetails =
-      getMapOrNull(paymentMethodData, "formDetails")
+      paymentMethodData?.getMap("formDetails")
         ?: run { throw PaymentMethodCreateParamsException("You must provide form details") }
 
     val bsbNumber = getValOr(formDetails, "bsbNumber") as String
@@ -253,11 +250,11 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Affirm -> createAffirmStripeIntentParams(clientSecret, isPaymentIntent)
         PaymentMethod.Type.Ideal,
         PaymentMethod.Type.Alipay,
+        PaymentMethod.Type.Alma,
         PaymentMethod.Type.Bancontact,
         PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
         PaymentMethod.Type.Oxxo,
-        PaymentMethod.Type.Giropay,
         PaymentMethod.Type.Eps,
         PaymentMethod.Type.GrabPay,
         PaymentMethod.Type.P24,
@@ -446,9 +443,9 @@ class PaymentMethodCreateParamsFactory(
   }
 
   private fun buildMandateDataParams(): MandateDataParams? {
-    getMapOrNull(paymentMethodData, "mandateData")?.let { mandateData ->
-      getMapOrNull(mandateData, "customerAcceptance")?.let { customerAcceptance ->
-        getMapOrNull(customerAcceptance, "online")?.let { onlineParams ->
+    paymentMethodData?.getMap("mandateData")?.let { mandateData ->
+      mandateData.getMap("customerAcceptance")?.let { customerAcceptance ->
+        customerAcceptance.getMap("online")?.let { onlineParams ->
           return MandateDataParams(
             MandateDataParams.Type.Online(
               ipAddress = getValOr(onlineParams, "ipAddress", "") ?: "",

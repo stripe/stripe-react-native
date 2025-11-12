@@ -344,6 +344,7 @@ export const verifyMicrodepositsForSetup = async (
 };
 
 let confirmHandlerCallback: EventSubscription | null = null;
+let confirmationTokenHandlerCallback: EventSubscription | null = null;
 let orderTrackingCallbackListener: EventSubscription | null = null;
 let financialConnectionsEventListener: EventSubscription | null = null;
 let paymentSheetCustomPaymentMethodConfirmCallback: EventSubscription | null =
@@ -363,6 +364,21 @@ export const initPaymentSheet = async (
           paymentMethod,
           shouldSavePaymentMethod,
           NativeStripeSdk.intentCreationCallback
+        );
+      }
+    );
+  }
+
+  const confirmationTokenHandler =
+    params?.intentConfiguration?.confirmationTokenConfirmHandler;
+  if (confirmationTokenHandler) {
+    confirmationTokenHandlerCallback?.remove();
+    confirmationTokenHandlerCallback = addListener(
+      'onConfirmationTokenHandlerCallback',
+      ({ confirmationToken }) => {
+        confirmationTokenHandler(
+          confirmationToken,
+          NativeStripeSdk.confirmationTokenCreationCallback
         );
       }
     );
@@ -903,3 +919,14 @@ export const createRadarSession =
   async (): Promise<CreateRadarSessionResult> => {
     return await NativeStripeSdk.createRadarSession();
   };
+
+export const setFinancialConnectionsForceNativeFlow = async (
+  enabled: boolean
+): Promise<void> => {
+  if (Platform.OS !== 'ios') return;
+  try {
+    await NativeStripeSdk.setFinancialConnectionsForceNativeFlow(enabled);
+  } catch (_) {
+    // no-op
+  }
+};

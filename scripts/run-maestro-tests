@@ -57,7 +57,7 @@ idx=0
 for file in $allTestFiles
 do
   testName=$(basename "${file%.*}")
-  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$RCT_NEW_ARCH_ENABLED\" --flatten-debug-output"
+  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$NEW_ARCH_ENABLED\" --flatten-debug-output"
 
   # Shard filter: only run files where (idx % SHARD_COUNT) == SHARD_INDEX
   if [ -n "$SHARD_COUNT" ]; then

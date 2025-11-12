@@ -1,7 +1,6 @@
 package com.reactnativestripesdk.mappers
 
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
@@ -11,14 +10,9 @@ import org.junit.Before
 import org.junit.Test
 
 class MappersTest {
-  private val reactApplicationContext =
-    BridgeReactContext(
-      ApplicationProvider.getApplicationContext(),
-    )
-
   @Before
   fun setup() {
-    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
+    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
   }
 
   @Test

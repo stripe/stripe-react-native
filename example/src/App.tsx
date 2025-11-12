@@ -17,6 +17,7 @@ import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
+import AlmaPaymentScreen from './screens/AlmaPaymentScreen';
 import PaymentResultScreen from './screens/PaymentResultScreen';
 import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
 import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
@@ -24,7 +25,6 @@ import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
-import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
 import EPSPaymentScreen from './screens/EPSPaymentScreen';
 import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
 import P24PaymentScreen from './screens/P24PaymentScreen';
@@ -51,6 +51,7 @@ import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
 import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
+import CustomerSheetScreenCustomerSession from './screens/CustomerSheetScreenCustomerSession';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -73,10 +74,10 @@ export type RootStackParamList = {
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
   BilliePaymentScreen: undefined;
+  AlmaPaymentScreen: undefined;
   SepaPaymentScreen: undefined;
   SepaSetupFuturePaymentScreen: undefined;
   OxxoPaymentScreen: undefined;
-  GiropayPaymentScreen: undefined;
   EPSPaymentScreen: undefined;
   GrabPayPaymentScreen: undefined;
   P24PaymentScreen: undefined;
@@ -100,6 +101,7 @@ export type RootStackParamList = {
     confirm: () => Promise<EmbeddedPaymentElementResult>;
   };
   CustomerSheetScreen: undefined;
+  CustomerSheetScreenCustomerSession: undefined;
   RevolutPayScreen: undefined;
   PaymentSheetWithPmoSfuScreen: undefined;
   CryptoOnrampFlow: undefined;
@@ -249,10 +251,6 @@ export default function App() {
             component={OxxoPaymentScreen}
           />
           <Stack.Screen
-            name="GiropayPaymentScreen"
-            component={GiropayPaymentScreen}
-          />
-          <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
             component={AfterpayClearpayPaymentScreen}
           />
@@ -274,6 +272,10 @@ export default function App() {
             name="CustomerSheetScreen"
             component={CustomerSheetScreen}
           />
+          <Stack.Screen
+            name="CustomerSheetScreenCustomerSession"
+            component={CustomerSheetScreenCustomerSession}
+          />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
@@ -283,6 +285,10 @@ export default function App() {
           <Stack.Screen
             name="RegisterCryptoUserScreen"
             component={RegisterCryptoUserScreen}
+          />
+          <Stack.Screen
+            name="AlmaPaymentScreen"
+            component={AlmaPaymentScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

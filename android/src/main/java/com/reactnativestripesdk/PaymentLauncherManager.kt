@@ -1,20 +1,18 @@
 package com.reactnativestripesdk
 
-import androidx.fragment.app.FragmentActivity
-import com.facebook.react.bridge.Promise
+import android.annotation.SuppressLint
+import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.ConfirmSetupIntentErrorType
-import com.reactnativestripesdk.utils.ErrorType
-import com.reactnativestripesdk.utils.StripeFragment
+import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.createMissingActivityError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromSetupIntentResult
-import com.reactnativestripesdk.utils.removeFragment
 import com.stripe.android.ApiResultCallback
 import com.stripe.android.Stripe
+import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
 import com.stripe.android.model.PaymentIntent
@@ -24,12 +22,13 @@ import com.stripe.android.payments.paymentlauncher.PaymentLauncher
 import com.stripe.android.payments.paymentlauncher.PaymentResult
 
 /** Instances of this class should only be initialized with the companion's helper methods. */
-class PaymentLauncherFragment : StripeFragment() {
-  private lateinit var context: ReactApplicationContext
+@OptIn(ReactNativeSdkInternal::class)
+class PaymentLauncherManager(
+  context: ReactApplicationContext,
+) : StripeUIManager(context) {
   private lateinit var stripe: Stripe
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
-  private lateinit var promise: Promise
 
   // Used when confirming a payment intent
   private var paymentIntentClientSecret: String? = null
@@ -52,20 +51,17 @@ class PaymentLauncherFragment : StripeFragment() {
       stripe: Stripe,
       publishableKey: String,
       stripeAccountId: String?,
-      promise: Promise,
       paymentIntentClientSecret: String? = null,
       confirmPaymentParams: ConfirmPaymentIntentParams? = null,
       setupIntentClientSecret: String? = null,
       confirmSetupParams: ConfirmSetupIntentParams? = null,
       handleNextActionPaymentIntentClientSecret: String? = null,
       handleNextActionSetupIntentClientSecret: String? = null,
-    ): PaymentLauncherFragment {
-      val instance = PaymentLauncherFragment()
-      instance.context = context
+    ): PaymentLauncherManager {
+      val instance = PaymentLauncherManager(context)
       instance.stripe = stripe
       instance.publishableKey = publishableKey
       instance.stripeAccountId = stripeAccountId
-      instance.promise = promise
       instance.paymentIntentClientSecret = paymentIntentClientSecret
       instance.confirmPaymentParams = confirmPaymentParams
       instance.setupIntentClientSecret = setupIntentClientSecret
@@ -81,21 +77,18 @@ class PaymentLauncherFragment : StripeFragment() {
       stripe: Stripe,
       publishableKey: String,
       stripeAccountId: String?,
-      promise: Promise,
       paymentIntentClientSecret: String,
       confirmPaymentParams: ConfirmPaymentIntentParams,
-    ): PaymentLauncherFragment {
+    ): PaymentLauncherManager {
       val paymentLauncherFragment =
         create(
           context,
           stripe,
           publishableKey,
           stripeAccountId,
-          promise,
           paymentIntentClientSecret = paymentIntentClientSecret,
           confirmPaymentParams = confirmPaymentParams,
         )
-      addFragment(paymentLauncherFragment, context, promise)
       return paymentLauncherFragment
     }
 
@@ -105,21 +98,18 @@ class PaymentLauncherFragment : StripeFragment() {
       stripe: Stripe,
       publishableKey: String,
       stripeAccountId: String?,
-      promise: Promise,
       setupIntentClientSecret: String,
       confirmSetupParams: ConfirmSetupIntentParams,
-    ): PaymentLauncherFragment {
+    ): PaymentLauncherManager {
       val paymentLauncherFragment =
         create(
           context,
           stripe,
           publishableKey,
           stripeAccountId,
-          promise,
           setupIntentClientSecret = setupIntentClientSecret,
           confirmSetupParams = confirmSetupParams,
         )
-      addFragment(paymentLauncherFragment, context, promise)
       return paymentLauncherFragment
     }
 
@@ -129,19 +119,16 @@ class PaymentLauncherFragment : StripeFragment() {
       stripe: Stripe,
       publishableKey: String,
       stripeAccountId: String?,
-      promise: Promise,
       handleNextActionPaymentIntentClientSecret: String,
-    ): PaymentLauncherFragment {
+    ): PaymentLauncherManager {
       val paymentLauncherFragment =
         create(
           context,
           stripe,
           publishableKey,
           stripeAccountId,
-          promise,
           handleNextActionPaymentIntentClientSecret = handleNextActionPaymentIntentClientSecret,
         )
-      addFragment(paymentLauncherFragment, context, promise)
       return paymentLauncherFragment
     }
 
@@ -151,44 +138,23 @@ class PaymentLauncherFragment : StripeFragment() {
       stripe: Stripe,
       publishableKey: String,
       stripeAccountId: String?,
-      promise: Promise,
       handleNextActionSetupIntentClientSecret: String,
-    ): PaymentLauncherFragment {
+    ): PaymentLauncherManager {
       val paymentLauncherFragment =
         create(
           context,
           stripe,
           publishableKey,
           stripeAccountId,
-          promise,
           handleNextActionSetupIntentClientSecret = handleNextActionSetupIntentClientSecret,
         )
-      addFragment(paymentLauncherFragment, context, promise)
       return paymentLauncherFragment
     }
-
-    private fun addFragment(
-      fragment: PaymentLauncherFragment,
-      context: ReactApplicationContext,
-      promise: Promise,
-    ) {
-      (context.currentActivity as? FragmentActivity)?.let {
-        try {
-          it.supportFragmentManager
-            .beginTransaction()
-            .add(fragment, TAG)
-            .commit()
-        } catch (error: IllegalStateException) {
-          promise.resolve(createError(ErrorType.Failed.toString(), error.message))
-        }
-      } ?: run { promise.resolve(createMissingActivityError()) }
-    }
-
-    internal const val TAG = "payment_launcher_fragment"
   }
 
-  override fun prepare() {
-    paymentLauncher = createPaymentLauncher()
+  override fun onPresent() {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    paymentLauncher = createPaymentLauncher(activity)
     if (paymentIntentClientSecret != null && confirmPaymentParams != null) {
       paymentLauncher.confirm(confirmPaymentParams!!)
     } else if (setupIntentClientSecret != null && confirmSetupParams != null) {
@@ -204,8 +170,9 @@ class PaymentLauncherFragment : StripeFragment() {
     }
   }
 
-  private fun createPaymentLauncher(): PaymentLauncher =
-    PaymentLauncher.create(this, publishableKey, stripeAccountId) { paymentResult ->
+  private fun createPaymentLauncher(activity: ComponentActivity): PaymentLauncher =
+    @SuppressLint("RestrictedApi")
+    PaymentLauncher.create(activity, signal, publishableKey, stripeAccountId) { paymentResult ->
       when (paymentResult) {
         is PaymentResult.Completed -> {
           paymentIntentClientSecret?.let {
@@ -219,14 +186,12 @@ class PaymentLauncherFragment : StripeFragment() {
           } ?: throw Exception("Failed to create Payment Launcher. No client secret provided.")
         }
         is PaymentResult.Canceled -> {
-          promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
-          removeFragment(context)
+          promise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), message = null))
         }
         is PaymentResult.Failed -> {
-          promise.resolve(
+          promise?.resolve(
             createError(ConfirmPaymentErrorType.Failed.toString(), paymentResult.throwable),
           )
-          removeFragment(context)
         }
       }
     }
@@ -241,8 +206,7 @@ class PaymentLauncherFragment : StripeFragment() {
       expand = listOf("payment_method"),
       object : ApiResultCallback<SetupIntent> {
         override fun onError(e: Exception) {
-          promise.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
-          removeFragment(context)
+          promise?.resolve(createError(ConfirmSetupIntentErrorType.Failed.toString(), e))
         }
 
         override fun onSuccess(result: SetupIntent) {
@@ -252,19 +216,19 @@ class PaymentLauncherFragment : StripeFragment() {
             StripeIntent.Status.RequiresConfirmation,
             StripeIntent.Status.RequiresCapture,
             -> {
-              promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
+              promise?.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
             }
             StripeIntent.Status.RequiresAction -> {
               if (isNextActionSuccessState(result.nextActionType)) {
-                promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
+                promise?.resolve(createResult("setupIntent", mapFromSetupIntentResult(result)))
               } else {
                 (result.lastSetupError)?.let {
-                  promise.resolve(
+                  promise?.resolve(
                     createError(ConfirmSetupIntentErrorType.Canceled.toString(), it),
                   )
                 }
                   ?: run {
-                    promise.resolve(
+                    promise?.resolve(
                       createError(
                         ConfirmSetupIntentErrorType.Canceled.toString(),
                         "Setup has been canceled",
@@ -274,7 +238,7 @@ class PaymentLauncherFragment : StripeFragment() {
               }
             }
             StripeIntent.Status.RequiresPaymentMethod -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(
                   ConfirmSetupIntentErrorType.Failed.toString(),
                   result.lastSetupError,
@@ -282,7 +246,7 @@ class PaymentLauncherFragment : StripeFragment() {
               )
             }
             StripeIntent.Status.Canceled -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(
                   ConfirmSetupIntentErrorType.Canceled.toString(),
                   result.lastSetupError,
@@ -290,7 +254,7 @@ class PaymentLauncherFragment : StripeFragment() {
               )
             }
             else -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(
                   ConfirmSetupIntentErrorType.Unknown.toString(),
                   "unhandled error: ${result.status}",
@@ -298,7 +262,6 @@ class PaymentLauncherFragment : StripeFragment() {
               )
             }
           }
-          removeFragment(context)
         }
       },
     )
@@ -314,8 +277,7 @@ class PaymentLauncherFragment : StripeFragment() {
       expand = listOf("payment_method"),
       object : ApiResultCallback<PaymentIntent> {
         override fun onError(e: Exception) {
-          promise.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
-          removeFragment(context)
+          promise?.resolve(createError(ConfirmPaymentErrorType.Failed.toString(), e))
         }
 
         override fun onSuccess(result: PaymentIntent) {
@@ -325,17 +287,17 @@ class PaymentLauncherFragment : StripeFragment() {
             StripeIntent.Status.RequiresConfirmation,
             StripeIntent.Status.RequiresCapture,
             -> {
-              promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
+              promise?.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
             }
             StripeIntent.Status.RequiresAction -> {
               if (isNextActionSuccessState(result.nextActionType)) {
-                promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
+                promise?.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(result)))
               } else {
                 (result.lastPaymentError)?.let {
-                  promise.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
+                  promise?.resolve(createError(ConfirmPaymentErrorType.Canceled.toString(), it))
                 }
                   ?: run {
-                    promise.resolve(
+                    promise?.resolve(
                       createError(
                         ConfirmPaymentErrorType.Canceled.toString(),
                         "The payment has been canceled",
@@ -345,12 +307,12 @@ class PaymentLauncherFragment : StripeFragment() {
               }
             }
             StripeIntent.Status.RequiresPaymentMethod -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(ConfirmPaymentErrorType.Failed.toString(), result.lastPaymentError),
               )
             }
             StripeIntent.Status.Canceled -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(
                   ConfirmPaymentErrorType.Canceled.toString(),
                   result.lastPaymentError,
@@ -358,7 +320,7 @@ class PaymentLauncherFragment : StripeFragment() {
               )
             }
             else -> {
-              promise.resolve(
+              promise?.resolve(
                 createError(
                   ConfirmPaymentErrorType.Unknown.toString(),
                   "unhandled error: ${result.status}",
@@ -366,7 +328,6 @@ class PaymentLauncherFragment : StripeFragment() {
               )
             }
           }
-          removeFragment(context)
         }
       },
     )
@@ -384,6 +345,8 @@ class PaymentLauncherFragment : StripeFragment() {
       StripeIntent.NextActionType.DisplayPayNowDetails,
       StripeIntent.NextActionType.VerifyWithMicrodeposits,
       StripeIntent.NextActionType.DisplayMultibancoDetails,
+      StripeIntent.NextActionType.DisplayPayNowDetails,
+      StripeIntent.NextActionType.DisplayPromptPayDetails,
       -> true
       StripeIntent.NextActionType.RedirectToUrl,
       StripeIntent.NextActionType.UseStripeSdk,
@@ -393,6 +356,7 @@ class PaymentLauncherFragment : StripeFragment() {
       StripeIntent.NextActionType.UpiAwaitNotification,
       StripeIntent.NextActionType.CashAppRedirect,
       StripeIntent.NextActionType.SwishRedirect,
+      StripeIntent.NextActionType.DisplayPromptPayDetails,
       null,
       -> false
     }

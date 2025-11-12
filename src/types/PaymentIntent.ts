@@ -35,7 +35,7 @@ export type ConfirmParams =
   | OxxoParams
   | P24Params
   | AlipayParams
-  | GiropayParams
+  | AlmaParams
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
@@ -140,6 +140,14 @@ export interface AlipayParams {
   };
 }
 
+export type AlmaParams = {
+  paymentMethodType: 'Alma';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+    metadata?: MetaData;
+  };
+};
+
 export interface OxxoParams {
   paymentMethodType: 'Oxxo';
   paymentMethodData: {
@@ -181,15 +189,6 @@ export interface SepaParams {
   paymentMethodType: 'SepaDebit';
   paymentMethodData: {
     iban: string;
-    billingDetails: BillingDetails;
-    mandateData?: MandateData;
-    metadata?: MetaData;
-  };
-}
-
-export interface GiropayParams {
-  paymentMethodType: 'Giropay';
-  paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
     metadata?: MetaData;
