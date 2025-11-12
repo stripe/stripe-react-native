@@ -706,6 +706,7 @@ export default function CryptoOnrampFlow() {
                   setUserInfo((u) => ({ ...u, email: text }))
                 }
                 placeholder="Email"
+                autoCapitalize="none"
               />
               <FormField
                 label="Password"
