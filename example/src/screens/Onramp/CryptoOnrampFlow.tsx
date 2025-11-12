@@ -715,6 +715,7 @@ export default function CryptoOnrampFlow() {
                 }
                 placeholder="Password"
                 secureTextEntry
+                autoCapitalize="none"
               />
               <Button
                 title={authInProgress === 'login' ? 'Logging In...' : 'Log In'}
