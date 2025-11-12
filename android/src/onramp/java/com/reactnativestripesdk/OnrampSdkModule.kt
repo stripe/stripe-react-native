@@ -76,6 +76,7 @@ class OnrampSdkModule(
   private var collectPaymentPromise: Promise? = null
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
+  private var verifyKycPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
 
@@ -192,7 +193,7 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         },
         verifyKycCallback = { result ->
-          // Currently unimplemented
+          handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         },
       )
 
@@ -435,13 +436,8 @@ class OnrampSdkModule(
 
     val address = mapToPaymentSheetAddress(updatedAddress)
 
-    CoroutineScope(Dispatchers.IO).launch {
-      val result = presenter.verifyKycInfo(address)
-
-      CoroutineScope(Dispatchers.Main).launch {
-        handleOnrampKycVerificationResult(result, promise)
-      }
-    }
+    verifyKycPromise = promise
+    presenter.verifyKycInfo(address)
   }
 
   @ReactMethod
