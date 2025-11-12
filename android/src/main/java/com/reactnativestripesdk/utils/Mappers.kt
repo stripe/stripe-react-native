@@ -666,7 +666,7 @@ internal fun mapToPaymentSheetAddress(addressMap: ReadableMap?): PaymentSheet.Ad
   if (addressMap == null) {
     return null
   }
-  
+
   return PaymentSheet.Address(
     city = addressMap.getString("city"),
     country = addressMap.getString("country"),

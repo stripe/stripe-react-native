@@ -423,10 +423,10 @@ class OnrampSdkModule(
   }
 
   @ReactMethod
-override fun presentKycInfoVerification(
-  updatedAddress: ReadableMap?,
-  promise: Promise,
-) {
+  override fun presentKycInfoVerification(
+    updatedAddress: ReadableMap?,
+    promise: Promise,
+  ) {
     val presenter =
       onrampPresenter ?: run {
         promise.resolve(createOnrampNotConfiguredError())
@@ -439,7 +439,7 @@ override fun presentKycInfoVerification(
       val result = presenter.verifyKycInfo(address)
 
       CoroutineScope(Dispatchers.Main).launch {
-          handleOnrampKycVerificationResult(result, promise)
+        handleOnrampKycVerificationResult(result, promise)
       }
     }
   }
@@ -749,12 +749,12 @@ override fun presentKycInfoVerification(
     when (result) {
       is OnrampVerifyKycInfoResult.Confirmed -> {
         promise.resolve(
-          WritableNativeMap().apply { putString("status", "Confirmed") }
+          WritableNativeMap().apply { putString("status", "Confirmed") },
         )
       }
       is OnrampVerifyKycInfoResult.UpdateAddress -> {
         promise.resolve(
-          WritableNativeMap().apply { putString("status", "UpdateAddress") }
+          WritableNativeMap().apply { putString("status", "UpdateAddress") },
         )
       }
       is OnrampVerifyKycInfoResult.Cancelled -> {
