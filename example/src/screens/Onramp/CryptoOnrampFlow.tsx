@@ -565,7 +565,13 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('Logged out successfully!');
       // Reset all state to initial values
-      setUserInfo({ email: '', firstName: '', lastName: '', phoneNumber: '' });
+      setUserInfo({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+      });
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
