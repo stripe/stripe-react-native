@@ -1,11 +1,10 @@
 package com.reactnativestripesdk.addresssheet
 
-import androidx.core.os.bundleOf
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.BridgeReactContext
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
+import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
 import com.stripe.android.paymentsheet.addresselement.AddressLauncher
@@ -14,10 +13,6 @@ import org.junit.Before
 import org.junit.Test
 
 class AddressSheetViewTest {
-  private val reactApplicationContext =
-    BridgeReactContext(
-      ApplicationProvider.getApplicationContext(),
-    )
   private val testCity = "testCity"
   private val testCountry = "testCountry"
   private val testLine1 = "testLine1"
@@ -29,14 +24,14 @@ class AddressSheetViewTest {
 
   @Before
   fun setup() {
-    SoLoader.init(reactApplicationContext, OpenSourceMergedSoMapping)
+    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
   }
 
   @Test
   fun buildAddressDetails_Default() {
     val addressDetails =
       AddressSheetView.buildAddressDetails(
-        bundleOf(),
+        readableMapOf(),
       )
     Assert.assertNull(addressDetails.address)
     Assert.assertNull(addressDetails.name)
@@ -48,12 +43,12 @@ class AddressSheetViewTest {
   fun buildAddressDetails_Custom() {
     val addressDetails =
       AddressSheetView.buildAddressDetails(
-        bundleOf(
+        readableMapOf(
           "name" to testName,
           "phone" to testPhone,
           "isCheckboxSelected" to true,
           "address" to
-            bundleOf(
+            readableMapOf(
               "city" to testCity,
               "line1" to testLine1,
             ),
@@ -70,7 +65,7 @@ class AddressSheetViewTest {
   fun buildAddress_Default() {
     val address =
       AddressSheetView.buildAddress(
-        bundleOf(),
+        readableMapOf(),
       )
     Assert.assertNull(address?.city)
     Assert.assertNull(address?.country)
@@ -84,7 +79,7 @@ class AddressSheetViewTest {
   fun buildAddress_Custom() {
     val address =
       AddressSheetView.buildAddress(
-        bundleOf(
+        readableMapOf(
           "city" to testCity,
           "line1" to testLine1,
           "country" to testCountry,
@@ -127,13 +122,8 @@ class AddressSheetViewTest {
   @Test
   fun buildAdditionalFieldsConfiguration_Default() {
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(WritableNativeMap())
-
-    Assert.assertEquals(
-      result.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN,
-    )
-
-    Assert.assertNull(result.checkboxLabel)
+    val expected = AddressLauncher.AdditionalFieldsConfiguration()
+    Assert.assertEquals(result, expected)
   }
 
   @Test
@@ -146,16 +136,12 @@ class AddressSheetViewTest {
       }
 
     val received = AddressSheetView.buildAdditionalFieldsConfiguration(params)
-
-    Assert.assertEquals(
-      received.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
-    )
-
-    Assert.assertEquals(
-      received.checkboxLabel,
-      label,
-    )
+    val expected =
+      AddressLauncher.AdditionalFieldsConfiguration(
+        AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
+        label,
+      )
+    Assert.assertEquals(received, expected)
   }
 
   @Test
@@ -178,28 +164,24 @@ class AddressSheetViewTest {
         ),
       )
 
-    val result =
-      WritableNativeMap().also {
-        it.putString("name", testName)
-        it.putMap(
-          "address",
-          WritableNativeMap().also {
-            it.putString("city", testCity)
-            it.putString("country", testCountry)
-            it.putString("state", testState)
-            it.putString("line1", testLine1)
-            it.putString("line2", testLine2)
-            it.putString("postalCode", testPostalCode)
-          },
-        )
-        it.putString("phone", testPhone)
-        it.putBoolean("isCheckboxSelected", true)
-      }
-
     val expected =
-      WritableNativeMap().also {
-        it.putMap("result", result)
-      }
+      readableMapOf(
+        "result" to
+          readableMapOf(
+            "name" to testName,
+            "address" to
+              readableMapOf(
+                "city" to testCity,
+                "country" to testCountry,
+                "state" to testState,
+                "line1" to testLine1,
+                "line2" to testLine2,
+                "postalCode" to testPostalCode,
+              ),
+            "phone" to testPhone,
+            "isCheckboxSelected" to true,
+          ),
+      )
 
     Assert.assertEquals(expected, received)
   }
