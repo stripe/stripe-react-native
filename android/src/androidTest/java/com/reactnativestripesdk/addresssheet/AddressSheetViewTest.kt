@@ -122,13 +122,8 @@ class AddressSheetViewTest {
   @Test
   fun buildAdditionalFieldsConfiguration_Default() {
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(WritableNativeMap())
-
-    Assert.assertEquals(
-      result.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.HIDDEN,
-    )
-
-    Assert.assertNull(result.checkboxLabel)
+    val expected = AddressLauncher.AdditionalFieldsConfiguration()
+    Assert.assertEquals(result, expected)
   }
 
   @Test
@@ -141,16 +136,12 @@ class AddressSheetViewTest {
       }
 
     val received = AddressSheetView.buildAdditionalFieldsConfiguration(params)
-
-    Assert.assertEquals(
-      received.phone,
-      AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
-    )
-
-    Assert.assertEquals(
-      received.checkboxLabel,
-      label,
-    )
+    val expected =
+      AddressLauncher.AdditionalFieldsConfiguration(
+        AddressLauncher.AdditionalFieldsConfiguration.FieldConfiguration.REQUIRED,
+        label,
+      )
+    Assert.assertEquals(received, expected)
   }
 
   @Test

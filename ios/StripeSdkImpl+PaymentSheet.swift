@@ -396,6 +396,20 @@ extension StripeSdkImpl {
         if (applePayParams["request"] == nil) {
             return nil
         }
+        let authorizationResultHandler: PaymentSheet.ApplePayConfiguration.Handlers.AuthorizationResultHandler? = {
+            guard applePayParams.object(forKey: "setOrderTracking") != nil else {
+                return nil
+            }
+            return { result in
+                await withCheckedContinuation { continuation in
+                    // Set the handler first: this will be called from JS land after we `emitOnOrderTrackingCallback()`.
+                    self.orderTrackingHandler = (result, { result in
+                        continuation.resume(returning: result)
+                    })
+                    self.emitter?.emitOnOrderTrackingCallback()
+                }
+            }
+        }()
         return PaymentSheet.ApplePayConfiguration.Handlers(paymentRequestHandler: { request in
             do {
                 try request.configureRequestType(requestParams: applePayParams)
@@ -404,14 +418,7 @@ extension StripeSdkImpl {
                 RCTMakeAndLogError(error.localizedDescription, nil, nil)
             }
             return request
-        }, authorizationResultHandler: { result, completion in
-            if applePayParams.object(forKey: "setOrderTracking") != nil {
-                self.orderTrackingHandler = (result, completion)
-                self.emitter?.emitOnOrderTrackingCallback()
-            } else {
-                completion(result)
-            }
-        })
+        }, authorizationResultHandler: authorizationResultHandler)
     }
 
     internal static func mapToCollectionMode(str: String?) -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode {

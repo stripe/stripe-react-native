@@ -1,6 +1,10 @@
 # CHANGELOG
 
 ## x.x.x - 2025-x-x
+**Changes**
+- [Changed] Updated Stripe iOS SDK from 24.25.0 to 25.0.0
+- [Changed] Updated Stripe Android SDK from 21.29.+ to 22.0.+
+- [Removed] Removed Giropay. Use alternative payment methods instead. See [this page](https://docs.stripe.com/payments/giropay) for more information.
 
 **Fixes**
 - [#2201](https://github.com/stripe/stripe-react-native/issues/2201) Fixed iOS sheets (PaymentSheet, CustomerSheet, AddressSheet, etc.) not presenting in scene-based lifecycle apps. The SDK now properly supports both traditional app delegates and scene-based lifecycles (iOS 13+) by using `RCTKeyWindow`.
@@ -8,9 +12,9 @@
 ## 0.56.0 - 2025-11-06
 
 **Changes**
-- CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
-- ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
-- [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet).
+- [Added] CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
+- [Added] ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
+- [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet). 
 * [Added] Added support for `onBehalfOf` to CustomerSheet.IntentConfiguration. This parameter makes CustomerSheet use a connected account to determine the payment method that users see and whether CardBrandChoice is enabled. For more information, see the [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of).
 
 **Fixes**

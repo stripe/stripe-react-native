@@ -51,7 +51,6 @@ import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
-import com.stripe.android.paymentsheet.ExperimentalCustomerSessionApi
 import com.stripe.android.paymentsheet.PaymentOptionResultCallback
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
@@ -684,7 +683,6 @@ class PaymentSheetManager(
         )
       }
 
-    @OptIn(ExperimentalCustomerSessionApi::class)
     @Throws(PaymentSheetException::class)
     internal fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.CustomerConfiguration? {
       val customerId = map?.getString("customerId").orEmpty()

@@ -42,7 +42,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Billie -> createBillieParams()
         PaymentMethod.Type.SepaDebit -> createSepaParams()
         PaymentMethod.Type.Oxxo -> createOXXOParams()
-        PaymentMethod.Type.Giropay -> createGiropayParams()
         PaymentMethod.Type.Eps -> createEPSParams()
         PaymentMethod.Type.GrabPay -> createGrabPayParams()
         PaymentMethod.Type.P24 -> createP24Params()
@@ -126,15 +125,6 @@ class PaymentMethodCreateParamsFactory(
   private fun createOXXOParams(): PaymentMethodCreateParams {
     billingDetailsParams?.let {
       return PaymentMethodCreateParams.createOxxo(billingDetails = it, metadata = metadataParams)
-    }
-
-    throw PaymentMethodCreateParamsException("You must provide billing details")
-  }
-
-  @Throws(PaymentMethodCreateParamsException::class)
-  private fun createGiropayParams(): PaymentMethodCreateParams {
-    billingDetailsParams?.let {
-      return PaymentMethodCreateParams.createGiropay(billingDetails = it, metadata = metadataParams)
     }
 
     throw PaymentMethodCreateParamsException("You must provide billing details")
@@ -265,7 +255,6 @@ class PaymentMethodCreateParamsFactory(
         PaymentMethod.Type.Billie,
         PaymentMethod.Type.SepaDebit,
         PaymentMethod.Type.Oxxo,
-        PaymentMethod.Type.Giropay,
         PaymentMethod.Type.Eps,
         PaymentMethod.Type.GrabPay,
         PaymentMethod.Type.P24,
