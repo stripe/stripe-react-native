@@ -1,10 +1,19 @@
 import type {
   CollectionOptions,
+  LoaderStart,
   PaymentsListDefaultFilters,
   StepChange,
 } from './connectTypes';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
+import {
+  Modal,
+  SafeAreaView,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import ModalCloseButton from './ModalCloseButton';
 
 export function ConnectAccountOnboarding({
   onExit,
@@ -16,7 +25,6 @@ export function ConnectAccountOnboarding({
   onLoaderStart,
   onLoadError,
   onPageDidLoad,
-  style,
 }: {
   onExit: () => void;
   onStepChange?: (stepChange: StepChange) => void;
@@ -24,7 +32,10 @@ export function ConnectAccountOnboarding({
   fullTermsOfServiceUrl?: string;
   privacyPolicyUrl?: string;
   collectionOptions?: CollectionOptions;
-} & CommonComponentProps) {
+} & Omit<CommonComponentProps, 'style'>) {
+  const [visible, setVisible] = useState(true);
+  const [loading, setLoading] = useState(true);
+
   const componentProps = useMemo(() => {
     return {
       setFullTermsOfServiceUrl: fullTermsOfServiceUrl,
@@ -39,23 +50,50 @@ export function ConnectAccountOnboarding({
     collectionOptions,
   ]);
 
+  const onExitCallback = useCallback(() => {
+    setVisible(false);
+    onExit();
+  }, [onExit]);
+
   const callbacks = useMemo(() => {
     return {
-      onExit,
+      onExit: onExitCallback,
       onStepChange,
     };
-  }, [onExit, onStepChange]);
+  }, [onExitCallback, onStepChange]);
+
+  const onLoaderStartCallback = useCallback(
+    (event: LoaderStart) => {
+      setLoading(false);
+      if (onLoaderStart) {
+        onLoaderStart(event);
+      }
+    },
+    [onLoaderStart]
+  );
 
   return (
-    <EmbeddedComponent
-      component="account-onboarding"
-      componentProps={componentProps}
-      onLoaderStart={onLoaderStart}
-      onLoadError={onLoadError}
-      onPageDidLoad={onPageDidLoad}
-      callbacks={callbacks}
-      style={style}
-    />
+    <Modal visible={visible} animationType="slide">
+      <SafeAreaView style={styles.flex1}>
+        <View style={styles.navBar}>
+          <ModalCloseButton onPress={onExitCallback} />
+        </View>
+        <View style={styles.onboardingWrapper}>
+          {loading ? (
+            <ActivityIndicator size="large" style={styles.activityIndicator} />
+          ) : null}
+          <EmbeddedComponent
+            component="account-onboarding"
+            componentProps={componentProps}
+            onLoaderStart={onLoaderStartCallback}
+            onLoadError={onLoadError}
+            onPageDidLoad={onPageDidLoad}
+            callbacks={callbacks}
+            style={styles.flex1}
+          />
+        </View>
+      </SafeAreaView>
+    </Modal>
   );
 }
 
@@ -138,3 +176,27 @@ export function ConnectPaymentDetails({
     />
   );
 }
+
+const styles = StyleSheet.create({
+  navBar: {
+    height: 56,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  flex1: {
+    flex: 1,
+  },
+  activityIndicator: {
+    zIndex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 48,
+  },
+  onboardingWrapper: {
+    position: 'relative',
+    flex: 1,
+  },
+});

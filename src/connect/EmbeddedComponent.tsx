@@ -1,9 +1,9 @@
-import type { LoadError, LoaderStart } from './connectTypes';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, StyleProp, ViewStyle } from 'react-native';
 import type { WebView } from 'react-native-webview';
-import { useConnectComponents } from './ConnectComponentsProvider';
 import pjson from '../../package.json';
+import { useConnectComponents } from './ConnectComponentsProvider';
+import type { LoadError, LoaderStart } from './connectTypes';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -249,7 +249,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         } else if (message.type === 'openFinancialConnections') {
           // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
         } else if (message.type === 'closeWebView') {
-          console.log('closeWebView');
+          // message.data is empty
         } else if (message.type === 'callSupplementalFunction') {
           console.log('message:', message);
           // message.data is of type {[key]: {functionName: string; args: unknown[]; invocationId: string;}}
