@@ -58,6 +58,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("RestrictedApi")
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
@@ -637,7 +638,7 @@ class OnrampSdkModule(
     CoroutineScope(Dispatchers.IO).launch {
       val result = coordinator.authenticateUserWithToken(token)
 
-      CoroutineScope(Dispatchers.Main).launch {
+      withContext(Dispatchers.Main) {
         handleAuthenticateUserWithTokenResult(result, promise)
       }
     }
