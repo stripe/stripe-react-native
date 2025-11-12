@@ -1726,6 +1726,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
+    @objc(presentKycInfoVerification:resolver:rejecter:)
+    public func presentKycInfoVerification(
+        updatedAddressDictionary: NSDictionary?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
     @objc(updatePhoneNumber:resolver:rejecter:)
     public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         resolveWithCryptoOnrampNotAvailableError(resolve)
