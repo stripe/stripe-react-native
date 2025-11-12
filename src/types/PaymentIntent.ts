@@ -36,7 +36,6 @@ export type ConfirmParams =
   | P24Params
   | AlipayParams
   | AlmaParams
-  | GiropayParams
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
@@ -190,15 +189,6 @@ export interface SepaParams {
   paymentMethodType: 'SepaDebit';
   paymentMethodData: {
     iban: string;
-    billingDetails: BillingDetails;
-    mandateData?: MandateData;
-    metadata?: MetaData;
-  };
-}
-
-export interface GiropayParams {
-  paymentMethodType: 'Giropay';
-  paymentMethodData: {
     billingDetails: BillingDetails;
     mandateData?: MandateData;
     metadata?: MetaData;
