@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - -x-x
+## x.x.x - x-x-x
 **Fixes**
 - Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
 
