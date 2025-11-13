@@ -7,6 +7,7 @@ import {
 } from '@stripe/stripe-react-native';
 import type { Address } from '@stripe/stripe-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Alert,
   Platform,
@@ -22,6 +23,11 @@ import {
   createAuthIntent,
   createOnrampSession,
   checkout,
+  signup,
+  login,
+  saveUser,
+  createLinkAuthToken,
+  getCryptoCustomerId,
 } from '../../../server/onrampBackend';
 import {
   getDestinationParamsForNetwork,
@@ -61,15 +67,25 @@ export default function CryptoOnrampFlow() {
     getCryptoTokenDisplayData,
     logOut,
     isAuthError,
+    authenticateUserWithToken,
   } = useOnramp();
   const { isPlatformPaySupported } = useStripe();
   const [userInfo, setUserInfo] = useState({
     email: '',
+    password: '',
     firstName: '',
     lastName: '',
     phoneNumber: '',
   });
   const [linkAuthIntentId, setLinkAuthIntentId] = useState('');
+
+  // Seamless sign-in persistence
+  const STORAGE_KEY_DEMO_AUTH = 'demoAuthCredentials';
+  const [storedDemoAuth, setStoredDemoAuth] = useState<{
+    email: string;
+    token: string;
+  } | null>(null);
+  const [isSeamlessSigningIn, setIsSeamlessSigningIn] = useState(false);
 
   const [response, setResponse] = useState<string | null>(null);
   const [isLinkUser, setIsLinkUser] = useState(false);
@@ -87,6 +103,9 @@ export default function CryptoOnrampFlow() {
   );
 
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [authInProgress, setAuthInProgress] = useState<
+    null | 'login' | 'signup'
+  >(null);
 
   // KYC Refresh state
   const [needsKycAddressUpdate, setNeedsKycAddressUpdate] = useState(false);
@@ -99,7 +118,7 @@ export default function CryptoOnrampFlow() {
     country: 'US',
   });
 
-  // Auth token from CreateAuthIntentResponse
+  // Auth token from SignupResponse, LoginResponse, or CreateAuthIntentResponse
   const [authToken, setAuthToken] = useState<string | null>(null);
 
   // Wallet address from registration
@@ -145,8 +164,50 @@ export default function CryptoOnrampFlow() {
     } else {
       setIsLinkUser(result.hasLinkAccount);
       setResponse(`Is Link User: ${result.hasLinkAccount}`);
+      if (!result.hasLinkAccount) {
+        Alert.alert(
+          'Link account not found',
+          "Return to the Home Screen and choose 'Register Crypto Link User' to complete registration before returning here to sign in."
+        );
+      }
     }
   }, [userInfo.email, hasLinkAccount]);
+
+  const handleLogin = useCallback(async () => {
+    if (!userInfo.email || !userInfo.password) {
+      showError('Please enter both email and password.');
+      return;
+    }
+    setAuthInProgress('login');
+    try {
+      const res = await login(userInfo.email, userInfo.password);
+      if (res.success) {
+        setAuthToken(res.data.token);
+      } else {
+        showError(`${res.error.code}: ${res.error.message}`);
+      }
+    } finally {
+      setAuthInProgress(null);
+    }
+  }, [userInfo.email, userInfo.password]);
+
+  const handleSignup = useCallback(async () => {
+    if (!userInfo.email || !userInfo.password) {
+      showError('Please enter both email and password.');
+      return;
+    }
+    setAuthInProgress('signup');
+    try {
+      const res = await signup(userInfo.email, userInfo.password);
+      if (res.success) {
+        setAuthToken(res.data.token);
+      } else {
+        showError(`${res.error.code}: ${res.error.message}`);
+      }
+    } finally {
+      setAuthInProgress(null);
+    }
+  }, [userInfo.email, userInfo.password]);
 
   const showPaymentData = useCallback(async () => {
     const cardParams: Onramp.CryptoPaymentToken = {
@@ -176,16 +237,16 @@ export default function CryptoOnrampFlow() {
   }, [getCryptoTokenDisplayData]);
 
   const handlePresentVerification = useCallback(async () => {
-    if (!userInfo.email) {
-      showError('Please enter an email address first.');
+    if (!authToken) {
+      showError('Please log in to the demo backend first.');
       return;
     }
 
     try {
       // Step 1: Create auth intent using OnrampBackend API
       const authIntentResponse = await createAuthIntent(
-        userInfo.email,
-        'kyc.status:read,crypto:ramp'
+        authToken,
+        'kyc.status:read,crypto:ramp,auth.persist_login:read'
       );
 
       if (!authIntentResponse.success) {
@@ -195,7 +256,22 @@ export default function CryptoOnrampFlow() {
         return;
       }
 
-      const authIntentId = authIntentResponse.data.data.id;
+      // Overwrite stored auth token with the latest token from the response
+      const newToken = authIntentResponse.data.token;
+      if (newToken) {
+        setAuthToken(newToken);
+        // Persist for seamless sign-in (email + token)
+        try {
+          await AsyncStorage.setItem(
+            STORAGE_KEY_DEMO_AUTH,
+            JSON.stringify({ email: userInfo.email, token: newToken })
+          );
+          setStoredDemoAuth({ email: userInfo.email, token: newToken });
+        } catch {}
+      }
+      const latestAuthToken = newToken ?? authToken;
+
+      const authIntentId = authIntentResponse.data.authIntentId;
 
       // Step 2: Authorize using the created auth intent ID
       const result = await authorize(authIntentId);
@@ -206,7 +282,14 @@ export default function CryptoOnrampFlow() {
         showSuccess(`Authentication successful!`);
         setCustomerId(result.customerId);
         setLinkAuthIntentId(authIntentId);
-        setAuthToken(authIntentResponse.data.token);
+
+        // Persist user to demo backend with their crypto customer id
+        const saveUserRes = await saveUser(result.customerId, latestAuthToken);
+        if (!saveUserRes.success) {
+          showError(
+            `Failed to save user: ${saveUserRes.error.code} - ${saveUserRes.error.message}`
+          );
+        }
       } else if (result?.status === 'Denied') {
         showError('User denied the authentication request. Please try again.');
       } else {
@@ -216,29 +299,7 @@ export default function CryptoOnrampFlow() {
       console.error('Error in authentication flow:', error);
       showError('Failed to complete authentication flow.');
     }
-  }, [userInfo.email, authorize]);
-
-  const handleAuthorizeLinkAuthIntent = useCallback(async () => {
-    const result = await authorize(linkAuthIntentId);
-
-    if (result?.error) {
-      if (result.error.code === 'Canceled') {
-        Alert.alert(
-          'Cancelled',
-          'Link auth intent authorization was cancelled.'
-        );
-      } else {
-        Alert.alert(
-          'Error',
-          `Could not authorize Link auth intent: ${result.error.message}.`
-        );
-      }
-    } else if (result?.status) {
-      showSuccess(`Link auth intent ${result.status.toLowerCase()}.`);
-    } else {
-      showCanceled('Link auth intent authorization was cancelled.');
-    }
-  }, [authorize, linkAuthIntentId]);
+  }, [authToken, authorize, userInfo.email]);
 
   const handleVerifyIdentity = useCallback(async () => {
     const result = await withReauth(
@@ -546,7 +607,13 @@ export default function CryptoOnrampFlow() {
     } else {
       showSuccess('Logged out successfully!');
       // Reset all state to initial values
-      setUserInfo({ email: '', firstName: '', lastName: '', phoneNumber: '' });
+      setUserInfo({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+      });
       setLinkAuthIntentId('');
       setResponse(null);
       setIsLinkUser(false);
@@ -554,6 +621,8 @@ export default function CryptoOnrampFlow() {
       setCurrentPaymentDisplayData(null);
       setCryptoPaymentToken(null);
       setAuthToken(null);
+      await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
+      setStoredDemoAuth(null);
       setWalletAddress(null);
       setWalletNetwork(null);
       setOnrampSessionId(null);
@@ -577,17 +646,142 @@ export default function CryptoOnrampFlow() {
     };
   }, [isPlatformPaySupported]);
 
+  // Load persisted demo auth for seamless sign-in
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY_DEMO_AUTH);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.email && parsed?.token) {
+            setStoredDemoAuth({ email: parsed.email, token: parsed.token });
+          }
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const clearPersistedDemoAuth = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY_DEMO_AUTH);
+    } catch {}
+    setStoredDemoAuth(null);
+  }, []);
+
+  const handleSeamlessSignIn = useCallback(async () => {
+    if (!storedDemoAuth) return;
+    setIsSeamlessSigningIn(true);
+    try {
+      const latRes = await createLinkAuthToken(storedDemoAuth.token);
+      if (!latRes.success) {
+        await clearPersistedDemoAuth();
+        showError(
+          `${latRes.error.code}: ${latRes.error.message}. Please sign in manually.`
+        );
+        return;
+      }
+
+      const clientSecret = latRes.data.link_auth_token_client_secret;
+      const result = await authenticateUserWithToken(clientSecret);
+      if (result?.error) {
+        await clearPersistedDemoAuth();
+        showError(
+          `${result.error.code}: ${result.error.message}. Please sign in manually.`
+        );
+        return;
+      }
+
+      // At this point, Link authentication succeeded. Persist token and fetch crypto customer id.
+      setAuthToken(storedDemoAuth.token);
+      setUserInfo((u) => ({ ...u, email: storedDemoAuth.email }));
+
+      const customerResponse = await getCryptoCustomerId(storedDemoAuth.token);
+      if (!customerResponse.success) {
+        await clearPersistedDemoAuth();
+        showError(
+          `${customerResponse.error.code}: ${customerResponse.error.message}. Please sign in manually.`
+        );
+        return;
+      }
+
+      setCustomerId(customerResponse.data.crypto_customer_id);
+      setIsLinkUser(true); // user is authenticated with Link
+    } catch (e: any) {
+      await clearPersistedDemoAuth();
+      showError(`Please sign in manually. ${e?.message ?? ''}`);
+    } finally {
+      setIsSeamlessSigningIn(false);
+    }
+  }, [storedDemoAuth, authenticateUserWithToken, clearPersistedDemoAuth]);
+
   return (
     <ScrollView accessibilityLabel="onramp-flow" style={styles.container}>
       <Collapse title="User Information" initialExpanded={true}>
-        <Text style={styles.infoText}>Enter your email address:</Text>
-        <FormField
-          label="Email"
-          value={userInfo.email}
-          onChangeText={(text) => setUserInfo((u) => ({ ...u, email: text }))}
-          placeholder="Email"
-        />
-        {isLinkUser === false && (
+        {!authToken ? (
+          storedDemoAuth ? (
+            <>
+              <Text style={[styles.infoText, styles.previouslySignedInLabel]}>
+                Previously signed in as{' '}
+                <Text style={styles.boldText}>{storedDemoAuth.email}</Text>.
+              </Text>
+              <Button
+                title={
+                  isSeamlessSigningIn ? 'Signing In...' : 'Seamless Sign-In'
+                }
+                onPress={handleSeamlessSignIn}
+                variant="primary"
+                disabled={isSeamlessSigningIn}
+              />
+              <Button
+                title="Manual Sign-In"
+                onPress={clearPersistedDemoAuth}
+                variant="primary"
+                disabled={isSeamlessSigningIn}
+              />
+            </>
+          ) : (
+            <>
+              <FormField
+                label="Email"
+                value={userInfo.email}
+                onChangeText={(text) =>
+                  setUserInfo((u) => ({ ...u, email: text }))
+                }
+                placeholder="Email"
+                autoCapitalize="none"
+              />
+              <FormField
+                label="Password"
+                value={userInfo.password}
+                onChangeText={(text) =>
+                  setUserInfo((u) => ({ ...u, password: text }))
+                }
+                placeholder="Password"
+                secureTextEntry
+                autoCapitalize="none"
+              />
+              <Button
+                title={authInProgress === 'login' ? 'Logging In...' : 'Log In'}
+                onPress={handleLogin}
+                variant="primary"
+                disabled={authInProgress !== null}
+              />
+              <Button
+                title={
+                  authInProgress === 'signup' ? 'Signing Up...' : 'Sign Up'
+                }
+                onPress={handleSignup}
+                variant="primary"
+                disabled={authInProgress !== null}
+              />
+            </>
+          )
+        ) : (
+          <Text style={styles.authenticatedLabel}>
+            Authenticated with demo backend
+          </Text>
+        )}
+        {authToken && isLinkUser === false && (
           <Button
             title="Verify Link User"
             onPress={checkIsLinkUser}
@@ -615,10 +809,7 @@ export default function CryptoOnrampFlow() {
             handleUpdatePhoneNumber={handleUpdatePhoneNumber}
           />
           <LinkAuthenticationSection
-            linkAuthIntentId={linkAuthIntentId}
-            setLinkAuthIntentId={setLinkAuthIntentId}
             handlePresentVerification={handlePresentVerification}
-            handleAuthorizeLinkAuthIntent={handleAuthorizeLinkAuthIntent}
           />
         </>
       )}
@@ -690,8 +881,23 @@ const styles = StyleSheet.create({
     paddingEnd: 16, // Hack.
   },
   infoText: {},
+  previouslySignedInLabel: {
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  boldText: {
+    fontWeight: '700',
+  },
   logoutContainer: {
     paddingStart: 16,
     paddingVertical: 16,
+  },
+  authenticatedLabel: {
+    marginTop: 8,
+    marginBottom: 12,
+    color: 'green',
+    fontWeight: '600',
+    alignSelf: 'center',
+    textAlign: 'center',
   },
 });

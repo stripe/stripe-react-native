@@ -25,6 +25,9 @@ export interface Spec extends TurboModule {
   ) => Promise<Onramp.VerifyKycResult>;
   updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
   authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
+  authenticateUserWithToken(
+    linkAuthTokenClientSecret: string
+  ): Promise<Onramp.VoidResult>;
   verifyIdentity(): Promise<Onramp.VoidResult>;
   collectPaymentMethod(
     paymentMethod: string,
