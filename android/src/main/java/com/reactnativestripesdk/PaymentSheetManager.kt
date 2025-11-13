@@ -308,7 +308,7 @@ class PaymentSheetManager(
 
     paymentSheetConfiguration = configurationBuilder.build()
 
-    if (arguments.getBoolean("customFlow") == true) {
+    if (arguments.getBooleanOr("customFlow", false)) {
       flowController =
         if (intentConfiguration != null) {
           val builder =

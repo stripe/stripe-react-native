@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## x.x.x - x-x-x
+**Fixes**
+- Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
+
 ## 0.57.0 - 2025-11-12
 **Changes**
 - [Changed] Updated Stripe iOS SDK from 24.25.0 to 25.0.0
