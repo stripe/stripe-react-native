@@ -41,6 +41,7 @@ import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
@@ -57,6 +58,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("RestrictedApi")
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
@@ -622,6 +624,26 @@ class OnrampSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun authenticateUserWithToken(
+    token: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator.authenticateUserWithToken(token)
+
+      withContext(Dispatchers.Main) {
+        handleAuthenticateUserWithTokenResult(result, promise)
+      }
+    }
+  }
+
   private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     val lightColorsMap = appearanceMap.getMap("lightColors")
     val darkColorsMap = appearanceMap.getMap("darkColors")
@@ -822,6 +844,20 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampLogOutResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleAuthenticateUserWithTokenResult(
+    result: OnrampTokenAuthenticationResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampTokenAuthenticationResult.Completed -> {
+        promise.resolveVoid()
+      }
+      is OnrampTokenAuthenticationResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
     }
