@@ -7,14 +7,13 @@ import {
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Switch,
   Text,
   View,
 } from 'react-native';
-import { fetchClientSecret, fetchPublishableKey } from '../helpers';
 import { colors } from '../colors';
+import { fetchClientSecret, fetchPublishableKey } from '../helpers';
 
 const fontFamily =
   "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
@@ -39,28 +38,18 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
   const [locale, setLocale] = useState(defaultLocale);
 
   useEffect(() => {
-    fetchPublishableKey()
-      .then((publishableKey) => {
-        if (!publishableKey) {
-          Alert.alert('Error', 'Unable to fetch publishable key.');
-          return;
-        }
+    fetchPublishableKey().then((publishableKey) => {
+      if (!publishableKey) return;
 
-        setStripeConnectInstance(
-          loadConnectAndInitialize({
-            publishableKey: publishableKey,
-            fetchClientSecret,
-            appearance: defaultAppearance,
-            locale: defaultLocale,
-          })
-        );
-      })
-      .catch((error) => {
-        Alert.alert(
-          'Error',
-          `Unable to fetch publishable key: ${error.message}`
-        );
-      });
+      setStripeConnectInstance(
+        loadConnectAndInitialize({
+          publishableKey: publishableKey,
+          fetchClientSecret,
+          appearance: defaultAppearance,
+          locale: defaultLocale,
+        })
+      );
+    });
   }, []);
 
   return !stripeConnectInstance ? (
