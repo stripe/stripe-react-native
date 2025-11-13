@@ -170,10 +170,22 @@ export type CollectionOptions = {
       };
 };
 
+export type StripeConnectUpdateParams = {
+  /**
+   * Appearance options for the Connect instance.
+   */
+  appearance?: AppearanceOptions;
+
+  /**
+   * The locale to use for the Connect instance.
+   */
+  locale?: string;
+};
+
 /**
  * Initialization parameters for Connect JS. See https://stripe.com/docs/connect/get-started-connect-embedded-components#configuring-connect-js for more details.
  */
-export interface IStripeConnectInitParams {
+export type StripeConnectInitParams = {
   /**
    * The publishable key for the connected account.
    */
@@ -200,7 +212,7 @@ export interface IStripeConnectInitParams {
    * An array of custom fonts, which embedded components created from a ConnectInstance can use.
    */
   fonts?: Array<CssFontSource | CustomFontSource>;
-}
+};
 
 /**
  * Appearance options for the Connect instance.
@@ -600,3 +612,15 @@ export declare type CustomFontSource = {
 };
 
 export declare type OverlayOption = 'dialog' | 'drawer';
+
+export interface StripeConnectInstance {
+  /**
+   * Updates the Connect instance with new parameters.
+   * @options New parameters to update the Connect instance with.
+   */
+  update: (options: StripeConnectUpdateParams) => void;
+}
+
+export type LoadConnectAndInitialize = (
+  initParams: StripeConnectInitParams
+) => StripeConnectInstance;

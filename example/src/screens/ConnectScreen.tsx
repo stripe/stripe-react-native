@@ -1,56 +1,143 @@
-import { ConnectComponentsProvider } from '@stripe/stripe-react-native';
+import {
+  ConnectComponentsProvider,
+  loadConnectAndInitialize,
+  StripeConnectInstance,
+  StripeConnectUpdateParams,
+} from '@stripe/stripe-react-native';
 import { useEffect, useState } from 'react';
-import { fetchPublishableKey } from '../helpers';
-import { ActivityIndicator, StyleSheet } from 'react-native';
-import { API_URL } from '../Config';
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
+import { fetchClientSecret, fetchPublishableKey } from '../helpers';
+import { colors } from '../colors';
+
+const fontFamily =
+  "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
+
+const defaultAppearance: StripeConnectUpdateParams['appearance'] = {
+  variables: {
+    fontFamily,
+  },
+};
+
+const defaultLocale = 'en_US';
 
 interface Props {
   children?: React.ReactNode;
 }
 
 const ConnectScreen: React.FC<Props> = ({ children }) => {
-  const [publishableKey, setPublishableKey] = useState<string | null>(null);
+  const [stripeConnectInstance, setStripeConnectInstance] =
+    useState<StripeConnectInstance>();
+
+  const [appearance, setAppearance] = useState(defaultAppearance);
+  const [locale, setLocale] = useState(defaultLocale);
 
   useEffect(() => {
-    fetchPublishableKey().then((pk) => {
-      if (pk) {
-        setPublishableKey(pk);
-      }
-    });
+    fetchPublishableKey()
+      .then((publishableKey) => {
+        if (!publishableKey) {
+          Alert.alert('Error', 'Unable to fetch publishable key.');
+          return;
+        }
+
+        setStripeConnectInstance(
+          loadConnectAndInitialize({
+            publishableKey: publishableKey,
+            fetchClientSecret,
+            appearance: defaultAppearance,
+            locale: defaultLocale,
+          })
+        );
+      })
+      .catch((error) => {
+        Alert.alert(
+          'Error',
+          `Unable to fetch publishable key: ${error.message}`
+        );
+      });
   }, []);
 
-  return !publishableKey ? (
+  return !stripeConnectInstance ? (
     <ActivityIndicator size="large" style={StyleSheet.absoluteFill} />
   ) : (
-    <ConnectComponentsProvider
-      publishableKey={publishableKey}
-      fetchClientSecret={fetchClientSecret}
-      appearance={{
-        variables: {
-          fontFamily:
-            "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
-        },
-      }}
-    >
-      {children}
+    <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
+      <View style={styles.switchContainer}>
+        <Text>Switch appearance</Text>
+        <Switch
+          value={appearance !== defaultAppearance}
+          onValueChange={(value) => {
+            const nextAppearance = value
+              ? {
+                  variables: {
+                    colorPrimary: '#537D5D',
+                    colorBackground: '#FFFDF6',
+                    buttonSecondaryColorBackground: '#DEECD4',
+                    buttonSecondaryColorText: '#537D5D',
+                    colorSecondaryText: '#878682',
+                    colorBorder: '#D6D6D6',
+                    colorDanger: '#EC5228',
+                    badgeNeutralColorBackground: '#F5ECD5',
+                    badgeNeutralColorBorder: '#F5ECD5',
+                    badgeSuccessColorBackground: '#DEECD4',
+                    badgeSuccessColorBorder: '#DEECD4',
+                    badgeSuccessColorText: '#537D5D',
+                    badgeWarningColorBackground: '#FBDAB1',
+                    badgeWarningColorBorder: '#FBDAB1',
+                    badgeWarningColorText: '#751F00',
+                    badgeDangerColorBackground: '#EC5228',
+                    badgeDangerColorBorder: '#EC5228',
+                    badgeDangerColorText: '#FFF',
+                    offsetBackgroundColor: '#FAF6E9',
+                    formBackgroundColor: '#FAF6E9',
+                    borderRadius: '24px',
+                    fontFamily,
+                  },
+                }
+              : defaultAppearance;
+
+            setAppearance(nextAppearance);
+            stripeConnectInstance.update({
+              appearance: nextAppearance,
+              locale,
+            });
+          }}
+        />
+      </View>
+
+      <View style={styles.switchContainer}>
+        <Text>Switch locale</Text>
+        <Switch
+          value={locale !== defaultLocale}
+          onValueChange={(value) => {
+            const newLocale = value ? 'es_ES' : defaultLocale;
+            setLocale(newLocale);
+            stripeConnectInstance.update({ locale: newLocale, appearance });
+          }}
+        />
+      </View>
+
+      <View style={styles.main}>{children}</View>
     </ConnectComponentsProvider>
   );
 };
 
 export default ConnectScreen;
 
-const fetchClientSecret = async () => {
-  const response = await fetch(`${API_URL}/account_session`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      currency: 'usd',
-    }),
-  });
-  const json = await response.json();
-  const { clientSecret } = json;
-
-  return clientSecret;
-};
+const styles = StyleSheet.create({
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: colors.white,
+  },
+  main: {
+    flex: 1,
+  },
+});

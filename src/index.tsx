@@ -35,5 +35,14 @@ export * from './types/EmbeddedPaymentElement';
 export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
 
-export { ConnectComponentsProvider } from './connect/ConnectComponentsProvider';
+//connect components
+export {
+  ConnectComponentsProvider,
+  loadConnectAndInitialize,
+} from './connect/ConnectComponentsProvider';
+export type {
+  StripeConnectInstance,
+  StripeConnectInitParams,
+  StripeConnectUpdateParams,
+} from './connect/connectTypes';
 export * from './connect/Components';

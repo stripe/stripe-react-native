@@ -19,6 +19,7 @@ export default function ConnectAccountOnboardingScreen() {
 
         {visible ? (
           <ConnectAccountOnboarding
+            title="Connect Account Onboarding"
             onExit={() => {
               console.log('ConnectAccountOnboarding onExit');
               setVisible(false);

@@ -1,21 +1,23 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type {
   CollectionOptions,
   LoaderStart,
   PaymentsListDefaultFilters,
   StepChange,
 } from './connectTypes';
-import React, { useCallback, useMemo, useState } from 'react';
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
-import {
-  Modal,
-  SafeAreaView,
-  View,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
 import ModalCloseButton from './ModalCloseButton';
 
 export function ConnectAccountOnboarding({
+  title,
   onExit,
   onStepChange,
   recipientTermsOfServiceUrl,
@@ -26,6 +28,7 @@ export function ConnectAccountOnboarding({
   onLoadError,
   onPageDidLoad,
 }: {
+  title?: string;
   onExit: () => void;
   onStepChange?: (stepChange: StepChange) => void;
   recipientTermsOfServiceUrl?: string;
@@ -76,6 +79,8 @@ export function ConnectAccountOnboarding({
     <Modal visible={visible} animationType="slide">
       <SafeAreaView style={styles.flex1}>
         <View style={styles.navBar}>
+          <View style={styles.navBarPlaceholder} />
+          <Text>{title}</Text>
           <ModalCloseButton onPress={onExitCallback} />
         </View>
         <View style={styles.onboardingWrapper}>
@@ -182,8 +187,12 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: 8,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  navBarPlaceholder: {
+    width: 36,
   },
   flex1: {
     flex: 1,

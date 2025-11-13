@@ -123,14 +123,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     loadWebViewComponent();
   }, [loadWebViewComponent]);
 
-  const {
-    publishableKey,
-    fetchClientSecret,
-    appearance,
-    locale,
-    fonts,
-    overrides,
-  } = useConnectComponents() as ConnectComponentsPayloadInternal;
+  const { connectInstance, appearance, locale, overrides } =
+    useConnectComponents() as ConnectComponentsPayloadInternal;
+  const { fonts, publishableKey, fetchClientSecret } =
+    connectInstance.initParams;
 
   const {
     component,
@@ -165,36 +161,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const ref = useRef<WebView>(null);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
-  if (prevAppearance !== appearance) {
-    setPrevAppearance(appearance);
-
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance })});
-        true;
-      })();
-    `);
-  }
-
   const [prevLocale, setPrevLocale] = useState(locale);
-  if (prevLocale !== locale) {
+
+  if (prevAppearance !== appearance || prevLocale !== locale) {
+    setPrevAppearance(appearance);
     setPrevLocale(locale);
 
     ref.current?.injectJavaScript(`
       (function() {
-        window.updateConnectInstance(${JSON.stringify({ locale })});
-        true;
-      })();
-    `);
-  }
-
-  const [prevFonts, setPrevFonts] = useState(fonts);
-  if (prevFonts !== fonts) {
-    setPrevFonts(fonts);
-
-    ref.current?.injectJavaScript(`
-      (function() {
-        window.updateConnectInstance(${JSON.stringify({ fonts })});
+        window.updateConnectInstance(${JSON.stringify({ appearance, locale })});
         true;
       })();
     `);
