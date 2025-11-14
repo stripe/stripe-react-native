@@ -62,6 +62,7 @@ export function ConnectAccountOnboarding({
     return {
       onExit: onExitCallback,
       onStepChange,
+      onCloseWebView: onExitCallback,
     };
   }, [onExitCallback, onStepChange]);
 

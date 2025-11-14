@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, StyleProp, ViewStyle } from 'react-native';
+import { Linking, Platform, StyleProp, ViewStyle } from 'react-native';
 import type { WebView } from 'react-native-webview';
 import pjson from '../../package.json';
 import {
@@ -13,6 +13,7 @@ import {
   useConnectComponents,
 } from './ConnectComponentsProvider';
 import type { LoadError, LoaderStart } from './connectTypes';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -123,6 +124,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     loadWebViewComponent();
   }, [loadWebViewComponent]);
 
+  // Handle deep links for authenticated webview callbacks (Android)
+  useEffect(() => {
+    // Listen for deep links to handle Android Custom Tabs redirects
+    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
+      if (url.startsWith('stripe-connect://')) {
+        console.log(`[EmbeddedComponent] Deep link received: ${url}`);
+        // TODO: resolve promise
+      }
+    });
+
+    return () => {
+      linkingSubscription.remove();
+    };
+  }, []);
+
   const { connectInstance, appearance, locale, overrides } =
     useConnectComponents() as ConnectComponentsPayloadInternal;
   const { fonts, publishableKey, fetchClientSecret } =
@@ -192,6 +208,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
   }
 
+  const handleUnexpectedError = useCallback((error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Unexpected error: ${errorMessage}`);
+  }, []);
+
   const WebViewComponent = dynamicWebview?.WebView;
 
   if (!WebViewComponent) return null;
@@ -221,7 +242,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         };
 
         if (message.type === 'fetchClientSecret') {
-          const clientSecret = await fetchClientSecret();
+          const clientSecret = await fetchClientSecret().catch((error) => {
+            handleUnexpectedError(error);
+            return null;
+          });
+          if (!clientSecret) return;
+
           ref.current?.injectJavaScript(`
             window.clientSecretDeferred.resolve(${JSON.stringify(
               clientSecret
@@ -238,8 +264,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
         } else if (message.type === 'closeWebView') {
           // message.data is empty
+          callbacks?.onCloseWebView?.({});
         } else if (message.type === 'callSupplementalFunction') {
-          console.log('message:', message);
           // message.data is of type {[key]: {functionName: string; args: unknown[]; invocationId: string;}}
         } else if (message.type === 'onSetterFunctionCalled') {
           const { setter, value } = message.data as {
@@ -258,7 +284,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             callbacks?.[functionName]?.(value);
           }
         } else if (message.type === 'openAuthenticatedWebView') {
-          // message.data is of type {id: string; url: string}
+          const { url, id } = message.data as { id: string; url: string };
+
+          NativeStripeSdk.openAuthenticatedWebView(id, url)
+            .then((result) => {
+              // TODO: on Android this resolves immediately, but we should wait
+              // for the deep link to be opened and get the URL from there
+              ref.current?.injectJavaScript(`
+                (function() {
+                  window.returnedFromAuthenticatedWebView(${JSON.stringify({
+                    id,
+                    url: result?.url ?? null,
+                  })});
+                  true;
+                })();
+              `);
+            })
+            .catch(handleUnexpectedError);
         } else {
           // unhandled message
         }
