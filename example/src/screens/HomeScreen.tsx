@@ -96,6 +96,16 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI using Intent Configuration"
+              onPress={() => {
+                navigation.navigate(
+                  'PaymentSheetWithIntentConfigurationScreen'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Prebuilt UI (EmbeddedPaymentElement)"
               onPress={() => {
                 navigation.navigate('EmbeddedPaymentElementScreen');

@@ -9,6 +9,8 @@ import express from 'express';
 
 import Stripe from 'stripe';
 import { generateResponse, generateSetupResponse } from './utils';
+import { Result as ConfirmationTokenResult } from '@stripe/stripe-react-native';
+import { PaymentMethod, PaymentSheet } from '@stripe/stripe-react-native';
 
 const stripePublishableKey = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
@@ -970,6 +972,113 @@ app.post('/detach-payment-method', async (req, res) => {
   res.json({
     paymentMethod,
   });
+});
+
+app.get('/on-behalf-of-accounts', async (_, res) => {
+  return res.send({
+    accounts: [
+      {
+        id: 'acct_1SOR8GCdGqBfHgPo',
+        displayName: 'FR connected account',
+      },
+      {
+        id: 'acct_1SOQx6CyFNE3b9d3',
+        displayName: 'US Connected Account',
+      },
+    ],
+  });
+});
+
+app.post('/payment-sheet-customer-session-customer', async (req, res) => {
+  const { secret_key } = getKeys();
+
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  // if customerId is provided, use it, otherwise create a new customer
+  let customerId = req.body.customerId;
+  if (!customerId) {
+    let customer = await stripe.customers.create();
+    customerId = customer.id;
+  }
+
+  const customerSession = await stripe.customerSessions.create({
+    customer: customerId,
+    components: {
+      // This needs to be ignored because `mobile_payment_element` is not specified as a type in `stripe-node` yet.
+      // @ts-ignore
+      mobile_payment_element: {
+        enabled: true,
+        features: {
+          payment_method_remove: 'enabled',
+          payment_method_save: 'enabled',
+          payment_method_redisplay: 'enabled',
+          payment_method_allow_redisplay_filters: [
+            'unspecified',
+            'limited',
+            'always',
+          ],
+        },
+      },
+    },
+  });
+
+  res.json({
+    customer: customerId,
+    customerSessionClientSecret: customerSession.client_secret,
+  });
+});
+
+app.post('/payment-sheet-customer-session-create-intent', async (req, res) => {
+  const { secret_key } = getKeys();
+  const stripe = new Stripe(secret_key as string, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  const paymentMode: PaymentSheet.PaymentMode = req.body.paymentMode;
+  const paymentMethodTypes: string[] = req.body.paymentMethodTypes;
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: paymentMode.amount,
+      currency: paymentMode.currencyCode,
+      payment_method_types: paymentMethodTypes,
+      on_behalf_of: req.body.onBehalfOf,
+    });
+
+    const paymentMethod: PaymentMethod.Result = req.body.paymentMethod;
+
+    const confirmationToken: ConfirmationTokenResult =
+      req.body.confirmationToken;
+
+    if (confirmationToken) {
+      const intent = await stripe.paymentIntents.confirm(paymentIntent.id, {
+        confirmation_token: confirmationToken.id,
+      });
+      return res.send({ clientSecret: intent.client_secret });
+    } else if (paymentMethod) {
+      const shouldSavePaymentMethod = req.body.shouldSavePaymentMethod;
+      let setup_future_usage: 'on_session' | 'off_session' = 'on_session';
+      if (shouldSavePaymentMethod) {
+        setup_future_usage = 'off_session';
+      }
+
+      const intent = await stripe.paymentIntents.confirm(paymentIntent.id, {
+        payment_method: paymentMethod.id,
+        setup_future_usage: setup_future_usage,
+      });
+      return res.send({ clientSecret: intent.client_secret });
+    } else {
+      return res.send({
+        error: 'No payment method or confirmation token provided',
+      });
+    }
+  } catch (e) {
+    return res.send({ error: e });
+  }
 });
 
 app.post('/customer-sheet-customer-session-customer', async (req, res) => {
