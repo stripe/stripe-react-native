@@ -9,7 +9,7 @@ import {
   ClientSecretProvider,
   CustomerSessionClientSecret,
   CustomerSheetInitParams,
-} from '@stripe/stripe-react-native';
+} from '../../../src/types/CustomerSheet';
 
 class MyClientSecretProvider implements ClientSecretProvider {
   customerId?: string | null = null;

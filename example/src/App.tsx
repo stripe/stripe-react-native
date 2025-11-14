@@ -50,7 +50,6 @@ import RevolutPayScreen from './screens/RevolutPayScreen';
 import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
 import CustomerSheetScreenCustomerSession from './screens/CustomerSheetScreenCustomerSession';
-import PaymentSheetWithIntentConfigurationScreen from './screens/PaymentSheetWithIntentConfigurationScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -94,7 +93,6 @@ export type RootStackParamList = {
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
-  PaymentSheetWithIntentConfigurationScreen: undefined;
   EmbeddedPaymentElementScreen: undefined;
   EmbeddedPaymentElementImmediateActionScreen: undefined;
   EmbeddedPaymentElementConfirmScreen: {
@@ -181,10 +179,6 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetDeferredIntentMultiStepScreen"
             component={PaymentSheetDeferredIntentMultiStepScreen}
-          />
-          <Stack.Screen
-            name="PaymentSheetWithIntentConfigurationScreen"
-            component={PaymentSheetWithIntentConfigurationScreen}
           />
           <Stack.Screen
             name="EmbeddedPaymentElementScreen"
