@@ -1340,7 +1340,9 @@ class StripeSdkModule(
     UiThreadUtil.runOnUiThread {
       try {
         val uri = android.net.Uri.parse(url)
-        val builder = androidx.browser.customtabs.CustomTabsIntent.Builder()
+        val builder =
+          androidx.browser.customtabs.CustomTabsIntent
+            .Builder()
 
         // Set toolbar color for better UX
         builder.setShowTitle(true)
