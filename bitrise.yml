@@ -105,18 +105,8 @@ workflows:
 
   unit-test-android:
     before_run:
-      - _prepare_js_env
+      - _prepare_android
     steps:
-      - activate-ssh-key@4:
-          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
-      - git-clone@8: {}
-      - yarn@0:
-          title: Install Dependencies (No Pods)
-          inputs:
-            - command: bootstrap-no-pods
-      - set-java-version@1:
-          inputs:
-            - set_java_version: $JAVA_VERSION
       - script@1:
           title: Check Android Code Formatting
           inputs:
@@ -126,6 +116,8 @@ workflows:
             - project_location: $BITRISE_SOURCE_DIR/example/android
             - module: stripe_stripe-react-native
             - variant: debug
+      - save-gradle-cache@1:
+          is_always_run: true
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
