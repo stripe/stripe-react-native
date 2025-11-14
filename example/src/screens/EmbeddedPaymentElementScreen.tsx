@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
-import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { API_URL } from '../Config';
 import {
   IntentConfiguration,
@@ -117,9 +116,6 @@ export default function EmbeddedPaymentElementScreen() {
 
   // Local UI state
   const [modalVisible, setModalVisible] = React.useState(false);
-  const [customerKeyType, setCustomerKeyType] = React.useState<
-    'legacy_ephemeral_key' | 'customer_session'
-  >('legacy_ephemeral_key');
 
   // Hold configs once initialized
   const [intentConfig, setIntentConfig] =
@@ -128,26 +124,24 @@ export default function EmbeddedPaymentElementScreen() {
     React.useState<EmbeddedPaymentElementConfiguration | null>(null);
 
   // Fetch secrets and customer ID
-  const fetchPaymentSheetParams = async (keyType: string) => {
+  const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customer_key_type: keyType }),
+      body: JSON.stringify({ customer_key_type: 'customer_session' }),
     });
     const json = await response.json();
-    if (keyType === 'customer_session') {
-      return {
-        customer: json.customer,
-        clientSecretKey: json.customerSessionClientSecret,
-      };
-    }
-    return { customer: json.customer, clientSecretKey: json.ephemeralKey };
+    return {
+      customer: json.customer,
+      customerSessionClientSecret: json.customerSessionClientSecret,
+    };
   };
 
   // Initialize Stripe element configs
   const initialize = React.useCallback(
     async (shippingDetails?: AddressDetails) => {
-      const { customer } = await fetchPaymentSheetParams(customerKeyType);
+      const { customer, customerSessionClientSecret } =
+        await fetchPaymentSheetParams();
 
       const address: Address = {
         city: 'San Francisco',
@@ -261,6 +255,7 @@ export default function EmbeddedPaymentElementScreen() {
         merchantDisplayName: 'Example Inc.',
         returnURL: 'stripe-example://stripe-redirect',
         customerId: customer,
+        customerSessionClientSecret,
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         formSheetAction: {
@@ -357,17 +352,11 @@ export default function EmbeddedPaymentElementScreen() {
       setElementConfig(uiConfig);
       setIntentConfig(newIntentConfig);
     },
-    [customerKeyType]
+    []
   );
 
   return (
     <PaymentScreen onInit={initialize}>
-      <CustomerSessionSwitch
-        value={customerKeyType === 'customer_session'}
-        onValueChange={(val) =>
-          setCustomerKeyType(val ? 'customer_session' : 'legacy_ephemeral_key')
-        }
-      />
       <View style={{ flexDirection: 'row', gap: 20, marginBottom: 10 }}>
         <Button
           variant="default"
