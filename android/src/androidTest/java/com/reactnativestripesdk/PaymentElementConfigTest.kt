@@ -93,6 +93,41 @@ class PaymentElementConfigTest {
     assertEquals(0, result?.paymentMethodTypes?.size)
   }
 
+  @Test
+  fun buildIntentConfiguration_WithOnBehalfOf_Success() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+        "onBehalfOf" to "acct_connected_account_a",
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertEquals("acct_connected_account_a", result?.onBehalfOf)
+  }
+
+  @Test
+  fun buildIntentConfiguration_WithOnBehalfOf_Failure() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertNull(result?.onBehalfOf)
+  }
+
   // ============================================
   // buildIntentConfigurationMode Tests
   // ============================================

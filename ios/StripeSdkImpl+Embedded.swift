@@ -38,6 +38,7 @@ extension StripeSdkImpl {
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
+      onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: mapCaptureMethod(captureMethodString),
       useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
@@ -128,6 +129,7 @@ extension StripeSdkImpl {
     let intentConfiguration = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
+      onBehalfOf: intentConfig["onBehalfOf"] as? String,
       captureMethod: mapCaptureMethod(captureMethodString),
       useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
