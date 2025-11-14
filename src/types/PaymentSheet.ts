@@ -599,6 +599,13 @@ export type IntentConfiguration = {
   mode: Mode;
   /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
   paymentMethodTypes?: Array<string>;
+  /** The connected account whose payment method configurations will apply to the PaymentSheet session.
+   * Affects the allowed payment methods and whether card brand choice is enabled.
+   * If saved, the payment method will be saved to your platform account. See our
+   * [PaymentIntent docs](https://docs.stripe.com/api/payment_intents/object#payment_intent_object-on_behalf_of)
+   * for more information.
+   */
+  onBehalfOf?: string;
 };
 
 export type Mode = PaymentMode | SetupMode;
