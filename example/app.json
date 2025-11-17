@@ -38,15 +38,6 @@
       "android:name": "com.google.android.gms.wallet.api.enabled",
       "android:value": "true"
     }],
-    "intentFilters": [
-      {
-        "action": "android.intent.action.VIEW",
-        "category": ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
-        "data": {
-          "scheme": "stripe-connect"
-        }
-      }
-    ],
     "signingConfigs": {
       "debug": {
         "keyAlias": "androiddebugkey",

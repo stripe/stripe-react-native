@@ -8,12 +8,12 @@ import React, {
 import { Linking, Platform, StyleProp, ViewStyle } from 'react-native';
 import type { WebView } from 'react-native-webview';
 import pjson from '../../package.json';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   ConnectComponentsPayload,
   useConnectComponents,
 } from './ConnectComponentsProvider';
 import type { LoadError, LoaderStart } from './connectTypes';
-import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -107,6 +107,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     WebView: typeof WebView | null;
   } | null>(null);
 
+  // Store pending authenticated webview promise (for Android Custom Tabs)
+  const pendingAuthWebViewPromise = useRef<((url: string) => void) | null>(
+    null
+  );
+
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
 
@@ -126,12 +131,29 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   // Handle deep links for authenticated webview callbacks (Android)
   useEffect(() => {
-    // Listen for deep links to handle Android Custom Tabs redirects
-    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
+    const handleDeepLink = (url: string) => {
+      console.log('handleDeepLink url:', url);
       if (url.startsWith('stripe-connect://')) {
         console.log(`[EmbeddedComponent] Deep link received: ${url}`);
-        // TODO: resolve promise
+
+        if (pendingAuthWebViewPromise.current) {
+          const resolve = pendingAuthWebViewPromise.current;
+          pendingAuthWebViewPromise.current = null;
+          resolve(url);
+        }
       }
+    };
+
+    // Check for initial URL (when app is opened via deep link)
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink(url);
+      }
+    });
+
+    // Listen for deep links while app is running
+    const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
     });
 
     return () => {
@@ -286,19 +308,29 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         } else if (message.type === 'openAuthenticatedWebView') {
           const { url, id } = message.data as { id: string; url: string };
 
+          // On Android, we need to wait for the deep link callback
+          // On iOS, the promise resolves with the redirect URL
+          const handleAuthWebViewResult = (resultUrl: string | null) => {
+            ref.current?.injectJavaScript(`
+              (function() {
+                window.returnedFromAuthenticatedWebView(${JSON.stringify({
+                  id,
+                  url: resultUrl,
+                })});
+                true;
+              })();
+            `);
+          };
+
           NativeStripeSdk.openAuthenticatedWebView(id, url)
             .then((result) => {
-              // TODO: on Android this resolves immediately, but we should wait
-              // for the deep link to be opened and get the URL from there
-              ref.current?.injectJavaScript(`
-                (function() {
-                  window.returnedFromAuthenticatedWebView(${JSON.stringify({
-                    id,
-                    url: result?.url ?? null,
-                  })});
-                  true;
-                })();
-              `);
+              if (Platform.OS === 'ios') {
+                // iOS returns the redirect URL directly
+                handleAuthWebViewResult(result?.url ?? null);
+              } else {
+                // Android: Store promise to be resolved by deep link listener
+                pendingAuthWebViewPromise.current = handleAuthWebViewResult;
+              }
             })
             .catch(handleUnexpectedError);
         } else {

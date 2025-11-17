@@ -42,3 +42,41 @@ allprojects {
         google()
     }
 }
+
+// Fix MainActivity launchMode and add deep link for stripe-connect
+subprojects { subproject ->
+    subproject.afterEvaluate {
+        subproject.tasks.matching { task ->
+            task.name == 'generateAndroidManifest'
+        }.each { task ->
+            task.doLast {
+                def manifestFile = file("${subproject.buildDir}/generated/rnta/src/main/AndroidManifest.xml")
+                if (manifestFile.exists()) {
+                    def manifest = manifestFile.text
+
+                    // Add launchMode="singleTask"
+                    manifest = manifest.replace(
+                        '<activity android:name="com.microsoft.reacttestapp.MainActivity" android:exported="true">',
+                        '<activity android:name="com.microsoft.reacttestapp.MainActivity" android:exported="true" android:launchMode="singleTask">'
+                    )
+
+                    // Add deep link intent filter for stripe-connect
+                    def intentFilterXml = '''<intent-filter>
+        <action android:name="android.intent.action.VIEW"></action>
+        <category android:name="android.intent.category.DEFAULT"></category>
+        <category android:name="android.intent.category.BROWSABLE"></category>
+        <data android:scheme="stripe-connect"></data>
+      </intent-filter>
+      '''
+                    manifest = manifest.replace(
+                        '</intent-filter>\n    </activity>',
+                        '</intent-filter>\n      ' + intentFilterXml + '</activity>'
+                    )
+
+                    manifestFile.text = manifest
+                    println "✓ Updated MainActivity: launchMode=singleTask + stripe-connect deep link"
+                }
+            }
+        }
+    }
+}

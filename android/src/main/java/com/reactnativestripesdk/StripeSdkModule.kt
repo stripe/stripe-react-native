@@ -1351,7 +1351,8 @@ class StripeSdkModule(
         val customTabsIntent = builder.build()
 
         // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
-        // The deep linking will be handled by the ReactNative part.
+        // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
+        // The React Native Linking module will capture the deep link and pass it back to the JS layer.
         customTabsIntent.launchUrl(activity, uri)
 
         promise.resolve(null)
