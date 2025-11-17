@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.content.Context
 import com.facebook.react.bridge.Dynamic
-import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
@@ -12,12 +11,12 @@ import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerDelegate
 import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerInterface
-import com.reactnativestripesdk.PaymentSheetManager.Companion.buildCustomerConfiguration
-import com.reactnativestripesdk.PaymentSheetManager.Companion.buildGooglePayConfig
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.getBooleanOr
+import com.reactnativestripesdk.utils.getIntegerList
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
@@ -57,7 +56,7 @@ class EmbeddedPaymentElementViewManager :
     val readableMap = cfg.asMap()
     if (readableMap == null) return
 
-    val rowSelectionBehaviorType = parseRowSelectionBehavior(readableMap)
+    val rowSelectionBehaviorType = mapToRowSelectionBehaviorType(readableMap)
     view.rowSelectionBehaviorType.value = rowSelectionBehaviorType
 
     val elementConfig = parseElementConfiguration(readableMap, view.context)
@@ -101,45 +100,18 @@ class EmbeddedPaymentElementViewManager :
     context: Context,
   ): EmbeddedPaymentElement.Configuration {
     val merchantDisplayName = map.getString("merchantDisplayName").orEmpty()
-    val allowsDelayedPaymentMethods: Boolean =
-      if (map.hasKey("allowsDelayedPaymentMethods") &&
-        map.getType("allowsDelayedPaymentMethods") == ReadableType.Boolean
-      ) {
-        map.getBoolean("allowsDelayedPaymentMethods")
-      } else {
-        false // default
-      }
-    var defaultBillingDetails: PaymentSheet.BillingDetails? = null
-    val billingDetailsMap = map.getMap("defaultBillingDetails")
-    if (billingDetailsMap != null) {
-      val addressMap = billingDetailsMap.getMap("address")
-      val address =
-        PaymentSheet.Address(
-          addressMap?.getString("city"),
-          addressMap?.getString("country"),
-          addressMap?.getString("line1"),
-          addressMap?.getString("line2"),
-          addressMap?.getString("postalCode"),
-          addressMap?.getString("state"),
-        )
-      defaultBillingDetails =
-        PaymentSheet.BillingDetails(
-          address,
-          billingDetailsMap.getString("email"),
-          billingDetailsMap.getString("name"),
-          billingDetailsMap.getString("phone"),
-        )
-    }
+    val allowsDelayedPaymentMethods = map.getBooleanOr("allowsDelayedPaymentMethods", false)
+    val defaultBillingDetails = buildBillingDetails(map.getMap("defaultBillingDetails"))
 
     val customerConfiguration =
       try {
         buildCustomerConfiguration(map)
-      } catch (error: PaymentSheetException) {
+      } catch (_: PaymentSheetException) {
         throw Error() // TODO handle error
       }
 
     val googlePayConfig = buildGooglePayConfig(map.getMap("googlePay"))
-    val linkConfig = PaymentSheetManager.buildLinkConfig(map.getMap("link"))
+    val linkConfig = buildLinkConfig(map.getMap("link"))
     val shippingDetails =
       map.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
@@ -147,45 +119,24 @@ class EmbeddedPaymentElementViewManager :
     val appearance =
       try {
         buildPaymentSheetAppearance(map.getMap("appearance"), context)
-      } catch (error: PaymentSheetAppearanceException) {
+      } catch (_: PaymentSheetAppearanceException) {
         throw Error() // TODO handle error
       }
-    val billingConfigParams = map.getMap("billingDetailsCollectionConfiguration")
     val billingDetailsConfig =
-      PaymentSheet.BillingDetailsCollectionConfiguration(
-        name = mapToCollectionMode(billingConfigParams?.getString("name")),
-        phone = mapToCollectionMode(billingConfigParams?.getString("phone")),
-        email = mapToCollectionMode(billingConfigParams?.getString("email")),
-        address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
-        attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBooleanOr("attachDefaultsToPaymentMethod", false) ?: false,
+      buildBillingDetailsCollectionConfiguration(
+        map.getMap("billingDetailsCollectionConfiguration"),
       )
-    val allowsRemovalOfLastSavedPaymentMethod =
-      if (map.hasKey("allowsRemovalOfLastSavedPaymentMethod")) {
-        map.getBoolean("allowsRemovalOfLastSavedPaymentMethod")
-      } else {
-        true
-      }
+    val allowsRemovalOfLastSavedPaymentMethod = map.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
     val primaryButtonLabel = map.getString("primaryButtonLabel")
-    val paymentMethodOrder = map.getStringArrayList("paymentMethodOrder")
+    val paymentMethodOrder = map.getStringList("paymentMethodOrder")
 
-    val formSheetAction =
-      map
-        .getMap("formSheetAction")
-        ?.getString("type")
-        ?.let { type ->
-          when (type) {
-            "confirm" -> EmbeddedPaymentElement.FormSheetAction.Confirm
-            else -> EmbeddedPaymentElement.FormSheetAction.Continue
-          }
-        }
-        ?: EmbeddedPaymentElement.FormSheetAction.Continue
+    val formSheetAction = mapToFormSheetAction(map)
 
     val configurationBuilder =
       EmbeddedPaymentElement.Configuration
         .Builder(merchantDisplayName)
         .formSheetAction(formSheetAction)
-        .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods ?: false)
+        .allowsDelayedPaymentMethods(allowsDelayedPaymentMethods)
         .defaultBillingDetails(defaultBillingDetails)
         .customer(customerConfiguration)
         .googlePay(googlePayConfig)
@@ -196,7 +147,7 @@ class EmbeddedPaymentElementViewManager :
         .preferredNetworks(
           mapToPreferredNetworks(
             map
-              .getIntegerArrayList("preferredNetworks")
+              .getIntegerList("preferredNetworks")
               ?.let { ArrayList(it) },
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
@@ -221,23 +172,8 @@ class EmbeddedPaymentElementViewManager :
     return configurationBuilder.build()
   }
 
-  private fun parseRowSelectionBehavior(map: ReadableMap): RowSelectionBehaviorType {
-    val rowSelectionBehavior =
-      map
-        .getMap("rowSelectionBehavior")
-        ?.getString("type")
-        ?.let { type ->
-          when (type) {
-            "immediateAction" -> RowSelectionBehaviorType.ImmediateAction
-            else -> RowSelectionBehaviorType.Default
-          }
-        }
-        ?: RowSelectionBehaviorType.Default
-    return rowSelectionBehavior
-  }
-
   private fun parseIntentConfiguration(map: ReadableMap): PaymentSheet.IntentConfiguration {
-    val intentConfig = PaymentSheetManager.buildIntentConfiguration(map)
+    val intentConfig = buildIntentConfiguration(map)
     return intentConfig ?: throw IllegalArgumentException("IntentConfiguration is null")
   }
 
@@ -250,35 +186,32 @@ class EmbeddedPaymentElementViewManager :
   }
 }
 
-/**
- * Returns a List of Strings if the key exists and points to an array of strings, or null otherwise.
- */
-fun ReadableMap.getStringArrayList(key: String): List<String>? {
-  if (!hasKey(key) || getType(key) != ReadableType.Array) return null
-  val array: ReadableArray = getArray(key) ?: return null
-
-  val result = mutableListOf<String>()
-  for (i in 0 until array.size()) {
-    // getString returns null if the element isn't actually a string
-    array.getString(i)?.let { result.add(it) }
-  }
-  return result
+internal fun mapToRowSelectionBehaviorType(map: ReadableMap?): RowSelectionBehaviorType {
+  val rowSelectionBehavior =
+    map
+      ?.getMap("rowSelectionBehavior")
+      ?.getString("type")
+      ?.let { type ->
+        when (type) {
+          "immediateAction" -> RowSelectionBehaviorType.ImmediateAction
+          else -> RowSelectionBehaviorType.Default
+        }
+      }
+      ?: RowSelectionBehaviorType.Default
+  return rowSelectionBehavior
 }
 
-/**
- * Returns a List of Ints if the key exists and points to an array of numbers, or null otherwise.
- */
-fun ReadableMap.getIntegerArrayList(key: String): List<Int>? {
-  if (!hasKey(key) || getType(key) != ReadableType.Array) return null
-  val array: ReadableArray = getArray(key) ?: return null
-
-  val result = mutableListOf<Int>()
-  for (i in 0 until array.size()) {
-    // getType check to skip non-number entries
-    if (array.getType(i) == ReadableType.Number) {
-      // if it's actually a float/double, this will truncate; adjust as needed
-      result.add(array.getInt(i))
-    }
-  }
-  return result
+internal fun mapToFormSheetAction(map: ReadableMap?): EmbeddedPaymentElement.FormSheetAction {
+  val formSheetAction =
+    map
+      ?.getMap("formSheetAction")
+      ?.getString("type")
+      ?.let { type ->
+        when (type) {
+          "confirm" -> EmbeddedPaymentElement.FormSheetAction.Confirm
+          else -> EmbeddedPaymentElement.FormSheetAction.Continue
+        }
+      }
+      ?: EmbeddedPaymentElement.FormSheetAction.Continue
+  return formSheetAction
 }
