@@ -88,8 +88,10 @@ class PaymentSheetAppearanceTest {
     val typographyBuilder = PaymentSheet.Typography.Builder()
     typographyBuilder.sizeScaleFactor(42.0f)
 
-    val primaryButtonColorsBuilderLight = paymentSheetPrimaryButtonColorsBuilderFull(PaymentSheet.PrimaryButtonColors.Builder.light(), testColor)
-    val primaryButtonColorsBuilderDark = paymentSheetPrimaryButtonColorsBuilderFull(PaymentSheet.PrimaryButtonColors.Builder.dark(), testColor)
+    val primaryButtonColorsBuilderLight =
+      paymentSheetPrimaryButtonColorsBuilderFull(PaymentSheet.PrimaryButtonColors.Builder.light(), testColor)
+    val primaryButtonColorsBuilderDark =
+      paymentSheetPrimaryButtonColorsBuilderFull(PaymentSheet.PrimaryButtonColors.Builder.dark(), testColor)
 
     val primaryButton =
       PaymentSheet.PrimaryButton(
@@ -165,9 +167,11 @@ class PaymentSheetAppearanceTest {
     val shapesBuilder = PaymentSheet.Shapes.Builder()
     shapesBuilder.cornerRadiusDp(42.0f)
 
-    val lightPrimaryButtonColorsBuilder = paymentSheetPrimaryButtonColorsBuilderPartial(PaymentSheet.PrimaryButtonColors.Builder.light(), testColor)
-    val darkPrimaryButtonColorsBuilder = paymentSheetPrimaryButtonColorsBuilderPartial(PaymentSheet.PrimaryButtonColors.Builder.dark(), testColor)
-    
+    val lightPrimaryButtonColorsBuilder =
+      paymentSheetPrimaryButtonColorsBuilderPartial(PaymentSheet.PrimaryButtonColors.Builder.light(), testColor)
+    val darkPrimaryButtonColorsBuilder =
+      paymentSheetPrimaryButtonColorsBuilderPartial(PaymentSheet.PrimaryButtonColors.Builder.dark(), testColor)
+
     val primaryButton =
       PaymentSheet.PrimaryButton(
         colorsLight = lightPrimaryButtonColorsBuilder.build(),
@@ -226,8 +230,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatRadioColorsBuilder = paymentSheetFlatRadioColorsBuilderFull(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder.light(), testColor)
-    val darkFlatRadioColorsBuilder = paymentSheetFlatRadioColorsBuilderFull(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder.dark(), testColor)
+    val lightFlatRadioColorsBuilder =
+      paymentSheetFlatRadioColorsBuilderFull(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatRadioColorsBuilder =
+      paymentSheetFlatRadioColorsBuilderFull(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder
+          .dark(),
+        testColor,
+      )
 
     val flatRadioBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio
@@ -278,8 +292,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatRadioColorsBuilder = paymentSheetFlatRadioColorsBuilderPartial(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder.light(), testColor)
-    val darkFlatRadioColorsBuilder = paymentSheetFlatRadioColorsBuilderPartial(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder.dark(), testColor)
+    val lightFlatRadioColorsBuilder =
+      paymentSheetFlatRadioColorsBuilderPartial(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatRadioColorsBuilder =
+      paymentSheetFlatRadioColorsBuilderPartial(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder
+          .dark(),
+        testColor,
+      )
 
     val flatRadioBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio
@@ -333,8 +357,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatCheckmarkColorsBuilder = paymentSheetFlatCheckmarkColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder.light(), testColor)
-    val darkFlatCheckmarkColorsBuilder = paymentSheetFlatCheckmarkColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder.dark(), testColor)
+    val lightFlatCheckmarkColorsBuilder =
+      paymentSheetFlatCheckmarkColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatCheckmarkColorsBuilder =
+      paymentSheetFlatCheckmarkColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder
+          .dark(),
+        testColor,
+      )
 
     val flatCheckmarkBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark
@@ -386,8 +420,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatCheckmarkColorsBuilder = paymentSheetFlatCheckmarkColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder.light(), testColor)
-    val darkFlatCheckmarkColorsBuilder = paymentSheetFlatCheckmarkColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder.dark(), testColor)
+    val lightFlatCheckmarkColorsBuilder =
+      paymentSheetFlatCheckmarkColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatCheckmarkColorsBuilder =
+      paymentSheetFlatCheckmarkColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder
+          .dark(),
+        testColor,
+      )
 
     val flatCheckmarkBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark
@@ -440,8 +484,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatDisclosureColorsBuilder = paymentSheetFlatDisclosureColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder.light(), testColor)
-    val darkFlatDisclosureColorsBuilder = paymentSheetFlatDisclosureColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder.dark(), testColor)
+    val lightFlatDisclosureColorsBuilder =
+      paymentSheetFlatDisclosureColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatDisclosureColorsBuilder =
+      paymentSheetFlatDisclosureColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder
+          .dark(),
+        testColor,
+      )
 
     val flatDisclosureBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure
@@ -491,8 +545,18 @@ class PaymentSheetAppearanceTest {
 
     val testColor = Color.parseColor("#123456")
 
-    val lightFlatDisclosureColorsBuilder = paymentSheetFlatDisclosureColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder.light(), testColor)
-    val darkFlatDisclosureColorsBuilder = paymentSheetFlatDisclosureColorsBuilder(PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder.dark(), testColor)
+    val lightFlatDisclosureColorsBuilder =
+      paymentSheetFlatDisclosureColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder
+          .light(),
+        testColor,
+      )
+    val darkFlatDisclosureColorsBuilder =
+      paymentSheetFlatDisclosureColorsBuilder(
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder
+          .dark(),
+        testColor,
+      )
     val flatDisclosureBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure
         .Builder()
@@ -607,7 +671,10 @@ class PaymentSheetAppearanceTest {
     return map
   }
 
-  private fun paymentSheetColorsBuilderFull(builder: PaymentSheet.Colors.Builder, testColor: Int): PaymentSheet.Colors.Builder {
+  private fun paymentSheetColorsBuilderFull(
+    builder: PaymentSheet.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Colors.Builder {
     builder.primary(testColor)
     builder.surface(testColor)
     builder.component(testColor)
@@ -623,7 +690,10 @@ class PaymentSheetAppearanceTest {
     return builder
   }
 
-  private fun paymentSheetColorsBuilderPartial(builder: PaymentSheet.Colors.Builder, testColor: Int): PaymentSheet.Colors.Builder {
+  private fun paymentSheetColorsBuilderPartial(
+    builder: PaymentSheet.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Colors.Builder {
     builder.primary(testColor)
     builder.component(testColor)
     builder.componentDivider(testColor)
@@ -634,7 +704,10 @@ class PaymentSheetAppearanceTest {
     return builder
   }
 
-  private fun paymentSheetPrimaryButtonColorsBuilderFull(builder: PaymentSheet.PrimaryButtonColors.Builder, testColor: Int): PaymentSheet.PrimaryButtonColors.Builder {
+  private fun paymentSheetPrimaryButtonColorsBuilderFull(
+    builder: PaymentSheet.PrimaryButtonColors.Builder,
+    testColor: Int,
+  ): PaymentSheet.PrimaryButtonColors.Builder {
     builder.background(testColor)
     builder.onBackground(testColor)
     builder.border(testColor)
@@ -644,14 +717,20 @@ class PaymentSheetAppearanceTest {
     return builder
   }
 
-  private fun paymentSheetPrimaryButtonColorsBuilderPartial(builder: PaymentSheet.PrimaryButtonColors.Builder, testColor: Int): PaymentSheet.PrimaryButtonColors.Builder {
+  private fun paymentSheetPrimaryButtonColorsBuilderPartial(
+    builder: PaymentSheet.PrimaryButtonColors.Builder,
+    testColor: Int,
+  ): PaymentSheet.PrimaryButtonColors.Builder {
     builder.background(testColor)
     builder.border(testColor)
 
     return builder
   }
 
-  private fun paymentSheetFlatRadioColorsBuilderFull(builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder, testColor: Int): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
+  private fun paymentSheetFlatRadioColorsBuilderFull(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
     builder.separatorColor(testColor)
     builder.selectedColor(testColor)
     builder.unselectedColor(testColor)
@@ -659,25 +738,33 @@ class PaymentSheetAppearanceTest {
     return builder
   }
 
-  private fun paymentSheetFlatRadioColorsBuilderPartial(builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder, testColor: Int): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
+  private fun paymentSheetFlatRadioColorsBuilderPartial(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
     builder.separatorColor(testColor)
     builder.selectedColor(testColor)
 
     return builder
   }
 
-  private fun paymentSheetFlatCheckmarkColorsBuilder(builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder, testColor: Int): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder {
+  private fun paymentSheetFlatCheckmarkColorsBuilder(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder {
     builder.separatorColor(testColor)
     builder.checkmarkColor(testColor)
 
     return builder
   }
 
-  private fun paymentSheetFlatDisclosureColorsBuilder(builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder, testColor: Int): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder {
+  private fun paymentSheetFlatDisclosureColorsBuilder(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder {
     builder.separatorColor(testColor)
     builder.disclosureColor(testColor)
 
     return builder
   }
-
 }

@@ -82,7 +82,10 @@ private fun colorFromHex(hexString: String?): Int? =
     }
   }
 
-private fun buildColorsBuilder(builder: PaymentSheet.Colors.Builder, colorParams: ReadableMap?): PaymentSheet.Colors.Builder {
+private fun buildColorsBuilder(
+  builder: PaymentSheet.Colors.Builder,
+  colorParams: ReadableMap?,
+): PaymentSheet.Colors.Builder {
   colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.PRIMARY))?.let {
     builder.primary(it)
   }
@@ -162,7 +165,7 @@ private fun buildPrimaryButton(
     colorsLight =
       buildPrimaryButtonColors(PaymentSheet.PrimaryButtonColors.Builder.light(), lightColorParams, context).build(),
     colorsDark =
-      buildPrimaryButtonColors(PaymentSheet.PrimaryButtonColors.Builder.dark(),darkColorParams, context).build(),
+      buildPrimaryButtonColors(PaymentSheet.PrimaryButtonColors.Builder.dark(), darkColorParams, context).build(),
     shape =
       PaymentSheet.PrimaryButtonShape(
         cornerRadiusDp =
@@ -235,10 +238,12 @@ private fun buildEmbeddedAppearance(
 
       val flatRadioColorsBuilderLight =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
-          .Builder.light()
+          .Builder
+          .light()
       val flatRadioColorsBuilderDark =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
-          .Builder.dark()
+          .Builder
+          .dark()
 
       dynamicColorFromParams(
         context,
@@ -309,11 +314,13 @@ private fun buildEmbeddedAppearance(
 
       val flatCheckmarkColorsBuilderLight =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors
-          .Builder.light()
+          .Builder
+          .light()
 
       val flatCheckmarkColorsBuilderDark =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors
-          .Builder.dark()
+          .Builder
+          .dark()
 
       dynamicColorFromParams(
         context,
@@ -375,12 +382,13 @@ private fun buildEmbeddedAppearance(
 
       val flatDisclosureColorsBuilderLight =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
-          .Builder.light()
+          .Builder
+          .light()
 
       val flatDisclosureColorsBuilderDark =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
-          .Builder.dark()
-
+          .Builder
+          .dark()
 
       dynamicColorFromParams(
         context,
