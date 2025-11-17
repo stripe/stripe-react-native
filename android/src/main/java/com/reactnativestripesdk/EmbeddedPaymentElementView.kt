@@ -360,23 +360,6 @@ class EmbeddedPaymentElementView(
     val density = LocalDensity.current
     var heightDp by remember { mutableStateOf(1.dp) } // non-zero sentinel
 
-    Box {
-      measuredEmbeddedElement(
-        reportHeightChange = { h -> reportHeightChange(h) },
-      ) {
-        embedded.Content()
-      }
-    }
-  }
-
-  @Composable
-  private fun measuredEmbeddedElement(
-    reportHeightChange: (Float) -> Unit,
-    content: @Composable () -> Unit,
-  ) {
-    val density = LocalDensity.current
-    var heightDp by remember { mutableStateOf(1.dp) } // non-zero sentinel
-
     Box(
       Modifier
         // Clamp the host Android view height; drive it in Dp
