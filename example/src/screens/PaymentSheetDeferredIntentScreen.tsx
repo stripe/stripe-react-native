@@ -12,42 +12,28 @@ import {
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
-import { getClientSecretParams } from '../helpers';
 
 export default function PaymentSheetDeferredIntentScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [paymentSheetEnabled, setPaymentSheetEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [customerKeyType, setCustomerKeyType] = useState<string>(
-    'legacy_ephemeral_key'
-  );
-
-  const fetchPaymentSheetParams = async (customer_key_type: string) => {
+  const fetchPaymentSheetParams = async () => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        customer_key_type,
+        customer_key_type: 'customer_session',
       }),
     });
 
-    if (customer_key_type === 'customer_session') {
-      const { customerSessionClientSecret, customer } = await response.json();
-      return {
-        customerSessionClientSecret,
-        customer,
-      };
-    } else {
-      const { ephemeralKey, customer } = await response.json();
-      return {
-        ephemeralKey,
-        customer,
-      };
-    }
+    const { customerSessionClientSecret, customer } = await response.json();
+    return {
+      customerSessionClientSecret,
+      customer,
+    };
   };
 
   const openPaymentSheet = async () => {
@@ -84,13 +70,8 @@ export default function PaymentSheetDeferredIntentScreen() {
 
   const initialisePaymentSheet = useCallback(
     async (shippingDetails?: AddressDetails) => {
-      const { customer, ...remainingParams } =
-        await fetchPaymentSheetParams(customerKeyType);
-
-      const clientSecretParams = getClientSecretParams(
-        customerKeyType,
-        remainingParams
-      );
+      const { customer, customerSessionClientSecret } =
+        await fetchPaymentSheetParams();
 
       const address: Address = {
         city: 'San Francisco',
@@ -110,7 +91,7 @@ export default function PaymentSheetDeferredIntentScreen() {
       const { error } = await initPaymentSheet({
         customerId: customer,
         customFlow: false,
-        ...clientSecretParams,
+        customerSessionClientSecret,
         merchantDisplayName: 'Example Inc.',
         applePay: { merchantCountryCode: 'US' },
         style: 'automatic',
@@ -178,30 +159,18 @@ export default function PaymentSheetDeferredIntentScreen() {
         );
       }
     },
-    [customerKeyType, initPaymentSheet]
+    [initPaymentSheet]
   );
-
-  const toggleCustomerKeyType = (value: boolean) => {
-    if (value) {
-      setCustomerKeyType('customer_session');
-    } else {
-      setCustomerKeyType('legacy_ephemeral_key');
-    }
-  };
 
   useEffect(() => {
     setPaymentSheetEnabled(false);
     initialisePaymentSheet().catch((err) => console.log(err));
-  }, [customerKeyType, initialisePaymentSheet]);
+  }, [initialisePaymentSheet]);
 
   return (
-    // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
+    // In your app's checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
-      <CustomerSessionSwitch
-        value={customerKeyType === 'customer_session'}
-        onValueChange={toggleCustomerKeyType}
-      />
       <Button
         variant="primary"
         loading={loading}
