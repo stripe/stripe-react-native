@@ -1233,6 +1233,17 @@ class Mappers {
         )
     }
 
+    class func mapToKycAddress(_ params: [String: String]) -> Address {
+        return Address(
+            city: params["city"],
+            country: params["country"],
+            line1: params["line1"],
+            line2: params["line2"],
+            postalCode: params["postalCode"],
+            state: params["state"]
+        )
+    }
+
     class func mapToKycInfo(_ params: [String: Any?]) throws -> KycInfo {
         guard let firstName = params["firstName"] as? String, !firstName.isEmpty else {
             throw KycInfoError.missingRequiredField("firstName")
@@ -1264,16 +1275,12 @@ class Mappers {
 
         let dateOfBirth = KycInfo.DateOfBirth(day: day, month: month, year: year)
 
-        /// All address parameters are optional, so we don’t guard.
-        let addressParams = params["address"] as? [String: String]
-        let address = Address(
-            city: addressParams?["city"],
-            country: addressParams?["country"],
-            line1: addressParams?["line1"],
-            line2: addressParams?["line2"],
-            postalCode: addressParams?["postalCode"],
-            state: addressParams?["state"]
-        )
+        // All address parameters are optional, so we don’t guard.
+        let address = if let addressParams = params["address"] as? [String: String] {
+            mapToKycAddress(addressParams)
+        } else {
+            Address()
+        }
 
         return KycInfo(
             firstName: firstName,

@@ -71,6 +71,13 @@ RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
   [StripeSdkImpl.shared attachKycInfo:info resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(presentKycInfoVerification:(NSDictionary *)updatedAddress
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentKycInfoVerification:updatedAddress resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(updatePhoneNumber:(nonnull NSString *)phone
                             resolve:(nonnull RCTPromiseResolveBlock)resolve
                              reject:(nonnull RCTPromiseRejectBlock)reject)

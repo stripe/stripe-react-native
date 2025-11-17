@@ -24,6 +24,7 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
+import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
@@ -44,6 +45,7 @@ import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
 import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
+import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
@@ -76,6 +78,7 @@ class OnrampSdkModule(
   private var collectPaymentPromise: Promise? = null
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
+  private var verifyKycPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
 
@@ -192,7 +195,7 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         },
         verifyKycCallback = { result ->
-          // Currently unimplemented
+          handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         },
       )
 
@@ -352,17 +355,7 @@ class OnrampSdkModule(
         }
 
       val addressMap = kycInfo.getMap("address")
-      val addressObj =
-        addressMap?.let {
-          PaymentSheet.Address(
-            city = it.getString("city"),
-            country = it.getString("country"),
-            line1 = it.getString("line1"),
-            line2 = it.getString("line2"),
-            postalCode = it.getString("postalCode"),
-            state = it.getString("state"),
-          )
-        } ?: PaymentSheet.Address()
+      val addressObj = mapToPaymentSheetAddress(addressMap) ?: PaymentSheet.Address()
 
       val kycInfoObj =
         KycInfo(
@@ -430,6 +423,23 @@ class OnrampSdkModule(
     identityVerificationPromise = promise
 
     presenter.verifyIdentity()
+  }
+
+  @ReactMethod
+  override fun presentKycInfoVerification(
+    updatedAddress: ReadableMap?,
+    promise: Promise,
+  ) {
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    val address = mapToPaymentSheetAddress(updatedAddress)
+
+    verifyKycPromise = promise
+    presenter.verifyKycInfo(address)
   }
 
   @ReactMethod
@@ -745,6 +755,30 @@ class OnrampSdkModule(
         promise.resolve(createCanceledError("Identity verification was cancelled"))
       }
       is OnrampVerifyIdentityResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleOnrampKycVerificationResult(
+    result: OnrampVerifyKycInfoResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampVerifyKycInfoResult.Confirmed -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "Confirmed") },
+        )
+      }
+      is OnrampVerifyKycInfoResult.UpdateAddress -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "UpdateAddress") },
+        )
+      }
+      is OnrampVerifyKycInfoResult.Cancelled -> {
+        promise.resolve(createCanceledError("KYC verification was cancelled"))
+      }
+      is OnrampVerifyKycInfoResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
     }

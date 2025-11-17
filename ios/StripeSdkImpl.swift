@@ -1374,6 +1374,51 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
     }
 
+    @objc(presentKycInfoVerification:resolver:rejecter:)
+    public func presentKycInfoVerification(
+        updatedAddressDictionary: NSDictionary?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
+        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+            return
+        }
+
+        let updatedAddress: Address?
+        if let updatedAddressDictionary {
+            guard let typedDictionary = updatedAddressDictionary as? [String: String] else {
+                let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of address dictionary. Expected String keys and values.")
+                resolve(["error": errorResult["error"]!])
+                return
+            }
+
+            updatedAddress = Mappers.mapToKycAddress(typedDictionary)
+        } else {
+            updatedAddress = nil
+        }
+
+        Task {
+            do {
+                let presentingViewController = await MainActor.run {
+                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
+                }
+                let result = try await coordinator.verifyKYCInfo(updatedAddress: updatedAddress, from: presentingViewController)
+                switch result {
+                case .confirmed:
+                    resolve(["status": "Confirmed"])
+                case .updateAddress:
+                    resolve(["status": "UpdateAddress"])
+                case .canceled:
+                    let errorResult = Errors.createError(ErrorType.Canceled, "KYC info verification was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                }
+            } catch {
+                let errorResult = Errors.createError(ErrorType.Failed, error)
+                resolve(["error": errorResult["error"]!])
+            }
+        }
+    }
+
     @objc(updatePhoneNumber:resolver:rejecter:)
     public func updatePhoneNumber(
         phone: String,
@@ -1708,6 +1753,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     @objc(attachKycInfo:resolver:rejecter:)
     public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolveWithCryptoOnrampNotAvailableError(resolve)
+    }
+
+    @objc(presentKycInfoVerification:resolver:rejecter:)
+    public func presentKycInfoVerification(
+        updatedAddressDictionary: NSDictionary?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) -> Void {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
