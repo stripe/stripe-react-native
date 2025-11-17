@@ -1154,3 +1154,24 @@ fun readableMapOf(vararg pairs: Pair<String, Any?>): ReadableMap =
       }
     }
   }
+
+fun readableArrayOf(vararg elements: Any?): ReadableArray =
+  Arguments.createArray().apply {
+    for (element in elements) {
+      when (element) {
+        null -> pushNull()
+        is String -> pushString(element)
+        is Boolean -> pushBoolean(element)
+        is Double -> pushDouble(element)
+        is Float -> pushDouble(element.toDouble())
+        is Int -> pushInt(element)
+        is Long -> pushInt(element.toInt())
+        is ReadableMap -> pushMap(element)
+        is ReadableArray -> pushArray(element)
+        else -> {
+          val valueType = element.javaClass.canonicalName
+          throw IllegalArgumentException("Illegal value type $valueType for array element")
+        }
+      }
+    }
+  }
