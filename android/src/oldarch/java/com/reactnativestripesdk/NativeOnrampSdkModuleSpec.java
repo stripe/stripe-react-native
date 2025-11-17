@@ -110,5 +110,9 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void presentKycInfoVerification(ReadableMap updatedAddress, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void logout(Promise promise);
 }
