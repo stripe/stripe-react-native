@@ -13,7 +13,7 @@ import {
 } from '@stripe/stripe-react-native';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
-import { Alert, StyleSheet, View, Image } from 'react-native';
+import { Alert, StyleSheet, View, Image, Modal, Button, Text } from 'react-native';
 // @ts-ignore
 import AddToGooglePayPNG from '../assets/Add-to-Google-Pay-Button-dark-no-shadow.png';
 
@@ -27,6 +27,7 @@ export default function GooglePayScreen() {
   const [androidCardToken, setAndroidCardToken] =
     useState<null | GooglePayCardToken>(null);
   const [clientSecret, setClientSecret] = useState<String | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchEphemeralKey();
@@ -199,6 +200,38 @@ export default function GooglePayScreen() {
 
   return (
     <PaymentScreen>
+      {/* Example: Google Pay button in a Modal */}
+      <View style={styles.row}>
+        <Button
+          title="Google Pay in Modal"
+          onPress={() => setShowModal(true)}
+        />
+      </View>
+
+      {/* Modal with PlatformPayButton */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pay with Google Pay</Text>
+            <Text style={styles.modalDescription}>
+              Complete your payment securely
+            </Text>
+            <PlatformPayButton
+              disabled={!isGooglePaySupported}
+              style={styles.modalButton}
+              type={PlatformPay.ButtonType.Pay}
+              onPress={createPaymentMethod}
+            />
+            <Button title="Close" onPress={() => setShowModal(false)} />
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.row}>
         <PlatformPayButton
           disabled={!isGooglePaySupported || !clientSecret}
@@ -276,5 +309,37 @@ const styles = StyleSheet.create({
   addToWalletButton: {
     width: 190,
     height: 60,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalDescription: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButton: {
+    width: 200,
+    height: 48,
+    marginBottom: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#000',
   },
 });

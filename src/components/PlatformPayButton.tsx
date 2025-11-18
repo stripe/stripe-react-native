@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AccessibilityProps,
   StyleProp,
@@ -17,6 +17,7 @@ import {
 } from '../types/PlatformPay';
 import NativeApplePayButton from '../specs/NativeApplePayButton';
 import NativeGooglePayButton from '../specs/NativeGooglePayButton';
+import { isPlatformPaySupported } from '../functions';
 
 /**
  *  PlatformPayButton Component Props
@@ -105,6 +106,32 @@ export function PlatformPayButton({
   style,
   ...props
 }: Props) {
+  // // On Android, check if Google Pay has payment methods before rendering
+  // // This prevents showing a button when the user hasn't set up Google Pay
+  // const [isReady, setIsReady] = useState(Platform.OS === 'ios' ? true : false);
+
+  // useEffect(() => {
+  //   if (Platform.OS === 'android') {
+  //     // Check if Google Pay is ready with payment methods
+  //     isPlatformPaySupported({
+  //       googlePay: {
+  //         existingPaymentMethodRequired: true,
+  //       },
+  //     })
+  //       .then((ready) => {
+  //         setIsReady(ready);
+  //       })
+  //       .catch(() => {
+  //         setIsReady(false);
+  //       });
+  //   }
+  // }, []);
+
+  // // Don't render if Google Pay is not ready (no payment methods)
+  // if (!isReady) {
+  //   return null;
+  // }
+
   const shippingMethodCallback = onShippingMethodSelected
     ? (
         value: NativeSyntheticEvent<{
