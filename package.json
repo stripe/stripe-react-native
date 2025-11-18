@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.52.0-crypto-onramp-2-private-beta.2",
+  "version": "0.52.0-crypto-onramp-2-private-beta.3",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
