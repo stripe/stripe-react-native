@@ -108,7 +108,7 @@ class GooglePayButtonView(
         MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
         MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
       )
-      button?.layout(left, top, right, bottom)
+      layout(left, top, right, bottom)
     }
 
   fun setType(type: Int) {
