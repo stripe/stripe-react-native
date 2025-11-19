@@ -1,20 +1,14 @@
 package com.reactnativestripesdk
 
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class EmbeddedPaymentElementViewManagerTest {
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
-
   // ============================================
   // mapToRowSelectionBehaviorType Tests
   // ============================================

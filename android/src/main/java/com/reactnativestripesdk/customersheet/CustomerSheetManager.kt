@@ -12,7 +12,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildBillingDetails
@@ -157,7 +156,7 @@ class CustomerSheetManager(
 
     customerSheet?.configure(configuration.build())
 
-    initPromise.resolve(WritableNativeMap())
+    initPromise.resolve(Arguments.createMap())
   }
 
   private fun handleResult(result: CustomerSheetResult) {

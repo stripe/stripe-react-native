@@ -106,17 +106,16 @@ workflows:
   unit-test-android:
     before_run:
       - _prepare_android
-      - _start_android_emulator
     steps:
       - script@1:
           title: Check Android Code Formatting
           inputs:
             - content: yarn format:android:check
-      - script@1:
-          title: Run Android unit tests
-          timeout: 1200
+      - android-unit-test:
           inputs:
-            - content: yarn test:unit:android
+            - project_location: $BITRISE_SOURCE_DIR/example/android
+            - module: stripe_stripe-react-native
+            - variant: debug
       - save-gradle-cache@1:
           is_always_run: true
       - deploy-to-bitrise-io@2:
