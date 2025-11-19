@@ -29,6 +29,8 @@ import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import java.lang.IllegalArgumentException
 
+internal fun createEmptyResult(): WritableMap = WritableNativeMap()
+
 internal fun createResult(
   key: String,
   value: WritableMap,
@@ -589,6 +591,12 @@ internal fun mapNextAction(
         nextActionMap.putString("voucherURL", it.hostedVoucherUrl)
       }
     }
+    NextActionType.DisplayPayNowDetails -> {
+      (data as? NextActionData.DisplayPayNowDetails)?.let {
+        nextActionMap.putString("type", "paynow")
+        nextActionMap.putString("qrCodeUrl", it.qrCodeUrl)
+      }
+    }
   }
   return nextActionMap
 }
@@ -652,6 +660,21 @@ internal fun mapToAddress(
   }
 
   return address.build()
+}
+
+internal fun mapToPaymentSheetAddress(addressMap: ReadableMap?): PaymentSheet.Address? {
+  if (addressMap == null) {
+    return null
+  }
+
+  return PaymentSheet.Address(
+    city = addressMap.getString("city"),
+    country = addressMap.getString("country"),
+    line1 = addressMap.getString("line1"),
+    line2 = addressMap.getString("line2"),
+    postalCode = addressMap.getString("postalCode"),
+    state = addressMap.getString("state"),
+  )
 }
 
 internal fun mapToBillingDetails(

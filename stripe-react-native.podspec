@@ -37,13 +37,26 @@ Pod::Spec.new do |s|
     test_spec.source_files = 'ios/Tests/**/*.{m,swift}'
   end
 
-  s.dependency 'React-Core'
-  s.dependency 'Stripe', stripe_version
-  s.dependency 'StripePaymentSheet', stripe_version
-  s.dependency 'StripePayments', stripe_version
-  s.dependency 'StripePaymentsUI', stripe_version
-  s.dependency 'StripeApplePay', stripe_version
-  s.dependency 'StripeFinancialConnections', stripe_version
+  if fabric_enabled
+    s.default_subspecs = 'Core', 'NewArch'
+  else
+    s.default_subspecs = 'Core'
+  end
+
+  s.subspec 'Core' do |core|
+    core.dependency 'React-Core'
+    core.dependency 'Stripe', stripe_version
+    core.dependency 'StripePaymentSheet', stripe_version
+    core.dependency 'StripePayments', stripe_version
+    core.dependency 'StripePaymentsUI', stripe_version
+    core.dependency 'StripeApplePay', stripe_version
+    core.dependency 'StripeFinancialConnections', stripe_version
+  end
+
+  s.subspec 'Onramp' do |onramp|
+    onramp.dependency 'stripe-react-native/Core'
+    onramp.dependency 'StripeCryptoOnramp', stripe_version
+  end
 
   if fabric_enabled
     install_modules_dependencies(s)

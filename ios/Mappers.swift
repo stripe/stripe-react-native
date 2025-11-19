@@ -1,5 +1,10 @@
 import Stripe
+#if canImport(StripeCryptoOnramp)
+@_spi(STP) import StripeCryptoOnramp
+@_spi(STP) import StripePaymentSheet
+#else
 import StripePaymentSheet
+#endif
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import Contacts
 
@@ -1166,4 +1171,141 @@ class Mappers {
 
       return mappedEvent
     }
+
+#if canImport(StripeCryptoOnramp)
+    class func mapToLinkAppearance(_ params: [String: Any?]) -> LinkAppearance {
+        let darkColors = params["darkColors"] as? [String: Any?]
+        let lightColors = params["lightColors"] as? [String: Any?]
+
+        let darkPrimaryHex = darkColors?["primary"] as? String
+        let lightPrimaryHex = lightColors?["primary"] as? String
+        let darkSelectedBorderHex = darkColors?["borderSelected"] as? String
+        let lightSelectedBorderHex = lightColors?["borderSelected"] as? String
+
+        let darkPrimary = darkPrimaryHex.flatMap { UIColor(hexString: $0) }
+        let lightPrimary = lightPrimaryHex.flatMap { UIColor(hexString: $0) }
+
+        let darkSelectedBorder = darkSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+        let lightSelectedBorder = lightSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+
+        let primary: UIColor? = if let darkPrimary, let lightPrimary {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkPrimary : lightPrimary
+            }
+        } else {
+            darkPrimary ?? lightPrimary
+        }
+
+        let selectedBorder: UIColor? = if let darkSelectedBorder, let lightSelectedBorder {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkSelectedBorder : lightSelectedBorder
+            }
+        } else {
+            darkSelectedBorder ?? lightSelectedBorder
+        }
+
+        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
+            .init(primary: primary, selectedBorder: selectedBorder)
+        } else {
+            nil
+        }
+
+        let primaryButtonConfiguration: LinkAppearance.PrimaryButtonConfiguration? =
+            if let primaryButton = params["primaryButton"] as? [String: CGFloat],
+                let cornerRadius = primaryButton["cornerRadius"],
+                let height = primaryButton["height"] {
+                    .init(cornerRadius: cornerRadius, height: height)
+        } else {
+            nil
+        }
+
+        let style: PaymentSheet.UserInterfaceStyle = switch params["style"] as? String ?? "" {
+            case "ALWAYS_LIGHT": .alwaysLight
+            case "ALWAYS_DARK": .alwaysDark
+            default: .automatic
+        }
+
+        return LinkAppearance(
+            colors: colors,
+            primaryButton: primaryButtonConfiguration,
+            style: style,
+            reduceLinkBranding: true
+        )
+    }
+
+    class func mapToKycAddress(_ params: [String: String]) -> Address {
+        return Address(
+            city: params["city"],
+            country: params["country"],
+            line1: params["line1"],
+            line2: params["line2"],
+            postalCode: params["postalCode"],
+            state: params["state"]
+        )
+    }
+
+    class func mapToKycInfo(_ params: [String: Any?]) throws -> KycInfo {
+        guard let firstName = params["firstName"] as? String, !firstName.isEmpty else {
+            throw KycInfoError.missingRequiredField("firstName")
+        }
+
+        guard let lastName = params["lastName"] as? String, !lastName.isEmpty else {
+            throw KycInfoError.missingRequiredField("lastName")
+        }
+
+        guard let idNumber = params["idNumber"] as? String, !idNumber.isEmpty else {
+            throw KycInfoError.missingRequiredField("idNumber")
+        }
+
+        guard let dateOfBirthParams = params["dateOfBirth"] as? [String: Int] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth")
+        }
+
+        guard let day = dateOfBirthParams["day"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.day")
+        }
+
+        guard let month = dateOfBirthParams["month"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.month")
+        }
+
+        guard let year = dateOfBirthParams["year"] else {
+            throw KycInfoError.missingRequiredField("dateOfBirth.year")
+        }
+
+        let dateOfBirth = KycInfo.DateOfBirth(day: day, month: month, year: year)
+
+        // All address parameters are optional, so we don’t guard.
+        let address = if let addressParams = params["address"] as? [String: String] {
+            mapToKycAddress(addressParams)
+        } else {
+            Address()
+        }
+
+        return KycInfo(
+            firstName: firstName,
+            lastName: lastName,
+            idNumber: idNumber,
+            address: address,
+            dateOfBirth: dateOfBirth
+        )
+    }
+
+    class func paymentMethodDisplayDataToMap(_ paymentMethodDisplayData: PaymentMethodDisplayData) -> [String: String] {
+        var result = [
+            "icon": "data:image/png;base64," + (paymentMethodDisplayData.icon.pngData()?.base64EncodedString(options: []) ?? ""),
+            "label": paymentMethodDisplayData.label,
+        ]
+
+        if let sublabel = paymentMethodDisplayData.sublabel {
+            result["sublabel"] = sublabel
+        }
+
+        return result
+    }
+
+    enum KycInfoError: Swift.Error {
+        case missingRequiredField(String)
+    }
+#endif
 }

@@ -72,6 +72,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+@SuppressLint("RestrictedApi")
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class)
 class StripeSdkModule(
@@ -1436,11 +1437,14 @@ class StripeSdkModule(
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
-      composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
-          it,
-        )
-      }
+      composeCompatView =
+        composeCompatView ?: StripeAbstractComposeView
+          .CompatView(context = reactApplicationContext)
+          .also {
+            currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+              it,
+            )
+          }
     }
   }
 
