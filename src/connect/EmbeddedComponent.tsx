@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { Linking, Platform, StyleProp, ViewStyle } from 'react-native';
-import type { WebView } from 'react-native-webview';
+import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
@@ -237,6 +237,98 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const WebViewComponent = dynamicWebview?.WebView;
 
+  const onMessageCallback = useCallback(
+    async (event: WebViewMessageEvent) => {
+      const message = JSON.parse(event.nativeEvent.data) as {
+        type: string;
+        data?: unknown;
+      };
+
+      if (message.type === 'fetchClientSecret') {
+        const clientSecret = await fetchClientSecret().catch((error) => {
+          handleUnexpectedError(error);
+          return null;
+        });
+        if (!clientSecret) return;
+
+        ref.current?.injectJavaScript(`
+            window.clientSecretDeferred.resolve(${JSON.stringify(
+              clientSecret
+            )});
+          `);
+      } else if (message.type === 'debug') {
+        // message.data is of type string
+        console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
+      } else if (message.type === 'pageDidLoad') {
+        onPageDidLoad?.();
+      } else if (message.type === 'accountSessionClaimed') {
+        // message.data is of type {elementTagName: string, merchantId: string}
+      } else if (message.type === 'openFinancialConnections') {
+        // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
+      } else if (message.type === 'closeWebView') {
+        // message.data is empty
+        callbacks?.onCloseWebView?.({});
+      } else if (message.type === 'callSupplementalFunction') {
+        // message.data is of type {[key]: {functionName: string; args: unknown[]; invocationId: string;}}
+      } else if (message.type === 'onSetterFunctionCalled') {
+        const { setter, value } = message.data as {
+          setter: string;
+          value: unknown;
+        };
+
+        if (setter === 'setOnLoaderStart') {
+          onLoaderStart?.(value as LoaderStart);
+        } else if (setter === 'setOnLoadError') {
+          onLoadError?.(value as LoadError);
+        } else {
+          // remove the 'set' prefix and lowercase the first letter
+          const functionName =
+            setter.charAt(3).toLowerCase() + setter.substring(4);
+          callbacks?.[functionName]?.(value);
+        }
+      } else if (message.type === 'openAuthenticatedWebView') {
+        const { url, id } = message.data as { id: string; url: string };
+
+        // On Android, we need to wait for the deep link callback
+        // On iOS, the promise resolves with the redirect URL
+        const handleAuthWebViewResult = (resultUrl: string | null) => {
+          ref.current?.injectJavaScript(`
+              (function() {
+                window.returnedFromAuthenticatedWebView(${JSON.stringify({
+                  id,
+                  url: resultUrl,
+                })});
+                true;
+              })();
+            `);
+        };
+
+        NativeStripeSdk.openAuthenticatedWebView(id, url)
+          .then((result) => {
+            if (Platform.OS === 'ios') {
+              // iOS returns the redirect URL directly
+              handleAuthWebViewResult(result?.url ?? null);
+            } else {
+              // Android: Store promise to be resolved by deep link listener
+              pendingAuthWebViewPromise.current = handleAuthWebViewResult;
+            }
+          })
+          .catch(handleUnexpectedError);
+      } else {
+        // unhandled message
+      }
+    },
+    [
+      callbacks,
+      component,
+      fetchClientSecret,
+      handleUnexpectedError,
+      onLoadError,
+      onLoaderStart,
+      onPageDidLoad,
+    ]
+  );
+
   if (!WebViewComponent) return null;
 
   return (
@@ -257,86 +349,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       }}
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
-      onMessage={async (event) => {
-        const message = JSON.parse(event.nativeEvent.data) as {
-          type: string;
-          data?: unknown;
-        };
-
-        if (message.type === 'fetchClientSecret') {
-          const clientSecret = await fetchClientSecret().catch((error) => {
-            handleUnexpectedError(error);
-            return null;
-          });
-          if (!clientSecret) return;
-
-          ref.current?.injectJavaScript(`
-            window.clientSecretDeferred.resolve(${JSON.stringify(
-              clientSecret
-            )});
-          `);
-        } else if (message.type === 'debug') {
-          // message.data is of type string
-          console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
-        } else if (message.type === 'pageDidLoad') {
-          onPageDidLoad?.();
-        } else if (message.type === 'accountSessionClaimed') {
-          // message.data is of type {elementTagName: string, merchantId: string}
-        } else if (message.type === 'openFinancialConnections') {
-          // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
-        } else if (message.type === 'closeWebView') {
-          // message.data is empty
-          callbacks?.onCloseWebView?.({});
-        } else if (message.type === 'callSupplementalFunction') {
-          // message.data is of type {[key]: {functionName: string; args: unknown[]; invocationId: string;}}
-        } else if (message.type === 'onSetterFunctionCalled') {
-          const { setter, value } = message.data as {
-            setter: string;
-            value: unknown;
-          };
-
-          if (setter === 'setOnLoaderStart') {
-            onLoaderStart?.(value as LoaderStart);
-          } else if (setter === 'setOnLoadError') {
-            onLoadError?.(value as LoadError);
-          } else {
-            // remove the 'set' prefix and lowercase the first letter
-            const functionName =
-              setter.charAt(3).toLowerCase() + setter.substring(4);
-            callbacks?.[functionName]?.(value);
-          }
-        } else if (message.type === 'openAuthenticatedWebView') {
-          const { url, id } = message.data as { id: string; url: string };
-
-          // On Android, we need to wait for the deep link callback
-          // On iOS, the promise resolves with the redirect URL
-          const handleAuthWebViewResult = (resultUrl: string | null) => {
-            ref.current?.injectJavaScript(`
-              (function() {
-                window.returnedFromAuthenticatedWebView(${JSON.stringify({
-                  id,
-                  url: resultUrl,
-                })});
-                true;
-              })();
-            `);
-          };
-
-          NativeStripeSdk.openAuthenticatedWebView(id, url)
-            .then((result) => {
-              if (Platform.OS === 'ios') {
-                // iOS returns the redirect URL directly
-                handleAuthWebViewResult(result?.url ?? null);
-              } else {
-                // Android: Store promise to be resolved by deep link listener
-                pendingAuthWebViewPromise.current = handleAuthWebViewResult;
-              }
-            })
-            .catch(handleUnexpectedError);
-        } else {
-          // unhandled message
-        }
-      }}
+      onMessage={onMessageCallback}
     />
   );
 }
