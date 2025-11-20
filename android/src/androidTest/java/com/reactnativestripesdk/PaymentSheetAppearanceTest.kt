@@ -262,15 +262,14 @@ class PaymentSheetAppearanceTest {
 
     val flatRadioLightColorsBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
-        .Builder()
+        .Builder.light()
     flatRadioLightColorsBuilder.separatorColor(testColor)
     flatRadioLightColorsBuilder.selectedColor(testColor)
     flatRadioLightColorsBuilder.unselectedColor(testColor)
 
     val flatRadioDarkColorsBuilder =
       PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
-        .Builder
-        .dark()
+        .Builder.dark()
     flatRadioDarkColorsBuilder.separatorColor(testColor)
     flatRadioDarkColorsBuilder.selectedColor(testColor)
     flatRadioDarkColorsBuilder.unselectedColor(testColor)
