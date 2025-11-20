@@ -34,8 +34,8 @@ fun buildPaymentSheetAppearance(
 
   val builder = PaymentSheet.Appearance.Builder()
   builder.typography(buildTypography(userParams?.getMap(PaymentSheetAppearanceKeys.FONT), context))
-  builder.colorsLight(buildColorsBuilder(true, lightColorParams).build())
-  builder.colorsDark(buildColorsBuilder(false, darkColorParams).build())
+  builder.colorsLight(buildColorsBuilder(isLightMode = true, lightColorParams).build())
+  builder.colorsDark(buildColorsBuilder(isLightMode = false, darkColorParams).build())
   builder.shapes(buildShapes(userParams?.getMap(PaymentSheetAppearanceKeys.SHAPES)))
   builder.primaryButton(
     buildPrimaryButton(
