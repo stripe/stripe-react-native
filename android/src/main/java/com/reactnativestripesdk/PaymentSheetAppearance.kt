@@ -396,10 +396,10 @@ private fun buildEmbeddedAppearance(
 
       val flatDisclosureLightColorsBuilder =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
-          .Builder()
+          .Builder.light()
       val flatDisclosureDarkColorsBuilder =
         PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
-          .Builder()
+          .Builder.dark()
 
       dynamicColorFromParams(
         context,
