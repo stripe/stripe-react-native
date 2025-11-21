@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
@@ -23,53 +22,61 @@ class NavigationBarView(
 
   init {
     // Create Toolbar
-    toolbar = Toolbar(context).apply {
-      layoutParams = LayoutParams(
-        LayoutParams.MATCH_PARENT,
-        LayoutParams.WRAP_CONTENT
-      )
-      setBackgroundColor(Color.WHITE)
-      elevation = 4f
-    }
+    toolbar =
+      Toolbar(context).apply {
+        layoutParams =
+          LayoutParams(
+            LayoutParams.MATCH_PARENT,
+            LayoutParams.WRAP_CONTENT,
+          )
+        setBackgroundColor(Color.WHITE)
+        elevation = 4f
+      }
 
     // Create title TextView
-    titleTextView = TextView(context).apply {
-      textSize = 17f
-      setTextColor(Color.BLACK)
-      gravity = Gravity.CENTER
-    }
+    titleTextView =
+      TextView(context).apply {
+        textSize = 17f
+        setTextColor(Color.BLACK)
+        gravity = Gravity.CENTER
+      }
 
     // Add title to toolbar
-    val titleParams = Toolbar.LayoutParams(
-      Toolbar.LayoutParams.WRAP_CONTENT,
-      Toolbar.LayoutParams.WRAP_CONTENT
-    ).apply {
-      gravity = Gravity.CENTER
-    }
+    val titleParams =
+      Toolbar
+        .LayoutParams(
+          Toolbar.LayoutParams.WRAP_CONTENT,
+          Toolbar.LayoutParams.WRAP_CONTENT,
+        ).apply {
+          gravity = Gravity.CENTER
+        }
     toolbar.addView(titleTextView, titleParams)
 
     // Create close button
-    val closeButton = ImageButton(context).apply {
-      setImageDrawable(
-        context.resources.getDrawable(
-          android.R.drawable.ic_menu_close_clear_cancel,
-          null
+    val closeButton =
+      ImageButton(context).apply {
+        setImageDrawable(
+          context.resources.getDrawable(
+            android.R.drawable.ic_menu_close_clear_cancel,
+            null,
+          ),
         )
-      )
-      setBackgroundColor(Color.TRANSPARENT)
-      setOnClickListener {
-        dispatchCloseButtonPress()
+        setBackgroundColor(Color.TRANSPARENT)
+        setOnClickListener {
+          dispatchCloseButtonPress()
+        }
       }
-    }
 
     // Add close button to toolbar
-    val buttonParams = Toolbar.LayoutParams(
-      Toolbar.LayoutParams.WRAP_CONTENT,
-      Toolbar.LayoutParams.WRAP_CONTENT
-    ).apply {
-      gravity = Gravity.END or Gravity.CENTER_VERTICAL
-      marginEnd = 16
-    }
+    val buttonParams =
+      Toolbar
+        .LayoutParams(
+          Toolbar.LayoutParams.WRAP_CONTENT,
+          Toolbar.LayoutParams.WRAP_CONTENT,
+        ).apply {
+          gravity = Gravity.END or Gravity.CENTER_VERTICAL
+          marginEnd = 16
+        }
     toolbar.addView(closeButton, buttonParams)
 
     // Add toolbar to this view
@@ -82,14 +89,18 @@ class NavigationBarView(
   }
 
   private fun dispatchCloseButtonPress() {
-    val event = CloseButtonPressEvent(
-      context.surfaceId,
-      id
-    )
+    val event =
+      CloseButtonPressEvent(
+        context.surfaceId,
+        id,
+      )
     UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(event)
   }
 
-  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+  override fun onMeasure(
+    widthMeasureSpec: Int,
+    heightMeasureSpec: Int,
+  ) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     // Set a fixed height for the navigation bar
     val desiredHeight = (56 * resources.displayMetrics.density).toInt()

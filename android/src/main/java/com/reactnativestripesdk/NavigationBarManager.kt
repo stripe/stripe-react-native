@@ -1,6 +1,5 @@
 package com.reactnativestripesdk
 
-import com.facebook.react.bridge.Dynamic
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -20,7 +19,7 @@ class NavigationBarManager :
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
-      "onCloseButtonPress" to mutableMapOf("registrationName" to "onCloseButtonPress")
+      "onCloseButtonPress" to mutableMapOf("registrationName" to "onCloseButtonPress"),
     )
 
   @ReactProp(name = "title")
@@ -31,8 +30,7 @@ class NavigationBarManager :
     view.setTitle(title)
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView =
-    NavigationBarView(reactContext)
+  override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView = NavigationBarView(reactContext)
 
   companion object {
     const val REACT_CLASS = "NavigationBar"
