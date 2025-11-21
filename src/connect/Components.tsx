@@ -4,7 +4,6 @@ import {
   Modal,
   SafeAreaView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import type {
@@ -14,7 +13,11 @@ import type {
   StepChange,
 } from './connectTypes';
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
-import ModalCloseButton from './ModalCloseButton';
+import { NavigationBar } from './NavigationBar';
+
+// Export NavigationBar for external use
+export { NavigationBar } from './NavigationBar';
+export type { NavigationBarProps } from './NavigationBar';
 
 export function ConnectAccountOnboarding({
   title,
@@ -79,11 +82,11 @@ export function ConnectAccountOnboarding({
   return (
     <Modal visible={visible} animationType="slide">
       <SafeAreaView style={styles.flex1}>
-        <View style={styles.navBar}>
-          <View style={styles.navBarPlaceholder} />
-          <Text>{title}</Text>
-          <ModalCloseButton onPress={onExitCallback} />
-        </View>
+        <NavigationBar
+          title={title}
+          onCloseButtonPress={onExitCallback}
+          style={styles.navBar}
+        />
         <View style={styles.onboardingWrapper}>
           {loading ? (
             <ActivityIndicator size="large" style={styles.activityIndicator} />
@@ -186,14 +189,6 @@ export function ConnectPaymentDetails({
 const styles = StyleSheet.create({
   navBar: {
     height: 56,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  navBarPlaceholder: {
-    width: 36,
   },
   flex1: {
     flex: 1,
