@@ -33,3 +33,13 @@ export function getClientSecretParams(
       }
     : { customerEphemeralKeySecret: remainingParams.ephemeralKey };
 }
+
+export async function fetchClientSecret(): Promise<string> {
+  const response = await fetch(`${API_URL}/account_session`, {
+    method: 'POST',
+  });
+  const json = await response.json();
+  const { clientSecret } = json;
+
+  return clientSecret;
+}

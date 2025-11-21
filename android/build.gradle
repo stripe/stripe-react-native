@@ -222,6 +222,7 @@ dependencies {
   implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+  implementation 'androidx.browser:browser:1.5.0'
 
   // play-services-wallet is already included in stripe-android
   compileOnly "com.google.android.gms:play-services-wallet:19.3.0"
