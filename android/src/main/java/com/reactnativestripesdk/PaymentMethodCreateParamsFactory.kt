@@ -6,6 +6,7 @@ import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToBillingDetails
 import com.reactnativestripesdk.utils.mapToMetadata
 import com.reactnativestripesdk.utils.mapToPaymentIntentFutureUsage
+import com.reactnativestripesdk.utils.mapToShippingDetails
 import com.reactnativestripesdk.utils.mapToUSBankAccountHolderType
 import com.reactnativestripesdk.utils.mapToUSBankAccountType
 import com.stripe.android.model.ConfirmPaymentIntentParams
@@ -403,10 +404,12 @@ class PaymentMethodCreateParamsFactory(
     }
 
     val params = createAffirmParams()
+    val shippingDetails = mapToShippingDetails(paymentMethodData?.getMap("shippingDetails"))
 
     return ConfirmPaymentIntentParams.createWithPaymentMethodCreateParams(
       paymentMethodCreateParams = params,
       clientSecret = clientSecret,
+      shipping = shippingDetails,
       setupFutureUsage = mapToPaymentIntentFutureUsage(getValOr(options, "setupFutureUsage")),
       mandateData = buildMandateDataParams(),
     )
