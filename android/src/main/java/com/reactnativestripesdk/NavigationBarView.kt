@@ -14,7 +14,7 @@ import com.facebook.react.uimanager.events.Event
 
 @SuppressLint("ViewConstructor")
 class NavigationBarView(
-  private val context: ThemedReactContext,
+  context: ThemedReactContext,
 ) : FrameLayout(context) {
   private val toolbar: Toolbar
   private val titleTextView: TextView
@@ -91,10 +91,10 @@ class NavigationBarView(
   private fun dispatchCloseButtonPress() {
     val event =
       CloseButtonPressEvent(
-        context.surfaceId,
+        getContext().surfaceId,
         id,
       )
-    UIManagerHelper.getEventDispatcherForReactTag(context, id)?.dispatchEvent(event)
+    UIManagerHelper.getEventDispatcherForReactTag(getContext(), id)?.dispatchEvent(event)
   }
 
   override fun onMeasure(

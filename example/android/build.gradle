@@ -48,7 +48,7 @@ subprojects { subproject ->
     subproject.afterEvaluate {
         subproject.tasks.matching { task ->
             task.name == 'generateAndroidManifest'
-        }.each { task ->
+        }.configureEach { task ->
             task.doLast {
                 def manifestFile = file("${subproject.buildDir}/generated/rnta/src/main/AndroidManifest.xml")
                 if (manifestFile.exists()) {
