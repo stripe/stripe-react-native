@@ -25,6 +25,7 @@ internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): 
     paymentMethodTypes =
       intentConfigurationParams.getStringList("paymentMethodTypes")?.toList()
         ?: emptyList(),
+    onBehalfOf = intentConfigurationParams.getString("onBehalfOf"),
   )
 }
 

@@ -366,8 +366,10 @@ class PaymentMethodFactory {
     }
 
     private func createAffirmPaymentMethodParams() throws -> STPPaymentMethodParams {
-        let params = STPPaymentMethodAffirmParams()
-        return STPPaymentMethodParams(affirm: params, metadata: metadata)
+        let affirmParams = STPPaymentMethodAffirmParams()
+        let params = STPPaymentMethodParams(affirm: affirmParams, metadata: metadata)
+        params.billingDetails = billingDetailsParams
+        return params
     }
 
     private func createCashAppPaymentMethodParams() throws -> STPPaymentMethodParams {
