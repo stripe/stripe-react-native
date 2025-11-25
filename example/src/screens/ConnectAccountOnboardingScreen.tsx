@@ -1,12 +1,20 @@
+import { useNavigation } from '@react-navigation/native';
 import { ConnectAccountOnboarding } from '@stripe/stripe-react-native';
+import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import ConnectScreen from './ConnectScreen';
-import { useState } from 'react';
-import Button from '../components/Button';
 import { colors } from '../colors';
+import Button from '../components/Button';
+import ConnectScreen from './ConnectScreen';
 
 export default function ConnectAccountOnboardingScreen() {
+  const navigation = useNavigation();
   const [visible, setVisible] = useState(false);
+
+  const handleOnboardingExit = useCallback(() => {
+    console.log('ConnectAccountOnboarding onExit');
+    setVisible(false);
+    navigation.navigate('ConnectAccountOnboardingScreen');
+  }, [navigation]);
 
   return (
     <ConnectScreen>
@@ -20,10 +28,7 @@ export default function ConnectAccountOnboardingScreen() {
         {visible ? (
           <ConnectAccountOnboarding
             title="Connect Account Onboarding"
-            onExit={() => {
-              console.log('ConnectAccountOnboarding onExit');
-              setVisible(false);
-            }}
+            onExit={handleOnboardingExit}
             onLoadError={(err) => {
               Alert.alert('Error', err.error.message);
             }}
