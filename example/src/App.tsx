@@ -4,6 +4,7 @@ import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { colors } from './colors';
+import { useNavigationPersistence } from './hooks/useNavigationPersistence';
 import ACHPaymentScreen from './screens/ACHPaymentScreen';
 import ACHSetupScreen from './screens/ACHSetupScreen';
 import AffirmScreen from './screens/AffirmScreen';
@@ -117,6 +118,12 @@ declare global {
 }
 
 export default function App() {
+  const { isReady, initialState, onStateChange } = useNavigationPersistence();
+
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <>
       <StatusBar
@@ -124,7 +131,10 @@ export default function App() {
         barStyle="light-content"
         translucent
       />
-      <NavigationContainer>
+      <NavigationContainer
+        initialState={initialState}
+        onStateChange={onStateChange}
+      >
         <Stack.Navigator
           screenOptions={{
             headerTintColor: colors.white,
