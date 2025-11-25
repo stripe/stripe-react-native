@@ -19,7 +19,7 @@ class NavigationBarManager :
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
-      "onCloseButtonPress" to mutableMapOf("registrationName" to "onCloseButtonPress"),
+      EVENT_ON_CLOSE_BUTTON_PRESS to mutableMapOf("registrationName" to EVENT_ON_CLOSE_BUTTON_PRESS),
     )
 
   @ReactProp(name = "title")
@@ -34,5 +34,6 @@ class NavigationBarManager :
 
   companion object {
     const val REACT_CLASS = "NavigationBar"
+    private const val EVENT_ON_CLOSE_BUTTON_PRESS = "onCloseButtonPress"
   }
 }
