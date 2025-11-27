@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --active-arch-only --appId com.stripe.react.native",
     "build:android": "npm run mkdist && react-native bundle --entry-file index.js --platform android --dev false --bundle-output dist/main.android.jsbundle --assets-dest dist/res",
     "build:ios": "npm run mkdist && react-native bundle --entry-file index.js --platform ios --dev false --bundle-output dist/main.ios.jsbundle --assets-dest dist",
     "install-pods": "pod install --project-directory=ios",
@@ -17,14 +17,14 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@react-native-picker/picker": "^2.11.2",
-    "@react-navigation/native": "^7.1.14",
-    "@react-navigation/native-stack": "^7.3.26",
+    "@react-native-picker/picker": "^2.11.4",
+    "@react-navigation/native": "^7.1.22",
+    "@react-navigation/native-stack": "^7.8.1",
     "@stripe/stripe-react-native": "link:../",
     "react": "19.1.0",
     "react-native": "^0.81.0",
-    "react-native-safe-area-context": "^5.6.1",
-    "react-native-screens": "^4.16.0"
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.18.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.26.4",
@@ -36,7 +36,7 @@
     "@react-native-community/cli": "^20.0.0",
     "@react-native/babel-preset": "^0.81.0",
     "@react-native/metro-config": "^0.81.0",
-    "@react-native/typescript-config": "0.78.0",
+    "@react-native/typescript-config": "^0.81.0",
     "@rnx-kit/metro-config": "^2.0.1",
     "@types/express": "^4.17.21",
     "@types/node": "^22.13.5",

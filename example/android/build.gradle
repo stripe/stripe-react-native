@@ -37,7 +37,7 @@ allprojects {
             } while (searchDir = searchDir.getParent())
             // As of 0.80, React Native is no longer installed from npm
         }()
-        maven { url "file:/$rootDir/privateMavenRepository" }
+        maven { url uri("$rootDir/privateMavenRepository") }
         mavenCentral()
         google()
     }
