@@ -40,6 +40,8 @@ pipelines:
       e2e-tests-android-new-arch:
         depends_on: [e2e-build-android-new-arch]
         parallel: 4
+  test-projects:
+    workflows:
       expo-sdk-52: {}
       expo-sdk-53: {}
       expo-sdk-54: {}
