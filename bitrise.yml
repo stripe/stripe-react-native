@@ -87,6 +87,12 @@ workflows:
       - _prepare_ios
     steps:
       - script@1:
+          title: Check iOS Code Formatting
+          inputs:
+            - content: |
+                brew install swiftlint
+                yarn format:ios:check
+      - script@1:
           title: Install Pods
           inputs:
             - content: yarn pods

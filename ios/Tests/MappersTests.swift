@@ -1,7 +1,7 @@
-import XCTest
-@testable import stripe_react_native
 import Stripe
+@testable import stripe_react_native
 import StripePaymentSheet
+import XCTest
 
 class MappersTests: XCTestCase {
 
@@ -39,7 +39,7 @@ class MappersTests: XCTestCase {
             "line1": "123 Main St",
             "line2": "Apt 4",
             "postalCode": "94111",
-            "state": "CA"
+            "state": "CA",
         ]
 
         let result = Mappers.mapToAddress(address: addressMap)
@@ -55,7 +55,7 @@ class MappersTests: XCTestCase {
     func test_mapToAddress_partialAddress_returnsPartialWithNils() {
         let addressMap: NSDictionary = [
             "city": "New York",
-            "postalCode": "10001"
+            "postalCode": "10001",
         ]
 
         let result = Mappers.mapToAddress(address: addressMap)
@@ -151,8 +151,8 @@ class MappersTests: XCTestCase {
                 "line1": "123 Main St",
                 "line2": "Apt 4",
                 "postalCode": "94111",
-                "state": "CA"
-            ]
+                "state": "CA",
+            ],
         ]
 
         let result = Mappers.mapToBillingDetails(billingDetails: billingMap)
@@ -213,8 +213,8 @@ class MappersTests: XCTestCase {
             "email": "test@example.com",
             "address": [
                 "line1": "123 Main St",
-                "postalCode": "94111"
-            ]
+                "postalCode": "94111",
+            ],
         ]
 
         let result = Mappers.mapToBillingDetails(billingDetails: billingMap)

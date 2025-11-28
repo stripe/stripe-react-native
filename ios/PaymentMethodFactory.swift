@@ -2,12 +2,12 @@ import Foundation
 import Stripe
 
 class PaymentMethodFactory {
-    var billingDetailsParams: STPPaymentMethodBillingDetails? = nil
-    var paymentMethodData: NSDictionary? = nil
-    var paymentMethodOptions: NSDictionary? = nil
-    var cardFieldView: CardFieldView? = nil
-    var cardFormView: CardFormView? = nil
-    var metadata: [String: String]? = nil
+    var billingDetailsParams: STPPaymentMethodBillingDetails?
+    var paymentMethodData: NSDictionary?
+    var paymentMethodOptions: NSDictionary?
+    var cardFieldView: CardFieldView?
+    var cardFormView: CardFormView?
+    var metadata: [String: String]?
 
     init(paymentMethodData: NSDictionary?, options: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
         self.paymentMethodData = paymentMethodData
@@ -61,8 +61,8 @@ class PaymentMethodFactory {
                 return try createCashAppPaymentMethodParams()
             case STPPaymentMethodType.revolutPay:
                 return try createRevolutPayPaymentMethodParams()
-//            case STPPaymentMethodType.weChatPay:
-//                return try createWeChatPayPaymentMethodParams()
+            //            case STPPaymentMethodType.weChatPay:
+            //                return try createWeChatPayPaymentMethodParams()
             default:
                 throw PaymentMethodError.paymentNotSupported
             }
@@ -124,11 +124,11 @@ class PaymentMethodFactory {
         }
     }
 
-//    private func createWeChatPayPaymentMethodParams() throws -> STPPaymentMethodParams {
-//        let params = STPPaymentMethodWeChatPayParams()
-//        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: metadata)
-//    }
-//
+    //    private func createWeChatPayPaymentMethodParams() throws -> STPPaymentMethodParams {
+    //        let params = STPPaymentMethodWeChatPayParams()
+    //        return STPPaymentMethodParams(weChatPay: params, billingDetails: billingDetailsParams, metadata: metadata)
+    //    }
+    //
 
     private func createUSBankAccountPaymentMethodOptions() throws -> STPConfirmPaymentMethodOptions {
         let paymentOptions = STPConfirmPaymentMethodOptions()
@@ -155,26 +155,25 @@ class PaymentMethodFactory {
             params.bankName = bankName
         }
 
-
-      return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: metadata)
+        return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createGrabpayPaymentMethodParams() -> STPPaymentMethodParams {
         let params = STPPaymentMethodGrabPayParams()
 
-      return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: metadata)
+        return STPPaymentMethodParams(grabPay: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createCardPaymentMethodParams() throws -> STPPaymentMethodParams {
         if let token = paymentMethodData?["token"] as? String {
             let methodParams = STPPaymentMethodCardParams()
             methodParams.token = token
-          return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: metadata)
+            return STPPaymentMethodParams(card: methodParams, billingDetails: billingDetailsParams, metadata: metadata)
         }
 
         if let params = cardFieldView?.cardParams as? STPPaymentMethodParams {
             if let postalCode = cardFieldView?.cardPostalCode{
-                if (billingDetailsParams == nil) {
+                if billingDetailsParams == nil {
                     let bd = STPPaymentMethodBillingDetails()
                     bd.address = STPPaymentMethodAddress()
                     bd.address?.postalCode = postalCode
@@ -188,7 +187,7 @@ class PaymentMethodFactory {
         }
         if let params = cardFormView?.cardParams as? STPPaymentMethodCardParams {
             if let address = cardFormView?.cardForm?.cardParams?.billingDetails?.address {
-                if (billingDetailsParams == nil) {
+                if billingDetailsParams == nil {
                     let bd = STPPaymentMethodBillingDetails()
                     bd.address = STPPaymentMethodAddress()
                     bd.address?.postalCode = address.postalCode
@@ -205,7 +204,6 @@ class PaymentMethodFactory {
         throw PaymentMethodError.cardPaymentMissingParams
     }
 
-
     private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
         let cvc = paymentMethodData?["cvc"] as? String
         guard cvc != nil else {
@@ -213,7 +211,7 @@ class PaymentMethodFactory {
         }
 
         let cardOptions = STPConfirmCardOptions()
-        cardOptions.cvc = cvc;
+        cardOptions.cvc = cvc
         let paymentMethodOptions = STPConfirmPaymentMethodOptions()
         paymentMethodOptions.cardOptions = cardOptions
 
@@ -227,7 +225,7 @@ class PaymentMethodFactory {
             params.rawBankString = "test_offline_bank"
         }
 
-      return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: metadata)
+        return STPPaymentMethodParams(fpx: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
     private func createAlipayPaymentMethodParams() throws -> STPPaymentMethodParams {

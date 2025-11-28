@@ -1,6 +1,6 @@
-import XCTest
 @testable import stripe_react_native
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+import XCTest
 
 class PaymentSheetAppearanceTests: XCTestCase {
 
@@ -19,11 +19,11 @@ class PaymentSheetAppearanceTests: XCTestCase {
                 "secondaryText": "#123456",
                 "placeholderText": "#123456",
                 "icon": "#123456",
-                "error": "#123456"
+                "error": "#123456",
             ],
             "shapes": [
                 "borderRadius": 42.0,
-                "borderWidth": 42.0
+                "borderWidth": 42.0,
             ],
             "font": [
                 "scale": 42.0
@@ -34,20 +34,20 @@ class PaymentSheetAppearanceTests: XCTestCase {
                     "text": "#123456",
                     "border": "#123456",
                     "successBackgroundColor": "#123456",
-                    "successTextColor": "#123456"
+                    "successTextColor": "#123456",
                 ],
                 "shapes": [
                     "borderRadius": 42.0,
                     "borderWidth": 42.0,
-                    "height": 42.0
-                ]
+                    "height": 42.0,
+                ],
             ],
             "formInsetValues": [
                 "left": 42.0,
                 "top": 42.0,
                 "right": 42.0,
-                "bottom": 42.0
-            ]
+                "bottom": 42.0,
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -77,7 +77,7 @@ class PaymentSheetAppearanceTests: XCTestCase {
                 "componentDivider": "#123456",
                 "primaryText": "#123456",
                 "placeholderText": "#123456",
-                "error": "#123456"
+                "error": "#123456",
             ],
             "shapes": [
                 "borderRadius": 42.0
@@ -85,13 +85,13 @@ class PaymentSheetAppearanceTests: XCTestCase {
             "primaryButton": [
                 "colors": [
                     "background": "#123456",
-                    "border": "#123456"
+                    "border": "#123456",
                 ],
                 "shapes": [
                     "borderRadius": 42.0,
-                    "height": 42.0
-                ]
-            ]
+                    "height": 42.0,
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -120,15 +120,15 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "separatorInsets": [
                             "left": 42.0,
-                            "right": 42.0
+                            "right": 42.0,
                         ],
                         "radio": [
                             "selectedColor": "#123456",
-                            "unselectedColor": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                            "unselectedColor": "#123456",
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -153,10 +153,10 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "radio": [
                             "selectedColor": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -180,14 +180,14 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "separatorInsets": [
                             "left": 42.0,
-                            "right": 42.0
+                            "right": 42.0,
                         ],
                         "checkmark": [
                             "color": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -209,10 +209,10 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "checkmark": [
                             "color": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -236,14 +236,14 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "separatorInsets": [
                             "left": 42.0,
-                            "right": 42.0
+                            "right": 42.0,
                         ],
                         "disclosure": [
                             "color": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -264,10 +264,10 @@ class PaymentSheetAppearanceTests: XCTestCase {
                         "separatorColor": "#123456",
                         "disclosure": [
                             "color": "#123456"
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -285,9 +285,9 @@ class PaymentSheetAppearanceTests: XCTestCase {
                     "additionalInsets": 42.0,
                     "floating": [
                         "spacing": 42.0
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -303,9 +303,9 @@ class PaymentSheetAppearanceTests: XCTestCase {
                     "style": "floatingButton",
                     "floating": [
                         "spacing": 42.0
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ]
 
         let appearance = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params)
@@ -328,8 +328,8 @@ class PaymentSheetAppearanceTests: XCTestCase {
             "embeddedPaymentElement": [
                 "row": [
                     "style": "invalidStyle"
-                ]
-            ]
+                ],
+            ],
         ]
 
         XCTAssertThrowsError(
@@ -348,7 +348,7 @@ class PaymentSheetAppearanceTests: XCTestCase {
         let params: NSDictionary = [
             "font": [
                 "family": "NonExistentFont123"
-            ]
+            ],
         ]
 
         XCTAssertThrowsError(
@@ -367,7 +367,7 @@ class PaymentSheetAppearanceTests: XCTestCase {
         let params: NSDictionary = [
             "colors": [
                 "primary": "#12"  // Too short
-            ]
+            ],
         ]
 
         XCTAssertThrowsError(
@@ -382,9 +382,9 @@ class PaymentSheetAppearanceTests: XCTestCase {
             "colors": [
                 "light": [
                     "primary": "#123456"
-                ]
+                ],
                 // Missing dark mode
-            ]
+            ],
         ]
 
         XCTAssertThrowsError(
