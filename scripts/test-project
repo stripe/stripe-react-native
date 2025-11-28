@@ -1,0 +1,210 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEFAULT_PROJECT_NAME="StripeRNTest"
+DEFAULT_PLATFORMS="android,ios"
+
+usage() {
+  cat <<'EOF'
+Create a throwaway React Native app that depends on the current stripe-react-native checkout.
+
+USAGE:
+  ./scripts/test-project --version <react_native_version> [options]
+
+REQUIRED ARGUMENTS:
+  --version, -v     React Native version to use when running `npx @react-native-community/cli init`
+
+OPTIONS:
+  --platforms       Comma separated list of platforms to build (android, ios). Default: android,ios
+  --architecture    Target architecture: "old" or "new". When omitted, uses React Native defaults.
+  --project-name    Name of the temporary React Native project. Default: StripeRNTest
+  --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
+  -h, --help        Print this help message
+EOF
+}
+
+RN_VERSION=""
+PLATFORMS="$DEFAULT_PLATFORMS"
+PROJECT_NAME="$DEFAULT_PROJECT_NAME"
+KEEP_PROJECT=0
+ARCHITECTURE=""
+ARCHITECTURE_SPECIFIED=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --version|-v)
+      RN_VERSION=${2:-}
+      if [[ -z "$RN_VERSION" ]]; then
+        echo "Error! --version requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --platforms)
+      PLATFORMS=${2:-}
+      if [[ -z "$PLATFORMS" ]]; then
+        echo "Error! --platforms requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --project-name)
+      PROJECT_NAME=${2:-}
+      if [[ -z "$PROJECT_NAME" ]]; then
+        echo "Error! --project-name requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --architecture)
+      ARCHITECTURE=${2:-}
+      if [[ -z "$ARCHITECTURE" ]]; then
+        echo "Error! --architecture requires a value."
+        usage
+        exit 1
+      fi
+      ARCHITECTURE_SPECIFIED=1
+      shift 2
+      ;;
+    --keep-project)
+      KEEP_PROJECT=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Error! Unknown argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$RN_VERSION" ]]; then
+  echo "Error! Missing required --version argument."
+  usage
+  exit 1
+fi
+
+IS_NEW_ARCH=0
+if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
+  case "$ARCHITECTURE" in
+    old)
+      IS_NEW_ARCH=0
+      ;;
+    new)
+      IS_NEW_ARCH=1
+      ;;
+    *)
+      echo "Error! --architecture must be either 'old' or 'new'."
+      exit 1
+      ;;
+  esac
+fi
+BOOLS=("false" "true")
+
+RUN_ANDROID=0
+RUN_IOS=0
+IFS=',' read -r -a PLATFORM_ARRAY <<< "$PLATFORMS"
+for PLATFORM in "${PLATFORM_ARRAY[@]}"; do
+  case "${PLATFORM// }" in
+    android)
+      RUN_ANDROID=1
+      ;;
+    ios)
+      RUN_IOS=1
+      ;;
+    "")
+      ;;
+    *)
+      echo "Error! Unknown platform: ${PLATFORM}"
+      exit 1
+      ;;
+  esac
+done
+IFS=$'\n\t'
+
+if [[ $RUN_ANDROID -eq 0 && $RUN_IOS -eq 0 ]]; then
+  echo "Error! At least one platform must be selected."
+  exit 1
+fi
+
+cd "$REPO_ROOT"
+
+echo "Packing local stripe-react-native package"
+PACK_OUTPUT="$(npm pack)"
+TARBALL_FILENAME="$(echo "$PACK_OUTPUT" | tail -n 1 | tr -d '\r\n')"
+TARBALL_PATH="$REPO_ROOT/$TARBALL_FILENAME"
+
+TMP_DIR="$(mktemp -d)"
+PROJECT_DIR="$TMP_DIR/$PROJECT_NAME"
+
+cleanup() {
+  if [[ -f "$TARBALL_PATH" ]]; then
+    rm -f "$TARBALL_PATH"
+  fi
+
+  if [[ $KEEP_PROJECT -eq 1 ]]; then
+    echo "Temporary project preserved at: $PROJECT_DIR"
+    return
+  fi
+
+  if [[ -d "$TMP_DIR" ]]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT
+
+echo "Creating React Native project ($PROJECT_NAME) with version $RN_VERSION" in "$TMP_DIR"
+
+cd "$TMP_DIR"
+npx @react-native-community/cli@latest init "$PROJECT_NAME" --version "$RN_VERSION" --skip-git-init --install-pods false
+
+echo "Adding local stripe-react-native tarball to the new project"
+cd "$PROJECT_DIR"
+npm install "file:$TARBALL_PATH"
+
+ANDROID_BUILD_GRADLE="$PROJECT_DIR/android/build.gradle"
+node "$SCRIPT_DIR/update-rn-build-gradle.js" "$ANDROID_BUILD_GRADLE" "$RN_VERSION"
+
+if [[ $RUN_ANDROID -eq 1 ]]; then
+  echo "Building Android project"
+  (
+    cd android
+    GRADLE_COMMAND=(./gradlew assembleRelease)
+    if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
+      GRADLE_COMMAND+=("-PnewArchEnabled=${BOOLS[$IS_NEW_ARCH]}")
+    fi
+    "${GRADLE_COMMAND[@]}"
+  )
+fi
+
+if [[ $RUN_IOS -eq 1 ]]; then
+  echo "Building iOS project"
+  bundle install
+  (
+    cd ios
+    if [[ $ARCHITECTURE_SPECIFIED -eq 1 ]]; then
+      RCT_NEW_ARCH_ENABLED="$IS_NEW_ARCH" pod install
+    else
+      pod install
+    fi
+    xcodebuild \
+      -workspace "$PROJECT_NAME.xcworkspace" \
+      -configuration Release \
+      -scheme "$PROJECT_NAME" \
+      -destination 'generic/platform=iOS Simulator' \
+      -derivedDataPath "$TMP_DIR/DerivedData"
+  )
+fi
+
+echo "All requested builds finished successfully."
