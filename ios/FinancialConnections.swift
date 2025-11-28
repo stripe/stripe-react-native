@@ -20,23 +20,23 @@ class FinancialConnections {
     ) {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
-              financialConnectionsSessionClientSecret: withClientSecret,
-              returnURL: returnURL,
-              configuration: configuration ?? .init()
+                financialConnectionsSessionClientSecret: withClientSecret,
+                returnURL: returnURL,
+                configuration: configuration ?? .init()
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.present(
-              from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
-              completion: { result in
-                  switch result {
-                  case .completed(session: let session):
-                      resolve([ "session": mapFromSessionResult(session) ])
-                  case .canceled:
-                      resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
-                  case .failed(let error):
-                      resolve(Errors.createError(ErrorType.Failed, error))
-                  }
-            })
+                from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                completion: { result in
+                    switch result {
+                    case .completed(session: let session):
+                        resolve([ "session": mapFromSessionResult(session) ])
+                    case .canceled:
+                        resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
+                    case .failed(let error):
+                        resolve(Errors.createError(ErrorType.Failed, error))
+                    }
+                })
         }
     }
 
@@ -49,28 +49,28 @@ class FinancialConnections {
     ) {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
-              financialConnectionsSessionClientSecret: withClientSecret,
-              returnURL: returnURL,
-              configuration: configuration ?? .init()
+                financialConnectionsSessionClientSecret: withClientSecret,
+                returnURL: returnURL,
+                configuration: configuration ?? .init()
             )
             financialConnectionsSheet.onEvent = onEvent
             financialConnectionsSheet.presentForToken(
-              from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
-              completion: { result in
-                  switch result {
-                  case .completed(result: let result):
-                      resolve(
-                        [
-                            "session": mapFromSessionResult(result.session),
-                            "token": mapFromTokenResult(result.token),
-                        ]
-                      )
-                  case .canceled:
-                      resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
-                  case .failed(let error):
-                      resolve(Errors.createError(ErrorType.Failed, error))
-                  }
-            })
+                from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                completion: { result in
+                    switch result {
+                    case .completed(result: let result):
+                        resolve(
+                            [
+                                "session": mapFromSessionResult(result.session),
+                                "token": mapFromTokenResult(result.token),
+                            ]
+                        )
+                    case .canceled:
+                        resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
+                    case .failed(let error):
+                        resolve(Errors.createError(ErrorType.Failed, error))
+                    }
+                })
         }
     }
 

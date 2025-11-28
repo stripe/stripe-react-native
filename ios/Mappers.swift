@@ -638,7 +638,7 @@ class Mappers {
             "preferredNetwork": paymentMethod.card?.networks?.preferred ?? NSNull(),
             "availableNetworks": paymentMethod.card?.networks?.available ?? NSNull(),
             "threeDSecureUsage": [
-              "isSupported": paymentMethod.card?.threeDSecureUsage?.supported ?? false
+                "isSupported": paymentMethod.card?.threeDSecureUsage?.supported ?? false
             ],
         ]
 
@@ -1081,9 +1081,9 @@ class Mappers {
     class func mapFromUSBankAccountHolderType(type: STPPaymentMethodUSBankAccountHolderType?) -> String {
         if let type = type {
             switch type {
-                case STPPaymentMethodUSBankAccountHolderType.company: return "Company"
-                case STPPaymentMethodUSBankAccountHolderType.individual: return "Individual"
-                case STPPaymentMethodUSBankAccountHolderType.unknown: return "Unknown"
+            case STPPaymentMethodUSBankAccountHolderType.company: return "Company"
+            case STPPaymentMethodUSBankAccountHolderType.individual: return "Individual"
+            case STPPaymentMethodUSBankAccountHolderType.unknown: return "Unknown"
             }
         }
         return "Unknown"
@@ -1091,18 +1091,18 @@ class Mappers {
 
     class func mapToUSBankAccountHolderType(type: String?) -> STPPaymentMethodUSBankAccountHolderType {
         switch type {
-            case "Company": return STPPaymentMethodUSBankAccountHolderType.company
-            case "Individual": return STPPaymentMethodUSBankAccountHolderType.individual
-            default: return STPPaymentMethodUSBankAccountHolderType.individual
+        case "Company": return STPPaymentMethodUSBankAccountHolderType.company
+        case "Individual": return STPPaymentMethodUSBankAccountHolderType.individual
+        default: return STPPaymentMethodUSBankAccountHolderType.individual
         }
     }
 
     class func mapFromUSBankAccountType(type: STPPaymentMethodUSBankAccountType?) -> String {
         if let type = type {
             switch type {
-                case STPPaymentMethodUSBankAccountType.savings: return "Savings"
-                case STPPaymentMethodUSBankAccountType.checking: return "Checking"
-                case STPPaymentMethodUSBankAccountType.unknown: return "Unknown"
+            case STPPaymentMethodUSBankAccountType.savings: return "Savings"
+            case STPPaymentMethodUSBankAccountType.checking: return "Checking"
+            case STPPaymentMethodUSBankAccountType.unknown: return "Unknown"
             }
         }
         return "Unknown"
@@ -1110,9 +1110,9 @@ class Mappers {
 
     class func mapToUSBankAccountType(type: String?) -> STPPaymentMethodUSBankAccountType {
         switch type {
-            case "Savings": return STPPaymentMethodUSBankAccountType.savings
-            case "Checking": return STPPaymentMethodUSBankAccountType.checking
-            default: return STPPaymentMethodUSBankAccountType.checking
+        case "Savings": return STPPaymentMethodUSBankAccountType.savings
+        case "Checking": return STPPaymentMethodUSBankAccountType.checking
+        default: return STPPaymentMethodUSBankAccountType.checking
         }
     }
 
@@ -1142,25 +1142,25 @@ class Mappers {
     }
 
     class func financialConnectionsEventToMap(_ event: FinancialConnectionsEvent) -> [String: Any] {
-      var metadata: [String: Any] = [:]
+        var metadata: [String: Any] = [:]
 
-      if let manualEntry = event.metadata.manualEntry {
-        metadata["manualEntry"] = manualEntry
-      }
+        if let manualEntry = event.metadata.manualEntry {
+            metadata["manualEntry"] = manualEntry
+        }
 
-      if let institutionName = event.metadata.institutionName {
-        metadata["institutionName"] = institutionName
-      }
+        if let institutionName = event.metadata.institutionName {
+            metadata["institutionName"] = institutionName
+        }
 
-      if let errorCode = event.metadata.errorCode {
-        metadata["errorCode"] = errorCode.rawValue
-      }
+        if let errorCode = event.metadata.errorCode {
+            metadata["errorCode"] = errorCode.rawValue
+        }
 
-      let mappedEvent: [String: Any] = [
-        "name": event.name.rawValue,
-        "metadata": metadata,
-      ]
+        let mappedEvent: [String: Any] = [
+            "name": event.name.rawValue,
+            "metadata": metadata,
+        ]
 
-      return mappedEvent
+        return mappedEvent
     }
 }

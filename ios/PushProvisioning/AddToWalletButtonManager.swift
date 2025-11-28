@@ -8,11 +8,11 @@
 import Foundation
 
 @objc(AddToWalletButtonManager)
-class AddToWalletButtonManager : RCTViewManager {
+class AddToWalletButtonManager: RCTViewManager {
     override func view() -> UIView! {
         return AddToWalletButtonView()
     }
-    
+
     override class func requiresMainQueueSetup() -> Bool {
         return true
     }

@@ -5,9 +5,9 @@
 //  Created by Charles Cruzan on 10/13/22.
 //
 
-import XCTest
 @testable import stripe_react_native
 import StripePaymentSheet
+import XCTest
 
 class AddressSheetUtilsTests: XCTestCase {
     let testCity = "testCity"
@@ -40,7 +40,7 @@ class AddressSheetUtilsTests: XCTestCase {
             params: ["name": testName,
                      "phone": testPhone,
                      "address": ["city": testCity],
-                     "isCheckboxSelected": true]
+                     "isCheckboxSelected": true, ]
         )
         XCTAssertEqual(
             result.address.city, testCity
@@ -80,7 +80,7 @@ class AddressSheetUtilsTests: XCTestCase {
             params: ["name": testName,
                      "phone": testPhone,
                      "address": ["city": testCity],
-                     "isCheckboxSelected": true]
+                     "isCheckboxSelected": true, ]
         )
 
         XCTAssertEqual(
@@ -266,9 +266,9 @@ class AddressSheetUtilsTests: XCTestCase {
                         "line1": testLine1,
                         "line2": testLine2,
                         "postalCode": testPostalCode,
-                        "state": testState
-                    ]
-                ]
+                        "state": testState,
+                    ],
+                ],
             ] as NSDictionary
         )
     }

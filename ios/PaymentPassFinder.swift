@@ -12,7 +12,7 @@ internal class PaymentPassFinder: NSObject {
         case CURRENT_DEVICE
         case PAIRED_DEVICE
     }
-    
+
     class func findPassWith(
         primaryAccountIdentifier: String,
         hasPairedAppleWatch: Bool,
@@ -27,21 +27,21 @@ internal class PaymentPassFinder: NSObject {
                     .first(where: { $0.paymentPass?.primaryAccountIdentifier == primaryAccountIdentifier && $0.paymentPass?.passActivationState != .deactivated && !$0.isRemotePass })
             }
         }()
-        
+
         var passLocations: [PassLocation] = []
-        if (existingPassOnDevice != nil) {
+        if existingPassOnDevice != nil {
             passLocations.append(.CURRENT_DEVICE)
         }
-        
+
         // We're done here if the user does not have a paired Apple Watch
-        if (!hasPairedAppleWatch) {
+        if !hasPairedAppleWatch {
             completion(
                 passLocations.count < 1,
                 passLocations
             )
             return
         }
-        
+
         let existingPassOnPairedDevices: PKPass? = {
             if #available(iOS 13.4, *) {
                 return PKPassLibrary().remoteSecureElementPasses
@@ -51,12 +51,11 @@ internal class PaymentPassFinder: NSObject {
                     .first(where: { $0.paymentPass?.primaryAccountIdentifier == primaryAccountIdentifier && $0.paymentPass?.passActivationState != .deactivated })
             }
         }()
-        
-        
-        if (existingPassOnPairedDevices != nil) {
+
+        if existingPassOnPairedDevices != nil {
             passLocations.append(.PAIRED_DEVICE)
         }
-        
+
         completion(
             passLocations.count < 2,
             passLocations

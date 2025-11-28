@@ -1,6 +1,6 @@
 import Foundation
-import UIKit
 import Stripe
+import UIKit
 
 @objc(AuBECSDebitFormView)
 public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
@@ -8,35 +8,33 @@ public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
     var auBecsFormView: STPAUBECSDebitFormView?
     @objc public var onCompleteAction: RCTDirectEventBlock?
     @objc public var companyName: NSString?
-    
+
     @objc public func didSetProps() {
         if let auBecsFormView = self.auBecsFormView {
             auBecsFormView.removeFromSuperview()
         }
-        
 
         self.auBecsFormView = STPAUBECSDebitFormView(companyName: (companyName ?? "") as String)
         self.auBecsFormView?.becsDebitFormDelegate = self
-       
-        
+
         if let auBecsFormView = self.auBecsFormView {
             self.addSubview(auBecsFormView)
             setStyles()
         }
     }
-  
+
     override public func didSetProps(_ changedProps: [String]!) {
         // This is only called on old arch, for new arch didSetProps() will be called
         // by the view component.
-        self.didSetProps();
+        self.didSetProps()
     }
-    
+
     @objc public var formStyle: NSDictionary = NSDictionary() {
         didSet {
-           setStyles()
+            setStyles()
         }
     }
-    
+
     private func setStyles() {
         auBecsFormView?.formFont = UIFont.systemFont(ofSize: CGFloat(30))
 
@@ -65,26 +63,26 @@ public class AuBECSDebitFormView: UIView, STPAUBECSDebitFormViewDelegate {
             auBecsFormView?.layer.borderWidth = borderWidth
         }
     }
-    
+
     public func auBECSDebitForm(_ form: STPAUBECSDebitFormView, didChangeToStateComplete complete: Bool) {
         onCompleteAction!([
             "accountNumber": form.paymentMethodParams?.auBECSDebit?.accountNumber ?? "",
             "bsbNumber": form.paymentMethodParams?.auBECSDebit?.bsbNumber ?? "",
             "name": form.paymentMethodParams?.billingDetails?.name ?? "",
-            "email": form.paymentMethodParams?.billingDetails?.email ?? ""
+            "email": form.paymentMethodParams?.billingDetails?.email ?? "",
         ])
     }
-    
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
     }
-    
+
     override public func layoutSubviews() {
         if let auBecsFormView = self.auBecsFormView {
             auBecsFormView.frame = self.bounds
         }
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

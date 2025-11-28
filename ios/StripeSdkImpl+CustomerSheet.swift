@@ -9,8 +9,10 @@ import Foundation
 @_spi(PrivateBetaCustomerSheet) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
-    public func initCustomerSheet(params: NSDictionary, customerAdapterOverrides: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func initCustomerSheet(params: NSDictionary,
+                                  customerAdapterOverrides: NSDictionary,
+                                  resolver resolve: @escaping RCTPromiseResolveBlock,
+                                  rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             customerSheetConfiguration = CustomerSheetUtils.buildCustomerSheetConfiguration(
                 appearance: try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params["appearance"] as? NSDictionary),
@@ -88,8 +90,9 @@ extension StripeSdkImpl {
     }
 
     @objc(presentCustomerSheet:resolver:rejecter:)
-    public func presentCustomerSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                           rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func presentCustomerSheet(params: NSDictionary,
+                                     resolver resolve: @escaping RCTPromiseResolveBlock,
+                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
         if STPAPIClient.shared.publishableKey == nil {
             resolve(
                 Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
@@ -126,7 +129,7 @@ extension StripeSdkImpl {
 
     @objc(retrieveCustomerSheetPaymentOptionSelection:rejecter:)
     public func retrieveCustomerSheetPaymentOptionSelection(resolver resolve: @escaping RCTPromiseResolveBlock,
-                              rejecter reject: @escaping RCTPromiseRejectBlock) {
+                                                            rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let customerSheet = customerSheet else {
             resolve(Errors.createError(ErrorType.Failed, "CustomerSheet has not been properly initialized."))
             return
@@ -155,30 +158,33 @@ extension StripeSdkImpl {
     }
 
     @objc(customerAdapterFetchPaymentMethodsCallback:resolver:rejecter:)
-    public func customerAdapterFetchPaymentMethodsCallback(paymentMethods: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func customerAdapterFetchPaymentMethodsCallback(paymentMethods: [NSDictionary],
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         let decodedPaymentMethods = paymentMethods.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable: Any]) }
         self.fetchPaymentMethodsCallback?(decodedPaymentMethods)
         resolve([])
     }
 
     @objc(customerAdapterAttachPaymentMethodCallback:resolver:rejecter:)
-    public func customerAdapterAttachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func customerAdapterAttachPaymentMethodCallback(unusedPaymentMethod: NSDictionary,
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.attachPaymentMethodCallback?()
         resolve([])
     }
 
     @objc(customerAdapterDetachPaymentMethodCallback:resolver:rejecter:)
-    public func customerAdapterDetachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+    public func customerAdapterDetachPaymentMethodCallback(unusedPaymentMethod: NSDictionary,
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.detachPaymentMethodCallback?()
         resolve([])
     }
 
     @objc(customerAdapterSetSelectedPaymentOptionCallback:rejecter:)
     public func customerAdapterSetSelectedPaymentOptionCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+                                                                rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.setSelectedPaymentOptionCallback?()
         resolve([])
     }

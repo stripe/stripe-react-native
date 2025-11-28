@@ -90,7 +90,7 @@ public class AddressSheetView: UIView {
             appearance: appearanceConfiguration,
             buttonTitle: primaryButtonTitle,
             title: sheetTitle
-          )
+        )
     }
 
     private func getModalPresentationStyle() -> UIModalPresentationStyle {

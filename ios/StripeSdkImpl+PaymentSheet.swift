@@ -10,7 +10,7 @@ import Foundation
 
 extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
-            params: NSDictionary
+        params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentSheet.Configuration?) {
         var configuration = PaymentSheet.Configuration()
 
@@ -40,8 +40,8 @@ extension StripeSdkImpl {
 
         if let linkParams = params["link"] as? NSDictionary {
             do {
-              let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
-              configuration.link = PaymentSheet.LinkConfiguration(display: display)
+                let display = StripeSdkImpl.mapToLinkDisplay(value: linkParams["display"] as? String)
+                configuration.link = PaymentSheet.LinkConfiguration(display: display)
             } catch {
                 return(error: Errors.createError(ErrorType.Failed, error.localizedDescription), configuration: nil)
             }
@@ -77,12 +77,12 @@ extension StripeSdkImpl {
             configuration.defaultBillingDetails.phone = defaultBillingDetails["phone"] as? String
 
             if let address = defaultBillingDetails["address"] as? [String: String] {
-            configuration.defaultBillingDetails.address = .init(city: address["city"],
-                                                                country: address["country"],
-                                                                line1: address["line1"],
-                                                                line2: address["line2"],
-                                                                postalCode: address["postalCode"],
-                                                                state: address["state"])
+                configuration.defaultBillingDetails.address = .init(city: address["city"],
+                                                                    country: address["country"],
+                                                                    line1: address["line1"],
+                                                                    line2: address["line2"],
+                                                                    postalCode: address["postalCode"],
+                                                                    state: address["state"])
             }
 
         }
@@ -127,11 +127,11 @@ extension StripeSdkImpl {
         }
 
         switch params["paymentMethodLayout"] as? String? {
-          case "Horizontal":
+        case "Horizontal":
             configuration.paymentMethodLayout = .horizontal
-          case "Vertical":
+        case "Vertical":
             configuration.paymentMethodLayout = .vertical
-          default:
+        default:
             configuration.paymentMethodLayout = .automatic
         }
 
@@ -140,9 +140,9 @@ extension StripeSdkImpl {
         // Parse custom payment method configuration
         if let customPaymentMethodConfig = params["customPaymentMethodConfiguration"] as? [String: Any] {
             configuration.customPaymentMethodConfiguration = StripeSdkImpl.buildCustomPaymentMethodConfiguration(
-            from: customPaymentMethodConfig,
-            sdkImpl: self
-          )
+                from: customPaymentMethodConfig,
+                sdkImpl: self
+            )
         }
 
         return (nil, configuration)
@@ -247,28 +247,28 @@ extension StripeSdkImpl {
     }
 
     internal func computeCardBrandAcceptance(params: NSDictionary) -> PaymentSheet.CardBrandAcceptance {
-      if let cardBrandAcceptanceParams = params["cardBrandAcceptance"] as? NSDictionary {
-          if let filter = cardBrandAcceptanceParams["filter"] as? String {
-              switch filter {
-              case "all":
-                return .all
-              case "allowed":
-                  if let brands = cardBrandAcceptanceParams["brands"] as? [String] {
-                      let cardBrands = brands.compactMap { mapToCardBrandCategory(brand: $0) }
-                    return .allowed(brands: cardBrands)
-                  }
-              case "disallowed":
-                  if let brands = cardBrandAcceptanceParams["brands"] as? [String] {
-                      let cardBrands = brands.compactMap { mapToCardBrandCategory(brand: $0) }
-                    return .disallowed(brands: cardBrands)
-                  }
-              default:
-                  break
-              }
-          }
-      }
+        if let cardBrandAcceptanceParams = params["cardBrandAcceptance"] as? NSDictionary {
+            if let filter = cardBrandAcceptanceParams["filter"] as? String {
+                switch filter {
+                case "all":
+                    return .all
+                case "allowed":
+                    if let brands = cardBrandAcceptanceParams["brands"] as? [String] {
+                        let cardBrands = brands.compactMap { mapToCardBrandCategory(brand: $0) }
+                        return .allowed(brands: cardBrands)
+                    }
+                case "disallowed":
+                    if let brands = cardBrandAcceptanceParams["brands"] as? [String] {
+                        let cardBrands = brands.compactMap { mapToCardBrandCategory(brand: $0) }
+                        return .disallowed(brands: cardBrands)
+                    }
+                default:
+                    break
+                }
+            }
+        }
 
-      return .all
+        return .all
     }
 
     private func mapToCardBrandCategory(brand: String) -> PaymentSheet.CardBrandAcceptance.BrandCategory? {
@@ -362,7 +362,7 @@ extension StripeSdkImpl {
 
             for (paymentMethodCode, sfuValue) in sfuDictionary {
                 if let paymentMethodCode = paymentMethodCode as? String,
-                    let sfuString = sfuValue as? String {
+                   let sfuString = sfuValue as? String {
                     let setupFutureUsage = setupFutureUsageFromString(from: sfuString)
                     let paymentMethodType = STPPaymentMethodType.fromIdentifier(paymentMethodCode)
 
@@ -465,103 +465,103 @@ extension StripeSdkImpl {
 
     // Simple data structure for parsed custom payment method data
     struct ParsedCustomPaymentMethod {
-      let id: String
-      let subtitle: String?
-      let disableBillingDetailCollection: Bool
+        let id: String
+        let subtitle: String?
+        let disableBillingDetailCollection: Bool
     }
 
     // Simple parser that extracts data without type complexity
     static func parseCustomPaymentMethods(from config: [String: Any]) -> [ParsedCustomPaymentMethod] {
-      guard let customMethods = config["customPaymentMethods"] as? [[String: Any]],
-            !customMethods.isEmpty else { return [] }
+        guard let customMethods = config["customPaymentMethods"] as? [[String: Any]],
+              !customMethods.isEmpty else { return [] }
 
-      return customMethods.compactMap { methodDict in
-        guard let id = methodDict["id"] as? String else { return nil }
-        let subtitle = methodDict["subtitle"] as? String
-        let disableBillingDetailCollection = methodDict["disableBillingDetailCollection"] as? Bool ?? true
+        return customMethods.compactMap { methodDict in
+            guard let id = methodDict["id"] as? String else { return nil }
+            let subtitle = methodDict["subtitle"] as? String
+            let disableBillingDetailCollection = methodDict["disableBillingDetailCollection"] as? Bool ?? true
 
-        return ParsedCustomPaymentMethod(
-          id: id,
-          subtitle: subtitle,
-          disableBillingDetailCollection: disableBillingDetailCollection
-        )
-      }
+            return ParsedCustomPaymentMethod(
+                id: id,
+                subtitle: subtitle,
+                disableBillingDetailCollection: disableBillingDetailCollection
+            )
+        }
     }
 
     // Overload for NSDictionary
     static func parseCustomPaymentMethods(from config: NSDictionary) -> [ParsedCustomPaymentMethod] {
-      guard let customPaymentMethods = config["customPaymentMethods"] as? NSArray,
-            customPaymentMethods.count > 0 else { return [] }
+        guard let customPaymentMethods = config["customPaymentMethods"] as? NSArray,
+              customPaymentMethods.count > 0 else { return [] }
 
-      var parsedMethods: [ParsedCustomPaymentMethod] = []
+        var parsedMethods: [ParsedCustomPaymentMethod] = []
 
-      for customPaymentMethodData in customPaymentMethods {
-        if let customPaymentMethodDict = customPaymentMethodData as? NSDictionary,
-           let id = customPaymentMethodDict["id"] as? String {
-          let subtitle = customPaymentMethodDict["subtitle"] as? String
-          let disableBillingDetailCollection = customPaymentMethodDict["disableBillingDetailCollection"] as? Bool ?? true
+        for customPaymentMethodData in customPaymentMethods {
+            if let customPaymentMethodDict = customPaymentMethodData as? NSDictionary,
+               let id = customPaymentMethodDict["id"] as? String {
+                let subtitle = customPaymentMethodDict["subtitle"] as? String
+                let disableBillingDetailCollection = customPaymentMethodDict["disableBillingDetailCollection"] as? Bool ?? true
 
-          parsedMethods.append(ParsedCustomPaymentMethod(
-            id: id,
-            subtitle: subtitle,
-            disableBillingDetailCollection: disableBillingDetailCollection
-          ))
+                parsedMethods.append(ParsedCustomPaymentMethod(
+                    id: id,
+                    subtitle: subtitle,
+                    disableBillingDetailCollection: disableBillingDetailCollection
+                ))
+            }
         }
-      }
 
-      return parsedMethods
+        return parsedMethods
     }
 
     private static func buildCustomPaymentMethodConfiguration(
-      from config: [String: Any],
-      sdkImpl: StripeSdkImpl
+        from config: [String: Any],
+        sdkImpl: StripeSdkImpl
     ) -> PaymentSheet.CustomPaymentMethodConfiguration? {
-      let parsedMethods = parseCustomPaymentMethods(from: config)
-      guard !parsedMethods.isEmpty else { return nil }
+        let parsedMethods = parseCustomPaymentMethods(from: config)
+        guard !parsedMethods.isEmpty else { return nil }
 
-      let customMethods = parsedMethods.map { parsed in
-         var cpm = PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethod(
-          id: parsed.id,
-          subtitle: parsed.subtitle
+        let customMethods = parsedMethods.map { parsed in
+            var cpm = PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethod(
+                id: parsed.id,
+                subtitle: parsed.subtitle
+            )
+            cpm.disableBillingDetailCollection = parsed.disableBillingDetailCollection
+            return cpm
+        }
+
+        return .init(
+            customPaymentMethods: customMethods,
+            customPaymentMethodConfirmHandler: createCustomPaymentMethodConfirmHandler(sdkImpl: sdkImpl)
         )
-        cpm.disableBillingDetailCollection = parsed.disableBillingDetailCollection
-        return cpm
-      }
-
-      return .init(
-        customPaymentMethods: customMethods,
-        customPaymentMethodConfirmHandler: createCustomPaymentMethodConfirmHandler(sdkImpl: sdkImpl)
-      )
     }
 
     // MARK: - Common Custom Payment Method Handler
 
     static func createCustomPaymentMethodConfirmHandler(
-      sdkImpl: StripeSdkImpl?
+        sdkImpl: StripeSdkImpl?
     ) -> PaymentSheet.CustomPaymentMethodConfiguration.CustomPaymentMethodConfirmHandler {
-      return { customPaymentMethod, billingDetails in
-        // Send event to JS with the custom payment method data
-        let customPaymentMethodDict: [String: Any] = [
-            "id": customPaymentMethod.id
-        ]
+        return { customPaymentMethod, billingDetails in
+            // Send event to JS with the custom payment method data
+            let customPaymentMethodDict: [String: Any] = [
+                "id": customPaymentMethod.id
+            ]
 
-        let billingDetailsDict = Mappers.mapFromBillingDetails(billingDetails: billingDetails)
-        let payload: [String: Any] = [
-          "customPaymentMethod": customPaymentMethodDict,
-          "billingDetails": billingDetailsDict,
-        ]
+            let billingDetailsDict = Mappers.mapFromBillingDetails(billingDetails: billingDetails)
+            let payload: [String: Any] = [
+                "customPaymentMethod": customPaymentMethodDict,
+                "billingDetails": billingDetailsDict,
+            ]
 
-        // Use async/await with continuation instead of blocking semaphore
-        return await withCheckedContinuation { continuation in
-          // Set up callback to receive result from JavaScript
-          sdkImpl?.customPaymentMethodResultCallback = { result in
-            sdkImpl?.customPaymentMethodResultCallback = nil
-            continuation.resume(returning: result)
-          }
+            // Use async/await with continuation instead of blocking semaphore
+            return await withCheckedContinuation { continuation in
+                // Set up callback to receive result from JavaScript
+                sdkImpl?.customPaymentMethodResultCallback = { result in
+                    sdkImpl?.customPaymentMethodResultCallback = nil
+                    continuation.resume(returning: result)
+                }
 
-          // Emit event to JavaScript
-          sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
+                // Emit event to JavaScript
+                sdkImpl?.emitter?.emitOnCustomPaymentMethodConfirmHandlerCallback(payload)
+            }
         }
-      }
     }
 }

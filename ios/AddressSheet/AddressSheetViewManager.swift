@@ -8,11 +8,11 @@
 import Foundation
 
 @objc(AddressSheetViewManager)
-class AddressSheetViewManager : RCTViewManager {
+class AddressSheetViewManager: RCTViewManager {
     override func view() -> UIView! {
         return AddressSheetView()
     }
-    
+
     override class func requiresMainQueueSetup() -> Bool {
         return true
     }
