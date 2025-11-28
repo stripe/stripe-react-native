@@ -10,8 +10,8 @@ import Stripe
 
 @objc(AddToWalletButtonView)
 public class AddToWalletButtonView: UIView {
-    var pushProvisioningContext: STPPushProvisioningContext? = nil
-    var addToWalletButton: PKAddPassButton? = nil
+    var pushProvisioningContext: STPPushProvisioningContext?
+    var addToWalletButton: PKAddPassButton?
 
     @objc public var testEnv: Bool = false
     @objc public var iOSButtonStyle: NSString?
@@ -22,7 +22,7 @@ public class AddToWalletButtonView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-  
+
     @objc public func didSetProps() {
         if let addToWalletButton = addToWalletButton {
             addToWalletButton.removeFromSuperview()
@@ -45,12 +45,12 @@ public class AddToWalletButtonView: UIView {
     }
 
     @objc func beginPushProvisioning() {
-        if (!PushProvisioningUtils.canAddPaymentPass(isTestMode: self.testEnv)) {
+        if !PushProvisioningUtils.canAddPaymentPass(isTestMode: self.testEnv) {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
                     "This app cannot add cards to Apple Pay. For information on requesting the necessary entitlement, see the Card Issuers section at developer.apple.com/apple-pay/."
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             return
         }
@@ -60,17 +60,17 @@ public class AddToWalletButtonView: UIView {
                 Errors.createError(
                     ErrorType.Failed,
                     "Missing parameters. `cardDetails.name` must be supplied in the props to <AddToWalletButton />"
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             return
         }
 
-        if (cardHolderName.isEmpty) {
+        if cardHolderName.isEmpty {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
                     "`cardDetails.name` is required, but the passed string was empty"
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             return
         }
@@ -92,11 +92,11 @@ public class AddToWalletButtonView: UIView {
         let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
         vc.present(controller!, animated: true, completion: nil)
     }
-    
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
     }
-    
+
     override public func layoutSubviews() {
         if let addToWalletButton = self.addToWalletButton {
             addToWalletButton.frame = self.bounds
@@ -104,12 +104,11 @@ public class AddToWalletButtonView: UIView {
     }
 }
 
-
 extension AddToWalletButtonView: PKAddPaymentPassViewControllerDelegate {
     public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, generateRequestWithCertificateChain certificates: [Data], nonce: Data, nonceSignature: Data, completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
         self.pushProvisioningContext = STPPushProvisioningContext(keyProvider: self)
 
-        self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler);
+        self.pushProvisioningContext?.addPaymentPassViewController(controller, generateRequestWithCertificateChain: certificates, nonce: nonce, nonceSignature: nonceSignature, completionHandler: handler)
     }
 
     public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController, didFinishAdding pass: PKPaymentPass?, error: Error?) {
@@ -118,28 +117,27 @@ extension AddToWalletButtonView: PKAddPaymentPassViewControllerDelegate {
                 Errors.createError(
                     error.code == PKAddPaymentPassError.userCancelled.rawValue ? ErrorType.Canceled : ErrorType.Failed,
                     error as NSError?
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
         } else {
             onCompleteAction!([
                 "error": NSNull(),
-            ] as [AnyHashable : Any])
+            ] as [AnyHashable: Any])
         }
         controller.dismiss(animated: true, completion: nil)
     }
 }
 
-
 extension AddToWalletButtonView: STPIssuingCardEphemeralKeyProvider {
     public func createIssuingCardKey(withAPIVersion apiVersion: String, completion: @escaping STPJSONResponseCompletionBlock) {
-        if let ephemeralKey = self.ephemeralKey as? [AnyHashable : Any] {
+        if let ephemeralKey = self.ephemeralKey as? [AnyHashable: Any] {
             completion(ephemeralKey, nil)
         } else {
             onCompleteAction!(
                 Errors.createError(
                     ErrorType.Failed,
                     "Missing parameters. `ephemeralKey` must be supplied in the props to <AddToWalletButton />"
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             completion(nil, nil)
         }

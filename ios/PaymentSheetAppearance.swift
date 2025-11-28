@@ -41,7 +41,6 @@ internal class PaymentSheetAppearance {
             appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams)
         }
 
-
         if let embeddedPaymentElementParams = userParams[PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT] as? NSDictionary {
           appearance.embeddedPaymentElement = try buildEmbeddedPaymentElementAppearance(params: embeddedPaymentElementParams)
         }
@@ -68,8 +67,8 @@ internal class PaymentSheetAppearance {
     private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
         var colors = PaymentSheet.Appearance.Colors()
 
-        if (params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
+        if params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
+            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
             throw PaymentSheetAppearanceError.missingAppearanceMode
         }
 
@@ -105,7 +104,7 @@ internal class PaymentSheetAppearance {
         }
         if let offsetParams = params[PaymentSheetAppearanceKeys.OFFSET] as? NSDictionary {
             if let x = offsetParams[PaymentSheetAppearanceKeys.X] as? CGFloat, let y = offsetParams[PaymentSheetAppearanceKeys.Y] as? CGFloat {
-                shadow.offset = CGSize(width: x, height:-y)
+                shadow.offset = CGSize(width: x, height: -y)
             }
         }
 
@@ -136,8 +135,8 @@ internal class PaymentSheetAppearance {
             }
         }
         if let colorParams = params[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
-            if (colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
+            if colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
+                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
                 throw PaymentSheetAppearanceError.missingAppearanceMode
             }
 
@@ -161,9 +160,9 @@ internal class PaymentSheetAppearance {
 
         let darkCount = darkHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
         let lightCount = lightHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
-        if (lightCount != 6 && lightCount != 8) {
+        if lightCount != 6 && lightCount != 8 {
             throw PaymentSheetAppearanceError.unexpectedHexStringLength(lightHexString)
-        } else if (darkCount != 6 && darkCount != 8) {
+        } else if darkCount != 6 && darkCount != 8 {
             throw PaymentSheetAppearanceError.unexpectedHexStringLength(darkHexString)
         }
 
@@ -385,7 +384,7 @@ internal class PaymentSheetAppearance {
     }
 }
 
-enum PaymentSheetAppearanceError : Error {
+enum PaymentSheetAppearanceError: Error {
     case missingFont(String)
     case missingAppearanceMode
     case unexpectedHexStringLength(String)

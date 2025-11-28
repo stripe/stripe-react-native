@@ -2,12 +2,12 @@ import Foundation
 import Stripe
 
 class PaymentMethodFactory {
-    var billingDetailsParams: STPPaymentMethodBillingDetails? = nil
-    var paymentMethodData: NSDictionary? = nil
-    var paymentMethodOptions: NSDictionary? = nil
-    var cardFieldView: CardFieldView? = nil
-    var cardFormView: CardFormView? = nil
-    var metadata: [String: String]? = nil
+    var billingDetailsParams: STPPaymentMethodBillingDetails?
+    var paymentMethodData: NSDictionary?
+    var paymentMethodOptions: NSDictionary?
+    var cardFieldView: CardFieldView?
+    var cardFormView: CardFormView?
+    var metadata: [String: String]?
 
     init(paymentMethodData: NSDictionary?, options: NSDictionary, cardFieldView: CardFieldView?, cardFormView: CardFormView?) {
         self.paymentMethodData = paymentMethodData
@@ -155,7 +155,6 @@ class PaymentMethodFactory {
             params.bankName = bankName
         }
 
-
       return STPPaymentMethodParams(iDEAL: params, billingDetails: billingDetailsParams, metadata: metadata)
     }
 
@@ -174,7 +173,7 @@ class PaymentMethodFactory {
 
         if let params = cardFieldView?.cardParams as? STPPaymentMethodParams {
             if let postalCode = cardFieldView?.cardPostalCode{
-                if (billingDetailsParams == nil) {
+                if billingDetailsParams == nil {
                     let bd = STPPaymentMethodBillingDetails()
                     bd.address = STPPaymentMethodAddress()
                     bd.address?.postalCode = postalCode
@@ -188,7 +187,7 @@ class PaymentMethodFactory {
         }
         if let params = cardFormView?.cardParams as? STPPaymentMethodCardParams {
             if let address = cardFormView?.cardForm?.cardParams?.billingDetails?.address {
-                if (billingDetailsParams == nil) {
+                if billingDetailsParams == nil {
                     let bd = STPPaymentMethodBillingDetails()
                     bd.address = STPPaymentMethodAddress()
                     bd.address?.postalCode = address.postalCode
@@ -205,7 +204,6 @@ class PaymentMethodFactory {
         throw PaymentMethodError.cardPaymentMissingParams
     }
 
-
     private func createCardPaymentMethodOptions() -> STPConfirmPaymentMethodOptions? {
         let cvc = paymentMethodData?["cvc"] as? String
         guard cvc != nil else {
@@ -213,7 +211,7 @@ class PaymentMethodFactory {
         }
 
         let cardOptions = STPConfirmCardOptions()
-        cardOptions.cvc = cvc;
+        cardOptions.cvc = cvc
         let paymentMethodOptions = STPConfirmPaymentMethodOptions()
         paymentMethodOptions.cardOptions = cardOptions
 

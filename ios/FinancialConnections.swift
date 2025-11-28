@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import StripeFinancialConnections
 import Stripe
+import StripeFinancialConnections
 
 class FinancialConnections {
 
@@ -17,7 +17,7 @@ class FinancialConnections {
         configuration: FinancialConnectionsSheet.Configuration? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
-    ) -> Void {
+    ) {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
               financialConnectionsSessionClientSecret: withClientSecret,
@@ -46,7 +46,7 @@ class FinancialConnections {
         configuration: FinancialConnectionsSheet.Configuration? = nil,
         onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
-    ) -> Void {
+    ) {
         DispatchQueue.main.async {
             let financialConnectionsSheet = FinancialConnectionsSheet(
               financialConnectionsSessionClientSecret: withClientSecret,
@@ -62,7 +62,7 @@ class FinancialConnections {
                       resolve(
                         [
                             "session": mapFromSessionResult(result.session),
-                            "token"  : mapFromTokenResult(result.token)
+                            "token": mapFromTokenResult(result.token),
                         ]
                       )
                   case .canceled:
@@ -81,7 +81,7 @@ class FinancialConnections {
             "id": session.id,
             "clientSecret": session.clientSecret,
             "livemode": session.livemode,
-            "accounts": mapFromAccountsList(accounts: session.accounts)
+            "accounts": mapFromAccountsList(accounts: session.accounts),
         ]
     }
 
