@@ -16,3 +16,4 @@ server-dist/*
 local.properties
 msbuild.binlog
 node_modules/
+Gemfile.lock

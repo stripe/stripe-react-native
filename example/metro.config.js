@@ -1,6 +1,7 @@
 const { makeMetroConfig } = require('@rnx-kit/metro-config');
 const escape = require('escape-string-regexp');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
+const exclusionList =
+  require('metro-config/private/defaults/exclusionList').default;
 const packageJson = require('../package.json');
 const path = require('path');
 
@@ -25,13 +26,5 @@ module.exports = makeMetroConfig({
       acc[name] = path.join(__dirname, 'node_modules', name);
       return acc;
     }, {}),
-  },
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
   },
 });
