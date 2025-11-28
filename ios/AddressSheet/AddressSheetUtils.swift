@@ -67,7 +67,7 @@ class AddressSheetUtils {
     }
 
     internal class func getFieldConfiguration(input: String?, default: AddressViewController.Configuration.AdditionalFields.FieldConfiguration) -> AddressViewController.Configuration.AdditionalFields.FieldConfiguration {
-        switch (input) {
+        switch input {
         case "optional":
             return .optional
         case "required":
@@ -79,7 +79,7 @@ class AddressSheetUtils {
         }
     }
 
-    internal class func buildResult(address: AddressViewController.AddressDetails) -> [AnyHashable : Any] {
+    internal class func buildResult(address: AddressViewController.AddressDetails) -> [AnyHashable: Any] {
         return [
             "result": [
                 "name": address.name ?? NSNull(),
@@ -93,7 +93,7 @@ class AddressSheetUtils {
                 ],
                 "phone": address.phone ?? NSNull(),
                 "isCheckboxSelected": address.isCheckboxSelected ?? NSNull(),
-            ] as [AnyHashable : Any]
+            ] as [AnyHashable: Any],
         ]
     }
 

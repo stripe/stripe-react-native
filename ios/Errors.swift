@@ -21,21 +21,21 @@ class Errors {
 
     class func isPIClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isPIClientSecretValidRegex?.numberOfMatches(
-            in: clientSecret,
-            options: .anchored,
-            range: NSRange(location: 0, length: clientSecret.count))) == 1
+                    in: clientSecret,
+                    options: .anchored,
+                    range: NSRange(location: 0, length: clientSecret.count))) == 1
     }
     class func isSetiClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isSetiClientSecretValidRegex?.numberOfMatches(
-            in: clientSecret,
-            options: .anchored,
-            range: NSRange(location: 0, length: clientSecret.count))) == 1
+                    in: clientSecret,
+                    options: .anchored,
+                    range: NSRange(location: 0, length: clientSecret.count))) == 1
     }
     class func isEKClientSecretValid(clientSecret: String) -> Bool {
         return (Errors.isEKClientSecretValidRegex?.numberOfMatches(
-            in: clientSecret,
-            options: .anchored,
-            range: NSRange(location: 0, length: clientSecret.count))) == 1
+                    in: clientSecret,
+                    options: .anchored,
+                    range: NSRange(location: 0, length: clientSecret.count))) == 1
     }
 
     class func createError (_ code: String, _ message: String?) -> NSDictionary {
@@ -45,12 +45,12 @@ class Errors {
             "localizedMessage": message ?? NSNull(),
             "declineCode": NSNull(),
             "stripeErrorCode": NSNull(),
-            "type": NSNull()
+            "type": NSNull(),
         ]
-        
+
         return ["error": value]
     }
-    
+
     class func createError (_ code: String, _ error: NSError?) -> NSDictionary {
         let rootError = getRootError(error)
 
@@ -62,7 +62,7 @@ class Errors {
             "stripeErrorCode": rootError?.userInfo[STPError.stripeErrorCodeKey] ?? NSNull(),
             "type": rootError?.userInfo[STPError.stripeErrorTypeKey] ?? NSNull(),
         ]
-        
+
         return ["error": value]
     }
     class func createError (_ code: String, _ error: STPSetupIntentLastSetupError?) -> NSDictionary {
@@ -72,12 +72,12 @@ class Errors {
             "localizedMessage": error?.message ?? NSNull(),
             "declineCode": error?.declineCode ?? NSNull(),
             "stripeErrorCode": error?.code ?? NSNull(),
-            "type": Mappers.mapFromSetupIntentLastPaymentErrorType(error?.type) ?? NSNull()
+            "type": Mappers.mapFromSetupIntentLastPaymentErrorType(error?.type) ?? NSNull(),
         ]
-        
+
         return ["error": value]
     }
-    
+
     class func createError (_ code: String, _ error: STPPaymentIntentLastPaymentError?) -> NSDictionary {
         let value: NSDictionary = [
             "code": code,
@@ -85,20 +85,20 @@ class Errors {
             "localizedMessage": error?.message ?? NSNull(),
             "declineCode": error?.declineCode ?? NSNull(),
             "stripeErrorCode": error?.code ?? NSNull(),
-            "type": Mappers.mapFromPaymentIntentLastPaymentErrorType(error?.type) ?? NSNull()
+            "type": Mappers.mapFromPaymentIntentLastPaymentErrorType(error?.type) ?? NSNull(),
         ]
-        
+
         return ["error": value]
     }
-    
+
     class func createError(_ code: String, _ error: Error) -> NSDictionary {
         if let stripeError = error as? StripeError {
             return createError(code, NSError.stp_error(from: stripeError))
         }
-        
+
         return createError(code, error as NSError?)
     }
-    
+
     class func getRootError(_ error: NSError?) -> NSError? {
         // Dig and find the underlying error, otherwise we'll throw errors like "Try again"
         if let underlyingError = error?.userInfo[NSUnderlyingErrorKey] as? NSError {
@@ -106,7 +106,6 @@ class Errors {
         }
         return error
     }
-    
+
     static let MISSING_INIT_ERROR = Errors.createError(ErrorType.Failed, "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
 }
-
