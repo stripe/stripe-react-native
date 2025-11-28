@@ -395,9 +395,7 @@ class ApplePayUtilsTests: XCTestCase {
     // MARK: - mapToArrayOfPaymentNetworks Tests
 
     func test_mapToArrayOfPaymentNetworks_validNetworks() {
-        // PKPaymentNetwork uses rawValue strings like "Visa", "MasterCard", "Amex"
-        let networks = [PKPaymentNetwork.visa.rawValue, PKPaymentNetwork.masterCard.rawValue, PKPaymentNetwork.amex.rawValue]
-        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: networks)
+        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: ["Visa", "MasterCard", "AmEx"])
 
         XCTAssertEqual(result.count, 3)
         XCTAssertTrue(result.contains(.visa))
@@ -411,15 +409,14 @@ class ApplePayUtilsTests: XCTestCase {
     }
 
     func test_mapToArrayOfPaymentNetworks_singleNetwork() {
-        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: [PKPaymentNetwork.discover.rawValue])
+        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: ["Discover"])
         XCTAssertEqual(result.count, 1)
         XCTAssertTrue(result.contains(.discover))
     }
 
     func test_mapToArrayOfPaymentNetworks_customNetworkString() {
         // PKPaymentNetwork.init(rawValue:) accepts any string and creates a network
-        let networks = ["customNetwork"]
-        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: networks)
+        let result = ApplePayUtils.mapToArrayOfPaymentNetworks(arrayOfStrings: ["customNetwork"])
 
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result[0].rawValue, "customNetwork")
