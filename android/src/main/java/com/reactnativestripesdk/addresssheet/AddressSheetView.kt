@@ -3,9 +3,9 @@ package com.reactnativestripesdk.addresssheet
 import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.FrameLayout
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.buildPaymentSheetAppearance
@@ -172,14 +172,14 @@ class AddressSheetView(
     }
 
     internal fun buildResult(addressDetails: AddressDetails): WritableMap =
-      WritableNativeMap().apply {
+      Arguments.createMap().apply {
         putMap(
           "result",
-          WritableNativeMap().apply {
+          Arguments.createMap().apply {
             putString("name", addressDetails.name)
             putMap(
               "address",
-              WritableNativeMap().apply {
+              Arguments.createMap().apply {
                 putString("city", addressDetails.address?.city)
                 putString("country", addressDetails.address?.country)
                 putString("line1", addressDetails.address?.line1)

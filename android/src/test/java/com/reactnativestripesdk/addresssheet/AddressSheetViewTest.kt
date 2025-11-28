@@ -1,9 +1,5 @@
 package com.reactnativestripesdk.addresssheet
 
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.addresselement.AddressDetails
@@ -13,9 +9,11 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class AddressSheetViewTest {
   private val testCity = "testCity"
   private val testCountry = "testCountry"
@@ -25,11 +23,6 @@ class AddressSheetViewTest {
   private val testState = "testState"
   private val testName = "testName"
   private val testPhone = "testPhone"
-
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
 
   @Test
   fun buildAddressDetails_Default() {
@@ -296,16 +289,13 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAdditionalFieldsConfiguration_EmptyMap_ReturnsDefaults() {
-    val result = AddressSheetView.buildAdditionalFieldsConfiguration(WritableNativeMap())
+    val result = AddressSheetView.buildAdditionalFieldsConfiguration(readableMapOf())
     assertNotNull(result)
   }
 
   @Test
   fun buildAdditionalFieldsConfiguration_PhoneRequired() {
-    val params =
-      WritableNativeMap().also {
-        it.putString("phoneNumber", "required")
-      }
+    val params = readableMapOf("phoneNumber" to "required")
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)
@@ -313,10 +303,7 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAdditionalFieldsConfiguration_PhoneOptional() {
-    val params =
-      WritableNativeMap().also {
-        it.putString("phoneNumber", "optional")
-      }
+    val params = readableMapOf("phoneNumber" to "optional")
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)
@@ -324,10 +311,7 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAdditionalFieldsConfiguration_PhoneHidden() {
-    val params =
-      WritableNativeMap().also {
-        it.putString("phoneNumber", "hidden")
-      }
+    val params = readableMapOf("phoneNumber" to "hidden")
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)
@@ -336,10 +320,7 @@ class AddressSheetViewTest {
   @Test
   fun buildAdditionalFieldsConfiguration_WithCheckboxLabel() {
     val label = "custom label"
-    val params =
-      WritableNativeMap().also {
-        it.putString("checkboxLabel", label)
-      }
+    val params = readableMapOf("checkboxLabel" to label)
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)
@@ -348,11 +329,7 @@ class AddressSheetViewTest {
   @Test
   fun buildAdditionalFieldsConfiguration_FullConfig() {
     val label = "Accept terms and conditions"
-    val params =
-      WritableNativeMap().also {
-        it.putString("phoneNumber", "required")
-        it.putString("checkboxLabel", label)
-      }
+    val params = readableMapOf("phoneNumber" to "required", "checkboxLabel" to label)
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)
@@ -360,10 +337,7 @@ class AddressSheetViewTest {
 
   @Test
   fun buildAdditionalFieldsConfiguration_InvalidPhoneValue_DefaultsToHidden() {
-    val params =
-      WritableNativeMap().also {
-        it.putString("phoneNumber", "invalid")
-      }
+    val params = readableMapOf("phoneNumber" to "invalid")
 
     val result = AddressSheetView.buildAdditionalFieldsConfiguration(params)
     assertNotNull(result)

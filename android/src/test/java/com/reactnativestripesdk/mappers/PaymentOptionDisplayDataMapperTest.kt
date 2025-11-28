@@ -10,20 +10,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.toHtmlString
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PaymentOptionDisplayDataMapperTest {
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
-
   @Test
   fun toHtmlString_PlainText() {
     val annotatedString = AnnotatedString("Simple text")

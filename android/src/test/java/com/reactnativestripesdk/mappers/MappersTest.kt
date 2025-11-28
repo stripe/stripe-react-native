@@ -1,10 +1,7 @@
 package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
+import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBillingDetails
@@ -19,16 +16,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 @SuppressLint("RestrictedApi")
+@RunWith(RobolectricTestRunner::class)
 class MappersTest {
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
-
   @Test
   fun createCanAddCardResult_NoStatus() {
     val result =
@@ -45,11 +39,12 @@ class MappersTest {
 
   @Test
   fun createCanAddCardResult_WithToken() {
+    val tokenMap = readableMapOf("key" to "value") as WritableMap
     val result =
       createCanAddCardResult(
         true,
         "CARD_ALREADY_EXISTS",
-        WritableNativeMap().also { it.putString("key", "value") },
+        tokenMap,
       )
     Assert.assertTrue(result.getBoolean("canAddCard"))
     val details = result.getMap("details")
