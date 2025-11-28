@@ -63,7 +63,9 @@
     "url": "https://github.com/stripe/stripe-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react-native-webview": "^13.16.0"
+  },
   "devDependencies": {
     "@expo/config-plugins": "^9.0.16",
     "@react-native/babel-preset": "^0.78.0",
@@ -86,10 +88,14 @@
   "peerDependencies": {
     "expo": ">=46.0.9",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": "*"
   },
   "peerDependenciesMeta": {
     "expo": {
+      "optional": true
+    },
+    "react-native-webview": {
       "optional": true
     }
   },
@@ -168,6 +174,7 @@
         "CardField": "CardFieldComponentView",
         "CardForm": "CardFormComponentView",
         "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
+        "NavigationBar": "NavigationBarComponentView",
         "StripeContainer": "StripeContainerComponentView"
       }
     },

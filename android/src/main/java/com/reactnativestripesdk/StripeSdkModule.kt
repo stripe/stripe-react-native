@@ -1328,6 +1328,39 @@ class StripeSdkModule(
     // noop, iOS only
   }
 
+  @ReactMethod
+  override fun openAuthenticatedWebView(
+    id: String,
+    url: String,
+    promise: Promise,
+  ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+
+    UiThreadUtil.runOnUiThread {
+      try {
+        val uri = android.net.Uri.parse(url)
+        val builder =
+          androidx.browser.customtabs.CustomTabsIntent
+            .Builder()
+
+        // Set toolbar color for better UX
+        builder.setShowTitle(true)
+        builder.setUrlBarHidingEnabled(true)
+
+        val customTabsIntent = builder.build()
+
+        // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
+        // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
+        // The React Native Linking module will capture the deep link and pass it back to the JS layer.
+        customTabsIntent.launchUrl(activity, uri)
+
+        promise.resolve(null)
+      } catch (e: Exception) {
+        promise.resolve(createError("Failed", e))
+      }
+    }
+  }
+
   override fun addListener(eventType: String?) {
     // noop, iOS only
   }
