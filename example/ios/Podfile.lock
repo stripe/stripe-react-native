@@ -1691,7 +1691,7 @@ PODS:
     - StripePayments (= 25.0.1)
     - StripePaymentsUI (= 25.0.1)
     - StripeUICore (= 25.0.1)
-  - stripe-react-native (0.56.0):
+  - stripe-react-native (0.57.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1712,14 +1712,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Stripe (~> 25.0.1)
-    - stripe-react-native/NewArch (= 0.56.0)
+    - stripe-react-native/NewArch (= 0.57.0)
     - StripeApplePay (~> 25.0.1)
     - StripeFinancialConnections (~> 25.0.1)
     - StripePayments (~> 25.0.1)
     - StripePaymentSheet (~> 25.0.1)
     - StripePaymentsUI (~> 25.0.1)
     - Yoga
-  - stripe-react-native/NewArch (0.56.0):
+  - stripe-react-native/NewArch (0.57.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1746,7 +1746,7 @@ PODS:
     - StripePaymentSheet (~> 25.0.1)
     - StripePaymentsUI (~> 25.0.1)
     - Yoga
-  - stripe-react-native/Tests (0.56.0):
+  - stripe-react-native/Tests (0.57.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2110,7 +2110,7 @@ SPEC CHECKSUMS:
   RNScreens: 0d4cb9afe052607ad0aa71f645a88bb7c7f2e64c
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: 4728e3e0dd8df134e4a420ab504e929a93a815f0
-  stripe-react-native: e2dac3be3c2668207a7b7700663b852646a0e7d8
+  stripe-react-native: 92258f76847ff71a090d4665204226af84564fd3
   StripeApplePay: 43997281ace138a1c75a8f2d7be11925ea28644c
   StripeCore: 457c30e2fd3a7c4b274a5ad53d1ff03661eef2a0
   StripeFinancialConnections: 8c2e326f767fb014b53174b3a5f8592c0a45fa56

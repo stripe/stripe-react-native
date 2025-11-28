@@ -136,7 +136,7 @@ extension StripeSdkImpl {
             configuration.paymentMethodLayout = .automatic
         }
 
-        configuration.cardBrandAcceptance = computeCardBrandAcceptance(params: params)
+        configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
 
         // Parse custom payment method configuration
         if let customPaymentMethodConfig = params["customPaymentMethodConfiguration"] as? [String: Any] {
@@ -229,7 +229,7 @@ extension StripeSdkImpl {
                 modeParams: modeParams,
                 paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
                 onBehalfOf: intentConfiguration["onBehalfOf"] as? String,
-                captureMethod: mapCaptureMethod(captureMethodString),
+                captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
                 useConfirmationTokenCallback: hasConfirmationTokenHandler
             )
 
@@ -247,7 +247,7 @@ extension StripeSdkImpl {
         }
     }
 
-    internal func computeCardBrandAcceptance(params: NSDictionary) -> PaymentSheet.CardBrandAcceptance {
+    internal static func computeCardBrandAcceptance(params: NSDictionary) -> PaymentSheet.CardBrandAcceptance {
       if let cardBrandAcceptanceParams = params["cardBrandAcceptance"] as? NSDictionary {
           if let filter = cardBrandAcceptanceParams["filter"] as? String {
               switch filter {
@@ -272,7 +272,7 @@ extension StripeSdkImpl {
       return .all
     }
 
-    private func mapToCardBrandCategory(brand: String) -> PaymentSheet.CardBrandAcceptance.BrandCategory? {
+    private static func mapToCardBrandCategory(brand: String) -> PaymentSheet.CardBrandAcceptance.BrandCategory? {
         switch brand {
         case "visa":
             return .visa
@@ -287,7 +287,7 @@ extension StripeSdkImpl {
         }
     }
 
-    func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
+    static func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {
             case "Automatic": return PaymentSheet.IntentConfiguration.CaptureMethod.automatic
@@ -311,9 +311,9 @@ extension StripeSdkImpl {
             mode = PaymentSheet.IntentConfiguration.Mode.payment(
                 amount: amount,
                 currency: modeParams["currencyCode"] as? String ?? "",
-                setupFutureUsage: setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
+                setupFutureUsage: StripeSdkImpl.setupFutureUsageFromString(from: modeParams["setupFutureUsage"] as? String ?? ""),
                 captureMethod: captureMethod,
-                paymentMethodOptions: buildPaymentMethodOptions(paymentMethodOptionsParams: modeParams["paymentMethodOptions"] as? NSDictionary ?? [:])
+                paymentMethodOptions: StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: modeParams["paymentMethodOptions"] as? NSDictionary ?? [:])
             )
         } else {
             mode = PaymentSheet.IntentConfiguration.Mode.setup(
@@ -357,16 +357,16 @@ extension StripeSdkImpl {
         }
     }
     
-    func buildPaymentMethodOptions(paymentMethodOptionsParams: NSDictionary) -> PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions? {
+    static func buildPaymentMethodOptions(paymentMethodOptionsParams: NSDictionary) -> PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions? {
         if let sfuDictionary = paymentMethodOptionsParams["setupFutureUsageValues"] as? NSDictionary {
             var setupFutureUsageValues: [STPPaymentMethodType: PaymentSheet.IntentConfiguration.SetupFutureUsage] = [:]
-            
+
             for (paymentMethodCode, sfuValue) in sfuDictionary {
                 if let paymentMethodCode = paymentMethodCode as? String,
                     let sfuString = sfuValue as? String {
                     let setupFutureUsage = setupFutureUsageFromString(from: sfuString)
                     let paymentMethodType = STPPaymentMethodType.fromIdentifier(paymentMethodCode)
-                    
+
                     if let setupFutureUsage = setupFutureUsage {
                         if paymentMethodType != .unknown {
                             setupFutureUsageValues[paymentMethodType] = setupFutureUsage
@@ -374,7 +374,7 @@ extension StripeSdkImpl {
                     }
                 }
             }
-            
+
             if !setupFutureUsageValues.isEmpty {
                 return PaymentSheet.IntentConfiguration.Mode.PaymentMethodOptions(setupFutureUsageValues: setupFutureUsageValues)
             }
@@ -382,8 +382,8 @@ extension StripeSdkImpl {
 
         return nil
     }
-    
-    func setupFutureUsageFromString(from string: String) -> PaymentSheet.IntentConfiguration.SetupFutureUsage? {
+
+    static func setupFutureUsageFromString(from string: String) -> PaymentSheet.IntentConfiguration.SetupFutureUsage? {
         switch string {
         case "OnSession":
             return PaymentSheet.IntentConfiguration.SetupFutureUsage.onSession
