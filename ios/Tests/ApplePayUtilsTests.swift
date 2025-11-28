@@ -189,85 +189,42 @@ class ApplePayUtilsTests: XCTestCase {
     
     // MARK: - getMerchantCapabilityFrom Tests
 
-    func test_getMerchantCapabilityFrom_supportsDebit() {
+    func test_getMerchantCapabilityFrom_allValues() {
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: "supportsDebit"), .capabilityDebit)
-    }
-
-    func test_getMerchantCapabilityFrom_supportsCredit() {
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: "supportsCredit"), .capabilityCredit)
-    }
-
-    func test_getMerchantCapabilityFrom_supportsEMV() {
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: "supportsEMV"), .capabilityEMV)
-    }
-
-    func test_getMerchantCapabilityFrom_supports3DS() {
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: "supports3DS"), .capability3DS)
-    }
-
-    func test_getMerchantCapabilityFrom_nil_defaults3DS() {
+        // nil and invalid default to .capability3DS
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: nil), .capability3DS)
-    }
-
-    func test_getMerchantCapabilityFrom_invalid_defaults3DS() {
         XCTAssertEqual(ApplePayUtils.getMerchantCapabilityFrom(string: "invalid"), .capability3DS)
     }
 
     // MARK: - getShippingTypeFrom Tests
 
-    func test_getShippingTypeFrom_delivery() {
+    func test_getShippingTypeFrom_allValues() {
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: "delivery"), .delivery)
-    }
-
-    func test_getShippingTypeFrom_storePickup() {
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: "storePickup"), .storePickup)
-    }
-
-    func test_getShippingTypeFrom_servicePickup() {
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: "servicePickup"), .servicePickup)
-    }
-
-    func test_getShippingTypeFrom_shipping() {
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: "shipping"), .shipping)
-    }
-
-    func test_getShippingTypeFrom_nil_defaultsShipping() {
+        // nil and invalid default to .shipping
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: nil), .shipping)
-    }
-
-    func test_getShippingTypeFrom_invalid_defaultsShipping() {
         XCTAssertEqual(ApplePayUtils.getShippingTypeFrom(string: "invalid"), .shipping)
     }
 
     // MARK: - mapToIntervalUnit Tests
 
-    func test_mapToIntervalUnit_minute() throws {
+    func test_mapToIntervalUnit_allValidValues() throws {
         XCTAssertEqual(try ApplePayUtils.mapToIntervalUnit(intervalString: "minute"), .minute)
-    }
-
-    func test_mapToIntervalUnit_hour() throws {
         XCTAssertEqual(try ApplePayUtils.mapToIntervalUnit(intervalString: "hour"), .hour)
-    }
-
-    func test_mapToIntervalUnit_day() throws {
         XCTAssertEqual(try ApplePayUtils.mapToIntervalUnit(intervalString: "day"), .day)
-    }
-
-    func test_mapToIntervalUnit_month() throws {
         XCTAssertEqual(try ApplePayUtils.mapToIntervalUnit(intervalString: "month"), .month)
-    }
-
-    func test_mapToIntervalUnit_year() throws {
         XCTAssertEqual(try ApplePayUtils.mapToIntervalUnit(intervalString: "year"), .year)
     }
 
-    func test_mapToIntervalUnit_invalid_throws() {
+    func test_mapToIntervalUnit_invalidValues_throws() {
         XCTAssertThrowsError(try ApplePayUtils.mapToIntervalUnit(intervalString: "invalid")) { error in
             XCTAssertEqual(error as! ApplePayUtilsError, ApplePayUtilsError.invalidTimeInterval("invalid"))
         }
-    }
-
-    func test_mapToIntervalUnit_nil_throws() {
         XCTAssertThrowsError(try ApplePayUtils.mapToIntervalUnit(intervalString: nil)) { error in
             XCTAssertEqual(error as! ApplePayUtilsError, ApplePayUtilsError.invalidTimeInterval("null"))
         }
