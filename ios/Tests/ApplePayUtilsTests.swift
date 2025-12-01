@@ -149,7 +149,7 @@ class ApplePayUtilsTests: XCTestCase {
         XCTAssertThrowsError(
             try ApplePayUtils.buildPaymentSummaryItems(items: [[
                 "paymentType": "wrong type",
-            ],] as [[String: Any]])
+            ], ] as [[String: Any]])
         ) { error in
             XCTAssertEqual(
                 error as! ApplePayUtilsError, ApplePayUtilsError.invalidCartSummaryItemType("wrong type")
@@ -159,7 +159,7 @@ class ApplePayUtilsTests: XCTestCase {
         XCTAssertThrowsError(
             try ApplePayUtils.buildPaymentSummaryItems(items: [[
                 "paymentType": "",
-            ],] as [[String: Any]])
+            ], ] as [[String: Any]])
         ) { error in
             XCTAssertEqual(
                 error as! ApplePayUtilsError, ApplePayUtilsError.invalidCartSummaryItemType("")
@@ -169,7 +169,7 @@ class ApplePayUtilsTests: XCTestCase {
         XCTAssertThrowsError(
             try ApplePayUtils.buildPaymentSummaryItems(items: [[
                 "label": "my labal",
-            ],] as [[String: Any]])
+            ], ] as [[String: Any]])
         ) { error in
             XCTAssertEqual(
                 error as! ApplePayUtilsError, ApplePayUtilsError.invalidCartSummaryItemType("null")
