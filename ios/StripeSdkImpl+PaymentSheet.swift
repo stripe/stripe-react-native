@@ -127,11 +127,11 @@ extension StripeSdkImpl {
         }
 
         switch params["paymentMethodLayout"] as? String? {
-          case "Horizontal":
+        case "Horizontal":
             configuration.paymentMethodLayout = .horizontal
-          case "Vertical":
+        case "Vertical":
             configuration.paymentMethodLayout = .vertical
-          default:
+        default:
             configuration.paymentMethodLayout = .automatic
         }
 
