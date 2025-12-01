@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.stripe.StripeConnect-Example.rn"
+      "bundleIdentifier": "com.stripe.StripeConnect-Example.rn",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to take a picture of your identity documents"
+      }
     },
     "android": {
       "adaptiveIcon": {
