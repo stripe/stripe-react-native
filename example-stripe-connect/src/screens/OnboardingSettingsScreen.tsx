@@ -12,7 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList, OnboardingSettings } from '../types';
+import type {
+  RootStackParamList,
+  OnboardingSettings,
+  FieldOption,
+  FutureRequirements,
+  Requirements,
+} from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { Separator } from '../components/Separator';
 import { ChevronRight } from '../components/ChevronRight';
@@ -22,6 +28,11 @@ import {
   stringToBoolean,
   formatBooleanDisplay,
 } from '../utils/booleans';
+import {
+  FIELD_OPTIONS,
+  FUTURE_REQUIREMENTS_OPTIONS,
+  REQUIREMENTS_OPTIONS,
+} from '../constants';
 import { Colors } from '../constants/colors';
 
 type NavigationProp = NativeStackNavigationProp<
@@ -70,6 +81,46 @@ const OnboardingSettingsScreen: React.FC = () => {
       JSON.stringify(newSettings) !== JSON.stringify(onboardingSettings)
     );
   };
+
+  // Helper functions for Field Options
+  const getFieldOptionLabel = (value?: FieldOption): string => {
+    if (!value) return 'Default';
+    const option = FIELD_OPTIONS.find((o) => o.value === value);
+    return option?.label || value;
+  };
+
+  const fieldOptionDropdownOptions: DropdownOption[] = FIELD_OPTIONS.map(
+    (option) => ({
+      label: option.label,
+      value: option.value,
+    })
+  );
+
+  // Helper functions for Future Requirements
+  const getFutureRequirementsLabel = (value?: FutureRequirements): string => {
+    if (!value) return 'Default';
+    const option = FUTURE_REQUIREMENTS_OPTIONS.find((o) => o.value === value);
+    return option?.label || value;
+  };
+
+  const futureRequirementsDropdownOptions: DropdownOption[] =
+    FUTURE_REQUIREMENTS_OPTIONS.map((option) => ({
+      label: option.label,
+      value: option.value,
+    }));
+
+  // Helper functions for Requirements
+  const getRequirementsLabel = (value?: Requirements): string => {
+    if (!value) return 'Default';
+    const option = REQUIREMENTS_OPTIONS.find((o) => o.value === value);
+    return option?.label || value;
+  };
+
+  const requirementsDropdownOptions: DropdownOption[] =
+    REQUIREMENTS_OPTIONS.map((option) => ({
+      label: option.label,
+      value: option.value,
+    }));
 
   const handleSave = useCallback(async () => {
     await setOnboardingSettings(localSettings);
@@ -202,16 +253,19 @@ const OnboardingSettingsScreen: React.FC = () => {
                   <Text style={styles.dropdownLabel}>Field option</Text>
                   <View style={styles.dropdownValue}>
                     <Text style={styles.dropdownValueText}>
-                      {formatBooleanForDisplay(localSettings.fieldOption)}
+                      {getFieldOptionLabel(localSettings.fieldOption)}
                     </Text>
                     <ChevronRight />
                   </View>
                 </View>
               }
-              options={BOOLEAN_OPTIONS}
-              selectedValue={booleanToDropdownValue(localSettings.fieldOption)}
+              options={fieldOptionDropdownOptions}
+              selectedValue={localSettings.fieldOption || 'default'}
               onSelect={(value) =>
-                updateSetting('fieldOption', dropdownValueToBoolean(value))
+                updateSetting(
+                  'fieldOption',
+                  value === 'default' ? undefined : (value as FieldOption)
+                )
               }
             />
 
@@ -223,7 +277,7 @@ const OnboardingSettingsScreen: React.FC = () => {
                   <Text style={styles.dropdownLabel}>Future requirements</Text>
                   <View style={styles.dropdownValue}>
                     <Text style={styles.dropdownValueText}>
-                      {formatBooleanForDisplay(
+                      {getFutureRequirementsLabel(
                         localSettings.futureRequirements
                       )}
                     </Text>
@@ -231,14 +285,14 @@ const OnboardingSettingsScreen: React.FC = () => {
                   </View>
                 </View>
               }
-              options={BOOLEAN_OPTIONS}
-              selectedValue={booleanToDropdownValue(
-                localSettings.futureRequirements
-              )}
+              options={futureRequirementsDropdownOptions}
+              selectedValue={localSettings.futureRequirements || 'default'}
               onSelect={(value) =>
                 updateSetting(
                   'futureRequirements',
-                  dropdownValueToBoolean(value)
+                  value === 'default'
+                    ? undefined
+                    : (value as FutureRequirements)
                 )
               }
             />
@@ -251,19 +305,48 @@ const OnboardingSettingsScreen: React.FC = () => {
                   <Text style={styles.dropdownLabel}>Requirements</Text>
                   <View style={styles.dropdownValue}>
                     <Text style={styles.dropdownValueText}>
-                      {formatBooleanForDisplay(localSettings.requirements)}
+                      {getRequirementsLabel(localSettings.requirements)}
                     </Text>
                     <ChevronRight />
                   </View>
                 </View>
               }
-              options={BOOLEAN_OPTIONS}
-              selectedValue={booleanToDropdownValue(localSettings.requirements)}
+              options={requirementsDropdownOptions}
+              selectedValue={localSettings.requirements || 'default'}
               onSelect={(value) =>
-                updateSetting('requirements', dropdownValueToBoolean(value))
+                updateSetting(
+                  'requirements',
+                  value === 'default' ? undefined : (value as Requirements)
+                )
               }
             />
           </View>
+
+          {/* Requirements List - shown when requirements is set */}
+          {localSettings.requirements !== undefined && (
+            <View style={styles.section}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Requirements List</Text>
+                <Text style={styles.helperText}>
+                  Enter one requirement per line
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  placeholder=""
+                  placeholderTextColor={Colors.text.secondary}
+                  value={localSettings.requirementsList}
+                  onChangeText={(text) =>
+                    updateSetting('requirementsList', text)
+                  }
+                  multiline
+                  numberOfLines={6}
+                  textAlignVertical="top"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+            </View>
+          )}
 
           {/* Reset Button */}
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
@@ -306,12 +389,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: Colors.text.primary,
   },
+  helperText: {
+    fontSize: 13,
+    marginBottom: 8,
+    color: Colors.text.secondary,
+  },
   input: {
     backgroundColor: Colors.background.input,
     borderRadius: 8,
     padding: 12,
     fontSize: 17,
     color: Colors.text.primary,
+  },
+  multilineInput: {
+    minHeight: 120,
+    paddingTop: 12,
   },
   dropdownOption: {
     flexDirection: 'row',

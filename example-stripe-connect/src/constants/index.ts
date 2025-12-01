@@ -1,15 +1,53 @@
 import type {
   AmountFilterType,
   DateFilterType,
+  FieldOption,
+  FutureRequirements,
   OnboardingSettings,
   PaymentMethod,
   PaymentsFilterSettings,
   PaymentStatus,
+  Requirements,
 } from '../types';
 import { APPEARANCE_PRESETS } from './appearancePresets';
 
 export const DEFAULT_BACKEND_URL =
   'https://stripe-connect-mobile-example-v1.stripedemos.com/';
+
+// Configuration objects for onboarding settings with labels
+const FIELD_OPTIONS_CONFIG: Record<FieldOption | 'default', string> = {
+  default: 'Default',
+  currently_due: 'Currently Due',
+  eventually_due: 'Eventually Due',
+};
+
+const FUTURE_REQUIREMENTS_CONFIG: Record<
+  FutureRequirements | 'default',
+  string
+> = {
+  default: 'Default',
+  omit: 'Omit',
+  include: 'Include',
+};
+
+const REQUIREMENTS_CONFIG: Record<Requirements | 'default', string> = {
+  default: 'Default',
+  only: 'Only',
+  exclude: 'Exclude',
+};
+
+// Export field options as arrays with value and label
+export const FIELD_OPTIONS = Object.entries(FIELD_OPTIONS_CONFIG).map(
+  ([value, label]) => ({ value, label })
+);
+
+export const FUTURE_REQUIREMENTS_OPTIONS = Object.entries(
+  FUTURE_REQUIREMENTS_CONFIG
+).map(([value, label]) => ({ value, label }));
+
+export const REQUIREMENTS_OPTIONS = Object.entries(REQUIREMENTS_CONFIG).map(
+  ([value, label]) => ({ value, label })
+);
 
 export const DEFAULT_ONBOARDING_SETTINGS: OnboardingSettings = {
   fullTermsOfServiceUrl: '',
@@ -19,6 +57,7 @@ export const DEFAULT_ONBOARDING_SETTINGS: OnboardingSettings = {
   fieldOption: undefined,
   futureRequirements: undefined,
   requirements: undefined,
+  requirementsList: '',
 };
 
 export const DEFAULT_PAYMENTS_FILTER_SETTINGS: PaymentsFilterSettings = {

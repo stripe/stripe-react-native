@@ -24,15 +24,21 @@ export type RootStackParamList = {
 
 export type AppearancePreset = keyof typeof APPEARANCE_PRESETS;
 
+// Onboarding settings types
+export type FieldOption = 'currently_due' | 'eventually_due';
+export type FutureRequirements = 'omit' | 'include';
+export type Requirements = 'only' | 'exclude';
+
 // Onboarding settings
 export interface OnboardingSettings {
   fullTermsOfServiceUrl?: string;
   recipientTermsOfServiceUrl?: string;
   privacyPolicyUrl?: string;
   skipTermsOfService?: boolean;
-  fieldOption?: boolean;
-  futureRequirements?: boolean;
-  requirements?: boolean;
+  fieldOption?: FieldOption;
+  futureRequirements?: FutureRequirements;
+  requirements?: Requirements;
+  requirementsList?: string; // Multiline string with one requirement per line
 }
 
 // Payment filter types

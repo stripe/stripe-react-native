@@ -41,20 +41,41 @@ const AccountOnboardingScreen: React.FC = () => {
     }
 
     const options: CollectionOptions = {
-      fields: onboardingSettings.fieldOption
-        ? 'eventually_due'
-        : 'currently_due',
+      fields: onboardingSettings.fieldOption,
     };
 
     // Add optional futureRequirements if set
     if (onboardingSettings.futureRequirements !== undefined) {
-      options.futureRequirements = onboardingSettings.futureRequirements
-        ? 'include'
-        : 'omit';
+      options.futureRequirements = onboardingSettings.futureRequirements;
+    }
+
+    // Add optional requirements if set
+    if (
+      onboardingSettings.requirements !== undefined &&
+      onboardingSettings.requirementsList
+    ) {
+      // Split by lines and filter out empty lines
+      const requirementsArray = onboardingSettings.requirementsList
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      if (requirementsArray.length > 0) {
+        if (onboardingSettings.requirements === 'only') {
+          options.requirements = { only: requirementsArray };
+        } else {
+          options.requirements = { exclude: requirementsArray };
+        }
+      }
     }
 
     return options;
-  }, [onboardingSettings.fieldOption, onboardingSettings.futureRequirements]);
+  }, [
+    onboardingSettings.fieldOption,
+    onboardingSettings.futureRequirements,
+    onboardingSettings.requirements,
+    onboardingSettings.requirementsList,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
