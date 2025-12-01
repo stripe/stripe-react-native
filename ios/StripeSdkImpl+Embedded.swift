@@ -38,7 +38,8 @@ extension StripeSdkImpl {
     let intentConfig = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      captureMethod: mapCaptureMethod(captureMethodString),
+      onBehalfOf: intentConfig["onBehalfOf"] as? String,
+      captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
       useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
@@ -128,7 +129,8 @@ extension StripeSdkImpl {
     let intentConfiguration = buildIntentConfiguration(
       modeParams: modeParams,
       paymentMethodTypes: intentConfig["paymentMethodTypes"] as? [String],
-      captureMethod: mapCaptureMethod(captureMethodString),
+      onBehalfOf: intentConfig["onBehalfOf"] as? String,
+      captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
       useConfirmationTokenCallback: hasConfirmationTokenHandler
     )
 
@@ -308,7 +310,7 @@ extension StripeSdkImpl {
       configuration.paymentMethodOrder = paymentMethodOrder
     }
 
-    configuration.cardBrandAcceptance = computeCardBrandAcceptance(params: params)
+    configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
 
     if let formSheetActionParams = params["formSheetAction"] as? NSDictionary,
        let actionType = formSheetActionParams["type"] as? String {

@@ -20,7 +20,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
@@ -145,7 +144,7 @@ class PaymentSheetManager(
           paymentOptionResult.paymentOption?.let {
             val bitmap = getBitmapFromDrawable(it.icon())
             val imageString = getBase64FromBitmap(bitmap)
-            val option: WritableMap = WritableNativeMap()
+            val option: WritableMap = Arguments.createMap()
             option.putString("label", it.label)
             option.putString("image", imageString)
             val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
@@ -190,7 +189,7 @@ class PaymentSheetManager(
             }
 
             is PaymentSheetResult.Completed -> {
-              resolvePaymentResult(WritableNativeMap())
+              resolvePaymentResult(Arguments.createMap())
               paymentSheet = null
               flowController = null
             }
@@ -326,7 +325,7 @@ class PaymentSheetManager(
             .confirmCustomPaymentMethodCallback(this)
             .build(activity, signal)
         }
-      initPromise.resolve(WritableNativeMap())
+      initPromise.resolve(Arguments.createMap())
     }
   }
 
@@ -418,11 +417,11 @@ class PaymentSheetManager(
           flowController?.getPaymentOption()?.let {
             val bitmap = getBitmapFromDrawable(it.icon())
             val imageString = getBase64FromBitmap(bitmap)
-            val option: WritableMap = WritableNativeMap()
+            val option: WritableMap = Arguments.createMap()
             option.putString("label", it.label)
             option.putString("image", imageString)
             createResult("paymentOption", option)
-          } ?: run { WritableNativeMap() }
+          } ?: run { Arguments.createMap() }
         initPromise.resolve(result)
       }
 

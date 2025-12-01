@@ -1,8 +1,5 @@
 package com.reactnativestripesdk
 
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
@@ -11,16 +8,13 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
 class PaymentElementConfigTest {
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
-
   // ============================================
   // buildIntentConfiguration Tests
   // ============================================
@@ -91,6 +85,41 @@ class PaymentElementConfigTest {
 
     assertNotNull(result)
     assertEquals(0, result?.paymentMethodTypes?.size)
+  }
+
+  @Test
+  fun buildIntentConfiguration_WithOnBehalfOf_Success() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+        "onBehalfOf" to "acct_connected_account_a",
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertEquals("acct_connected_account_a", result?.onBehalfOf)
+  }
+
+  @Test
+  fun buildIntentConfiguration_WithOnBehalfOf_Failure() {
+    val params =
+      readableMapOf(
+        "mode" to
+          readableMapOf(
+            "amount" to 1000,
+            "currencyCode" to "usd",
+          ),
+      )
+
+    val result = buildIntentConfiguration(params)
+
+    assertNotNull(result)
+    assertNull(result?.onBehalfOf)
   }
 
   // ============================================

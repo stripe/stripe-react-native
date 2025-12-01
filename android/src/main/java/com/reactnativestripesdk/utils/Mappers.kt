@@ -6,7 +6,6 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.PaymentAuthConfig
 import com.stripe.android.financialconnections.analytics.FinancialConnectionsEvent
 import com.stripe.android.model.Address
@@ -36,7 +35,7 @@ internal fun createResult(
   value: WritableMap,
   additionalFields: Map<String, Any>? = null,
 ): WritableMap {
-  val map = WritableNativeMap()
+  val map = Arguments.createMap()
   map.putMap(key, value)
   additionalFields?.let { map.merge(it.toReadableMap()) }
   return map
@@ -46,9 +45,9 @@ internal fun createCanAddCardResult(
   canAddCard: Boolean,
   status: String? = null,
   token: WritableMap? = null,
-): WritableNativeMap {
-  val result = WritableNativeMap()
-  val details = WritableNativeMap()
+): WritableMap {
+  val result = Arguments.createMap()
+  val details = Arguments.createMap()
   result.putBoolean("canAddCard", canAddCard)
   if (status != null) {
     details.putString("status", status)
@@ -94,8 +93,8 @@ internal fun mapToReturnURL(urlScheme: String?): String? {
 }
 
 internal fun mapIntentShipping(shipping: PaymentIntent.Shipping): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  val address: WritableMap = WritableNativeMap()
+  val map: WritableMap = Arguments.createMap()
+  val address: WritableMap = Arguments.createMap()
 
   address.putString("city", shipping.address.city)
   address.putString("country", shipping.address.country)
@@ -188,8 +187,8 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
   }
 
 internal fun mapFromBillingDetails(billingDatails: PaymentMethod.BillingDetails?): WritableMap {
-  val details: WritableMap = WritableNativeMap()
-  val address: WritableMap = WritableNativeMap()
+  val details: WritableMap = Arguments.createMap()
+  val address: WritableMap = Arguments.createMap()
 
   address.putString("country", billingDatails?.address?.country)
   address.putString("city", billingDatails?.address?.city)
@@ -267,7 +266,7 @@ internal fun mapFromBankAccount(bankAccount: BankAccount?): WritableMap? {
     return null
   }
 
-  val bankAccountMap: WritableMap = WritableNativeMap()
+  val bankAccountMap: WritableMap = Arguments.createMap()
   bankAccountMap.putString("id", bankAccount.id)
   bankAccountMap.putString("bankName", bankAccount.bankName)
   bankAccountMap.putString("accountHolderName", bankAccount.accountHolderName)
@@ -314,13 +313,13 @@ internal fun mapFromUSBankAccountType(type: PaymentMethod.USBankAccount.USBankAc
   }
 
 internal fun mapFromCard(card: Card?): WritableMap? {
-  val cardMap: WritableMap = WritableNativeMap()
+  val cardMap: WritableMap = Arguments.createMap()
 
   if (card == null) {
     return null
   }
 
-  val address: WritableMap = WritableNativeMap()
+  val address: WritableMap = Arguments.createMap()
 
   cardMap.putString("country", card.country)
   cardMap.putString("brand", mapCardBrand(card.brand))
@@ -348,7 +347,7 @@ internal fun mapFromCard(card: Card?): WritableMap? {
 }
 
 internal fun mapFromToken(token: Token): WritableMap {
-  val tokenMap: WritableMap = WritableNativeMap()
+  val tokenMap: WritableMap = Arguments.createMap()
   tokenMap.putString("id", token.id)
   tokenMap.putString("created", token.created.time.toString())
   tokenMap.putString("type", mapTokenType(token.type))
@@ -361,7 +360,7 @@ internal fun mapFromToken(token: Token): WritableMap {
 }
 
 internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
-  val pm: WritableMap = WritableNativeMap()
+  val pm: WritableMap = Arguments.createMap()
 
   pm.putString("id", paymentMethod.id)
   pm.putString("paymentMethodType", mapPaymentMethodType(paymentMethod.type))
@@ -370,7 +369,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   pm.putMap("billingDetails", mapFromBillingDetails(paymentMethod.billingDetails))
   pm.putMap(
     "Card",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("brand", mapCardBrand(paymentMethod.card?.brand))
       it.putString("country", paymentMethod.card?.country)
       paymentMethod.card?.expiryYear?.let { year -> it.putInt("expYear", year) }
@@ -388,7 +387,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
       )
       it.putMap(
         "threeDSecureUsage",
-        WritableNativeMap().also { threeDSecureUsageMap ->
+        Arguments.createMap().also { threeDSecureUsageMap ->
           threeDSecureUsageMap.putBoolean(
             "isSupported",
             paymentMethod.card?.threeDSecureUsage?.isSupported ?: false,
@@ -399,7 +398,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   )
   pm.putMap(
     "SepaDebit",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("bankCode", paymentMethod.sepaDebit?.bankCode)
       it.putString("country", paymentMethod.sepaDebit?.country)
       it.putString("fingerprint", paymentMethod.sepaDebit?.fingerprint)
@@ -408,7 +407,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   )
   pm.putMap(
     "BacsDebit",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
       it.putString("last4", paymentMethod.bacsDebit?.last4)
       it.putString("sortCode", paymentMethod.bacsDebit?.sortCode)
@@ -416,7 +415,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   )
   pm.putMap(
     "AuBecsDebit",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("bsbNumber", paymentMethod.bacsDebit?.sortCode)
       it.putString("fingerprint", paymentMethod.bacsDebit?.fingerprint)
       it.putString("last4", paymentMethod.bacsDebit?.last4)
@@ -424,22 +423,22 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
   )
   pm.putMap(
     "Ideal",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("bankName", paymentMethod.ideal?.bank)
       it.putString("bankIdentifierCode", paymentMethod.ideal?.bankIdentifierCode)
     },
   )
   pm.putMap(
     "Fpx",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("accountHolderType", paymentMethod.fpx?.accountHolderType)
       it.putString("bank", paymentMethod.fpx?.bank)
     },
   )
-  pm.putMap("Upi", WritableNativeMap().also { it.putString("vpa", paymentMethod.upi?.vpa) })
+  pm.putMap("Upi", Arguments.createMap().also { it.putString("vpa", paymentMethod.upi?.vpa) })
   pm.putMap(
     "USBankAccount",
-    WritableNativeMap().also {
+    Arguments.createMap().also {
       it.putString("routingNumber", paymentMethod.usBankAccount?.routingNumber)
       it.putString(
         "accountType",
@@ -465,7 +464,7 @@ internal fun mapFromPaymentMethod(paymentMethod: PaymentMethod): WritableMap {
 }
 
 internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableMap {
-  val map: WritableMap = WritableNativeMap()
+  val map: WritableMap = Arguments.createMap()
   map.putString("id", paymentIntent.id)
   map.putString("clientSecret", paymentIntent.clientSecret)
   map.putBoolean("livemode", paymentIntent.isLiveMode)
@@ -492,7 +491,7 @@ internal fun mapFromPaymentIntentResult(paymentIntent: PaymentIntent): WritableM
   map.putNull("canceledAt")
 
   paymentIntent.lastPaymentError?.let {
-    val paymentError: WritableMap = WritableNativeMap()
+    val paymentError: WritableMap = Arguments.createMap()
     paymentError.putString("code", it.code)
     paymentError.putString("message", it.message)
     paymentError.putString("type", mapFromPaymentIntentLastErrorType(it.type))
@@ -523,8 +522,8 @@ internal fun mapFromMicrodepositType(type: MicrodepositType): String =
 internal fun mapNextAction(
   type: NextActionType?,
   data: NextActionData?,
-): WritableNativeMap? {
-  val nextActionMap = WritableNativeMap()
+): WritableMap? {
+  val nextActionMap = Arguments.createMap()
   when (type) {
     NextActionType.RedirectToUrl -> {
       (data as? NextActionData.RedirectToUrl)?.let {
@@ -881,7 +880,7 @@ fun mapToUICustomization(params: ReadableMap): PaymentAuthConfig.Stripe3ds2UiCus
 }
 
 internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
-  val map: WritableMap = WritableNativeMap()
+  val map: WritableMap = Arguments.createMap()
   val paymentMethodTypes: WritableArray = Arguments.createArray()
   map.putString("id", setupIntent.id)
   map.putString("status", mapIntentStatus(setupIntent.status))
@@ -898,7 +897,7 @@ internal fun mapFromSetupIntentResult(setupIntent: SetupIntent): WritableMap {
   map.putMap("nextAction", mapNextAction(setupIntent.nextActionType, setupIntent.nextActionData))
 
   setupIntent.lastSetupError?.let {
-    val setupError: WritableMap = WritableNativeMap()
+    val setupError: WritableMap = Arguments.createMap()
     setupError.putString("code", it.code)
     setupError.putString("message", it.message)
     setupError.putString("type", mapFromSetupIntentLastErrorType(it.type))
@@ -936,15 +935,15 @@ fun mapToPaymentIntentFutureUsage(type: String?): ConfirmPaymentIntentParams.Set
   }
 
 internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableMap {
-  val map = WritableNativeMap()
+  val map = Arguments.createMap()
   map.putString("emailAddress", googlePayResult.email)
-  val name = WritableNativeMap()
+  val name = Arguments.createMap()
   googlePayResult.name
   name.putString("givenName", googlePayResult.shippingInformation?.name)
   map.putMap("name", name)
   googlePayResult.shippingInformation?.phone?.let { map.putString("phoneNumber", it) }
     ?: run { map.putString("phoneNumber", googlePayResult.phoneNumber) }
-  val postalAddress = WritableNativeMap()
+  val postalAddress = Arguments.createMap()
   postalAddress.putString("city", googlePayResult.shippingInformation?.address?.city)
   postalAddress.putString("country", googlePayResult.shippingInformation?.address?.country)
   postalAddress.putString("postalCode", googlePayResult.shippingInformation?.address?.postalCode)
@@ -1069,10 +1068,10 @@ internal fun mapFromCustomPaymentMethod(
   customPaymentMethod: PaymentSheet.CustomPaymentMethod,
   billingDetails: PaymentMethod.BillingDetails,
 ): WritableMap =
-  WritableNativeMap().apply {
+  Arguments.createMap().apply {
     putMap(
       "customPaymentMethod",
-      WritableNativeMap().apply {
+      Arguments.createMap().apply {
         putString("id", customPaymentMethod.id)
       },
     )
@@ -1081,7 +1080,7 @@ internal fun mapFromCustomPaymentMethod(
 
 @SuppressLint("RestrictedApi")
 internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): WritableMap {
-  val token: WritableMap = WritableNativeMap()
+  val token: WritableMap = Arguments.createMap()
 
   token.putString("id", confirmationToken.id)
   token.putDouble("created", confirmationToken.created.toDouble())
@@ -1094,7 +1093,7 @@ internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): Wri
 
   // PaymentMethodPreview
   confirmationToken.paymentMethodPreview?.let { preview ->
-    val paymentMethodPreview = WritableNativeMap()
+    val paymentMethodPreview = Arguments.createMap()
     paymentMethodPreview.putString("type", mapPaymentMethodType(preview.type))
     paymentMethodPreview.putMap("billingDetails", mapFromBillingDetails(preview.billingDetails))
     paymentMethodPreview.putString("allowRedisplay", mapFromAllowRedisplay(preview.allowRedisplay))
@@ -1106,12 +1105,12 @@ internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): Wri
 
   // Shipping details
   confirmationToken.shipping?.let { shippingDetails ->
-    val shipping = WritableNativeMap()
+    val shipping = Arguments.createMap()
     shipping.putString("name", shippingDetails.name)
     shipping.putString("phone", shippingDetails.phone)
 
     shippingDetails.address?.let { address ->
-      val addressMap = WritableNativeMap()
+      val addressMap = Arguments.createMap()
       addressMap.putString("city", address.city)
       addressMap.putString("country", address.country)
       addressMap.putString("line1", address.line1)
@@ -1120,7 +1119,7 @@ internal fun mapFromConfirmationToken(confirmationToken: ConfirmationToken): Wri
       addressMap.putString("state", address.state)
       shipping.putMap("address", addressMap)
     } ?: run {
-      shipping.putMap("address", WritableNativeMap())
+      shipping.putMap("address", Arguments.createMap())
     }
 
     token.putMap("shipping", shipping)

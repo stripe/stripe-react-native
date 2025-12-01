@@ -3,9 +3,9 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.content.Intent
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.PaymentData
@@ -165,7 +165,7 @@ class GooglePayRequestHelper {
       promise: Promise,
     ) {
       val paymentInformation = JSONObject(paymentData.toJson())
-      val promiseResult = WritableNativeMap()
+      val promiseResult = Arguments.createMap()
       stripe.createPaymentMethod(
         PaymentMethodCreateParams.createFromGooglePay(paymentInformation),
         callback =
@@ -193,7 +193,7 @@ class GooglePayRequestHelper {
     ) {
       val paymentInformation = JSONObject(paymentData.toJson())
       val googlePayResult = GooglePayResult.fromJson(paymentInformation)
-      val promiseResult = WritableNativeMap()
+      val promiseResult = Arguments.createMap()
       googlePayResult.token?.let {
         promiseResult.putMap("token", mapFromToken(it))
         if (googlePayResult.shippingInformation != null) {

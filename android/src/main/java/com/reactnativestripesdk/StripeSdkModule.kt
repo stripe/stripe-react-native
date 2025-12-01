@@ -18,7 +18,6 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -503,7 +502,7 @@ class StripeSdkModule(
         object : ApiResultCallback<Token> {
           override fun onSuccess(result: Token) {
             val tokenId = result.id
-            val res = WritableNativeMap()
+            val res = Arguments.createMap()
             res.putString("tokenId", tokenId)
             promise.resolve(res)
           }
@@ -780,7 +779,7 @@ class StripeSdkModule(
                   expand = listOf("payment_method"),
                   object : ApiResultCallback<PaymentIntent> {
                     override fun onError(e: Exception) {
-                      promise.resolve(createResult("paymentIntent", WritableNativeMap()))
+                      promise.resolve(createResult("paymentIntent", Arguments.createMap()))
                     }
 
                     override fun onSuccess(result: PaymentIntent) {
@@ -800,7 +799,7 @@ class StripeSdkModule(
                   expand = listOf("payment_method"),
                   object : ApiResultCallback<SetupIntent> {
                     override fun onError(e: Exception) {
-                      promise.resolve(createResult("setupIntent", WritableNativeMap()))
+                      promise.resolve(createResult("setupIntent", Arguments.createMap()))
                     }
 
                     override fun onSuccess(result: SetupIntent) {
@@ -910,7 +909,7 @@ class StripeSdkModule(
       PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
         val result: WritableMap =
           error ?: run {
-            val map = WritableNativeMap()
+            val map = Arguments.createMap()
             map.putBoolean("isInWallet", isCardInWallet)
             map.putMap("token", token)
             map
