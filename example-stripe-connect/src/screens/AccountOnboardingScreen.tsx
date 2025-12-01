@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useCallback, useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -12,6 +12,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { SymbolView } from 'expo-symbols';
 import { ConnectAccountOnboarding } from '@stripe/stripe-react-native';
+import type { CollectionOptions } from '@stripe/stripe-react-native/lib/typescript/src/connect/connectTypes';
 import ConnectScreen from './ConnectScreen';
 import { useSettings } from '../contexts/SettingsContext';
 import { Colors } from '../constants/colors';
@@ -30,6 +31,30 @@ const AccountOnboardingScreen: React.FC = () => {
     console.log('User exited account onboarding');
     setVisible(false);
   }, []);
+
+  // Build collectionOptions with proper typing
+  const collectionOptions = useMemo((): CollectionOptions | undefined => {
+    // Only create collectionOptions if we have at least the fieldOption set
+    // (which provides the required 'fields' property)
+    if (onboardingSettings.fieldOption === undefined) {
+      return undefined;
+    }
+
+    const options: CollectionOptions = {
+      fields: onboardingSettings.fieldOption
+        ? 'eventually_due'
+        : 'currently_due',
+    };
+
+    // Add optional futureRequirements if set
+    if (onboardingSettings.futureRequirements !== undefined) {
+      options.futureRequirements = onboardingSettings.futureRequirements
+        ? 'include'
+        : 'omit';
+    }
+
+    return options;
+  }, [onboardingSettings.fieldOption, onboardingSettings.futureRequirements]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -71,28 +96,7 @@ const AccountOnboardingScreen: React.FC = () => {
               onboardingSettings.recipientTermsOfServiceUrl
             }
             privacyPolicyUrl={onboardingSettings.privacyPolicyUrl}
-            collectionOptions={
-              onboardingSettings.fieldOption !== undefined ||
-              onboardingSettings.futureRequirements !== undefined
-                ? ({
-                    ...(onboardingSettings.fieldOption !== undefined
-                      ? {
-                          fields: onboardingSettings.fieldOption
-                            ? 'eventually_due'
-                            : 'currently_due',
-                        }
-                      : {}),
-                    ...(onboardingSettings.futureRequirements !== undefined
-                      ? {
-                          futureRequirements:
-                            onboardingSettings.futureRequirements
-                              ? 'include'
-                              : 'omit',
-                        }
-                      : {}),
-                  } as any)
-                : undefined
-            }
+            collectionOptions={collectionOptions}
             onLoadError={(err) => {
               Alert.alert('Error', err.error.message);
             }}
