@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.examplestripeconnect"
+      "bundleIdentifier": "com.stripe.StripeConnect-Example.rn"
     },
     "android": {
       "adaptiveIcon": {
