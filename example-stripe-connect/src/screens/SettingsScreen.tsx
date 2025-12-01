@@ -1,0 +1,292 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SelectableRow } from '../components/SelectableRow';
+import { Separator } from '../components/Separator';
+import { ChevronRight } from '../components/ChevronRight';
+import { DEFAULT_BACKEND_URL } from '../constants';
+import { useSettings } from '../contexts/SettingsContext';
+import type { MerchantInfo, RootStackParamList } from '../types';
+import { Colors } from '../constants/colors';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
+
+const SettingsScreen: React.FC = () => {
+  const navigation = useNavigation<NavigationProp>();
+  const {
+    selectedMerchant,
+    backendUrl,
+    availableMerchants,
+    setSelectedMerchant,
+    setBackendUrl,
+  } = useSettings();
+
+  const [localSelectedMerchant, setLocalSelectedMerchant] =
+    useState<MerchantInfo | null>(selectedMerchant);
+  const [localBackendUrl, setLocalBackendUrl] = useState(backendUrl);
+  const [customMerchantId, setCustomMerchantId] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    if (localSelectedMerchant) {
+      await setSelectedMerchant(localSelectedMerchant);
+    }
+    await setBackendUrl(localBackendUrl);
+    navigation.goBack();
+  }, [
+    localSelectedMerchant,
+    localBackendUrl,
+    setSelectedMerchant,
+    setBackendUrl,
+    navigation,
+  ]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>Cancel</Text>
+        </TouchableOpacity>
+      ),
+      headerRight: () => (
+        <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
+          <Text
+            style={[
+              styles.saveButton,
+              !hasChanges && styles.saveButtonDisabled,
+            ]}
+          >
+            Save
+          </Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, hasChanges, handleSave]);
+
+  const handleSelectMerchant = (merchant: MerchantInfo) => {
+    setLocalSelectedMerchant(merchant);
+    checkForChanges(merchant, localBackendUrl);
+  };
+
+  const handleCustomMerchantChange = (text: string) => {
+    setCustomMerchantId(text);
+    if (text.trim()) {
+      const customMerchant: MerchantInfo = {
+        merchant_id: text.trim(),
+        display_name: 'Other',
+      };
+      setLocalSelectedMerchant(customMerchant);
+      checkForChanges(customMerchant, localBackendUrl);
+    }
+  };
+
+  const handleBackendUrlChange = (text: string) => {
+    setLocalBackendUrl(text);
+    checkForChanges(localSelectedMerchant, text);
+  };
+
+  const checkForChanges = (merchant: MerchantInfo | null, url: string) => {
+    const merchantChanged =
+      merchant?.merchant_id !== selectedMerchant?.merchant_id;
+    const urlChanged = url !== backendUrl;
+    setHasChanges(merchantChanged || urlChanged);
+  };
+
+  const handleResetBackendUrl = () => {
+    setLocalBackendUrl(DEFAULT_BACKEND_URL);
+    checkForChanges(localSelectedMerchant, DEFAULT_BACKEND_URL);
+  };
+
+  const isMerchantSelected = (merchant: MerchantInfo): boolean => {
+    return merchant.merchant_id === localSelectedMerchant?.merchant_id;
+  };
+
+  const isCustomMerchantSelected =
+    localSelectedMerchant &&
+    !availableMerchants.find(
+      (m) => m.merchant_id === localSelectedMerchant.merchant_id
+    );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          bottomOffset={20}
+          extraKeyboardSpace={20}
+        >
+          {/* Select a demo account section */}
+          <Text style={styles.sectionHeader}>Select a merchant</Text>
+          <View style={styles.section}>
+            {availableMerchants.map((merchant, index) => (
+              <View key={merchant.merchant_id}>
+                <SelectableRow
+                  title={merchant.display_name || merchant.merchant_id}
+                  subtitle={merchant.merchant_id}
+                  selected={isMerchantSelected(merchant)}
+                  onPress={() => handleSelectMerchant(merchant)}
+                />
+                {index < availableMerchants.length - 1 && <Separator />}
+              </View>
+            ))}
+
+            {/* Other / Custom Merchant */}
+            <Separator />
+            <View style={styles.customMerchantSection}>
+              <SelectableRow
+                title="Other"
+                selected={!!isCustomMerchantSelected}
+                onPress={() => {}}
+              />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="acct_xxxx"
+                  value={customMerchantId}
+                  onChangeText={handleCustomMerchantChange}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={Keyboard.dismiss}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Component Settings section */}
+          <Text style={styles.sectionHeader}>Component Settings</Text>
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => navigation.navigate('OnboardingSettings')}
+            >
+              <Text style={styles.menuLabel}>Account onboarding</Text>
+              <ChevronRight />
+            </TouchableOpacity>
+
+            <Separator />
+
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => navigation.navigate('PaymentsFilterSettings')}
+            >
+              <Text style={styles.menuLabel}>Payments</Text>
+              <ChevronRight />
+            </TouchableOpacity>
+          </View>
+
+          {/* API Server Settings section */}
+          <Text style={styles.sectionHeader}>API Server Settings</Text>
+          <View style={styles.section}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Backend URL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={DEFAULT_BACKEND_URL}
+                value={localBackendUrl}
+                onChangeText={handleBackendUrlChange}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+          </View>
+
+          {/* Reset backend URL button */}
+          <TouchableOpacity
+            style={styles.resetButton}
+            onPress={handleResetBackendUrl}
+          >
+            <Text style={styles.resetButtonText}>Reset to default</Text>
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  backButton: {
+    fontSize: 17,
+    color: Colors.text.primary,
+  },
+  saveButton: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text.primary,
+  },
+  saveButtonDisabled: {
+    color: Colors.text.disabled,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '400',
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 8,
+  },
+  section: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border.default,
+    backgroundColor: Colors.background.primary,
+  },
+  customMerchantSection: {
+    paddingBottom: 16,
+  },
+  inputContainer: {
+    paddingHorizontal: 16,
+  },
+  inputGroup: {
+    padding: 16,
+  },
+  label: {
+    fontSize: 17,
+    marginBottom: 8,
+  },
+  input: {
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 17,
+    backgroundColor: Colors.background.input,
+  },
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  menuLabel: {
+    fontSize: 17,
+  },
+  resetButton: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    fontSize: 17,
+    color: Colors.text.link,
+  },
+});
+
+export default SettingsScreen;
