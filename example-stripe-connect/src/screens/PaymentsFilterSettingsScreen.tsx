@@ -26,6 +26,7 @@ import type {
   AmountFilterType,
   DateFilterType,
   PaymentStatus,
+  PaymentMethod,
 } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { Separator } from '../components/Separator';
@@ -219,10 +220,17 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
 
   const paymentMethodOptions: DropdownOption[] = PAYMENT_METHODS.map(
     (method) => ({
-      label: method,
-      value: method,
+      label: method.label,
+      value: method.value,
     })
   );
+
+  // Get the label for the currently selected payment method
+  const getPaymentMethodLabel = (value?: PaymentMethod): string => {
+    if (!value) return 'None';
+    const method = PAYMENT_METHODS.find((m) => m.value === value);
+    return method?.label || value;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -411,18 +419,18 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
                   <Text style={styles.dropdownLabel}>Payment Method</Text>
                   <View style={styles.dropdownValue}>
                     <Text style={styles.dropdownValueText}>
-                      {localSettings.paymentMethod || 'None'}
+                      {getPaymentMethodLabel(localSettings.paymentMethod)}
                     </Text>
                     <ChevronRight />
                   </View>
                 </View>
               }
               options={paymentMethodOptions}
-              selectedValue={localSettings.paymentMethod || 'None'}
+              selectedValue={localSettings.paymentMethod || 'none'}
               onSelect={(value) =>
                 updateSetting(
                   'paymentMethod',
-                  value === 'None' ? undefined : value
+                  value === 'none' ? undefined : (value as PaymentMethod)
                 )
               }
             />

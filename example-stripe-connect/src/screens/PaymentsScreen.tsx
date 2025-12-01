@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ConnectPayments } from '@stripe/stripe-react-native';
 import { SymbolView } from 'expo-symbols';
-import type { ComponentProps } from 'react';
 import React, { useLayoutEffect, useMemo } from 'react';
 import {
   Alert,
@@ -11,14 +10,10 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import type { RootStackParamList } from '../types';
-import ConnectScreen from './ConnectScreen';
-import { useSettings } from '../contexts/SettingsContext';
 import { Colors } from '../constants/colors';
-
-type PaymentsListDefaultFilters = NonNullable<
-  ComponentProps<typeof ConnectPayments>['defaultFilters']
->;
+import { useSettings } from '../contexts/SettingsContext';
+import type { PaymentsListDefaultFilters, RootStackParamList } from '../types';
+import ConnectScreen from './ConnectScreen';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Payments'>;
 
@@ -102,17 +97,11 @@ const PaymentsScreen: React.FC = () => {
       }
     }
 
-    // Convert status filter
-    if (paymentsFilterSettings.selectedStatuses.length > 0) {
-      filters.status = paymentsFilterSettings.selectedStatuses as any;
-    }
+    // Status filter
+    filters.status = paymentsFilterSettings.selectedStatuses;
 
-    // Convert payment method filter
-    if (paymentsFilterSettings.paymentMethod !== undefined) {
-      filters.paymentMethod = paymentsFilterSettings.paymentMethod
-        .toLowerCase()
-        .replace(/ /g, '_') as any;
-    }
+    // Payment method filter
+    filters.paymentMethod = paymentsFilterSettings.paymentMethod;
 
     // Return undefined if no filters are set
     return Object.keys(filters).length > 0 ? filters : undefined;

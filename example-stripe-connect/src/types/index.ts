@@ -1,3 +1,15 @@
+import { ConnectPayments } from '@stripe/stripe-react-native';
+import { ComponentProps } from 'react';
+import { APPEARANCE_PRESETS } from '../constants/appearancePresets';
+
+export type PaymentsListDefaultFilters = NonNullable<
+  ComponentProps<typeof ConnectPayments>['defaultFilters']
+>;
+
+export type PaymentMethod = NonNullable<
+  PaymentsListDefaultFilters['paymentMethod']
+>;
+
 // Navigation types
 export type RootStackParamList = {
   Home: undefined;
@@ -10,7 +22,6 @@ export type RootStackParamList = {
   ConfigureAppearance: undefined;
 };
 
-import { APPEARANCE_PRESETS } from '../constants/appearancePresets';
 export type AppearancePreset = keyof typeof APPEARANCE_PRESETS;
 
 // Onboarding settings
@@ -32,19 +43,9 @@ export type AmountFilterType =
   | 'between';
 export type DateFilterType = 'before' | 'after' | 'between';
 
-export type PaymentStatus =
-  | 'blocked'
-  | 'canceled'
-  | 'disputed'
-  | 'early_fraud_warning'
-  | 'failed'
-  | 'incomplete'
-  | 'partially_refunded'
-  | 'pending'
-  | 'refund_pending'
-  | 'refunded'
-  | 'successful'
-  | 'uncaptured';
+export type PaymentStatus = NonNullable<
+  PaymentsListDefaultFilters['status']
+>[number];
 
 // Payment filter settings
 export interface PaymentsFilterSettings {
@@ -57,7 +58,7 @@ export interface PaymentsFilterSettings {
   startDate?: string;
   endDate?: string;
   selectedStatuses: PaymentStatus[];
-  paymentMethod?: string;
+  paymentMethod?: PaymentMethod;
 }
 
 // Re-export MerchantInfo from API

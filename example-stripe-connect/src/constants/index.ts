@@ -1,9 +1,10 @@
 import type {
-  OnboardingSettings,
-  PaymentsFilterSettings,
-  PaymentStatus,
   AmountFilterType,
   DateFilterType,
+  OnboardingSettings,
+  PaymentMethod,
+  PaymentsFilterSettings,
+  PaymentStatus,
 } from '../types';
 import { APPEARANCE_PRESETS } from './appearancePresets';
 
@@ -27,23 +28,27 @@ export const DEFAULT_PAYMENTS_FILTER_SETTINGS: PaymentsFilterSettings = {
   paymentMethod: undefined,
 };
 
-export const PAYMENT_STATUSES: Array<{
-  value: PaymentStatus;
-  label: string;
-}> = [
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'canceled', label: 'Canceled' },
-  { value: 'disputed', label: 'Disputed' },
-  { value: 'early_fraud_warning', label: 'Early Fraud Warning' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'incomplete', label: 'Incomplete' },
-  { value: 'partially_refunded', label: 'Partially Refunded' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'refund_pending', label: 'Refund Pending' },
-  { value: 'refunded', label: 'Refunded' },
-  { value: 'successful', label: 'Successful' },
-  { value: 'uncaptured', label: 'Uncaptured' },
-];
+// Configuration object mapping payment status types to display labels
+// TypeScript will error if a new PaymentStatus is added to the SDK but not handled here
+const PAYMENT_STATUSES_CONFIG: Record<PaymentStatus, string> = {
+  blocked: 'Blocked',
+  canceled: 'Canceled',
+  disputed: 'Disputed',
+  early_fraud_warning: 'Early Fraud Warning',
+  failed: 'Failed',
+  incomplete: 'Incomplete',
+  partially_refunded: 'Partially Refunded',
+  pending: 'Pending',
+  refund_pending: 'Refund Pending',
+  refunded: 'Refunded',
+  successful: 'Successful',
+  uncaptured: 'Uncaptured',
+};
+
+// Export the payment statuses as an array of objects with value and label
+export const PAYMENT_STATUSES = Object.entries(PAYMENT_STATUSES_CONFIG).map(
+  ([value, label]) => ({ value: value as PaymentStatus, label })
+);
 
 export const AMOUNT_FILTER_TYPES: Array<{
   value: AmountFilterType;
@@ -64,19 +69,103 @@ export const DATE_FILTER_TYPES: Array<{
   { value: 'between', label: 'Between' },
 ];
 
-export const PAYMENT_METHODS = [
-  'None',
-  'Ach Credit Transfer',
-  'Ach Debit',
-  'Acss Debit',
-  'Affirm',
-  'Afterpay Clearpay',
-  'Alipay',
-  'Alma',
-  'Amazon Pay',
-  'Amex Express Checkout',
-  'Android Pay',
-] as const;
+// Configuration object mapping payment method types to display labels
+// TypeScript will error if a new PaymentMethod is added to the SDK but not handled here
+const PAYMENT_METHODS_CONFIG: Record<
+  NonNullable<PaymentMethod> | 'none',
+  string
+> = {
+  none: 'None',
+  ach_credit_transfer: 'Ach Credit Transfer',
+  ach_debit: 'Ach Debit',
+  acss_debit: 'Acss Debit',
+  affirm: 'Affirm',
+  afterpay_clearpay: 'Afterpay Clearpay',
+  alipay: 'Alipay',
+  alma: 'Alma',
+  amazon_pay: 'Amazon Pay',
+  amex_express_checkout: 'Amex Express Checkout',
+  android_pay: 'Android Pay',
+  apple_pay: 'Apple Pay',
+  au_becs_debit: 'Au Becs Debit',
+  nz_bank_account: 'NZ Bank Account',
+  bancontact: 'Bancontact',
+  bacs_debit: 'Bacs Debit',
+  bitcoin_source: 'Bitcoin Source',
+  bitcoin: 'Bitcoin',
+  blik: 'Blik',
+  boleto: 'Boleto',
+  boleto_pilot: 'Boleto Pilot',
+  card_present: 'Card Present',
+  card: 'Card',
+  cashapp: 'Cash App',
+  crypto: 'Crypto',
+  customer_balance: 'Customer Balance',
+  demo_pay: 'Demo Pay',
+  dummy_passthrough_card: 'Dummy Passthrough Card',
+  gbp_credit_transfer: 'GBP Credit Transfer',
+  google_pay: 'Google Pay',
+  eps: 'EPS',
+  fpx: 'FPX',
+  giropay: 'Giropay',
+  grabpay: 'GrabPay',
+  ideal: 'iDEAL',
+  id_bank_transfer: 'ID Bank Transfer',
+  id_credit_transfer: 'ID Credit Transfer',
+  jp_credit_transfer: 'JP Credit Transfer',
+  interac_present: 'Interac Present',
+  kakao_pay: 'Kakao Pay',
+  klarna: 'Klarna',
+  konbini: 'Konbini',
+  kr_card: 'KR Card',
+  kr_market: 'KR Market',
+  link: 'Link',
+  masterpass: 'Masterpass',
+  mb_way: 'MB Way',
+  meta_pay: 'Meta Pay',
+  multibanco: 'Multibanco',
+  mobilepay: 'MobilePay',
+  naver_pay: 'Naver Pay',
+  netbanking: 'Netbanking',
+  ng_bank: 'NG Bank',
+  ng_bank_transfer: 'NG Bank Transfer',
+  ng_card: 'NG Card',
+  ng_market: 'NG Market',
+  ng_ussd: 'NG USSD',
+  vipps: 'Vipps',
+  oxxo: 'OXXO',
+  p24: 'Przelewy24',
+  payto: 'PayTo',
+  pay_by_bank: 'Pay By Bank',
+  paper_check: 'Paper Check',
+  payco: 'Payco',
+  paynow: 'PayNow',
+  paypal: 'PayPal',
+  pix: 'Pix',
+  promptpay: 'PromptPay',
+  revolut_pay: 'Revolut Pay',
+  samsung_pay: 'Samsung Pay',
+  sepa_credit_transfer: 'SEPA Credit Transfer',
+  sepa_debit: 'SEPA Debit',
+  sofort: 'Sofort',
+  south_korea_market: 'South Korea Market',
+  swish: 'Swish',
+  three_d_secure: '3D Secure',
+  three_d_secure_2: '3D Secure 2',
+  three_d_secure_2_eap: '3D Secure 2 EAP',
+  twint: 'TWINT',
+  upi: 'UPI',
+  us_bank_account: 'US Bank Account',
+  visa_checkout: 'Visa Checkout',
+  wechat: 'WeChat',
+  wechat_pay: 'WeChat Pay',
+  zip: 'Zip',
+};
+
+// Export the payment methods as an array of objects with value and label
+export const PAYMENT_METHODS = Object.entries(PAYMENT_METHODS_CONFIG).map(
+  ([value, label]) => ({ value, label })
+);
 
 export const STORAGE_KEYS = {
   SELECTED_MERCHANT_ID: '@stripe_connect_demo:selected_merchant_id',
