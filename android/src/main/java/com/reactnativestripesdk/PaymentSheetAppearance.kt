@@ -559,6 +559,7 @@ private fun getFontResId(
     )
   }
 
+  @SuppressLint("DiscouragedApi")
   val id = context.resources.getIdentifier(fontFileName, "font", context.packageName)
   if (id == 0) {
     throw PaymentSheetAppearanceException("$fontErrorPrefix Failed to find font: $fontFileName")

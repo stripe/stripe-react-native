@@ -36,6 +36,7 @@ import com.stripe.android.view.CardInputListener
 class CardFormView(
   private val context: ThemedReactContext,
 ) : FrameLayout(context) {
+  @SuppressLint("PrivateResource")
   private var cardForm: CardFormView =
     CardFormView(context, null, com.stripe.android.R.style.StripeCardFormView_Borderless)
   private var dangerouslyGetFullCardDetails: Boolean = false
@@ -132,7 +133,7 @@ class CardFormView(
       ?.dispatchEvent(CardFocusChangeEvent(context.surfaceId, id, currentFocusedField))
   }
 
-  @SuppressLint("RestrictedApi")
+  @SuppressLint("RestrictedApi", "VisibleForTests")
   fun setCardStyle(value: ReadableMap?) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
@@ -335,7 +336,7 @@ class CardFormView(
       )
   }
 
-  @SuppressLint("RestrictedApi")
+  @SuppressLint("RestrictedApi", "VisibleForTests")
   private fun createPostalCodeInputFilter(): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       if (cardFormViewBinding.countryLayout.getSelectedCountryCode() == CountryCode.US) {

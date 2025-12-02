@@ -134,6 +134,7 @@ class AddToWalletButtonView(
         GlideUrl(it)
       } else {
         // Release mode, Image.resolveAssetSource resolves to a drawable resource
+        @SuppressLint("DiscouragedApi")
         context.resources.getIdentifier(it, "drawable", context.packageName)
       }
     }

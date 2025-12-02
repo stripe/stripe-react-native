@@ -125,6 +125,7 @@ class GooglePayRequestHelper {
       request: Task<PaymentData>,
       activity: FragmentActivity,
     ) {
+      @Suppress("DEPRECATION")
       AutoResolveHelper.resolveTask(request, activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
     }
 
