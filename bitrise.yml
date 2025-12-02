@@ -122,6 +122,10 @@ workflows:
           title: Check Android Code Formatting
           inputs:
             - content: yarn format:android:check
+      - script@1:
+          title: Check Android Lint
+          inputs:
+            - content: yarn lint:android
       - android-unit-test:
           inputs:
             - project_location: $BITRISE_SOURCE_DIR/example/android

@@ -34,6 +34,7 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOrNull
+import com.reactnativestripesdk.utils.getLongOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -162,7 +163,7 @@ class StripeSdkModule(
 
   private fun configure3dSecure(params: ReadableMap) {
     val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
-    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
+    params.getIntOrNull("timeout")?.let { stripe3dsConfigBuilder.setTimeout(it) }
     val uiCustomization = mapToUICustomization(params)
 
     PaymentAuthConfig.init(
@@ -243,10 +244,10 @@ class StripeSdkModule(
       return
     }
 
-    val timeoutKey = "timeout"
-    if (options.hasKey(timeoutKey)) {
+    val timeout = options.getLongOrNull("timeout")
+    if (timeout != null) {
       paymentSheetManager?.presentWithTimeout(
-        options.getInt(timeoutKey).toLong(),
+        timeout,
         promise,
       )
     } else {
@@ -1128,7 +1129,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    val timeout = params.getIntOrNull("timeout")?.toLong()
+    val timeout = params.getLongOrNull("timeout")
     customerSheetManager?.present(promise, timeout) ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
     }
@@ -1375,7 +1376,7 @@ class StripeSdkModule(
    * provided will be resolved with an error message instructing the user to retry the method.
    */
   private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (currentActivity as? FragmentActivity)?.let {
+    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
       return it
     }
     promise?.resolve(createMissingActivityError())
@@ -1429,14 +1430,14 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
           it,
         )
       }

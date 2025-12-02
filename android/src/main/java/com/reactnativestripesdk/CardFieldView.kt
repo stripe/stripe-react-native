@@ -2,13 +2,13 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Build
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.FrameLayout
+import androidx.core.graphics.toColorInt
 import androidx.core.os.LocaleListCompat
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
@@ -124,19 +124,19 @@ class CardFieldView(
 
     textColor?.let {
       for (editTextBinding in bindings) {
-        editTextBinding.setTextColor(Color.parseColor(it))
+        editTextBinding.setTextColor(it.toColorInt())
       }
     }
     textErrorColor?.let {
       for (editTextBinding in bindings) {
-        editTextBinding.setErrorColor(Color.parseColor(it))
+        editTextBinding.setErrorColor(it.toColorInt())
       }
     }
     placeholderColor?.let {
       for (editTextBinding in bindings) {
-        editTextBinding.setHintTextColor(Color.parseColor(it))
+        editTextBinding.setHintTextColor(it.toColorInt())
       }
-      setCardBrandTint(Color.parseColor(it))
+      setCardBrandTint(it.toColorInt())
     }
     fontSize?.let {
       for (editTextBinding in bindings) {
@@ -158,7 +158,7 @@ class CardFieldView(
     }
     cursorColor?.let {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val color = Color.parseColor(it)
+        val color = it.toColorInt()
         for (editTextBinding in bindings) {
           editTextBinding.textCursorDrawable?.setTint(color)
           editTextBinding.textSelectHandle?.setTint(color)
@@ -178,16 +178,16 @@ class CardFieldView(
           .build(),
       ).also { shape ->
         shape.strokeWidth = 0.0f
-        shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
-        shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+        shape.strokeColor = ColorStateList.valueOf("#000000".toColorInt())
+        shape.fillColor = ColorStateList.valueOf("#FFFFFF".toColorInt())
         borderWidth?.let {
           shape.strokeWidth = PixelUtil.toPixelFromDIP(it.toDouble())
         }
         borderColor?.let {
-          shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
+          shape.strokeColor = ColorStateList.valueOf(it.toColorInt())
         }
         backgroundColor?.let {
-          shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
+          shape.fillColor = ColorStateList.valueOf(it.toColorInt())
         }
       }
   }
@@ -234,7 +234,7 @@ class CardFieldView(
   fun setPostalCodeEnabled(isEnabled: Boolean) {
     mCardWidget.postalCodeEnabled = isEnabled
 
-    if (isEnabled == false) {
+    if (!isEnabled) {
       mCardWidget.postalCodeRequired = false
     }
   }
@@ -284,6 +284,7 @@ class CardFieldView(
 
     mCardWidget.paymentMethodCreateParams?.let {
       cardDetails["brand"] = mapCardBrand(mCardWidget.brand)
+      @SuppressLint("RestrictedApi")
       cardDetails["last4"] = it.cardLast4()
     } ?: run {
       cardDetails["brand"] = null
@@ -354,6 +355,7 @@ class CardFieldView(
           CardValidCallback.Fields.Expiry,
           cardInputWidgetBinding.expiryDateEditText,
         )
+      @SuppressLint("VisibleForTests")
       cardDetails["brand"] = mapCardBrand(cardInputWidgetBinding.cardNumberEditText.cardBrand)
 
       if (isValid) {

@@ -2,12 +2,12 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.view.MotionEvent
 import android.webkit.URLUtil
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.graphics.toColorInt
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -19,6 +19,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.getDoubleOr
 
 @SuppressLint("ViewConstructor")
 class AddToWalletButtonView(
@@ -85,7 +86,7 @@ class AddToWalletButtonView(
       loadedSource = null
     } else if (sourceToLoad != loadedSource || (heightOverride > 0 || widthOverride > 0)) {
       loadedSource = sourceToLoad
-      val scale = sourceMap?.getDouble("scale") ?: 1.0
+      val scale = sourceMap.getDoubleOr("scale", 1.0)
 
       requestManager
         .load(sourceToLoad)
@@ -112,7 +113,7 @@ class AddToWalletButtonView(
             ): Boolean {
               setImageDrawable(
                 RippleDrawable(
-                  ColorStateList.valueOf(Color.parseColor("#e0e0e0")),
+                  ColorStateList.valueOf("#e0e0e0".toColorInt()),
                   resource,
                   null,
                 ),
@@ -133,6 +134,7 @@ class AddToWalletButtonView(
         GlideUrl(it)
       } else {
         // Release mode, Image.resolveAssetSource resolves to a drawable resource
+        @SuppressLint("DiscouragedApi")
         context.resources.getIdentifier(it, "drawable", context.packageName)
       }
     }
