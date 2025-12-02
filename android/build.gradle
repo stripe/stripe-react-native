@@ -111,6 +111,8 @@ android {
 
   lintOptions {
     disable 'GradleCompatible'
+    textReport true
+    textOutput 'stdout'
   }
 
   compileOptions {
@@ -246,3 +248,12 @@ dependencies {
   implementation "androidx.compose.ui:ui:1.7.8"
   implementation "androidx.compose.foundation:foundation-layout:1.7.8"
 }
+
+// Custom lint rules - include lint JAR when available
+def lintRulesJar = file("$projectDir/lint-rules/build/libs/lint-rules-1.0.0.jar")
+if (lintRulesJar.exists()) {
+  dependencies {
+    lintChecks files(lintRulesJar)
+  }
+}
+

@@ -1,0 +1,26 @@
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+group = 'com.reactnativestripesdk'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    compileOnly "com.android.tools.lint:lint-api:31.7.3"
+    compileOnly "com.android.tools.lint:lint-checks:31.7.3"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
+
+    testImplementation "com.android.tools.lint:lint:31.7.3"
+    testImplementation "com.android.tools.lint:lint-tests:31.7.3"
+    testImplementation "junit:junit:4.13.2"
+}
+
+jar {
+    manifest {
+        attributes("Lint-Registry-v2": "com.reactnativestripesdk.lint.StripeSdkIssueRegistry")
+    }
+}

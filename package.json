@@ -32,6 +32,7 @@
     "test-android": "maestro test -e APP_ID=com.stripe.react.native",
     "format:android:check": "cd android && ./gradlew spotlessCheck",
     "format:android:write": "cd android && ./gradlew spotlessApply",
+    "lint:android": "cd android && ./gradlew :lint-rules:jar && cd ../example/android && ./gradlew :stripe_stripe-react-native:lint",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
     "format:ios:write": "./scripts/format-changed-ios"
   },

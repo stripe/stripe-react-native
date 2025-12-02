@@ -344,7 +344,7 @@ class EmbeddedPaymentElementView(
     }
 
     Box {
-      measuredEmbeddedElement(
+      MeasuredEmbeddedElement(
         reportHeightChange = { h -> reportHeightChange(h) },
       ) {
         embedded.Content()
@@ -353,7 +353,7 @@ class EmbeddedPaymentElementView(
   }
 
   @Composable
-  private fun measuredEmbeddedElement(
+  private fun MeasuredEmbeddedElement(
     reportHeightChange: (Float) -> Unit,
     content: @Composable () -> Unit,
   ) {

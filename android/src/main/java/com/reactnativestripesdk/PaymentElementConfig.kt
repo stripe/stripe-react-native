@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOr
+import com.reactnativestripesdk.utils.getIntOrNull
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isEmpty
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
@@ -38,7 +39,7 @@ private fun buildIntentConfigurationMode(modeParams: ReadableMap): PaymentSheet.
           "You must provide a value to intentConfiguration.mode.currencyCode",
         )
     PaymentSheet.IntentConfiguration.Mode.Payment(
-      amount = modeParams.getInt("amount").toLong(),
+      amount = (modeParams.getIntOrNull("amount") ?: 0).toLong(),
       currency = currencyCode,
       setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
       captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),

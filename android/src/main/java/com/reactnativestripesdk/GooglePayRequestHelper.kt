@@ -15,6 +15,7 @@ import com.google.android.gms.wallet.WalletConstants
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.getBooleanOr
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapFromShippingContact
 import com.reactnativestripesdk.utils.mapFromToken
@@ -58,7 +59,7 @@ class GooglePayRequestHelper {
         Wallet.WalletOptions
           .Builder()
           .setEnvironment(
-            if (googlePayParams.getBoolean("testEnv")) {
+            if (googlePayParams.getBooleanOr("testEnv", false)) {
               WalletConstants.ENVIRONMENT_TEST
             } else {
               WalletConstants.ENVIRONMENT_PRODUCTION
@@ -107,7 +108,7 @@ class GooglePayRequestHelper {
     private fun buildTransactionInfo(params: ReadableMap): GooglePayJsonFactory.TransactionInfo {
       val countryCode = params.getString("merchantCountryCode").orEmpty()
       val currencyCode = params.getString("currencyCode") ?: "USD"
-      val amount = params.getInt("amount")
+      val amount = params.getIntOr("amount", 0)
       val label = params.getString("label")
 
       return GooglePayJsonFactory.TransactionInfo(

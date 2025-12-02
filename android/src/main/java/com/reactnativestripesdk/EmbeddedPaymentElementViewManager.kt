@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
@@ -153,13 +152,7 @@ class EmbeddedPaymentElementViewManager :
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(map))
         .embeddedViewDisplaysMandateText(
-          if (map.hasKey("embeddedViewDisplaysMandateText") &&
-            map.getType("embeddedViewDisplaysMandateText") == ReadableType.Boolean
-          ) {
-            map.getBoolean("embeddedViewDisplaysMandateText")
-          } else {
-            true // default value
-          },
+          map.getBooleanOr("embeddedViewDisplaysMandateText", true),
         ).customPaymentMethods(
           parseCustomPaymentMethods(
             map.getMap("customPaymentMethodConfiguration"),

@@ -162,7 +162,7 @@ class StripeSdkModule(
 
   private fun configure3dSecure(params: ReadableMap) {
     val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
-    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
+    params.getIntOrNull("timeout")?.let { stripe3dsConfigBuilder.setTimeout(it) }
     val uiCustomization = mapToUICustomization(params)
 
     PaymentAuthConfig.init(
@@ -243,10 +243,10 @@ class StripeSdkModule(
       return
     }
 
-    val timeoutKey = "timeout"
-    if (options.hasKey(timeoutKey)) {
+    val timeout = options.getIntOrNull("timeout")
+    if (timeout != null) {
       paymentSheetManager?.presentWithTimeout(
-        options.getInt(timeoutKey).toLong(),
+        timeout.toLong(),
         promise,
       )
     } else {
@@ -1375,7 +1375,7 @@ class StripeSdkModule(
    * provided will be resolved with an error message instructing the user to retry the method.
    */
   private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (currentActivity as? FragmentActivity)?.let {
+    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
       return it
     }
     promise?.resolve(createMissingActivityError())
@@ -1429,14 +1429,14 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
           it,
         )
       }

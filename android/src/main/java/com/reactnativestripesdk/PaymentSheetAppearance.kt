@@ -3,7 +3,7 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Color
+import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
@@ -48,6 +48,7 @@ fun buildPaymentSheetAppearance(
   return builder.build()
 }
 
+@SuppressLint("RestrictedApi")
 @OptIn(AppearanceAPIAdditionsPreview::class)
 private fun buildTypography(
   fontParams: ReadableMap?,
@@ -74,7 +75,7 @@ private fun buildTypography(
 private fun colorFromHex(hexString: String?): Int? =
   hexString?.trim()?.replace("#", "")?.let {
     if (it.length == 6 || it.length == 8) {
-      Color.parseColor("#$it")
+      "#$it".toColorInt()
     } else {
       throw PaymentSheetAppearanceException(
         "Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it",
@@ -82,6 +83,7 @@ private fun colorFromHex(hexString: String?): Int? =
     }
   }
 
+@SuppressLint("RestrictedApi")
 private fun buildColorsBuilder(
   isLightMode: Boolean,
   colorParams: ReadableMap?,
@@ -140,6 +142,7 @@ private fun buildColorsBuilder(
   return builder
 }
 
+@SuppressLint("RestrictedApi")
 private fun buildShapes(shapeParams: ReadableMap?): PaymentSheet.Shapes {
   val builder = PaymentSheet.Shapes.Builder()
 
@@ -154,6 +157,7 @@ private fun buildShapes(shapeParams: ReadableMap?): PaymentSheet.Shapes {
   return builder.build()
 }
 
+@SuppressLint("RestrictedApi")
 private fun buildPrimaryButton(
   params: ReadableMap?,
   context: Context,
@@ -189,6 +193,7 @@ private fun buildPrimaryButton(
   )
 }
 
+@SuppressLint("RestrictedApi")
 @Throws(PaymentSheetAppearanceException::class)
 private fun buildPrimaryButtonColors(
   isLightMode: Boolean,
@@ -322,7 +327,7 @@ private fun buildEmbeddedAppearance(
     }
 
     "flatWithCheckmark" -> {
-      val flatParams = rowParams?.getMap(PaymentSheetAppearanceKeys.FLAT)
+      val flatParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLAT)
       val checkmarkParams = flatParams?.getMap(PaymentSheetAppearanceKeys.CHECKMARK)
       val separatorInsetsParams =
         flatParams?.getMap(PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
@@ -389,7 +394,7 @@ private fun buildEmbeddedAppearance(
     }
 
     "flatWithDisclosure" -> {
-      val flatParams = rowParams?.getMap(PaymentSheetAppearanceKeys.FLAT)
+      val flatParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLAT)
       val disclosureParams = flatParams?.getMap(PaymentSheetAppearanceKeys.DISCLOSURE)
       val separatorInsetsParams =
         flatParams?.getMap(PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
@@ -523,6 +528,7 @@ private fun dynamicColorFromParams(
       } else {
         colorMap?.getString(PaymentSheetAppearanceKeys.LIGHT)
       }
+    colorMap
 
     return colorFromHex(hex)
   }
