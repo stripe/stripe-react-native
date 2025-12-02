@@ -528,7 +528,6 @@ private fun dynamicColorFromParams(
       } else {
         colorMap?.getString(PaymentSheetAppearanceKeys.LIGHT)
       }
-    colorMap
 
     return colorFromHex(hex)
   }

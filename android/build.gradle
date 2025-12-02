@@ -120,6 +120,10 @@ android {
     targetCompatibility JavaVersion.VERSION_1_8
   }
 
+  kotlinOptions {
+    allWarningsAsErrors = System.getenv("RN_STRIPE_WARNINGS_AS_ERRORS") == "true"
+  }
+
   buildFeatures {
     viewBinding true
     compose true
@@ -249,7 +253,6 @@ dependencies {
   implementation "androidx.compose.foundation:foundation-layout:1.7.8"
 }
 
-// Custom lint rules - include lint JAR when available
 def lintRulesJar = file("$projectDir/lint-rules/build/libs/lint-rules-1.0.0.jar")
 if (lintRulesJar.exists()) {
   dependencies {

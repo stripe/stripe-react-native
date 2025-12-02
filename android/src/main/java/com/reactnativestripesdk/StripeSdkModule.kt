@@ -34,6 +34,7 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOrNull
+import com.reactnativestripesdk.utils.getLongOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -243,10 +244,10 @@ class StripeSdkModule(
       return
     }
 
-    val timeout = options.getIntOrNull("timeout")
+    val timeout = options.getLongOrNull("timeout")
     if (timeout != null) {
       paymentSheetManager?.presentWithTimeout(
-        timeout.toLong(),
+        timeout,
         promise,
       )
     } else {
@@ -1128,7 +1129,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    val timeout = params.getIntOrNull("timeout")?.toLong()
+    val timeout = params.getLongOrNull("timeout")
     customerSheetManager?.present(promise, timeout) ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
     }
