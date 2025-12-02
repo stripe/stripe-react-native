@@ -3,9 +3,9 @@
 //  stripe-react-native-Unit-Tests
 //
 
-import XCTest
 @testable import stripe_react_native
 @_spi(PrivateBetaCustomerSheet) @_spi(STP) import StripePaymentSheet
+import XCTest
 
 class CustomerSheetUtilsTests: XCTestCase {
 
@@ -61,7 +61,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             "brand": "visa",
             "last4": "4242",
             "exp_month": 12,
-            "exp_year": 2025
+            "exp_year": 2025,
         ])
 
         let paymentMethod = STPPaymentMethod.decodedObject(fromAPIResponse: [
@@ -69,7 +69,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             "type": "card",
             "card": card?.allResponseFields ?? [:],
             "created": 1234567890,
-            "livemode": false
+            "livemode": false,
         ])
 
         let result = CustomerSheetUtils.buildPaymentOptionResult(
@@ -116,7 +116,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             "phone": "never",
             "email": "automatic",
             "address": "full",
-            "attachDefaultsToPaymentMethod": true
+            "attachDefaultsToPaymentMethod": true,
         ]
 
         let defaultBilling: NSDictionary = [
@@ -129,8 +129,8 @@ class CustomerSheetUtilsTests: XCTestCase {
                 "line1": "123 Main St",
                 "line2": "Apt 4",
                 "postalCode": "94102",
-                "state": "CA"
-            ]
+                "state": "CA",
+            ],
         ]
 
         // Card brand integers: 0=JCB, 1=amex, 2=cartesBancaires, 3=dinersClub, 4=discover, 5=mastercard, 6=unionPay, 7=visa, 8=unknown

@@ -5,9 +5,9 @@
 //  Created by Charles Cruzan on 10/13/22.
 //
 
-import XCTest
 @testable import stripe_react_native
 import StripePaymentSheet
+import XCTest
 
 class AddressSheetUtilsTests: XCTestCase {
     let testCity = "testCity"
@@ -41,9 +41,9 @@ class AddressSheetUtilsTests: XCTestCase {
                     "line1": testLine1,
                     "line2": testLine2,
                     "postalCode": testPostalCode,
-                    "state": testState
+                    "state": testState,
                 ],
-                "isCheckboxSelected": true
+                "isCheckboxSelected": true,
             ]
         )
 
@@ -82,9 +82,9 @@ class AddressSheetUtilsTests: XCTestCase {
                     "line1": testLine1,
                     "line2": testLine2,
                     "postalCode": testPostalCode,
-                    "state": testState
+                    "state": testState,
                 ],
-                "isCheckboxSelected": true
+                "isCheckboxSelected": true,
             ]
         )
 
@@ -103,7 +103,7 @@ class AddressSheetUtilsTests: XCTestCase {
         let result = AddressSheetUtils.buildAddressDetails(
             params: [
                 "name": testName,
-                "address": ["country": testCountry, "postalCode": testPostalCode]
+                "address": ["country": testCountry, "postalCode": testPostalCode],
             ]
         )
 
@@ -139,7 +139,7 @@ class AddressSheetUtilsTests: XCTestCase {
                 "line1": testLine1,
                 "line2": testLine2,
                 "postalCode": testPostalCode,
-                "state": testState
+                "state": testState,
             ]
         )
 
@@ -174,7 +174,7 @@ class AddressSheetUtilsTests: XCTestCase {
                 "line1": testLine1,
                 "line2": testLine2,
                 "postalCode": testPostalCode,
-                "state": testState
+                "state": testState,
             ]
         )
 
@@ -255,9 +255,9 @@ class AddressSheetUtilsTests: XCTestCase {
                         "line1": testLine1,
                         "line2": testLine2,
                         "postalCode": testPostalCode,
-                        "state": testState
-                    ]
-                ]
+                        "state": testState,
+                    ],
+                ],
             ] as NSDictionary
         )
     }

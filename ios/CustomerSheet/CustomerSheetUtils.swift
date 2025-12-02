@@ -19,7 +19,7 @@ class CustomerSheetUtils {
         merchantDisplayName: String?,
         billingDetailsCollectionConfiguration: NSDictionary?,
         defaultBillingDetails: NSDictionary?,
-        preferredNetworks: Array<Int>?,
+        preferredNetworks: [Int]?,
         allowsRemovalOfLastSavedPaymentMethod: Bool?,
         cardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     ) -> CustomerSheet.Configuration {
@@ -49,11 +49,11 @@ class CustomerSheetUtils {
             config.defaultBillingDetails.phone = defaultBillingDetails["phone"] as? String
             if let address = defaultBillingDetails["address"] as? [String: String] {
                 config.defaultBillingDetails.address = .init(city: address["city"],
-                                                          country: address["country"],
-                                                            line1: address["line1"],
-                                                            line2: address["line2"],
-                                                       postalCode: address["postalCode"],
-                                                            state: address["state"])
+                                                             country: address["country"],
+                                                             line1: address["line1"],
+                                                             line2: address["line2"],
+                                                             postalCode: address["postalCode"],
+                                                             state: address["state"])
             }
         }
         if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
@@ -62,7 +62,7 @@ class CustomerSheetUtils {
         config.cardBrandAcceptance = cardBrandAcceptance
         return config
     }
-    
+
     internal class func buildStripeCustomerAdapter(
         customerId: String,
         ephemeralKeySecret: String,
@@ -70,7 +70,7 @@ class CustomerSheetUtils {
         customerAdapter: NSDictionary,
         stripeSdk: StripeSdkImpl
     ) -> StripeCustomerAdapter {
-        if (customerAdapter.count > 0) {
+        if customerAdapter.count > 0 {
             return buildCustomerAdapterOverride(
                 customerAdapter: customerAdapter,
                 customerId: customerId,
@@ -79,7 +79,7 @@ class CustomerSheetUtils {
                 stripeSdk: stripeSdk
             )
         }
-        
+
         if let setupIntentClientSecret = setupIntentClientSecret {
             return StripeCustomerAdapter(
                 customerEphemeralKeyProvider: {
@@ -97,7 +97,7 @@ class CustomerSheetUtils {
             }
         )
     }
-    
+
     internal class func buildCustomerAdapterOverride(
         customerAdapter: NSDictionary,
         customerId: String,
@@ -120,7 +120,7 @@ class CustomerSheetUtils {
     }
 
     internal class func getModalPresentationStyle(_ string: String?) -> UIModalPresentationStyle {
-        switch (string) {
+        switch string {
         case "fullscreen":
             return .fullScreen
         case "pageSheet":
@@ -139,7 +139,7 @@ class CustomerSheetUtils {
     }
 
     internal class func getModalTransitionStyle(_ string: String?) -> UIModalTransitionStyle {
-        switch (string) {
+        switch string {
         case "flip":
             return .flipHorizontal
         case "curl":
@@ -153,21 +153,20 @@ class CustomerSheetUtils {
         }
     }
 
-    
     internal class func buildPaymentOptionResult(label: String, imageData: String?, paymentMethod: STPPaymentMethod?) -> NSMutableDictionary {
         let result: NSMutableDictionary = [:]
         let paymentOption: NSMutableDictionary = [:]
         paymentOption.setValue(label, forKey: "label")
-        if (imageData != nil) {
+        if imageData != nil {
             paymentOption.setValue(imageData, forKey: "image")
         }
         result.setValue(paymentOption, forKey: "paymentOption")
-        if (paymentMethod != nil) {
+        if paymentMethod != nil {
             result.setValue(Mappers.mapFromPaymentMethod(paymentMethod), forKey: "paymentMethod")
         }
         return result
     }
-    
+
     internal class func interpretResult(result: CustomerSheet.CustomerSheetResult) -> NSDictionary {
         var payload: NSMutableDictionary = [:]
         switch result {
