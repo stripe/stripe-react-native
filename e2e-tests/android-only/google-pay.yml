@@ -8,7 +8,9 @@ appId: ${APP_ID}
 # This at least allows us to verify that the Google Pay button is present and somewhat functional.
 
 # Donate with G Pay
-- tapOn: 'Donate with.*'
+- tapOn:
+    id: 'com.google.android.gms:id/pay_button_view'
+    index: 0
 - assertVisible: 'Google Pay requires a Google account to be set up on this device.'
 - tapOn: OK
 - assertVisible: 'Google Pay has been canceled'
@@ -24,7 +26,9 @@ appId: ${APP_ID}
 - tapOn: OK
 
 # Buy with G Pay
-- tapOn: 'Buy with.*'
+- tapOn:
+    id: 'com.google.android.gms:id/pay_button_view'
+    index: 2
 - assertVisible: 'Google Pay requires a Google account to be set up on this device.'
 - tapOn: OK
 - assertVisible: 'The payment has been canceled'
