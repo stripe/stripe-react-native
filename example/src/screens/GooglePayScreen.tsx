@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   AddToWalletButton,
   Constants,
@@ -28,7 +28,7 @@ export default function GooglePayScreen() {
     useState<null | GooglePayCardToken>(null);
   const [clientSecret, setClientSecret] = useState<String | null>(null);
 
-  useEffect(() => {
+  const onInit = useCallback(() => {
     fetchEphemeralKey();
     checkIfCardInWallet();
     checkIfGooglePayIsSupported();
@@ -198,7 +198,7 @@ export default function GooglePayScreen() {
   };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen onInit={onInit}>
       <View style={styles.row}>
         <PlatformPayButton
           disabled={!isGooglePaySupported || !clientSecret}
@@ -247,6 +247,7 @@ export default function GooglePayScreen() {
                   : 'Card was successfully added to the wallet.'
               );
             }}
+            accessibilityLabel="Add to Google Pay"
           />
         </View>
       )}
