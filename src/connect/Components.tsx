@@ -2,9 +2,11 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   SafeAreaView,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import type {
   CollectionOptions,
@@ -14,6 +16,7 @@ import type {
 } from './connectTypes';
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
 import { NavigationBar } from './NavigationBar';
+import NativeConnectAccountOnboardingView from '../specs/NativeConnectAccountOnboardingView';
 
 // Export NavigationBar for external use
 export { NavigationBar } from './NavigationBar';
@@ -58,7 +61,10 @@ export function ConnectAccountOnboarding({
 
   const onExitCallback = useCallback(() => {
     setVisible(false);
-    onExit();
+    // We don't call onExit immediately because onExit will unmount this component
+    // and first we need to the component to re-render to hide the modal,
+    // otherwise the modal will remain visible on screen.
+    setTimeout(onExit);
   }, [onExit]);
 
   const callbacks = useMemo(() => {
@@ -79,8 +85,42 @@ export function ConnectAccountOnboarding({
     [onLoaderStart]
   );
 
+  const { width, height } = useWindowDimensions();
+
+  const containerStyle = useMemo(() => ({ width, height }), [width, height]);
+
+  // iOS: Use native modal with native navigation bar
+  if (Platform.OS === 'ios') {
+    return (
+      <NativeConnectAccountOnboardingView
+        visible={visible}
+        title={title}
+        onExitAction={onExitCallback}
+        style={containerStyle}
+      >
+        {loading ? (
+          <ActivityIndicator size="large" style={styles.iosActivityIndicator} />
+        ) : null}
+        <EmbeddedComponent
+          component="account-onboarding"
+          componentProps={componentProps}
+          onLoaderStart={onLoaderStartCallback}
+          onLoadError={onLoadError}
+          onPageDidLoad={onPageDidLoad}
+          callbacks={callbacks}
+          style={containerStyle}
+        />
+      </NativeConnectAccountOnboardingView>
+    );
+  }
+
+  // Android: Use React Native Modal
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+    >
       <SafeAreaView style={styles.flex1}>
         <NavigationBar
           title={title}
@@ -199,6 +239,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     top: 48,
+  },
+  iosActivityIndicator: {
+    zIndex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 160,
   },
   onboardingWrapper: {
     position: 'relative',
