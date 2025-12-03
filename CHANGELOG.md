@@ -3,6 +3,7 @@
 ## x.x.x - x-x-x
 **Fixes**
 - Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
+- Fixed `confirmPlatformPayPayment` not resolving on Android.
 
 ## 0.57.0 - 2025-11-12
 **Changes**
