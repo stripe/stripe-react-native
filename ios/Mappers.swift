@@ -1217,9 +1217,9 @@ class Mappers {
         }
 
         let style: PaymentSheet.UserInterfaceStyle = switch params["style"] as? String ?? "" {
-            case "ALWAYS_LIGHT": .alwaysLight
-            case "ALWAYS_DARK": .alwaysDark
-            default: .automatic
+        case "ALWAYS_LIGHT": .alwaysLight
+        case "ALWAYS_DARK": .alwaysDark
+        default: .automatic
         }
 
         return LinkAppearance(
