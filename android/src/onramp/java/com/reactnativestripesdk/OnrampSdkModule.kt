@@ -100,7 +100,7 @@ class OnrampSdkModule(
    * provided will be resolved with an error message instructing the user to retry the method.
    */
   private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (currentActivity as? FragmentActivity)?.let {
+    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
       return it
     }
     promise?.resolve(createMissingActivityError())
@@ -113,7 +113,7 @@ class OnrampSdkModule(
     promise: Promise,
   ) {
     val application =
-      currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
+      reactApplicationContext.currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
       promise.resolve(createMissingActivityError())
       return
@@ -605,7 +605,7 @@ class OnrampSdkModule(
     }
 
     val icon =
-      currentActivity
+      reactApplicationContext.currentActivity
         ?.let { ContextCompat.getDrawable(it, paymentDetails.iconRes) }
         ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
 
@@ -792,7 +792,7 @@ class OnrampSdkModule(
       is OnrampCollectPaymentMethodResult.Completed -> {
         val displayData = Arguments.createMap()
         val icon =
-          currentActivity
+          reactApplicationContext.currentActivity
             ?.let { ContextCompat.getDrawable(it, result.displayData.iconRes) }
             ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
         displayData.putString("icon", icon)

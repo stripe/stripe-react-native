@@ -37,8 +37,7 @@ export interface AndroidNavigationBarProps {
 }
 
 export interface NavigationBarProps
-  extends IOSNavigationBarProps,
-    AndroidNavigationBarProps {
+  extends IOSNavigationBarProps, AndroidNavigationBarProps {
   headerText?: string;
   buttonText?: string;
   textColor?: string;
