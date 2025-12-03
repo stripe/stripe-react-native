@@ -19,14 +19,14 @@ stop_recording() {
       adb shell "rm -f /data/local/tmp/recording.mp4 /data/local/tmp/recording_pid.txt" 2>/dev/null || true
 
     elif [ "$PLATFORM" = "ios" ]; then
-      local pid="$RECORDING_PID"
+    local pid="$RECORDING_PID"
 
       if kill -0 "$pid" 2>/dev/null; then
-        # 1) Ask nicely with SIGINT to the whole process group
         echo "Sending SIGINT to recordVideo (pid=$pid)..."
+        # 1) Ask nicely with SIGINT to the whole process group
         kill -INT "-$pid" 2>/dev/null || true
 
-        # 2) Wait up to ~5 seconds for a clean shutdown
+        # 2) Wait up to ~5 seconds for it to exit on its own
         for i in {1..10}; do
           if ! kill -0 "$pid" 2>/dev/null; then
             break
@@ -45,16 +45,14 @@ stop_recording() {
         if kill -0 "$pid" 2>/dev/null; then
           echo "recordVideo still running, sending SIGKILL..." >&2
           kill -KILL "-$pid" 2>/dev/null || true
-          sleep 1
+          # no need to sleep long here; wait will reap it
         fi
       fi
 
-      # 5) Only wait if the process is actually gone, to avoid hanging forever
-      if ! kill -0 "$pid" 2>/dev/null; then
-        wait "$pid" 2>/dev/null || true
-      else
-        echo "recordVideo did not exit after SIGKILL; skipping wait to avoid hang" >&2
-      fi
+      # 5) Always wait here to reap the process (also handles zombies).
+      #    This should NOT hang: after SIGKILL the child must be reaped.
+      echo "Waiting for recordVideo (pid=$pid) to exit..."
+      wait "$pid" 2>/dev/null || true
     fi
 
     RECORDING_PID=""
