@@ -206,6 +206,7 @@ export default function GooglePayScreen() {
           type={PlatformPay.ButtonType.Donate}
           borderRadius={0}
           onPress={pay}
+          testID="donate-with-g-pay"
         />
       </View>
 
@@ -217,12 +218,14 @@ export default function GooglePayScreen() {
           appearance={PlatformPay.ButtonStyle.White}
           borderRadius={25}
           onPress={createPaymentMethod}
+          testID="pay-with-g-pay"
         />
 
         <PlatformPayButton
           disabled={!isGooglePaySupported}
           style={styles.buyButton}
           onPress={createToken}
+          testID="buy-with-g-pay"
         />
       </View>
       {showAddToWalletButton && isGooglePaySupported && (
@@ -247,7 +250,7 @@ export default function GooglePayScreen() {
                   : 'Card was successfully added to the wallet.'
               );
             }}
-            accessibilityLabel="Add to Google Pay"
+            testID="add-to-g-pay"
           />
         </View>
       )}

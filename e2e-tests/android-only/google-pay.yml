@@ -9,8 +9,7 @@ appId: ${APP_ID}
 
 # Donate with G Pay
 - tapOn:
-    id: 'com.google.android.gms:id/pay_button_view'
-    index: 0
+    id: 'donate-with-g-pay'
 - assertVisible: 'Google Pay requires a Google account to be set up on this device.'
 - tapOn: OK
 - assertVisible: 'Google Pay has been canceled'
@@ -18,8 +17,7 @@ appId: ${APP_ID}
 
 # G Pay logo only button
 - tapOn:
-    id: 'com.google.android.gms:id/pay_button_view'
-    index: 1
+    id: 'pay-with-g-pay'
 - assertVisible: 'Google Pay requires a Google account to be set up on this device.'
 - tapOn: OK
 - assertVisible: 'The payment has been canceled'
@@ -27,14 +25,14 @@ appId: ${APP_ID}
 
 # Buy with G Pay
 - tapOn:
-    id: 'com.google.android.gms:id/pay_button_view'
-    index: 2
+    id: 'buy-with-g-pay'
 - assertVisible: 'Google Pay requires a Google account to be set up on this device.'
 - tapOn: OK
 - assertVisible: 'The payment has been canceled'
 - tapOn: OK
 
 # Add to G Pay
-- tapOn: 'Add to Google Pay'
+- tapOn:
+    id: 'add-to-g-pay'
 - assertVisible: 'TAP_AND_PAY_UNAVAILABLE'
 - tapOn: OK
