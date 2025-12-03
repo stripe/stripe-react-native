@@ -13,20 +13,20 @@ public class AddressSheetView: UIView {
     @objc public var visible = false
     @objc public var presentationStyle: String = "popover"
     @objc public var animationStyle: String = ""
-    @objc public var appearance: NSDictionary? = nil
-    @objc public var defaultValues: NSDictionary? = nil
-    @objc public var additionalFields: NSDictionary? = nil
+    @objc public var appearance: NSDictionary?
+    @objc public var defaultValues: NSDictionary?
+    @objc public var additionalFields: NSDictionary?
     @objc public var allowedCountries: [String] = []
     @objc public var autocompleteCountries: [String] = []
-    @objc public var primaryButtonTitle: String? = nil
-    @objc public var sheetTitle: String? = nil
+    @objc public var primaryButtonTitle: String?
+    @objc public var sheetTitle: String?
     @objc public var onSubmitAction: RCTDirectEventBlock?
     @objc public var onErrorAction: RCTDirectEventBlock?
 
     private var wasVisible = false
-    private var addressViewController: AddressViewController? = nil
-    internal var addressDetails: AddressViewController.AddressDetails? = nil
-    
+    private var addressViewController: AddressViewController?
+    internal var addressDetails: AddressViewController.AddressDetails?
+
     override public init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -34,12 +34,12 @@ public class AddressSheetView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-  
+
     @objc public func didSetProps() {
-        if (visible && !wasVisible) {
+        if visible && !wasVisible {
             presentAddressSheet()
             wasVisible = true
-        } else if (!visible && wasVisible) {
+        } else if !visible && wasVisible {
             addressViewController?.dismiss(animated: true)
             wasVisible = false
         }
@@ -50,11 +50,11 @@ public class AddressSheetView: UIView {
         // by the view component.
         self.didSetProps()
     }
-    
+
     private func presentAddressSheet() {
-        if (STPAPIClient.shared.publishableKey == nil) {
+        if STPAPIClient.shared.publishableKey == nil {
             onErrorAction!(
-                Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.") as? [AnyHashable : Any]
+                Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.") as? [AnyHashable: Any]
             )
             return
         }
@@ -63,26 +63,26 @@ public class AddressSheetView: UIView {
             config = try buildAddressSheetConfiguration()
         } catch {
             onErrorAction!(
-                Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable : Any]
+                Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable: Any]
             )
             return
         }
-        
+
         self.addressViewController = AddressViewController(
             configuration: config,
             delegate: self
         )
-                
+
         let navigationController = UINavigationController(rootViewController: addressViewController!)
         navigationController.modalPresentationStyle = getModalPresentationStyle()
         navigationController.modalTransitionStyle = getModalTransitionStyle()
         let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
         vc.present(navigationController, animated: true)
     }
-    
+
     private func buildAddressSheetConfiguration() throws -> AddressViewController.Configuration {
         let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
-        
+
         return AddressViewController.Configuration(
             defaultValues: AddressSheetUtils.buildDefaultValues(params: defaultValues),
             additionalFields: AddressSheetUtils.buildAdditionalFieldsConfiguration(params: additionalFields),
@@ -90,11 +90,11 @@ public class AddressSheetView: UIView {
             appearance: appearanceConfiguration,
             buttonTitle: primaryButtonTitle,
             title: sheetTitle
-          )
+        )
     }
-    
+
     private func getModalPresentationStyle() -> UIModalPresentationStyle {
-        switch (presentationStyle) {
+        switch presentationStyle {
         case "fullscreen":
             return .fullScreen
         case "pageSheet":
@@ -111,9 +111,9 @@ public class AddressSheetView: UIView {
             return .popover
         }
     }
-    
+
     private func getModalTransitionStyle() -> UIModalTransitionStyle {
-        switch (animationStyle) {
+        switch animationStyle {
         case "flip":
             return .flipHorizontal
         case "curl":
@@ -135,7 +135,7 @@ extension AddressSheetView: AddressViewControllerDelegate {
                 Errors.createError(
                     ErrorType.Canceled,
                     "The flow has been canceled."
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             return
         }

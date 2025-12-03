@@ -4,6 +4,11 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
+### Prerequisites
+
+- Install swiftlint
+  - `brew install swiftlint`
+
 ### Running the example app
 
 - Install the dependencies

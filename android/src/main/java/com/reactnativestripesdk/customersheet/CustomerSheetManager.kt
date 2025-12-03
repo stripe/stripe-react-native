@@ -125,7 +125,10 @@ class CustomerSheetManager(
       val customerId = arguments.getString("customerId")
       if (customerId == null) {
         initPromise.resolve(
-          createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
+          createError(
+            ErrorType.Failed.toString(),
+            "When using `customerEphemeralKeySecret` you must provide a value for `customerId`",
+          ),
         )
         return
       }

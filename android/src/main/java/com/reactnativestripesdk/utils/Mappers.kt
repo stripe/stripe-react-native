@@ -235,7 +235,6 @@ internal fun mapTokenType(type: Token.Type): String =
     Token.Type.CvcUpdate -> "CvcUpdate"
     Token.Type.Person -> "Person"
     Token.Type.Pii -> "Pii"
-    else -> "Unknown"
   }
 
 internal fun mapFromBankAccountType(type: BankAccount.Type?): String =
@@ -698,14 +697,17 @@ internal fun mapToBillingDetails(
   return paymentMethodBillingDetailsBuilder.build()
 }
 
-internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? = metadata?.toHashMap()?.mapValues { it.value.toString() }
+internal fun mapToMetadata(metadata: ReadableMap?): Map<String, String>? =
+  metadata?.toHashMap()?.mapValues {
+    it.value.toString()
+  }
 
 internal fun mapToShippingDetails(shippingDetails: ReadableMap?): ConfirmPaymentIntentParams.Shipping? {
   if (shippingDetails == null) {
     return null
   }
 
-  val address = mapToAddress(shippingDetails?.getMap("address"), null)
+  val address = mapToAddress(shippingDetails.getMap("address"), null)
 
   return ConfirmPaymentIntentParams.Shipping(
     name = getValOr(shippingDetails, "name") ?: "",
@@ -951,7 +953,7 @@ internal fun mapFromShippingContact(googlePayResult: GooglePayResult): WritableM
   postalAddress.putString("state", googlePayResult.shippingInformation?.address?.state)
   val line1: String? = googlePayResult.shippingInformation?.address?.line1
   val line2: String? = googlePayResult.shippingInformation?.address?.line2
-  val street = (if (line1 != null) "$line1" else "") + (if (line2 != null) "\n$line2" else "")
+  val street = (line1 ?: "") + (if (line2 != null) "\n$line2" else "")
   postalAddress.putString("street", street)
   postalAddress.putString("isoCountryCode", googlePayResult.shippingInformation?.address?.country)
   map.putMap("postalAddress", postalAddress)
@@ -998,6 +1000,7 @@ private fun List<Any?>.toWritableArray(): WritableArray {
   val writableArray = Arguments.createArray()
 
   forEach { value ->
+    @Suppress("UNCHECKED_CAST")
     when (value) {
       null -> writableArray.pushNull()
       is Boolean -> writableArray.pushBoolean(value)
@@ -1005,7 +1008,7 @@ private fun List<Any?>.toWritableArray(): WritableArray {
       is Double -> writableArray.pushDouble(value)
       is String -> writableArray.pushString(value)
       is Map<*, *> -> writableArray.pushMap((value as Map<String, Any?>).toReadableMap())
-      is List<*> -> writableArray.pushArray((value as List<Any?>).toWritableArray())
+      is List<*> -> writableArray.pushArray(value.toWritableArray())
       else -> writableArray.pushString(value.toString())
     }
   }
@@ -1017,6 +1020,7 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
   val writableMap = Arguments.createMap()
 
   forEach { (key, value) ->
+    @Suppress("UNCHECKED_CAST")
     when (value) {
       null -> writableMap.putNull(key)
       is Boolean -> writableMap.putBoolean(key, value)
@@ -1024,7 +1028,7 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
       is Double -> writableMap.putDouble(key, value)
       is String -> writableMap.putString(key, value)
       is Map<*, *> -> writableMap.putMap(key, (value as Map<String, Any?>).toReadableMap())
-      is List<*> -> writableMap.putArray(key, (value as List<Any?>).toWritableArray())
+      is List<*> -> writableMap.putArray(key, value.toWritableArray())
       else -> writableMap.putString(key, value.toString())
     }
   }

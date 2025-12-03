@@ -93,7 +93,7 @@ extension StripeSdkImpl {
                   // Return an object with { status: 'failed', error }
                   resolve([
                     "status": "failed",
-                    "error": error.localizedDescription
+                    "error": error.localizedDescription,
                   ])
               }
           }
@@ -213,7 +213,7 @@ extension StripeSdkImpl {
         configuration.applePay = try ApplePayUtils.buildPaymentSheetApplePayConfig(
           merchantIdentifier: self.merchantIdentifier,
           merchantCountryCode: applePayParams["merchantCountryCode"] as? String,
-          paymentSummaryItems: applePayParams["cartItems"] as? [[String : Any]],
+          paymentSummaryItems: applePayParams["cartItems"] as? [[String: Any]],
           buttonType: applePayParams["buttonType"] as? NSNumber,
           customHandlers: buildCustomerHandlersForPaymentSheet(applePayParams: applePayParams)
         )
@@ -289,7 +289,7 @@ extension StripeSdkImpl {
       if customerEphemeralKeySecret != nil && customerClientSecret != nil {
         return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` and `customerSessionClientSecret cannot both be set"), configuration: nil)
       } else if let customerEphemeralKeySecret {
-        if (!Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret)) {
+        if !Errors.isEKClientSecretValid(clientSecret: customerEphemeralKeySecret) {
           return(error: Errors.createError(ErrorType.Failed, "`customerEphemeralKeySecret` format does not match expected client secret formatting."), configuration: nil)
         }
         configuration.customer = .init(id: customerId, ephemeralKeySecret: customerEphemeralKeySecret)
@@ -298,7 +298,7 @@ extension StripeSdkImpl {
       }
     }
 
-    if let preferredNetworksAsInts = params["preferredNetworks"] as? Array<Int> {
+    if let preferredNetworksAsInts = params["preferredNetworks"] as? [Int] {
       configuration.preferredNetworks = preferredNetworksAsInts.map(Mappers.intToCardBrand).compactMap { $0 }
     }
 
@@ -306,7 +306,7 @@ extension StripeSdkImpl {
       configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
     }
 
-    if let paymentMethodOrder = params["paymentMethodOrder"] as? Array<String> {
+    if let paymentMethodOrder = params["paymentMethodOrder"] as? [String] {
       configuration.paymentMethodOrder = paymentMethodOrder
     }
 
@@ -326,7 +326,7 @@ extension StripeSdkImpl {
           case .failed(let error):
             resultDict = [
               "status": "failed",
-              "error": error.localizedDescription
+              "error": error.localizedDescription,
             ]
           }
 

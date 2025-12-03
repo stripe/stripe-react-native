@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
 import com.facebook.react.bridge.ReactApplicationContext
 import com.reactnativestripesdk.utils.ErrorType
@@ -66,6 +67,7 @@ class CollectBankAccountLauncherManager(
   }
 
   private fun createBankAccountLauncher(activity: ComponentActivity): CollectBankAccountLauncher =
+    @SuppressLint("RestrictedApi")
     CollectBankAccountLauncher.create(activity, signal) { result ->
       when (result) {
         is CollectBankAccountResult.Completed -> {

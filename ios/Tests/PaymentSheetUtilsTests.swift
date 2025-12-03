@@ -1,6 +1,6 @@
-import XCTest
 @testable import stripe_react_native
 @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+import XCTest
 
 class PaymentSheetUtilsTests: XCTestCase {
 
@@ -179,7 +179,7 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "all"
-            ]
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -190,8 +190,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "allowed",
-                "brands": ["visa", "mastercard"]
-            ]
+                "brands": ["visa", "mastercard"],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -202,8 +202,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "allowed",
-                "brands": []
-            ]
+                "brands": [],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -214,8 +214,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "allowed",
-                "brands": ["invalid", "unknown"]
-            ]
+                "brands": ["invalid", "unknown"],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -226,8 +226,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "allowed",
-                "brands": ["visa", "invalid", "amex"]
-            ]
+                "brands": ["visa", "invalid", "amex"],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -238,8 +238,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "disallowed",
-                "brands": ["amex", "discover"]
-            ]
+                "brands": ["amex", "discover"],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -250,8 +250,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "disallowed",
-                "brands": []
-            ]
+                "brands": [],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -262,8 +262,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let params: NSDictionary = [
             "cardBrandAcceptance": [
                 "filter": "invalid",
-                "brands": ["visa"]
-            ]
+                "brands": ["visa"],
+            ],
         ]
 
         let result = StripeSdkImpl.computeCardBrandAcceptance(params: params)
@@ -280,8 +280,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let options: NSDictionary = [
             "setupFutureUsageValues": [
                 "card": "OffSession",
-                "us_bank_account": "OnSession"
-            ]
+                "us_bank_account": "OnSession",
+            ],
         ]
 
         let result = StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: options)
@@ -301,8 +301,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let options: NSDictionary = [
             "setupFutureUsageValues": [
                 "invalid_code": "OffSession",
-                "another_invalid": "OnSession"
-            ]
+                "another_invalid": "OnSession",
+            ],
         ]
 
         let result = StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: options)
@@ -314,8 +314,8 @@ class PaymentSheetUtilsTests: XCTestCase {
             "setupFutureUsageValues": [
                 "card": "OffSession",
                 "invalid_code": "OnSession",
-                "us_bank_account": "None"
-            ]
+                "us_bank_account": "None",
+            ],
         ]
 
         let result = StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: options)
@@ -326,8 +326,8 @@ class PaymentSheetUtilsTests: XCTestCase {
         let options: NSDictionary = [
             "setupFutureUsageValues": [
                 "card": "InvalidValue",
-                "us_bank_account": "OnSession"
-            ]
+                "us_bank_account": "OnSession",
+            ],
         ]
 
         let result = StripeSdkImpl.buildPaymentMethodOptions(paymentMethodOptionsParams: options)
@@ -368,8 +368,8 @@ class PaymentSheetUtilsTests: XCTestCase {
             "customPaymentMethods": [
                 [
                     "id": "cpmt_test123"
-                ]
-            ]
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)
@@ -382,9 +382,9 @@ class PaymentSheetUtilsTests: XCTestCase {
             "customPaymentMethods": [
                 [
                     "id": "cpmt_test123",
-                    "subtitle": "Pay later with installments"
-                ]
-            ]
+                    "subtitle": "Pay later with installments",
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)
@@ -398,9 +398,9 @@ class PaymentSheetUtilsTests: XCTestCase {
             "customPaymentMethods": [
                 [
                     "id": "cpmt_test123",
-                    "disableBillingDetailCollection": true
-                ]
-            ]
+                    "disableBillingDetailCollection": true,
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)
@@ -414,9 +414,9 @@ class PaymentSheetUtilsTests: XCTestCase {
             "customPaymentMethods": [
                 [
                     "id": "cpmt_test123",
-                    "disableBillingDetailCollection": false
-                ]
-            ]
+                    "disableBillingDetailCollection": false,
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)
@@ -430,17 +430,17 @@ class PaymentSheetUtilsTests: XCTestCase {
             "customPaymentMethods": [
                 [
                     "id": "cpmt_test1",
-                    "subtitle": "Method 1"
+                    "subtitle": "Method 1",
                 ],
                 [
                     "id": "cpmt_test2",
                     "subtitle": "Method 2",
-                    "disableBillingDetailCollection": true
+                    "disableBillingDetailCollection": true,
                 ],
                 [
                     "id": "cpmt_test3"
-                ]
-            ]
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)
@@ -461,8 +461,8 @@ class PaymentSheetUtilsTests: XCTestCase {
                 ],
                 [
                     "id": "cpmt_valid2"
-                ]
-            ]
+                ],
+            ],
         ]
 
         let result = StripeSdkImpl.parseCustomPaymentMethods(from: params)

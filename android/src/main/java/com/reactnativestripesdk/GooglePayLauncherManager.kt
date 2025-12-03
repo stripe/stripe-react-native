@@ -30,7 +30,7 @@ class GooglePayLauncherManager(
   private var configuration =
     GooglePayLauncher.Config(
       environment =
-        if (googlePayParams.getBoolean("testEnv")) {
+        if (googlePayParams.getBooleanOr("testEnv", false)) {
           GooglePayEnvironment.Test
         } else {
           GooglePayEnvironment.Production

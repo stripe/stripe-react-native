@@ -1,6 +1,6 @@
 import Foundation
-import UIKit
 import Stripe
+import UIKit
 
 @objc(CardFieldView)
 public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
@@ -10,8 +10,8 @@ public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
 
     private var cardField = STPPaymentCardTextField()
 
-    public var cardParams: STPPaymentMethodParams? = nil
-    public var cardPostalCode: String? = nil
+    public var cardParams: STPPaymentMethodParams?
+    public var cardPostalCode: String?
 
     @objc public var disabled: Bool = false {
         didSet {
@@ -37,7 +37,7 @@ public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
         }
     }
 
-    @objc public var preferredNetworks: Array<Int>? {
+    @objc public var preferredNetworks: [Int]? {
         didSet {
             if let preferredNetworks = preferredNetworks {
                 cardField.preferredNetworks = preferredNetworks.map(Mappers.intToCardBrand).compactMap { $0 }
@@ -170,18 +170,18 @@ public class CardFieldView: UIView, STPPaymentCardTextFieldDelegate {
                 "last4": textField.paymentMethodParams.card!.last4 ?? "",
                 "validExpiryDate": Mappers.mapFromCardValidationState(state: validExpiryDate),
                 "validCVC": Mappers.mapFromCardValidationState(state: validCVC),
-                "validNumber": Mappers.mapFromCardValidationState(state: validNumber)
+                "validNumber": Mappers.mapFromCardValidationState(state: validNumber),
             ]
-            if (cardField.postalCodeEntryEnabled) {
+            if cardField.postalCodeEntryEnabled {
                 cardData["postalCode"] = textField.postalCode ?? ""
             }
-            if (dangerouslyGetFullCardDetails) {
+            if dangerouslyGetFullCardDetails {
                 cardData["number"] = textField.cardNumber ?? ""
                 cardData["cvc"] = textField.cvc ?? ""
             }
-            onCardChange!(["card": cardData as [AnyHashable : Any]])
+            onCardChange!(["card": cardData as [AnyHashable: Any]])
         }
-        if (textField.isValid) {
+        if textField.isValid {
             self.cardParams = textField.paymentMethodParams
             self.cardPostalCode = textField.postalCode
         } else {

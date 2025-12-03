@@ -87,6 +87,12 @@ workflows:
       - _prepare_ios
     steps:
       - script@1:
+          title: Check iOS Code Formatting
+          inputs:
+            - content: |
+                brew install swiftlint
+                yarn format:ios:check
+      - script@1:
           title: Install Pods
           inputs:
             - content: yarn pods
@@ -116,6 +122,10 @@ workflows:
           title: Check Android Code Formatting
           inputs:
             - content: yarn format:android:check
+      - script@1:
+          title: Check Android Lint
+          inputs:
+            - content: yarn lint:android
       - android-unit-test:
           inputs:
             - project_location: $BITRISE_SOURCE_DIR/example/android

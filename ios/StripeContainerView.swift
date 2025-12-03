@@ -3,18 +3,18 @@ import UIKit
 
 @objc(StripeContainerView)
 public class StripeContainerView: UIView {
-    var tapRecognizer: UITapGestureRecognizer? = nil
+    var tapRecognizer: UITapGestureRecognizer?
 
     @objc public var keyboardShouldPersistTaps: Bool = true {
         didSet {
-            if (keyboardShouldPersistTaps == true) {
+            if keyboardShouldPersistTaps == true {
                 removeListener()
             } else {
                 setListener()
             }
         }
     }
-    
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
     }

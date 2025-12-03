@@ -11,8 +11,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.TextUnit
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
-import com.reactnativestripesdk.getBase64FromBitmap
-import com.reactnativestripesdk.getBitmapFromDrawable
 import com.reactnativestripesdk.utils.mapFromPaymentSheetBillingDetails
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +48,7 @@ suspend fun EmbeddedPaymentElement.PaymentOptionDisplayData.toWritableMap(): Wri
             getBase64FromBitmap(bitmap)
           } ?: ""
         }
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         // If imageLoader fails or times out, return empty string
         ""
       }
@@ -120,17 +118,17 @@ fun AnnotatedString.toHtmlString(): String {
           }
         }
         AnnotationType.STRING_ANNOTATION -> {
-          val stringAnnotation = annotation.data as AnnotatedString.Range<String>
+          val stringAnnotation = annotation.data as AnnotatedString.Range<*>
           when (stringAnnotation.tag) {
             "URL", "LINK_TAG" -> {
               val url = stringAnnotation.item
-              htmlBuilder.append("<a href=\"${escapeHtml(url)}\">")
+              htmlBuilder.append("<a href=\"${escapeHtml(url as String)}\">")
               openTags.add(TagInfo(annotation.end, "</a>"))
             }
           }
         }
         AnnotationType.LINK_ANNOTATION -> {
-          val linkAnnotation = annotation.data as AnnotatedString.Range<LinkAnnotation>
+          val linkAnnotation = annotation.data as AnnotatedString.Range<*>
           when (val linkItem = linkAnnotation.item) {
             is LinkAnnotation.Url -> {
               htmlBuilder.append("<a href=\"${escapeHtml(linkItem.url)}\">")

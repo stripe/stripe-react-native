@@ -32,10 +32,6 @@ class EventEmitterCompat(
     invoke("onFinancialConnectionsEvent", value)
   }
 
-  fun emitOnOrderTrackingCallback() {
-    invoke("onOrderTrackingCallback")
-  }
-
   fun emitOnCustomerAdapterFetchPaymentMethodsCallback() {
     invoke("onCustomerAdapterFetchPaymentMethodsCallback")
   }
@@ -70,10 +66,6 @@ class EventEmitterCompat(
 
   fun emitEmbeddedPaymentElementDidUpdateHeight(value: ReadableMap?) {
     invoke("embeddedPaymentElementDidUpdateHeight", value)
-  }
-
-  fun emitEmbeddedPaymentElementWillPresent() {
-    invoke("embeddedPaymentElementWillPresent")
   }
 
   fun emitEmbeddedPaymentElementDidUpdatePaymentOption(value: ReadableMap?) {

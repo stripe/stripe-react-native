@@ -6,8 +6,8 @@
 //  Copyright © 2022 Facebook. All rights reserved.
 //
 
-import XCTest
 @testable import stripe_react_native
+import XCTest
 
 class PushProvisioningTests: XCTestCase {
     func testCanAddCardToWalletInTestMode() throws {
@@ -18,7 +18,7 @@ class PushProvisioningTests: XCTestCase {
             XCTAssertEqual(status, nil)
         }
     }
-    
+
     func testCanAddCardToWalletInLiveMode() throws {
         PushProvisioningUtils.canAddCardToWallet(primaryAccountIdentifier: "",
                                                  testEnv: false,
@@ -27,21 +27,21 @@ class PushProvisioningTests: XCTestCase {
             XCTAssertEqual(status, PushProvisioningUtils.AddCardToWalletStatus.UNSUPPORTED_DEVICE)
         }
     }
-    
+
     func testCanAddPaymentPassInTestMode() throws {
         XCTAssertEqual(
             PushProvisioningUtils.canAddPaymentPass(isTestMode: true),
             true
         )
     }
-    
+
     func testCanAddPaymentPassInLiveMode() throws {
         XCTAssertEqual(
             PushProvisioningUtils.canAddPaymentPass(isTestMode: false),
             false
         )
     }
-    
+
     func testCheckIfPassExists() throws {
         XCTAssertEqual(
             PushProvisioningUtils.getPassLocation(last4: "4242"),
