@@ -6,9 +6,9 @@ import StripeFinancialConnections
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
 
-@_spi(STP) 
-@_spi(EmbeddedPaymentElementPrivateBeta) 
-@_spi(CustomerSessionBetaAccess) 
+@_spi(STP)
+@_spi(EmbeddedPaymentElementPrivateBeta)
+@_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
 import StripePaymentSheet
 #else
@@ -1184,7 +1184,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         config: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve) else {
             return
         }
@@ -1213,7 +1213,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         email: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1234,7 +1234,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         info: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1259,7 +1259,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     public func authenticateUser(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1289,7 +1289,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         _ linkAuthTokenClientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1311,7 +1311,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         network: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1338,7 +1338,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         info: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1371,7 +1371,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         updatedAddressDictionary: NSDictionary?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1416,7 +1416,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         phone: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1436,7 +1436,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     public func logout(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1456,7 +1456,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     public func verifyIdentity(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1486,7 +1486,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         platformPayParams: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1543,7 +1543,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     public func createCryptoPaymentToken(
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1564,7 +1564,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         onrampSessionId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1614,7 +1614,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         linkAuthIntentId: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
             return
         }
@@ -1646,7 +1646,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         token: NSDictionary,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         let label = STPPaymentMethodType.link.displayName
 
         if let cardDetails = token["card"] as? [String: Any] {
@@ -1710,22 +1710,22 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 #else
     @objc(configureOnramp:resolver:rejecter:)
-    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func configureOnramp(config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(hasLinkAccount:resolver:rejecter:)
-    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func hasLinkAccount(email: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(registerLinkUser:resolver:rejecter:)
-    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func registerLinkUser(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(authenticateUser:rejecter:)
-    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
@@ -1734,17 +1734,17 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         _ linkAuthTokenClientSecret: String,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(registerWalletAddress:network:resolver:rejecter:)
-    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func registerWalletAddress(address: String, network: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(attachKycInfo:resolver:rejecter:)
-    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func attachKycInfo(info: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
@@ -1753,37 +1753,37 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         updatedAddressDictionary: NSDictionary?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
-    ) -> Void {
+    ) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(updatePhoneNumber:resolver:rejecter:)
-    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func updatePhoneNumber(phone: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(logout:rejecter:)
-    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func logout(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(verifyIdentity:rejecter:)
-    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func verifyIdentity(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(collectPaymentMethod:platformPayParams:resolver:rejecter:)
-    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func collectPaymentMethod(paymentMethod: String, platformPayParams: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(createCryptoPaymentToken:rejecter:)
-    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func createCryptoPaymentToken(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
     @objc(performCheckout:resolver:rejecter:)
-    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func performCheckout(onrampSessionId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
@@ -1793,7 +1793,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     }
 
     @objc(onrampAuthorize:resolver:rejecter:)
-    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    public func onrampAuthorize(linkAuthIntentId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
@@ -1931,7 +1931,7 @@ private extension STPCardFundingType {
         case .other: String.Localized.Funding.default
         }
     }
-    
+
     init(_ typeString: String) {
         self = switch typeString {
         case "debit": .debit
