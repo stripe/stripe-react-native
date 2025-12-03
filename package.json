@@ -49,6 +49,7 @@
     "!android/.gradle",
     "!android/build",
     "!android/src/androidTest",
+    "!android/lint-rules",
     "!ios/build",
     "!ios/Tests",
     "!**/__tests__",
