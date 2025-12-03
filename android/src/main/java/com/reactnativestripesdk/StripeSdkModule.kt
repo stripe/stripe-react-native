@@ -760,6 +760,7 @@ class StripeSdkModule(
         return
       }
 
+    unregisterStripeUIManager(googlePayLauncherManager)
     googlePayLauncherManager =
       GooglePayLauncherManager(
         reactApplicationContext,
@@ -829,6 +830,9 @@ class StripeSdkModule(
             }
           }
         }
+      }.also {
+        registerStripeUIManager(it)
+        it.present()
       }
   }
 

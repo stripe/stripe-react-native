@@ -64,7 +64,7 @@ class AddToWalletButtonManager(
     view: AddToWalletButtonView,
     ephemeralKey: Dynamic,
   ) {
-    val map = ephemeralKey.asMap()
+    val map = ephemeralKey.asMapOrNull()
     if (map == null) return
     view.setEphemeralKey(map)
   }
@@ -74,7 +74,7 @@ class AddToWalletButtonManager(
     view: AddToWalletButtonView,
     token: Dynamic,
   ) {
-    val map = token.asMap()
+    val map = token.asMapOrNull()
     if (map == null) return
     view.setToken(map)
   }
