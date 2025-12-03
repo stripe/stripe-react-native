@@ -6,34 +6,42 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.view.MotionEvent
 import android.webkit.URLUtil
+import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
-import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import androidx.core.net.toUri
+import com.facebook.common.executors.UiThreadImmediateExecutorService
+import com.facebook.common.references.CloseableReference
+import com.facebook.datasource.BaseDataSubscriber
+import com.facebook.datasource.DataSource
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.image.CloseableBitmap
+import com.facebook.imagepipeline.image.CloseableImage
+import com.facebook.imagepipeline.request.ImageRequestBuilder
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper
 import com.reactnativestripesdk.utils.createError
-import com.reactnativestripesdk.utils.getDoubleOr
 
 @SuppressLint("ViewConstructor")
 class AddToWalletButtonView(
   private val context: ThemedReactContext,
-  private val requestManager: RequestManager,
 ) : AppCompatImageView(context) {
   private var cardDetails: ReadableMap? = null
   private var ephemeralKey: String? = null
   private var sourceMap: ReadableMap? = null
   private var token: ReadableMap? = null
 
-  private var loadedSource: Any? = null
-  private var heightOverride: Int = 0
-  private var widthOverride: Int = 0
+  private var loadedSource: String? = null
+  private var currentDataSource: DataSource<CloseableReference<CloseableImage>>? = null
+
+  init {
+    scaleType = ScaleType.CENTER_CROP
+    clipToOutline = true
+  }
 
   override fun performClick(): Boolean {
     super.performClick()
@@ -79,86 +87,90 @@ class AddToWalletButtonView(
   }
 
   fun onAfterUpdateTransaction() {
-    val sourceToLoad = getUrlOrResourceId(sourceMap)
-    if (sourceToLoad == null) {
-      requestManager.clear(this)
+    val uri = sourceMap?.getString("uri")
+    if (uri == null) {
+      cancelCurrentRequest()
       setImageDrawable(null)
       loadedSource = null
-    } else if (sourceToLoad != loadedSource || (heightOverride > 0 || widthOverride > 0)) {
-      loadedSource = sourceToLoad
-      val scale = sourceMap.getDoubleOr("scale", 1.0)
-
-      requestManager
-        .load(sourceToLoad)
-        .addListener(
-          object : RequestListener<Drawable> {
-            override fun onLoadFailed(
-              e: GlideException?,
-              model: Any?,
-              target: Target<Drawable>?,
-              isFirstResource: Boolean,
-            ): Boolean {
-              dispatchEvent(
-                createError("Failed", "Failed to load the source from $sourceToLoad"),
-              )
-              return true
-            }
-
-            override fun onResourceReady(
-              resource: Drawable?,
-              model: Any?,
-              target: Target<Drawable>?,
-              dataSource: DataSource?,
-              isFirstResource: Boolean,
-            ): Boolean {
-              setImageDrawable(
-                RippleDrawable(
-                  ColorStateList.valueOf("#e0e0e0".toColorInt()),
-                  resource,
-                  null,
-                ),
-              )
-              return true
-            }
-          },
-        ).centerCrop()
-        .override((widthOverride * scale).toInt(), (heightOverride * scale).toInt())
-        .into(this)
+      return
     }
-  }
 
-  private fun getUrlOrResourceId(sourceMap: ReadableMap?): Any? {
-    sourceMap?.getString("uri")?.let {
-      return if (URLUtil.isValidUrl(it)) {
-        // Debug mode, Image.resolveAssetSource resolves to local http:// URL
-        GlideUrl(it)
+    if (uri != loadedSource) {
+      loadedSource = uri
+      if (URLUtil.isValidUrl(uri)) {
+        // Debug mode: Image.resolveAssetSource resolves to local http:// URL
+        loadImageFromUrl(uri)
       } else {
-        // Release mode, Image.resolveAssetSource resolves to a drawable resource
-        @SuppressLint("DiscouragedApi")
-        context.resources.getIdentifier(it, "drawable", context.packageName)
+        // Release mode: Image.resolveAssetSource resolves to a drawable resource name
+        loadImageFromDrawable(uri)
       }
     }
-    return null
   }
 
-  override fun onSizeChanged(
-    w: Int,
-    h: Int,
-    oldw: Int,
-    oldh: Int,
-  ) {
-    super.onSizeChanged(w, h, oldw, oldh)
-    if (w > 0 && h > 0) {
-      heightOverride = h
-      widthOverride = w
-      onAfterUpdateTransaction()
-      heightOverride = 0
-      widthOverride = 0
+  private fun loadImageFromUrl(url: String) {
+    cancelCurrentRequest()
+
+    val imageRequest =
+      ImageRequestBuilder
+        .newBuilderWithSource(url.toUri())
+        .build()
+
+    val dataSource = Fresco.getImagePipeline().fetchDecodedImage(imageRequest, context)
+    currentDataSource = dataSource
+
+    dataSource.subscribe(
+      object : BaseDataSubscriber<CloseableReference<CloseableImage>>() {
+        override fun onNewResultImpl(dataSource: DataSource<CloseableReference<CloseableImage>>) {
+          if (!dataSource.isFinished) return
+          val imageRef = dataSource.result ?: return
+
+          try {
+            val image = imageRef.get()
+            if (image is CloseableBitmap) {
+              val drawable = image.underlyingBitmap.toDrawable(resources)
+              setImageWithRipple(drawable)
+            }
+          } finally {
+            CloseableReference.closeSafely(imageRef)
+          }
+        }
+
+        override fun onFailureImpl(dataSource: DataSource<CloseableReference<CloseableImage>>) {
+          dispatchEvent(createError("Failed", "Failed to load the source from $url"))
+        }
+      },
+      UiThreadImmediateExecutorService.getInstance(),
+    )
+  }
+
+  private fun loadImageFromDrawable(resourceName: String) {
+    // Instance is deprecated, but have to use until we drop support for RN 0.79
+    @Suppress("DEPRECATION")
+    val drawable = ResourceDrawableIdHelper.instance.getResourceDrawable(context, resourceName)
+    if (drawable != null) {
+      setImageWithRipple(drawable)
+    } else {
+      dispatchEvent(createError("Failed", "Failed to load drawable resource: $resourceName"))
     }
+  }
+
+  private fun setImageWithRipple(drawable: Drawable) {
+    setImageDrawable(
+      RippleDrawable(
+        ColorStateList.valueOf("#e0e0e0".toColorInt()),
+        drawable,
+        null,
+      ),
+    )
+  }
+
+  private fun cancelCurrentRequest() {
+    currentDataSource?.close()
+    currentDataSource = null
   }
 
   fun onDropViewInstance() {
-    requestManager.clear(this)
+    cancelCurrentRequest()
   }
 
   fun setSourceMap(map: ReadableMap?) {
