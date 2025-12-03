@@ -36,6 +36,26 @@
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
     "format:ios:write": "./scripts/format-changed-ios"
   },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "jest",
+    "stripe-react-native.podspec",
+    "app.plugin.js",
+    "LICENSE",
+    "!android/.cxx",
+    "!android/.gradle",
+    "!android/build",
+    "!android/src/androidTest",
+    "!android/lint-rules",
+    "!ios/build",
+    "!ios/Tests",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
   "keywords": [
     "react-native",
     "ios",
