@@ -1,12 +1,11 @@
 import { ConnectPayments } from '@stripe/stripe-react-native';
-import { Stack } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Alert } from 'react-native';
-import { useSettings } from '../../src/contexts/SettingsContext';
-import type { PaymentsListDefaultFilters } from '../../src/types';
-import ConnectScreen from '../../src/screens/ConnectScreen';
+import { useSettings } from '../contexts/SettingsContext';
+import type { PaymentsListDefaultFilters } from '../types';
+import ConnectScreen from '../screens/ConnectScreen';
 
-export default function PaymentsTab() {
+export default function ConnectPaymentsView() {
   const { paymentsFilterSettings } = useSettings();
 
   const defaultFilters = useMemo((): PaymentsListDefaultFilters | undefined => {
@@ -90,16 +89,13 @@ export default function PaymentsTab() {
   }, [paymentsFilterSettings]);
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Payments' }} />
-      <ConnectScreen>
-        <ConnectPayments
-          defaultFilters={defaultFilters}
-          onLoadError={(err) => {
-            Alert.alert('Error', err.error.message);
-          }}
-        />
-      </ConnectScreen>
-    </>
+    <ConnectScreen>
+      <ConnectPayments
+        defaultFilters={defaultFilters}
+        onLoadError={(err) => {
+          Alert.alert('Error', err.error.message);
+        }}
+      />
+    </ConnectScreen>
   );
 }

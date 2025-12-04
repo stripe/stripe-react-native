@@ -1,13 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { ConnectAccountOnboarding } from '@stripe/stripe-react-native';
 import type { CollectionOptions } from '@stripe/stripe-react-native/lib/typescript/src/connect/connectTypes';
-import ConnectScreen from '../../src/screens/ConnectScreen';
-import { useSettings } from '../../src/contexts/SettingsContext';
-import { Colors } from '../../src/constants/colors';
+import ConnectScreen from '../screens/ConnectScreen';
+import { useSettings } from '../contexts/SettingsContext';
+import { Colors } from '../constants/colors';
 
-export default function AccountOnboardingTab() {
+export default function ConnectAccountOnboardingView() {
   const { onboardingSettings } = useSettings();
   const [visible, setVisible] = useState(false);
 
@@ -56,35 +55,32 @@ export default function AccountOnboardingTab() {
   ]);
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Account Onboarding' }} />
-      <ConnectScreen>
-        <View style={styles.container}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setVisible(true)}
-          >
-            <Text style={styles.buttonText}>Show Onboarding</Text>
-          </TouchableOpacity>
+    <ConnectScreen>
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setVisible(true)}
+        >
+          <Text style={styles.buttonText}>Show Onboarding</Text>
+        </TouchableOpacity>
 
-          {visible ? (
-            <ConnectAccountOnboarding
-              title="Account Onboarding"
-              fullTermsOfServiceUrl={onboardingSettings.fullTermsOfServiceUrl}
-              recipientTermsOfServiceUrl={
-                onboardingSettings.recipientTermsOfServiceUrl
-              }
-              privacyPolicyUrl={onboardingSettings.privacyPolicyUrl}
-              collectionOptions={collectionOptions}
-              onLoadError={(err) => {
-                Alert.alert('Error', err.error.message);
-              }}
-              onExit={handleOnboardingExit}
-            />
-          ) : null}
-        </View>
-      </ConnectScreen>
-    </>
+        {visible ? (
+          <ConnectAccountOnboarding
+            title="Account Onboarding"
+            fullTermsOfServiceUrl={onboardingSettings.fullTermsOfServiceUrl}
+            recipientTermsOfServiceUrl={
+              onboardingSettings.recipientTermsOfServiceUrl
+            }
+            privacyPolicyUrl={onboardingSettings.privacyPolicyUrl}
+            collectionOptions={collectionOptions}
+            onLoadError={(err) => {
+              Alert.alert('Error', err.error.message);
+            }}
+            onExit={handleOnboardingExit}
+          />
+        ) : null}
+      </View>
+    </ConnectScreen>
   );
 }
 

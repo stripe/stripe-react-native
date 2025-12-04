@@ -25,7 +25,7 @@ export default function HomeScreen() {
         description: 'Show a localized onboarding form that validates data.',
         onPress: () => {
           if (viewControllerSettings.embedInTabBar) {
-            router.push('/(tabs)');
+            router.push('/(tabs)/onboarding');
           } else {
             router.push('/account-onboarding');
           }

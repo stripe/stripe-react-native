@@ -1,17 +1,10 @@
 import React from 'react';
-import {
-  Alert,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { ConnectPayouts } from '@stripe/stripe-react-native';
-import ConnectScreen from '../src/screens/ConnectScreen';
 import { useSettings } from '../src/contexts/SettingsContext';
 import { Colors } from '../src/constants/colors';
+import ConnectPayoutsView from '../src/connect/ConnectPayoutsView';
 
 export default function PayoutsScreen() {
   const router = useRouter();
@@ -27,7 +20,7 @@ export default function PayoutsScreen() {
           headerLeft: isModal
             ? () => (
                 <TouchableOpacity
-                  onPress={() => router.back()}
+                  onPress={() => router.dismiss()}
                   style={styles.headerButton}
                 >
                   {Platform.OS === 'ios' ? (
@@ -62,13 +55,7 @@ export default function PayoutsScreen() {
           ),
         }}
       />
-      <ConnectScreen>
-        <ConnectPayouts
-          onLoadError={(err) => {
-            Alert.alert('Error', err.error.message);
-          }}
-        />
-      </ConnectScreen>
+      <ConnectPayoutsView />
     </>
   );
 }

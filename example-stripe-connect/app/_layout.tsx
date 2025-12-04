@@ -104,9 +104,9 @@ function RootLayoutNav() {
         <Stack.Screen
           name="(tabs)"
           options={{
-            headerShown: showTabsHeader,
-            presentation: componentPresentation,
             title: 'Components',
+            presentation: componentPresentation,
+            headerShown: showTabsHeader,
             headerLeft:
               isModal && showTabsHeader ? renderCloseButton : undefined,
           }}
