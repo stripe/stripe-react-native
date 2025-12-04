@@ -701,4 +701,101 @@ class PaymentSheetAppearanceTest {
     }
     return map
   }
+
+  private fun paymentSheetColorsBuilderFull(
+    builder: PaymentSheet.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Colors.Builder {
+    builder.primary(testColor)
+    builder.surface(testColor)
+    builder.component(testColor)
+    builder.componentBorder(testColor)
+    builder.componentDivider(testColor)
+    builder.onComponent(testColor)
+    builder.onSurface(testColor)
+    builder.subtitle(testColor)
+    builder.placeholderText(testColor)
+    builder.appBarIcon(testColor)
+    builder.error(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetColorsBuilderPartial(
+    builder: PaymentSheet.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Colors.Builder {
+    builder.primary(testColor)
+    builder.component(testColor)
+    builder.componentDivider(testColor)
+    builder.onSurface(testColor)
+    builder.placeholderText(testColor)
+    builder.error(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetPrimaryButtonColorsBuilderFull(
+    builder: PaymentSheet.PrimaryButtonColors.Builder,
+    testColor: Int,
+  ): PaymentSheet.PrimaryButtonColors.Builder {
+    builder.background(testColor)
+    builder.onBackground(testColor)
+    builder.border(testColor)
+    builder.successBackgroundColor(testColor)
+    builder.onSuccessBackgroundColor(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetPrimaryButtonColorsBuilderPartial(
+    builder: PaymentSheet.PrimaryButtonColors.Builder,
+    testColor: Int,
+  ): PaymentSheet.PrimaryButtonColors.Builder {
+    builder.background(testColor)
+    builder.border(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetFlatRadioColorsBuilderFull(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
+    builder.separatorColor(testColor)
+    builder.selectedColor(testColor)
+    builder.unselectedColor(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetFlatRadioColorsBuilderPartial(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors.Builder {
+    builder.separatorColor(testColor)
+    builder.selectedColor(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetFlatCheckmarkColorsBuilder(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors.Builder {
+    builder.separatorColor(testColor)
+    builder.checkmarkColor(testColor)
+
+    return builder
+  }
+
+  private fun paymentSheetFlatDisclosureColorsBuilder(
+    builder: PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder,
+    testColor: Int,
+  ): PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors.Builder {
+    builder.separatorColor(testColor)
+    builder.disclosureColor(testColor)
+
+    return builder
+  }
 }
