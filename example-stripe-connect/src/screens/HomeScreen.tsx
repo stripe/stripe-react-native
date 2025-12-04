@@ -1,10 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SymbolView } from 'expo-symbols';
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 import {
   Platform,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -23,7 +23,7 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { selectedMerchant } = useSettings();
+  const { selectedMerchant, viewControllerSettings } = useSettings();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -65,31 +65,56 @@ const HomeScreen: React.FC = () => {
     });
   }, [navigation, selectedMerchant]);
 
-  const menuItems = [
-    {
-      title: 'Account onboarding',
-      description: 'Show a localized onboarding form that validates data.',
-      onPress: () => navigation.navigate('AccountOnboarding'),
-    },
-    {
-      title: 'Payouts',
-      badge: 'Beta',
-      description: 'Show payouts and allow your users to perform payouts.',
-      onPress: () => navigation.navigate('Payouts'),
-    },
-    {
-      title: 'Payments',
-      badge: 'Beta',
-      description:
-        'Show payments and allow your users to view payment details and manage disputes.',
-      onPress: () => navigation.navigate('Payments'),
-    },
-  ];
+  const menuItems = useMemo(
+    () => [
+      {
+        title: 'Account onboarding',
+        description: 'Show a localized onboarding form that validates data.',
+        onPress: () => {
+          if (viewControllerSettings.embedInTabBar) {
+            navigation.navigate('ComponentTabs');
+          } else {
+            navigation.navigate('AccountOnboarding');
+          }
+        },
+      },
+      {
+        title: 'Payouts',
+        badge: 'Beta',
+        description: 'Show payouts and allow your users to perform payouts.',
+        onPress: () => {
+          if (viewControllerSettings.embedInTabBar) {
+            navigation.navigate('ComponentTabs');
+          } else {
+            navigation.navigate('Payouts');
+          }
+        },
+      },
+      {
+        title: 'Payments',
+        badge: 'Beta',
+        description:
+          'Show payments and allow your users to view payment details and manage disputes.',
+        onPress: () => {
+          if (viewControllerSettings.embedInTabBar) {
+            navigation.navigate('ComponentTabs');
+          } else {
+            navigation.navigate('Payments');
+          }
+        },
+      },
+    ],
+    [navigation, viewControllerSettings.embedInTabBar]
+  );
 
   return (
-    <ScrollView style={styles.scrollView}>
-      {menuItems.map((item, index) => (
-        <View key={index}>
+    <FlatList
+      style={styles.scrollView}
+      contentInsetAdjustmentBehavior="automatic"
+      data={menuItems}
+      keyExtractor={(_, index) => index.toString()}
+      renderItem={({ item, index }) => (
+        <View>
           <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
             <View style={styles.menuItemContent}>
               <View style={styles.titleRow}>
@@ -102,14 +127,15 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
           {index < menuItems.length - 1 && <Separator />}
         </View>
-      ))}
-    </ScrollView>
+      )}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
+    backgroundColor: Colors.background.primary,
   },
   headerButton: {
     padding: 8,

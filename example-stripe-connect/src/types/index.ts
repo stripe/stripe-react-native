@@ -16,6 +16,7 @@ export type RootStackParamList = {
   AccountOnboarding: undefined;
   Payouts: undefined;
   Payments: undefined;
+  ComponentTabs: undefined;
   Settings: undefined;
   OnboardingSettings: undefined;
   PaymentsFilterSettings: undefined;

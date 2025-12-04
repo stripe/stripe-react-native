@@ -1,6 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useLayoutEffect, useState } from 'react';
+import { useRouter, Stack } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   Keyboard,
   StyleSheet,
@@ -19,13 +18,11 @@ import { SectionHeader } from '../components/SectionHeader';
 import { Section } from '../components/Section';
 import { DEFAULT_BACKEND_URL } from '../constants';
 import { useSettings } from '../contexts/SettingsContext';
-import type { MerchantInfo, RootStackParamList } from '../types';
+import type { MerchantInfo } from '../types';
 import { Colors } from '../constants/colors';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
-
 const SettingsScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const {
     selectedMerchant,
     backendUrl,
@@ -45,36 +42,14 @@ const SettingsScreen: React.FC = () => {
       await setSelectedMerchant(localSelectedMerchant);
     }
     await setBackendUrl(localBackendUrl);
-    navigation.goBack();
+    router.back();
   }, [
     localSelectedMerchant,
     localBackendUrl,
     setSelectedMerchant,
     setBackendUrl,
-    navigation,
+    router,
   ]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>Cancel</Text>
-        </TouchableOpacity>
-      ),
-      headerRight: () => (
-        <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
-          <Text
-            style={[
-              styles.saveButton,
-              !hasChanges && styles.saveButtonDisabled,
-            ]}
-          >
-            Save
-          </Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, hasChanges, handleSave]);
 
   const handleSelectMerchant = (merchant: MerchantInfo) => {
     setLocalSelectedMerchant(merchant);
@@ -121,112 +96,140 @@ const SettingsScreen: React.FC = () => {
     );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.scrollContent}
-          bottomOffset={20}
-          extraKeyboardSpace={20}
-        >
-          {/* Select a demo account section */}
-          <SectionHeader>Select a merchant</SectionHeader>
-          <Section>
-            {availableMerchants.map((merchant, index) => (
-              <View key={merchant.merchant_id}>
-                <SelectableRow
-                  title={merchant.display_name || merchant.merchant_id}
-                  subtitle={merchant.merchant_id}
-                  selected={isMerchantSelected(merchant)}
-                  onPress={() => handleSelectMerchant(merchant)}
-                />
-                {index < availableMerchants.length - 1 && <Separator />}
-              </View>
-            ))}
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Settings',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.backButton}>Cancel</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
+              <Text
+                style={[
+                  styles.saveButton,
+                  !hasChanges && styles.saveButtonDisabled,
+                ]}
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <SafeAreaView style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.scrollContent}
+            bottomOffset={20}
+            extraKeyboardSpace={20}
+          >
+            {/* Select a demo account section */}
+            <SectionHeader>Select a merchant</SectionHeader>
+            <Section>
+              {availableMerchants.map((merchant, index) => (
+                <View key={merchant.merchant_id}>
+                  <SelectableRow
+                    title={merchant.display_name || merchant.merchant_id}
+                    subtitle={merchant.merchant_id}
+                    selected={isMerchantSelected(merchant)}
+                    onPress={() => handleSelectMerchant(merchant)}
+                  />
+                  {index < availableMerchants.length - 1 && <Separator />}
+                </View>
+              ))}
 
-            {/* Other / Custom Merchant */}
-            <Separator />
-            <View style={styles.customMerchantSection}>
-              <SelectableRow
-                title="Other"
-                selected={!!isCustomMerchantSelected}
-                onPress={() => {}}
-              />
-              <View style={styles.inputContainer}>
+              {/* Other / Custom Merchant */}
+              <Separator />
+              <View style={styles.customMerchantSection}>
+                <SelectableRow
+                  title="Other"
+                  selected={!!isCustomMerchantSelected}
+                  onPress={() => {}}
+                />
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="acct_xxxx"
+                    value={customMerchantId}
+                    onChangeText={handleCustomMerchantChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                </View>
+              </View>
+            </Section>
+
+            {/* Component Settings section */}
+            <SectionHeader>Component Settings</SectionHeader>
+            <Section>
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() => router.push('/(settings)/onboarding-settings')}
+              >
+                <Text style={styles.menuLabel}>Account onboarding</Text>
+                <ChevronRight />
+              </TouchableOpacity>
+
+              <Separator />
+
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() =>
+                  router.push('/(settings)/payments-filter-settings')
+                }
+              >
+                <Text style={styles.menuLabel}>Payments</Text>
+                <ChevronRight />
+              </TouchableOpacity>
+
+              <Separator />
+
+              <TouchableOpacity
+                style={styles.menuOption}
+                onPress={() =>
+                  router.push('/(settings)/view-controller-options')
+                }
+              >
+                <Text style={styles.menuLabel}>View controller options</Text>
+                <ChevronRight />
+              </TouchableOpacity>
+            </Section>
+
+            {/* API Server Settings section */}
+            <SectionHeader>API Server Settings</SectionHeader>
+            <Section>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Backend URL</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="acct_xxxx"
-                  value={customMerchantId}
-                  onChangeText={handleCustomMerchantChange}
+                  placeholder={DEFAULT_BACKEND_URL}
+                  value={localBackendUrl}
+                  onChangeText={handleBackendUrlChange}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  keyboardType="url"
                   returnKeyType="done"
                   onSubmitEditing={Keyboard.dismiss}
                 />
               </View>
-            </View>
-          </Section>
+            </Section>
 
-          {/* Component Settings section */}
-          <SectionHeader>Component Settings</SectionHeader>
-          <Section>
+            {/* Reset backend URL button */}
             <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => navigation.navigate('OnboardingSettings')}
+              style={styles.resetButton}
+              onPress={handleResetBackendUrl}
             >
-              <Text style={styles.menuLabel}>Account onboarding</Text>
-              <ChevronRight />
+              <Text style={styles.resetButtonText}>Reset to default</Text>
             </TouchableOpacity>
-
-            <Separator />
-
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => navigation.navigate('PaymentsFilterSettings')}
-            >
-              <Text style={styles.menuLabel}>Payments</Text>
-              <ChevronRight />
-            </TouchableOpacity>
-
-            <Separator />
-
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => navigation.navigate('ViewControllerOptions')}
-            >
-              <Text style={styles.menuLabel}>View controller options</Text>
-              <ChevronRight />
-            </TouchableOpacity>
-          </Section>
-
-          {/* API Server Settings section */}
-          <SectionHeader>API Server Settings</SectionHeader>
-          <Section>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Backend URL</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={DEFAULT_BACKEND_URL}
-                value={localBackendUrl}
-                onChangeText={handleBackendUrlChange}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                returnKeyType="done"
-                onSubmitEditing={Keyboard.dismiss}
-              />
-            </View>
-          </Section>
-
-          {/* Reset backend URL button */}
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={handleResetBackendUrl}
-          >
-            <Text style={styles.resetButtonText}>Reset to default</Text>
-          </TouchableOpacity>
-        </KeyboardAwareScrollView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+          </KeyboardAwareScrollView>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </>
   );
 };
 

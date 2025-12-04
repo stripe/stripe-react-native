@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
   },
   section: {
     flex: 1,
-    marginTop: 20,
   },
   scrollView: {
     backgroundColor: Colors.background.primary,

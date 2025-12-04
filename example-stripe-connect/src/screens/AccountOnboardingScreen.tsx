@@ -24,7 +24,7 @@ type NavigationProp = NativeStackNavigationProp<
 
 const AccountOnboardingScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { onboardingSettings } = useSettings();
+  const { onboardingSettings, viewControllerSettings } = useSettings();
   const [visible, setVisible] = useState(false);
 
   const handleOnboardingExit = useCallback(() => {
@@ -78,7 +78,29 @@ const AccountOnboardingScreen: React.FC = () => {
   ]);
 
   useLayoutEffect(() => {
+    const isModal =
+      viewControllerSettings.presentationType === 'present_modally';
+
     navigation.setOptions({
+      headerLeft: isModal
+        ? () => (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.headerButton}
+            >
+              {Platform.OS === 'ios' ? (
+                <SymbolView
+                  name="xmark"
+                  size={20}
+                  tintColor={Colors.icon.primary}
+                  style={styles.symbolView}
+                />
+              ) : (
+                <Text style={styles.headerIcon}>✕</Text>
+              )}
+            </TouchableOpacity>
+          )
+        : undefined,
       headerRight: () => (
         <TouchableOpacity
           onPress={() => navigation.navigate('ConfigureAppearance')}
@@ -97,7 +119,7 @@ const AccountOnboardingScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation]);
+  }, [navigation, viewControllerSettings.presentationType]);
 
   return (
     <ConnectScreen>

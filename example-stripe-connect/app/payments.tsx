@@ -1,8 +1,7 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ConnectPayments } from '@stripe/stripe-react-native';
+import { Stack, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -10,21 +9,18 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useSettings } from '../contexts/SettingsContext';
-import type { PaymentsListDefaultFilters, RootStackParamList } from '../types';
-import ConnectScreen from './ConnectScreen';
+import { Colors } from '../src/constants/colors';
+import { useSettings } from '../src/contexts/SettingsContext';
+import type { PaymentsListDefaultFilters } from '../src/types';
+import ConnectScreen from '../src/screens/ConnectScreen';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Payments'>;
-
-const PaymentsScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+export default function PaymentsScreen() {
+  const router = useRouter();
   const { paymentsFilterSettings, viewControllerSettings } = useSettings();
 
   const defaultFilters = useMemo((): PaymentsListDefaultFilters | undefined => {
     const filters: PaymentsListDefaultFilters = {};
 
-    // Convert amount filter
     if (paymentsFilterSettings.amountFilterType !== undefined) {
       switch (paymentsFilterSettings.amountFilterType) {
         case 'equals':
@@ -64,7 +60,6 @@ const PaymentsScreen: React.FC = () => {
       }
     }
 
-    // Convert date filter
     if (paymentsFilterSettings.dateFilterType !== undefined) {
       switch (paymentsFilterSettings.dateFilterType) {
         case 'before':
@@ -97,71 +92,68 @@ const PaymentsScreen: React.FC = () => {
       }
     }
 
-    // Status filter
     filters.status = paymentsFilterSettings.selectedStatuses;
-
-    // Payment method filter
     filters.paymentMethod = paymentsFilterSettings.paymentMethod;
 
-    // Return undefined if no filters are set
     return Object.keys(filters).length > 0 ? filters : undefined;
   }, [paymentsFilterSettings]);
 
-  useLayoutEffect(() => {
-    const isModal =
-      viewControllerSettings.presentationType === 'present_modally';
+  const isModal = viewControllerSettings.presentationType === 'present_modally';
 
-    navigation.setOptions({
-      headerLeft: isModal
-        ? () => (
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Payments',
+          headerLeft: isModal
+            ? () => (
+                <TouchableOpacity
+                  onPress={() => router.back()}
+                  style={styles.headerButton}
+                >
+                  {Platform.OS === 'ios' ? (
+                    <SymbolView
+                      name="xmark"
+                      size={20}
+                      tintColor={Colors.icon.primary}
+                      style={styles.symbolView}
+                    />
+                  ) : (
+                    <Text style={styles.headerIcon}>✕</Text>
+                  )}
+                </TouchableOpacity>
+              )
+            : undefined,
+          headerRight: () => (
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={() => router.push('/configure-appearance')}
               style={styles.headerButton}
             >
               {Platform.OS === 'ios' ? (
                 <SymbolView
-                  name="xmark"
-                  size={20}
+                  name="paintpalette"
+                  size={22}
                   tintColor={Colors.icon.primary}
                   style={styles.symbolView}
                 />
               ) : (
-                <Text style={styles.headerIcon}>✕</Text>
+                <Text style={styles.headerIcon}>🎨</Text>
               )}
             </TouchableOpacity>
-          )
-        : undefined,
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ConfigureAppearance')}
-          style={styles.headerButton}
-        >
-          {Platform.OS === 'ios' ? (
-            <SymbolView
-              name="paintpalette"
-              size={22}
-              tintColor={Colors.icon.primary}
-              style={styles.symbolView}
-            />
-          ) : (
-            <Text style={styles.headerIcon}>🎨</Text>
-          )}
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, viewControllerSettings.presentationType]);
-
-  return (
-    <ConnectScreen>
-      <ConnectPayments
-        defaultFilters={defaultFilters}
-        onLoadError={(err) => {
-          Alert.alert('Error', err.error.message);
+          ),
         }}
       />
-    </ConnectScreen>
+      <ConnectScreen>
+        <ConnectPayments
+          defaultFilters={defaultFilters}
+          onLoadError={(err) => {
+            Alert.alert('Error', err.error.message);
+          }}
+        />
+      </ConnectScreen>
+    </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   headerButton: {
@@ -175,5 +167,3 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 });
-
-export default PaymentsScreen;
