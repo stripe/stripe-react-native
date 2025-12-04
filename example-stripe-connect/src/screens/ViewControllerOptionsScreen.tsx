@@ -78,6 +78,13 @@ const ViewControllerOptionsScreen: React.FC = () => {
     updateSetting('embedInTabBar', !localSettings.embedInTabBar);
   };
 
+  const getNavigationBarSubtitle = () => {
+    if (localSettings.presentationType === 'navigation_push') {
+      return 'Disable this setting to hide the navigation bar on push';
+    }
+    return 'Embeds the view controller in a UINavigationController';
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -104,7 +111,7 @@ const ViewControllerOptionsScreen: React.FC = () => {
         <Section>
           <SelectableRow
             title="Navigation bar"
-            subtitle="Embeds the view controller in a UINavigationController."
+            subtitle={getNavigationBarSubtitle()}
             selected={localSettings.embedInNavigationBar}
             onPress={toggleEmbedInNavigationBar}
             showCheckmark={false}

@@ -12,9 +12,9 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({ children }) => {
 
 const styles = StyleSheet.create({
   sectionHeader: {
-    fontSize: 15,
-    fontWeight: '400',
-    paddingHorizontal: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    paddingHorizontal: 26,
     paddingTop: 20,
     paddingBottom: 8,
     color: Colors.text.secondary,

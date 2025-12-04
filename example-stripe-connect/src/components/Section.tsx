@@ -12,9 +12,9 @@ export const Section: React.FC<SectionProps> = ({ children }) => {
 
 const styles = StyleSheet.create({
   section: {
+    borderRadius: 20,
+    marginHorizontal: 12,
     backgroundColor: Colors.background.primary,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border.default,
+    overflow: 'hidden',
   },
 });

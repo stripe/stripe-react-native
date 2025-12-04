@@ -1,9 +1,10 @@
 import { ConnectPayments } from '@stripe/stripe-react-native';
 import React, { useMemo } from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { useSettings } from '../contexts/SettingsContext';
 import type { PaymentsListDefaultFilters } from '../types';
 import ConnectScreen from '../screens/ConnectScreen';
+import FloatingBackButton from '../components/FloatingBackButton';
 
 export default function ConnectPaymentsView() {
   const { paymentsFilterSettings } = useSettings();
@@ -90,12 +91,21 @@ export default function ConnectPaymentsView() {
 
   return (
     <ConnectScreen>
-      <ConnectPayments
-        defaultFilters={defaultFilters}
-        onLoadError={(err) => {
-          Alert.alert('Error', err.error.message);
-        }}
-      />
+      <View style={styles.container}>
+        <FloatingBackButton />
+        <ConnectPayments
+          defaultFilters={defaultFilters}
+          onLoadError={(err) => {
+            Alert.alert('Error', err.error.message);
+          }}
+        />
+      </View>
     </ConnectScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

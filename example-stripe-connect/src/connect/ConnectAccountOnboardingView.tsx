@@ -5,6 +5,7 @@ import type { CollectionOptions } from '@stripe/stripe-react-native/lib/typescri
 import ConnectScreen from '../screens/ConnectScreen';
 import { useSettings } from '../contexts/SettingsContext';
 import { Colors } from '../constants/colors';
+import FloatingBackButton from '../components/FloatingBackButton';
 
 export default function ConnectAccountOnboardingView() {
   const { onboardingSettings } = useSettings();
@@ -57,6 +58,7 @@ export default function ConnectAccountOnboardingView() {
   return (
     <ConnectScreen>
       <View style={styles.container}>
+        <FloatingBackButton />
         <TouchableOpacity
           style={styles.button}
           onPress={() => setVisible(true)}

@@ -27,9 +27,7 @@ export default function DynamicComponentTab() {
   const componentType = (component || 'onboarding') as ComponentType;
   const config = COMPONENT_CONFIG[componentType];
   const isModal = viewControllerSettings.presentationType === 'present_modally';
-  const showHeader =
-    viewControllerSettings.embedInNavigationBar ||
-    viewControllerSettings.presentationType === 'navigation_push';
+  const showHeader = viewControllerSettings.embedInNavigationBar;
 
   const renderComponent = () => {
     switch (componentType) {

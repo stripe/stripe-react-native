@@ -11,48 +11,53 @@ export default function PayoutsScreen() {
   const { viewControllerSettings } = useSettings();
 
   const isModal = viewControllerSettings.presentationType === 'present_modally';
+  const showHeader = viewControllerSettings.embedInNavigationBar;
 
   return (
     <>
       <Stack.Screen
         options={{
           title: 'Payouts',
-          headerLeft: isModal
+          headerShown: showHeader,
+          headerLeft:
+            isModal && showHeader
+              ? () => (
+                  <TouchableOpacity
+                    onPress={() => router.dismiss()}
+                    style={styles.headerButton}
+                  >
+                    {Platform.OS === 'ios' ? (
+                      <SymbolView
+                        name="xmark"
+                        size={20}
+                        tintColor={Colors.icon.primary}
+                        style={styles.symbolView}
+                      />
+                    ) : (
+                      <Text style={styles.headerIcon}>✕</Text>
+                    )}
+                  </TouchableOpacity>
+                )
+              : undefined,
+          headerRight: showHeader
             ? () => (
                 <TouchableOpacity
-                  onPress={() => router.dismiss()}
+                  onPress={() => router.push('/configure-appearance')}
                   style={styles.headerButton}
                 >
                   {Platform.OS === 'ios' ? (
                     <SymbolView
-                      name="xmark"
-                      size={20}
+                      name="paintpalette"
+                      size={22}
                       tintColor={Colors.icon.primary}
                       style={styles.symbolView}
                     />
                   ) : (
-                    <Text style={styles.headerIcon}>✕</Text>
+                    <Text style={styles.headerIcon}>🎨</Text>
                   )}
                 </TouchableOpacity>
               )
             : undefined,
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push('/configure-appearance')}
-              style={styles.headerButton}
-            >
-              {Platform.OS === 'ios' ? (
-                <SymbolView
-                  name="paintpalette"
-                  size={22}
-                  tintColor={Colors.icon.primary}
-                  style={styles.symbolView}
-                />
-              ) : (
-                <Text style={styles.headerIcon}>🎨</Text>
-              )}
-            </TouchableOpacity>
-          ),
         }}
       />
       <ConnectPayoutsView />
