@@ -13,6 +13,7 @@ import type { RootStackParamList, AppearancePreset } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { SelectableRow } from '../components/SelectableRow';
 import { Separator } from '../components/Separator';
+import { SectionHeader } from '../components/SectionHeader';
 import { APPEARANCE_PRESET_NAMES } from '../constants';
 import { Colors } from '../constants/colors';
 
@@ -63,7 +64,7 @@ const ConfigureAppearanceScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Select a preset</Text>
+        <SectionHeader>Select a preset</SectionHeader>
         <ScrollView style={styles.scrollView}>
           {APPEARANCE_PRESET_NAMES.map((preset, index) => (
             <View key={preset}>
@@ -101,15 +102,6 @@ const styles = StyleSheet.create({
   section: {
     flex: 1,
     marginTop: 20,
-  },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: '400',
-    textTransform: 'uppercase',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    color: Colors.text.secondary,
-    backgroundColor: Colors.background.secondary,
   },
   scrollView: {
     backgroundColor: Colors.background.primary,

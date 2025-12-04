@@ -19,6 +19,7 @@ export type RootStackParamList = {
   Settings: undefined;
   OnboardingSettings: undefined;
   PaymentsFilterSettings: undefined;
+  ViewControllerOptions: undefined;
   ConfigureAppearance: undefined;
 };
 
@@ -70,6 +71,17 @@ export interface PaymentsFilterSettings {
 // Re-export MerchantInfo from API
 export type { MerchantInfo } from '../api/StripeConnectAPI';
 
+// View controller options
+export type ViewControllerPresentationType =
+  | 'navigation_push'
+  | 'present_modally';
+
+export interface ViewControllerSettings {
+  presentationType: ViewControllerPresentationType;
+  embedInNavigationBar: boolean;
+  embedInTabBar: boolean;
+}
+
 // App settings
 export interface AppSettings {
   selectedMerchantId: string | null;
@@ -77,4 +89,5 @@ export interface AppSettings {
   appearancePreset: AppearancePreset;
   onboardingSettings: OnboardingSettings;
   paymentsFilterSettings: PaymentsFilterSettings;
+  viewControllerSettings: ViewControllerSettings;
 }

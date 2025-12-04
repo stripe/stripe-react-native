@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SelectableRow } from '../components/SelectableRow';
 import { Separator } from '../components/Separator';
 import { ChevronRight } from '../components/ChevronRight';
+import { SectionHeader } from '../components/SectionHeader';
+import { Section } from '../components/Section';
 import { DEFAULT_BACKEND_URL } from '../constants';
 import { useSettings } from '../contexts/SettingsContext';
 import type { MerchantInfo, RootStackParamList } from '../types';
@@ -127,8 +129,8 @@ const SettingsScreen: React.FC = () => {
           extraKeyboardSpace={20}
         >
           {/* Select a demo account section */}
-          <Text style={styles.sectionHeader}>Select a merchant</Text>
-          <View style={styles.section}>
+          <SectionHeader>Select a merchant</SectionHeader>
+          <Section>
             {availableMerchants.map((merchant, index) => (
               <View key={merchant.merchant_id}>
                 <SelectableRow
@@ -162,11 +164,11 @@ const SettingsScreen: React.FC = () => {
                 />
               </View>
             </View>
-          </View>
+          </Section>
 
           {/* Component Settings section */}
-          <Text style={styles.sectionHeader}>Component Settings</Text>
-          <View style={styles.section}>
+          <SectionHeader>Component Settings</SectionHeader>
+          <Section>
             <TouchableOpacity
               style={styles.menuOption}
               onPress={() => navigation.navigate('OnboardingSettings')}
@@ -184,11 +186,21 @@ const SettingsScreen: React.FC = () => {
               <Text style={styles.menuLabel}>Payments</Text>
               <ChevronRight />
             </TouchableOpacity>
-          </View>
+
+            <Separator />
+
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => navigation.navigate('ViewControllerOptions')}
+            >
+              <Text style={styles.menuLabel}>View controller options</Text>
+              <ChevronRight />
+            </TouchableOpacity>
+          </Section>
 
           {/* API Server Settings section */}
-          <Text style={styles.sectionHeader}>API Server Settings</Text>
-          <View style={styles.section}>
+          <SectionHeader>API Server Settings</SectionHeader>
+          <Section>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Backend URL</Text>
               <TextInput
@@ -203,7 +215,7 @@ const SettingsScreen: React.FC = () => {
                 onSubmitEditing={Keyboard.dismiss}
               />
             </View>
-          </View>
+          </Section>
 
           {/* Reset backend URL button */}
           <TouchableOpacity
@@ -236,20 +248,6 @@ const styles = StyleSheet.create({
   },
   saveButtonDisabled: {
     color: Colors.text.disabled,
-  },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: '400',
-    textTransform: 'uppercase',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  section: {
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border.default,
-    backgroundColor: Colors.background.primary,
   },
   customMerchantSection: {
     paddingBottom: 16,

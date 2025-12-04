@@ -11,6 +11,7 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import OnboardingSettingsScreen from '../screens/OnboardingSettingsScreen';
 import PaymentsFilterSettingsScreen from '../screens/PaymentsFilterSettingsScreen';
+import ViewControllerOptionsScreen from '../screens/ViewControllerOptionsScreen';
 import ConfigureAppearanceScreen from '../screens/ConfigureAppearanceScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -34,6 +35,11 @@ const SettingsModalStack: React.FC = () => {
         name="PaymentsFilterSettings"
         component={PaymentsFilterSettingsScreen}
         options={{ title: 'Payments Filter Settings' }}
+      />
+      <SettingsStack.Screen
+        name="ViewControllerOptions"
+        component={ViewControllerOptionsScreen}
+        options={{ title: 'View Controller Options' }}
       />
     </SettingsStack.Navigator>
   );

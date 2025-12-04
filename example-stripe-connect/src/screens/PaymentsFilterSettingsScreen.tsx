@@ -32,6 +32,8 @@ import { useSettings } from '../contexts/SettingsContext';
 import { Separator } from '../components/Separator';
 import { ChevronRight } from '../components/ChevronRight';
 import { SelectableRow } from '../components/SelectableRow';
+import { SectionHeader } from '../components/SectionHeader';
+import { Section } from '../components/Section';
 import { DropdownMenu, type DropdownOption } from '../components/DropdownModal';
 import { AmountInput } from '../components/AmountInput';
 import {
@@ -241,8 +243,8 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
           extraKeyboardSpace={20}
         >
           {/* Amount Filter */}
-          <Text style={styles.sectionHeader}>Amount Filter</Text>
-          <View style={styles.section}>
+          <SectionHeader>Amount Filter</SectionHeader>
+          <Section>
             <DropdownMenu
               trigger={
                 <View style={styles.dropdownOption}>
@@ -305,11 +307,11 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
                 </View>
               </>
             )}
-          </View>
+          </Section>
 
           {/* Date Filter */}
-          <Text style={styles.sectionHeader}>Date Filter</Text>
-          <View style={styles.section}>
+          <SectionHeader>Date Filter</SectionHeader>
+          <Section>
             <DropdownMenu
               trigger={
                 <View style={styles.dropdownOption}>
@@ -391,11 +393,11 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
                 </View>
               </>
             )}
-          </View>
+          </Section>
 
           {/* Status Filter */}
-          <Text style={styles.sectionHeader}>Status Filter</Text>
-          <View style={styles.section}>
+          <SectionHeader>Status Filter</SectionHeader>
+          <Section>
             {PAYMENT_STATUSES.map((status, index) => (
               <View key={status.value}>
                 <SelectableRow
@@ -408,11 +410,11 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
                 {index < PAYMENT_STATUSES.length - 1 && <Separator />}
               </View>
             ))}
-          </View>
+          </Section>
 
           {/* Payment Method Filter */}
-          <Text style={styles.sectionHeader}>Payment Method Filter</Text>
-          <View style={styles.section}>
+          <SectionHeader>Payment Method Filter</SectionHeader>
+          <Section>
             <DropdownMenu
               trigger={
                 <View style={styles.dropdownOption}>
@@ -434,7 +436,7 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
                 )
               }
             />
-          </View>
+          </Section>
 
           {/* Reset Button */}
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
@@ -501,22 +503,6 @@ const styles = StyleSheet.create({
   },
   saveButtonDisabled: {
     color: Colors.text.disabled,
-  },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: '400',
-    textTransform: 'uppercase',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 8,
-    color: Colors.text.secondary,
-    backgroundColor: Colors.background.secondary,
-  },
-  section: {
-    backgroundColor: Colors.background.primary,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border.default,
   },
   dropdownOption: {
     flexDirection: 'row',

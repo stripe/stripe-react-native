@@ -8,6 +8,7 @@ import type {
   PaymentsFilterSettings,
   PaymentStatus,
   Requirements,
+  ViewControllerSettings,
 } from '../types';
 import { APPEARANCE_PRESETS } from './appearancePresets';
 
@@ -65,6 +66,12 @@ export const DEFAULT_PAYMENTS_FILTER_SETTINGS: PaymentsFilterSettings = {
   dateFilterType: undefined,
   selectedStatuses: [],
   paymentMethod: undefined,
+};
+
+export const DEFAULT_VIEW_CONTROLLER_SETTINGS: ViewControllerSettings = {
+  presentationType: 'navigation_push',
+  embedInNavigationBar: false,
+  embedInTabBar: false,
 };
 
 // Configuration object mapping payment status types to display labels
@@ -212,6 +219,7 @@ export const STORAGE_KEYS = {
   APPEARANCE_PRESET: '@stripe_connect_demo:appearance_preset',
   ONBOARDING_SETTINGS: '@stripe_connect_demo:onboarding_settings',
   PAYMENTS_FILTER_SETTINGS: '@stripe_connect_demo:payments_filter_settings',
+  VIEW_CONTROLLER_SETTINGS: '@stripe_connect_demo:view_controller_settings',
 };
 
 // Re-export appearance presets

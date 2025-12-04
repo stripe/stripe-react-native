@@ -12,6 +12,7 @@ import {
   DEFAULT_BACKEND_URL,
   DEFAULT_ONBOARDING_SETTINGS,
   DEFAULT_PAYMENTS_FILTER_SETTINGS,
+  DEFAULT_VIEW_CONTROLLER_SETTINGS,
   STORAGE_KEYS,
 } from '../constants';
 import type {
@@ -19,6 +20,7 @@ import type {
   AppearancePreset,
   OnboardingSettings,
   PaymentsFilterSettings,
+  ViewControllerSettings,
 } from '../types';
 import { createAPIClient } from '../api/StripeConnectAPI';
 
@@ -28,6 +30,7 @@ interface SettingsContextType {
   appearancePreset: AppearancePreset;
   onboardingSettings: OnboardingSettings;
   paymentsFilterSettings: PaymentsFilterSettings;
+  viewControllerSettings: ViewControllerSettings;
   availableMerchants: MerchantInfo[];
   publishableKey: string | null;
   isLoadingMerchants: boolean;
@@ -38,9 +41,13 @@ interface SettingsContextType {
   setPaymentsFilterSettings: (
     settings: PaymentsFilterSettings
   ) => Promise<void>;
+  setViewControllerSettings: (
+    settings: ViewControllerSettings
+  ) => Promise<void>;
   resetBackendUrl: () => Promise<void>;
   resetOnboardingSettings: () => Promise<void>;
   resetPaymentsFilterSettings: () => Promise<void>;
+  resetViewControllerSettings: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -62,6 +69,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     useState<OnboardingSettings>(DEFAULT_ONBOARDING_SETTINGS);
   const [paymentsFilterSettings, setPaymentsFilterSettingsState] =
     useState<PaymentsFilterSettings>(DEFAULT_PAYMENTS_FILTER_SETTINGS);
+  const [viewControllerSettings, setViewControllerSettingsState] =
+    useState<ViewControllerSettings>(DEFAULT_VIEW_CONTROLLER_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
   // Use React Query to fetch merchants
@@ -114,12 +123,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         storedAppearance,
         storedOnboarding,
         storedPaymentsFilter,
+        storedViewController,
       ] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.SELECTED_MERCHANT_ID),
         AsyncStorage.getItem(STORAGE_KEYS.BACKEND_URL),
         AsyncStorage.getItem(STORAGE_KEYS.APPEARANCE_PRESET),
         AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_SETTINGS),
         AsyncStorage.getItem(STORAGE_KEYS.PAYMENTS_FILTER_SETTINGS),
+        AsyncStorage.getItem(STORAGE_KEYS.VIEW_CONTROLLER_SETTINGS),
       ]);
 
       if (storedMerchantId) {
@@ -136,6 +147,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
       }
       if (storedPaymentsFilter) {
         setPaymentsFilterSettingsState(JSON.parse(storedPaymentsFilter));
+      }
+      if (storedViewController) {
+        setViewControllerSettingsState(JSON.parse(storedViewController));
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -180,6 +194,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
+  const setViewControllerSettings = async (
+    settings: ViewControllerSettings
+  ) => {
+    setViewControllerSettingsState(settings);
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.VIEW_CONTROLLER_SETTINGS,
+      JSON.stringify(settings)
+    );
+  };
+
   const resetBackendUrl = async () => {
     await setBackendUrl(DEFAULT_BACKEND_URL);
   };
@@ -192,6 +216,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     await setPaymentsFilterSettings(DEFAULT_PAYMENTS_FILTER_SETTINGS);
   };
 
+  const resetViewControllerSettings = async () => {
+    await setViewControllerSettings(DEFAULT_VIEW_CONTROLLER_SETTINGS);
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -200,6 +228,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         appearancePreset,
         onboardingSettings,
         paymentsFilterSettings,
+        viewControllerSettings,
         availableMerchants,
         publishableKey,
         isLoadingMerchants,
@@ -208,9 +237,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
         setAppearancePreset,
         setOnboardingSettings,
         setPaymentsFilterSettings,
+        setViewControllerSettings,
         resetBackendUrl,
         resetOnboardingSettings,
         resetPaymentsFilterSettings,
+        resetViewControllerSettings,
         isLoading,
       }}
     >
