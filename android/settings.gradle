@@ -1,0 +1,2 @@
+rootProject.name = 'stripe-react-native'
+include ':lint-rules'

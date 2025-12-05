@@ -1,28 +1,20 @@
 package com.reactnativestripesdk
 
+import android.content.Context
 import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.bridge.BridgeReactContext
-import com.facebook.react.bridge.JavaOnlyMap
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PaymentSheetAppearanceTest {
-  private val context =
-    BridgeReactContext(
-      ApplicationProvider.getApplicationContext(),
-    )
-
-  @Before
-  fun setup() {
-    SoLoader.init(context, OpenSourceMergedSoMapping)
-  }
+  private val context = ApplicationProvider.getApplicationContext<Context>()
 
   @Test
   fun testFullAppearanceConfiguration() {
@@ -692,7 +684,7 @@ class PaymentSheetAppearanceTest {
   }
 
   private fun jsonObjectToMap(jsonObject: JSONObject): ReadableMap {
-    val map = JavaOnlyMap()
+    val map = Arguments.createMap()
     val keys = jsonObject.keys()
     while (keys.hasNext()) {
       val key = keys.next()

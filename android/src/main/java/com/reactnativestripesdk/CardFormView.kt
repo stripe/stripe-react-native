@@ -2,11 +2,11 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Build
 import android.text.InputFilter
 import android.view.View
 import android.widget.FrameLayout
+import androidx.core.graphics.toColorInt
 import androidx.core.view.setMargins
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.PixelUtil
@@ -36,6 +36,7 @@ import com.stripe.android.view.CardInputListener
 class CardFormView(
   private val context: ThemedReactContext,
 ) : FrameLayout(context) {
+  @SuppressLint("PrivateResource")
   private var cardForm: CardFormView =
     CardFormView(context, null, com.stripe.android.R.style.StripeCardFormView_Borderless)
   private var dangerouslyGetFullCardDetails: Boolean = false
@@ -77,7 +78,7 @@ class CardFormView(
     cardForm.setPreferredNetworks(mapToPreferredNetworks(preferredNetworks))
   }
 
-  @SuppressLint("RestrictedApi")
+  @SuppressLint("RestrictedApi", "VisibleForTests")
   private fun setCountry(countryString: String?) {
     if (countryString != null) {
       cardFormViewBinding.countryLayout.setSelectedCountryCode(CountryCode(countryString))
@@ -126,20 +127,13 @@ class CardFormView(
     cardNumberEditText.clearFocus()
   }
 
-  fun requestClearFromJS() {
-    multilineWidgetBinding.etCardNumber.setText("")
-    multilineWidgetBinding.etCvc.setText("")
-    multilineWidgetBinding.etExpiry.setText("")
-    cardFormViewBinding.postalCode.setText("")
-  }
-
   private fun onChangeFocus() {
     UIManagerHelper
       .getEventDispatcherForReactTag(context, id)
       ?.dispatchEvent(CardFocusChangeEvent(context.surfaceId, id, currentFocusedField))
   }
 
-  @SuppressLint("RestrictedApi")
+  @SuppressLint("RestrictedApi", "VisibleForTests")
   fun setCardStyle(value: ReadableMap?) {
     val backgroundColor = getValOr(value, "backgroundColor", null)
     val textColor = getValOr(value, "textColor", null)
@@ -169,19 +163,19 @@ class CardFormView(
 
     textColor?.let {
       for (binding in editTextBindings) {
-        binding.setTextColor(Color.parseColor(it))
+        binding.setTextColor(it.toColorInt())
       }
-      cardFormViewBinding.countryLayout.countryAutocomplete.setTextColor(Color.parseColor(it))
+      cardFormViewBinding.countryLayout.countryAutocomplete.setTextColor(it.toColorInt())
     }
     textErrorColor?.let {
       for (binding in editTextBindings) {
-        binding.setErrorColor(Color.parseColor(it))
-        cardFormViewBinding.postalCode.setErrorColor(Color.parseColor(it))
+        binding.setErrorColor(it.toColorInt())
+        cardFormViewBinding.postalCode.setErrorColor(it.toColorInt())
       }
     }
     placeholderColor?.let {
       for (binding in placeholderTextBindings) {
-        binding.defaultHintTextColor = ColorStateList.valueOf(Color.parseColor(it))
+        binding.defaultHintTextColor = ColorStateList.valueOf(it.toColorInt())
       }
     }
     fontSize?.let {
@@ -205,7 +199,7 @@ class CardFormView(
     }
     cursorColor?.let {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val color = Color.parseColor(it)
+        val color = it.toColorInt()
         for (binding in editTextBindings) {
           binding.textCursorDrawable?.setTint(color)
           binding.textSelectHandle?.setTint(color)
@@ -224,16 +218,16 @@ class CardFormView(
           .build(),
       ).also { shape ->
         shape.strokeWidth = 0.0f
-        shape.strokeColor = ColorStateList.valueOf(Color.parseColor("#000000"))
-        shape.fillColor = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+        shape.strokeColor = ColorStateList.valueOf("#000000".toColorInt())
+        shape.fillColor = ColorStateList.valueOf("#FFFFFF".toColorInt())
         borderWidth?.let {
           shape.strokeWidth = PixelUtil.toPixelFromDIP(it.toDouble())
         }
         borderColor?.let {
-          shape.strokeColor = ColorStateList.valueOf(Color.parseColor(it))
+          shape.strokeColor = ColorStateList.valueOf(it.toColorInt())
         }
         backgroundColor?.let {
-          shape.fillColor = ColorStateList.valueOf(Color.parseColor(it))
+          shape.fillColor = ColorStateList.valueOf(it.toColorInt())
         }
       }
   }
@@ -247,6 +241,8 @@ class CardFormView(
       if (isValid) {
         cardForm.paymentMethodCreateParams?.let {
           val cardParamsMap = it.toParamMap()["card"] as HashMap<*, *>
+
+          @SuppressLint("RestrictedApi")
           val cardDetails: MutableMap<String, Any> =
             mutableMapOf(
               "expiryMonth" to cardParamsMap["exp_month"] as Int,
@@ -340,7 +336,7 @@ class CardFormView(
       )
   }
 
-  @SuppressLint("RestrictedApi")
+  @SuppressLint("RestrictedApi", "VisibleForTests")
   private fun createPostalCodeInputFilter(): InputFilter {
     return InputFilter { charSequence, start, end, _, _, _ ->
       if (cardFormViewBinding.countryLayout.getSelectedCountryCode() == CountryCode.US) {

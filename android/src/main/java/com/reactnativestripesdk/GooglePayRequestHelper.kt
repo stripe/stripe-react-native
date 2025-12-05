@@ -3,9 +3,9 @@ package com.reactnativestripesdk
 import android.app.Activity
 import android.content.Intent
 import androidx.fragment.app.FragmentActivity
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wallet.AutoResolveHelper
 import com.google.android.gms.wallet.PaymentData
@@ -15,6 +15,7 @@ import com.google.android.gms.wallet.WalletConstants
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.getBooleanOr
+import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapFromShippingContact
 import com.reactnativestripesdk.utils.mapFromToken
@@ -58,7 +59,7 @@ class GooglePayRequestHelper {
         Wallet.WalletOptions
           .Builder()
           .setEnvironment(
-            if (googlePayParams.getBoolean("testEnv")) {
+            if (googlePayParams.getBooleanOr("testEnv", false)) {
               WalletConstants.ENVIRONMENT_TEST
             } else {
               WalletConstants.ENVIRONMENT_PRODUCTION
@@ -107,7 +108,7 @@ class GooglePayRequestHelper {
     private fun buildTransactionInfo(params: ReadableMap): GooglePayJsonFactory.TransactionInfo {
       val countryCode = params.getString("merchantCountryCode").orEmpty()
       val currencyCode = params.getString("currencyCode") ?: "USD"
-      val amount = params.getInt("amount")
+      val amount = params.getIntOr("amount", 0)
       val label = params.getString("label")
 
       return GooglePayJsonFactory.TransactionInfo(
@@ -124,6 +125,7 @@ class GooglePayRequestHelper {
       request: Task<PaymentData>,
       activity: FragmentActivity,
     ) {
+      @Suppress("DEPRECATION")
       AutoResolveHelper.resolveTask(request, activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
     }
 
@@ -165,7 +167,7 @@ class GooglePayRequestHelper {
       promise: Promise,
     ) {
       val paymentInformation = JSONObject(paymentData.toJson())
-      val promiseResult = WritableNativeMap()
+      val promiseResult = Arguments.createMap()
       stripe.createPaymentMethod(
         PaymentMethodCreateParams.createFromGooglePay(paymentInformation),
         callback =
@@ -193,7 +195,7 @@ class GooglePayRequestHelper {
     ) {
       val paymentInformation = JSONObject(paymentData.toJson())
       val googlePayResult = GooglePayResult.fromJson(paymentInformation)
-      val promiseResult = WritableNativeMap()
+      val promiseResult = Arguments.createMap()
       googlePayResult.token?.let {
         promiseResult.putMap("token", mapFromToken(it))
         if (googlePayResult.shippingInformation != null) {

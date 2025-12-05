@@ -18,7 +18,6 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -35,6 +34,7 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOrNull
+import com.reactnativestripesdk.utils.getLongOrNull
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapFromPaymentIntentResult
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -163,7 +163,7 @@ class StripeSdkModule(
 
   private fun configure3dSecure(params: ReadableMap) {
     val stripe3dsConfigBuilder = PaymentAuthConfig.Stripe3ds2Config.Builder()
-    if (params.hasKey("timeout")) stripe3dsConfigBuilder.setTimeout(params.getInt("timeout"))
+    params.getIntOrNull("timeout")?.let { stripe3dsConfigBuilder.setTimeout(it) }
     val uiCustomization = mapToUICustomization(params)
 
     PaymentAuthConfig.init(
@@ -244,10 +244,10 @@ class StripeSdkModule(
       return
     }
 
-    val timeoutKey = "timeout"
-    if (options.hasKey(timeoutKey)) {
+    val timeout = options.getLongOrNull("timeout")
+    if (timeout != null) {
       paymentSheetManager?.presentWithTimeout(
-        options.getInt(timeoutKey).toLong(),
+        timeout,
         promise,
       )
     } else {
@@ -502,7 +502,7 @@ class StripeSdkModule(
         object : ApiResultCallback<Token> {
           override fun onSuccess(result: Token) {
             val tokenId = result.id
-            val res = WritableNativeMap()
+            val res = Arguments.createMap()
             res.putString("tokenId", tokenId)
             promise.resolve(res)
           }
@@ -760,6 +760,7 @@ class StripeSdkModule(
         return
       }
 
+    unregisterStripeUIManager(googlePayLauncherManager)
     googlePayLauncherManager =
       GooglePayLauncherManager(
         reactApplicationContext,
@@ -779,7 +780,7 @@ class StripeSdkModule(
                   expand = listOf("payment_method"),
                   object : ApiResultCallback<PaymentIntent> {
                     override fun onError(e: Exception) {
-                      promise.resolve(createResult("paymentIntent", WritableNativeMap()))
+                      promise.resolve(createResult("paymentIntent", Arguments.createMap()))
                     }
 
                     override fun onSuccess(result: PaymentIntent) {
@@ -799,7 +800,7 @@ class StripeSdkModule(
                   expand = listOf("payment_method"),
                   object : ApiResultCallback<SetupIntent> {
                     override fun onError(e: Exception) {
-                      promise.resolve(createResult("setupIntent", WritableNativeMap()))
+                      promise.resolve(createResult("setupIntent", Arguments.createMap()))
                     }
 
                     override fun onSuccess(result: SetupIntent) {
@@ -829,6 +830,9 @@ class StripeSdkModule(
             }
           }
         }
+      }.also {
+        registerStripeUIManager(it)
+        it.present()
       }
   }
 
@@ -909,7 +913,7 @@ class StripeSdkModule(
       PushProvisioningProxy.isCardInWallet(it, last4) { isCardInWallet, token, error ->
         val result: WritableMap =
           error ?: run {
-            val map = WritableNativeMap()
+            val map = Arguments.createMap()
             map.putBoolean("isInWallet", isCardInWallet)
             map.putMap("token", token)
             map
@@ -1129,7 +1133,7 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    val timeout = params.getIntOrNull("timeout")?.toLong()
+    val timeout = params.getLongOrNull("timeout")
     customerSheetManager?.present(promise, timeout) ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
     }
@@ -1409,7 +1413,7 @@ class StripeSdkModule(
    * provided will be resolved with an error message instructing the user to retry the method.
    */
   private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (currentActivity as? FragmentActivity)?.let {
+    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
       return it
     }
     promise?.resolve(createMissingActivityError())
@@ -1463,14 +1467,14 @@ class StripeSdkModule(
    */
   private fun preventActivityRecreation() {
     isRecreatingReactActivity = false
-    currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-    currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    reactApplicationContext.currentActivity?.application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
   private fun setupComposeCompatView() {
     UiThreadUtil.runOnUiThread {
       composeCompatView = composeCompatView ?: StripeAbstractComposeView.CompatView(context = reactApplicationContext).also {
-        currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
+        reactApplicationContext.currentActivity?.findViewById<ViewGroup>(android.R.id.content)?.addView(
           it,
         )
       }

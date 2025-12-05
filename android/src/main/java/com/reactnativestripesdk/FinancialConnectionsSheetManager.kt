@@ -6,7 +6,6 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
@@ -105,7 +104,7 @@ class FinancialConnectionsSheetManager(
 
       is FinancialConnectionsSheetResult.Completed -> {
         promise?.resolve(
-          WritableNativeMap().also {
+          Arguments.createMap().also {
             it.putMap("session", mapFromSession(result.financialConnectionsSession))
           },
         )
@@ -115,13 +114,13 @@ class FinancialConnectionsSheetManager(
 
   companion object {
     private fun createTokenResult(result: FinancialConnectionsSheetForTokenResult.Completed): WritableMap =
-      WritableNativeMap().also {
+      Arguments.createMap().also {
         it.putMap("session", mapFromSession(result.financialConnectionsSession))
         it.putMap("token", mapFromToken(result.token))
       }
 
     private fun mapFromSession(financialConnectionsSession: FinancialConnectionsSession): WritableMap {
-      val session = WritableNativeMap()
+      val session = Arguments.createMap()
       session.putString("id", financialConnectionsSession.id)
       session.putString("clientSecret", financialConnectionsSession.clientSecret)
       session.putBoolean("livemode", financialConnectionsSession.livemode)
@@ -132,7 +131,7 @@ class FinancialConnectionsSheetManager(
     private fun mapFromAccountsList(accounts: FinancialConnectionsAccountList): ReadableArray {
       val results: WritableArray = Arguments.createArray()
       for (account in accounts.data) {
-        val map = WritableNativeMap()
+        val map = Arguments.createMap()
         map.putString("id", account.id)
         map.putBoolean("livemode", account.livemode)
         map.putString("displayName", account.displayName)
@@ -166,10 +165,10 @@ class FinancialConnectionsSheetManager(
       if (balance == null) {
         return null
       }
-      val map = WritableNativeMap()
+      val map = Arguments.createMap()
       map.putDouble("asOf", balance.asOf * 1000.0)
       map.putString("type", mapFromBalanceType(balance.type))
-      WritableNativeMap().also {
+      Arguments.createMap().also {
         for (entry in balance.current.entries) {
           it.putInt(entry.key, entry.value)
         }
@@ -181,9 +180,9 @@ class FinancialConnectionsSheetManager(
       return map
     }
 
-    private fun mapFromCashAvailable(balance: Balance): WritableNativeMap =
-      WritableNativeMap().also { cashMap ->
-        WritableNativeMap().also { availableMap ->
+    private fun mapFromCashAvailable(balance: Balance): WritableMap =
+      Arguments.createMap().also { cashMap ->
+        Arguments.createMap().also { availableMap ->
           balance.cash?.available?.entries?.let { entries ->
             for (entry in entries) {
               availableMap.putInt(entry.key, entry.value)
@@ -193,9 +192,9 @@ class FinancialConnectionsSheetManager(
         }
       }
 
-    private fun mapFromCreditUsed(balance: Balance): WritableNativeMap =
-      WritableNativeMap().also { creditMap ->
-        WritableNativeMap().also { usedMap ->
+    private fun mapFromCreditUsed(balance: Balance): WritableMap =
+      Arguments.createMap().also { creditMap ->
+        Arguments.createMap().also { usedMap ->
           balance.credit?.used?.entries?.let { entries ->
             for (entry in entries) {
               usedMap.putInt(entry.key, entry.value)
@@ -209,7 +208,7 @@ class FinancialConnectionsSheetManager(
       if (balanceRefresh == null) {
         return null
       }
-      val map = WritableNativeMap()
+      val map = Arguments.createMap()
       map.putString("status", mapFromBalanceRefreshStatus(balanceRefresh.status))
       map.putDouble("lastAttemptedAt", balanceRefresh.lastAttemptedAt * 1000.0)
       return map
@@ -251,7 +250,6 @@ class FinancialConnectionsSheetManager(
         FinancialConnectionsAccount.Permissions.TRANSACTIONS -> "transactions"
         FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
         FinancialConnectionsAccount.Permissions.UNKNOWN -> "unparsable"
-        FinancialConnectionsAccount.Permissions.ACCOUNT_NUMBERS -> "accountNumbers"
       }
 
     private fun mapFromSupportedPaymentMethodTypes(type: FinancialConnectionsAccount.SupportedPaymentMethodTypes): String =

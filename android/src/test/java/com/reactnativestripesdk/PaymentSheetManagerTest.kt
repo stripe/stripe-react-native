@@ -1,24 +1,18 @@
 package com.reactnativestripesdk
 
-import androidx.test.core.app.ApplicationProvider
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
 class PaymentSheetManagerTest {
-  @Before
-  fun setup() {
-    SoLoader.init(ApplicationProvider.getApplicationContext(), OpenSourceMergedSoMapping)
-  }
-
   // ============================================
   // mapToCollectionMode Tests
   // ============================================

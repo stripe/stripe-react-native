@@ -12,7 +12,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildBillingDetails
@@ -126,7 +125,10 @@ class CustomerSheetManager(
       val customerId = arguments.getString("customerId")
       if (customerId == null) {
         initPromise.resolve(
-          createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
+          createError(
+            ErrorType.Failed.toString(),
+            "When using `customerEphemeralKeySecret` you must provide a value for `customerId`",
+          ),
         )
         return
       }
@@ -157,7 +159,7 @@ class CustomerSheetManager(
 
     customerSheet?.configure(configuration.build())
 
-    initPromise.resolve(WritableNativeMap())
+    initPromise.resolve(Arguments.createMap())
   }
 
   private fun handleResult(result: CustomerSheetResult) {

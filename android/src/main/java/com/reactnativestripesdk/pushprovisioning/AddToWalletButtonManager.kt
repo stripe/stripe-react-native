@@ -1,7 +1,5 @@
 package com.reactnativestripesdk.pushprovisioning
 
-import android.content.Context
-import com.bumptech.glide.Glide
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
@@ -13,12 +11,10 @@ import com.facebook.react.viewmanagers.AddToWalletButtonManagerInterface
 import com.reactnativestripesdk.utils.asMapOrNull
 
 @ReactModule(name = AddToWalletButtonManager.REACT_CLASS)
-class AddToWalletButtonManager(
-  applicationContext: Context,
-) : SimpleViewManager<AddToWalletButtonView>(),
+class AddToWalletButtonManager :
+  SimpleViewManager<AddToWalletButtonView>(),
   AddToWalletButtonManagerInterface<AddToWalletButtonView> {
   private val delegate = AddToWalletButtonManagerDelegate(this)
-  private val requestManager = Glide.with(applicationContext)
 
   override fun getName() = REACT_CLASS
 
@@ -34,8 +30,7 @@ class AddToWalletButtonManager(
     view.onAfterUpdateTransaction()
   }
 
-  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView =
-    AddToWalletButtonView(reactContext, requestManager)
+  override fun createViewInstance(reactContext: ThemedReactContext): AddToWalletButtonView = AddToWalletButtonView(reactContext)
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
@@ -64,7 +59,7 @@ class AddToWalletButtonManager(
     view: AddToWalletButtonView,
     ephemeralKey: Dynamic,
   ) {
-    val map = ephemeralKey.asMap()
+    val map = ephemeralKey.asMapOrNull()
     if (map == null) return
     view.setEphemeralKey(map)
   }
@@ -74,7 +69,7 @@ class AddToWalletButtonManager(
     view: AddToWalletButtonView,
     token: Dynamic,
   ) {
-    val map = token.asMap()
+    val map = token.asMapOrNull()
     if (map == null) return
     view.setToken(map)
   }

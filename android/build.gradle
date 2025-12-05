@@ -1,10 +1,10 @@
 buildscript {
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
-  def kotlin_version = rootProject.ext.has('kotlinVersion')
-    ? rootProject.ext.get('kotlinVersion')
-    : project.properties['StripeSdk_kotlinVersion']
+  def kotlinVersion = rootProject.ext.has("kotlinVersion")
+    ? rootProject.ext.get("kotlinVersion")
+    : project.properties["StripeSdk_kotlinVersion"]
 
-  def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
+  def kotlinMajor = kotlinVersion.tokenize("\\.")[0].toInteger()
 
   repositories {
     google()
@@ -12,28 +12,28 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.2.2'
+    classpath "com.android.tools.build:gradle:7.2.2"
     // noinspection DifferentKotlinGradleVersion
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath "com.diffplug.spotless:spotless-plugin-gradle:6.25.0"
     // only use this old compose-compiler plugin when Kotlin >= 2.0
     if (kotlinMajor >= 2) {
-      classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
+      classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion"
     }
   }
 }
 
 if (project == rootProject) {
-  apply from: 'spotless.gradle'
+  apply from: "spotless.gradle"
   return
 }
 
 def getExtOrDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['StripeSdk_' + name]
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["StripeSdk_" + name]
 }
 
 def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['StripeSdk_' + name]).toInteger()
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["StripeSdk_" + name]).toInteger()
 }
 
 def isNewArchitectureEnabled() {
@@ -54,22 +54,19 @@ def reactNativeArchitectures() {
   ]
 }
 
-def kotlin_version = rootProject.ext.has('kotlinVersion')
-    ? rootProject.ext.get('kotlinVersion')
-    : project.properties['StripeSdk_kotlinVersion']
-def kotlinMajor = kotlin_version.tokenize('\\.')[0].toInteger()
+def kotlinVersion = getExtOrDefault("kotlinVersion")
+def kotlinMajor = kotlinVersion.tokenize("\\.")[0].toInteger()
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-parcelize'
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: "kotlin-parcelize"
 // Only apply the compose plugin if we have the old compose-compiler on the classpath
 if (kotlinMajor >= 2) {
-  apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+  apply plugin: "org.jetbrains.kotlin.plugin.compose"
 }
-//apply plugin: 'kotlin-android-extensions'
 
 if (isNewArchitectureEnabled()) {
-  apply plugin: 'com.facebook.react'
+  apply plugin: "com.facebook.react"
 }
 
 android {
@@ -78,7 +75,7 @@ android {
     buildConfig true
   }
 
-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   // Used to override the NDK path/version on internal CI or by allowing
   // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -90,13 +87,12 @@ android {
   }
 
   defaultConfig {
-    minSdkVersion getExtOrIntegerDefault('minSdkVersion')
-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     versionCode 1
     versionName "1.0"
     vectorDrawables.useSupportLibrary = true
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    consumerProguardFiles 'proguard-rules.txt'
+    consumerProguardFiles "proguard-rules.txt"
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
     ndk {
@@ -104,19 +100,19 @@ android {
     }
   }
 
-  buildTypes {
-    release {
-      minifyEnabled false
-    }
-  }
-
   lintOptions {
-    disable 'GradleCompatible'
+    disable "GradleCompatible"
+    textReport true
+    textOutput "stdout"
   }
 
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  kotlinOptions {
+    allWarningsAsErrors = System.getenv("RN_STRIPE_WARNINGS_AS_ERRORS") == "true"
   }
 
   buildFeatures {
@@ -131,110 +127,56 @@ android {
       }
     }
   }
+
+  // When running tests on bitrise we need to make sure that the test artifacts are inside
+  // the root project directory (in that case example/android), or it won't be picked up.
+  testOptions {
+    unitTests.all { Test test ->
+      def outputRoot = rootProject.layout.buildDirectory.get().asFile
+      test.reports.junitXml.outputLocation.set(new File(outputRoot, "test-results/${test.name}"))
+      test.reports.html.outputLocation.set(new File(outputRoot, "reports/tests/${test.name}"))
+    }
+  }
 }
 
 repositories {
   mavenCentral()
   google()
-
-  def found = false
-  def defaultDir = null
-  def androidSourcesName = 'React Native sources'
-
-  if (rootProject.ext.has('reactNativeAndroidRoot')) {
-    defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
-  } else {
-    defaultDir = new File(
-      projectDir,
-      '/../../../node_modules/react-native/android'
-    )
-  }
-
-  if (defaultDir.exists()) {
-    maven {
-      url defaultDir.toString()
-      name androidSourcesName
-    }
-
-    logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
-    found = true
-  } else {
-    def parentDir = rootProject.projectDir
-
-    1.upto(5, {
-      if (found) return true
-      parentDir = parentDir.parentFile
-
-      def androidSourcesDir = new File(
-        parentDir,
-        'node_modules/react-native'
-      )
-
-      def androidPrebuiltBinaryDir = new File(
-        parentDir,
-        'node_modules/react-native/android'
-      )
-
-      if (androidPrebuiltBinaryDir.exists()) {
-        maven {
-          url androidPrebuiltBinaryDir.toString()
-          name androidSourcesName
-        }
-
-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
-        found = true
-      } else if (androidSourcesDir.exists()) {
-        maven {
-          url androidSourcesDir.toString()
-          name androidSourcesName
-        }
-
-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
-        found = true
-      }
-    })
-  }
-
-  if (!found) {
-    throw new GradleException(
-      "${project.name}: unable to locate React Native android sources. " +
-        "Ensure you have you installed React Native as a dependency in your project and try again."
-    )
-  }
 }
 
-def stripe_version = getExtOrDefault('stripeVersion')
+def stripeVersion = getExtOrDefault("stripeVersion")
 
 dependencies {
   // noinspection GradleDynamicVersion
-  api 'com.facebook.react:react-native:+'
-  implementation 'com.github.bumptech.glide:glide:4.12.0'
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  api "com.facebook.react:react-native:+"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
-  implementation("com.stripe:stripe-android:$stripe_version") {
-    exclude group: 'androidx.emoji2', module: 'emoji2'
-  }
-  implementation("com.stripe:financial-connections:$stripe_version") {
-    exclude group: 'androidx.emoji2', module: 'emoji2'
-  }
-  implementation('androidx.emoji2:emoji2:1.3.0').force // Avoid using 1.4.0 since that requires targetSdkVersion 34
-  implementation 'com.google.android.material:material:1.3.0'
-  implementation 'androidx.appcompat:appcompat:1.4.1'
-  implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
-  implementation 'androidx.browser:browser:1.5.0'
+  implementation("com.stripe:stripe-android:$stripeVersion")
+  implementation("com.stripe:financial-connections:$stripeVersion")
+  implementation "com.google.android.material:material:1.3.0"
+  implementation "androidx.appcompat:appcompat:1.4.1"
+  implementation "androidx.legacy:legacy-support-v4:1.0.0"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0"
 
   // play-services-wallet is already included in stripe-android
   compileOnly "com.google.android.gms:play-services-wallet:19.3.0"
 
   // Users need to declare this dependency on their own, otherwise all methods are a no-op
-  compileOnly 'com.stripe:stripe-android-issuing-push-provisioning:1.1.0'
+  compileOnly "com.stripe:stripe-android-issuing-push-provisioning:1.1.0"
 
-  androidTestImplementation "junit:junit:4.13"
-  androidTestImplementation "androidx.test:core:1.4.0"
-  androidTestImplementation 'androidx.test:runner:1.1.0'
-  androidTestImplementation "org.mockito:mockito-core:3.+"
+  testImplementation "junit:junit:4.13"
+  testImplementation "org.mockito:mockito-core:3.+"
+  testImplementation "org.robolectric:robolectric:4.10"
+  testImplementation "androidx.test:core:1.4.0"
 
   implementation "androidx.compose.ui:ui:1.7.8"
   implementation "androidx.compose.foundation:foundation-layout:1.7.8"
 }
+
+def lintRulesJar = file("$projectDir/lint-rules/build/libs/lint-rules-1.0.0.jar")
+if (lintRulesJar.exists()) {
+  dependencies {
+    lintChecks files(lintRulesJar)
+  }
+}
+

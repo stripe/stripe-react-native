@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference
 class CustomPaymentMethodActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     // Disable the transition animation to make it truly invisible
+    @Suppress("DEPRECATION")
     overridePendingTransition(0, 0)
     super.onCreate(savedInstanceState)
   }
@@ -53,6 +54,7 @@ class CustomPaymentMethodActivity : ReactActivity() {
   override fun finish() {
     super.finish()
     // Disable the exit animation as well
+    @Suppress("DEPRECATION")
     overridePendingTransition(0, 0)
 
     // Clear the weak reference when finished

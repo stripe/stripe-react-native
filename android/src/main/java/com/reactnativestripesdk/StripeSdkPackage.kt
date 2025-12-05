@@ -47,7 +47,7 @@ class StripeSdkPackage : BaseReactPackage() {
       StripeContainerManager(),
       CardFormViewManager(),
       GooglePayButtonManager(),
-      AddToWalletButtonManager(reactContext),
+      AddToWalletButtonManager(),
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
       NavigationBarManager(),

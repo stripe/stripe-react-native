@@ -16,3 +16,7 @@ insert_final_newline = true
 
 [*.swift]
 indent_size = 4
+
+[*.{kt,kts}]
+ktlint_function_naming_ignore_when_annotated_with = Composable
+ktlint_standard_function-naming = disabled

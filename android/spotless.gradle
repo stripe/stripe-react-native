@@ -11,7 +11,7 @@ allprojects {
 spotless {
     kotlin {
         target 'src/**/*.kt'
-        ktlint("1.5.0")
+        ktlint("1.5.0").setEditorConfigPath("$projectDir/../.editorconfig")
         trimTrailingWhitespace()
         indentWithSpaces()
         endWithNewline()

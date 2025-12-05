@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
@@ -14,6 +13,7 @@ import com.facebook.react.viewmanagers.EmbeddedPaymentElementViewManagerInterfac
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.PaymentSheetException
+import com.reactnativestripesdk.utils.asMapOrNull
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntegerList
 import com.reactnativestripesdk.utils.getStringList
@@ -53,7 +53,7 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val readableMap = cfg.asMap()
+    val readableMap = cfg.asMapOrNull()
     if (readableMap == null) return
 
     val rowSelectionBehaviorType = mapToRowSelectionBehaviorType(readableMap)
@@ -76,7 +76,7 @@ class EmbeddedPaymentElementViewManager :
     view: EmbeddedPaymentElementView,
     cfg: Dynamic,
   ) {
-    val readableMap = cfg.asMap()
+    val readableMap = cfg.asMapOrNull()
     if (readableMap == null) return
 
     // Detect which callback type to use based on the presence of the confirmation token handler
@@ -153,13 +153,7 @@ class EmbeddedPaymentElementViewManager :
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(map))
         .embeddedViewDisplaysMandateText(
-          if (map.hasKey("embeddedViewDisplaysMandateText") &&
-            map.getType("embeddedViewDisplaysMandateText") == ReadableType.Boolean
-          ) {
-            map.getBoolean("embeddedViewDisplaysMandateText")
-          } else {
-            true // default value
-          },
+          map.getBooleanOr("embeddedViewDisplaysMandateText", true),
         ).customPaymentMethods(
           parseCustomPaymentMethods(
             map.getMap("customPaymentMethodConfiguration"),
