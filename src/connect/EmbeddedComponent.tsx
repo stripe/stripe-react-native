@@ -307,6 +307,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
 
+        // Validate URL before opening
+        if (!isValidUrl(url)) {
+          handleUnexpectedError(
+            new Error(`Invalid URL for authenticated webview: ${url}`)
+          );
+          return;
+        }
+
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
         NativeStripeSdk.openAuthenticatedWebView(id, url)
@@ -385,4 +393,14 @@ function withDefaultFontFamily(appearance: any) {
       fontFamily: DEFAULT_FONT,
     },
   };
+}
+
+// Validates that a URL is well-formed and uses http or https protocol
+function isValidUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
