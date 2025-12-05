@@ -161,6 +161,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
 
     return () => {
+      pendingAuthWebViewPromise.current = null;
       subscription.remove();
     };
   }, []);
