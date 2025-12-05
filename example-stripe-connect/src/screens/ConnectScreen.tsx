@@ -37,9 +37,6 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
 
     // Get appearance variables based on selected preset
     const appearanceVariables = APPEARANCE_PRESETS[appearancePreset] || {};
-    // TODO: temporary fix because we it's always rendering a serif font now
-    appearanceVariables.fontFamily =
-      "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
 
     // Initialize Stripe Connect
     const instance = loadConnectAndInitialize({

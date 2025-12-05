@@ -14,10 +14,6 @@ export type AppearanceVariables = NonNullable<
 export const APPEARANCE_PRESETS: Record<string, AppearanceVariables> = {
   'Default': {},
 
-  'Custom Font': {
-    fontFamily: 'Handjet-Regular',
-  },
-
   'Dark mode': {
     colorPrimary: 'rgb(0, 133, 255)',
     colorText: 'rgb(201, 206, 216)',

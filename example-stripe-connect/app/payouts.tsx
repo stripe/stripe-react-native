@@ -3,12 +3,13 @@ import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSettings } from '../src/contexts/SettingsContext';
-import { Colors } from '../src/constants/colors';
+import { useAppearanceTextColor } from '../src/hooks/useAppearanceTextColor';
 import ConnectPayoutsView from '../src/connect/ConnectPayoutsView';
 
 export default function PayoutsScreen() {
   const router = useRouter();
   const { viewControllerSettings } = useSettings();
+  const textColor = useAppearanceTextColor();
 
   const isModal = viewControllerSettings.presentationType === 'present_modally';
   const showHeader = viewControllerSettings.embedInNavigationBar;
@@ -19,6 +20,7 @@ export default function PayoutsScreen() {
         options={{
           title: 'Payouts',
           headerShown: showHeader,
+          headerTintColor: textColor,
           headerLeft:
             isModal && showHeader
               ? () => (
@@ -30,11 +32,13 @@ export default function PayoutsScreen() {
                       <SymbolView
                         name="xmark"
                         size={20}
-                        tintColor={Colors.icon.primary}
+                        tintColor={textColor}
                         style={styles.symbolView}
                       />
                     ) : (
-                      <Text style={styles.headerIcon}>✕</Text>
+                      <Text style={[styles.headerIcon, { color: textColor }]}>
+                        ✕
+                      </Text>
                     )}
                   </TouchableOpacity>
                 )
@@ -49,7 +53,7 @@ export default function PayoutsScreen() {
                     <SymbolView
                       name="paintpalette"
                       size={22}
-                      tintColor={Colors.icon.primary}
+                      tintColor={textColor}
                       style={styles.symbolView}
                     />
                   ) : (
