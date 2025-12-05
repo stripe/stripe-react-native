@@ -382,6 +382,14 @@ RCT_EXPORT_METHOD(setFinancialConnectionsForceNativeFlow:(BOOL)enabled
   [StripeSdkImpl.shared setFinancialConnectionsForceNativeFlow:enabled resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(openAuthenticatedWebView:(nonnull NSString *)id
+                                       url:(nonnull NSString *)url
+                                   resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                    reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared openAuthenticatedWebView:id url:url resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent
                          clientSecret:(nonnull NSString *)clientSecret
                                params:(nonnull NSDictionary *)params

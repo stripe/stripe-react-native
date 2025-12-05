@@ -1029,6 +1029,46 @@ app.post(
   }
 );
 
+app.post('/account_session', async (req, res) => {
+  let stripe = new Stripe(stripeSecretKey, {
+    apiVersion: '2023-10-16',
+    typescript: true,
+  });
+
+  try {
+    const accountSession = await stripe.accountSessions.create({
+      account: process.env.CONNECTED_ACCOUNT_ID || '',
+      components: {
+        account_onboarding: {
+          enabled: true,
+        },
+        payouts: {
+          enabled: true,
+        },
+        payments: {
+          enabled: true,
+          features: {
+            refund_management: true,
+            dispute_management: true,
+            capture_payments: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      clientSecret: accountSession.client_secret,
+    });
+  } catch (error: any) {
+    console.error(
+      'An error occurred when calling the Stripe API to create an account session',
+      error
+    );
+    res.status(500);
+    res.send({ error: error.message });
+  }
+});
+
 // Mocks a Database. In your code, you should use a persistent database.
 let savedPaymentOptions = new Map<string, string>();
 

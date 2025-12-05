@@ -196,6 +196,11 @@ export interface Spec extends TurboModule {
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
+  openAuthenticatedWebView(
+    id: string,
+    url: string
+  ): Promise<{ url?: string } | null>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;

@@ -50,5 +50,6 @@ class StripeSdkPackage : BaseReactPackage() {
       AddToWalletButtonManager(),
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
+      NavigationBarManager(),
     )
 }
