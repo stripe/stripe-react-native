@@ -28,13 +28,13 @@ public class ConnectAccountOnboardingView: UIView {
     }
 
     @objc public func didSetProps() {
-        if (visible && !wasVisible) {
+        if visible && !wasVisible {
             // Delay presentation to ensure React Native has rendered children
             DispatchQueue.main.async { [weak self] in
                 self?.presentModal()
             }
             wasVisible = true
-        } else if (!visible && wasVisible) {
+        } else if !visible && wasVisible {
             dismissModal()
             wasVisible = false
         }
@@ -81,11 +81,6 @@ public class ConnectAccountOnboardingView: UIView {
         wasVisible = false
         onExitAction?([:])
         dismissModal()
-    }
-
-    override public func layoutSubviews() {
-        super.layoutSubviews()
-        // Don't manually set frames - let Auto Layout handle it
     }
 
     override public func didMoveToSuperview() {

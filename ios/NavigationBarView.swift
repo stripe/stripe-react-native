@@ -53,7 +53,7 @@ public class NavigationBarView: UIView {
             navigationBar.topAnchor.constraint(equalTo: topAnchor),
             navigationBar.leadingAnchor.constraint(equalTo: leadingAnchor),
             navigationBar.trailingAnchor.constraint(equalTo: trailingAnchor),
-            navigationBar.bottomAnchor.constraint(equalTo: bottomAnchor)
+            navigationBar.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
 

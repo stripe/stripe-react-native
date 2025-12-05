@@ -6,7 +6,7 @@
 import Foundation
 
 @objc(ConnectAccountOnboardingViewManager)
-class ConnectAccountOnboardingViewManager : RCTViewManager {
+class ConnectAccountOnboardingViewManager: RCTViewManager {
     override func view() -> UIView! {
         return ConnectAccountOnboardingView()
     }

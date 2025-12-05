@@ -1,6 +1,6 @@
+import AuthenticationServices
 import Foundation
 import PassKit
-import AuthenticationServices
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
@@ -79,8 +79,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     var embeddedInstance: EmbeddedPaymentElement?
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
 
-    var authenticationSession: ASWebAuthenticationSession? = nil
-    var authenticationContextProvider: Any? = nil
+    var authenticationSession: ASWebAuthenticationSession?
+    var authenticationContextProvider: Any?
 
     @objc public func getConstants() -> [AnyHashable: Any] {
         return [

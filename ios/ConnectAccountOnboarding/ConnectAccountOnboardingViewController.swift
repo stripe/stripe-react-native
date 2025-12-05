@@ -61,7 +61,7 @@ class ConnectAccountOnboardingViewController: UIViewController {
                 let font = UIFont.systemFont(ofSize: UIFont.labelFontSize)
                 navAppearance.titleTextAttributes = [
                     .foregroundColor: UIColor(colorString: titleColorString),
-                    .font: UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font)
+                    .font: UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font),
                 ]
             }
 
@@ -110,7 +110,7 @@ class ConnectAccountOnboardingViewController: UIViewController {
             view.topAnchor.constraint(equalTo: self.view.topAnchor),
             view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+            view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
         ])
     }
 
