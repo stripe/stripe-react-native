@@ -17,6 +17,7 @@ import type {
 import { CommonComponentProps, EmbeddedComponent } from './EmbeddedComponent';
 import { NavigationBar } from './NavigationBar';
 import NativeConnectAccountOnboardingView from '../specs/NativeConnectAccountOnboardingView';
+import { useConnectComponents } from './ConnectComponentsProvider';
 
 // Export NavigationBar for external use
 export { NavigationBar } from './NavigationBar';
@@ -44,6 +45,20 @@ export function ConnectAccountOnboarding({
 } & Omit<CommonComponentProps, 'style'>) {
   const [visible, setVisible] = useState(true);
   const [loading, setLoading] = useState(true);
+  const { appearance } = useConnectComponents();
+
+  // Extract colors from appearance
+  const backgroundColor = useMemo(() => {
+    return appearance?.variables?.colorBackground || '#FFFFFF';
+  }, [appearance]);
+
+  const textColor = useMemo(() => {
+    return appearance?.variables?.colorText || '#000000';
+  }, [appearance]);
+
+  const loadingIndicatorColor = useMemo(() => {
+    return appearance?.variables?.colorSecondaryText || '#888888';
+  }, [appearance]);
 
   const componentProps = useMemo(() => {
     return {
@@ -95,11 +110,17 @@ export function ConnectAccountOnboarding({
       <NativeConnectAccountOnboardingView
         visible={visible}
         title={title}
+        backgroundColor={backgroundColor}
+        textColor={textColor}
         onExitAction={onExitCallback}
         style={containerStyle}
       >
         {loading ? (
-          <ActivityIndicator size="large" style={styles.iosActivityIndicator} />
+          <ActivityIndicator
+            size="large"
+            color={loadingIndicatorColor}
+            style={styles.iosActivityIndicator}
+          />
         ) : null}
         <EmbeddedComponent
           component="account-onboarding"
@@ -108,7 +129,7 @@ export function ConnectAccountOnboarding({
           onLoadError={onLoadError}
           onPageDidLoad={onPageDidLoad}
           callbacks={callbacks}
-          style={containerStyle}
+          style={styles.flex1}
         />
       </NativeConnectAccountOnboardingView>
     );
@@ -129,7 +150,11 @@ export function ConnectAccountOnboarding({
         />
         <View style={styles.onboardingWrapper}>
           {loading ? (
-            <ActivityIndicator size="large" style={styles.activityIndicator} />
+            <ActivityIndicator
+              size="large"
+              color={loadingIndicatorColor}
+              style={styles.activityIndicator}
+            />
           ) : null}
           <EmbeddedComponent
             component="account-onboarding"
@@ -138,7 +163,7 @@ export function ConnectAccountOnboarding({
             onLoadError={onLoadError}
             onPageDidLoad={onPageDidLoad}
             callbacks={callbacks}
-            style={styles.flex1}
+            style={[styles.flex1, { backgroundColor }]}
           />
         </View>
       </SafeAreaView>

@@ -8,12 +8,19 @@ import UIKit
 
 class ConnectAccountOnboardingViewController: UIViewController {
     var onClose: (() -> Void)?
+    var backgroundColorString: String?
+    var textColorString: String?
     private var reactContentView: UIView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .systemBackground
+        // Use provided backgroundColor or fallback to system background
+        if let bgColor = backgroundColorString {
+            view.backgroundColor = UIColor(colorString: bgColor)
+        } else {
+            view.backgroundColor = .systemBackground
+        }
 
         // Configure view controller to extend content behind navigation bar
         extendedLayoutIncludesOpaqueBars = true
@@ -34,12 +41,35 @@ class ConnectAccountOnboardingViewController: UIViewController {
             // Make navigation bar translucent so content shows behind it
             navigationBar.isTranslucent = true
 
-            // Optional: Customize appearance
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithDefaultBackground()
+            // Set tint color for navigation bar items (like the close button)
+            if let tintColorString = textColorString {
+                navigationBar.tintColor = UIColor(colorString: tintColorString)
+            }
 
-            navigationBar.standardAppearance = appearance
-            navigationBar.scrollEdgeAppearance = appearance
+            // Set overrideUserInterfaceStyle based on whether background is specified
+            navigationBar.overrideUserInterfaceStyle = backgroundColorString == nil ? .light : .unspecified
+
+            // Configure navigation bar appearance with custom colors
+            let navAppearance = UINavigationBarAppearance()
+            navAppearance.configureWithOpaqueBackground()
+
+            if let bgColor = backgroundColorString {
+                navAppearance.backgroundColor = UIColor(colorString: bgColor)
+            }
+
+            if let titleColorString = textColorString {
+                let font = UIFont.systemFont(ofSize: UIFont.labelFontSize)
+                navAppearance.titleTextAttributes = [
+                    .foregroundColor: UIColor(colorString: titleColorString),
+                    .font: UIFontMetrics(forTextStyle: .largeTitle).scaledFont(for: font)
+                ]
+            }
+
+            navigationItem.standardAppearance = navAppearance
+            navigationItem.scrollEdgeAppearance = navAppearance
+
+            navigationBar.standardAppearance = navAppearance
+            navigationBar.scrollEdgeAppearance = navAppearance
         }
 
         // Add close button

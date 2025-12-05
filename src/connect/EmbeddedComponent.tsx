@@ -36,6 +36,12 @@ if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
   );
 }
 
+const userAgent = [
+  'Mobile',
+  `Stripe ReactNative SDK ${Platform.OS}/${Platform.Version}`,
+  `stripe-react_native/${sdkVersion}`,
+].join(' - ');
+
 export interface CommonComponentProps {
   onLoaderStart?: ({ elementTagName }: LoaderStart) => void;
   onLoadError?: ({ error, elementTagName }: LoadError) => void;
@@ -203,9 +209,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     setPrevAppearance(appearance);
     setPrevLocale(locale);
 
+    const patchedAppearance = withDefaultFontFamily(appearance);
+
     ref.current?.injectJavaScript(`
       (function() {
-        window.updateConnectInstance(${JSON.stringify({ appearance, locale })});
+        window.updateConnectInstance(${JSON.stringify({ appearance: patchedAppearance, locale })});
         true;
       })();
     `);
@@ -330,18 +338,25 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     ]
   );
 
+  const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
+
+  const mergedStyle = useMemo(
+    () => [{ backgroundColor }, style],
+    [backgroundColor, style]
+  );
+
   if (!WebViewComponent) return null;
 
   return (
     <WebViewComponent
       ref={ref}
-      style={style}
+      style={mergedStyle}
       webviewDebuggingEnabled={DEVELOPMENT_MODE}
       source={source}
-      userAgent={`Mobile - Stripe ReactNative SDK ${Platform.OS}/${Platform.Version} - stripe-react_native/${sdkVersion}`}
+      userAgent={userAgent}
       injectedJavaScriptObject={{
         initParams: {
-          appearance,
+          appearance: withDefaultFontFamily(appearance),
           locale,
           fonts,
         },
@@ -353,4 +368,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       onMessage={onMessageCallback}
     />
   );
+}
+
+const DEFAULT_FONT =
+  "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
+
+// Returns appearance with fontFamily set if not defined
+function withDefaultFontFamily(appearance: any) {
+  if (appearance?.variables?.fontFamily) {
+    return appearance;
+  }
+  return {
+    ...appearance,
+    variables: {
+      ...appearance?.variables,
+      fontFamily: DEFAULT_FONT,
+    },
+  };
 }

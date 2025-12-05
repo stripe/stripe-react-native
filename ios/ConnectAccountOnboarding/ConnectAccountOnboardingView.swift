@@ -10,6 +10,8 @@ import UIKit
 public class ConnectAccountOnboardingView: UIView {
     @objc public var visible = false
     @objc public var title: String?
+    @objc public var backgroundColorValue: String?
+    @objc public var textColorValue: String?
     @objc public var onExitAction: RCTDirectEventBlock?
 
     private var wasVisible = false
@@ -18,7 +20,7 @@ public class ConnectAccountOnboardingView: UIView {
 
     override public init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = .clear
+        super.backgroundColor = .clear
     }
 
     required init?(coder: NSCoder) {
@@ -48,6 +50,8 @@ public class ConnectAccountOnboardingView: UIView {
         // Create the view controller that wraps THIS view
         viewController = ConnectAccountOnboardingViewController()
         viewController?.title = title
+        viewController?.backgroundColorString = backgroundColorValue
+        viewController?.textColorString = textColorValue
         viewController?.onClose = { [weak self] in
             self?.handleClose()
         }

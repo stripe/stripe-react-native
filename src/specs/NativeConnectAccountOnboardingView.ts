@@ -7,6 +7,8 @@ type OnExitActionEvent = Readonly<{}>;
 export interface NativeProps extends ViewProps {
   visible: boolean;
   title?: string;
+  backgroundColor?: string;
+  textColor?: string;
   onExitAction: DirectEventHandler<OnExitActionEvent>;
 }
 

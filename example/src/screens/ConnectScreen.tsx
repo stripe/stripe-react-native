@@ -15,14 +15,7 @@ import {
 import { colors } from '../colors';
 import { fetchClientSecret, fetchPublishableKey } from '../helpers';
 
-const fontFamily =
-  "-apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'";
-
-const defaultAppearance: StripeConnectUpdateParams['appearance'] = {
-  variables: {
-    fontFamily,
-  },
-};
+const defaultAppearance: StripeConnectUpdateParams['appearance'] = {};
 
 const defaultLocale = 'en_US';
 
@@ -85,7 +78,6 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
                     offsetBackgroundColor: '#FAF6E9',
                     formBackgroundColor: '#FAF6E9',
                     borderRadius: '24px',
-                    fontFamily,
                   },
                 }
               : defaultAppearance;
