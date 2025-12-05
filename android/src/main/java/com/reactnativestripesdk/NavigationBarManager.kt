@@ -4,18 +4,10 @@ import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
-import com.facebook.react.viewmanagers.NavigationBarManagerDelegate
-import com.facebook.react.viewmanagers.NavigationBarManagerInterface
 
 @ReactModule(name = NavigationBarManager.REACT_CLASS)
-class NavigationBarManager :
-  SimpleViewManager<NavigationBarView>(),
-  NavigationBarManagerInterface<NavigationBarView> {
-  private val delegate = NavigationBarManagerDelegate(this)
-
+class NavigationBarManager : SimpleViewManager<NavigationBarView>() {
   override fun getName() = REACT_CLASS
-
-  override fun getDelegate() = delegate
 
   override fun getExportedCustomDirectEventTypeConstants() =
     mutableMapOf(
@@ -23,7 +15,7 @@ class NavigationBarManager :
     )
 
   @ReactProp(name = "title")
-  override fun setTitle(
+  fun setTitle(
     view: NavigationBarView,
     title: String?,
   ) {
