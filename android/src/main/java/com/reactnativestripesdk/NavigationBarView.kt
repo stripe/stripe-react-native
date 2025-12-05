@@ -89,12 +89,13 @@ class NavigationBarView(
   }
 
   private fun dispatchCloseButtonPress() {
+    val reactContext = context as ThemedReactContext
     val event =
       CloseButtonPressEvent(
-        getContext().surfaceId,
+        UIManagerHelper.getSurfaceId(reactContext),
         id,
       )
-    UIManagerHelper.getEventDispatcherForReactTag(getContext(), id)?.dispatchEvent(event)
+    UIManagerHelper.getEventDispatcherForReactTag(reactContext, id)?.dispatchEvent(event)
   }
 
   override fun onMeasure(
