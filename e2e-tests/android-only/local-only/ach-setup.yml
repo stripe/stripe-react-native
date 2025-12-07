@@ -12,7 +12,7 @@ appId: ${APP_ID}
     text: "Collect bank account"
     retryTapIfNoChange: false
 - tapOn: "Agree"
-- tapOn: "Test Institution"
+- tapOn: "Test"
 - tapOn: "Success"
 - tapOn: "Link account"
 - tapOn: "Done"

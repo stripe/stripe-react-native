@@ -16,8 +16,8 @@ appId: ${APP_ID}
     text: "Agree and continue"
 - tapOn: "Agree and continue"
 - assertVisible:
-    text: "Test Institution"
-- tapOn: "Test Institution"
+    text: "Test"
+- tapOn: "Test"
 - extendedWaitUntil:
     # wait for the auth flow to finish
     visible: "Select account"
