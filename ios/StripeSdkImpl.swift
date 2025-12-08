@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
@@ -14,6 +15,13 @@ import StripePaymentSheet
 #else
 @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
 #endif
+
+@available(iOS 13.0, *)
+class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return RCTKeyWindow() ?? ASPresentationAnchor()
+    }
+}
 
 @objc(StripeSdkImpl)
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
@@ -86,6 +94,9 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     var embeddedInstance: EmbeddedPaymentElement?
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
+
+    var authenticationSession: ASWebAuthenticationSession?
+    var authenticationContextProvider: Any?
 
     @objc public func getConstants() -> [AnyHashable: Any] {
         return [
@@ -1815,6 +1826,69 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     ) {
         UserDefaults.standard.set(enabled, forKey: "FINANCIAL_CONNECTIONS_EXAMPLE_APP_ENABLE_NATIVE")
         resolve(nil)
+    }
+
+    @objc(openAuthenticatedWebView:url:resolver:rejecter:)
+    public func openAuthenticatedWebView(
+        id: String,
+        url: String,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let url = URL(string: url) else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid URL"))
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {
+                resolve(Errors.createError(ErrorType.Failed, "StripeSdkImpl instance deallocated"))
+                return
+            }
+
+            // Create the authentication session with the configured URL scheme
+            self.authenticationSession = ASWebAuthenticationSession(
+                url: url,
+                callbackURLScheme: nil
+            ) { callbackURL, error in
+                if let error = error {
+                    // User canceled or an error occurred
+                    if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
+                        // User canceled - resolve successfully as this is expected behavior
+                        resolve([])
+                    } else {
+                        resolve(Errors.createError(ErrorType.Failed, error as NSError))
+                    }
+                } else if let callbackURL = callbackURL {
+                    // Return the callback URL
+                    let result: [String: Any] = ["url": callbackURL.absoluteString]
+                    resolve(result)
+                } else {
+                    // Session completed successfully without a callback URL
+                    resolve([])
+                }
+
+                // Clean up the session and context provider
+                self.authenticationSession = nil
+                self.authenticationContextProvider = nil
+            }
+
+            // Configure the session for iOS 13+
+            if #available(iOS 13.0, *) {
+                let contextProvider = ASWebAuthenticationPresentationContextProvider()
+                self.authenticationContextProvider = contextProvider
+                self.authenticationSession?.presentationContextProvider = contextProvider
+                self.authenticationSession?.prefersEphemeralWebBrowserSession = false
+            }
+
+            // Start the session
+            guard self.authenticationSession?.start() == true else {
+                resolve(Errors.createError(ErrorType.Failed, "Failed to start authentication session"))
+                self.authenticationSession = nil
+                self.authenticationContextProvider = nil
+                return
+            }
+        }
     }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

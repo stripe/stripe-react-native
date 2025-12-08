@@ -496,6 +496,32 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <Collapse title="Connect embedded components">
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Account onboarding"
+            onPress={() => {
+              navigation.navigate('ConnectAccountOnboardingScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payments list"
+            onPress={() => {
+              navigation.navigate('ConnectPaymentsListScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payouts list"
+            onPress={() => {
+              navigation.navigate('ConnectPayoutsListScreen');
+            }}
+          />
+        </View>
+      </Collapse>
       <StripeProvider
         publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO"
         merchantIdentifier="merchant.com.stripe.react.native"
