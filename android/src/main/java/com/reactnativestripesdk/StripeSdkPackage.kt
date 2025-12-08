@@ -19,11 +19,20 @@ class StripeSdkPackage : BaseReactPackage() {
   ): NativeModule? =
     when (name) {
       StripeSdkModule.NAME -> StripeSdkModule(reactContext)
+      NativeOnrampSdkModuleSpec.NAME -> {
+        val onrampModuleClass = getOnrampModuleClass()
+        val constructor = onrampModuleClass.getConstructor(ReactApplicationContext::class.java)
+        constructor.newInstance(reactContext) as NativeModule
+      }
       else -> null
     }
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-    val moduleList: Array<Class<out NativeModule?>> = arrayOf(StripeSdkModule::class.java)
+    val moduleList: Array<Class<out NativeModule?>> =
+      arrayOf(
+        StripeSdkModule::class.java,
+        getOnrampModuleClass(),
+      )
     val reactModuleInfoMap: MutableMap<String, ReactModuleInfo> = HashMap()
     for (moduleClass in moduleList) {
       val reactModule = moduleClass.getAnnotation(ReactModule::class.java) ?: continue
@@ -52,4 +61,13 @@ class StripeSdkPackage : BaseReactPackage() {
       EmbeddedPaymentElementViewManager(),
       NavigationBarManager(),
     )
+
+  private fun getOnrampModuleClass(): Class<out NativeModule?> {
+    if (BuildConfig.IS_ONRAMP_INCLUDED) {
+      @Suppress("UNCHECKED_CAST")
+      return Class.forName("com.reactnativestripesdk.OnrampSdkModule") as Class<out NativeModule?>
+    } else {
+      return FakeOnrampSdkModule::class.java
+    }
+  }
 }
