@@ -54,6 +54,8 @@ import SepaPaymentScreen from './screens/SepaPaymentScreen';
 import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
 import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
 import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
+import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
+import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -109,6 +111,8 @@ export type RootStackParamList = {
   ConnectAccountOnboardingScreen: undefined;
   ConnectPaymentsListScreen: undefined;
   ConnectPayoutsListScreen: undefined;
+  CryptoOnrampFlow: undefined;
+  RegisterCryptoUserScreen: undefined;
 };
 
 declare global {
@@ -292,6 +296,11 @@ export default function App() {
           <Stack.Screen
             name="PaymentSheetWithPmoSfuScreen"
             component={PaymentSheetWithPmoSfuScreen}
+          />
+          <Stack.Screen name="CryptoOnrampFlow" component={CryptoOnrampFlow} />
+          <Stack.Screen
+            name="RegisterCryptoUserScreen"
+            component={RegisterCryptoUserScreen}
           />
           <Stack.Screen
             name="AlmaPaymentScreen"

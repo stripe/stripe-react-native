@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useStripe } from '@stripe/stripe-react-native';
+import {
+  StripeProvider,
+  useStripe,
+  useOnramp,
+} from '@stripe/stripe-react-native';
 import {
   Linking,
   StyleSheet,
@@ -13,10 +17,12 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
+import { Onramp } from '@stripe/stripe-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { handleURLCallback } = useStripe();
+  const { configure } = useOnramp();
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
@@ -47,6 +53,39 @@ export default function HomeScreen() {
 
     return () => deepLinkListener.remove();
   }, [handleDeepLink]);
+
+  const handleConfigureOnramp = useCallback(() => {
+    const config: Onramp.Configuration = {
+      merchantDisplayName: 'Onramp RN Example',
+      appearance: {
+        lightColors: {
+          primary: '#2d22a1',
+          contentOnPrimary: '#ffffff',
+          borderSelected: '#07b8b8',
+        },
+        darkColors: {
+          primary: '#800080',
+          contentOnPrimary: '#ffffff',
+          borderSelected: '#526f3e',
+        },
+        style: 'ALWAYS_DARK',
+        primaryButton: {
+          cornerRadius: 8,
+          height: 48,
+        },
+      },
+    };
+
+    configure(config).then((result) => {
+      if (result?.error) {
+        console.error('Error configuring Onramp:', result.error.message);
+        Alert.alert('Onramp Configuration Error', result.error.message);
+      } else {
+        console.log('Onramp configured successfully.');
+        Alert.alert('Success', 'Onramp configured successfully.');
+      }
+    });
+  }, [configure]);
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
@@ -483,6 +522,39 @@ export default function HomeScreen() {
           />
         </View>
       </Collapse>
+      <StripeProvider
+        publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO"
+        merchantIdentifier="merchant.com.stripe.react.native"
+      >
+        <Collapse title="Crypto Onramp">
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Configure Onramp (Required First)"
+                onPress={() => {
+                  handleConfigureOnramp();
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Crypto Onramp Flow"
+                onPress={() => {
+                  navigation.navigate('CryptoOnrampFlow');
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Register Crypto Link User"
+                onPress={() => {
+                  navigation.navigate('RegisterCryptoUserScreen');
+                }}
+              />
+            </View>
+          </>
+        </Collapse>
+      </StripeProvider>
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
           New arch enabled:{' '}
