@@ -23,7 +23,8 @@
     @"embeddedPaymentElementFormSheetConfirmComplete",
     @"embeddedPaymentElementRowSelectionImmediateAction",
     @"embeddedPaymentElementLoadingFailed",
-    @"onCustomPaymentMethodConfirmHandlerCallback"
+    @"onCustomPaymentMethodConfirmHandlerCallback",
+    @"onCheckoutClientSecretRequested"
   ];
 }
 
@@ -120,6 +121,11 @@
 - (void)emitOnCustomPaymentMethodConfirmHandlerCallback:(NSDictionary *)value
 {
   [self sendEventWithName:@"onCustomPaymentMethodConfirmHandlerCallback" body:value];
+}
+
+- (void)emitOnCheckoutClientSecretRequested:(NSDictionary *)value
+{
+  [self sendEventWithName:@"onCheckoutClientSecretRequested" body:value];
 }
 
 @end

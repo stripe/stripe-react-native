@@ -44,6 +44,11 @@ def isNewArchitectureEnabled() {
   return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
 }
 
+def isOnrampIncluded() {
+  return rootProject.ext.has("StripeSdk_includeOnramp") &&
+    rootProject.ext.StripeSdk_includeOnramp.toString().toLowerCase() == "true"
+}
+
 def reactNativeArchitectures() {
   def value = project.getProperties().get("reactNativeArchitectures")
   return value ? value.split(",") : [
@@ -94,6 +99,7 @@ android {
     vectorDrawables.useSupportLibrary = true
     consumerProguardFiles "proguard-rules.txt"
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    buildConfigField "boolean", "IS_ONRAMP_INCLUDED", isOnrampIncluded().toString()
 
     ndk {
       abiFilters(*reactNativeArchitectures())
@@ -125,6 +131,9 @@ android {
       if (!isNewArchitectureEnabled()) {
         srcDirs += ["src/oldarch/java"]
       }
+      if (isOnrampIncluded()) {
+        srcDirs += ["src/onramp/java"]
+      }
     }
   }
 
@@ -153,6 +162,11 @@ dependencies {
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
   implementation("com.stripe:stripe-android:$stripeVersion")
   implementation("com.stripe:financial-connections:$stripeVersion")
+  
+  if (isOnrampIncluded()) {
+    implementation("com.stripe:crypto-onramp:$stripeVersion")
+  }
+  
   implementation "com.google.android.material:material:1.3.0"
   implementation "androidx.appcompat:appcompat:1.4.1"
   implementation "androidx.legacy:legacy-support-v4:1.0.0"

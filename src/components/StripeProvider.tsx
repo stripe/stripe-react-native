@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
@@ -88,6 +89,15 @@ export function StripeProvider({
       if (isAndroid) {
         await initStripe({
           publishableKey,
+          stripeAccountId,
+          threeDSecureParams,
+          urlScheme,
+          setReturnUrlSchemeOnAndroid,
+        });
+
+        await NativeOnrampSdk.initialise({
+          publishableKey,
+          appInfo,
           stripeAccountId,
           threeDSecureParams,
           urlScheme,

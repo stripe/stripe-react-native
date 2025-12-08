@@ -1729,6 +1729,28 @@ PODS:
     - React-Core
     - React-jsi
   - ReactTestApp-Resources (1.0.0-dev)
+  - RNCAsyncStorage (2.2.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNCPicker (2.11.4):
     - hermes-engine
     - RCTRequired
@@ -1825,8 +1847,31 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Stripe (~> 25.0.1)
+    - stripe-react-native/Core (= 0.57.0)
     - stripe-react-native/NewArch (= 0.57.0)
+    - Yoga
+  - stripe-react-native/Core (0.57.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Stripe (~> 25.0.1)
     - StripeApplePay (~> 25.0.1)
     - StripeFinancialConnections (~> 25.0.1)
     - StripePayments (~> 25.0.1)
@@ -1854,12 +1899,30 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Stripe (~> 25.0.1)
-    - StripeApplePay (~> 25.0.1)
-    - StripeFinancialConnections (~> 25.0.1)
-    - StripePayments (~> 25.0.1)
-    - StripePaymentSheet (~> 25.0.1)
-    - StripePaymentsUI (~> 25.0.1)
+    - Yoga
+  - stripe-react-native/Onramp (0.57.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - stripe-react-native/Core
+    - StripeCryptoOnramp (~> 25.0.1)
     - Yoga
   - stripe-react-native/Tests (0.57.0):
     - hermes-engine
@@ -1882,17 +1945,25 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Stripe (~> 25.0.1)
-    - StripeApplePay (~> 25.0.1)
-    - StripeFinancialConnections (~> 25.0.1)
-    - StripePayments (~> 25.0.1)
-    - StripePaymentSheet (~> 25.0.1)
-    - StripePaymentsUI (~> 25.0.1)
     - Yoga
   - StripeApplePay (25.0.1):
     - StripeCore (= 25.0.1)
+  - StripeCameraCore (25.0.1):
+    - StripeCore (= 25.0.1)
   - StripeCore (25.0.1)
+  - StripeCryptoOnramp (25.0.1):
+    - StripeApplePay (= 25.0.1)
+    - StripeCore (= 25.0.1)
+    - StripeIdentity (= 25.0.1)
+    - StripePayments (= 25.0.1)
+    - StripePaymentSheet (= 25.0.1)
+    - StripePaymentsUI (= 25.0.1)
+    - StripeUICore (= 25.0.1)
   - StripeFinancialConnections (25.0.1):
+    - StripeCore (= 25.0.1)
+    - StripeUICore (= 25.0.1)
+  - StripeIdentity (25.0.1):
+    - StripeCameraCore (= 25.0.1)
     - StripeCore (= 25.0.1)
     - StripeUICore (= 25.0.1)
   - StripePayments (25.0.1):
@@ -1985,9 +2056,11 @@ DEPENDENCIES:
   - "ReactNativeHost (from `../node_modules/@rnx-kit/react-native-host`)"
   - ReactTestApp-DevSupport (from `../node_modules/react-native-test-app`)
   - ReactTestApp-Resources (from `..`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
+  - "stripe-react-native/Onramp (from `../node_modules/@stripe/stripe-react-native`)"
   - "stripe-react-native/Tests (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -1995,8 +2068,11 @@ SPEC REPOS:
   trunk:
     - Stripe
     - StripeApplePay
+    - StripeCameraCore
     - StripeCore
+    - StripeCryptoOnramp
     - StripeFinancialConnections
+    - StripeIdentity
     - StripePayments
     - StripePaymentSheet
     - StripePaymentsUI
@@ -2144,6 +2220,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-test-app"
   ReactTestApp-Resources:
     :path: ".."
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
@@ -2224,19 +2302,23 @@ SPEC CHECKSUMS:
   ReactNativeHost: 3c46b8bdf9111ae806d950fa2bd7ba6a5432a5b6
   ReactTestApp-DevSupport: 963986104f003af978562535682fec417b4aadfa
   ReactTestApp-Resources: 49fb7249af8203b9c74fd85de8c6f5bbb77a41df
+  RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: 4728e3e0dd8df134e4a420ab504e929a93a815f0
-  stripe-react-native: c0fca65002006015d068ebf932f7cd1a95c77011
+  stripe-react-native: 9045e39ccb93b1c7a4e442d22dcbb6754ed1950c
   StripeApplePay: 43997281ace138a1c75a8f2d7be11925ea28644c
+  StripeCameraCore: e61d13cf270c450e699b12857dc75edc55a8455c
   StripeCore: 457c30e2fd3a7c4b274a5ad53d1ff03661eef2a0
+  StripeCryptoOnramp: 5ccd75c8b4acf68261a1d9e19f85fe6ad840cbf4
   StripeFinancialConnections: 8c2e326f767fb014b53174b3a5f8592c0a45fa56
+  StripeIdentity: b6950bd769a564f33fa409f502128619befbcc16
   StripePayments: 6955de4298a5265e66f02cffcc7954475ac7f6c8
   StripePaymentSheet: 3f93ce6ea84afde770d3c7e18a9b8f99aed63896
   StripePaymentsUI: 626726a01255a6458c35436f7f6431dacee82684
   StripeUICore: 30f8352fd7a5cf1541b7777a57b3ad1133bf6763
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: 7d2ad75992892ec0bee6ad0c367b7d806d8936fc
+PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
 
 COCOAPODS: 1.15.2
