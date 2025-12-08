@@ -23,13 +23,6 @@ class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticat
     }
 }
 
-@available(iOS 13.0, *)
-class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        return RCTKeyWindow() ?? ASPresentationAnchor()
-    }
-}
-
 @objc(StripeSdkImpl)
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
