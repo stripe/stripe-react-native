@@ -75,7 +75,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-@SuppressLint("RestrictedApi")
 @ReactModule(name = StripeSdkModule.NAME)
 @OptIn(ReactNativeSdkInternal::class)
 class StripeSdkModule(
@@ -1248,48 +1247,6 @@ class StripeSdkModule(
   ) {
     customerSheetManager?.let {
       it.customerAdapter?.setupIntentClientSecretForCustomerAttachCallback?.complete(clientSecret)
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
-    }
-  }
-
-  @ReactMethod
-  override fun clientSecretProviderSetupIntentClientSecretCallback(
-    setupIntentClientSecret: String,
-    promise: Promise,
-  ) {
-    customerSheetManager?.let {
-      it.customerSessionProvider?.provideSetupIntentClientSecretCallback?.complete(setupIntentClientSecret)
-    } ?: run {
-      promise.resolve(CustomerSheetManager.createMissingInitError())
-      return
-    }
-  }
-
-  @ReactMethod
-  override fun clientSecretProviderCustomerSessionClientSecretCallback(
-    customerSessionClientSecretJson: ReadableMap,
-    promise: Promise,
-  ) {
-    val clientSecret = customerSessionClientSecretJson.getString("clientSecret")
-    val customerId = customerSessionClientSecretJson.getString("customerId")
-
-    if (clientSecret.isNullOrEmpty() || customerId.isNullOrEmpty()) {
-      Log.e(
-        "StripeReactNative",
-        "Invalid CustomerSessionClientSecret format",
-      )
-      return
-    }
-
-    customerSheetManager?.let {
-      it.customerSessionProvider?.providesCustomerSessionClientSecretCallback?.complete(
-        CustomerSheet.CustomerSessionClientSecret.create(
-          customerId = customerId,
-          clientSecret = clientSecret,
-        ),
-      )
     } ?: run {
       promise.resolve(CustomerSheetManager.createMissingInitError())
       return
