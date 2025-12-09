@@ -1,7 +1,7 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { Onramp, OnrampError, StripeError } from '../types';
-import type { PlatformPay } from '../types';
+import type { Address, PlatformPay } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
@@ -53,6 +53,24 @@ export function useOnramp() {
       kycInfo: Onramp.KycInfo
     ): Promise<{ error?: StripeError<OnrampError> }> => {
       return NativeOnrampSdk.attachKycInfo(kycInfo);
+    },
+    []
+  );
+
+  const _presentKycInfoVerification = useCallback(
+    async (updatedAddress: Address | null): Promise<Onramp.VerifyKycResult> => {
+      return NativeOnrampSdk.presentKycInfoVerification(updatedAddress);
+    },
+    []
+  );
+
+  const _authenticateUserWithToken = useCallback(
+    async (
+      linkAuthTokenClientSecret: string
+    ): Promise<{ error?: StripeError<OnrampError> }> => {
+      return NativeOnrampSdk.authenticateUserWithToken(
+        linkAuthTokenClientSecret
+      );
     },
     []
   );
@@ -209,6 +227,16 @@ export function useOnramp() {
     attachKycInfo: _attachKycInfo,
 
     /**
+     * Presents UI to verify KYC information for the current Link user.
+     * Requires the user to be authenticated with prior calls to either `authenticateUser` or `authorize`, and also requires prior KYC info attachement via `attachKycInfo`.
+     *
+     * @param updatedAddress: An optional updated address. Specify this parameter if the user has elected to change the address after a prior call to this API returned `UpdateAddress`. Otherwise, specify `null` to show the user's existing KYC information on the presented flow.
+     *
+     * @returns Promise that resolves to an instance of `VerifyKycResult` indicating whether the user confirmed their address, elected to update their address, cancelled the flow, or an error occurred.
+     */
+    presentKycInfoVerification: _presentKycInfoVerification,
+
+    /**
      * Updates the user's phone number in their Link account.
      *
      * @param phone The new phone number to set for the user in E.164 format (e.g., +12125551234)
@@ -223,6 +251,15 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with customerId or error
      */
     authenticateUser: _authenticateUser,
+
+    /**
+     * Authenticates the user with an encrypted Link auth token.
+     * This token can be obtained by exchanging a previously consented Link OAuth token from your backend using Stripe's /v1/link/auth_token API. The response of this backend API includes information on token expiry.
+     *
+     * @param linkAuthTokenClientSecret An encrypted one-time-use auth token that, upon successful validation, leaves the Link account’s consumer session in an already-verified state, allowing the client to skip verification.
+     * @returns Promise that resolves to an object with an optional error property if authentication fails due to an invalid token that is expired, already used, revoked, or not found, or if a network error occurs.
+     */
+    authenticateUserWithToken: _authenticateUserWithToken,
 
     /**
      * Creates an identity verification session and launches the document verification flow.

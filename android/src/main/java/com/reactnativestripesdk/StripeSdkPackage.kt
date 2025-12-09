@@ -56,9 +56,10 @@ class StripeSdkPackage : BaseReactPackage() {
       StripeContainerManager(),
       CardFormViewManager(),
       GooglePayButtonManager(),
-      AddToWalletButtonManager(reactContext),
+      AddToWalletButtonManager(),
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
+      NavigationBarManager(),
     )
 
   private fun getOnrampModuleClass(): Class<out NativeModule?> {

@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -14,14 +13,13 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
-import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.addresssheet.AddressSheetView
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
@@ -33,8 +31,8 @@ import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.forEachKey
 import com.reactnativestripesdk.utils.getBooleanOr
-import com.reactnativestripesdk.utils.getIntOr
-import com.reactnativestripesdk.utils.isEmpty
+import com.reactnativestripesdk.utils.getIntegerList
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
@@ -103,7 +101,7 @@ class PaymentSheetManager(
     val allowsDelayedPaymentMethods = arguments.getBooleanOr("allowsDelayedPaymentMethods", false)
     val billingDetailsMap = arguments.getMap("defaultBillingDetails")
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
-    val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
+    val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
     paymentIntentClientSecret = arguments.getString("paymentIntentClientSecret").orEmpty()
@@ -144,9 +142,9 @@ class PaymentSheetManager(
       PaymentOptionResultCallback { paymentOptionResult ->
         val result =
           paymentOptionResult.paymentOption?.let {
-            val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
+            val bitmap = getBitmapFromDrawable(it.icon())
             val imageString = getBase64FromBitmap(bitmap)
-            val option: WritableMap = WritableNativeMap()
+            val option: WritableMap = Arguments.createMap()
             option.putString("label", it.label)
             option.putString("image", imageString)
             val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
@@ -191,7 +189,7 @@ class PaymentSheetManager(
             }
 
             is PaymentSheetResult.Completed -> {
-              resolvePaymentResult(WritableNativeMap())
+              resolvePaymentResult(Arguments.createMap())
               paymentSheet = null
               flowController = null
             }
@@ -252,36 +250,9 @@ class PaymentSheetManager(
           }
       }
 
-    val billingDetailsConfig =
-      PaymentSheet.BillingDetailsCollectionConfiguration(
-        name = mapToCollectionMode(billingConfigParams?.getString("name")),
-        phone = mapToCollectionMode(billingConfigParams?.getString("phone")),
-        email = mapToCollectionMode(billingConfigParams?.getString("email")),
-        address = mapToAddressCollectionMode(billingConfigParams?.getString("address")),
-        attachDefaultsToPaymentMethod =
-          billingConfigParams?.getBooleanOr("attachDefaultsToPaymentMethod", false) ?: false,
-      )
+    val billingDetailsConfig = buildBillingDetailsCollectionConfiguration(billingConfigParams)
 
-    var defaultBillingDetails: PaymentSheet.BillingDetails? = null
-    if (billingDetailsMap != null) {
-      val addressMap = billingDetailsMap.getMap("address")
-      val address =
-        PaymentSheet.Address(
-          addressMap?.getString("city"),
-          addressMap?.getString("country"),
-          addressMap?.getString("line1"),
-          addressMap?.getString("line2"),
-          addressMap?.getString("postalCode"),
-          addressMap?.getString("state"),
-        )
-      defaultBillingDetails =
-        PaymentSheet.BillingDetails(
-          address,
-          billingDetailsMap.getString("email"),
-          billingDetailsMap.getString("name"),
-          billingDetailsMap.getString("phone"),
-        )
-    }
+    val defaultBillingDetails = buildBillingDetails(billingDetailsMap)
     val configurationBuilder =
       PaymentSheet.Configuration
         .Builder(merchantDisplayName)
@@ -294,7 +265,7 @@ class PaymentSheetManager(
         .link(linkConfig)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
         .preferredNetworks(
-          mapToPreferredNetworks(arguments.getIntegerArrayList("preferredNetworks")),
+          mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
         .customPaymentMethods(parseCustomPaymentMethods(arguments.getMap("customPaymentMethodConfiguration")))
@@ -308,7 +279,7 @@ class PaymentSheetManager(
 
     paymentSheetConfiguration = configurationBuilder.build()
 
-    if (arguments.getBoolean("customFlow") == true) {
+    if (arguments.getBooleanOr("customFlow", false)) {
       flowController =
         if (intentConfiguration != null) {
           val builder =
@@ -354,7 +325,7 @@ class PaymentSheetManager(
             .confirmCustomPaymentMethodCallback(this)
             .build(activity, signal)
         }
-      initPromise.resolve(WritableNativeMap())
+      initPromise.resolve(Arguments.createMap())
     }
   }
 
@@ -444,13 +415,13 @@ class PaymentSheetManager(
       PaymentSheet.FlowController.ConfigCallback { _, _ ->
         val result =
           flowController?.getPaymentOption()?.let {
-            val bitmap = getBitmapFromVectorDrawable(context, it.drawableResourceId)
+            val bitmap = getBitmapFromDrawable(it.icon())
             val imageString = getBase64FromBitmap(bitmap)
-            val option: WritableMap = WritableNativeMap()
+            val option: WritableMap = Arguments.createMap()
             option.putString("label", it.label)
             option.putString("image", imageString)
             createResult("paymentOption", option)
-          } ?: run { WritableNativeMap() }
+          } ?: run { Arguments.createMap() }
         initPromise.resolve(result)
       }
 
@@ -571,152 +542,12 @@ class PaymentSheetManager(
   }
 
   companion object {
-    private val mapIntToButtonType =
-      mapOf(
-        1 to PaymentSheet.GooglePayConfiguration.ButtonType.Buy,
-        6 to PaymentSheet.GooglePayConfiguration.ButtonType.Book,
-        5 to PaymentSheet.GooglePayConfiguration.ButtonType.Checkout,
-        4 to PaymentSheet.GooglePayConfiguration.ButtonType.Donate,
-        11 to PaymentSheet.GooglePayConfiguration.ButtonType.Order,
-        1000 to PaymentSheet.GooglePayConfiguration.ButtonType.Pay,
-        7 to PaymentSheet.GooglePayConfiguration.ButtonType.Subscribe,
-        1001 to PaymentSheet.GooglePayConfiguration.ButtonType.Plain,
-      )
-
     internal fun createMissingInitError(): WritableMap =
       createError(
         PaymentSheetErrorType.Failed.toString(),
         "No payment sheet has been initialized yet. You must call `initPaymentSheet` before `presentPaymentSheet`.",
       )
-
-    internal fun buildGooglePayConfig(params: ReadableMap?): PaymentSheet.GooglePayConfiguration? {
-      if (params == null || params.isEmpty()) {
-        return null
-      }
-
-      val countryCode = params.getString("merchantCountryCode").orEmpty()
-      val currencyCode = params.getString("currencyCode").orEmpty()
-      val testEnv = params.getBoolean("testEnv")
-      val amount = params.getString("amount")?.toLongOrNull()
-      val label = params.getString("label")
-      val buttonType =
-        mapIntToButtonType.get(params.getIntOr("buttonType", 0))
-          ?: PaymentSheet.GooglePayConfiguration.ButtonType.Pay
-
-      return PaymentSheet.GooglePayConfiguration(
-        environment =
-          if (testEnv) {
-            PaymentSheet.GooglePayConfiguration.Environment.Test
-          } else {
-            PaymentSheet.GooglePayConfiguration.Environment.Production
-          },
-        countryCode = countryCode,
-        currencyCode = currencyCode,
-        amount = amount,
-        label = label,
-        buttonType = buttonType,
-      )
-    }
-
-    internal fun buildLinkConfig(params: ReadableMap?): PaymentSheet.LinkConfiguration {
-      if (params == null) {
-        return PaymentSheet.LinkConfiguration()
-      }
-
-      val display = mapStringToLinkDisplay(params.getString("display"))
-
-      return PaymentSheet.LinkConfiguration(
-        display = display,
-      )
-    }
-
-    private fun mapStringToLinkDisplay(value: String?): PaymentSheet.LinkConfiguration.Display =
-      when (value) {
-        "automatic" -> PaymentSheet.LinkConfiguration.Display.Automatic
-        "never" -> PaymentSheet.LinkConfiguration.Display.Never
-        else -> PaymentSheet.LinkConfiguration.Display.Automatic
-      }
-
-    @Throws(PaymentSheetException::class)
-    internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): PaymentSheet.IntentConfiguration? {
-      if (intentConfigurationParams == null) {
-        return null
-      }
-      val modeParams =
-        intentConfigurationParams.getMap("mode")
-          ?: throw PaymentSheetException(
-            "If `intentConfiguration` is provided, `intentConfiguration.mode` is required",
-          )
-
-      return PaymentSheet.IntentConfiguration(
-        mode = buildIntentConfigurationMode(modeParams),
-        paymentMethodTypes =
-          intentConfigurationParams.getStringArrayList("paymentMethodTypes")?.toList()
-            ?: emptyList(),
-      )
-    }
-
-    @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-    private fun buildIntentConfigurationMode(modeParams: ReadableMap): PaymentSheet.IntentConfiguration.Mode =
-      if (modeParams.hasKey("amount")) {
-        val currencyCode =
-          modeParams.getString("currencyCode")
-            ?: throw PaymentSheetException(
-              "You must provide a value to intentConfiguration.mode.currencyCode",
-            )
-        PaymentSheet.IntentConfiguration.Mode.Payment(
-          amount = modeParams.getInt("amount").toLong(),
-          currency = currencyCode,
-          setupFutureUse = mapToSetupFutureUse(modeParams.getString("setupFutureUsage")),
-          captureMethod = mapToCaptureMethod(modeParams.getString("captureMethod")),
-          paymentMethodOptions = mapToPaymentMethodOptions(modeParams.getMap("paymentMethodOptions")),
-        )
-      } else {
-        val setupFutureUsage =
-          mapToSetupFutureUse(modeParams.getString("setupFutureUsage"))
-            ?: throw PaymentSheetException(
-              "You must provide a value to intentConfiguration.mode.setupFutureUsage",
-            )
-        PaymentSheet.IntentConfiguration.Mode.Setup(
-          currency = modeParams.getString("currencyCode"),
-          setupFutureUse = setupFutureUsage,
-        )
-      }
-
-    @Throws(PaymentSheetException::class)
-    internal fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.CustomerConfiguration? {
-      val customerId = map?.getString("customerId").orEmpty()
-      val customerEphemeralKeySecret = map?.getString("customerEphemeralKeySecret").orEmpty()
-      val customerSessionClientSecret = map?.getString("customerSessionClientSecret").orEmpty()
-      return if (customerSessionClientSecret.isNotEmpty() &&
-        customerEphemeralKeySecret.isNotEmpty()
-      ) {
-        throw PaymentSheetException(
-          "`customerEphemeralKeySecret` and `customerSessionClientSecret` cannot both be set",
-        )
-      } else if (customerId.isNotEmpty() && customerSessionClientSecret.isNotEmpty()) {
-        PaymentSheet.CustomerConfiguration.createWithCustomerSession(
-          id = customerId,
-          clientSecret = customerSessionClientSecret,
-        )
-      } else if (customerId.isNotEmpty() && customerEphemeralKeySecret.isNotEmpty()) {
-        PaymentSheet.CustomerConfiguration(
-          id = customerId,
-          ephemeralKeySecret = customerEphemeralKeySecret,
-        )
-      } else {
-        null
-      }
-    }
   }
-}
-
-fun getBitmapFromVectorDrawable(
-  context: Context?,
-  drawableId: Int,
-): Bitmap? {
-  val drawable = AppCompatResources.getDrawable(context!!, drawableId) ?: return null
-  return getBitmapFromDrawable(drawable)
 }
 
 fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
@@ -725,11 +556,7 @@ fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
     return null
   }
   val bitmap =
-    Bitmap.createBitmap(
-      drawableCompat.intrinsicWidth,
-      drawableCompat.intrinsicHeight,
-      Bitmap.Config.ARGB_8888,
-    )
+    createBitmap(drawableCompat.intrinsicWidth, drawableCompat.intrinsicHeight)
   bitmap.eraseColor(Color.TRANSPARENT)
   val canvas = Canvas(bitmap)
   drawable.setBounds(0, 0, canvas.width, canvas.height)
@@ -747,14 +574,6 @@ fun getBase64FromBitmap(bitmap: Bitmap?): String? {
   return Base64.encodeToString(imageBytes, Base64.DEFAULT)
 }
 
-fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode =
-  when (str) {
-    "automatic" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
-    "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Never
-    "always" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Always
-    else -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
-  }
-
 fun mapToPaymentMethodLayout(str: String?): PaymentSheet.PaymentMethodLayout =
   when (str) {
     "Horizontal" -> PaymentSheet.PaymentMethodLayout.Horizontal
@@ -762,17 +581,7 @@ fun mapToPaymentMethodLayout(str: String?): PaymentSheet.PaymentMethodLayout =
     else -> PaymentSheet.PaymentMethodLayout.Automatic
   }
 
-fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode =
-  when (str) {
-    "automatic" ->
-      PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
-
-    "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Never
-    "full" -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Full
-    else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
-  }
-
-fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFutureUse? =
+internal fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFutureUse? =
   when (type) {
     "OffSession" -> PaymentSheet.IntentConfiguration.SetupFutureUse.OffSession
     "OnSession" -> PaymentSheet.IntentConfiguration.SetupFutureUse.OnSession
@@ -780,7 +589,7 @@ fun mapToSetupFutureUse(type: String?): PaymentSheet.IntentConfiguration.SetupFu
     else -> null
   }
 
-fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureMethod =
+internal fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureMethod =
   when (type) {
     "Automatic" -> PaymentSheet.IntentConfiguration.CaptureMethod.Automatic
     "Manual" -> PaymentSheet.IntentConfiguration.CaptureMethod.Manual
@@ -789,7 +598,7 @@ fun mapToCaptureMethod(type: String?): PaymentSheet.IntentConfiguration.CaptureM
   }
 
 @OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
-fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
+internal fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfiguration.Mode.Payment.PaymentMethodOptions? {
   val sfuMap = options?.getMap("setupFutureUsageValues")
   val paymentMethodToSfuMap = mutableMapOf<PaymentMethod.Type, PaymentSheet.IntentConfiguration.SetupFutureUse>()
   sfuMap?.forEachKey { code ->
@@ -807,38 +616,3 @@ fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.IntentConfigu
     null
   }
 }
-
-fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBrandAcceptance {
-  val cardBrandAcceptanceParams = params?.getMap("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
-  val filter = cardBrandAcceptanceParams.getString("filter") ?: return PaymentSheet.CardBrandAcceptance.all()
-
-  return when (filter) {
-    "all" -> PaymentSheet.CardBrandAcceptance.all()
-    "allowed" -> {
-      val brands = cardBrandAcceptanceParams.getStringArrayList("brands") ?: return PaymentSheet.CardBrandAcceptance.all()
-      val brandCategories = brands.mapNotNull { mapToCardBrandCategory(it) }
-      if (brandCategories.isEmpty()) {
-        return PaymentSheet.CardBrandAcceptance.all()
-      }
-      PaymentSheet.CardBrandAcceptance.allowed(brandCategories)
-    }
-    "disallowed" -> {
-      val brands = cardBrandAcceptanceParams.getStringArrayList("brands") ?: return PaymentSheet.CardBrandAcceptance.all()
-      val brandCategories = brands.mapNotNull { mapToCardBrandCategory(it) }
-      if (brandCategories.isEmpty()) {
-        return PaymentSheet.CardBrandAcceptance.all()
-      }
-      PaymentSheet.CardBrandAcceptance.disallowed(brandCategories)
-    }
-    else -> PaymentSheet.CardBrandAcceptance.all()
-  }
-}
-
-fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? =
-  when (brand) {
-    "visa" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Visa
-    "mastercard" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Mastercard
-    "amex" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Amex
-    "discover" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Discover
-    else -> null
-  }

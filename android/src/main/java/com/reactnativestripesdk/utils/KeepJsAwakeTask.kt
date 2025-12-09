@@ -37,7 +37,7 @@ internal class KeepJsAwakeTask(
 
     try {
       headlessJsTaskContext.finishTask(taskId)
-    } catch (e: AssertionError) {
+    } catch (_: AssertionError) {
       // Ignore if task already finished
       Log.w("KeepJsAwakeTask", "Tried to stop a non-existent task (id=$taskId)")
     } finally {

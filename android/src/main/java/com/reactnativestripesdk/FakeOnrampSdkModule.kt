@@ -79,6 +79,14 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
+  override fun presentKycInfoVerification(
+    updatedAddress: ReadableMap?,
+    promise: Promise,
+  ) {
+    promise?.resolveNotImplemented()
+  }
+
+  @ReactMethod
   override fun collectPaymentMethod(
     paymentMethod: String?,
     platformPayParams: ReadableMap?,
@@ -124,6 +132,14 @@ class FakeOnrampSdkModule(
     promise: Promise,
   ) {
     promise?.resolveNotImplemented()
+  }
+
+  @ReactMethod
+  override fun authenticateUserWithToken(
+    token: String,
+    promise: Promise,
+  ) {
+    promise.resolveNotImplemented()
   }
 
   private fun Promise.resolveNotImplemented() {

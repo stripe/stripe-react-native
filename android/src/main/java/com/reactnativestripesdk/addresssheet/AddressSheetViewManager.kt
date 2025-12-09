@@ -41,7 +41,7 @@ class AddressSheetViewManager :
     view: AddressSheetView,
     appearance: Dynamic,
   ) {
-    view.setAppearance(appearance.asMap())
+    view.setAppearance(appearance.asMapOrNull())
   }
 
   @ReactProp(name = "defaultValues")
@@ -49,7 +49,7 @@ class AddressSheetViewManager :
     view: AddressSheetView,
     defaults: Dynamic,
   ) {
-    view.setDefaultValues(defaults.asMap())
+    view.setDefaultValues(defaults.asMapOrNull())
   }
 
   @ReactProp(name = "additionalFields")

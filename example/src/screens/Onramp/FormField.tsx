@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, TextInput, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  TextInputProps,
+} from 'react-native';
+import { colors } from '../../colors';
 
 interface FormFieldProps {
   label: string;
@@ -7,6 +14,7 @@ interface FormFieldProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   secureTextEntry?: boolean;
+  autoCapitalize?: TextInputProps['autoCapitalize'];
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -15,6 +23,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   onChangeText,
   placeholder,
   secureTextEntry = false,
+  autoCapitalize,
 }) => (
   <View style={styles.container}>
     <Text style={styles.label}>{label}</Text>
@@ -24,6 +33,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       onChangeText={onChangeText}
       placeholder={placeholder}
       secureTextEntry={secureTextEntry}
+      autoCapitalize={autoCapitalize}
     />
   </View>
 );
@@ -41,5 +51,6 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 4,
     padding: 8,
+    color: colors.slate,
   },
 });

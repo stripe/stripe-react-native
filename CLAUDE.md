@@ -10,6 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `yarn lint --fix` - Fix linting issues automatically
 - `yarn test` - Run Jest unit tests
 - `yarn prepare` - Build the library (runs `bob build && husky`)
+- `yarn format:android:write` - Format android code
+- `yarn lint:android` - Lint android code
+- `yarn format:ios:write` - Format iOS code
 
 ### Development Setup
 - `yarn bootstrap` - Setup project by installing dependencies and CocoaPods
@@ -190,7 +193,7 @@ Extract the parameter from the bridge arguments and pass it to the native SDK.
 override fun onCreate() {
   // Parse the parameter from arguments
   val onBehalfOf = arguments?.getString("onBehalfOf")
-  
+
   // Pass it to the native SDK
   val intentConfiguration = PaymentSheet.IntentConfiguration(
     mode = mode,
@@ -230,7 +233,7 @@ Use this when native code needs to request data from JavaScript (e.g., fetching 
 #### Communication Flow
 
 ```
-React Native (JS)  →  Registers Event Listener  
+React Native (JS)  →  Registers Event Listener
                   ↓
 Native Code (iOS/Android)  →  Emits Event  →  JS Listener Triggered
                   ↓
@@ -256,7 +259,7 @@ override suspend fun provideSetupIntentClientSecret(customerId: String): Result<
   return suspendCancellableCoroutine { continuation ->
     // Store the continuation to resume later
     provideSetupIntentClientSecretCallback = continuation
-    
+
     // Emit the event to JavaScript
     stripeSdkModule?.eventEmitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
   }
@@ -283,7 +286,7 @@ let intentConfiguration = CustomerSheet.IntentConfiguration(
       self.clientSecretProviderSetupIntentClientSecretCallback = { clientSecret in
         continuation.resume(returning: clientSecret)
       }
-      
+
       // Emit the event to JavaScript
       self.emitter?.emitOnCustomerSessionProviderSetupIntentClientSecret()
     }
@@ -337,10 +340,10 @@ fun emitOnCustomerSessionProviderSetupIntentClientSecret() {
 ```swift
 @objc public protocol StripeSdkEmitter {
   // ... existing methods ...
-  
+
   // For events with parameters:
   func emitOnCustomerSessionProviderSetupIntentClientSecret(_ value: [String: Any])
-  
+
   // For events without parameters:
   func emitOnCustomerSessionProviderSetupIntentClientSecret()
 }
@@ -357,7 +360,7 @@ These are the methods JavaScript will call to return data to native code.
 ```typescript
 export interface Spec extends TurboModule {
   // ... existing methods ...
-  
+
   clientSecretProviderSetupIntentClientSecretCallback(
     setupIntentClientSecret: string
   ): Promise<void>;
@@ -372,7 +375,7 @@ export interface Spec extends TurboModule {
 @ReactMethod
 @DoNotStrip
 public abstract void clientSecretProviderSetupIntentClientSecretCallback(
-  String setupIntentClientSecret, 
+  String setupIntentClientSecret,
   Promise promise
 );
 ```
@@ -386,8 +389,8 @@ RCT_EXPORT_METHOD(clientSecretProviderSetupIntentClientSecretCallback:(nonnull N
                   resolve:(nonnull RCTPromiseResolveBlock)resolve
                   reject:(nonnull RCTPromiseRejectBlock)reject)
 {
-  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret 
-                                                                   resolver:resolve 
+  [StripeSdkImpl.shared clientSecretProviderSetupIntentClientSecretCallback:setupIntentClientSecret
+                                                                   resolver:resolve
                                                                    rejecter:reject];
 }
 ```
@@ -407,16 +410,16 @@ const configureClientSecretProviderEventListeners = (
 ): void => {
   // Remove existing listener to prevent duplicates
   setupIntentClientSecretProviderCallback?.remove();
-  
+
   // Register the event listener
   setupIntentClientSecretProviderCallback = addListener(
     'onCustomerSessionProviderSetupIntentClientSecret',
     async () => {
       try {
         // Execute the user-provided function (e.g., API call)
-        const setupIntentClientSecret = 
+        const setupIntentClientSecret =
           await clientSecretProvider.provideSetupIntentClientSecret();
-        
+
         // Return the result to native code
         await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
           setupIntentClientSecret
@@ -436,9 +439,9 @@ const configureClientSecretProviderEventListeners = (
 setupIntentClientSecretProviderCallback = addListener(
   'onCustomerSessionProviderSetupIntentClientSecret',
   async ({ customerId }) => { // Destructure parameters
-    const setupIntentClientSecret = 
+    const setupIntentClientSecret =
       await clientSecretProvider.provideSetupIntentClientSecret(customerId);
-    
+
     await NativeStripeSdk.clientSecretProviderSetupIntentClientSecretCallback(
       setupIntentClientSecret
     );
@@ -489,10 +492,10 @@ public func clientSecretProviderSetupIntentClientSecretCallback(
 ) -> Void {
   // Resume the continuation with the result from JavaScript
   self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
-  
+
   // Clear the callback
   self.clientSecretProviderSetupIntentClientSecretCallback = nil
-  
+
   resolve([])
 }
 ```
@@ -542,7 +545,7 @@ Use this checklist to ensure you've completed all necessary steps:
 useEffect(() => {
   // Setup listener
   const subscription = addListener('myEvent', handler);
-  
+
   return () => {
     // Cleanup on unmount
     subscription?.remove();

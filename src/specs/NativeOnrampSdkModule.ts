@@ -1,7 +1,7 @@
 import { TurboModuleRegistry } from 'react-native';
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
-import type { InitialiseParams, Onramp } from '../types';
+import type { Address, InitialiseParams, Onramp } from '../types';
 import type { UnsafeObject } from './utils';
 
 export interface Spec extends TurboModule {
@@ -20,8 +20,14 @@ export interface Spec extends TurboModule {
   attachKycInfo(
     kycInfo: UnsafeObject<Onramp.KycInfo>
   ): Promise<Onramp.VoidResult>;
+  presentKycInfoVerification: (
+    updatedAddress: UnsafeObject<Address> | null
+  ) => Promise<Onramp.VerifyKycResult>;
   updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
   authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
+  authenticateUserWithToken(
+    linkAuthTokenClientSecret: string
+  ): Promise<Onramp.VoidResult>;
   verifyIdentity(): Promise<Onramp.VoidResult>;
   collectPaymentMethod(
     paymentMethod: string,

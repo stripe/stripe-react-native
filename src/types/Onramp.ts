@@ -130,6 +130,26 @@ export type KycInfo = {
 };
 
 /**
+ * Result of KYC verification.
+ */
+export type VerifyKycResult =
+  | {
+      /** Verification was confirmed by the user. */
+      status: 'Confirmed';
+      error?: undefined;
+    }
+  | {
+      /** An updated address is required. */
+      status: 'UpdateAddress';
+      error?: undefined;
+    }
+  | {
+      status?: undefined;
+      /** Present if the verification failed with an error. */
+      error: StripeError<OnrampError>;
+    };
+
+/**
  * Common result for void-returning operations. Contains an optional error.
  */
 export type VoidResult = {

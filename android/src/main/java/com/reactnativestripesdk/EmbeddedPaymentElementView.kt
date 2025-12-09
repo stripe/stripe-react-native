@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
-import com.reactnativestripesdk.toWritableMap
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
 import com.reactnativestripesdk.utils.mapFromConfirmationToken
 import com.reactnativestripesdk.utils.mapFromCustomPaymentMethod
@@ -196,7 +194,7 @@ class EmbeddedPaymentElementView(
                 val stripeSdkModule =
                   try {
                     requireStripeSdkModule()
-                  } catch (ex: IllegalArgumentException) {
+                  } catch (_: IllegalArgumentException) {
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
@@ -242,7 +240,7 @@ class EmbeddedPaymentElementView(
                 val stripeSdkModule =
                   try {
                     requireStripeSdkModule()
-                  } catch (ex: IllegalArgumentException) {
+                  } catch (_: IllegalArgumentException) {
                     return@Builder CreateIntentResult.Failure(
                       cause =
                         Exception(
@@ -295,9 +293,6 @@ class EmbeddedPaymentElementView(
       }
 
     val embedded = rememberEmbeddedPaymentElement(builder)
-    var height by remember {
-      mutableIntStateOf(0)
-    }
 
     // collect events: configure, confirm, clear
     LaunchedEffect(Unit) {
@@ -348,10 +343,8 @@ class EmbeddedPaymentElementView(
       }
     }
 
-    val density = LocalDensity.current
-
     Box {
-      measuredEmbeddedElement(
+      MeasuredEmbeddedElement(
         reportHeightChange = { h -> reportHeightChange(h) },
       ) {
         embedded.Content()
@@ -360,7 +353,7 @@ class EmbeddedPaymentElementView(
   }
 
   @Composable
-  private fun measuredEmbeddedElement(
+  private fun MeasuredEmbeddedElement(
     reportHeightChange: (Float) -> Unit,
     content: @Composable () -> Unit,
   ) {

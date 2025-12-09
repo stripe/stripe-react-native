@@ -12,17 +12,14 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.reactnativestripesdk.ReactNativeCustomerAdapter
 import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
+import com.reactnativestripesdk.buildBillingDetails
+import com.reactnativestripesdk.buildBillingDetailsCollectionConfiguration
 import com.reactnativestripesdk.buildPaymentSheetAppearance
 import com.reactnativestripesdk.getBase64FromBitmap
 import com.reactnativestripesdk.getBitmapFromDrawable
-import com.reactnativestripesdk.getIntegerArrayList
-import com.reactnativestripesdk.getStringArrayList
-import com.reactnativestripesdk.mapToAddressCollectionMode
 import com.reactnativestripesdk.mapToCardBrandAcceptance
-import com.reactnativestripesdk.mapToCollectionMode
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.KeepJsAwakeTask
@@ -30,6 +27,8 @@ import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createError
 import com.reactnativestripesdk.utils.getBooleanOr
+import com.reactnativestripesdk.utils.getIntegerList
+import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
@@ -66,7 +65,7 @@ class CustomerSheetManager(
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
-    val paymentMethodOrder = arguments.getStringArrayList("paymentMethodOrder")
+    val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
 
     val appearance =
       try {
@@ -83,7 +82,7 @@ class CustomerSheetManager(
         .googlePayEnabled(googlePayEnabled)
         .headerTextForSelectionScreen(headerTextForSelectionScreen)
         .preferredNetworks(
-          mapToPreferredNetworks(arguments.getIntegerArrayList("preferredNetworks")),
+          mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
 
@@ -126,7 +125,10 @@ class CustomerSheetManager(
       val customerId = arguments.getString("customerId")
       if (customerId == null) {
         initPromise.resolve(
-          createError(ErrorType.Failed.toString(), "When using `customerEphemeralKeySecret` you must provide a value for `customerId`"),
+          createError(
+            ErrorType.Failed.toString(),
+            "When using `customerEphemeralKeySecret` you must provide a value for `customerId`",
+          ),
         )
         return
       }
@@ -157,7 +159,7 @@ class CustomerSheetManager(
 
     customerSheet?.configure(configuration.build())
 
-    initPromise.resolve(WritableNativeMap())
+    initPromise.resolve(Arguments.createMap())
   }
 
   private fun handleResult(result: CustomerSheetResult) {
@@ -295,33 +297,11 @@ class CustomerSheetManager(
     internal fun createMissingInitError(): WritableMap =
       createError(ErrorType.Failed.toString(), "No customer sheet has been initialized yet.")
 
-    internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails {
-      val addressMap = map.getMap("address")
-      val address =
-        PaymentSheet.Address(
-          addressMap?.getString("city"),
-          addressMap?.getString("country"),
-          addressMap?.getString("line1"),
-          addressMap?.getString("line2"),
-          addressMap?.getString("postalCode"),
-          addressMap?.getString("state"),
-        )
-      return PaymentSheet.BillingDetails(
-        address,
-        map.getString("email"),
-        map.getString("name"),
-        map.getString("phone"),
-      )
-    }
+    internal fun createDefaultBillingDetails(map: ReadableMap): PaymentSheet.BillingDetails =
+      buildBillingDetails(map) ?: PaymentSheet.BillingDetails()
 
     internal fun createBillingDetailsCollectionConfiguration(map: ReadableMap): PaymentSheet.BillingDetailsCollectionConfiguration =
-      PaymentSheet.BillingDetailsCollectionConfiguration(
-        name = mapToCollectionMode(map.getString("name")),
-        phone = mapToCollectionMode(map.getString("phone")),
-        email = mapToCollectionMode(map.getString("email")),
-        address = mapToAddressCollectionMode(map.getString("address")),
-        attachDefaultsToPaymentMethod = map.getBooleanOr("attachDefaultsToPaymentMethod", false),
-      )
+      buildBillingDetailsCollectionConfiguration(map)
 
     internal fun createCustomerAdapter(
       context: ReactApplicationContext,
@@ -404,7 +384,7 @@ class CustomerSheetManager(
         val onBehalfOf = bundle.getString("onBehalfOf")
         CustomerSheet.IntentConfiguration
           .Builder()
-          .paymentMethodTypes(bundle.getStringArrayList("paymentMethodTypes") ?: emptyList())
+          .paymentMethodTypes(bundle.getStringList("paymentMethodTypes") ?: emptyList())
           .apply {
             if (onBehalfOf != null) {
               this.onBehalfOf(onBehalfOf)

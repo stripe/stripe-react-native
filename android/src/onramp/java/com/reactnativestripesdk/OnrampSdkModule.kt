@@ -24,6 +24,7 @@ import com.reactnativestripesdk.utils.createMissingInitError
 import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
+import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo
@@ -41,8 +42,10 @@ import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
 import com.stripe.android.crypto.onramp.model.OnrampLogOutResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterLinkUserResult
 import com.stripe.android.crypto.onramp.model.OnrampRegisterWalletAddressResult
+import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
+import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
@@ -57,6 +60,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("RestrictedApi")
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
@@ -74,6 +78,7 @@ class OnrampSdkModule(
   private var collectPaymentPromise: Promise? = null
   private var authorizePromise: Promise? = null
   private var checkoutPromise: Promise? = null
+  private var verifyKycPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
 
@@ -95,7 +100,7 @@ class OnrampSdkModule(
    * provided will be resolved with an error message instructing the user to retry the method.
    */
   private fun getCurrentActivityOrResolveWithError(promise: Promise?): FragmentActivity? {
-    (currentActivity as? FragmentActivity)?.let {
+    (reactApplicationContext.currentActivity as? FragmentActivity)?.let {
       return it
     }
     promise?.resolve(createMissingActivityError())
@@ -108,7 +113,7 @@ class OnrampSdkModule(
     promise: Promise,
   ) {
     val application =
-      currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
+      reactApplicationContext.currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
       promise.resolve(createMissingActivityError())
       return
@@ -190,7 +195,7 @@ class OnrampSdkModule(
           handleOnrampCheckoutResult(result, checkoutPromise!!)
         },
         verifyKycCallback = { result ->
-          // Currently unimplemented
+          handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         },
       )
 
@@ -350,17 +355,7 @@ class OnrampSdkModule(
         }
 
       val addressMap = kycInfo.getMap("address")
-      val addressObj =
-        addressMap?.let {
-          PaymentSheet.Address(
-            city = it.getString("city"),
-            country = it.getString("country"),
-            line1 = it.getString("line1"),
-            line2 = it.getString("line2"),
-            postalCode = it.getString("postalCode"),
-            state = it.getString("state"),
-          )
-        } ?: PaymentSheet.Address()
+      val addressObj = mapToPaymentSheetAddress(addressMap) ?: PaymentSheet.Address()
 
       val kycInfoObj =
         KycInfo(
@@ -428,6 +423,23 @@ class OnrampSdkModule(
     identityVerificationPromise = promise
 
     presenter.verifyIdentity()
+  }
+
+  @ReactMethod
+  override fun presentKycInfoVerification(
+    updatedAddress: ReadableMap?,
+    promise: Promise,
+  ) {
+    val presenter =
+      onrampPresenter ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    val address = mapToPaymentSheetAddress(updatedAddress)
+
+    verifyKycPromise = promise
+    presenter.verifyKycInfo(address)
   }
 
   @ReactMethod
@@ -593,7 +605,7 @@ class OnrampSdkModule(
     }
 
     val icon =
-      currentActivity
+      reactApplicationContext.currentActivity
         ?.let { ContextCompat.getDrawable(it, paymentDetails.iconRes) }
         ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
 
@@ -618,6 +630,26 @@ class OnrampSdkModule(
       val result = coordinator.logOut()
       CoroutineScope(Dispatchers.Main).launch {
         handleLogOutResult(result, promise)
+      }
+    }
+  }
+
+  @ReactMethod
+  override fun authenticateUserWithToken(
+    token: String,
+    promise: Promise,
+  ) {
+    val coordinator =
+      onrampCoordinator ?: run {
+        promise.resolve(createOnrampNotConfiguredError())
+        return
+      }
+
+    CoroutineScope(Dispatchers.IO).launch {
+      val result = coordinator.authenticateUserWithToken(token)
+
+      withContext(Dispatchers.Main) {
+        handleAuthenticateUserWithTokenResult(result, promise)
       }
     }
   }
@@ -728,6 +760,30 @@ class OnrampSdkModule(
     }
   }
 
+  private fun handleOnrampKycVerificationResult(
+    result: OnrampVerifyKycInfoResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampVerifyKycInfoResult.Confirmed -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "Confirmed") },
+        )
+      }
+      is OnrampVerifyKycInfoResult.UpdateAddress -> {
+        promise.resolve(
+          WritableNativeMap().apply { putString("status", "UpdateAddress") },
+        )
+      }
+      is OnrampVerifyKycInfoResult.Cancelled -> {
+        promise.resolve(createCanceledError("KYC verification was cancelled"))
+      }
+      is OnrampVerifyKycInfoResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
   private fun handleOnrampCollectPaymentResult(
     result: OnrampCollectPaymentMethodResult,
     promise: Promise,
@@ -736,7 +792,7 @@ class OnrampSdkModule(
       is OnrampCollectPaymentMethodResult.Completed -> {
         val displayData = Arguments.createMap()
         val icon =
-          currentActivity
+          reactApplicationContext.currentActivity
             ?.let { ContextCompat.getDrawable(it, result.displayData.iconRes) }
             ?.let { "data:image/png;base64," + getBase64FromBitmap(getBitmapFromDrawable(it)) }
         displayData.putString("icon", icon)
@@ -822,6 +878,20 @@ class OnrampSdkModule(
         promise.resolveVoid()
       }
       is OnrampLogOutResult.Failed -> {
+        promise.resolve(createFailedError(result.error))
+      }
+    }
+  }
+
+  private fun handleAuthenticateUserWithTokenResult(
+    result: OnrampTokenAuthenticationResult,
+    promise: Promise,
+  ) {
+    when (result) {
+      is OnrampTokenAuthenticationResult.Completed -> {
+        promise.resolveVoid()
+      }
+      is OnrampTokenAuthenticationResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
     }

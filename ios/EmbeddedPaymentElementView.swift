@@ -6,12 +6,12 @@
 //
 
 import Foundation
-import UIKit
 @_spi(EmbeddedPaymentElementPrivateBeta) import StripePaymentSheet
+import UIKit
 
 @objc(EmbeddedPaymentElementView)
 class EmbeddedPaymentElementView: RCTViewManager {
-    
+
     override static func requiresMainQueueSetup() -> Bool {
         return true
     }

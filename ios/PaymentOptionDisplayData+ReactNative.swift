@@ -32,7 +32,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
                     "line1": addr.line1 ?? "",
                     "line2": addr.line2 ?? "",
                     "postalCode": addr.postalCode ?? "",
-                    "state": addr.state ?? ""
+                    "state": addr.state ?? "",
                 ]
             }()
 
@@ -40,7 +40,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
                 "name": billing.name ?? "",
                 "email": billing.email ?? "",
                 "phone": billing.phone ?? "",
-                "address": addressDict
+                "address": addressDict,
             ]
         }()
 
@@ -53,7 +53,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
                     from: NSRange(location: 0, length: mandateText.length),
                     documentAttributes: [
                         .documentType: NSAttributedString.DocumentType.html,
-                        .characterEncoding: String.Encoding.utf8.rawValue
+                        .characterEncoding: String.Encoding.utf8.rawValue,
                     ]
                 )
                 return String(data: htmlData, encoding: .utf8)
@@ -69,7 +69,7 @@ extension EmbeddedPaymentElement.PaymentOptionDisplayData {
             "label": label,
             "billingDetails": billingDetailsDict,
             "paymentMethodType": paymentMethodType,
-            "mandateHTML": mandateTextHTML
+            "mandateHTML": mandateTextHTML,
         ]
     }
 }

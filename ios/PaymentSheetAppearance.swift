@@ -41,9 +41,8 @@ internal class PaymentSheetAppearance {
             appearance.primaryButton = try buildPrimaryButton(params: primaryButtonParams)
         }
 
-
         if let embeddedPaymentElementParams = userParams[PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT] as? NSDictionary {
-          appearance.embeddedPaymentElement = try buildEmbeddedPaymentElementAppearance(params: embeddedPaymentElementParams)
+            appearance.embeddedPaymentElement = try buildEmbeddedPaymentElementAppearance(params: embeddedPaymentElementParams)
         }
 
         if let formInsetParams = userParams[PaymentSheetAppearanceKeys.FORM_INSETS] as? NSDictionary {
@@ -68,8 +67,8 @@ internal class PaymentSheetAppearance {
     private class func buildColors(params: NSDictionary) throws -> PaymentSheet.Appearance.Colors {
         var colors = PaymentSheet.Appearance.Colors()
 
-        if (params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
+        if params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && params.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
+            params.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && params.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
             throw PaymentSheetAppearanceError.missingAppearanceMode
         }
 
@@ -105,7 +104,7 @@ internal class PaymentSheetAppearance {
         }
         if let offsetParams = params[PaymentSheetAppearanceKeys.OFFSET] as? NSDictionary {
             if let x = offsetParams[PaymentSheetAppearanceKeys.X] as? CGFloat, let y = offsetParams[PaymentSheetAppearanceKeys.Y] as? CGFloat {
-                shadow.offset = CGSize(width: x, height:-y)
+                shadow.offset = CGSize(width: x, height: -y)
             }
         }
 
@@ -136,8 +135,8 @@ internal class PaymentSheetAppearance {
             }
         }
         if let colorParams = params[PaymentSheetAppearanceKeys.COLORS] as? NSDictionary {
-            if (colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
-                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil) {
+            if colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) == nil ||
+                colorParams.object(forKey: PaymentSheetAppearanceKeys.DARK) != nil && colorParams.object(forKey: PaymentSheetAppearanceKeys.LIGHT) == nil {
                 throw PaymentSheetAppearanceError.missingAppearanceMode
             }
 
@@ -161,9 +160,9 @@ internal class PaymentSheetAppearance {
 
         let darkCount = darkHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
         let lightCount = lightHexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).count
-        if (lightCount != 6 && lightCount != 8) {
+        if lightCount != 6 && lightCount != 8 {
             throw PaymentSheetAppearanceError.unexpectedHexStringLength(lightHexString)
-        } else if (darkCount != 6 && darkCount != 8) {
+        } else if darkCount != 6 && darkCount != 8 {
             throw PaymentSheetAppearanceError.unexpectedHexStringLength(darkHexString)
         }
 
@@ -179,196 +178,196 @@ internal class PaymentSheetAppearance {
         }
     }
 
-  private class func buildEmbeddedPaymentElementAppearance(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement {
-          var embeddedAppearance = PaymentSheet.Appearance.EmbeddedPaymentElement()
+    private class func buildEmbeddedPaymentElementAppearance(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement {
+        var embeddedAppearance = PaymentSheet.Appearance.EmbeddedPaymentElement()
 
-          if let rowParams = params[PaymentSheetAppearanceKeys.ROW] as? NSDictionary {
+        if let rowParams = params[PaymentSheetAppearanceKeys.ROW] as? NSDictionary {
             embeddedAppearance.row = try buildEmbeddedRow(params: rowParams)
-          }
+        }
 
-          return embeddedAppearance
-      }
+        return embeddedAppearance
+    }
 
-      private class func buildEmbeddedRow(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row {
+    private class func buildEmbeddedRow(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row {
         var row = PaymentSheet.Appearance.default.embeddedPaymentElement.row
 
-          if let styleString = params[PaymentSheetAppearanceKeys.STYLE] as? String {
-              switch styleString {
-              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_RADIO:
-                  row.style = .flatWithRadio
-              case PaymentSheetAppearanceKeys.ROW_STYLE_FLOATING_BUTTON:
-                  row.style = .floatingButton
-              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_CHECKMARK:
-                  row.style = .flatWithCheckmark
-              case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_DISCLOSURE:
-                  row.style = .flatWithDisclosure
-              default:
-                  throw PaymentSheetAppearanceError.invalidRowStyle(styleString)
-              }
-          }
+        if let styleString = params[PaymentSheetAppearanceKeys.STYLE] as? String {
+            switch styleString {
+            case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_RADIO:
+                row.style = .flatWithRadio
+            case PaymentSheetAppearanceKeys.ROW_STYLE_FLOATING_BUTTON:
+                row.style = .floatingButton
+            case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_CHECKMARK:
+                row.style = .flatWithCheckmark
+            case PaymentSheetAppearanceKeys.ROW_STYLE_FLAT_WITH_DISCLOSURE:
+                row.style = .flatWithDisclosure
+            default:
+                throw PaymentSheetAppearanceError.invalidRowStyle(styleString)
+            }
+        }
 
-          if let additionalInsets = params[PaymentSheetAppearanceKeys.ADDITIONAL_INSETS] as? CGFloat {
-              row.additionalInsets = additionalInsets
-          }
+        if let additionalInsets = params[PaymentSheetAppearanceKeys.ADDITIONAL_INSETS] as? CGFloat {
+            row.additionalInsets = additionalInsets
+        }
 
-          if let flatParams = params[PaymentSheetAppearanceKeys.FLAT] as? NSDictionary {
-              row.flat = try buildEmbeddedFlat(params: flatParams)
-          }
+        if let flatParams = params[PaymentSheetAppearanceKeys.FLAT] as? NSDictionary {
+            row.flat = try buildEmbeddedFlat(params: flatParams)
+        }
 
-          if let floatingParams = params[PaymentSheetAppearanceKeys.FLOATING] as? NSDictionary {
-              row.floating = try buildEmbeddedFloating(params: floatingParams)
-          }
+        if let floatingParams = params[PaymentSheetAppearanceKeys.FLOATING] as? NSDictionary {
+            row.floating = try buildEmbeddedFloating(params: floatingParams)
+        }
 
-          return row
-      }
+        return row
+    }
 
-      private class func buildEmbeddedFlat(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat {
-          var flat = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat
+    private class func buildEmbeddedFlat(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat {
+        var flat = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat
 
-          if let thickness = params[PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS] as? CGFloat {
-              flat.separatorThickness = thickness
-          }
+        if let thickness = params[PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS] as? CGFloat {
+            flat.separatorThickness = thickness
+        }
 
-          flat.separatorColor = parseThemedColor(
+        flat.separatorColor = parseThemedColor(
             params: params,
             key: PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
             default: PaymentSheet.Appearance.default.colors.componentBorder
-          )
+        )
 
-          if let insetsParams = params[PaymentSheetAppearanceKeys.SEPARATOR_INSETS] as? NSDictionary {
-              flat.separatorInsets = try buildEdgeInsets(params: insetsParams)
-          }
+        if let insetsParams = params[PaymentSheetAppearanceKeys.SEPARATOR_INSETS] as? NSDictionary {
+            flat.separatorInsets = try buildEdgeInsets(params: insetsParams)
+        }
 
-          if let topEnabled = params[PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED] as? Bool {
-              flat.topSeparatorEnabled = topEnabled
-          }
+        if let topEnabled = params[PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED] as? Bool {
+            flat.topSeparatorEnabled = topEnabled
+        }
 
-          if let bottomEnabled = params[PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED] as? Bool {
-              flat.bottomSeparatorEnabled = bottomEnabled
-          }
+        if let bottomEnabled = params[PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED] as? Bool {
+            flat.bottomSeparatorEnabled = bottomEnabled
+        }
 
-          if let radioParams = params[PaymentSheetAppearanceKeys.RADIO] as? NSDictionary {
-              flat.radio = try buildEmbeddedRadio(params: radioParams)
-          }
+        if let radioParams = params[PaymentSheetAppearanceKeys.RADIO] as? NSDictionary {
+            flat.radio = try buildEmbeddedRadio(params: radioParams)
+        }
 
-          if let checkmarkParams = params[PaymentSheetAppearanceKeys.CHECKMARK] as? NSDictionary {
-              flat.checkmark = try buildEmbeddedCheckmark(params: checkmarkParams)
-          }
+        if let checkmarkParams = params[PaymentSheetAppearanceKeys.CHECKMARK] as? NSDictionary {
+            flat.checkmark = try buildEmbeddedCheckmark(params: checkmarkParams)
+        }
 
-          if let disclosureParams = params[PaymentSheetAppearanceKeys.DISCLOSURE] as? NSDictionary {
-              flat.disclosure = try buildEmbeddedDisclosure(params: disclosureParams)
-          }
+        if let disclosureParams = params[PaymentSheetAppearanceKeys.DISCLOSURE] as? NSDictionary {
+            flat.disclosure = try buildEmbeddedDisclosure(params: disclosureParams)
+        }
 
-          return flat
-      }
+        return flat
+    }
 
-      private class func buildEmbeddedRadio(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Radio {
-          var radio = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.radio
+    private class func buildEmbeddedRadio(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Radio {
+        var radio = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.radio
 
-                        // Selected‐state color
+        // Selected‐state color
         radio.selectedColor = parseThemedColor(
-          params: params,
-          key: PaymentSheetAppearanceKeys.SELECTED_COLOR,
-          default: PaymentSheet.Appearance.default.colors.primary
+            params: params,
+            key: PaymentSheetAppearanceKeys.SELECTED_COLOR,
+            default: PaymentSheet.Appearance.default.colors.primary
         )
 
         // Unselected‐state color
         radio.unselectedColor = parseThemedColor(
-          params: params,
-          key: PaymentSheetAppearanceKeys.UNSELECTED_COLOR,
-          default: PaymentSheet.Appearance.default.colors.componentBorder
+            params: params,
+            key: PaymentSheetAppearanceKeys.UNSELECTED_COLOR,
+            default: PaymentSheet.Appearance.default.colors.componentBorder
         )
 
-          return radio
-      }
+        return radio
+    }
 
-      private class func buildEmbeddedCheckmark(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Checkmark {
+    private class func buildEmbeddedCheckmark(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Checkmark {
         var checkmark = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.checkmark
 
         checkmark.color = parseThemedColor(
-          params: params,
-          key: PaymentSheetAppearanceKeys.COLOR,
-          default: PaymentSheet.Appearance.default.colors.primary
+            params: params,
+            key: PaymentSheetAppearanceKeys.COLOR,
+            default: PaymentSheet.Appearance.default.colors.primary
         )
 
-          return checkmark
-      }
+        return checkmark
+    }
 
     private class func buildEmbeddedDisclosure(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Flat.Disclosure {
         var disclosure = PaymentSheet.Appearance.default.embeddedPaymentElement.row.flat.disclosure
 
         disclosure.color = parseThemedColor(
-          params: params,
-          key: PaymentSheetAppearanceKeys.COLOR,
-          default: UIColor.systemGray // Default iOS system gray color
+            params: params,
+            key: PaymentSheetAppearanceKeys.COLOR,
+            default: UIColor.systemGray // Default iOS system gray color
         )
 
         return disclosure
-      }
+    }
 
-      private class func buildEmbeddedFloating(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Floating {
-          var floating = PaymentSheet.Appearance.default.embeddedPaymentElement.row.floating
+    private class func buildEmbeddedFloating(params: NSDictionary) throws -> PaymentSheet.Appearance.EmbeddedPaymentElement.Row.Floating {
+        var floating = PaymentSheet.Appearance.default.embeddedPaymentElement.row.floating
 
-          if let spacing = params[PaymentSheetAppearanceKeys.SPACING] as? CGFloat {
-              floating.spacing = spacing
-          }
+        if let spacing = params[PaymentSheetAppearanceKeys.SPACING] as? CGFloat {
+            floating.spacing = spacing
+        }
 
-          return floating
-      }
+        return floating
+    }
 
-      private class func buildEdgeInsets(params: NSDictionary) throws -> UIEdgeInsets {
-          let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? 0
-          let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
-          let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
-          let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
+    private class func buildEdgeInsets(params: NSDictionary) throws -> UIEdgeInsets {
+        let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? 0
+        let left = params[PaymentSheetAppearanceKeys.LEFT] as? CGFloat ?? 0
+        let bottom = params[PaymentSheetAppearanceKeys.BOTTOM] as? CGFloat ?? 0
+        let right = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? 0
 
-          return UIEdgeInsets(
+        return UIEdgeInsets(
             top: top,
             left: left,
             bottom: bottom,
             right: right
-          )
-       }
+        )
+    }
 
-      private class func dynamicColor(
+    private class func dynamicColor(
         from hexDict: [String: String],
         default defaultColor: UIColor
-      ) -> UIColor {
+    ) -> UIColor {
         return UIColor(
-          dynamicProvider: { traitCollection in
-            if traitCollection.userInterfaceStyle == .dark,
-               let darkHex = hexDict[PaymentSheetAppearanceKeys.DARK] {
-              return .init(
-                hexString: darkHex
-              )
-            }
-            if let lightHex = hexDict[PaymentSheetAppearanceKeys.LIGHT] {
-              return .init(
-                hexString: lightHex
-              )
-            }
-            return defaultColor
-          })
-      }
+            dynamicProvider: { traitCollection in
+                if traitCollection.userInterfaceStyle == .dark,
+                   let darkHex = hexDict[PaymentSheetAppearanceKeys.DARK] {
+                    return .init(
+                        hexString: darkHex
+                    )
+                }
+                if let lightHex = hexDict[PaymentSheetAppearanceKeys.LIGHT] {
+                    return .init(
+                        hexString: lightHex
+                    )
+                }
+                return defaultColor
+            })
+    }
 
-      private class func parseThemedColor(
+    private class func parseThemedColor(
         params: NSDictionary,
         key: String,
         default defaultColor: UIColor
-      ) -> UIColor {
+    ) -> UIColor {
         // Check if it's a dictionary with light/dark keys
         if let colorDict = params[key] as? [String: String] {
-          return dynamicColor(from: colorDict, default: defaultColor)
+            return dynamicColor(from: colorDict, default: defaultColor)
         }
 
         // Check if it's a plain string
         if let colorString = params[key] as? String {
-          return UIColor(hexString: colorString)
+            return UIColor(hexString: colorString)
         }
 
         // Fall back to default if no color provided
         return defaultColor
-      }
+    }
 
     private class func buildFormInsets(params: NSDictionary) throws -> NSDirectionalEdgeInsets {
         let top = params[PaymentSheetAppearanceKeys.TOP] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.top
@@ -377,15 +376,15 @@ internal class PaymentSheetAppearance {
         let trailing = params[PaymentSheetAppearanceKeys.RIGHT] as? CGFloat ?? PaymentSheet.Appearance.default.formInsets.trailing
 
         return NSDirectionalEdgeInsets(
-          top: top,
-          leading: leading,
-          bottom: bottom,
-          trailing: trailing
+            top: top,
+            leading: leading,
+            bottom: bottom,
+            trailing: trailing
         )
     }
 }
 
-enum PaymentSheetAppearanceError : Error {
+enum PaymentSheetAppearanceError: Error {
     case missingFont(String)
     case missingAppearanceMode
     case unexpectedHexStringLength(String)

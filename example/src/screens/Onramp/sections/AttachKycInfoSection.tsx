@@ -5,6 +5,7 @@ import { FormField } from '../FormField';
 
 export interface UserInfo {
   email: string;
+  password: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;

@@ -35,3 +35,15 @@ export type { Props as CustomerSheetProps } from './components/CustomerSheet';
 export * from './types/EmbeddedPaymentElement';
 export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
+
+//connect components
+export {
+  ConnectComponentsProvider,
+  loadConnectAndInitialize,
+} from './connect/ConnectComponentsProvider';
+export type {
+  StripeConnectInstance,
+  StripeConnectInitParams,
+  StripeConnectUpdateParams,
+} from './connect/connectTypes';
+export * from './connect/Components';

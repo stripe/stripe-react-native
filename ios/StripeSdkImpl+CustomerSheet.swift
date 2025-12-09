@@ -9,8 +9,10 @@ import Foundation
 @_spi(PrivateBetaCustomerSheet) @_spi(CustomerSessionBetaAccess) @_spi(STP) import StripePaymentSheet
 extension StripeSdkImpl {
     @objc(initCustomerSheet:customerAdapterOverrides:resolver:rejecter:)
-    public func initCustomerSheet(params: NSDictionary, customerAdapterOverrides: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                          rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func initCustomerSheet(params: NSDictionary,
+                                  customerAdapterOverrides: NSDictionary,
+                                  resolver resolve: @escaping RCTPromiseResolveBlock,
+                                  rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             customerSheetConfiguration = CustomerSheetUtils.buildCustomerSheetConfiguration(
                 appearance: try PaymentSheetAppearance.buildAppearanceFromParams(userParams: params["appearance"] as? NSDictionary),
@@ -22,9 +24,9 @@ extension StripeSdkImpl {
                 merchantDisplayName: params["merchantDisplayName"] as? String,
                 billingDetailsCollectionConfiguration: params["billingDetailsCollectionConfiguration"] as? NSDictionary,
                 defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary,
-                preferredNetworks: params["preferredNetworks"] as? Array<Int>,
+                preferredNetworks: params["preferredNetworks"] as? [Int],
                 allowsRemovalOfLastSavedPaymentMethod: params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool,
-                cardBrandAcceptance: computeCardBrandAcceptance(params: params)
+                cardBrandAcceptance: StripeSdkImpl.computeCardBrandAcceptance(params: params)
             )
         } catch {
             resolve(
@@ -36,7 +38,7 @@ extension StripeSdkImpl {
         let intentConfigurationBase = params["intentConfiguration"] as? NSDictionary
         let customerEphemeralKeySecret = params["customerEphemeralKeySecret"] as? String
 
-        if (intentConfigurationBase != nil && customerEphemeralKeySecret != nil) {
+        if intentConfigurationBase != nil && customerEphemeralKeySecret != nil {
             resolve(Errors.createError(ErrorType.Failed, "You must provide either `intentConfiguration` or `customerEphemeralKeySecret`, but not both"))
             return
         } else if let intentConfigurationBase = intentConfigurationBase {
@@ -65,7 +67,7 @@ extension StripeSdkImpl {
             }
 
             customerSheet = CustomerSheet(configuration: customerSheetConfiguration, intentConfiguration: intentConfiguration, customerSessionClientSecretProvider: customerSessionClientSecretProvider)
-        } else if (customerEphemeralKeySecret != nil) {
+        } else if customerEphemeralKeySecret != nil {
             guard let customerId = params["customerId"] as? String else {
                 resolve(Errors.createError(ErrorType.Failed, "You must provide `customerId`"))
                 return
@@ -88,9 +90,10 @@ extension StripeSdkImpl {
     }
 
     @objc(presentCustomerSheet:resolver:rejecter:)
-    public func presentCustomerSheet(params: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                           rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        if (STPAPIClient.shared.publishableKey == nil) {
+    public func presentCustomerSheet(params: NSDictionary,
+                                     resolver resolve: @escaping RCTPromiseResolveBlock,
+                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if STPAPIClient.shared.publishableKey == nil {
             resolve(
                 Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
             )
@@ -126,7 +129,7 @@ extension StripeSdkImpl {
 
     @objc(retrieveCustomerSheetPaymentOptionSelection:rejecter:)
     public func retrieveCustomerSheetPaymentOptionSelection(resolver resolve: @escaping RCTPromiseResolveBlock,
-                              rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+                                                            rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let customerSheet = customerSheet else {
             resolve(Errors.createError(ErrorType.Failed, "CustomerSheet has not been properly initialized."))
             return
@@ -134,7 +137,7 @@ extension StripeSdkImpl {
 
         Task {
             var payload: NSDictionary = [:]
-            var paymentMethodOption: CustomerSheet.PaymentOptionSelection? = nil
+            var paymentMethodOption: CustomerSheet.PaymentOptionSelection?
             do {
                 paymentMethodOption = try await customerSheet.retrievePaymentOptionSelection()
             } catch {
@@ -155,36 +158,39 @@ extension StripeSdkImpl {
     }
 
     @objc(customerAdapterFetchPaymentMethodsCallback:resolver:rejecter:)
-    public func customerAdapterFetchPaymentMethodsCallback(paymentMethods: [NSDictionary], resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
-        let decodedPaymentMethods = paymentMethods.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable : Any]) }
+    public func customerAdapterFetchPaymentMethodsCallback(paymentMethods: [NSDictionary],
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let decodedPaymentMethods = paymentMethods.compactMap { STPPaymentMethod.decodedObject(fromAPIResponse: $0 as? [AnyHashable: Any]) }
         self.fetchPaymentMethodsCallback?(decodedPaymentMethods)
         resolve([])
     }
 
     @objc(customerAdapterAttachPaymentMethodCallback:resolver:rejecter:)
-    public func customerAdapterAttachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func customerAdapterAttachPaymentMethodCallback(unusedPaymentMethod: NSDictionary,
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.attachPaymentMethodCallback?()
         resolve([])
     }
 
     @objc(customerAdapterDetachPaymentMethodCallback:resolver:rejecter:)
-    public func customerAdapterDetachPaymentMethodCallback(unusedPaymentMethod: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func customerAdapterDetachPaymentMethodCallback(unusedPaymentMethod: NSDictionary,
+                                                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                                                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.detachPaymentMethodCallback?()
         resolve([])
     }
 
     @objc(customerAdapterSetSelectedPaymentOptionCallback:rejecter:)
     public func customerAdapterSetSelectedPaymentOptionCallback(resolver resolve: @escaping RCTPromiseResolveBlock,
-                                                     rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+                                                                rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.setSelectedPaymentOptionCallback?()
         resolve([])
     }
 
     @objc(customerAdapterFetchSelectedPaymentOptionCallback:resolver:rejecter:)
-    public func customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func customerAdapterFetchSelectedPaymentOptionCallback(paymentOption: String?, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if let paymentOption = paymentOption {
             self.fetchSelectedPaymentOptionCallback?(CustomerPaymentOption.init(value: paymentOption))
         } else {
@@ -194,26 +200,25 @@ extension StripeSdkImpl {
     }
 
     @objc(customerAdapterSetupIntentClientSecretForCustomerAttachCallback:resolver:rejecter:)
-    public func customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func customerAdapterSetupIntentClientSecretForCustomerAttachCallback(clientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.setupIntentClientSecretForCustomerAttachCallback?(clientSecret)
         resolve([])
     }
 
     @objc(clientSecretProviderSetupIntentClientSecretCallback:resolver:rejecter:)
-    public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func clientSecretProviderSetupIntentClientSecretCallback(setupIntentClientSecret: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.clientSecretProviderSetupIntentClientSecretCallback?(setupIntentClientSecret)
         resolve([])
     }
 
-
     @objc(clientSecretProviderCustomerSessionClientSecretCallback:resolver:rejecter:)
-    public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void  {
+    public func clientSecretProviderCustomerSessionClientSecretCallback(customerSessionClientSecretDict: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let customerId = customerSessionClientSecretDict["customerId"] as? String,
               let clientSecret = customerSessionClientSecretDict["clientSecret"] as? String else {
             resolve(Errors.createError(ErrorType.Failed, "Invalid CustomerSessionClientSecret format"))
             return
         }
-        
+
         let customerSessionClientSecret = CustomerSessionClientSecret(customerId: customerId, clientSecret: clientSecret)
         self.clientSecretProviderCustomerSessionClientSecretCallback?(customerSessionClientSecret)
         resolve([])

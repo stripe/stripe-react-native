@@ -1,16 +1,57 @@
 interface CreateAuthIntentRequest {
-  email: string;
   oauth_scopes: string;
 }
 
-interface AuthIntentData {
-  id: string;
-  expiresAt: number; // Unix timestamp
+interface CreateAuthIntentResponse {
+  authIntentId: string;
+  existing: boolean;
+  state: string;
+  token: string;
 }
 
-interface CreateAuthIntentResponse {
-  data: AuthIntentData;
+interface CreateLinkAuthTokenResponse {
+  link_auth_token_client_secret: string;
+  expires_in: number;
+}
+
+interface SaveUserRequest {
+  crypto_customer_id: string;
+}
+
+interface SaveUserResponse {
+  success: boolean;
+}
+
+interface SignupRequest {
+  email: string;
+  password: string;
+  livemode: boolean;
+}
+
+interface SignupUser {
+  user_id: number;
+  email: string;
+  created_at: string;
+}
+
+interface SignupResponse {
   token: string;
+  user: SignupUser;
+}
+
+interface LoginRequest {
+  email: string;
+  password: string;
+  livemode: boolean;
+}
+
+interface LoginResponse {
+  token: string;
+  user: SignupUser;
+}
+
+interface GetCryptoCustomerResponse {
+  crypto_customer_id: string;
 }
 
 interface CreateOnrampSessionRequest {
@@ -54,9 +95,15 @@ export class OnrampBackend {
       useTimeout?: boolean;
       authToken?: string;
       transformResponse?: (data: any) => T;
+      method?: 'GET' | 'POST';
     } = {}
   ): Promise<ApiResult<T>> {
-    const { useTimeout = false, authToken, transformResponse } = options;
+    const {
+      useTimeout = false,
+      authToken,
+      transformResponse,
+      method = 'POST',
+    } = options;
 
     try {
       const headers: Record<string, string> = {
@@ -75,12 +122,17 @@ export class OnrampBackend {
         timeoutId = setTimeout(() => controller!.abort(), 60000); // 60 seconds timeout
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
+      const fetchOptions: RequestInit & { headers: Record<string, string> } = {
+        method,
         headers,
-        body: JSON.stringify(requestBody),
         ...(controller && { signal: controller.signal }),
-      });
+      } as any;
+
+      if (method !== 'GET') {
+        (fetchOptions as any).body = JSON.stringify(requestBody);
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -141,22 +193,115 @@ export class OnrampBackend {
   }
 
   /**
-   * Creates an auth intent for the given email and OAuth scopes
-   * @param email User email address
+   * Creates an auth intent using an existing user session token
+   * @param authToken Bearer auth token from signup/login
    * @param oauthScopes OAuth scopes
    */
   async createAuthIntent(
-    email: string,
-    oauthScopes: string = 'kyc.status:read,crypto:ramp'
+    authToken: string,
+    oauthScopes: string = 'kyc.status:read,crypto:ramp,auth.persist_login:read'
   ): Promise<ApiResult<CreateAuthIntentResponse>> {
     const requestBody: CreateAuthIntentRequest = {
-      email,
       oauth_scopes: oauthScopes,
     };
 
     return this.makeRequest<CreateAuthIntentResponse>(
-      '/auth_intent/create',
-      requestBody
+      '/v1/auth/create',
+      requestBody,
+      { authToken }
+    );
+  }
+
+  /**
+   * Creates a Link Auth Token client secret for token-based Link authentication
+   * @param authToken Bearer auth token from signup/login
+   */
+  async createLinkAuthToken(
+    authToken: string
+  ): Promise<ApiResult<CreateLinkAuthTokenResponse>> {
+    return this.makeRequest<CreateLinkAuthTokenResponse>(
+      '/v1/auth/create_link_auth_token',
+      {},
+      {
+        authToken,
+        transformResponse: (data) => ({
+          link_auth_token_client_secret: data.link_auth_token_client_secret,
+          expires_in: data.expires_in,
+        }),
+      }
+    );
+  }
+
+  /**
+   * Signs up a new user for the demo backend
+   * @param email User email address
+   * @param password User password
+   * @param livemode Whether to use livemode (defaults to false)
+   */
+  async signup(
+    email: string,
+    password: string,
+    livemode: boolean = false
+  ): Promise<ApiResult<SignupResponse>> {
+    const requestBody: SignupRequest = {
+      email,
+      password,
+      livemode,
+    };
+
+    return this.makeRequest<SignupResponse>('/v1/auth/signup', requestBody, {
+      transformResponse: (data) => ({
+        token: data.token,
+        user: data.user,
+      }),
+    });
+  }
+
+  /**
+   * Logs in an existing user
+   * @param email User email address
+   * @param password User password
+   * @param livemode Whether to use livemode (defaults to false)
+   */
+  async login(
+    email: string,
+    password: string,
+    livemode: boolean = false
+  ): Promise<ApiResult<LoginResponse>> {
+    const requestBody: LoginRequest = {
+      email,
+      password,
+      livemode,
+    };
+
+    return this.makeRequest<LoginResponse>('/v1/auth/login', requestBody, {
+      transformResponse: (data) => ({
+        token: data.token,
+        user: data.user,
+      }),
+    });
+  }
+
+  /**
+   * Saves the authenticated user with their crypto customer id on the demo backend
+   * @param cryptoCustomerId The crypto customer id to associate with the user
+   * @param authToken Bearer auth token from signup/login
+   */
+  async saveUser(
+    cryptoCustomerId: string,
+    authToken: string
+  ): Promise<ApiResult<SaveUserResponse>> {
+    const requestBody: SaveUserRequest = {
+      crypto_customer_id: cryptoCustomerId,
+    };
+
+    return this.makeRequest<SaveUserResponse>(
+      '/v1/auth/save_user',
+      requestBody,
+      {
+        authToken,
+        transformResponse: (data) => ({ success: !!data.success }),
+      }
     );
   }
 
@@ -196,7 +341,7 @@ export class OnrampBackend {
     };
 
     return this.makeRequest<OnrampSessionResponse>(
-      '/create_onramp_session',
+      '/v1/create_onramp_session',
       requestBody,
       {
         useTimeout: true,
@@ -222,24 +367,48 @@ export class OnrampBackend {
       cos_id: cosId,
     };
 
-    return this.makeRequest<OnrampSessionResponse>('/checkout', requestBody, {
-      useTimeout: true,
-      authToken,
-      transformResponse: (data) => ({
-        id: data.id,
-        client_secret: data.client_secret,
-      }),
-    });
+    return this.makeRequest<OnrampSessionResponse>(
+      '/v1/checkout',
+      requestBody,
+      {
+        useTimeout: true,
+        authToken,
+        transformResponse: (data) => ({
+          id: data.id,
+          client_secret: data.client_secret,
+        }),
+      }
+    );
+  }
+
+  /**
+   * Retrieves the crypto customer id for the currently authenticated user
+   * @param authToken Authorization token
+   */
+  async getCryptoCustomerId(
+    authToken: string
+  ): Promise<ApiResult<GetCryptoCustomerResponse>> {
+    return this.makeRequest<GetCryptoCustomerResponse>(
+      '/v1/auth/crypto_customer',
+      null,
+      {
+        authToken,
+        method: 'GET',
+        transformResponse: (data) => ({
+          crypto_customer_id: data.crypto_customer_id,
+        }),
+      }
+    );
   }
 }
 
 const defaultClient = new OnrampBackend();
 
 export const createAuthIntent = async (
-  email: string,
+  authToken: string,
   oauthScopes?: string
 ): Promise<ApiResult<CreateAuthIntentResponse>> => {
-  return defaultClient.createAuthIntent(email, oauthScopes);
+  return defaultClient.createAuthIntent(authToken, oauthScopes);
 };
 
 export const createOnrampSession = async (
@@ -266,6 +435,12 @@ export const createOnrampSession = async (
   );
 };
 
+export const createLinkAuthToken = async (
+  authToken: string
+): Promise<ApiResult<CreateLinkAuthTokenResponse>> => {
+  return defaultClient.createLinkAuthToken(authToken);
+};
+
 export const checkout = async (
   cosId: string,
   authToken: string
@@ -273,10 +448,47 @@ export const checkout = async (
   return defaultClient.checkout(cosId, authToken);
 };
 
+export const getCryptoCustomerId = async (
+  authToken: string
+): Promise<ApiResult<GetCryptoCustomerResponse>> => {
+  return defaultClient.getCryptoCustomerId(authToken);
+};
+
+export const saveUser = async (
+  cryptoCustomerId: string,
+  authToken: string
+): Promise<ApiResult<SaveUserResponse>> => {
+  return defaultClient.saveUser(cryptoCustomerId, authToken);
+};
+
+export const signup = async (
+  email: string,
+  password: string,
+  livemode?: boolean
+): Promise<ApiResult<SignupResponse>> => {
+  return defaultClient.signup(email, password, livemode);
+};
+
+export const login = async (
+  email: string,
+  password: string,
+  livemode?: boolean
+): Promise<ApiResult<LoginResponse>> => {
+  return defaultClient.login(email, password, livemode);
+};
+
 export type {
   CreateAuthIntentRequest,
   CreateAuthIntentResponse,
-  AuthIntentData,
+  CreateLinkAuthTokenResponse,
+  GetCryptoCustomerResponse,
+  SaveUserRequest,
+  SaveUserResponse,
+  SignupRequest,
+  SignupResponse,
+  SignupUser,
+  LoginRequest,
+  LoginResponse,
   CreateOnrampSessionRequest,
   OnrampSessionResponse,
   CheckoutRequest,

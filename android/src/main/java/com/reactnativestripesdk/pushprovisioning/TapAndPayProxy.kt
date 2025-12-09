@@ -2,11 +2,12 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.app.Activity
 import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.google.android.gms.tasks.Task
 import com.reactnativestripesdk.utils.createError
+import com.reactnativestripesdk.utils.getIntOr
 
 typealias TokenCheckHandler =
   (isCardInWallet: Boolean, token: WritableMap?, error: WritableMap?) -> Unit
@@ -25,6 +26,7 @@ object TapAndPayProxy {
       val tapAndPayClientClass = Class.forName("com.google.android.gms.tapandpay.TapAndPayClient")
       val listTokensMethod = tapAndPayClientClass.getMethod("listTokens")
 
+      @Suppress("UNCHECKED_CAST")
       listTokensMethod.invoke(client) as Task<List<Any>>
     } catch (e: Exception) {
       Log.e(TAG, "There was a problem listing tokens with Google TapAndPay: " + e.message)
@@ -97,9 +99,9 @@ object TapAndPayProxy {
         tapAndPayClient,
         activity,
         tokenReferenceId,
-        token.getInt("serviceProvider"),
+        token.getIntOr("serviceProvider", 0),
         cardDescription,
-        token.getInt("network"),
+        token.getIntOr("network", 0),
         REQUEST_CODE_TOKENIZE,
       )
     } catch (e: Exception) {
@@ -108,7 +110,7 @@ object TapAndPayProxy {
   }
 
   private fun mapFromTokenInfo(token: Any?): WritableMap {
-    val result = WritableNativeMap()
+    val result = Arguments.createMap()
     token?.let {
       try {
         val tokenInfoClass = Class.forName("com.google.android.gms.tapandpay.issuer.TokenInfo")

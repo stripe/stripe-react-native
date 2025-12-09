@@ -49,6 +49,13 @@ RCT_EXPORT_METHOD(authenticateUser:(nonnull RCTPromiseResolveBlock)resolve
   [StripeSdkImpl.shared authenticateUser:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(authenticateUserWithToken:(nonnull NSString *)linkAuthTokenClientSecret
+                                    resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                     reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared authenticateUserWithToken:linkAuthTokenClientSecret resolver:resolve rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(registerWalletAddress:(nonnull NSString *)address
                                 network:(nonnull NSString *)network
                                 resolve:(nonnull RCTPromiseResolveBlock)resolve
@@ -62,6 +69,13 @@ RCT_EXPORT_METHOD(attachKycInfo:(nonnull NSDictionary *)info
                          reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared attachKycInfo:info resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(presentKycInfoVerification:(NSDictionary *)updatedAddress
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared presentKycInfoVerification:updatedAddress resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(updatePhoneNumber:(nonnull NSString *)phone
