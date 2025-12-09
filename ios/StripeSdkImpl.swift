@@ -3,8 +3,8 @@ import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
 import StripeFinancialConnections
-import StripePaymentsUI
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
+import StripePaymentsUI
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
 
