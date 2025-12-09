@@ -873,8 +873,7 @@ export default function CryptoOnrampFlow() {
 
           {selectedPaymentMethod === 'BankAccount' &&
             currentPaymentDisplayData && (
-              <View style={styles.achContainer}>
-                <Text style={styles.achTitle}>ACH Settlement Speed</Text>
+              <Collapse title="ACH Settlement Speed" initialExpanded={true}>
                 <View style={styles.segmentedRow}>
                   <View style={styles.segment}>
                     <Button
@@ -882,6 +881,7 @@ export default function CryptoOnrampFlow() {
                       variant={
                         achSettlementSpeed === 'instant' ? 'primary' : 'default'
                       }
+                      center
                       onPress={() => setAchSettlementSpeed('instant')}
                     />
                   </View>
@@ -894,11 +894,12 @@ export default function CryptoOnrampFlow() {
                           ? 'primary'
                           : 'default'
                       }
+                      center
                       onPress={() => setAchSettlementSpeed('standard')}
                     />
                   </View>
                 </View>
-              </View>
+              </Collapse>
             )}
           <CryptoOperationsSection
             cardPaymentMethod={cardPaymentMethod}
@@ -958,16 +959,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     alignSelf: 'center',
     textAlign: 'center',
-  },
-  achContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
-  achTitle: {
-    fontWeight: '600',
-    marginTop: 4,
-    marginBottom: 6,
   },
   segmentedRow: {
     flexDirection: 'row',
