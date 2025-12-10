@@ -10,20 +10,6 @@ export type PaymentMethod = NonNullable<
   PaymentsListDefaultFilters['paymentMethod']
 >;
 
-// Navigation types
-export type RootStackParamList = {
-  Home: undefined;
-  AccountOnboarding: undefined;
-  Payouts: undefined;
-  Payments: undefined;
-  ComponentTabs: undefined;
-  Settings: undefined;
-  OnboardingSettings: undefined;
-  PaymentsFilterSettings: undefined;
-  ViewControllerOptions: undefined;
-  ConfigureAppearance: undefined;
-};
-
 export type AppearancePreset = keyof typeof APPEARANCE_PRESETS;
 
 // Onboarding settings types
@@ -81,14 +67,4 @@ export interface ViewControllerSettings {
   presentationType: ViewControllerPresentationType;
   embedInNavigationBar: boolean;
   embedInTabBar: boolean;
-}
-
-// App settings
-export interface AppSettings {
-  selectedMerchantId: string | null;
-  backendUrl: string;
-  appearancePreset: AppearancePreset;
-  onboardingSettings: OnboardingSettings;
-  paymentsFilterSettings: PaymentsFilterSettings;
-  viewControllerSettings: ViewControllerSettings;
 }
