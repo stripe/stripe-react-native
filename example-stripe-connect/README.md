@@ -233,6 +233,8 @@ The API client (`src/api/StripeConnectAPI.ts`) provides:
 - Comprehensive error handling
 - Automatic snake_case to camelCase conversion
 
+For detailed API documentation including request/response schemas and examples, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
+
 ### Key Components
 
 #### StripeProvider
