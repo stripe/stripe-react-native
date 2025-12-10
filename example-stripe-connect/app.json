@@ -27,7 +27,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.examplestripeconnect"
+      "package": "com.stripe.examplestripeconnect"
     },
     "web": {
       "favicon": "./assets/favicon.png"
