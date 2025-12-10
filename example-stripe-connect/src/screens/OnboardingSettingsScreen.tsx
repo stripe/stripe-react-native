@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter, Stack } from 'expo-router';
 import type {
-  RootStackParamList,
   OnboardingSettings,
   FieldOption,
   FutureRequirements,
@@ -35,11 +33,6 @@ import {
   REQUIREMENTS_OPTIONS,
 } from '../constants';
 import { Colors } from '../constants/colors';
-
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'OnboardingSettings'
->;
 
 const BOOLEAN_OPTIONS: DropdownOption[] = [
   { label: 'Default', value: 'default' },
@@ -64,7 +57,7 @@ const formatBooleanForDisplay = (value?: boolean): string => {
 };
 
 const OnboardingSettingsScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const { onboardingSettings, setOnboardingSettings, resetOnboardingSettings } =
     useSettings();
 
@@ -125,8 +118,8 @@ const OnboardingSettingsScreen: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     await setOnboardingSettings(localSettings);
-    navigation.goBack();
-  }, [localSettings, setOnboardingSettings, navigation]);
+    router.back();
+  }, [localSettings, setOnboardingSettings, router]);
 
   const handleReset = useCallback(async () => {
     await resetOnboardingSettings();
@@ -134,238 +127,239 @@ const OnboardingSettingsScreen: React.FC = () => {
     setHasChanges(false);
   }, [resetOnboardingSettings, onboardingSettings]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerBackButtonDisplayMode: 'minimal',
-      headerLeft: undefined, // Use system default back button
-      headerRight: () => (
-        <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
-          <Text
-            style={[
-              styles.saveButton,
-              !hasChanges && styles.saveButtonDisabled,
-            ]}
-          >
-            Save
-          </Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, hasChanges, handleSave]);
-
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAwareScrollView
-          style={styles.scrollView}
-          bottomOffset={20}
-          extraKeyboardSpace={20}
-        >
-          {/* URL Fields */}
-          <View style={styles.sectionWrapper}>
-            <Section>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Full terms of service</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="https://example.com"
-                  placeholderTextColor={Colors.text.secondary}
-                  value={localSettings.fullTermsOfServiceUrl}
-                  onChangeText={(text) =>
-                    updateSetting('fullTermsOfServiceUrl', text)
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Recipient terms of service</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="https://example.com"
-                  placeholderTextColor={Colors.text.secondary}
-                  value={localSettings.recipientTermsOfServiceUrl}
-                  onChangeText={(text) =>
-                    updateSetting('recipientTermsOfServiceUrl', text)
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Privacy policy</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="https://example.com"
-                  placeholderTextColor={Colors.text.secondary}
-                  value={localSettings.privacyPolicyUrl}
-                  onChangeText={(text) =>
-                    updateSetting('privacyPolicyUrl', text)
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  returnKeyType="done"
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-              </View>
-            </Section>
-          </View>
-
-          {/* Boolean Options */}
-          <View style={styles.sectionWrapper}>
-            <Section>
-              <DropdownMenu
-                trigger={
-                  <View style={styles.dropdownOption}>
-                    <Text style={styles.dropdownLabel}>
-                      Skip terms of service
-                    </Text>
-                    <View style={styles.dropdownValue}>
-                      <Text style={styles.dropdownValueText}>
-                        {formatBooleanForDisplay(
-                          localSettings.skipTermsOfService
-                        )}
-                      </Text>
-                      <ChevronRight />
-                    </View>
-                  </View>
-                }
-                options={BOOLEAN_OPTIONS}
-                selectedValue={booleanToDropdownValue(
-                  localSettings.skipTermsOfService
-                )}
-                onSelect={(value) =>
-                  updateSetting(
-                    'skipTermsOfService',
-                    dropdownValueToBoolean(value)
-                  )
-                }
-              />
-
-              <Separator />
-
-              <DropdownMenu
-                trigger={
-                  <View style={styles.dropdownOption}>
-                    <Text style={styles.dropdownLabel}>Field option</Text>
-                    <View style={styles.dropdownValue}>
-                      <Text style={styles.dropdownValueText}>
-                        {getFieldOptionLabel(localSettings.fieldOption)}
-                      </Text>
-                      <ChevronRight />
-                    </View>
-                  </View>
-                }
-                options={fieldOptionDropdownOptions}
-                selectedValue={localSettings.fieldOption || 'default'}
-                onSelect={(value) =>
-                  updateSetting(
-                    'fieldOption',
-                    value === 'default' ? undefined : (value as FieldOption)
-                  )
-                }
-              />
-
-              <Separator />
-
-              <DropdownMenu
-                trigger={
-                  <View style={styles.dropdownOption}>
-                    <Text style={styles.dropdownLabel}>
-                      Future requirements
-                    </Text>
-                    <View style={styles.dropdownValue}>
-                      <Text style={styles.dropdownValueText}>
-                        {getFutureRequirementsLabel(
-                          localSettings.futureRequirements
-                        )}
-                      </Text>
-                      <ChevronRight />
-                    </View>
-                  </View>
-                }
-                options={futureRequirementsDropdownOptions}
-                selectedValue={localSettings.futureRequirements || 'default'}
-                onSelect={(value) =>
-                  updateSetting(
-                    'futureRequirements',
-                    value === 'default'
-                      ? undefined
-                      : (value as FutureRequirements)
-                  )
-                }
-              />
-
-              <Separator />
-
-              <DropdownMenu
-                trigger={
-                  <View style={styles.dropdownOption}>
-                    <Text style={styles.dropdownLabel}>Requirements</Text>
-                    <View style={styles.dropdownValue}>
-                      <Text style={styles.dropdownValueText}>
-                        {getRequirementsLabel(localSettings.requirements)}
-                      </Text>
-                      <ChevronRight />
-                    </View>
-                  </View>
-                }
-                options={requirementsDropdownOptions}
-                selectedValue={localSettings.requirements || 'default'}
-                onSelect={(value) =>
-                  updateSetting(
-                    'requirements',
-                    value === 'default' ? undefined : (value as Requirements)
-                  )
-                }
-              />
-            </Section>
-          </View>
-
-          {/* Requirements List - shown when requirements is set */}
-          {localSettings.requirements !== undefined && (
+    <>
+      <Stack.Screen
+        options={{
+          headerBackButtonDisplayMode: 'minimal',
+          headerLeft: undefined,
+          headerRight: () => (
+            <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
+              <Text
+                style={[
+                  styles.saveButton,
+                  !hasChanges && styles.saveButtonDisabled,
+                ]}
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <SafeAreaView style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAwareScrollView
+            style={styles.scrollView}
+            bottomOffset={20}
+            extraKeyboardSpace={20}
+          >
+            {/* URL Fields */}
             <View style={styles.sectionWrapper}>
               <Section>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Requirements List</Text>
-                  <Text style={styles.helperText}>
-                    Enter one requirement per line
-                  </Text>
+                  <Text style={styles.label}>Full terms of service</Text>
                   <TextInput
-                    style={[styles.input, styles.multilineInput]}
-                    placeholder=""
+                    style={styles.input}
+                    placeholder="https://example.com"
                     placeholderTextColor={Colors.text.secondary}
-                    value={localSettings.requirementsList}
+                    value={localSettings.fullTermsOfServiceUrl}
                     onChangeText={(text) =>
-                      updateSetting('requirementsList', text)
+                      updateSetting('fullTermsOfServiceUrl', text)
                     }
-                    multiline
-                    numberOfLines={6}
-                    textAlignVertical="top"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    keyboardType="url"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Recipient terms of service</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="https://example.com"
+                    placeholderTextColor={Colors.text.secondary}
+                    value={localSettings.recipientTermsOfServiceUrl}
+                    onChangeText={(text) =>
+                      updateSetting('recipientTermsOfServiceUrl', text)
+                    }
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Privacy policy</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="https://example.com"
+                    placeholderTextColor={Colors.text.secondary}
+                    value={localSettings.privacyPolicyUrl}
+                    onChangeText={(text) =>
+                      updateSetting('privacyPolicyUrl', text)
+                    }
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
                   />
                 </View>
               </Section>
             </View>
-          )}
 
-          {/* Reset Button */}
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>Reset to defaults</Text>
-          </TouchableOpacity>
-        </KeyboardAwareScrollView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+            {/* Boolean Options */}
+            <View style={styles.sectionWrapper}>
+              <Section>
+                <DropdownMenu
+                  trigger={
+                    <View style={styles.dropdownOption}>
+                      <Text style={styles.dropdownLabel}>
+                        Skip terms of service
+                      </Text>
+                      <View style={styles.dropdownValue}>
+                        <Text style={styles.dropdownValueText}>
+                          {formatBooleanForDisplay(
+                            localSettings.skipTermsOfService
+                          )}
+                        </Text>
+                        <ChevronRight />
+                      </View>
+                    </View>
+                  }
+                  options={BOOLEAN_OPTIONS}
+                  selectedValue={booleanToDropdownValue(
+                    localSettings.skipTermsOfService
+                  )}
+                  onSelect={(value) =>
+                    updateSetting(
+                      'skipTermsOfService',
+                      dropdownValueToBoolean(value)
+                    )
+                  }
+                />
+
+                <Separator />
+
+                <DropdownMenu
+                  trigger={
+                    <View style={styles.dropdownOption}>
+                      <Text style={styles.dropdownLabel}>Field option</Text>
+                      <View style={styles.dropdownValue}>
+                        <Text style={styles.dropdownValueText}>
+                          {getFieldOptionLabel(localSettings.fieldOption)}
+                        </Text>
+                        <ChevronRight />
+                      </View>
+                    </View>
+                  }
+                  options={fieldOptionDropdownOptions}
+                  selectedValue={localSettings.fieldOption || 'default'}
+                  onSelect={(value) =>
+                    updateSetting(
+                      'fieldOption',
+                      value === 'default' ? undefined : (value as FieldOption)
+                    )
+                  }
+                />
+
+                <Separator />
+
+                <DropdownMenu
+                  trigger={
+                    <View style={styles.dropdownOption}>
+                      <Text style={styles.dropdownLabel}>
+                        Future requirements
+                      </Text>
+                      <View style={styles.dropdownValue}>
+                        <Text style={styles.dropdownValueText}>
+                          {getFutureRequirementsLabel(
+                            localSettings.futureRequirements
+                          )}
+                        </Text>
+                        <ChevronRight />
+                      </View>
+                    </View>
+                  }
+                  options={futureRequirementsDropdownOptions}
+                  selectedValue={localSettings.futureRequirements || 'default'}
+                  onSelect={(value) =>
+                    updateSetting(
+                      'futureRequirements',
+                      value === 'default'
+                        ? undefined
+                        : (value as FutureRequirements)
+                    )
+                  }
+                />
+
+                <Separator />
+
+                <DropdownMenu
+                  trigger={
+                    <View style={styles.dropdownOption}>
+                      <Text style={styles.dropdownLabel}>Requirements</Text>
+                      <View style={styles.dropdownValue}>
+                        <Text style={styles.dropdownValueText}>
+                          {getRequirementsLabel(localSettings.requirements)}
+                        </Text>
+                        <ChevronRight />
+                      </View>
+                    </View>
+                  }
+                  options={requirementsDropdownOptions}
+                  selectedValue={localSettings.requirements || 'default'}
+                  onSelect={(value) =>
+                    updateSetting(
+                      'requirements',
+                      value === 'default' ? undefined : (value as Requirements)
+                    )
+                  }
+                />
+              </Section>
+            </View>
+
+            {/* Requirements List - shown when requirements is set */}
+            {localSettings.requirements !== undefined && (
+              <View style={styles.sectionWrapper}>
+                <Section>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Requirements List</Text>
+                    <Text style={styles.helperText}>
+                      Enter one requirement per line
+                    </Text>
+                    <TextInput
+                      style={[styles.input, styles.multilineInput]}
+                      placeholder=""
+                      placeholderTextColor={Colors.text.secondary}
+                      value={localSettings.requirementsList}
+                      onChangeText={(text) =>
+                        updateSetting('requirementsList', text)
+                      }
+                      multiline
+                      numberOfLines={6}
+                      textAlignVertical="top"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </Section>
+              </View>
+            )}
+
+            {/* Reset Button */}
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <Text style={styles.resetButtonText}>Reset to defaults</Text>
+            </TouchableOpacity>
+          </KeyboardAwareScrollView>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </>
   );
 };
 

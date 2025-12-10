@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList, AppearancePreset } from '../types';
+import { useRouter, Stack } from 'expo-router';
+import type { AppearancePreset } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { SelectableRow } from '../components/SelectableRow';
 import { Separator } from '../components/Separator';
@@ -17,13 +16,8 @@ import { SectionHeader } from '../components/SectionHeader';
 import { APPEARANCE_PRESET_NAMES } from '../constants';
 import { Colors } from '../constants/colors';
 
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'ConfigureAppearance'
->;
-
 const ConfigureAppearanceScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const { appearancePreset, setAppearancePreset } = useSettings();
   const [selectedPreset, setSelectedPreset] =
     useState<AppearancePreset>(appearancePreset);
@@ -36,49 +30,50 @@ const ConfigureAppearanceScreen: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     await setAppearancePreset(selectedPreset);
-    navigation.goBack();
-  }, [selectedPreset, setAppearancePreset, navigation]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelButton}>Cancel</Text>
-        </TouchableOpacity>
-      ),
-      headerRight: () => (
-        <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
-          <Text
-            style={[
-              styles.saveButton,
-              !hasChanges && styles.saveButtonDisabled,
-            ]}
-          >
-            Save
-          </Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, hasChanges, handleSave]);
+    router.back();
+  }, [selectedPreset, setAppearancePreset, router]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.section}>
-        <SectionHeader>Select a preset</SectionHeader>
-        <ScrollView style={styles.scrollView}>
-          {APPEARANCE_PRESET_NAMES.map((preset, index) => (
-            <View key={preset}>
-              <SelectableRow
-                title={preset}
-                selected={selectedPreset === preset}
-                onPress={() => handleSelectPreset(preset)}
-              />
-              {index < APPEARANCE_PRESET_NAMES.length - 1 && <Separator />}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+    <>
+      <Stack.Screen
+        options={{
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.cancelButton}>Cancel</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
+              <Text
+                style={[
+                  styles.saveButton,
+                  !hasChanges && styles.saveButtonDisabled,
+                ]}
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.section}>
+          <SectionHeader>Select a preset</SectionHeader>
+          <ScrollView style={styles.scrollView}>
+            {APPEARANCE_PRESET_NAMES.map((preset, index) => (
+              <View key={preset}>
+                <SelectableRow
+                  title={preset}
+                  selected={selectedPreset === preset}
+                  onPress={() => handleSelectPreset(preset)}
+                />
+                {index < APPEARANCE_PRESET_NAMES.length - 1 && <Separator />}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </>
   );
 };
 

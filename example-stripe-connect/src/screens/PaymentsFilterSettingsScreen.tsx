@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useLayoutEffect,
-  useCallback,
-  useRef,
-  useEffect,
-} from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,10 +12,8 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRouter, Stack } from 'expo-router';
 import type {
-  RootStackParamList,
   PaymentsFilterSettings,
   AmountFilterType,
   DateFilterType,
@@ -43,11 +35,6 @@ import {
   PAYMENT_STATUSES,
 } from '../constants';
 import { Colors } from '../constants/colors';
-
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'PaymentsFilterSettings'
->;
 
 const AMOUNT_FILTER_OPTIONS: DropdownOption[] = [
   { label: 'None', value: 'undefined' },
@@ -93,7 +80,7 @@ const stringToDateFilterType = (value: string): DateFilterType | undefined => {
 };
 
 const PaymentsFilterSettingsScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const router = useRouter();
   const {
     paymentsFilterSettings,
     setPaymentsFilterSettings,
@@ -134,31 +121,13 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     await setPaymentsFilterSettings(localSettings);
-    navigation.goBack();
-  }, [localSettings, setPaymentsFilterSettings, navigation]);
+    router.back();
+  }, [localSettings, setPaymentsFilterSettings, router]);
 
   const handleReset = useCallback(async () => {
     await resetPaymentsFilterSettings();
     setHasChanges(false);
   }, [resetPaymentsFilterSettings]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerBackButtonDisplayMode: 'minimal',
-      headerRight: () => (
-        <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
-          <Text
-            style={[
-              styles.saveButton,
-              !hasChanges && styles.saveButtonDisabled,
-            ]}
-          >
-            Save
-          </Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, hasChanges, handleSave]);
 
   const updateSetting = <K extends keyof PaymentsFilterSettings>(
     key: K,
@@ -235,252 +204,276 @@ const PaymentsFilterSettingsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAwareScrollView
-          style={styles.scrollView}
-          bottomOffset={20}
-          extraKeyboardSpace={20}
-        >
-          {/* Amount Filter */}
-          <SectionHeader>Amount Filter</SectionHeader>
-          <Section>
-            <DropdownMenu
-              trigger={
-                <View style={styles.dropdownOption}>
-                  <Text style={styles.dropdownLabel}>Amount Filter Type</Text>
-                  <View style={styles.dropdownValue}>
-                    <Text style={styles.dropdownValueText}>
-                      {filterTypeToLabel(localSettings.amountFilterType, true)}
-                    </Text>
-                    <ChevronRight />
+    <>
+      <Stack.Screen
+        options={{
+          headerBackButtonDisplayMode: 'minimal',
+          headerRight: () => (
+            <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
+              <Text
+                style={[
+                  styles.saveButton,
+                  !hasChanges && styles.saveButtonDisabled,
+                ]}
+              >
+                Save
+              </Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <SafeAreaView style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAwareScrollView
+            style={styles.scrollView}
+            bottomOffset={20}
+            extraKeyboardSpace={20}
+          >
+            {/* Amount Filter */}
+            <SectionHeader>Amount Filter</SectionHeader>
+            <Section>
+              <DropdownMenu
+                trigger={
+                  <View style={styles.dropdownOption}>
+                    <Text style={styles.dropdownLabel}>Amount Filter Type</Text>
+                    <View style={styles.dropdownValue}>
+                      <Text style={styles.dropdownValueText}>
+                        {filterTypeToLabel(
+                          localSettings.amountFilterType,
+                          true
+                        )}
+                      </Text>
+                      <ChevronRight />
+                    </View>
                   </View>
-                </View>
-              }
-              options={AMOUNT_FILTER_OPTIONS}
-              selectedValue={filterTypeToString(localSettings.amountFilterType)}
-              onSelect={(value) =>
-                updateSetting(
-                  'amountFilterType',
-                  stringToAmountFilterType(value)
-                )
-              }
-            />
+                }
+                options={AMOUNT_FILTER_OPTIONS}
+                selectedValue={filterTypeToString(
+                  localSettings.amountFilterType
+                )}
+                onSelect={(value) =>
+                  updateSetting(
+                    'amountFilterType',
+                    stringToAmountFilterType(value)
+                  )
+                }
+              />
 
-            {localSettings.amountFilterType !== undefined &&
-              localSettings.amountFilterType !== 'between' && (
+              {localSettings.amountFilterType !== undefined &&
+                localSettings.amountFilterType !== 'between' && (
+                  <>
+                    <Separator />
+                    <View style={styles.dateRow}>
+                      <Text style={styles.dateLabel}>Amount (dollars)</Text>
+                      <AmountInput
+                        value={localSettings.amountValue}
+                        onValueChange={(value) =>
+                          updateSetting('amountValue', value)
+                        }
+                      />
+                    </View>
+                  </>
+                )}
+
+              {localSettings.amountFilterType === 'between' && (
                 <>
                   <Separator />
                   <View style={styles.dateRow}>
-                    <Text style={styles.dateLabel}>Amount (dollars)</Text>
+                    <Text style={styles.dateLabel}>Lower bound (dollars)</Text>
                     <AmountInput
-                      value={localSettings.amountValue}
+                      value={localSettings.amountLowerBound}
                       onValueChange={(value) =>
-                        updateSetting('amountValue', value)
+                        updateSetting('amountLowerBound', value)
+                      }
+                    />
+                  </View>
+                  <Separator />
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateLabel}>Upper bound (dollars)</Text>
+                    <AmountInput
+                      value={localSettings.amountUpperBound}
+                      onValueChange={(value) =>
+                        updateSetting('amountUpperBound', value)
                       }
                     />
                   </View>
                 </>
               )}
+            </Section>
 
-            {localSettings.amountFilterType === 'between' && (
-              <>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>Lower bound (dollars)</Text>
-                  <AmountInput
-                    value={localSettings.amountLowerBound}
-                    onValueChange={(value) =>
-                      updateSetting('amountLowerBound', value)
-                    }
-                  />
-                </View>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>Upper bound (dollars)</Text>
-                  <AmountInput
-                    value={localSettings.amountUpperBound}
-                    onValueChange={(value) =>
-                      updateSetting('amountUpperBound', value)
-                    }
-                  />
-                </View>
-              </>
-            )}
-          </Section>
-
-          {/* Date Filter */}
-          <SectionHeader>Date Filter</SectionHeader>
-          <Section>
-            <DropdownMenu
-              trigger={
-                <View style={styles.dropdownOption}>
-                  <Text style={styles.dropdownLabel}>Date Filter Type</Text>
-                  <View style={styles.dropdownValue}>
-                    <Text style={styles.dropdownValueText}>
-                      {filterTypeToLabel(localSettings.dateFilterType, false)}
-                    </Text>
-                    <ChevronRight />
+            {/* Date Filter */}
+            <SectionHeader>Date Filter</SectionHeader>
+            <Section>
+              <DropdownMenu
+                trigger={
+                  <View style={styles.dropdownOption}>
+                    <Text style={styles.dropdownLabel}>Date Filter Type</Text>
+                    <View style={styles.dropdownValue}>
+                      <Text style={styles.dropdownValueText}>
+                        {filterTypeToLabel(localSettings.dateFilterType, false)}
+                      </Text>
+                      <ChevronRight />
+                    </View>
                   </View>
-                </View>
-              }
-              options={DATE_FILTER_OPTIONS}
-              selectedValue={filterTypeToString(localSettings.dateFilterType)}
-              onSelect={(value) =>
-                updateSetting('dateFilterType', stringToDateFilterType(value))
-              }
-            />
+                }
+                options={DATE_FILTER_OPTIONS}
+                selectedValue={filterTypeToString(localSettings.dateFilterType)}
+                onSelect={(value) =>
+                  updateSetting('dateFilterType', stringToDateFilterType(value))
+                }
+              />
 
-            {localSettings.dateFilterType === 'before' && (
-              <>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>Before Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateInput}
-                    onPress={() => openDatePicker('dateValue')}
-                  >
-                    <Text style={styles.dateText}>
-                      {formatDate(localSettings.dateValue)}
-                    </Text>
+              {localSettings.dateFilterType === 'before' && (
+                <>
+                  <Separator />
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateLabel}>Before Date</Text>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => openDatePicker('dateValue')}
+                    >
+                      <Text style={styles.dateText}>
+                        {formatDate(localSettings.dateValue)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+
+              {localSettings.dateFilterType === 'after' && (
+                <>
+                  <Separator />
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateLabel}>After Date</Text>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => openDatePicker('dateValue')}
+                    >
+                      <Text style={styles.dateText}>
+                        {formatDate(localSettings.dateValue)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+
+              {localSettings.dateFilterType === 'between' && (
+                <>
+                  <Separator />
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateLabel}>Start Date</Text>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => openDatePicker('startDate')}
+                    >
+                      <Text style={styles.dateText}>
+                        {formatDate(localSettings.startDate)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Separator />
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateLabel}>End Date</Text>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => openDatePicker('endDate')}
+                    >
+                      <Text style={styles.dateText}>
+                        {formatDate(localSettings.endDate)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </Section>
+
+            {/* Status Filter */}
+            <SectionHeader>Status Filter</SectionHeader>
+            <Section>
+              {PAYMENT_STATUSES.map((status, index) => (
+                <View key={status.value}>
+                  <SelectableRow
+                    title={status.label}
+                    selected={localSettings.selectedStatuses.includes(
+                      status.value
+                    )}
+                    onPress={() => toggleStatus(status.value)}
+                  />
+                  {index < PAYMENT_STATUSES.length - 1 && <Separator />}
+                </View>
+              ))}
+            </Section>
+
+            {/* Payment Method Filter */}
+            <SectionHeader>Payment Method Filter</SectionHeader>
+            <Section>
+              <DropdownMenu
+                trigger={
+                  <View style={styles.dropdownOption}>
+                    <Text style={styles.dropdownLabel}>Payment Method</Text>
+                    <View style={styles.dropdownValue}>
+                      <Text style={styles.dropdownValueText}>
+                        {getPaymentMethodLabel(localSettings.paymentMethod)}
+                      </Text>
+                      <ChevronRight />
+                    </View>
+                  </View>
+                }
+                options={paymentMethodOptions}
+                selectedValue={localSettings.paymentMethod || 'none'}
+                onSelect={(value) =>
+                  updateSetting(
+                    'paymentMethod',
+                    value === 'none' ? undefined : (value as PaymentMethod)
+                  )
+                }
+              />
+            </Section>
+
+            {/* Reset Button */}
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <Text style={styles.resetButtonText}>Reset to defaults</Text>
+            </TouchableOpacity>
+          </KeyboardAwareScrollView>
+        </TouchableWithoutFeedback>
+
+        {/* Date Picker */}
+        {datePickerVisible && (
+          <>
+            {Platform.OS === 'ios' && (
+              <Animated.View
+                style={[
+                  styles.datePickerContainer,
+                  {
+                    transform: [{ translateY: datePickerSlideAnim }],
+                  },
+                ]}
+              >
+                <View style={styles.datePickerHeader}>
+                  <TouchableOpacity onPress={closeDatePicker}>
+                    <Text style={styles.datePickerDone}>Done</Text>
                   </TouchableOpacity>
                 </View>
-              </>
-            )}
-
-            {localSettings.dateFilterType === 'after' && (
-              <>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>After Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateInput}
-                    onPress={() => openDatePicker('dateValue')}
-                  >
-                    <Text style={styles.dateText}>
-                      {formatDate(localSettings.dateValue)}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-
-            {localSettings.dateFilterType === 'between' && (
-              <>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>Start Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateInput}
-                    onPress={() => openDatePicker('startDate')}
-                  >
-                    <Text style={styles.dateText}>
-                      {formatDate(localSettings.startDate)}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Separator />
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateLabel}>End Date</Text>
-                  <TouchableOpacity
-                    style={styles.dateInput}
-                    onPress={() => openDatePicker('endDate')}
-                  >
-                    <Text style={styles.dateText}>
-                      {formatDate(localSettings.endDate)}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </Section>
-
-          {/* Status Filter */}
-          <SectionHeader>Status Filter</SectionHeader>
-          <Section>
-            {PAYMENT_STATUSES.map((status, index) => (
-              <View key={status.value}>
-                <SelectableRow
-                  title={status.label}
-                  selected={localSettings.selectedStatuses.includes(
-                    status.value
-                  )}
-                  onPress={() => toggleStatus(status.value)}
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateChange}
                 />
-                {index < PAYMENT_STATUSES.length - 1 && <Separator />}
-              </View>
-            ))}
-          </Section>
-
-          {/* Payment Method Filter */}
-          <SectionHeader>Payment Method Filter</SectionHeader>
-          <Section>
-            <DropdownMenu
-              trigger={
-                <View style={styles.dropdownOption}>
-                  <Text style={styles.dropdownLabel}>Payment Method</Text>
-                  <View style={styles.dropdownValue}>
-                    <Text style={styles.dropdownValueText}>
-                      {getPaymentMethodLabel(localSettings.paymentMethod)}
-                    </Text>
-                    <ChevronRight />
-                  </View>
-                </View>
-              }
-              options={paymentMethodOptions}
-              selectedValue={localSettings.paymentMethod || 'none'}
-              onSelect={(value) =>
-                updateSetting(
-                  'paymentMethod',
-                  value === 'none' ? undefined : (value as PaymentMethod)
-                )
-              }
-            />
-          </Section>
-
-          {/* Reset Button */}
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>Reset to defaults</Text>
-          </TouchableOpacity>
-        </KeyboardAwareScrollView>
-      </TouchableWithoutFeedback>
-
-      {/* Date Picker */}
-      {datePickerVisible && (
-        <>
-          {Platform.OS === 'ios' && (
-            <Animated.View
-              style={[
-                styles.datePickerContainer,
-                {
-                  transform: [{ translateY: datePickerSlideAnim }],
-                },
-              ]}
-            >
-              <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={closeDatePicker}>
-                  <Text style={styles.datePickerDone}>Done</Text>
-                </TouchableOpacity>
-              </View>
+              </Animated.View>
+            )}
+            {Platform.OS === 'android' && (
               <DateTimePicker
                 value={tempDate}
                 mode="date"
-                display="spinner"
+                display="default"
                 onChange={handleDateChange}
               />
-            </Animated.View>
-          )}
-          {Platform.OS === 'android' && (
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-            />
-          )}
-        </>
-      )}
-    </SafeAreaView>
+            )}
+          </>
+        )}
+      </SafeAreaView>
+    </>
   );
 };
 
