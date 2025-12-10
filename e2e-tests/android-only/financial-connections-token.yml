@@ -13,9 +13,9 @@ appId: ${APP_ID}
     # Accept Link terms
     text: "Agree and continue"
 - assertVisible:
-    text: "Test"
+    text: "Test (Non-OAuth)"
 - tapOn:
-    text: "Test"
+    text: "Test (Non-OAuth)"
 
 # The first chrome instance in E2E emulator, welcome page must be dismissed.
 - tapOn:

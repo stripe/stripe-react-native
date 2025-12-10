@@ -8,7 +8,7 @@ appId: ${APP_ID}
     text: "Collect bank account"
     retryTapIfNoChange: false
 - tapOn: "Agree"
-- tapOn: "Test"
+- tapOn: "Test (Non-OAuth)"
 - tapOn: "Success"
 - tapOn: "Link account"
 - tapOn: "Done"
