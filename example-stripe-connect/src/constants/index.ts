@@ -222,9 +222,6 @@ export const STORAGE_KEYS = {
   VIEW_CONTROLLER_SETTINGS: '@stripe_connect_demo:view_controller_settings',
 };
 
-// Re-export appearance presets
-export { APPEARANCE_PRESETS as APPEARANCE_PRESET_VALUES } from './appearancePresets';
-
 // Export appearance preset names as an array
 export const APPEARANCE_PRESET_NAMES = Object.keys(
   APPEARANCE_PRESETS
