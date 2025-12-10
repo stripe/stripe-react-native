@@ -38,6 +38,7 @@ start_recording() {
     RECORDING_PID="android"
   elif [ "$PLATFORM" = "ios" ]; then
     xcrun simctl io booted recordVideo --codec=h264 -f "$recording_dir/recording.mp4" &
+    RECORDING_PID="ios"
   fi
 }
 
