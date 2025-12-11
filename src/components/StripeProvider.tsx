@@ -50,6 +50,10 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
 
   const extendedParams: InitialiseParams = { ...params, appInfo };
   await NativeStripeSdk.initialise(extendedParams);
+
+  if (Platform.OS === 'android') {
+    await NativeOnrampSdk.initialise(extendedParams);
+  }
 };
 
 /**
@@ -89,15 +93,6 @@ export function StripeProvider({
       if (isAndroid) {
         await initStripe({
           publishableKey,
-          stripeAccountId,
-          threeDSecureParams,
-          urlScheme,
-          setReturnUrlSchemeOnAndroid,
-        });
-
-        await NativeOnrampSdk.initialise({
-          publishableKey,
-          appInfo,
           stripeAccountId,
           threeDSecureParams,
           urlScheme,
