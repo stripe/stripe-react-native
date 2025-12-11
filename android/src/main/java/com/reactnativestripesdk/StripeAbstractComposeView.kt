@@ -82,7 +82,10 @@ abstract class StripeAbstractComposeView(
     }
   }
 
-  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+  override fun onMeasure(
+    widthMeasureSpec: Int,
+    heightMeasureSpec: Int,
+  ) {
     // Guard against React Native trying to measure the view before it's attached to a window.
     // AbstractComposeView.onMeasure requires the view to be attached to find the windowRecomposer.
     // If not attached yet, just report 0x0 dimensions - React Native will re-measure once attached.
