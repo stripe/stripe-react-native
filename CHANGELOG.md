@@ -4,6 +4,7 @@
 **Fixes**
 - Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
 - Fixed `confirmPlatformPayPayment` not resolving on Android.
+- Fixed Android crash `IllegalStateException: Cannot locate windowRecomposer` in EmbeddedPaymentElement when React Native measures the view before it's attached to a window.
 
 ## 0.57.0 - 2025-11-12
 **Changes**
