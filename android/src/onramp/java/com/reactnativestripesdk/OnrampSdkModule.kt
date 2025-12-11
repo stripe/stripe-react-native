@@ -112,6 +112,11 @@ class OnrampSdkModule(
     config: ReadableMap,
     promise: Promise,
   ) {
+    if (!::publishableKey.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
     val application =
       reactApplicationContext.currentActivity?.application ?: (reactApplicationContext.applicationContext as? Application)
     if (application == null) {
