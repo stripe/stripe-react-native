@@ -1,4 +1,3 @@
-# TODO(alexzhu): Enable after institutions are renamed (ir-rider-prefix)
 appId: ${APP_ID}
 ---
 - launchApp:
@@ -17,8 +16,8 @@ appId: ${APP_ID}
     text: "Agree and continue"
 - tapOn: "Agree and continue"
 - assertVisible:
-    text: "Test Institution"
-- tapOn: "Test Institution"
+    text: "Test (Non-OAuth)"
+- tapOn: "Test (Non-OAuth)"
 - extendedWaitUntil:
     # wait for the auth flow to finish
     visible: "Select account"
