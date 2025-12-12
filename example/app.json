@@ -34,6 +34,13 @@
   },
   "android": {
     "package": "com.stripe.react.native",
+    "versionCode": 3,
+    "permissions": [
+      {
+        "android:name": "android.permission.CAMERA",
+        "android:maxSdkVersion": "34"
+      }
+    ],
     "metaData": [{
       "android:name": "com.google.android.gms.wallet.api.enabled",
       "android:value": "true"
