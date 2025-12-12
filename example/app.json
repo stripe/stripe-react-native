@@ -25,7 +25,12 @@
     "bundleIdentifier": "com.stripe.react.native",
     "codeSignEntitlements": {
       "com.apple.developer.in-app-payments": ["merchant.com.stripe.react.native"]
-    }
+    },
+    "urlTypes": [
+      {
+        "CFBundleURLSchemes": ["stripe-connect"]
+      }
+    ]
   },
   "android": {
     "package": "com.stripe.react.native",

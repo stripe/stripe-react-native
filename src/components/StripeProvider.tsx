@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { isAndroid, shouldAttributeExpo } from '../helpers';
 import type { AppInfo, InitStripeParams, InitialiseParams } from '../types';
 import pjson from '../../package.json';
@@ -49,6 +50,10 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
 
   const extendedParams: InitialiseParams = { ...params, appInfo };
   await NativeStripeSdk.initialise(extendedParams);
+
+  if (Platform.OS === 'android') {
+    await NativeOnrampSdk.initialise(extendedParams);
+  }
 };
 
 /**
