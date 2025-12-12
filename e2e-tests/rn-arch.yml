@@ -7,11 +7,11 @@ appId: ${APP_ID}
     when:
       true: ${NEW_ARCH == 'true'}
     commands:
-      - assertVisible: 'New arch enabled: true'
+      - assertVisible: 'zzzz'
       - assertVisible: 'Bridgeless enabled: true'
 - runFlow:
     when:
       true: ${NEW_ARCH == 'false'}
     commands:
-      - assertVisible: 'New arch enabled: false'
+      - assertVisible: 'zzzz'
       - assertVisible: 'Bridgeless enabled: false'
