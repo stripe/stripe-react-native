@@ -34,7 +34,7 @@
   },
   "android": {
     "package": "com.stripe.react.native",
-    "versionCode": 3,
+    "versionCode": 4, 
     "permissions": [
       {
         "android:name": "android.permission.CAMERA",
