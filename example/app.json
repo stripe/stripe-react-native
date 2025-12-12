@@ -53,10 +53,10 @@
         "storePassword": "android"
       },
       "release": {
-        "keyAlias": "androiddebugkey",
-        "keyPassword": "android",
-        "storeFile": "debug.keystore",
-        "storePassword": "android"
+        "keyAlias": "androidreleasekey",
+        "keyPassword": "android_release",
+        "storeFile": "release.keystore",
+        "storePassword": "android_release"
       }
     }
   }
