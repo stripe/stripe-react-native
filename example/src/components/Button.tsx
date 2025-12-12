@@ -14,6 +14,7 @@ type Props = AccessibilityProps & {
   variant?: 'default' | 'primary';
   disabled?: boolean;
   loading?: boolean;
+  center?: boolean;
   onPress(): void;
 };
 
@@ -22,6 +23,7 @@ export default function Button({
   variant = 'default',
   disabled,
   loading,
+  center,
   onPress,
   ...props
 }: Props) {
@@ -39,6 +41,7 @@ export default function Button({
         style={[
           styles.container,
           variant === 'primary' && styles.primaryContainer,
+          center && styles.centered,
         ]}
         onPress={onPress}
         {...props}
@@ -61,6 +64,9 @@ const styles = StyleSheet.create({
   },
   primaryContainer: {
     backgroundColor: colors.slate,
+    alignItems: 'center',
+  },
+  centered: {
     alignItems: 'center',
   },
   text: {
