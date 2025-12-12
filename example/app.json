@@ -33,7 +33,7 @@
     ]
   },
   "android": {
-    "package": "com.stripe.react.native",
+    "package": "com.stripe.reactnative",
     "metaData": [{
       "android:name": "com.google.android.gms.wallet.api.enabled",
       "android:value": "true"
