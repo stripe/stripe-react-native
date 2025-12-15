@@ -134,8 +134,7 @@
   "eslintIgnore": [
     "node_modules/",
     "lib/",
-    "dist/",
-    "server-dist/"
+    "dist/"
   ],
   "prettier": {
     "quoteProps": "consistent",

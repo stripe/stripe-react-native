@@ -11,8 +11,6 @@
     "ios": "react-native run-ios",
     "mkdist": "node -e \"require('node:fs').mkdirSync('dist', { recursive: true, mode: 0o755 })\"",
     "start": "react-native start",
-    "build:server": "babel server --out-dir ./server-dist --extensions '.ts,.tsx' --ignore '**/__tests__/**' --source-maps --copy-files",
-    "start:server": "yarn build:server --watch & nodemon -w server-dist server-dist/index.js",
     "typescript": "tsc --noEmit",
     "postinstall": "patch-package"
   },
@@ -39,16 +37,10 @@
     "@react-native/metro-config": "^0.81.0",
     "@react-native/typescript-config": "^0.81.0",
     "@rnx-kit/metro-config": "^2.0.1",
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.13.5",
     "@types/react": "^19.0.10",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "nodemon": "^3.1.9",
     "patch-package": "^8.0.0",
     "react-native-test-app": "^4.4.6",
     "react-test-renderer": "19.1.0",
-    "stripe": "^14.18.0",
     "typescript": "5.7.3"
   },
   "eslintConfig": {
