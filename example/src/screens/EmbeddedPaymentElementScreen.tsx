@@ -128,12 +128,35 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         />
       </View>
 
-      {/* Hide view and show loading indicator during update */}
-      <View style={{ opacity: isLoaded && !isUpdating ? 1 : 0 }}>
-        {embeddedPaymentElementView}
+      <View style={{ position: 'relative' }}>
+        <View style={{ opacity: isLoaded ? 1 : 0 }}>
+          {embeddedPaymentElementView}
+        </View>
+
+        {/* Updating overlay */}
+        {isUpdating && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 8,
+            }}
+          >
+            <ActivityIndicator size="large" color="#0ea5e9" />
+            <Text style={{ marginTop: 8, color: '#666', fontSize: 14 }}>
+              Updating...
+            </Text>
+          </View>
+        )}
       </View>
 
-      {(!isLoaded || isUpdating) && !loadingError && (
+      {!isLoaded && !loadingError && (
         <View style={{ paddingVertical: 16, alignItems: 'center' }}>
           <ActivityIndicator />
         </View>

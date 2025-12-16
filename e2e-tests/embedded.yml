@@ -20,16 +20,21 @@ appId: ${APP_ID}
     optional: true
 - scrollUntilVisible:
     element:
-      text: "Pay $60.99" # iOS
+      text: "Continue" # iOS
     optional: true
 
 - tapOn:
     id: primary_button # Android
     optional: true
 - tapOn:
-    text: "Pay $60.99" # iOS
+    text: "Continue" # iOS
     optional: true
 
+- extendedWaitUntil:
+    visible: "Complete payment"
+    timeout: 150000
+- tapOn:
+    text: "Complete payment"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
