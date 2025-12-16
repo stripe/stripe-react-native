@@ -28,7 +28,7 @@ import {
   saveUser,
   createLinkAuthToken,
   getCryptoCustomerId,
-} from '../../../server/onrampBackend';
+} from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
   showError,
