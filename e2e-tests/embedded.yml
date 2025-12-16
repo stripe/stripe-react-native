@@ -30,11 +30,7 @@ appId: ${APP_ID}
     text: "Continue" # iOS
     optional: true
 
-- extendedWaitUntil:
-    visible: "Complete payment"
-    timeout: 150000
-- tapOn:
-    text: "Complete payment"
+- tapOn: "Complete payment"
 - assertVisible:
     text: "Success"
 - tapOn: "OK"
