@@ -6,6 +6,7 @@ import {
   Modal,
   Image,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../components/Button';
@@ -18,7 +19,6 @@ import {
   BillingDetails,
   Address,
   IntentCreationCallbackParams,
-  EmbeddedPaymentElementResult,
   CustomPaymentMethod,
   CustomPaymentMethodResult,
   CustomPaymentMethodResultStatus,
@@ -31,8 +31,13 @@ import {
 } from '@stripe/stripe-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+const ORIGINAL_AMOUNT = 6099;
+const DISCOUNTED_AMOUNT = Math.round(ORIGINAL_AMOUNT * 0.85); // 15% off
+
 function PaymentElementView({ intentConfig, elementConfig }: any) {
   const [loading, setLoading] = React.useState(false);
+  const [discountApplied, setDiscountApplied] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
   // Hook into Stripe element
   const {
@@ -40,9 +45,37 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
     paymentOption,
     confirm,
     clearPaymentOption,
+    update,
     loadingError,
     isLoaded,
   } = useEmbeddedPaymentElement(intentConfig!, elementConfig!);
+
+  // Handle discount toggle
+  const handleDiscountToggle = React.useCallback(
+    async (value: boolean) => {
+      setDiscountApplied(value);
+      setIsUpdating(true);
+
+      const updatedIntentConfig: IntentConfiguration = {
+        ...intentConfig!,
+        mode: {
+          amount: value ? DISCOUNTED_AMOUNT : ORIGINAL_AMOUNT,
+          currencyCode: 'USD',
+        },
+      };
+
+      try {
+        await update(updatedIntentConfig);
+      } catch (error) {
+        console.error('Unexpected error during update:', error);
+        // Revert the toggle if update fails
+        setDiscountApplied(!value);
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [intentConfig, update]
+  );
 
   // Payment action
   const handlePay = React.useCallback(async () => {
@@ -67,27 +100,86 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         </View>
       )}
 
-      <View style={{ opacity: isLoaded ? 1 : 0 }}>
+      {/* Discount toggle */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingVertical: 12,
+          paddingHorizontal: 4,
+          marginBottom: 8,
+        }}
+      >
+        <View>
+          <Text style={{ fontSize: 16, fontWeight: '600' }}>
+            Apply 15% discount
+          </Text>
+          <Text style={{ fontSize: 14, color: '#666' }}>
+            {discountApplied
+              ? `$${(DISCOUNTED_AMOUNT / 100).toFixed(2)}`
+              : `$${(ORIGINAL_AMOUNT / 100).toFixed(2)}`}
+          </Text>
+        </View>
+        <Switch
+          value={discountApplied}
+          onValueChange={handleDiscountToggle}
+          disabled={isUpdating || !isLoaded}
+        />
+      </View>
+
+      {/* Hide view and show loading indicator during update */}
+      <View style={{ opacity: isLoaded && !isUpdating ? 1 : 0 }}>
         {embeddedPaymentElementView}
       </View>
 
-      {!loadingError && !isLoaded && (
+      {(!isLoaded || isUpdating) && !loadingError && (
         <View style={{ paddingVertical: 16, alignItems: 'center' }}>
           <ActivityIndicator />
         </View>
       )}
 
-      <View style={{ paddingVertical: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          {paymentOption?.image && (
+      {/* Selected payment option */}
+      <View
+        style={{
+          paddingVertical: 16,
+          paddingHorizontal: 12,
+          marginVertical: 8,
+          backgroundColor: paymentOption ? '#f0f9ff' : '#f5f5f5',
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: paymentOption ? '#0ea5e9' : '#e5e5e5',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            color: '#666',
+            marginBottom: 4,
+            fontWeight: '500',
+          }}
+        >
+          SELECTED PAYMENT METHOD
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {paymentOption?.image ? (
             <Image
               source={{ uri: `data:image/png;base64,${paymentOption.image}` }}
-              style={{ width: 32, height: 20 }}
+              style={{ width: 40, height: 26 }}
               resizeMode="contain"
+            />
+          ) : (
+            <View
+              style={{
+                width: 40,
+                height: 26,
+                backgroundColor: '#ddd',
+                borderRadius: 4,
+              }}
             />
           )}
           <Text style={{ fontSize: 16, fontWeight: '600' }}>
-            {paymentOption?.label ?? 'No option'}
+            {paymentOption?.label ?? 'No payment method selected'}
           </Text>
         </View>
       </View>
@@ -97,14 +189,14 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
         title="Complete payment"
         onPress={handlePay}
         loading={loading}
-        disabled={!paymentOption}
+        disabled={!paymentOption || isUpdating}
       />
 
       <Button
         variant="default"
         title="Clear"
         onPress={clearPaymentOption}
-        disabled={!paymentOption}
+        disabled={!paymentOption || isUpdating}
       />
       <View style={{ height: 40 }} />
     </>
@@ -259,16 +351,7 @@ export default function EmbeddedPaymentElementScreen() {
         defaultBillingDetails: billingDetails,
         defaultShippingDetails: shippingDetails,
         formSheetAction: {
-          type: 'confirm',
-          onFormSheetConfirmComplete: (
-            result: EmbeddedPaymentElementResult
-          ) => {
-            if (result.status === 'completed')
-              Alert.alert('Success', 'Payment confirmed');
-            else if (result.status === 'failed')
-              Alert.alert('Error', `Failed: ${result.error.message}`);
-            else Alert.alert('Cancelled');
-          },
+          type: 'continue',
         },
         customPaymentMethodConfiguration: {
           customPaymentMethods: [
