@@ -44,6 +44,9 @@ public class EmbeddedPaymentElementViewManagerDelegate<T extends View, U extends
       case "clearPaymentOption":
         mViewManager.clearPaymentOption(view);
         break;
+      case "update":
+        mViewManager.update(view, args != null ? args.getString(0) : null);
+        break;
     }
   }
 }

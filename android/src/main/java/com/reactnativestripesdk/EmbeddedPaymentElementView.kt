@@ -54,6 +54,10 @@ class EmbeddedPaymentElementView(
       val intentConfiguration: PaymentSheet.IntentConfiguration,
     ) : Event
 
+    data class Update(
+      val intentConfiguration: PaymentSheet.IntentConfiguration,
+    ) : Event
+
     data object Confirm : Event
 
     data object ClearPaymentOption : Event
@@ -322,6 +326,47 @@ class EmbeddedPaymentElementView(
             }
           }
 
+          is Event.Update -> {
+            val elemConfig = latestElementConfig
+            if (elemConfig == null) {
+              val payload =
+                Arguments.createMap().apply {
+                  putString("message", "Cannot update: no element configuration exists")
+                }
+              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(payload)
+              requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
+              return@collect
+            }
+
+            val result =
+              embedded.configure(
+                intentConfiguration = ev.intentConfiguration,
+                configuration = elemConfig,
+              )
+
+            when (result) {
+              is EmbeddedPaymentElement.ConfigureResult.Succeeded -> {
+                val payload =
+                  Arguments.createMap().apply {
+                    putString("status", "succeeded")
+                  }
+                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(payload)
+              }
+              is EmbeddedPaymentElement.ConfigureResult.Failed -> {
+                val err = result.error
+                val msg = err.localizedMessage ?: err.toString()
+                val failPayload =
+                  Arguments.createMap().apply {
+                    putString("message", msg)
+                  }
+                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementLoadingFailed(failPayload)
+                requireStripeSdkModule().eventEmitter.emitEmbeddedPaymentElementUpdateComplete(null)
+              }
+            }
+
+            latestIntentConfig = ev.intentConfiguration
+          }
+
           is Event.Confirm -> {
             embedded.confirm()
           }
@@ -410,6 +455,10 @@ class EmbeddedPaymentElementView(
     intentConfig: PaymentSheet.IntentConfiguration,
   ) {
     events.trySend(Event.Configure(config, intentConfig))
+  }
+
+  fun update(intentConfig: PaymentSheet.IntentConfiguration) {
+    events.trySend(Event.Update(intentConfig))
   }
 
   fun confirm() {

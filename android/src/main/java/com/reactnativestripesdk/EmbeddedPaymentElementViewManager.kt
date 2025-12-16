@@ -2,8 +2,11 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
@@ -23,6 +26,8 @@ import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
+import org.json.JSONArray
+import org.json.JSONObject
 
 @ReactModule(name = EmbeddedPaymentElementViewManager.NAME)
 class EmbeddedPaymentElementViewManager :
@@ -177,6 +182,62 @@ class EmbeddedPaymentElementViewManager :
 
   override fun clearPaymentOption(view: EmbeddedPaymentElementView) {
     view.clearPaymentOption()
+  }
+
+  override fun update(
+    view: EmbeddedPaymentElementView,
+    intentConfigurationJson: String?,
+  ) {
+    intentConfigurationJson?.let { json ->
+      try {
+        val jsonObject = JSONObject(json)
+        val cfg = jsonToWritableMap(jsonObject)
+        val intentConfig = buildIntentConfiguration(cfg)
+        if (intentConfig != null) {
+          view.update(intentConfig)
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("EmbeddedPaymentElement", "Failed to parse intent config JSON", e)
+      }
+    }
+  }
+
+  private fun jsonToWritableMap(json: JSONObject): WritableMap {
+    val map = Arguments.createMap()
+    val keys = json.keys()
+    while (keys.hasNext()) {
+      val key = keys.next()
+      when (val value = json.get(key)) {
+        is Boolean -> map.putBoolean(key, value)
+        is Int -> map.putInt(key, value)
+        is Double -> map.putDouble(key, value)
+        is Long -> map.putDouble(key, value.toDouble())
+        is String -> map.putString(key, value)
+        is JSONObject -> map.putMap(key, jsonToWritableMap(value))
+        is JSONArray -> map.putArray(key, jsonToWritableArray(value))
+        JSONObject.NULL -> map.putNull(key)
+        else -> map.putString(key, value.toString())
+      }
+    }
+    return map
+  }
+
+  private fun jsonToWritableArray(json: JSONArray): WritableArray {
+    val array = Arguments.createArray()
+    for (i in 0 until json.length()) {
+      when (val value = json.get(i)) {
+        is Boolean -> array.pushBoolean(value)
+        is Int -> array.pushInt(value)
+        is Double -> array.pushDouble(value)
+        is Long -> array.pushDouble(value.toDouble())
+        is String -> array.pushString(value)
+        is JSONObject -> array.pushMap(jsonToWritableMap(value))
+        is JSONArray -> array.pushArray(jsonToWritableArray(value))
+        JSONObject.NULL -> array.pushNull()
+        else -> array.pushString(value.toString())
+      }
+    }
+    return array
   }
 }
 

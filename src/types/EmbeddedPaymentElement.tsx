@@ -550,9 +550,30 @@ export function useEmbeddedPaymentElement(
     return getElementOrThrow(elementRef).confirm();
   }, [isAndroid]);
   const update = useCallback(
-    (cfg: PaymentSheetTypes.IntentConfiguration) =>
-      getElementOrThrow(elementRef).update(cfg),
-    []
+    (cfg: PaymentSheetTypes.IntentConfiguration) => {
+      if (isAndroid) {
+        const currentRef = viewRef.current;
+        if (currentRef) {
+          return new Promise<{ status: string } | null>((resolve) => {
+            const sub = addListener(
+              'embeddedPaymentElementUpdateComplete',
+              (result: { status: string } | null) => {
+                sub.remove();
+                resolve(result);
+              }
+            );
+            Commands.update(currentRef, JSON.stringify(cfg));
+          });
+        }
+        return Promise.reject(
+          new Error('Unable to find Android embedded payment element view!')
+        );
+      }
+
+      // iOS: use native module directly
+      return getElementOrThrow(elementRef).update(cfg);
+    },
+    [isAndroid]
   );
   const clearPaymentOption = useCallback((): Promise<void> => {
     if (isAndroid) {
