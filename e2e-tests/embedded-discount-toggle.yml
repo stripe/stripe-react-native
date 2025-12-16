@@ -1,3 +1,4 @@
+# Test embedded payment element with discount toggle
 appId: ${APP_ID}
 ---
 - launchApp:
@@ -7,6 +8,13 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "Card"
     timeout: 150000
+# Toggle the discount switch
+- tapOn:
+    id: "discount_toggle_switch"
+# Wait for update to complete (updating overlay disappears)
+- extendedWaitUntil:
+    notVisible: "Updating..."
+    timeout: 30000
 - tapOn:
     text: "Card"
 - tapOn:

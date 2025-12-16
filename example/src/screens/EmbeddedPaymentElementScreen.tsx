@@ -122,6 +122,7 @@ function PaymentElementView({ intentConfig, elementConfig }: any) {
           </Text>
         </View>
         <Switch
+          testID="discount_toggle_switch"
           value={discountApplied}
           onValueChange={handleDiscountToggle}
           disabled={isUpdating || !isLoaded}
