@@ -9,6 +9,7 @@ import {
   withPodfile,
 } from '@expo/config-plugins';
 import path from 'path';
+import { withAndroidLaunchActivity } from './with-android-launch-activity/withAndroidLaunchActivity';
 
 const {
   addMetaDataItemToMainApplication,
@@ -32,12 +33,23 @@ type StripePluginProps = {
    * Defaults to false.
    */
   includeOnramp?: boolean;
+  /**
+   * If true, an extra activity will be added to the AndroidManifest.xml,
+   * to support re-opening your app during ongoing/finished 3DS2 verification.
+   * See [docs/android-chrome-tab-closes-on-background.md](docs/android-chrome-tab-closes-on-background.md)
+   * for more details.
+   *
+   *
+   * Defaults to false.
+   */
+  addLaunchActivity?: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
   config = withStripeIos(config, props);
   config = withNoopSwiftFile(config);
   config = withStripeAndroid(config, props);
+  config = withAndroidLaunchActivity(config, props);
   return config;
 };
 
