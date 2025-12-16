@@ -4,12 +4,13 @@ set -uo pipefail
 
 PLATFORM=""
 RECORD_ON_FAILURE=false
-RECORDING_PID=""
+IS_RECORDING=false
+NEW_ARCH_ENABLED=${NEW_ARCH_ENABLED:-false}
 
 stop_recording() {
   local recording_dir=$1
 
-  if [ -n "${RECORDING_PID:-}" ]; then
+  if [ "$IS_RECORDING" = true ]; then
     echo "Stopping recording..."
 
     if [ "$PLATFORM" = "android" ]; then
@@ -22,7 +23,7 @@ stop_recording() {
       killall -SIGINT simctl || true
     fi
 
-    RECORDING_PID=""
+    IS_RECORDING=false
     echo "Recording saved to $recording_dir/recording.mp4"
   fi
 }
@@ -35,22 +36,22 @@ start_recording() {
 
   if [ "$PLATFORM" = "android" ]; then
     adb shell "screenrecord --bugreport /data/local/tmp/recording.mp4 & echo \$! > /data/local/tmp/recording_pid.txt" &
-    RECORDING_PID="android"
+    IS_RECORDING=true
   elif [ "$PLATFORM" = "ios" ]; then
     xcrun simctl io booted recordVideo --codec=h264 -f "$recording_dir/recording.mp4" &
-    RECORDING_PID="ios"
+    IS_RECORDING=true
   fi
 }
 
 cleanup() {
-  if [ -n "${RECORDING_PID:-}" ]; then
+  if [ "$IS_RECORDING" = true ]; then
     echo "Interrupt cleanup - stopping recording..."
     if [ "$PLATFORM" = "android" ]; then
       adb shell "kill -2 \$(cat /data/local/tmp/recording_pid.txt)" 2>/dev/null || true
     elif [ "$PLATFORM" = "ios" ]; then
       killall -SIGINT simctl || true
     fi
-    RECORDING_PID=""
+    IS_RECORDING=false
   fi
 }
 
@@ -99,9 +100,6 @@ fi
 
 failedTests=()
 failedFinancialConnectionsTests=()
-
-# Set defaults for optional environment variables
-NEW_ARCH_ENABLED=${NEW_ARCH_ENABLED:-false}
 
 # Ensure artifacts directory exists even if shard has no tests
 mkdir -p e2e-artifacts
