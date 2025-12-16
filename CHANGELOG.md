@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.57.2 - 2025-12-16
 
 **Fixes**
 - Fixed `update()` not working on Android for EmbeddedPaymentElement. The intent configuration is now properly passed to the native side when calling `update()`.
