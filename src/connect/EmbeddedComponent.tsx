@@ -15,11 +15,12 @@ import {
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
-import {
-  ConnectComponentsPayload,
-  useConnectComponents,
-} from './ConnectComponentsProvider';
-import type { LoadError, LoaderStart } from './connectTypes';
+import { useConnectComponents } from './ConnectComponentsProvider';
+import type {
+  LoadError,
+  LoaderStart,
+  StripeConnectInitParams,
+} from './connectTypes';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -110,7 +111,7 @@ type EmbeddedComponentProps = CommonComponentProps & {
   callbacks?: Record<string, ((data: any) => void) | undefined>;
 };
 
-type ConnectComponentsPayloadInternal = ConnectComponentsPayload & {
+type StripeConnectInitParamsInternal = StripeConnectInitParams & {
   overrides?: Record<string, string>;
 };
 
@@ -166,10 +167,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     };
   }, []);
 
-  const { connectInstance, appearance, locale, overrides } =
-    useConnectComponents() as ConnectComponentsPayloadInternal;
-  const { fonts, publishableKey, fetchClientSecret } =
-    connectInstance.initParams;
+  const { connectInstance, appearance, locale } = useConnectComponents();
+  const { fonts, publishableKey, fetchClientSecret, overrides } =
+    connectInstance.initParams as StripeConnectInitParamsInternal;
 
   const {
     component,
