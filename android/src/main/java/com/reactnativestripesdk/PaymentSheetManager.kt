@@ -552,15 +552,32 @@ class PaymentSheetManager(
 
 fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
   val drawableCompat = DrawableCompat.wrap(drawable).mutate()
-  if (drawableCompat.intrinsicWidth <= 0 || drawableCompat.intrinsicHeight <= 0) {
+
+  // Determine the size to use - prefer intrinsic size, fall back to bounds
+  val width =
+    if (drawableCompat.intrinsicWidth > 0) {
+      drawableCompat.intrinsicWidth
+    } else {
+      drawableCompat.bounds.width()
+    }
+
+  val height =
+    if (drawableCompat.intrinsicHeight > 0) {
+      drawableCompat.intrinsicHeight
+    } else {
+      drawableCompat.bounds.height()
+    }
+
+  if (width <= 0 || height <= 0) {
     return null
   }
-  val bitmap =
-    createBitmap(drawableCompat.intrinsicWidth, drawableCompat.intrinsicHeight)
+
+  val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
   bitmap.eraseColor(Color.TRANSPARENT)
   val canvas = Canvas(bitmap)
-  drawable.setBounds(0, 0, canvas.width, canvas.height)
-  drawable.draw(canvas)
+  drawableCompat.setBounds(0, 0, canvas.width, canvas.height)
+  drawableCompat.draw(canvas)
+
   return bitmap
 }
 
