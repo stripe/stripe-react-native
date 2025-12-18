@@ -279,4 +279,8 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void removeListeners(double count);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void createRadarSession(Promise promise);
 }
