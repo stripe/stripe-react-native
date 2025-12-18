@@ -8,6 +8,7 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { API_URL } from '../Config';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { getClientSecretParams } from '../helpers';
@@ -165,6 +166,8 @@ export default function PaymentsUICustomScreen() {
           disabled={!paymentSheetEnabled}
           onPress={choosePaymentOption}
         />
+        <SelectedPaymentOption paymentOption={paymentMethod} />
+
         <Button
           variant="primary"
           loading={loading}
