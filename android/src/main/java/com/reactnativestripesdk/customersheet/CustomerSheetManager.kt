@@ -17,8 +17,7 @@ import com.reactnativestripesdk.ReactNativeCustomerSessionProvider
 import com.reactnativestripesdk.buildBillingDetails
 import com.reactnativestripesdk.buildBillingDetailsCollectionConfiguration
 import com.reactnativestripesdk.buildPaymentSheetAppearance
-import com.reactnativestripesdk.getBase64FromBitmap
-import com.reactnativestripesdk.getBitmapFromDrawable
+import com.reactnativestripesdk.convertDrawableToBase64
 import com.reactnativestripesdk.mapToCardBrandAcceptance
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
@@ -163,25 +162,49 @@ class CustomerSheetManager(
   }
 
   private fun handleResult(result: CustomerSheetResult) {
-    var promiseResult = Arguments.createMap()
     when (result) {
       is CustomerSheetResult.Failed -> {
         resolvePresentPromise(createError(ErrorType.Failed.toString(), result.exception))
       }
 
       is CustomerSheetResult.Selected -> {
-        promiseResult = createPaymentOptionResult(result.selection)
+        // Convert drawable asynchronously to avoid shared state issues
+        CoroutineScope(Dispatchers.Default).launch {
+          try {
+            val promiseResult = createPaymentOptionResult(result.selection)
+            resolvePresentPromise(promiseResult)
+          } catch (e: Exception) {
+            resolvePresentPromise(
+              createError(
+                ErrorType.Failed.toString(),
+                "Failed to process payment option image: ${e.message}",
+              ),
+            )
+          }
+        }
       }
 
       is CustomerSheetResult.Canceled -> {
-        promiseResult = createPaymentOptionResult(result.selection)
-        promiseResult.putMap(
-          "error",
-          Arguments.createMap().also { it.putString("code", ErrorType.Canceled.toString()) },
-        )
+        // Convert drawable asynchronously to avoid shared state issues
+        CoroutineScope(Dispatchers.Default).launch {
+          try {
+            val promiseResult = createPaymentOptionResult(result.selection)
+            promiseResult.putMap(
+              "error",
+              Arguments.createMap().also { it.putString("code", ErrorType.Canceled.toString()) },
+            )
+            resolvePresentPromise(promiseResult)
+          } catch (e: Exception) {
+            resolvePresentPromise(
+              createError(
+                ErrorType.Failed.toString(),
+                "Failed to process payment option image: ${e.message}",
+              ),
+            )
+          }
+        }
       }
     }
-    resolvePresentPromise(promiseResult)
   }
 
   override fun onPresent() {
@@ -355,7 +378,7 @@ class CustomerSheetManager(
       )
     }
 
-    internal fun createPaymentOptionResult(selection: PaymentOptionSelection?): WritableMap {
+    internal suspend fun createPaymentOptionResult(selection: PaymentOptionSelection?): WritableMap {
       var paymentOptionResult = Arguments.createMap()
 
       when (selection) {
@@ -392,16 +415,18 @@ class CustomerSheetManager(
           }.build()
       }
 
-    private fun buildResult(
+    private suspend fun buildResult(
       label: String,
       drawable: Drawable,
       paymentMethod: PaymentMethod?,
     ): WritableMap {
+      val imageString = convertDrawableToBase64(drawable)
+
       val result = Arguments.createMap()
       val paymentOption =
         Arguments.createMap().also {
           it.putString("label", label)
-          it.putString("image", getBase64FromBitmap(getBitmapFromDrawable(drawable)))
+          it.putString("image", imageString)
         }
       result.putMap("paymentOption", paymentOption)
       if (paymentMethod != null) {
