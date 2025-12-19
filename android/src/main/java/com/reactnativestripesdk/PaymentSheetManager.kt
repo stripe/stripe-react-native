@@ -146,17 +146,18 @@ class PaymentSheetManager(
         paymentOptionResult.paymentOption?.let { paymentOption ->
           // Convert drawable to bitmap asynchronously to avoid shared state issues
           CoroutineScope(Dispatchers.Default).launch {
-            val imageString = try {
-              convertDrawableToBase64(paymentOption.icon())
-            } catch (e: Exception) {
-              val result =
-                createError(
-                  PaymentSheetErrorType.Failed.toString(),
-                  "Failed to process payment option image: ${e.message}",
-                )
-              resolvePresentPromise(result)
-              return@launch
-            }
+            val imageString =
+              try {
+                convertDrawableToBase64(paymentOption.icon())
+              } catch (e: Exception) {
+                val result =
+                  createError(
+                    PaymentSheetErrorType.Failed.toString(),
+                    "Failed to process payment option image: ${e.message}",
+                  )
+                resolvePresentPromise(result)
+                return@launch
+              }
 
             val option: WritableMap = Arguments.createMap()
             option.putString("label", paymentOption.label)
@@ -432,17 +433,18 @@ class PaymentSheetManager(
         flowController?.getPaymentOption()?.let { paymentOption ->
           // Launch async job to convert drawable, but resolve promise synchronously
           CoroutineScope(Dispatchers.Default).launch {
-            val imageString = try {
-              convertDrawableToBase64(paymentOption.icon())
-            } catch (e: Exception) {
-              val result =
-                createError(
-                  PaymentSheetErrorType.Failed.toString(),
-                  "Failed to process payment option image: ${e.message}",
-                )
-              initPromise.resolve(result)
-              return@launch
-            }
+            val imageString =
+              try {
+                convertDrawableToBase64(paymentOption.icon())
+              } catch (e: Exception) {
+                val result =
+                  createError(
+                    PaymentSheetErrorType.Failed.toString(),
+                    "Failed to process payment option image: ${e.message}",
+                  )
+                initPromise.resolve(result)
+                return@launch
+              }
 
             val option: WritableMap = Arguments.createMap()
             option.putString("label", paymentOption.label)
