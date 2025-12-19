@@ -1,9 +1,10 @@
 import React from 'react';
-import { Alert, Image, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { API_URL } from '../Config';
 import { ExampleCustomerAdapter } from './ExampleCustomerAdapter';
 
@@ -158,14 +159,7 @@ export default function CustomerSheetScreen() {
           customerAdapter={customerAdapter}
         />
       )}
-      {selectedPaymentOption?.image && (
-        <Image
-          style={styles.image}
-          source={{
-            uri: `data:image/png;base64,${selectedPaymentOption?.image}`,
-          }}
-        />
-      )}
+      <SelectedPaymentOption paymentOption={selectedPaymentOption} />
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Use component: </Text>
         <Switch
@@ -195,5 +189,4 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 20,
   },
-  image: { alignSelf: 'center', width: 150, height: 100 },
 });
