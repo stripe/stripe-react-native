@@ -143,28 +143,41 @@ class PaymentSheetManager(
 
     val paymentOptionCallback =
       PaymentOptionResultCallback { paymentOptionResult ->
-        val result =
-          paymentOptionResult.paymentOption?.let {
-            val bitmap = getBitmapFromDrawable(it.icon())
-            val imageString = getBase64FromBitmap(bitmap)
+        paymentOptionResult.paymentOption?.let { paymentOption ->
+          // Convert drawable to bitmap asynchronously to avoid shared state issues
+          CoroutineScope(Dispatchers.Default).launch {
+            val imageString = try {
+              convertDrawableToBase64(paymentOption.icon())
+            } catch (e: Exception) {
+              val result =
+                createError(
+                  PaymentSheetErrorType.Failed.toString(),
+                  "Failed to process payment option image: ${e.message}",
+                )
+              resolvePresentPromise(result)
+              return@launch
+            }
+
             val option: WritableMap = Arguments.createMap()
-            option.putString("label", it.label)
+            option.putString("label", paymentOption.label)
             option.putString("image", imageString)
             val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
-            createResult("paymentOption", option, additionalFields)
+            val result = createResult("paymentOption", option, additionalFields)
+            resolvePresentPromise(result)
           }
-            ?: run {
-              if (paymentSheetTimedOut) {
-                paymentSheetTimedOut = false
-                createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
-              } else {
-                createError(
-                  PaymentSheetErrorType.Canceled.toString(),
-                  "The payment option selection flow has been canceled",
-                )
-              }
+        } ?: run {
+          val result =
+            if (paymentSheetTimedOut) {
+              paymentSheetTimedOut = false
+              createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
+            } else {
+              createError(
+                PaymentSheetErrorType.Canceled.toString(),
+                "The payment option selection flow has been canceled",
+              )
             }
-        resolvePresentPromise(result)
+          resolvePresentPromise(result)
+        }
       }
 
     val paymentResultCallback =
@@ -416,16 +429,30 @@ class PaymentSheetManager(
   private fun configureFlowController() {
     val onFlowControllerConfigure =
       PaymentSheet.FlowController.ConfigCallback { _, _ ->
-        val result =
-          flowController?.getPaymentOption()?.let {
-            val bitmap = getBitmapFromDrawable(it.icon())
-            val imageString = getBase64FromBitmap(bitmap)
+        flowController?.getPaymentOption()?.let { paymentOption ->
+          // Launch async job to convert drawable, but resolve promise synchronously
+          CoroutineScope(Dispatchers.Default).launch {
+            val imageString = try {
+              convertDrawableToBase64(paymentOption.icon())
+            } catch (e: Exception) {
+              val result =
+                createError(
+                  PaymentSheetErrorType.Failed.toString(),
+                  "Failed to process payment option image: ${e.message}",
+                )
+              initPromise.resolve(result)
+              return@launch
+            }
+
             val option: WritableMap = Arguments.createMap()
-            option.putString("label", it.label)
+            option.putString("label", paymentOption.label)
             option.putString("image", imageString)
-            createResult("paymentOption", option)
-          } ?: run { Arguments.createMap() }
-        initPromise.resolve(result)
+            val result = createResult("paymentOption", option)
+            initPromise.resolve(result)
+          }
+        } ?: run {
+          initPromise.resolve(Arguments.createMap())
+        }
       }
 
     if (!paymentIntentClientSecret.isNullOrEmpty()) {
