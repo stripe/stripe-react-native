@@ -14,8 +14,17 @@ appId: ${APP_ID}
     retryTapIfNoChange: false
 - assertVisible:
     text: "MX$14.00"
-- tapOn:
-    text: "Close"
-    optional: true
+- runFlow:
+    when:
+      platform: android
+    commands:
+      - pressKey: back
+- runFlow:
+    when:
+      platform: ios
+    commands:
+      - tapOn:
+          text: "Close"
+          optional: true
 - assertVisible:
     text: "Success"
