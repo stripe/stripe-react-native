@@ -174,8 +174,11 @@ export function useOnramp() {
     return NativeOnrampSdk.logout();
   }, []);
 
-  const _isAuthError = (error: any): boolean => {
+  const _isAuthError = (error?: StripeError<OnrampError>): boolean => {
     const stripeErrorCode = error?.stripeErrorCode;
+    if (stripeErrorCode == null) {
+      return false;
+    }
     const authErrorCodes = [
       'consumer_session_credentials_invalid',
       'consumer_session_expired',
