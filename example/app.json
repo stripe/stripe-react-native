@@ -34,6 +34,13 @@
   },
   "android": {
     "package": "com.stripe.react.native",
+    "versionCode": 4, 
+    "permissions": [
+      {
+        "android:name": "android.permission.CAMERA",
+        "android:maxSdkVersion": "34"
+      }
+    ],
     "metaData": [{
       "android:name": "com.google.android.gms.wallet.api.enabled",
       "android:value": "true"
@@ -46,10 +53,10 @@
         "storePassword": "android"
       },
       "release": {
-        "keyAlias": "androiddebugkey",
-        "keyPassword": "android",
-        "storeFile": "debug.keystore",
-        "storePassword": "android"
+        "keyAlias": "androidreleasekey",
+        "keyPassword": "android_release",
+        "storeFile": "release.keystore",
+        "storePassword": "android_release"
       }
     }
   }
