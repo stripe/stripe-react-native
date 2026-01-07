@@ -20,6 +20,8 @@ import Foundation
     func emitEmbeddedPaymentElementRowSelectionImmediateAction()
     func emitEmbeddedPaymentElementLoadingFailed(_ value: [String: Any])
     func emitOnCustomPaymentMethodConfirmHandlerCallback(_ value: [String: Any])
+    func emitPaymentMethodMessagingElementDidUpdateHeight(_ value: [String: Any])
+    func emitPaymentMethodMessagingElementWillPresent()
 }
 
 @objc public protocol StripeOnrampSdkEmitter {

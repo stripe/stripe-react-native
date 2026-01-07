@@ -36,6 +36,8 @@ export * from './types/EmbeddedPaymentElement';
 export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
 
+export * from './types/components/PaymentMethodMessagingElementComponent';
+
 //connect components
 export {
   ConnectComponentsProvider,
