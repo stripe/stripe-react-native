@@ -210,6 +210,8 @@ export interface EmbeddedPaymentElementConfiguration {
    * Defaults to `true`.
    */
   embeddedViewDisplaysMandateText?: boolean;
+  /** If true, opens the card scanner automatically when the card field is focused. Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
 }
 
 // -----------------------------------------------------------------------------

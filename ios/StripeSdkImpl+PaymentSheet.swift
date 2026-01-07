@@ -145,6 +145,10 @@ extension StripeSdkImpl {
           )
         }
 
+        if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+            configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
+        }
+
         return (nil, configuration)
     }
 
