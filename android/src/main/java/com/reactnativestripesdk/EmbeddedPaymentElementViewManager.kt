@@ -134,7 +134,7 @@ class EmbeddedPaymentElementViewManager :
     val allowsRemovalOfLastSavedPaymentMethod = map.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
     val primaryButtonLabel = map.getString("primaryButtonLabel")
     val paymentMethodOrder = map.getStringList("paymentMethodOrder")
-
+    val opensCardScannerAutomatically = map.getBooleanOr("opensCardScannerAutomatically", false)
     val formSheetAction = mapToFormSheetAction(map)
 
     val configurationBuilder =
@@ -163,7 +163,7 @@ class EmbeddedPaymentElementViewManager :
           parseCustomPaymentMethods(
             map.getMap("customPaymentMethodConfiguration"),
           ),
-        )
+        ).opensCardScannerAutomatically(opensCardScannerAutomatically)
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }

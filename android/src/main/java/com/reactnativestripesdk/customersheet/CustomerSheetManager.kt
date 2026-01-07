@@ -64,6 +64,7 @@ class CustomerSheetManager(
     val billingConfigParams = arguments.getMap("billingDetailsCollectionConfiguration")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    val opensCardScannerAutomatically = arguments.getBooleanOr("opensCardScannerAutomatically", false)
     val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
 
     val appearance =
@@ -84,6 +85,7 @@ class CustomerSheetManager(
           mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
+        .opensCardScannerAutomatically(opensCardScannerAutomatically)
 
     paymentMethodOrder?.let { configuration.paymentMethodOrder(it) }
     billingDetailsMap?.let {

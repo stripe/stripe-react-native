@@ -43,6 +43,8 @@ type CustomerSheetOptionalInitParams = {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: PaymentSheet.CardBrandAcceptance;
+  /** If true, opens the card scanner automatically when the card field is focused. Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
 };
 
 /**
