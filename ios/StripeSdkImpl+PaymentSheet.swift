@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
@@ -136,6 +136,9 @@ extension StripeSdkImpl {
         }
 
         configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
+        if let allowedCardFundingTypes = StripeSdkImpl.computeAllowedCardFundingTypes(params: params) {
+            configuration.allowedCardFundingTypes = allowedCardFundingTypes
+        }
 
         // Parse custom payment method configuration
         if let customPaymentMethodConfig = params["customPaymentMethodConfiguration"] as? [String: Any] {
@@ -284,6 +287,30 @@ extension StripeSdkImpl {
         default:
             return nil
         }
+    }
+
+    internal static func computeAllowedCardFundingTypes(params: NSDictionary) -> PaymentSheet.CardFundingType? {
+        guard let cardFundingFiltering = params["cardFundingFiltering"] as? NSDictionary,
+              let allowedTypes = cardFundingFiltering["allowedCardFundingTypes"] as? [String] else {
+            return nil
+        }
+
+        var result: PaymentSheet.CardFundingType = []
+        for type in allowedTypes {
+            switch type {
+            case "debit":
+                result.insert(.debit)
+            case "credit":
+                result.insert(.credit)
+            case "prepaid":
+                result.insert(.prepaid)
+            case "unknown":
+                result.insert(.unknown)
+            default:
+                break
+            }
+        }
+        return result.isEmpty ? nil : result
     }
 
     static func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {

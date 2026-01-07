@@ -8,6 +8,7 @@ import com.reactnativestripesdk.utils.getLongOr
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isEmpty
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
+import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @Throws(PaymentSheetException::class)
@@ -226,3 +227,20 @@ internal fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAccept
     "discover" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Discover
     else -> null
   }
+
+@OptIn(CardFundingFilteringPrivatePreview::class)
+internal fun mapToAllowedCardFundingTypes(params: ReadableMap?): List<PaymentSheet.CardFundingType>? {
+  val cardFundingFiltering = params?.getMap("cardFundingFiltering") ?: return null
+  val allowedTypes = cardFundingFiltering.getStringList("allowedCardFundingTypes") ?: return null
+
+  return allowedTypes
+    .mapNotNull { type ->
+      when (type) {
+        "debit" -> PaymentSheet.CardFundingType.Debit
+        "credit" -> PaymentSheet.CardFundingType.Credit
+        "prepaid" -> PaymentSheet.CardFundingType.Prepaid
+        "unknown" -> PaymentSheet.CardFundingType.Unknown
+        else -> null
+      }
+    }.ifEmpty { null }
+}

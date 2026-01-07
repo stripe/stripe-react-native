@@ -25,6 +25,7 @@ import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
+import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.json.JSONArray
 import org.json.JSONObject
@@ -99,6 +100,7 @@ class EmbeddedPaymentElementViewManager :
   @OptIn(
     ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
     ExperimentalCustomPaymentMethodsApi::class,
+    CardFundingFilteringPrivatePreview::class,
   )
   private fun parseElementConfiguration(
     map: ReadableMap,
@@ -157,7 +159,9 @@ class EmbeddedPaymentElementViewManager :
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(map))
-        .embeddedViewDisplaysMandateText(
+        .apply {
+          mapToAllowedCardFundingTypes(map)?.let { allowedCardFundingTypes(it) }
+        }.embeddedViewDisplaysMandateText(
           map.getBooleanOr("embeddedViewDisplaysMandateText", true),
         ).customPaymentMethods(
           parseCustomPaymentMethods(

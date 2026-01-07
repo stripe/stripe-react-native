@@ -4,16 +4,18 @@ import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
+import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-@OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class)
+@OptIn(PaymentMethodOptionsSetupFutureUsagePreview::class, CardFundingFilteringPrivatePreview::class)
 class PaymentElementConfigTest {
   // ============================================
   // buildIntentConfiguration Tests
@@ -972,5 +974,140 @@ class PaymentElementConfigTest {
 
     val result = buildBillingDetailsCollectionConfiguration(params)
     assertNotNull(result)
+  }
+
+  // ============================================
+  // mapToAllowedCardFundingTypes Tests
+  // ============================================
+
+  @Test
+  fun mapToAllowedCardFundingTypes_NullParams_ReturnsNull() {
+    val result = mapToAllowedCardFundingTypes(null)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_NoCardFundingFiltering_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "someOtherKey" to "value",
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_DebitOnly_ReturnsList() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("debit"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNotNull(result)
+    assertEquals(1, result?.size)
+    assertEquals(PaymentSheet.CardFundingType.Debit, result?.get(0))
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_CreditOnly_ReturnsList() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("credit"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNotNull(result)
+    assertEquals(1, result?.size)
+    assertEquals(PaymentSheet.CardFundingType.Credit, result?.get(0))
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_MultipleTypes_ReturnsList() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("debit", "credit", "prepaid"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNotNull(result)
+    assertEquals(3, result?.size)
+    assertTrue(result!!.contains(PaymentSheet.CardFundingType.Debit))
+    assertTrue(result.contains(PaymentSheet.CardFundingType.Credit))
+    assertTrue(result.contains(PaymentSheet.CardFundingType.Prepaid))
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_AllFourTypes_ReturnsList() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("debit", "credit", "prepaid", "unknown"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNotNull(result)
+    assertEquals(4, result?.size)
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_EmptyArray_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf(),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_InvalidTypes_Filtered() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("invalid", "debit", "not_a_type"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNotNull(result)
+    assertEquals(1, result?.size)
+    assertEquals(PaymentSheet.CardFundingType.Debit, result?.get(0))
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_OnlyInvalidTypes_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "allowedCardFundingTypes" to readableArrayOf("invalid", "not_valid"),
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToAllowedCardFundingTypes_MissingAllowedCardFundingTypes_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "cardFundingFiltering" to
+          readableMapOf(
+            "someOtherKey" to "value",
+          ),
+      )
+    val result = mapToAllowedCardFundingTypes(params)
+    assertNull(result)
   }
 }
