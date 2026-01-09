@@ -183,6 +183,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="PMME"
+              onPress={() => {
+                navigation.navigate('PaymentMethodMessagingElementScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 

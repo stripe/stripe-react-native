@@ -64,6 +64,8 @@ type Events = {
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
   embeddedPaymentElementUpdateComplete: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
+  paymentMethodMessagingElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
+  paymentMethodMessagingElementWillPresent: EventEmitter<void>;
 };
 
 export function addListener<EventT extends keyof Events>(

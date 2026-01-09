@@ -91,4 +91,12 @@ class EventEmitterCompat(
   fun emitOnCustomPaymentMethodConfirmHandlerCallback(value: ReadableMap?) {
     invoke("onCustomPaymentMethodConfirmHandlerCallback", value)
   }
+
+  fun emitPaymentMethodMessagingElementDidUpdateHeight(value: ReadableMap?) {
+    invoke("paymentMethodMessagingElementDidUpdateHeight", value)
+  }
+
+  fun emitPaymentMethodMessagingElementConfigureResult(value: ReadableMap?) {
+    invoke("paymentMethodMessagingElementConfigureResult", value)
+  }
 }
