@@ -21,5 +21,5 @@ export interface NativeProps extends ViewProps {
 type ComponentType = HostComponent<NativeProps>;
 
 export default codegenNativeComponent<NativeProps>(
-  'PaymentMethodMessagingElement'
+  'PaymentMethodMessagingElementView'
 ) as ComponentType;
