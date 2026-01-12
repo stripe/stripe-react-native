@@ -1,31 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 import {
-  //requireNativeComponent,
-  // NativeModules,
-  // NativeEventEmitter,
-  // EmitterSubscription,
-  // LayoutAnimation,
-  // Platform,
-  // findNodeHandle,
-  // ViewProps,
   NativeSyntheticEvent,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
-// import NativeStripeSdk from '../NativeStripeSdk';
-// import {
-//   ReactElement,
-//   useCallback,
-//   useEffect,
-//   useMemo,
-//   useRef,
-//   useState,
-// } from 'react';
 
 import * as PaymentSheetTypes from '../PaymentSheet';
-// import React from 'react';
-
-// Native bridge imports
-// const { StripeSdk } = NativeModules;
-// const eventEmitter = new NativeEventEmitter(NativeModules.StripeSdk);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -92,6 +72,7 @@ export type OnLoadCompleteEvent = NativeSyntheticEvent<{
 }>;
 
 export interface NativeProps {
+  style?: StyleProp<ViewStyle>;
   appearance?: PaymentMethodMessagingElementAppearance;
   configuration: PaymentMethodMessagingElementConfiguration;
   onLoadComplete(event: OnLoadCompleteEvent): void;

@@ -24,7 +24,10 @@
     @"embeddedPaymentElementRowSelectionImmediateAction",
     @"embeddedPaymentElementLoadingFailed",
     @"onCustomPaymentMethodConfirmHandlerCallback",
-    @"onCheckoutClientSecretRequested"
+    @"onCheckoutClientSecretRequested",
+    @"paymentMethodMessagingElementDidUpdateHeight",
+    @"paymentMethodMessagingElementWillPresent",
+    @"paymentMethodMessagingElementLoadComplete"
   ];
 }
 
@@ -126,6 +129,11 @@
 - (void)emitOnCheckoutClientSecretRequested:(NSDictionary *)value
 {
   [self sendEventWithName:@"onCheckoutClientSecretRequested" body:value];
+}
+
+- (void)emitPaymentMethodMessagingElementDidUpdateHeight:(NSDictionary *)value
+{
+  [self sendEventWithName:@"paymentMethodMessagingElementDidUpdateHeight" body:value];
 }
 
 @end

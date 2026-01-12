@@ -4,81 +4,71 @@ import Foundation
 
 @objc(StripeSdkImpl)
 extension StripeSdkImpl {
-
-  // MARK: Public API wrappers
-
-  @objc(createPaymentMethodMessagingElement:configuration:resolve:reject:)
-  public func createPaymentMethodMessagingElement(configuration: NSDictionary,
-                                           resolve: @escaping RCTPromiseResolveBlock,
-                                           reject: @escaping RCTPromiseRejectBlock) {
-
-    guard let configuration = buildPaymentMethodMessagingElementConfiguration(params: configuration).configuration else {
-      resolve(Errors.createError(ErrorType.Failed, "Invalid configuration"))
-      return
+    
+    // MARK: Public API wrappers
+    
+    @objc(createPaymentMethodMessagingElement:resolve:reject:)
+    public func createPaymentMethodMessagingElement(configuration: NSDictionary,
+                                                    resolve: @escaping RCTPromiseResolveBlock,
+                                                    reject: @escaping RCTPromiseRejectBlock) {
+        
+        guard let configuration = buildPaymentMethodMessagingElementConfiguration(params: configuration).configuration else {
+            resolve(Errors.createError(ErrorType.Failed, "Invalid configuration"))
+            return
+        }
+        
+        Task {
+            do {
+                switch await PaymentMethodMessagingElement.create(configuration: configuration) {
+                case .success(let paymentMethodMessagingElement):
+                    self.messagingInstance = paymentMethodMessagingElement
+                    
+                    // success: resolve promise
+                    resolve(nil)
+                    let newHeight = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
+                    self.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": newHeight ?? 0])
+                    
+                    // publish initial state
+                case .noContent:
+                    // No element is available to display with this configuration
+                    // You may want to adapt your UI accordingly
+                    // ...
+                    self.messagingInstance = nil
+                case .failed(let error):
+                    // An unrecoverable error has occurred while attempting to load the element
+                    // You may want to log the error or take other action
+                    // ...
+                    self.messagingInstance = nil
+                }
+                resolve(nil)
+            } catch {
+                // 1) still resolve the promise so JS hook can finish loading
+                resolve(nil)
+                
+                // 2) emit a loading‐failed event with the error message
+                let msg = error.localizedDescription
+                //self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
+            }
+        }
+        
     }
-
-    Task {
-      do {
-        let paymentMethodMessagingElement = try await PaymentMethodMessagingElement.create(
-          intentConfiguration: intentConfig,
-          configuration: configuration
-        )
-        paymentMethodMessagingElement.delegate = messagingInstanceDelegate
-        paymentMethodMessagingElement.presentingViewController = RCTPresentedViewController()
-        self.messagingInstance = paymentMethodMessagingElement
-
-        // success: resolve promise
-        resolve(nil)
-
-        // publish initial state
-        messagingInstanceDelegate.messagingElementDidUpdateHeight(messagingElement: paymentMethodMessagingElement)
-      } catch {
-        // 1) still resolve the promise so JS hook can finish loading
-        resolve(nil)
-
-        // 2) emit a loading‐failed event with the error message
-        let msg = error.localizedDescription
-        //self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
-      }
-    }
-
-  }
-
-}
-
-// MARK: PaymentMethodMessagingElementDelegate
-
-class StripeSdkPaymentMethodMessagingElementDelegate: PaymentMethodMessagingElementDelegate {
-  weak var sdkImpl: StripeSdkImpl?
-
-  init(sdkImpl: StripeSdkImpl) {
-    self.sdkImpl = sdkImpl
-  }
-
-  func messagingElementDidUpdateHeight(messagingElement: StripePaymentSheet.PaymentMethodMessagingElement) {
-    let newHeight = messagingElement.view.systemLayoutSizeFitting(CGSize(width: messagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-    self.sdkImpl?.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": newHeight])
-  }
-
-  func embeddedPaymentElementWillPresent(embeddedPaymentElement: EmbeddedPaymentElement) {
-    self.sdkImpl?.emitter?.emitPaymentMethodMessagingElementWillPresent()
-  }
+    
 }
 
 // MARK: Config parsing
 
 extension StripeSdkImpl {
-  @nonobjc
-  internal func buildPaymentMethodMessagingElementConfiguration(
-    params: NSDictionary
-  ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
-    var configuration = PaymentMethodMessagingElement.Configuration()
-
-    configuration.amount = params["amount"] as? Int
-    configuration.currency = "usd"
-    configuration.countryCode = "US"
-
-    return (nil, configuration)
-  }
-
+    @nonobjc
+    internal func buildPaymentMethodMessagingElementConfiguration(
+        params: NSDictionary
+    ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
+        
+        let amount = params["amount"] as? Int ?? 0
+        
+        let configuration = PaymentMethodMessagingElement.Configuration(
+            amount: amount, currency: "usd"
+        )
+        
+        return (nil, configuration)
+    }
 }

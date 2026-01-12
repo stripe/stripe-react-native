@@ -37,9 +37,8 @@ export * from './types/PaymentSheet';
 export * from './types/ConfirmationToken';
 
 export * from './types/components/PaymentMethodMessagingElementComponent';
-//export * from './components/PaymentMethodMessagingElement';
 export type { Props as PaymentMethodMessagingProps } from './components/PaymentMethodMessagingElement';
-export type { PaymentMethodMessagingElement } from './components/PaymentMethodMessagingElement';
+export { PaymentMethodMessagingElement } from './components/PaymentMethodMessagingElement';
 
 //connect components
 export {

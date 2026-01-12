@@ -67,7 +67,8 @@ class PaymentMethodMessagingElementViewManager :
     map: ReadableMap,
     context: Context,
   ): PaymentMethodMessagingElement.Configuration {
-    val amount = map.getString("amount")?.toLong() ?: 0
+    val amount = map.getDouble("amount").toLong()
+    println("yeet config amount $amount")
 
     return PaymentMethodMessagingElement.Configuration()
       .amount(amount)

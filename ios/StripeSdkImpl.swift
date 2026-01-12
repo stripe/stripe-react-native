@@ -11,6 +11,7 @@ import StripeFinancialConnections
 @_spi(EmbeddedPaymentElementPrivateBeta)
 @_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
+@_spi(PaymentMethodMessagingElementPreview)
 import StripePaymentSheet
 #else
 @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) @_spi(PaymentMethodMessagingElementPreview) import StripePaymentSheet
@@ -96,7 +97,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     lazy var embeddedInstanceDelegate = StripeSdkEmbeddedPaymentElementDelegate(sdkImpl: self)
 
     var messagingInstance: PaymentMethodMessagingElement?
-    lazy var messagingInstanceDelegate = StripeSdkPaymentMethodMessagingElementDelegate(sdkImpl: self)
+    
 
     var authenticationSession: ASWebAuthenticationSession?
     var authenticationContextProvider: Any?

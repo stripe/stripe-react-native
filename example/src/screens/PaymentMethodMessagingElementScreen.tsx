@@ -1,7 +1,7 @@
 import type { Token } from '@stripe/stripe-react-native';
 import {
-  PaymentMethodMessagingElement,
-} from '@stripe/stripe-react-native';
+  PaymentMethodMessagingElement
+ } from '@stripe/stripe-react-native';
 import React from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import Button from '../components/Button';
@@ -12,10 +12,15 @@ export default function PaymentMethodMessagingElementScreen() {
   return (
     <PaymentScreen>
       <PaymentMethodMessagingElement
-        autofocus
         configuration={{
-            amount: 5000
+            amount: 5000,
+            currency: "usd"
         }}
+        onLoadComplete={(e) => {
+          console.log('load complete')
+          console.log(e)
+        }
+        }
       />
       <Button
         variant="primary"

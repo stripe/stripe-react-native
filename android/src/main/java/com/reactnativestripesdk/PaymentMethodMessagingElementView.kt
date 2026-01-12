@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
@@ -56,6 +57,8 @@ class PaymentMethodMessagingElementView(
               messagingElement.configure(
                 configuration = ev.configuration,
               )
+
+            println("YEET configure result $result")
 
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
@@ -126,8 +129,9 @@ class PaymentMethodMessagingElementView(
         // Custom measure path: force child to its min intrinsic height (in *px*)
         .layout { measurable, constraints ->
           val widthPx = constraints.maxWidth
-          val minHpx = measurable.minIntrinsicHeight(widthPx).coerceAtLeast(1)
+          val minHpx = constraints.minHeight //measurable.minIntrinsicHeight(widthPx).coerceAtLeast(1)
 
+          println("yeet $minHpx")
           // Measure the child with a tight height equal to min intrinsic
           val placeable =
             measurable.measure(
@@ -152,6 +156,7 @@ class PaymentMethodMessagingElementView(
       Arguments.createMap().apply {
         putDouble("height", height.toDouble())
       }
+    println("YEET reportHeightChangeCalled")
     requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementDidUpdateHeight(params)
   }
 
@@ -159,6 +164,7 @@ class PaymentMethodMessagingElementView(
   fun configure(
     config: PaymentMethodMessagingElement.Configuration,
   ) {
+    println("YEET view.configure called")
     events.trySend(Event.Configure(config))
   }
 

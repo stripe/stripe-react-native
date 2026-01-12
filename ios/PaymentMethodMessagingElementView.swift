@@ -47,8 +47,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     private func attachPaymentElementIfAvailable() {
         // Don't attach if already attached
         guard paymentMethodMessagingElementView == nil,
-        // TODO UPDATE
-              let messagingElement = StripeSdkImpl.shared.messagingInstance else {
+        let messagingElement = StripeSdkImpl.shared.messagingInstance else {
             return
         }
 
@@ -66,7 +65,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         self.paymentMethodMessagingElementView = messagingElementView
 
         // Update the presenting view controller whenever we attach
-        updatePresentingViewController()
+        //updatePresentingViewController()
     }
 
     private func removePaymentMethodMessagingElement() {
@@ -74,10 +73,10 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         paymentMethodMessagingElementView = nil
     }
 
-    private func updatePresentingViewController() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            StripeSdkImpl.shared.embeddedInstance?.presentingViewController = RCTPresentedViewController()
-        }
-    }
+//    private func updatePresentingViewController() {
+//        DispatchQueue.main.async { [weak self] in
+//            guard let self = self else { return }
+//            StripeSdkImpl.shared.messagingInstance?.presentingViewController = RCTPresentedViewController()
+//        }
+//    }
 }
