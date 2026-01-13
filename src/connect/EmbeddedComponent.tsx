@@ -46,7 +46,11 @@ const userAgent = [
 ].join(' - ');
 
 // Allowed domains for in-WebView navigation (matching iOS SDK behavior)
-const ALLOWED_STRIPE_HOSTS = ['connect-js.stripe.com', 'connect.stripe.com'];
+const ALLOWED_STRIPE_HOSTS = [
+  'connect-js.stripe.com',
+  'connect.stripe.com',
+  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
 
 export interface CommonComponentProps {
   onLoaderStart?: ({ elementTagName }: LoaderStart) => void;
