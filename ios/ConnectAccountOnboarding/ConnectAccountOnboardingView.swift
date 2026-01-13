@@ -29,10 +29,7 @@ public class ConnectAccountOnboardingView: UIView {
 
     @objc public func didSetProps() {
         if visible && !wasVisible {
-            // Delay presentation to ensure React Native has rendered children
-            DispatchQueue.main.async { [weak self] in
-                self?.presentModal()
-            }
+            presentModal()
             wasVisible = true
         } else if !visible && wasVisible {
             dismissModal()
@@ -56,9 +53,6 @@ public class ConnectAccountOnboardingView: UIView {
             self?.handleClose()
         }
 
-        // Add this entire React Native view to the view controller
-        viewController?.setReactContentView(self)
-
         // Wrap in a navigation controller
         navigationController = UINavigationController(rootViewController: viewController!)
         navigationController?.modalPresentationStyle = .fullScreen
@@ -66,7 +60,13 @@ public class ConnectAccountOnboardingView: UIView {
 
         // Find the presenting view controller and present
         let presenter = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
-        presenter.present(navigationController!, animated: true)
+
+        // Present the empty modal first, then add React content after animation completes
+        presenter.present(navigationController!, animated: true) { [weak self] in
+            guard let self = self else { return }
+            // Add React content after presentation animation finishes
+            self.viewController?.setReactContentView(self)
+        }
     }
 
     private func dismissModal() {
