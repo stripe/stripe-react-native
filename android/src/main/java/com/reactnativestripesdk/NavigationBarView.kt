@@ -2,6 +2,7 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -18,6 +19,7 @@ class NavigationBarView(
 ) : FrameLayout(context) {
   private val toolbar: Toolbar
   private val titleTextView: TextView
+  private val closeButton: ImageButton
   private var titleText: String? = null
 
   init {
@@ -53,7 +55,7 @@ class NavigationBarView(
     toolbar.addView(titleTextView, titleParams)
 
     // Create close button
-    val closeButton =
+    closeButton =
       ImageButton(context).apply {
         setImageDrawable(
           context.resources.getDrawable(
@@ -61,6 +63,7 @@ class NavigationBarView(
             null,
           ),
         )
+        drawable?.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN)
         setBackgroundColor(Color.TRANSPARENT)
         setOnClickListener {
           dispatchCloseButtonPress()
@@ -86,6 +89,11 @@ class NavigationBarView(
   fun setTitle(title: String?) {
     titleText = title
     titleTextView.text = title
+  }
+
+  fun setTextColor(color: Int) {
+    titleTextView.setTextColor(color)
+    closeButton.drawable?.setColorFilter(color, PorterDuff.Mode.SRC_IN)
   }
 
   private fun dispatchCloseButtonPress() {

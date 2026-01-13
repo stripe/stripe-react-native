@@ -1,5 +1,6 @@
 package com.reactnativestripesdk
 
+import android.graphics.Color
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
@@ -20,6 +21,14 @@ class NavigationBarManager : SimpleViewManager<NavigationBarView>() {
     title: String?,
   ) {
     view.setTitle(title)
+  }
+
+  @ReactProp(name = "textColorValue")
+  fun setTextColorValue(
+    view: NavigationBarView,
+    textColorValue: Int?,
+  ) {
+    view.setTextColor(textColorValue ?: Color.BLACK)
   }
 
   override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView = NavigationBarView(reactContext)
