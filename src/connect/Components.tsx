@@ -103,7 +103,10 @@ export function ConnectAccountOnboarding({
 
   const { width, height } = useWindowDimensions();
 
-  const containerStyle = useMemo(() => ({ width, height }), [width, height]);
+  const containerStyle = useMemo(
+    () => ({ width, height, position: 'absolute' as const }),
+    [width, height]
+  );
 
   // iOS: Use native modal with native navigation bar
   if (Platform.OS === 'ios') {
