@@ -402,6 +402,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      // Camera/Media Permissions - matches iOS SDK behavior
+      mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+      allowsInlineMediaPlayback={true}
+      mediaPlaybackRequiresUserAction={false}
     />
   );
 }
