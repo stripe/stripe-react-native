@@ -1,17 +1,19 @@
 import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
 
 export default function SettingsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerTransparent: true,
+        headerTransparent: Platform.select({ ios: true, default: false }),
         headerBlurEffect: 'systemChromeMaterial',
         headerLargeStyle: {
           backgroundColor: 'transparent',
         },
-        headerStyle: {
-          backgroundColor: 'transparent',
-        },
+        headerStyle: Platform.select({
+          ios: { backgroundColor: 'transparent' },
+          default: {},
+        }),
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
