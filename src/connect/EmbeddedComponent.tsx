@@ -211,6 +211,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebView>(null);
+  const hasTriedSourceReload = useRef(false);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -252,6 +253,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, []);
 
   const WebViewComponent = dynamicWebview?.WebView;
+
+  // Workaround for react-native-webview new architecture bug on iOS
+  // https://github.com/react-native-webview/react-native-webview/pull/3880
+  // The source prop doesn't get set properly on iOS with new architecture,
+  // so we force reload after the component mounts
+  useEffect(() => {
+    if (
+      Platform.OS === 'ios' &&
+      !hasTriedSourceReload.current &&
+      WebViewComponent &&
+      ref.current
+    ) {
+      hasTriedSourceReload.current = true;
+      // Force reload after mount to ensure source is set
+      const timer = setTimeout(() => {
+        ref.current?.reload();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [WebViewComponent]);
 
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
     ref.current?.injectJavaScript(`

@@ -21,6 +21,7 @@ public class ConnectAccountOnboardingView: UIView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         super.backgroundColor = .clear
+        self.isHidden = true  // Hide until modal animation completes
     }
 
     required init?(coder: NSCoder) {
@@ -44,6 +45,9 @@ public class ConnectAccountOnboardingView: UIView {
     }
 
     private func presentModal() {
+        // Keep view hidden during modal presentation
+        self.isHidden = true
+
         // Create the view controller that wraps THIS view
         viewController = ConnectAccountOnboardingViewController()
         viewController?.title = title
@@ -66,6 +70,7 @@ public class ConnectAccountOnboardingView: UIView {
             guard let self = self else { return }
             // Add React content after presentation animation finishes
             self.viewController?.setReactContentView(self)
+            self.isHidden = false  // Show the view now that modal is presented
         }
     }
 
@@ -83,15 +88,4 @@ public class ConnectAccountOnboardingView: UIView {
         dismissModal()
     }
 
-    override public func didMoveToSuperview() {
-        super.didMoveToSuperview()
-
-        // When added to native view hierarchy, ensure layout is triggered
-        if let superview = superview {
-            // Match the superview's bounds immediately
-            self.frame = superview.bounds
-            setNeedsLayout()
-            layoutIfNeeded()
-        }
-    }
 }
