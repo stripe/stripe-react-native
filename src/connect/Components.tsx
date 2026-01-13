@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -142,9 +143,12 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={styles.flex1}>
+      <SafeAreaView
+        style={[styles.flex1, { paddingTop: StatusBar.currentHeight || 0 }]}
+      >
         <NavigationBar
           title={title}
+          textColor={textColor}
           onCloseButtonPress={onExitCallback}
           style={styles.navBar}
         />
