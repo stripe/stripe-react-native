@@ -49,6 +49,7 @@ const userAgent = [
 const ALLOWED_STRIPE_HOSTS = [
   'connect-js.stripe.com',
   'connect.stripe.com',
+  'verify.stripe.com',
   ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
 ];
 
