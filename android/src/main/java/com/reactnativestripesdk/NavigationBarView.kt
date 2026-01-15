@@ -2,7 +2,6 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.view.Gravity
 import android.view.View.MeasureSpec
 import android.widget.FrameLayout
