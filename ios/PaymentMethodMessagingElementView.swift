@@ -18,6 +18,29 @@ class PaymentMethodMessagingElementView: RCTViewManager {
 @objc(PaymentMethodMessagingElementContainerView)
 public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecognizerDelegate {
     private var paymentMethodMessagingElementView: UIView?
+    private var messagingInstance: PaymentMethodMessagingElement?
+
+    @objc var configuration: NSDictionary? {
+        didSet {
+            if let configuration = configuration {
+                // Configuration is now accessible here
+                print("Configuration received:", configuration)
+                initMessagingElement(config: configuration)
+                // You can use the configuration to customize the view or pass it to native methods
+            }
+        }
+    }
+
+    @objc var appearance: NSDictionary? {
+        didSet {
+            if let appearance = appearance {
+                // Appearance is now accessible here
+                print("Appearance received:", appearance)
+            }
+        }
+    }
+
+    @objc var onLoadComplete: RCTDirectEventBlock?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -47,7 +70,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     private func attachPaymentElementIfAvailable() {
         // remove previous view
         removePaymentMethodMessagingElement()
-        guard let messagingElement = StripeSdkImpl.shared.messagingInstance else {
+        guard let messagingElement = messagingInstance else {
             return
         }
 
@@ -72,11 +95,55 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         paymentMethodMessagingElementView?.removeFromSuperview()
         paymentMethodMessagingElementView = nil
     }
+    
 
-//    private func updatePresentingViewController() {
-//        DispatchQueue.main.async { [weak self] in
-//            guard let self = self else { return }
-//            StripeSdkImpl.shared.messagingInstance?.presentingViewController = RCTPresentedViewController()
-//        }
-//    }
+    private func buildPaymentMethodMessagingElementConfiguration(
+        params: NSDictionary
+    ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
+        
+        let amount = params["amount"] as? Int ?? 0
+        
+        let configuration = PaymentMethodMessagingElement.Configuration(
+            amount: amount, currency: "usd"
+        )
+        
+        return (nil, configuration)
+    }
+    
+    private func initMessagingElement(config: NSDictionary) {
+        guard let configuration = buildPaymentMethodMessagingElementConfiguration(params: config).configuration else {
+            return
+        }
+        
+        Task {
+            do {
+                switch await PaymentMethodMessagingElement.create(configuration: configuration) {
+                case .success(let paymentMethodMessagingElement):
+                    self.messagingInstance = paymentMethodMessagingElement
+                    
+                    // success: resolve promise
+                    let newHeight = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
+                    StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": newHeight ?? 0])
+                    
+                    // publish initial state
+                case .noContent:
+                    // No element is available to display with this configuration
+                    // You may want to adapt your UI accordingly
+                    // ...
+                    self.messagingInstance = nil
+                case .failed(let error):
+                    // An unrecoverable error has occurred while attempting to load the element
+                    // You may want to log the error or take other action
+                    // ...
+                    self.messagingInstance = nil
+                }
+                attachPaymentElementIfAvailable()
+            } catch {
+                
+                // 2) emit a loading‐failed event with the error message
+                let msg = error.localizedDescription
+                //self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
+            }
+        }
+    }
 }

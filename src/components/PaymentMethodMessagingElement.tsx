@@ -91,19 +91,9 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         return () => sub.remove();
       }, [isAndroid]);
 
-    useEffect(() => {
-      console.log("is this ever called?")
-      console.log(configuration.amount)
-      if (!isAndroid) {
-        createElement(configuration)
-      }
-      //setConfig(configuration)
-    }, [configuration])
-
-    //const [config, setConfig] = useState(configuration)
-
     return (
       <NativePaymentMethodMessagingElement
+        key={configuration.amount}
         appearance={appearance}
         style={[{width: '100%', height: height}]}
         configuration={configuration}
@@ -114,10 +104,3 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
     );
   }
 );
-
-async function createElement(
-  configuration: PaymentMethodMessagingElementConfiguration
-): Promise<void> {
-  await NativeStripeSdkModule.createPaymentMethodMessagingElement(configuration)
-}
-
