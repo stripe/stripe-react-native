@@ -64,7 +64,7 @@ class NavigationBarView(
             null,
           ),
         )
-        drawable?.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN)
+        drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))
         setBackgroundColor(Color.TRANSPARENT)
         setOnClickListener {
           dispatchCloseButtonPress()
@@ -94,7 +94,7 @@ class NavigationBarView(
 
   fun setTextColor(color: Int) {
     titleTextView.setTextColor(color)
-    closeButton.drawable?.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+    closeButton.drawable?.setColorFilter(android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN))
   }
 
   private fun dispatchCloseButtonPress() {
