@@ -7,19 +7,21 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AccessibilityProps, LayoutAnimation, NativeSyntheticEvent, Platform } from 'react-native';
+import { AccessibilityProps, HostComponent, LayoutAnimation, NativeSyntheticEvent, Platform } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
   PaymentMethodMessagingElementResult,
 } from '../types/components/PaymentMethodMessagingElementComponent';
 import { PaymentMethodMessagingElementConfiguration } from '../types/components/PaymentMethodMessagingElementComponent';
-import NativePaymentMethodMessagingElement from '../specs/NativePaymentMethodMessagingElement';
+import NativePaymentMethodMessagingElement, { NativeProps } from '../specs/NativePaymentMethodMessagingElement';
 import {
   registerInput,
   unregisterInput,
   currentlyFocusedInput,
 } from '../helpers';
 import { addListener } from '../events';
+import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
+import { UnsafeObject } from '../specs/utils';
 
 export interface Props extends AccessibilityProps {
   appearance?: PaymentMethodMessagingElementAppearance;
@@ -56,11 +58,8 @@ export interface Props extends AccessibilityProps {
  * @category ReactComponents
  */
 export const PaymentMethodMessagingElement = forwardRef<any, Props>(
-  // implemenation details
   ({ appearance, configuration, onLoadComplete, ...props }, ref) => {
-    const inputRef = useRef<any>(null);
-
-    useImperativeHandle(ref, () => inputRef.current, []);
+    const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
 
     const isAndroid = Platform.OS === 'android';
     const [height, setHeight] = useState<number | undefined>();
@@ -78,32 +77,30 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
     );
 
     useEffect(() => {
+        // listen for height changes
         const sub = addListener(
           'paymentMethodMessagingElementDidUpdateHeight',
           ({ height: h }) => {
             // ignore zero
-            if (h > 0 || (isAndroid && h === 0)) {
+            //if (h > 0 || (isAndroid && h === 0)) {
               LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setHeight(h);
-            }
+            //}
           }
         );
         return () => sub.remove();
       }, [isAndroid]);
 
-    useLayoutEffect(() => {
-      const inputRefValue = inputRef.current;
-      if (inputRefValue !== null) {
-        registerInput(inputRefValue);
-        return () => {
-          unregisterInput(inputRefValue);
-          if (currentlyFocusedInput() === inputRefValue) {
-            inputRefValue.blur();
-          }
-        };
+    useEffect(() => {
+      console.log("is this ever called?")
+      console.log(configuration.amount)
+      if (!isAndroid) {
+        createElement(configuration)
       }
-      return () => {};
-    }, [inputRef]);
+      //setConfig(configuration)
+    }, [configuration])
+
+    //const [config, setConfig] = useState(configuration)
 
     return (
       <NativePaymentMethodMessagingElement
@@ -112,9 +109,15 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         configuration={configuration}
         onLoadComplete={onLoadCompleteHandler}
         {...props}
-        ref={inputRef}
+        ref={viewRef}
       />
     );
   }
 );
+
+async function createElement(
+  configuration: PaymentMethodMessagingElementConfiguration
+): Promise<void> {
+  await NativeStripeSdkModule.createPaymentMethodMessagingElement(configuration)
+}
 

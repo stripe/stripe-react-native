@@ -62,7 +62,7 @@ class PaymentMethodMessagingElementView(
 
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
-                reportHeightChange(1f)
+                reportHeightChange(200f)
                 val payload =
                   Arguments.createMap().apply {
                     putString("result", "succeeded")
@@ -129,15 +129,15 @@ class PaymentMethodMessagingElementView(
         // Custom measure path: force child to its min intrinsic height (in *px*)
         .layout { measurable, constraints ->
           val widthPx = constraints.maxWidth
-          val minHpx = constraints.minHeight //measurable.minIntrinsicHeight(widthPx).coerceAtLeast(1)
+          //val minHpx = measurable.minIntrinsicHeight(widthPx).coerceAtLeast(1)
 
-          println("yeet $minHpx")
+          //println("yeet $minHpx")
           // Measure the child with a tight height equal to min intrinsic
           val placeable =
             measurable.measure(
               constraints.copy(
-                minHeight = minHpx,
-                maxHeight = minHpx,
+                minHeight = 400,
+                maxHeight = 400,
               ),
             )
 
@@ -147,6 +147,7 @@ class PaymentMethodMessagingElementView(
           }
         },
     ) {
+      println("YEET content about to be called?")
       content()
     }
   }

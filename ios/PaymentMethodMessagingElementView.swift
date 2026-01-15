@@ -45,9 +45,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     }
 
     private func attachPaymentElementIfAvailable() {
-        // Don't attach if already attached
-        guard paymentMethodMessagingElementView == nil,
-        let messagingElement = StripeSdkImpl.shared.messagingInstance else {
+        // remove previous view
+        removePaymentMethodMessagingElement()
+        guard let messagingElement = StripeSdkImpl.shared.messagingInstance else {
             return
         }
 

@@ -2,20 +2,24 @@ import type { Token } from '@stripe/stripe-react-native';
 import {
   PaymentMethodMessagingElement
  } from '@stripe/stripe-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 
 export default function PaymentMethodMessagingElementScreen() {
 
+  const [price, setPrice] = useState(1000)
+  const [config, setConfig] = useState({ amount: price, currency: 'usd' })
+
+  useEffect(() => {
+    setConfig({ amount: price, currency: 'usd' })
+  }, [price])
+
   return (
     <PaymentScreen>
       <PaymentMethodMessagingElement
-        configuration={{
-            amount: 5000,
-            currency: "usd"
-        }}
+        configuration={config}
         onLoadComplete={(e) => {
           console.log('load complete')
           console.log(e)
@@ -24,21 +28,9 @@ export default function PaymentMethodMessagingElementScreen() {
       />
       <Button
         variant="primary"
-        onPress={() => console.log('lol')}
-        title="Hold"
+        onPress={() => { setPrice(prev => prev + 1000)}}
+        title={`Price ${price} click increase`}
       />
     </PaymentScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  cardField: {
-    width: '100%',
-    height: 50,
-    marginVertical: 30,
-  },
-  or: {
-    textAlign: 'center',
-    marginTop: 30,
-  },
-});

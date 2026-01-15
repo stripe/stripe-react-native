@@ -24,7 +24,6 @@ extension StripeSdkImpl {
                     self.messagingInstance = paymentMethodMessagingElement
                     
                     // success: resolve promise
-                    resolve(nil)
                     let newHeight = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
                     self.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": newHeight ?? 0])
                     

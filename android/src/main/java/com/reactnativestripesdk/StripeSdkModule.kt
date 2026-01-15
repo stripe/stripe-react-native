@@ -1334,6 +1334,10 @@ class StripeSdkModule(
     // noop, iOS only
   }
 
+  override fun createPaymentMethodMessagingElement(configuration: ReadableMap, promise: Promise) {
+    // noop, iOS only
+  }
+
   @ReactMethod
   override fun openAuthenticatedWebView(
     id: String,
