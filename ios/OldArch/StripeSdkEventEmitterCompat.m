@@ -26,8 +26,7 @@
     @"onCustomPaymentMethodConfirmHandlerCallback",
     @"onCheckoutClientSecretRequested",
     @"paymentMethodMessagingElementDidUpdateHeight",
-    @"paymentMethodMessagingElementWillPresent",
-    @"paymentMethodMessagingElementLoadComplete"
+    @"paymentMethodMessagingElementConfigureResult",
   ];
 }
 
@@ -134,6 +133,11 @@
 - (void)emitPaymentMethodMessagingElementDidUpdateHeight:(NSDictionary *)value
 {
   [self sendEventWithName:@"paymentMethodMessagingElementDidUpdateHeight" body:value];
+}
+
+- (void)emitPaymentMethodMessagingElementConfigureResult:(NSDictionary *)value
+{
+  [self sendEventWithName:@"paymentMethodMessagingElementConfigureResult" body:value];
 }
 
 @end

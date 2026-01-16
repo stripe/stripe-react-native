@@ -63,6 +63,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
 
     const isAndroid = Platform.OS === 'android';
     const [height, setHeight] = useState<number | undefined>();
+    const [result, setResult] = useState("")
 
     const onLoadCompleteHandler = useCallback(
       (
@@ -81,11 +82,32 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         const sub = addListener(
           'paymentMethodMessagingElementDidUpdateHeight',
           ({ height: h }) => {
-            // ignore zero
-            //if (h > 0 || (isAndroid && h === 0)) {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setHeight(h);
-            //}
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setHeight(h);
+          }
+        );
+        return () => sub.remove();
+      }, [isAndroid]);
+
+    useEffect(() => {
+        // listen for load complete
+        const sub = addListener(
+          'paymentMethodMessagingElementConfigureResult',
+          ({ result: r }) => {
+            let loadResult: PaymentMethodMessagingElementResult;                                                                       
+                                                                                                                                      
+            if (r === 'success') {                                                                                                     
+              loadResult = { status: 'succeeded' };                                                                                    
+            } else if (r === 'no_content') {                                                                                           
+              loadResult = { status: 'no_content' };                                                                                   
+            } else {                                                                                                                   
+              loadResult = {                                                                                                           
+                status: 'failed',                                                                                                      
+                error: new Error('Failed to configure payment method messaging element')                                               
+              };                                                                                                                       
+            }                                                                                                                          
+                                                                                                                                        
+            onLoadComplete?.(loadResult);  
           }
         );
         return () => sub.remove();

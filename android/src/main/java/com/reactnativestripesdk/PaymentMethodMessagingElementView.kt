@@ -65,7 +65,7 @@ class PaymentMethodMessagingElementView(
                 reportHeightChange(200f)
                 val payload =
                   Arguments.createMap().apply {
-                    putString("result", "succeeded")
+                    putString("result", "success")
                   }
                 requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
               }

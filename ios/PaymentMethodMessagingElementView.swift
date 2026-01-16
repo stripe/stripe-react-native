@@ -23,19 +23,8 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     @objc var configuration: NSDictionary? {
         didSet {
             if let configuration = configuration {
-                // Configuration is now accessible here
                 print("Configuration received:", configuration)
                 initMessagingElement(config: configuration)
-                // You can use the configuration to customize the view or pass it to native methods
-            }
-        }
-    }
-
-    @objc var appearance: NSDictionary? {
-        didSet {
-            if let appearance = appearance {
-                // Appearance is now accessible here
-                print("Appearance received:", appearance)
             }
         }
     }
@@ -86,9 +75,6 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         ])
 
         self.paymentMethodMessagingElementView = messagingElementView
-
-        // Update the presenting view controller whenever we attach
-        //updatePresentingViewController()
     }
 
     private func removePaymentMethodMessagingElement() {
@@ -115,34 +101,26 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             return
         }
         
+        var result: String?
+        var height: CGFloat? = 0
+        
         Task {
             do {
                 switch await PaymentMethodMessagingElement.create(configuration: configuration) {
                 case .success(let paymentMethodMessagingElement):
                     self.messagingInstance = paymentMethodMessagingElement
-                    
-                    // success: resolve promise
-                    let newHeight = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-                    StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": newHeight ?? 0])
-                    
-                    // publish initial state
+                    height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
+                    result = "success"
                 case .noContent:
-                    // No element is available to display with this configuration
-                    // You may want to adapt your UI accordingly
-                    // ...
+                    result = "no_content"
                     self.messagingInstance = nil
                 case .failed(let error):
-                    // An unrecoverable error has occurred while attempting to load the element
-                    // You may want to log the error or take other action
-                    // ...
                     self.messagingInstance = nil
+                    result = "failed"
                 }
+                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
+                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["result": result ?? "unknown"])
                 attachPaymentElementIfAvailable()
-            } catch {
-                
-                // 2) emit a loading‐failed event with the error message
-                let msg = error.localizedDescription
-                //self.emitter?.emitEmbeddedPaymentElementLoadingFailed(["message": msg])
             }
         }
     }

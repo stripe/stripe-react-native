@@ -21,7 +21,7 @@ import Foundation
     func emitEmbeddedPaymentElementLoadingFailed(_ value: [String: Any])
     func emitOnCustomPaymentMethodConfirmHandlerCallback(_ value: [String: Any])
     func emitPaymentMethodMessagingElementDidUpdateHeight(_ value: [String: Any])
-    func emitPaymentMethodMessagingElementWillPresent()
+    func emitPaymentMethodMessagingElementConfigureResult(_ value: [String: Any])
 }
 
 @objc public protocol StripeOnrampSdkEmitter {

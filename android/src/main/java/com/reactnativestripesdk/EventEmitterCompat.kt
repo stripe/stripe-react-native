@@ -99,6 +99,9 @@ class EventEmitterCompat(
 
   fun emitPaymentMethodMessagingElementConfigureResult(value: ReadableMap?) {
     println("YEET emitPaymentMethodMessagingElementConfigureResult called")
+    value?.entryIterator?.forEach {
+      println(it)
+    }
     invoke("paymentMethodMessagingElementConfigureResult", value)
   }
 }
