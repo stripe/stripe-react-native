@@ -443,6 +443,15 @@ RCT_EXPORT_METHOD(customPaymentMethodResultCallback:(nonnull NSDictionary *)resu
   [StripeSdkImpl.shared customPaymentMethodResultCallback:result resolver:resolve rejecter:reject];
 }
 
+//RCT_EXPORT_METHOD(createPaymentMethodMessagingElement:(nonnull NSDictionary *)configuration
+//                                       resolve:(nonnull RCTPromiseResolveBlock)resolve
+//                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+//{
+//  [StripeSdkImpl.shared createPaymentMethodMessagingElement:configuration
+//                                             resolve:resolve
+//                                              reject:reject];
+//}
+
 /* clang-format on */
 
 #ifdef RCT_NEW_ARCH_ENABLED

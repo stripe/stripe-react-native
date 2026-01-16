@@ -11,6 +11,7 @@ import StripeFinancialConnections
 @_spi(EmbeddedPaymentElementPrivateBeta)
 @_spi(CustomerSessionBetaAccess)
 @_spi(AppearanceAPIAdditionsPreview)
+@_spi(PaymentMethodMessagingElementPreview)
 import StripePaymentSheet
 #else
 @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(CustomerSessionBetaAccess) import StripePaymentSheet
