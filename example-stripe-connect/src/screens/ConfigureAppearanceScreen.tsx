@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
@@ -37,11 +38,14 @@ const ConfigureAppearanceScreen: React.FC = () => {
     <>
       <Stack.Screen
         options={{
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.cancelButton}>Cancel</Text>
-            </TouchableOpacity>
-          ),
+          headerLeft:
+            Platform.OS === 'ios'
+              ? () => (
+                  <TouchableOpacity onPress={() => router.back()}>
+                    <Text style={styles.cancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                )
+              : undefined,
           headerRight: () => (
             <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
               <Text

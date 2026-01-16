@@ -8,11 +8,13 @@ import React, {
 import {
   AppState,
   AppStateStatus,
+  Linking,
   Platform,
   StyleProp,
   ViewStyle,
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
+import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import { useConnectComponents } from './ConnectComponentsProvider';
@@ -42,6 +44,14 @@ const userAgent = [
   `Stripe ReactNative SDK ${Platform.OS}/${Platform.Version}`,
   `stripe-react_native/${sdkVersion}`,
 ].join(' - ');
+
+// Allowed domains for in-WebView navigation (matching iOS SDK behavior)
+const ALLOWED_STRIPE_HOSTS = [
+  'connect-js.stripe.com',
+  'connect.stripe.com',
+  'verify.stripe.com',
+  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
 
 export interface CommonComponentProps {
   onLoaderStart?: ({ elementTagName }: LoaderStart) => void;
@@ -202,6 +212,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebView>(null);
+  const hasTriedSourceReload = useRef(false);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -243,6 +254,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   }, []);
 
   const WebViewComponent = dynamicWebview?.WebView;
+
+  // Workaround for react-native-webview new architecture bug on iOS
+  // https://github.com/react-native-webview/react-native-webview/pull/3880
+  // The source prop doesn't get set properly on iOS with new architecture,
+  // so we force reload after the component mounts
+  useEffect(() => {
+    if (
+      Platform.OS === 'ios' &&
+      !hasTriedSourceReload.current &&
+      WebViewComponent &&
+      ref.current
+    ) {
+      hasTriedSourceReload.current = true;
+      // Force reload after mount to ensure source is set
+      const timer = setTimeout(() => {
+        ref.current?.reload();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [WebViewComponent]);
 
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
     ref.current?.injectJavaScript(`
@@ -347,6 +379,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     ]
   );
 
+  const onShouldStartLoadWithRequest = useCallback(
+    (event: ShouldStartLoadRequest) => {
+      const { url } = event;
+
+      // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
+      if (ALLOWED_STRIPE_HOSTS.some((host) => url.includes(host))) {
+        return true; // Allow in-WebView navigation
+      }
+
+      // Validate and open external links in system browser
+      if (isValidUrl(url)) {
+        Linking.openURL(url).catch((error) => {
+          handleUnexpectedError(error);
+        });
+      }
+
+      return false; // Block in-WebView navigation for external links
+    },
+    [handleUnexpectedError]
+  );
+
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
 
   const mergedStyle = useMemo(
@@ -375,6 +428,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={onMessageCallback}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      // Camera/Media Permissions - matches iOS SDK behavior
+      mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+      allowsInlineMediaPlayback={true}
+      mediaPlaybackRequiresUserAction={false}
     />
   );
 }
