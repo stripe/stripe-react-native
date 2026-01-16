@@ -2,6 +2,9 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.os.Build
 import android.view.Gravity
 import android.view.View.MeasureSpec
 import android.widget.FrameLayout
@@ -63,7 +66,12 @@ class NavigationBarView(
             null,
           ),
         )
-        drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          drawable?.setColorFilter(android.graphics.BlendModeColorFilter(Color.BLACK, android.graphics.BlendMode.SRC_IN))
+        } else {
+          @Suppress("DEPRECATION")
+          drawable?.setColorFilter(PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN))
+        }
         setBackgroundColor(Color.TRANSPARENT)
         setOnClickListener {
           dispatchCloseButtonPress()
@@ -93,7 +101,12 @@ class NavigationBarView(
 
   fun setTextColor(color: Int) {
     titleTextView.setTextColor(color)
-    closeButton.drawable?.setColorFilter(android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN))
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      closeButton.drawable?.setColorFilter(android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN))
+    } else {
+      @Suppress("DEPRECATION")
+      closeButton.drawable?.setColorFilter(PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN))
+    }
   }
 
   private fun dispatchCloseButtonPress() {
