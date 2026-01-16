@@ -41,7 +41,6 @@ import type {
 } from '../types/EmbeddedPaymentElement';
 import type { IntentConfiguration } from '../types/PaymentSheet';
 import type { UnsafeObject } from './utils';
-import { PaymentMethodMessagingElementConfiguration } from '../types/components/PaymentMethodMessagingElementComponent';
 
 type CustomerSheetInitResult = UnsafeObject<{
   error?: StripeError<CustomerSheetError>;
@@ -201,10 +200,6 @@ export interface Spec extends TurboModule {
     id: string,
     url: string
   ): Promise<{ url?: string } | null>;
-
-  createPaymentMethodMessagingElement(
-    configuration: UnsafeObject<PaymentMethodMessagingElementConfiguration>
-  ): Promise<void>;
 
   // Events
   addListener: (eventType: string) => void;

@@ -58,8 +58,6 @@ class PaymentMethodMessagingElementView(
                 configuration = ev.configuration,
               )
 
-            println("YEET configure result $result")
-
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
                 reportHeightChange(200f)

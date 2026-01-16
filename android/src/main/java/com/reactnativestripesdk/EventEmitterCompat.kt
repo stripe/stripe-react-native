@@ -93,15 +93,10 @@ class EventEmitterCompat(
   }
 
   fun emitPaymentMethodMessagingElementDidUpdateHeight(value: ReadableMap?) {
-    println("YEET emitPaymentMethodMessagingElementDidUpdateHeight called")
     invoke("paymentMethodMessagingElementDidUpdateHeight", value)
   }
 
   fun emitPaymentMethodMessagingElementConfigureResult(value: ReadableMap?) {
-    println("YEET emitPaymentMethodMessagingElementConfigureResult called")
-    value?.entryIterator?.forEach {
-      println(it)
-    }
     invoke("paymentMethodMessagingElementConfigureResult", value)
   }
 }

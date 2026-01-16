@@ -251,7 +251,6 @@ export type FontConfig = {
    * @default 1.0
    */
   scale: number;
-  // just use this for now
 };
 
 export type ShadowConfig = {

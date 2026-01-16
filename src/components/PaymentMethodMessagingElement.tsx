@@ -63,7 +63,6 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
 
     const isAndroid = Platform.OS === 'android';
     const [height, setHeight] = useState<number | undefined>();
-    const [result, setResult] = useState("")
 
     const onLoadCompleteHandler = useCallback(
       (
