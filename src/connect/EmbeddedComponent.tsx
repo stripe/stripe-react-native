@@ -15,14 +15,17 @@ import {
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import { addListener } from '../events';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import type {
   LoadError,
   LoaderStart,
   StripeConnectInitParams,
 } from './connectTypes';
+import type { FinancialConnections } from '../types';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -136,6 +139,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     callback: (id: string, url: string | null) => void;
   } | null>(null);
 
+  // Store pending Financial Connections promise
+  const pendingFinancialConnectionsPromise = useRef<{
+    id: string;
+    cleanup: () => void;
+  } | null>(null);
+
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
 
@@ -173,6 +182,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     return () => {
       pendingAuthWebViewPromise.current = null;
+      pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
   }, []);
@@ -288,6 +298,39 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     `);
   };
 
+  const handleFinancialConnectionsResult = (
+    id: string,
+    result: {
+      session?: FinancialConnections.Session;
+      token?: FinancialConnections.BankAccountToken;
+      error?: {
+        code: string;
+        message: string;
+        localizedMessage?: string;
+        type?: string;
+      };
+    }
+  ) => {
+    ref.current?.injectJavaScript(`
+      (function() {
+        window.callSetterWithSerializableValue(${JSON.stringify({
+          setter: 'setCollectMobileFinancialConnectionsResult',
+          value: {
+            id: id,
+            financialConnectionsSession: result.session
+              ? {
+                  accounts: result.session.accounts,
+                }
+              : null,
+            token: result.token ?? null,
+            error: result.error ?? null,
+          },
+        })});
+        true;
+      })();
+    `);
+  };
+
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
       const message = JSON.parse(event.nativeEvent.data) as {
@@ -315,7 +358,109 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
-        // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
+        const messageData = message.data as {
+          clientSecret: string;
+          id: string;
+          connectedAccountId: string;
+        };
+
+        const { clientSecret, id } = messageData;
+
+        // Validate client secret
+        if (!clientSecret || typeof clientSecret !== 'string') {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'InvalidClientSecret',
+              message: 'Invalid or missing clientSecret parameter',
+            },
+          });
+          return;
+        }
+
+        // Prevent multiple simultaneous flows
+        if (pendingFinancialConnectionsPromise.current) {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'AlreadyInProgress',
+              message: 'Financial Connections flow already in progress',
+            },
+          });
+          return;
+        }
+
+        // Setup event listener for debugging
+        let eventListener: EventSubscription | null = null;
+        if (__DEV__) {
+          eventListener = addListener(
+            'onFinancialConnectionsEvent',
+            (fcEvent: FinancialConnections.FinancialConnectionsEvent) => {
+              console.debug(
+                `[FinancialConnections ${component}]: ${fcEvent.name}`,
+                fcEvent.metadata
+              );
+            }
+          );
+        }
+
+        // Store cleanup function
+        const cleanup = () => {
+          eventListener?.remove();
+          pendingFinancialConnectionsPromise.current = null;
+        };
+
+        pendingFinancialConnectionsPromise.current = {
+          id,
+          cleanup,
+        };
+
+        // Call native Financial Connections
+        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {})
+          .then(({ session, error }) => {
+            cleanup();
+
+            if (error) {
+              handleFinancialConnectionsResult(id, {
+                session: undefined,
+                token: undefined,
+                error: {
+                  code: error.code,
+                  message: error.message,
+                  localizedMessage: error.localizedMessage,
+                  type: error.type,
+                },
+              });
+            } else if (session) {
+              // Note: collectFinancialConnectionsAccounts doesn't return a token
+              // Only collectBankAccountToken returns both session and token
+              handleFinancialConnectionsResult(id, {
+                session,
+                token: undefined,
+                error: undefined,
+              });
+            } else {
+              // Defensive: should never happen
+              handleFinancialConnectionsResult(id, {
+                error: {
+                  code: 'UnexpectedError',
+                  message:
+                    'No session or error returned from Financial Connections',
+                },
+              });
+            }
+          })
+          .catch((unexpectedError) => {
+            cleanup();
+            handleUnexpectedError(unexpectedError);
+            handleFinancialConnectionsResult(id, {
+              error: {
+                code: 'UnexpectedError',
+                message:
+                  unexpectedError instanceof Error
+                    ? unexpectedError.message
+                    : 'An unexpected error occurred during Financial Connections',
+              },
+            });
+          });
       } else if (message.type === 'closeWebView') {
         // message.data is empty
         callbacks?.onCloseWebView?.({});
