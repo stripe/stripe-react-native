@@ -19,16 +19,6 @@ public class NavigationBarView: UIView {
         }
     }
 
-    @objc public var textColorValue: NSNumber? {
-        didSet {
-            if let colorValue = textColorValue?.uint32Value {
-                let color = RCTConvert.uiColor(colorValue)
-                navigationBar.tintColor = color
-                navigationBar.titleTextAttributes = [.foregroundColor: color]
-            }
-        }
-    }
-
     override public init(frame: CGRect) {
         super.init(frame: frame)
         setupNavigationBar()

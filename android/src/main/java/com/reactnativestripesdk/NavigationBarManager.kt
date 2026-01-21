@@ -23,14 +23,6 @@ class NavigationBarManager : SimpleViewManager<NavigationBarView>() {
     view.setTitle(title)
   }
 
-  @ReactProp(name = "textColorValue")
-  fun setTextColorValue(
-    view: NavigationBarView,
-    textColorValue: Int?,
-  ) {
-    view.setTextColor(textColorValue ?: Color.BLACK)
-  }
-
   override fun createViewInstance(reactContext: ThemedReactContext): NavigationBarView = NavigationBarView(reactContext)
 
   companion object {

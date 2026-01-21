@@ -4,7 +4,6 @@ import {
   Modal,
   Platform,
   SafeAreaView,
-  StatusBar,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -51,10 +50,6 @@ export function ConnectAccountOnboarding({
   // Extract colors from appearance
   const backgroundColor = useMemo(() => {
     return appearance?.variables?.colorBackground || '#FFFFFF';
-  }, [appearance]);
-
-  const textColor = useMemo(() => {
-    return appearance?.variables?.colorText || '#000000';
   }, [appearance]);
 
   const loadingIndicatorColor = useMemo(() => {
@@ -115,7 +110,6 @@ export function ConnectAccountOnboarding({
         visible={visible}
         title={title}
         backgroundColor={backgroundColor}
-        textColor={textColor}
         onExitAction={onExitCallback}
         style={containerStyle}
       >
@@ -146,12 +140,9 @@ export function ConnectAccountOnboarding({
       animationType="slide"
       presentationStyle="fullScreen"
     >
-      <SafeAreaView
-        style={[styles.flex1, { paddingTop: StatusBar.currentHeight || 0 }]}
-      >
+      <SafeAreaView style={styles.flex1}>
         <NavigationBar
           title={title}
-          textColor={textColor}
           onCloseButtonPress={onExitCallback}
           style={styles.navBar}
         />

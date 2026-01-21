@@ -99,16 +99,6 @@ class NavigationBarView(
     titleTextView.text = title
   }
 
-  fun setTextColor(color: Int) {
-    titleTextView.setTextColor(color)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      closeButton.drawable?.setColorFilter(android.graphics.BlendModeColorFilter(color, android.graphics.BlendMode.SRC_IN))
-    } else {
-      @Suppress("DEPRECATION")
-      closeButton.drawable?.setColorFilter(PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN))
-    }
-  }
-
   private fun dispatchCloseButtonPress() {
     val reactContext = context as ThemedReactContext
     val event =

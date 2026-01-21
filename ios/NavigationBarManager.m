@@ -9,6 +9,5 @@
 
 @interface RCT_EXTERN_MODULE(NavigationBarManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(title, NSString)
-RCT_EXPORT_VIEW_PROPERTY(textColorValue, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(onCloseButtonPress, RCTDirectEventBlock)
 @end
