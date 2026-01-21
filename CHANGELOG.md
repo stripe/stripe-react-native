@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.57.3 - 2026-01-21
+
+**Fixes**
+- `react-native-webview` is no longer a dependency of the SDK.
+
 ## 0.57.2 - 2025-12-16
 
 **Fixes**
