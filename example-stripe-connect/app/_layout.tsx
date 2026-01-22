@@ -62,6 +62,7 @@ function RootLayoutNav() {
         screenOptions={{
           headerTransparent: Platform.select({ ios: true, default: false }),
           headerBlurEffect: 'systemChromeMaterial',
+          headerBackButtonDisplayMode: 'minimal',
           headerLargeStyle: {
             backgroundColor: 'transparent',
           },

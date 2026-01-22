@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -141,11 +142,19 @@ export function ConnectAccountOnboarding({
       presentationStyle="fullScreen"
     >
       <SafeAreaView style={styles.flex1}>
-        <NavigationBar
-          title={title}
-          onCloseButtonPress={onExitCallback}
-          style={styles.navBar}
-        />
+        <View
+          style={[
+            Platform.OS === 'android' && {
+              paddingTop: StatusBar.currentHeight || 0,
+            },
+          ]}
+        >
+          <NavigationBar
+            title={title}
+            onCloseButtonPress={onExitCallback}
+            style={styles.navBar}
+          />
+        </View>
         <View style={styles.onboardingWrapper}>
           {loading ? (
             <ActivityIndicator

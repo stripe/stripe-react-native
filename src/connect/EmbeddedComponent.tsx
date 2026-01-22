@@ -42,8 +42,14 @@ if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
   );
 }
 
+// Required for ua-parser-js to detect mobile platforms correctly
+const platformPrefix = Platform.select({
+  ios: 'iPhone',
+  android: 'Android',
+  default: 'Mobile',
+});
 const userAgent = [
-  'Mobile',
+  platformPrefix,
   `Stripe ReactNative SDK ${Platform.OS}/${Platform.Version}`,
   `stripe-react_native/${sdkVersion}`,
 ].join(' - ');
