@@ -2,6 +2,7 @@ import { useRouter, Stack } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Keyboard,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -100,11 +101,14 @@ const SettingsScreen: React.FC = () => {
       <Stack.Screen
         options={{
           title: 'Settings',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.backButton}>Cancel</Text>
-            </TouchableOpacity>
-          ),
+          headerLeft:
+            Platform.OS === 'ios'
+              ? () => (
+                  <TouchableOpacity onPress={() => router.back()}>
+                    <Text style={styles.backButton}>Cancel</Text>
+                  </TouchableOpacity>
+                )
+              : undefined,
           headerRight: () => (
             <TouchableOpacity onPress={handleSave} disabled={!hasChanges}>
               <Text

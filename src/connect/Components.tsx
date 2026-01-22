@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -52,10 +53,6 @@ export function ConnectAccountOnboarding({
     return appearance?.variables?.colorBackground || '#FFFFFF';
   }, [appearance]);
 
-  const textColor = useMemo(() => {
-    return appearance?.variables?.colorText || '#000000';
-  }, [appearance]);
-
   const loadingIndicatorColor = useMemo(() => {
     return appearance?.variables?.colorSecondaryText || '#888888';
   }, [appearance]);
@@ -102,7 +99,10 @@ export function ConnectAccountOnboarding({
 
   const { width, height } = useWindowDimensions();
 
-  const containerStyle = useMemo(() => ({ width, height }), [width, height]);
+  const containerStyle = useMemo(
+    () => ({ width, height, position: 'absolute' as const }),
+    [width, height]
+  );
 
   // iOS: Use native modal with native navigation bar
   if (Platform.OS === 'ios') {
@@ -111,7 +111,6 @@ export function ConnectAccountOnboarding({
         visible={visible}
         title={title}
         backgroundColor={backgroundColor}
-        textColor={textColor}
         onExitAction={onExitCallback}
         style={containerStyle}
       >
@@ -143,11 +142,19 @@ export function ConnectAccountOnboarding({
       presentationStyle="fullScreen"
     >
       <SafeAreaView style={styles.flex1}>
-        <NavigationBar
-          title={title}
-          onCloseButtonPress={onExitCallback}
-          style={styles.navBar}
-        />
+        <View
+          style={[
+            Platform.OS === 'android' && {
+              paddingTop: StatusBar.currentHeight || 0,
+            },
+          ]}
+        >
+          <NavigationBar
+            title={title}
+            onCloseButtonPress={onExitCallback}
+            style={styles.navBar}
+          />
+        </View>
         <View style={styles.onboardingWrapper}>
           {loading ? (
             <ActivityIndicator
