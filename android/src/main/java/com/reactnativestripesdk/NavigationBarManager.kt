@@ -1,6 +1,5 @@
 package com.reactnativestripesdk
 
-import android.graphics.Color
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext

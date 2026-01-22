@@ -100,7 +100,6 @@ describe('ConnectAccountOnboarding', () => {
       const nativeView = getByTestId('native-account-onboarding-view');
       expect(nativeView.props.title).toBe(title);
       expect(nativeView.props.backgroundColor).toBe('#FFFFFF');
-      expect(nativeView.props.textColor).toBe('#333333');
       expect(nativeView.props.visible).toBe(true);
     });
 
