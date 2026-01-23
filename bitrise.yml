@@ -6,12 +6,8 @@ project_type: react-native
 trigger_map:
   - push_branch: 'master'
     pipeline: main-trigger-pipeline
-  - push_branch: 'master'
-    pipeline: emerge-size-analysis
   - pull_request_source_branch: '*'
     pipeline: main-trigger-pipeline
-  - pull_request_source_branch: '*'
-    pipeline: emerge-size-analysis
 
 app:
   envs:
@@ -44,6 +40,10 @@ pipelines:
       e2e-tests-android-new-arch:
         depends_on: [e2e-build-android-new-arch]
         parallel: 4
+      emerge-build-ios: {}
+      emerge-build-android: {}
+      emerge-upload:
+        depends_on: [emerge-build-ios, emerge-build-android]
   test-projects:
     workflows:
       expo-sdk-52: {}
@@ -53,12 +53,6 @@ pipelines:
       rn-078: {}
       rn-081: {}
       rn-082: {}
-  emerge-size-analysis:
-    workflows:
-      emerge-build-ios: {}
-      emerge-build-android: {}
-      emerge-upload:
-        depends_on: [emerge-build-ios, emerge-build-android]
 
 workflows:
   # JavaScript Tests
