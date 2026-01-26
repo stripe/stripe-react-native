@@ -87,6 +87,8 @@ export type SetupParamsBase = IntentParams & {
   cardBrandAcceptance?: CardBrandAcceptance;
   /** Configuration for custom payment methods in PaymentSheet */
   customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
+  /** If true, opens the card scanner automatically when the card field is focused. Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
 };
 
 export type SetupParams =

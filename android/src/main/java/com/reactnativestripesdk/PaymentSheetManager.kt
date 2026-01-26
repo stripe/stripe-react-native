@@ -107,6 +107,8 @@ class PaymentSheetManager(
     val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    val opensCardScannerAutomatically = arguments.getBooleanOr("opensCardScannerAutomatically", false)
+
     paymentIntentClientSecret = arguments.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
@@ -286,6 +288,7 @@ class PaymentSheetManager(
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
         .customPaymentMethods(parseCustomPaymentMethods(arguments.getMap("customPaymentMethodConfiguration")))
+        .opensCardScannerAutomatically(opensCardScannerAutomatically)
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
