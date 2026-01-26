@@ -9,6 +9,7 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    maven { url "/Users/tjclawson/.m2/repository" }
   }
 
   dependencies {
@@ -151,6 +152,7 @@ android {
 repositories {
   mavenCentral()
   google()
+  maven { url "/Users/tjclawson/.m2/repository" }
 }
 
 def stripeVersion = getExtOrDefault("stripeVersion")
@@ -161,8 +163,8 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
   implementation("com.stripe:stripe-android:$stripeVersion")
-  implementation("com.stripe:payment-method-messaging:$stripeVersion")
-  implementation("com.stripe:financial-connections:$stripeVersion")
+  implementation("com.stripe:payment-method-messaging:23.0.0")
+  implementation("com.stripe:financial-connections:23.0.0")
 
   if (isOnrampIncluded()) {
     implementation("com.stripe:crypto-onramp:$stripeVersion")

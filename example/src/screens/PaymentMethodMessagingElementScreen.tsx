@@ -2,7 +2,7 @@ import {
   PaymentMethodMessagingElement
  } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 
@@ -39,6 +39,11 @@ export default function PaymentMethodMessagingElementScreen() {
         onPress={() => {setPrice(0)}}
         title='Set price to 0'
       />
+      {result === "succeeded" && (                                                                                 
+        <View>                                                                                                     
+          <Text>PMME is loaded</Text>                                                                              
+        </View>                                                                                                    
+      )} 
     </PaymentScreen>
   );
 }

@@ -13,6 +13,7 @@ buildscript {
     repositories {
         mavenCentral()
         google()
+        maven { url "/Users/tjclawson/.m2/repository" }
     }
 
     dependencies {
@@ -40,6 +41,7 @@ allprojects {
         maven { url uri("$rootDir/privateMavenRepository") }
         mavenCentral()
         google()
+        maven { url "/Users/tjclawson/.m2/repository" }
     }
 }
 

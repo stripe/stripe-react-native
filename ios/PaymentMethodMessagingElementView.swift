@@ -58,7 +58,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
     private func attachPaymentElementIfAvailable() {
         // remove previous view
-        removePaymentMethodMessagingElement()
+        //removePaymentMethodMessagingElement()
         guard let messagingElement = messagingInstance else {
             return
         }

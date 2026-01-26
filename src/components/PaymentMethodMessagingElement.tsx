@@ -2,8 +2,6 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -14,14 +12,7 @@ import {
 } from '../types/components/PaymentMethodMessagingElementComponent';
 import { PaymentMethodMessagingElementConfiguration } from '../types/components/PaymentMethodMessagingElementComponent';
 import NativePaymentMethodMessagingElement, { NativeProps } from '../specs/NativePaymentMethodMessagingElement';
-import {
-  registerInput,
-  unregisterInput,
-  currentlyFocusedInput,
-} from '../helpers';
 import { addListener } from '../events';
-import NativeStripeSdkModule from '../specs/NativeStripeSdkModule';
-import { UnsafeObject } from '../specs/utils';
 
 export interface Props extends AccessibilityProps {
   appearance?: PaymentMethodMessagingElementAppearance;
@@ -58,7 +49,7 @@ export interface Props extends AccessibilityProps {
  * @category ReactComponents
  */
 export const PaymentMethodMessagingElement = forwardRef<any, Props>(
-  ({ appearance, configuration, onLoadComplete, ...props }, ref) => {
+  ({ appearance, configuration, onLoadComplete, ...props }) => {
     const viewRef = useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
 
     const isAndroid = Platform.OS === 'android';

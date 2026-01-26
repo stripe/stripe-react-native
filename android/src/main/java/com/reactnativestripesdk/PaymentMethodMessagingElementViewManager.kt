@@ -11,6 +11,9 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerDelegate
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerInterface
 import com.reactnativestripesdk.utils.asMapOrNull
+import com.reactnativestripesdk.utils.getStringList
+import com.stripe.android.crypto.onramp.model.PaymentMethodType
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 
@@ -53,7 +56,7 @@ class PaymentMethodMessagingElementViewManager :
   ) {
     val readableMap = cfg.asMapOrNull() ?: return
 
-    val elementConfig = parseElementConfiguration(readableMap, view.context)
+    val elementConfig = parseElementConfiguration(readableMap)
     view.latestElementConfig = elementConfig
     view.configure(elementConfig)
     view.post {
@@ -62,18 +65,26 @@ class PaymentMethodMessagingElementViewManager :
     }
   }
 
-  @SuppressLint("RestrictedApi")
   private fun parseElementConfiguration(
     map: ReadableMap,
-    context: Context,
   ): PaymentMethodMessagingElement.Configuration {
     val amount = map.getDouble("amount").toLong()
-    println("yeet config amount $amount")
+    val currency = map.getString("currency")
+    val locale = map.getString("locale")
+    val countryCode = map.getString("countryCode")
+    val stringPaymentMethodTypes = map.getStringList("paymentMethodTypes")
+    val paymentMethodTypes = stringPaymentMethodTypes?.mapNotNull {
+      PaymentMethod.Type.fromCode(it)
+    }
 
-    return PaymentMethodMessagingElement.Configuration()
-      .amount(amount)
-      .currency("usd")
-      .countryCode("US")
+    val config = PaymentMethodMessagingElement.Configuration()
+    config.amount(amount)
+    currency?.let { config.currency(it) }
+    locale?.let { config.locale(it) }
+    countryCode?.let { config.countryCode(it) }
+    paymentMethodTypes?.let { config.paymentMethodTypes(it) }
+
+    return config
   }
 }
 
