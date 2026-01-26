@@ -370,7 +370,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           connectedAccountId: string;
         };
 
-        const { clientSecret, id } = messageData;
+        const { clientSecret, id, connectedAccountId } = messageData;
 
         // Validate client secret
         if (!clientSecret || typeof clientSecret !== 'string') {
@@ -420,7 +420,9 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         };
 
         // Call native Financial Connections
-        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {})
+        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {
+          connectedAccountId,
+        })
           .then(({ session, error }) => {
             cleanup();
 

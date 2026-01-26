@@ -1120,12 +1120,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        // Use connectedAccountId from params if provided
+        let originalStripeAccount = STPAPIClient.shared.stripeAccount
+        if let connectedAccountId = params["connectedAccountId"] as? String {
+            STPAPIClient.shared.stripeAccount = connectedAccountId
+        }
+
+        let wrappedResolve: RCTPromiseResolveBlock = { result in
+            // Restore original stripeAccount after completion
+            STPAPIClient.shared.stripeAccount = originalStripeAccount
+            resolve(result)
+        }
+
         FinancialConnections.presentForToken(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
             onEvent: onEvent,
-            resolve: resolve
+            resolve: wrappedResolve
         )
     }
 
@@ -1154,12 +1166,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        // Use connectedAccountId from params if provided
+        let originalStripeAccount = STPAPIClient.shared.stripeAccount
+        if let connectedAccountId = params["connectedAccountId"] as? String {
+            STPAPIClient.shared.stripeAccount = connectedAccountId
+        }
+
+        let wrappedResolve: RCTPromiseResolveBlock = { result in
+            // Restore original stripeAccount after completion
+            STPAPIClient.shared.stripeAccount = originalStripeAccount
+            resolve(result)
+        }
+
         FinancialConnections.present(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
             onEvent: onEvent,
-            resolve: resolve
+            resolve: wrappedResolve
         )
     }
 
