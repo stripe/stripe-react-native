@@ -85,6 +85,11 @@ export type SetupParamsBase = IntentParams & {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: CardBrandAcceptance;
+  /**
+   * Configuration for filtering cards by funding type.
+   * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+   */
+  cardFundingFiltering?: CardFundingFiltering;
   /** Configuration for custom payment methods in PaymentSheet */
   customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
 };
@@ -679,6 +684,33 @@ export enum PaymentMethodLayout {
    */
   Automatic = 'Automatic',
 }
+
+/**
+ * Card funding types that can be filtered.
+ * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export enum CardFundingType {
+  /** Debit cards */
+  Debit = 'debit',
+  /** Credit cards */
+  Credit = 'credit',
+  /** Prepaid cards */
+  Prepaid = 'prepaid',
+  /**
+   * Unknown or undetermined funding type.
+   * Include this if you want to accept cards where the funding type cannot be determined from card metadata.
+   */
+  Unknown = 'unknown',
+}
+
+/**
+ * Configuration for filtering cards by funding type.
+ * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export type CardFundingFiltering = {
+  /** List of allowed card funding types. If not set, all types are accepted. */
+  allowedCardFundingTypes?: CardFundingType[];
+};
 
 /** Card brand categories that can be allowed or disallowed */
 export enum CardBrandCategory {
