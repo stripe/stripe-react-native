@@ -255,6 +255,12 @@ const StripeConstants = {
       Allowed: 'allowed',
       Disallowed: 'disallowed',
     },
+    CardFundingType: {
+      Debit: 'debit',
+      Credit: 'credit',
+      Prepaid: 'prepaid',
+      Unknown: 'unknown',
+    },
     CustomPaymentMethodResultStatus: {
       Completed: 'completed',
       Canceled: 'canceled',

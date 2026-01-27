@@ -195,7 +195,12 @@ export interface EmbeddedPaymentElementConfiguration {
    * Note: Card brand filtering is not currently supported in Link.
    */
   cardBrandAcceptance?: PaymentSheetTypes.CardBrandAcceptance;
-  /** The view can display payment methods like “Card” that, when tapped, open a sheet where customers enter their payment method details.
+  /**
+   * Configuration for filtering cards by funding type.
+   * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+   */
+  cardFundingFiltering?: PaymentSheetTypes.CardFundingFiltering;
+  /** The view can display payment methods like "Card" that, when tapped, open a sheet where customers enter their payment method details.
    * The sheet has a button at the bottom. `formSheetAction` controls the action the button performs. Defaults to 'continue'.
    */
   formSheetAction?: EmbeddedFormSheetAction;
