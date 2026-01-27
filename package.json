@@ -67,11 +67,9 @@
     "url": "https://github.com/stripe/stripe-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
-  "dependencies": {
-    "react-native-webview": "^13.16.0"
-  },
   "devDependencies": {
     "@expo/config-plugins": "^9.0.16",
+    "react-native-webview": "^13.16.0",
     "@react-native/babel-preset": "^0.81.0",
     "@react-native/eslint-config": "^0.81.1",
     "@testing-library/react-hooks": "^8.0.1",
@@ -108,6 +106,9 @@
   },
   "jest": {
     "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest/setup.js"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/",

@@ -29,7 +29,6 @@ import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
 import com.stripe.android.paymentelement.EmbeddedPaymentElement
-import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.rememberEmbeddedPaymentElement
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -44,7 +43,6 @@ enum class RowSelectionBehaviorType {
   ImmediateAction,
 }
 
-@OptIn(ExperimentalCustomPaymentMethodsApi::class)
 class EmbeddedPaymentElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {
@@ -77,7 +75,6 @@ class EmbeddedPaymentElementView(
   }
 
   @SuppressLint("RestrictedApi")
-  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   @Composable
   override fun Content() {
     val type by remember { rowSelectionBehaviorType }

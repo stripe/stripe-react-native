@@ -60,14 +60,16 @@ function RootLayoutNav() {
     <StripeProvider publishableKey={key || 'pk_test_placeholder'}>
       <Stack
         screenOptions={{
-          headerTransparent: true,
+          headerTransparent: Platform.select({ ios: true, default: false }),
           headerBlurEffect: 'systemChromeMaterial',
+          headerBackButtonDisplayMode: 'minimal',
           headerLargeStyle: {
             backgroundColor: 'transparent',
           },
-          headerStyle: {
-            backgroundColor: 'transparent',
-          },
+          headerStyle: Platform.select({
+            ios: { backgroundColor: 'transparent' },
+            default: {},
+          }),
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: true }} />

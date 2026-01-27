@@ -8,19 +8,24 @@ import React, {
 import {
   AppState,
   AppStateStatus,
+  Linking,
   Platform,
   StyleProp,
   ViewStyle,
 } from 'react-native';
 import type { WebView, WebViewMessageEvent } from 'react-native-webview';
+import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type { EventSubscription } from 'react-native';
 import pjson from '../../package.json';
 import NativeStripeSdk from '../specs/NativeStripeSdkModule';
+import { addListener } from '../events';
 import { useConnectComponents } from './ConnectComponentsProvider';
 import type {
   LoadError,
   LoaderStart,
   StripeConnectInitParams,
 } from './connectTypes';
+import type { FinancialConnections } from '../types';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -37,11 +42,25 @@ if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
   );
 }
 
+// Required for ua-parser-js to detect mobile platforms correctly
+const platformPrefix = Platform.select({
+  ios: 'iPhone',
+  android: 'Android',
+  default: 'Mobile',
+});
 const userAgent = [
-  'Mobile',
+  platformPrefix,
   `Stripe ReactNative SDK ${Platform.OS}/${Platform.Version}`,
   `stripe-react_native/${sdkVersion}`,
 ].join(' - ');
+
+// Allowed domains for in-WebView navigation (matching iOS SDK behavior)
+const ALLOWED_STRIPE_HOSTS = [
+  'connect-js.stripe.com',
+  'connect.stripe.com',
+  'verify.stripe.com',
+  ...(DEVELOPMENT_MODE ? ['10.0.2.2:3001', 'localhost:3001'] : []),
+];
 
 export interface CommonComponentProps {
   onLoaderStart?: ({ elementTagName }: LoaderStart) => void;
@@ -126,6 +145,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     callback: (id: string, url: string | null) => void;
   } | null>(null);
 
+  // Store pending Financial Connections promise
+  const pendingFinancialConnectionsPromise = useRef<{
+    id: string;
+    cleanup: () => void;
+  } | null>(null);
+
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
 
@@ -163,6 +188,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
     return () => {
       pendingAuthWebViewPromise.current = null;
+      pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
   }, []);
@@ -202,6 +228,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const source = useMemo(() => ({ uri: connectURL }), [connectURL]);
 
   const ref = useRef<WebView>(null);
+  const hasTriedSourceReload = useRef(false);
 
   const [prevAppearance, setPrevAppearance] = useState(appearance);
   const [prevLocale, setPrevLocale] = useState(locale);
@@ -244,12 +271,66 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const WebViewComponent = dynamicWebview?.WebView;
 
+  // Workaround for react-native-webview new architecture bug on iOS
+  // https://github.com/react-native-webview/react-native-webview/pull/3880
+  // The source prop doesn't get set properly on iOS with new architecture,
+  // so we force reload after the component mounts
+  useEffect(() => {
+    if (
+      Platform.OS === 'ios' &&
+      !hasTriedSourceReload.current &&
+      WebViewComponent &&
+      ref.current
+    ) {
+      hasTriedSourceReload.current = true;
+      // Force reload after mount to ensure source is set
+      const timer = setTimeout(() => {
+        ref.current?.reload();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [WebViewComponent]);
+
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
     ref.current?.injectJavaScript(`
       (function() {
         window.returnedFromAuthenticatedWebView(${JSON.stringify({
           id,
           url: resultUrl,
+        })});
+        true;
+      })();
+    `);
+  };
+
+  const handleFinancialConnectionsResult = (
+    id: string,
+    result: {
+      session?: FinancialConnections.Session;
+      token?: FinancialConnections.BankAccountToken;
+      error?: {
+        code: string;
+        message: string;
+        localizedMessage?: string;
+        type?: string;
+      };
+    }
+  ) => {
+    ref.current?.injectJavaScript(`
+      (function() {
+        window.callSetterWithSerializableValue(${JSON.stringify({
+          setter: 'setCollectMobileFinancialConnectionsResult',
+          value: {
+            id: id,
+            financialConnectionsSession: result.session
+              ? {
+                  accounts: result.session.accounts,
+                }
+              : null,
+            token: result.token ?? null,
+            error: result.error ?? null,
+          },
         })});
         true;
       })();
@@ -283,7 +364,111 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
-        // message.data is of type {clientSecret: string; id: string; connectedAccountId: string;}
+        const messageData = message.data as {
+          clientSecret: string;
+          id: string;
+          connectedAccountId: string;
+        };
+
+        const { clientSecret, id, connectedAccountId } = messageData;
+
+        // Validate client secret
+        if (!clientSecret || typeof clientSecret !== 'string') {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'InvalidClientSecret',
+              message: 'Invalid or missing clientSecret parameter',
+            },
+          });
+          return;
+        }
+
+        // Prevent multiple simultaneous flows
+        if (pendingFinancialConnectionsPromise.current) {
+          handleFinancialConnectionsResult(id, {
+            error: {
+              code: 'AlreadyInProgress',
+              message: 'Financial Connections flow already in progress',
+            },
+          });
+          return;
+        }
+
+        // Setup event listener for debugging
+        let eventListener: EventSubscription | null = null;
+        if (__DEV__) {
+          eventListener = addListener(
+            'onFinancialConnectionsEvent',
+            (fcEvent: FinancialConnections.FinancialConnectionsEvent) => {
+              console.debug(
+                `[FinancialConnections ${component}]: ${fcEvent.name}`,
+                fcEvent.metadata
+              );
+            }
+          );
+        }
+
+        // Store cleanup function
+        const cleanup = () => {
+          eventListener?.remove();
+          pendingFinancialConnectionsPromise.current = null;
+        };
+
+        pendingFinancialConnectionsPromise.current = {
+          id,
+          cleanup,
+        };
+
+        // Call native Financial Connections
+        NativeStripeSdk.collectFinancialConnectionsAccounts(clientSecret, {
+          connectedAccountId,
+        })
+          .then(({ session, error }) => {
+            cleanup();
+
+            if (error) {
+              handleFinancialConnectionsResult(id, {
+                session: undefined,
+                token: undefined,
+                error: {
+                  code: error.code,
+                  message: error.message,
+                  localizedMessage: error.localizedMessage,
+                  type: error.type,
+                },
+              });
+            } else if (session) {
+              // Note: collectFinancialConnectionsAccounts doesn't return a token
+              // Only collectBankAccountToken returns both session and token
+              handleFinancialConnectionsResult(id, {
+                session,
+                token: undefined,
+                error: undefined,
+              });
+            } else {
+              // Defensive: should never happen
+              handleFinancialConnectionsResult(id, {
+                error: {
+                  code: 'UnexpectedError',
+                  message:
+                    'No session or error returned from Financial Connections',
+                },
+              });
+            }
+          })
+          .catch((unexpectedError) => {
+            cleanup();
+            handleUnexpectedError(unexpectedError);
+            handleFinancialConnectionsResult(id, {
+              error: {
+                code: 'UnexpectedError',
+                message:
+                  unexpectedError instanceof Error
+                    ? unexpectedError.message
+                    : 'An unexpected error occurred during Financial Connections',
+              },
+            });
+          });
       } else if (message.type === 'closeWebView') {
         // message.data is empty
         callbacks?.onCloseWebView?.({});
@@ -347,6 +532,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     ]
   );
 
+  const onShouldStartLoadWithRequest = useCallback(
+    (event: ShouldStartLoadRequest) => {
+      const { url } = event;
+
+      // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
+      if (ALLOWED_STRIPE_HOSTS.some((host) => url.includes(host))) {
+        return true; // Allow in-WebView navigation
+      }
+
+      // Validate and open external links in system browser
+      if (isValidUrl(url)) {
+        Linking.openURL(url).catch((error) => {
+          handleUnexpectedError(error);
+        });
+      }
+
+      return false; // Block in-WebView navigation for external links
+    },
+    [handleUnexpectedError]
+  );
+
   const backgroundColor = appearance?.variables?.colorBackground || '#FFFFFF';
 
   const mergedStyle = useMemo(
@@ -375,6 +581,11 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       // Fixes injectedJavaScriptObject in Android https://github.com/react-native-webview/react-native-webview/issues/3326#issuecomment-3048111789
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={onMessageCallback}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      // Camera/Media Permissions - matches iOS SDK behavior
+      mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+      allowsInlineMediaPlayback={true}
+      mediaPlaybackRequiresUserAction={false}
     />
   );
 }

@@ -21,6 +21,7 @@ public class ConnectAccountOnboardingView: UIView {
     override public init(frame: CGRect) {
         super.init(frame: frame)
         super.backgroundColor = .clear
+        self.isHidden = true  // Hide until modal animation completes
     }
 
     required init?(coder: NSCoder) {
@@ -29,10 +30,7 @@ public class ConnectAccountOnboardingView: UIView {
 
     @objc public func didSetProps() {
         if visible && !wasVisible {
-            // Delay presentation to ensure React Native has rendered children
-            DispatchQueue.main.async { [weak self] in
-                self?.presentModal()
-            }
+            presentModal()
             wasVisible = true
         } else if !visible && wasVisible {
             dismissModal()
@@ -47,6 +45,9 @@ public class ConnectAccountOnboardingView: UIView {
     }
 
     private func presentModal() {
+        // Keep view hidden during modal presentation
+        self.isHidden = true
+
         // Create the view controller that wraps THIS view
         viewController = ConnectAccountOnboardingViewController()
         viewController?.title = title
@@ -56,9 +57,6 @@ public class ConnectAccountOnboardingView: UIView {
             self?.handleClose()
         }
 
-        // Add this entire React Native view to the view controller
-        viewController?.setReactContentView(self)
-
         // Wrap in a navigation controller
         navigationController = UINavigationController(rootViewController: viewController!)
         navigationController?.modalPresentationStyle = .fullScreen
@@ -66,7 +64,14 @@ public class ConnectAccountOnboardingView: UIView {
 
         // Find the presenting view controller and present
         let presenter = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
-        presenter.present(navigationController!, animated: true)
+
+        // Present the empty modal first, then add React content after animation completes
+        presenter.present(navigationController!, animated: true) { [weak self] in
+            guard let self = self else { return }
+            // Add React content after presentation animation finishes
+            self.viewController?.setReactContentView(self)
+            self.isHidden = false  // Show the view now that modal is presented
+        }
     }
 
     private func dismissModal() {
@@ -83,15 +88,4 @@ public class ConnectAccountOnboardingView: UIView {
         dismissModal()
     }
 
-    override public func didMoveToSuperview() {
-        super.didMoveToSuperview()
-
-        // When added to native view hierarchy, ensure layout is triggered
-        if let superview = superview {
-            // Match the superview's bounds immediately
-            self.frame = superview.bounds
-            setNeedsLayout()
-            layoutIfNeeded()
-        }
-    }
 }
