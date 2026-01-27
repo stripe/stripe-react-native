@@ -1,0 +1,39 @@
+appId: ${APP_ID}
+---
+# Test that navigating away from and back to the embedded payment element works correctly
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
+
+# Tap Card to present the form sheet
+- tapOn:
+    text: "Card"
+
+# Wait for the form sheet to appear
+- extendedWaitUntil:
+    visible: "Card number"
+    timeout: 30000
+
+# Dismiss the form sheet without entering details
+- back
+
+# Navigate away from embedded test screen
+- tapOn: "Open screen"
+
+# Navigate back to embedded test view
+- back
+
+# Verify embedded element is still visible
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 30000
+
+# Tap Card again to present the form sheet
+- tapOn:
+    text: "Card"
+- assertVisible:
+    text: "Card number"
