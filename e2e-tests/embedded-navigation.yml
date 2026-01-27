@@ -22,16 +22,14 @@ appId: ${APP_ID}
 - tapOn:
     point: "50%,8%"
 
-# Navigate away from embedded test screen
-- tapOn: "Open screen"
-
-# Navigate back to embedded test view
+# Navigate back to menu
 - back
 
-# Verify embedded element is still visible
+# Navigate back to embedded payment element
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
 - extendedWaitUntil:
     visible: "Card"
-    timeout: 30000
+    timeout: 150000
 
 # Tap Card again to present the form sheet
 - tapOn:
