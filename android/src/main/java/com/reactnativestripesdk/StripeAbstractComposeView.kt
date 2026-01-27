@@ -69,6 +69,8 @@ abstract class StripeAbstractComposeView(
 
   private var innerComposeView: InnerComposeView? = null
   private var isLifecycleSetup = false
+  private var activityLifecycleOwner: LifecycleOwner? = null
+  private var activityLifecycleObserver: LifecycleEventObserver? = null
 
   // Create a lifecycle this is tied to the activity, but that we can manually
   // update to DESTROYED state when the view is dropped.
@@ -113,24 +115,34 @@ abstract class StripeAbstractComposeView(
       return
     }
 
-    ((context as? ReactContext)?.currentActivity as? LifecycleOwner?)?.let {
+    ((context as? ReactContext)?.currentActivity as? LifecycleOwner?)?.let { owner ->
       isLifecycleSetup = true
+      activityLifecycleOwner = owner
 
       // Setup the lifecycle to match the activity.
-      it.lifecycle.addObserver(
+      val observer =
         object : LifecycleEventObserver {
           override fun onStateChanged(
             source: LifecycleOwner,
             event: Lifecycle.Event,
           ) {
-            lifecycleRegistry.handleLifecycleEvent(event)
+            if (lifecycleRegistry.currentState != Lifecycle.State.DESTROYED) {
+              lifecycleRegistry.handleLifecycleEvent(event)
+            }
           }
-        },
-      )
+        }
+      activityLifecycleObserver = observer
+      owner.lifecycle.addObserver(observer)
     }
   }
 
   fun handleOnDropViewInstance() {
+    activityLifecycleObserver?.let { observer ->
+      activityLifecycleOwner?.lifecycle?.removeObserver(observer)
+    }
+    activityLifecycleObserver = null
+    activityLifecycleOwner = null
+
     if (lifecycleRegistry.currentState.isAtLeast(Lifecycle.State.CREATED)) {
       lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
