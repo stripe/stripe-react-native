@@ -18,8 +18,9 @@ appId: ${APP_ID}
     visible: "Card number"
     timeout: 30000
 
-# Dismiss the form sheet without entering details
-- back
+# Dismiss the form sheet by tapping outside (top 15% of screen for iOS)
+- tapOn:
+    point: "50%,8%"
 
 # Navigate away from embedded test screen
 - tapOn: "Open screen"
