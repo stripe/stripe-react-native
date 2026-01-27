@@ -649,7 +649,7 @@ export type PaymentMode = {
 };
 
 export type PaymentMethodOptions = {
-  /* This API is under construction. It may be changed in the future without notice.
+  /* This feature is in Public Preview. It may not be feature complete and have breaking changes as we develop and update functionality.
   A map of payment method types to setup_future_usage value. (e.g. card: 'OffSession') */
   setupFutureUsageValues: {
     [key: string]: FutureUsage;
