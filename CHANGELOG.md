@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## x.x.x - 20xx-xx-xx
+
+**Changes**
+- Updated Stripe iOS SDK from 25.0.1 to 25.6.0
+- Updated Stripe Android SDK from 22.2.+ to 22.7.+
+
 ## 0.57.3 - 2026-01-21
 
 **Fixes**

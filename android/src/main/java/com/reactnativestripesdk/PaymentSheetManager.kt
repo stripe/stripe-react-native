@@ -45,7 +45,6 @@ import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
-import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
@@ -67,7 +66,6 @@ import kotlin.coroutines.resume
 @OptIn(
   ReactNativeSdkInternal::class,
   ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
-  ExperimentalCustomPaymentMethodsApi::class,
 )
 class PaymentSheetManager(
   context: ReactApplicationContext,
@@ -88,7 +86,6 @@ class PaymentSheetManager(
   private var keepJsAwake: KeepJsAwakeTask? = null
 
   @SuppressLint("RestrictedApi")
-  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun onCreate() {
     val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
     val merchantDisplayName = arguments.getString("merchantDisplayName").orEmpty()
@@ -498,7 +495,6 @@ class PaymentSheetManager(
     } ?: run { resolvePresentPromise(map) }
   }
 
-  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun onConfirmCustomPaymentMethod(
     customPaymentMethod: PaymentSheet.CustomPaymentMethod,
     billingDetails: PaymentMethod.BillingDetails,
