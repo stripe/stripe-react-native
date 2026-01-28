@@ -18,8 +18,7 @@ export default function PayoutsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Payouts',
-          headerShown: showHeader,
+          title: showHeader ? 'Payouts' : '',
           headerTintColor: textColor,
           headerLeft:
             isModal && showHeader

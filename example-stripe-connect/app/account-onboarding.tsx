@@ -17,8 +17,8 @@ export default function AccountOnboardingScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Account Onboarding',
-          headerShown: showHeader,
+          title: showHeader ? 'Account Onboarding' : '',
+          headerShown: true,
           headerLeft:
             isModal && showHeader
               ? () => (

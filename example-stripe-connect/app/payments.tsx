@@ -18,8 +18,7 @@ export default function PaymentsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Payments',
-          headerShown: showHeader,
+          title: showHeader ? 'Payments' : '',
           headerTintColor: textColor,
           headerLeft:
             isModal && showHeader
