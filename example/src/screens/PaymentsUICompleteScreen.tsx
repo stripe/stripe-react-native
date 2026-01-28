@@ -25,7 +25,7 @@ import {
   liquidGlassNavigationOnlyAppearance,
   customAppearance,
 } from './PaymentSheetAppearance';
-import { Platform, View, Text, TouchableOpacity } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, Switch } from 'react-native';
 
 enum AppearanceSettings {
   default = `default`,
@@ -47,6 +47,8 @@ export default function PaymentsUICompleteScreen() {
   const [customerKeyType, setCustomerKeyType] = useState<string>(
     'legacy_ephemeral_key'
   );
+  const [opensCardScannerAutomatically, setOpensCardScannerAutomatically] =
+    useState(false);
 
   const fetchPaymentSheetParams = async (customer_key_type: string) => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
@@ -171,6 +173,7 @@ export default function PaymentsUICompleteScreen() {
         paymentMethodLayout: PaymentMethodLayout.Automatic,
         removeSavedPaymentMethodMessage: 'remove this payment method?',
         preferredNetworks: [CardBrand.Amex, CardBrand.Visa],
+        opensCardScannerAutomatically,
         customPaymentMethodConfiguration: {
           customPaymentMethods: [
             {
@@ -233,7 +236,12 @@ export default function PaymentsUICompleteScreen() {
         );
       }
     },
-    [customerKeyType, appearanceSettings, initPaymentSheet]
+    [
+      customerKeyType,
+      appearanceSettings,
+      opensCardScannerAutomatically,
+      initPaymentSheet,
+    ]
   );
 
   const toggleCustomerKeyType = (value: boolean) => {
@@ -269,6 +277,22 @@ export default function PaymentsUICompleteScreen() {
         onValueChange={toggleCustomerKeyType}
         value={customerKeyType === 'customer_session'}
       />
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginTop: 12,
+        }}
+      >
+        <Text style={{ marginEnd: 10, textAlignVertical: 'center' }}>
+          Opens card scanner automatically
+        </Text>
+        <Switch
+          value={opensCardScannerAutomatically}
+          onValueChange={setOpensCardScannerAutomatically}
+        />
+      </View>
       {Platform.OS === 'ios' && (
         <View style={{ marginVertical: 10 }}>
           <Text style={{ marginBottom: 8, fontWeight: '500', marginLeft: 10 }}>
