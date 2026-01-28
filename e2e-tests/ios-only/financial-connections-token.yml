@@ -1,0 +1,42 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Financial Connections"
+- tapOn: "Collect Bank Account"
+- assertVisible:
+    text: "Collect token"
+- tapOn:
+    id: "force_native_flow_switch"
+    optional: true
+- tapOn:
+    text: "Collect token"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "Agree and continue"
+- tapOn: "Agree and continue"
+- assertVisible:
+    text: "Test (Non-OAuth)"
+- tapOn: "Test (Non-OAuth)"
+- extendedWaitUntil:
+    # wait for the auth flow to finish
+    visible: "Select account"
+    timeout: 60000
+- assertVisible:
+    text: "Connect account"
+- tapOn: "Connect account"
+- tapOn:
+    # Hide the keyboard if it shows up
+    text: "Done"
+    optional: true
+- assertVisible:
+    text: "Finish without saving"
+- tapOn: "Finish without saving"
+- assertVisible:
+    text: "Done"
+- tapOn: "Done"
+- assertVisible:
+    text: "Success"
+- tapOn:
+    text: "OK"
+    optional: true
