@@ -106,6 +106,8 @@ class PaymentSheetManager(
     val paymentMethodOrder = arguments.getStringList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
       arguments.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    val opensCardScannerAutomatically =
+      arguments.getBooleanOr("opensCardScannerAutomatically", false)
     paymentIntentClientSecret = arguments.getString("paymentIntentClientSecret").orEmpty()
     setupIntentClientSecret = arguments.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
@@ -283,6 +285,7 @@ class PaymentSheetManager(
         .preferredNetworks(
           mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
         .apply {
           mapToAllowedCardFundingTypes(arguments)?.let { allowedCardFundingTypes(it) }
