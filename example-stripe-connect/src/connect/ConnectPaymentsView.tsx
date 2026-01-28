@@ -2,9 +2,8 @@ import { ConnectPayments } from '@stripe/stripe-react-native';
 import React, { useMemo } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { useSettings } from '../contexts/SettingsContext';
-import type { PaymentsListDefaultFilters } from '../types';
 import ConnectScreen from '../screens/ConnectScreen';
-import FloatingBackButton from '../components/FloatingBackButton';
+import type { PaymentsListDefaultFilters } from '../types';
 
 export default function ConnectPaymentsView() {
   const { paymentsFilterSettings } = useSettings();
@@ -92,8 +91,8 @@ export default function ConnectPaymentsView() {
   return (
     <ConnectScreen>
       <View style={styles.container}>
-        <FloatingBackButton />
         <ConnectPayments
+          style={styles.component}
           defaultFilters={defaultFilters}
           onLoadError={(err) => {
             Alert.alert('Error', err.error.message);
@@ -107,5 +106,8 @@ export default function ConnectPaymentsView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  component: {
+    paddingTop: 26, // applies when there's no navigation bar and the comopnent is presented in a modal
   },
 });

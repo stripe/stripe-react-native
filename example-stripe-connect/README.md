@@ -71,7 +71,6 @@ example-stripe-connect/
 │   │   ├── AnimatedCheckmark.tsx
 │   │   ├── ChevronRight.tsx
 │   │   ├── DropdownModal.tsx
-│   │   ├── FloatingBackButton.tsx
 │   │   ├── Section.tsx
 │   │   ├── SectionHeader.tsx
 │   │   ├── SelectableRow.tsx

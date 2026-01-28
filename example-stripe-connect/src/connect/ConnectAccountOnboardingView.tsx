@@ -1,11 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ConnectAccountOnboarding } from '@stripe/stripe-react-native';
 import type { CollectionOptions } from '@stripe/stripe-react-native/lib/typescript/src/connect/connectTypes';
-import ConnectScreen from '../screens/ConnectScreen';
-import { useSettings } from '../contexts/SettingsContext';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../constants/colors';
-import FloatingBackButton from '../components/FloatingBackButton';
+import { useSettings } from '../contexts/SettingsContext';
+import ConnectScreen from '../screens/ConnectScreen';
 
 export default function ConnectAccountOnboardingView() {
   const { onboardingSettings } = useSettings();
@@ -58,7 +57,6 @@ export default function ConnectAccountOnboardingView() {
   return (
     <ConnectScreen>
       <View style={styles.container}>
-        <FloatingBackButton />
         <TouchableOpacity
           style={styles.button}
           onPress={() => setVisible(true)}

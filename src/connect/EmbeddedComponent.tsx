@@ -534,19 +534,18 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
-      const { url } = event;
+      const { url, navigationType } = event;
+      if (navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
       if (ALLOWED_STRIPE_HOSTS.some((host) => url.includes(host))) {
         return true; // Allow in-WebView navigation
       }
 
-      // Validate and open external links in system browser
-      if (isValidUrl(url)) {
-        Linking.openURL(url).catch((error) => {
-          handleUnexpectedError(error);
-        });
-      }
+      // Open external links in system browser
+      Linking.openURL(url).catch((error) => {
+        handleUnexpectedError(error);
+      });
 
       return false; // Block in-WebView navigation for external links
     },
