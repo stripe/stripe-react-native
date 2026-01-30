@@ -33,4 +33,7 @@ config.resolver.extraNodeModules = {
   ),
 };
 
+// Add woff2 as a recognized asset extension
+config.resolver.assetExts = [...config.resolver.assetExts, 'woff2'];
+
 module.exports = config;
