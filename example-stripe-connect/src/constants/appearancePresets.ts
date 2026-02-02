@@ -171,4 +171,8 @@ export const APPEARANCE_PRESETS: Record<string, AppearanceVariables> = {
     fontFamily: 'Courier',
     borderRadius: '0px',
   },
+
+  'Custom font': {
+    fontFamily: 'Handjet-Regular',
+  },
 };
