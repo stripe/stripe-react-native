@@ -9,6 +9,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { createAPIClient } from '../api/StripeConnectAPI';
 import { APPEARANCE_PRESETS } from '../constants/appearancePresets';
 import { Colors } from '../constants/colors';
+import { getCustomFont } from '../fonts/preloadedFonts';
 
 interface Props {
   children?: React.ReactNode;
@@ -17,6 +18,8 @@ interface Props {
 const ConnectScreen: React.FC<Props> = ({ children }) => {
   const { publishableKey, selectedMerchant, backendUrl, appearancePreset } =
     useSettings();
+
+  const customFont = getCustomFont();
 
   const [stripeConnectInstance, setStripeConnectInstance] =
     useState<StripeConnectInstance>();
@@ -45,6 +48,7 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
       appearance: {
         variables: appearanceVariables,
       },
+      fonts: customFont ? [customFont] : undefined,
     });
 
     setStripeConnectInstance(instance);
@@ -53,6 +57,7 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
     selectedMerchant?.merchant_id,
     backendUrl,
     appearancePreset,
+    customFont,
   ]);
 
   // Update appearance when preset changes

@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, Text, Platform, StyleSheet } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { Colors } from '../src/constants/colors';
+import '../src/fonts/preloadedFonts'; // Load fonts at app startup
 
 const queryClient = new QueryClient();
 
