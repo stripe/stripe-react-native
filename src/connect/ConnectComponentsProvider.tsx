@@ -76,17 +76,21 @@ ConnectComponentsContext.displayName = 'ConnectComponents';
  *
  * @example
  * ```tsx
- * const connectInstance = loadConnectAndInitialize({
- *   publishableKey: 'pk_test_123',
- *   fetchClientSecret: async () => {
- *     // Fetch client secret from your backend
- *     const response = await fetch('/account_session');
- *     const { client_secret } = await response.json();
- *     return client_secret;
- *   }
- * });
- *
  * function App() {
+ *   const [connectInstance] = useState(() => {
+ *     const fetchClientSecret = async () => {
+ *       const response = await fetch('/account_session', { method: "POST" });
+ *       const { client_secret: clientSecret } = await response.json();
+ *       return clientSecret;
+ *     };
+ *
+ *     return loadConnectAndInitialize({
+ *       publishableKey: 'pk_test_123',
+ *       fetchClientSecret: fetchClientSecret,
+ *       appearance,
+ *     });
+ *   });
+ *
  *   return (
  *     <ConnectComponentsProvider connectInstance={connectInstance}>
  *       <ConnectPayouts />
