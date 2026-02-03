@@ -107,3 +107,8 @@ export enum PlatformPayError {
   Failed = 'Failed',
   Unknown = 'Unknown',
 }
+
+export enum RadarError {
+  Failed = 'Failed',
+  Unknown = 'Unknown',
+}
