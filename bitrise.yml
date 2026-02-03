@@ -40,6 +40,10 @@ pipelines:
       e2e-tests-android-new-arch:
         depends_on: [e2e-build-android-new-arch]
         parallel: 4
+      emerge-build-ios: {}
+      emerge-build-android: {}
+      emerge-upload:
+        depends_on: [emerge-build-ios, emerge-build-android]
   test-projects:
     workflows:
       expo-sdk-52: {}
@@ -592,6 +596,165 @@ workflows:
                 *Nightly Build Failed*
                 Platform: $BITRISE_PLATFORM
                 Build: $BITRISE_BUILD_URL
+
+  emerge-build-ios:
+    envs:
+      - NEW_ARCH_ENABLED: true
+    before_run:
+      - _prepare_ios
+    steps:
+      - script@1:
+          title: Build App JS Bundle
+          inputs:
+            - content: yarn example build:ios
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
+      - script@1:
+          title: Build iOS App (Release, Device, No Codesign)
+          timeout: 1800
+          inputs:
+            - content: |
+                set -euo pipefail
+
+                cd "$BITRISE_SOURCE_DIR/example/ios"
+                ARCHIVE_PATH="$BITRISE_SOURCE_DIR/Example.xcarchive"
+
+                xcodebuild -workspace example.xcworkspace \
+                  -scheme example \
+                  -configuration Release \
+                  -sdk iphoneos \
+                  -archivePath "$ARCHIVE_PATH" \
+                  CODE_SIGN_IDENTITY="-" \
+                  CODE_SIGNING_REQUIRED="NO" \
+                  CODE_SIGN_ENTITLEMENTS="" \
+                  CODE_SIGNING_ALLOWED="NO" \
+                  archive | xcbeautify
+
+                # Package into IPA
+                cd "$BITRISE_SOURCE_DIR"
+                mkdir -p Payload
+                cp -r "$ARCHIVE_PATH/Products/Applications/"*.app Payload/
+                zip -qr app.ipa Payload
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/app.ipa:IOS_IPA'
+
+  emerge-build-android:
+    envs:
+      - NEW_ARCH_ENABLED: true
+    before_run:
+      - _prepare_android
+    steps:
+      - script@1:
+          title: Build Android App (Release, arm64)
+          timeout: 1200
+          inputs:
+            - content: |
+                cd example/android
+                yarn build:android
+                ./gradlew assembleRelease -PnewArchEnabled=true -PreactNativeArchitectures=arm64-v8a --no-daemon --build-cache --no-scan
+      - save-gradle-cache@1:
+          is_always_run: true
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/example/android/app/build/outputs/apk/release/app-release.apk:ANDROID_APK'
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  emerge-upload:
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: |-
+                emerge-build-ios
+                emerge-build-android
+      - script@1:
+          title: Upload to Emerge Tools
+          inputs:
+            - content: |
+                set -euo pipefail
+
+                if [ -z "${EMERGE_API_KEY:-}" ]; then
+                  echo "Error: EMERGE_API_KEY is not set. Please add it as a Bitrise secret."
+                  exit 1
+                fi
+
+                # Determine tag based on build type
+                if [ -n "${BITRISE_PULL_REQUEST:-}" ]; then
+                  EMERGE_TAG="pull-request"
+                else
+                  EMERGE_TAG="default"
+                fi
+
+                upload_to_emerge() {
+                  local artifact_path="$1"
+                  local filename="$2"
+
+                  echo "Uploading $filename to Emerge Tools..."
+
+                  # Build JSON body
+                  local json_body
+                  json_body=$(cat <<EOF
+                {
+                  "filename": "$filename",
+                  "branch": "$BITRISE_GIT_BRANCH",
+                  "sha": "$BITRISE_GIT_COMMIT",
+                  "repoName": "stripe-react-native",
+                  "tag": "$EMERGE_TAG"
+                EOF
+                )
+
+                  # Add optional fields if available
+                  if [ -n "${BITRISE_PULL_REQUEST:-}" ]; then
+                    json_body="$json_body, \"prNumber\": \"$BITRISE_PULL_REQUEST\""
+                  fi
+                  if [ -n "${BITRISEIO_GIT_BRANCH_DEST_COMMIT_HASH:-}" ]; then
+                    json_body="$json_body, \"baseSha\": \"$BITRISEIO_GIT_BRANCH_DEST_COMMIT_HASH\""
+                  fi
+
+                  json_body="$json_body }"
+
+                  # Get signed upload URL
+                  local upload_response
+                  upload_response=$(curl -s \
+                    --url "https://api.emergetools.com/upload" \
+                    --header 'Accept: application/json' \
+                    --header 'Content-Type: application/json' \
+                    --header "X-API-Token: $EMERGE_API_KEY" \
+                    --data "$json_body")
+
+                  local upload_url
+                  upload_url=$(echo "$upload_response" | jq -r .uploadURL)
+
+                  if [ "$upload_url" = "null" ] || [ -z "$upload_url" ]; then
+                    echo "Error: Failed to get upload URL from Emerge Tools"
+                    echo "Response: $upload_response"
+                    return 1
+                  fi
+
+                  # Upload artifact
+                  curl -f -H 'Content-Type: application/zip' -T "$artifact_path" "$upload_url"
+                  echo "Successfully uploaded $filename"
+                }
+
+                # Upload iOS IPA
+                upload_to_emerge "$IOS_IPA" "app.ipa"
+
+                # Upload Android APK
+                upload_to_emerge "$ANDROID_APK" "app-release.apk"
+
+                echo "All uploads complete!"
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.medium
 
 meta:
   bitrise.io:
