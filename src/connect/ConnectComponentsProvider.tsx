@@ -1,5 +1,4 @@
 import React, { JSX, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
 import type {
   StripeConnectInitParams,
   StripeConnectUpdateParams,
@@ -7,7 +6,7 @@ import type {
   StripeConnectInstance,
 } from './connectTypes';
 import { AnalyticsClient } from './analytics/AnalyticsClient';
-import pjson from '../../package.json';
+import { Constants } from '../functions';
 
 class ConnectInstance implements StripeConnectInstance {
   initParams: StripeConnectInitParams;
@@ -63,15 +62,9 @@ export const ConnectComponentsProvider = ({
     connectInstance.initParams.locale
   );
 
-  // Initialize analytics client
+  // Initialize analytics client with native system info
   const analyticsClient = useMemo(() => {
-    return new AnalyticsClient({
-      sdkVersion: pjson.version,
-      osVersion: Platform.Version.toString(),
-      deviceType: Platform.OS,
-      appName: pjson.name,
-      appVersion: pjson.version,
-    });
+    return new AnalyticsClient(Constants.SYSTEM_INFO);
   }, []);
 
   if (!connectInstance.onUpdate) {
