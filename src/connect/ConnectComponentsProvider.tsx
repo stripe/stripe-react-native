@@ -19,6 +19,29 @@ class ConnectInstance implements StripeConnectInstance {
   }
 }
 
+/**
+ * Creates a Connect instance for use with ConnectComponentsProvider.
+ * This instance manages the configuration and state for Connect embedded components.
+ *
+ * @param initParams - Initialization parameters including publishableKey and fetchClientSecret
+ * @returns A StripeConnectInstance that can be passed to ConnectComponentsProvider
+ *
+ * @example
+ * ```ts
+ * const connectInstance = loadConnectAndInitialize({
+ *   publishableKey: 'pk_test_123',
+ *   fetchClientSecret: async () => {
+ *     const response = await fetch('/account_session');
+ *     const { client_secret } = await response.json();
+ *     return client_secret;
+ *   },
+ *   appearance: {
+ *     variables: { colorPrimary: '#635BFF' }
+ *   }
+ * });
+ * ```
+ * @category Connect
+ */
 export const loadConnectAndInitialize: LoadConnectAndInitialize = (
   initParams: StripeConnectInitParams
 ): StripeConnectInstance => {
@@ -41,6 +64,42 @@ const ConnectComponentsContext =
 
 ConnectComponentsContext.displayName = 'ConnectComponents';
 
+/**
+ * Context provider that makes Connect instance configuration available to embedded components.
+ * Wrap your Connect components with this provider to enable them to access the shared configuration.
+ *
+ * @param props.connectInstance - Instance created via loadConnectAndInitialize
+ * @param props.children - React components to render within the provider
+ * @returns JSX.Element
+ *
+ * @throws Error if connectInstance is not created via loadConnectAndInitialize
+ *
+ * @example
+ * ```tsx
+ * function App() {
+ *   const [connectInstance] = useState(() => {
+ *     const fetchClientSecret = async () => {
+ *       const response = await fetch('/account_session', { method: "POST" });
+ *       const { client_secret: clientSecret } = await response.json();
+ *       return clientSecret;
+ *     };
+ *
+ *     return loadConnectAndInitialize({
+ *       publishableKey: 'pk_test_123',
+ *       fetchClientSecret: fetchClientSecret,
+ *       appearance,
+ *     });
+ *   });
+ *
+ *   return (
+ *     <ConnectComponentsProvider connectInstance={connectInstance}>
+ *       <ConnectPayouts />
+ *     </ConnectComponentsProvider>
+ *   );
+ * }
+ * ```
+ * @category Connect
+ */
 export const ConnectComponentsProvider = ({
   children,
   connectInstance,
