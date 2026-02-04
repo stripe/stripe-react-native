@@ -1,22 +1,9 @@
 // Mock dependencies BEFORE imports
-jest.mock('../../specs/NativeStripeSdkModule', () => ({
-  __esModule: true,
-  default: {
-    getConstants: jest.fn(() => ({
-      API_VERSIONS: {
-        CORE: '2024-12-15',
-        ISSUING: '2024-12-15',
-      },
-      SYSTEM_INFO: {
-        sdkVersion: '1.0.0',
-        osVersion: '18.0',
-        deviceType: 'iPhone14,5',
-        appName: 'TestApp',
-        appVersion: '1.0.0',
-      },
-    })),
-  },
-}));
+import { mockCreateNativeStripeSdkMock } from '../testUtils';
+
+jest.mock('../../specs/NativeStripeSdkModule', () =>
+  mockCreateNativeStripeSdkMock()
+);
 
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
