@@ -1,6 +1,6 @@
 /**
  * Analytics HTTP client for sending events to Stripe backend
- * Matches the Swift iOS SDK's AnalyticsClientV2 implementation
+ * Matches the Swift iOS SDK's AnalyticsClientV2 user agent format
  */
 
 import { Platform } from 'react-native';
@@ -53,7 +53,7 @@ export class AnalyticsClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Stripe-Client-User-Agent': this.buildUserAgent(),
+          'User-Agent': this.buildUserAgent(),
         },
         body: JSON.stringify(fullPayload),
       });
@@ -69,11 +69,7 @@ export class AnalyticsClient {
    * Build user agent string for analytics requests
    */
   private buildUserAgent(): string {
-    return JSON.stringify({
-      name: ORIGIN,
-      version: this.systemInfo.sdkVersion,
-      os_platform: Platform.OS,
-      os_version: this.systemInfo.osVersion,
-    });
+    const platform = Platform.OS; // 'ios' or 'android'
+    return `Stripe/v1 ${platform}/${this.systemInfo.sdkVersion}`;
   }
 }

@@ -82,9 +82,7 @@ describe('AnalyticsClient', () => {
       expect(options.headers).toEqual(
         expect.objectContaining({
           'Content-Type': 'application/json',
-          'X-Stripe-Client-User-Agent': expect.stringContaining(
-            'stripe-connect-react-native'
-          ),
+          'User-Agent': expect.stringContaining('Stripe/v1'),
         })
       );
     });
@@ -110,13 +108,10 @@ describe('AnalyticsClient', () => {
 
       const callArgs = (global.fetch as jest.Mock).mock.calls[0];
       const options = callArgs[1];
-      const userAgent = options.headers['X-Stripe-Client-User-Agent'];
-      const userAgentObj = JSON.parse(userAgent);
+      const userAgent = options.headers['User-Agent'];
 
-      expect(userAgentObj.name).toBe('stripe-connect-react-native');
-      expect(userAgentObj.version).toBe('1.2.3');
-      expect(userAgentObj.os_platform).toBe('ios');
-      expect(userAgentObj.os_version).toBe('17.0');
+      expect(userAgent).toBeDefined();
+      expect(userAgent).toBe('Stripe/v1 ios/1.2.3');
     });
 
     it('should send payload as JSON body', async () => {
