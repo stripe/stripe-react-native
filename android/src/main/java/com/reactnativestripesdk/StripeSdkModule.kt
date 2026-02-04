@@ -1516,7 +1516,7 @@ class StripeSdkModule(
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
 
-    // This should match the Stripe Android SDK version in gradle.properties
-    private const val STRIPE_ANDROID_SDK_VERSION = "22.7.0"
+    // Read the Stripe Android SDK version from gradle.properties at build time
+    private val STRIPE_ANDROID_SDK_VERSION = BuildConfig.STRIPE_ANDROID_SDK_VERSION
   }
 }
