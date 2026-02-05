@@ -50,7 +50,8 @@ export type ConfirmParams =
   | PayPalParams
   | AffirmParams
   | CashAppParams
-  | RevolutPayParams;
+  | RevolutPayParams
+  | TwintParams;
 
 export type ConfirmOptions = PaymentMethod.ConfirmOptions;
 
@@ -299,6 +300,15 @@ export type CashAppParams = {
 
 export type RevolutPayParams = {
   paymentMethodType: 'RevolutPay';
+  paymentMethodData?: {
+    billingDetails?: BillingDetails;
+    mandateData?: MandateData;
+    metadata?: MetaData;
+  };
+};
+
+export type TwintParams = {
+  paymentMethodType: 'Twint';
   paymentMethodData?: {
     billingDetails?: BillingDetails;
     mandateData?: MandateData;
