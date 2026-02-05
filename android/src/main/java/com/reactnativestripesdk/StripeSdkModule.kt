@@ -179,14 +179,38 @@ class StripeSdkModule(
   }
 
   @SuppressLint("RestrictedApi")
-  override fun getTypedExportedConstants() =
-    mapOf(
+  override fun getTypedExportedConstants(): Map<String, Any> {
+    val packageInfo =
+      try {
+        reactApplicationContext.packageManager.getPackageInfo(
+          reactApplicationContext.packageName,
+          0,
+        )
+      } catch (e: Exception) {
+        null
+      }
+
+    return mapOf(
       "API_VERSIONS" to
         mapOf(
           "CORE" to ApiVersion.API_VERSION_CODE,
           "ISSUING" to PushProvisioningProxy.getApiVersion(),
         ),
+      "SYSTEM_INFO" to
+        mapOf(
+          "sdkVersion" to STRIPE_ANDROID_SDK_VERSION,
+          "osVersion" to android.os.Build.VERSION.RELEASE,
+          "deviceType" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+          "appName" to (
+            reactApplicationContext.applicationInfo
+              .loadLabel(
+                reactApplicationContext.packageManager,
+              ).toString()
+          ),
+          "appVersion" to (packageInfo?.versionName ?: ""),
+        ),
     )
+  }
 
   @ReactMethod
   override fun initialise(
@@ -1491,5 +1515,8 @@ class StripeSdkModule(
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
+
+    // Read the Stripe Android SDK version from gradle.properties at build time
+    private val STRIPE_ANDROID_SDK_VERSION = BuildConfig.STRIPE_ANDROID_SDK_VERSION
   }
 }

@@ -26,6 +26,7 @@ import type {
   StripeConnectInitParams,
 } from './connectTypes';
 import type { FinancialConnections } from '../types';
+import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -193,7 +194,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     };
   }, []);
 
-  const { connectInstance, appearance, locale } = useConnectComponents();
+  const { connectInstance, appearance, locale, analyticsClient } =
+    useConnectComponents();
   const { fonts, publishableKey, fetchClientSecret, overrides } =
     connectInstance.initParams as StripeConnectInitParamsInternal;
 
@@ -206,6 +208,22 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     callbacks,
     style,
   } = props;
+
+  // Initialize component analytics client
+  const componentAnalytics = useMemo(
+    () =>
+      new ComponentAnalyticsClient(analyticsClient, {
+        publishableKey,
+        platformId: overrides?.platformId,
+        merchantId: overrides?.merchantId,
+        livemode:
+          typeof overrides?.livemode === 'boolean'
+            ? overrides.livemode
+            : publishableKey?.startsWith('pk_live_'),
+        component,
+      }),
+    [analyticsClient, publishableKey, overrides, component]
+  );
 
   const hashParams = {
     component,
@@ -292,6 +310,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     return undefined;
   }, [WebViewComponent]);
 
+  // Track component lifecycle events
+  useEffect(() => {
+    // Log component created
+    componentAnalytics.logComponentCreated();
+  }, [componentAnalytics]);
+
+  // Track component viewed (when web view is visible)
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const handleLayout = useCallback(() => {
+    if (!hasBeenViewed) {
+      setHasBeenViewed(true);
+      componentAnalytics.logComponentViewed();
+    }
+  }, [hasBeenViewed, componentAnalytics]);
+
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
     ref.current?.injectJavaScript(`
       (function() {
@@ -339,10 +372,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
-      const message = JSON.parse(event.nativeEvent.data) as {
-        type: string;
-        data?: unknown;
-      };
+      let message: { type: string; data?: unknown };
+      try {
+        message = JSON.parse(event.nativeEvent.data);
+      } catch (error) {
+        componentAnalytics.logDeserializeMessageError(
+          'unknown',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return;
+      }
 
       if (message.type === 'fetchClientSecret') {
         const clientSecret = await fetchClientSecret().catch((error) => {
@@ -360,7 +399,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
       } else if (message.type === 'pageDidLoad') {
+        const pageViewId = (message.data as { pageViewId?: string })
+          ?.pageViewId;
+        componentAnalytics.logComponentWebPageLoaded(pageViewId);
         onPageDidLoad?.();
+      } else if (message.type === 'componentLoaded') {
+        // Connect JS fully initialized
+        componentAnalytics.logComponentLoaded();
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
@@ -488,7 +533,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           // remove the 'set' prefix and lowercase the first letter
           const functionName =
             setter.charAt(3).toLowerCase() + setter.substring(4);
-          callbacks?.[functionName]?.(value);
+          if (callbacks?.[functionName]) {
+            callbacks[functionName](value);
+          } else {
+            // Unrecognized setter function
+            componentAnalytics.logUnrecognizedSetter(setter);
+          }
         }
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
@@ -501,22 +551,46 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           return;
         }
 
+        // Log authenticated web view opened
+        componentAnalytics.logAuthenticatedWebViewOpened(id);
+
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
         NativeStripeSdk.openAuthenticatedWebView(id, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
               // iOS returns the redirect URL directly
-              handleAuthWebViewResult(id, result?.url ?? null);
+              const resultUrl = result?.url ?? null;
+              if (resultUrl) {
+                componentAnalytics.logAuthenticatedWebViewRedirected(id);
+              } else {
+                componentAnalytics.logAuthenticatedWebViewCanceled(id);
+              }
+              handleAuthWebViewResult(id, resultUrl);
             } else {
               // Android: Store promise to be resolved by deep link listener
               pendingAuthWebViewPromise.current = {
                 id,
-                callback: handleAuthWebViewResult,
+                callback: (authId: string, resultUrl: string | null) => {
+                  if (resultUrl) {
+                    componentAnalytics.logAuthenticatedWebViewRedirected(
+                      authId
+                    );
+                  } else {
+                    componentAnalytics.logAuthenticatedWebViewCanceled(authId);
+                  }
+                  handleAuthWebViewResult(authId, resultUrl);
+                },
               };
             }
           })
-          .catch(handleUnexpectedError);
+          .catch((error) => {
+            componentAnalytics.logAuthenticatedWebViewError(
+              id,
+              error instanceof Error ? error : new Error(String(error))
+            );
+            handleUnexpectedError(error);
+          });
       } else {
         // unhandled message
       }
@@ -524,6 +598,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [
       callbacks,
       component,
+      componentAnalytics,
       fetchClientSecret,
       handleUnexpectedError,
       onLoadError,
@@ -581,6 +656,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
       allowsInlineMediaPlayback={true}

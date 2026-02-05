@@ -5,6 +5,8 @@ import type {
   LoadConnectAndInitialize,
   StripeConnectInstance,
 } from './connectTypes';
+import { AnalyticsClient } from './analytics/AnalyticsClient';
+import { Constants } from '../functions';
 
 class ConnectInstance implements StripeConnectInstance {
   initParams: StripeConnectInitParams;
@@ -57,6 +59,7 @@ export type ConnectComponentsPayload = {
   appearance: StripeConnectInitParams['appearance'];
   locale: StripeConnectInitParams['locale'];
   connectInstance: ConnectInstance;
+  analyticsClient: AnalyticsClient;
 };
 
 const ConnectComponentsContext =
@@ -118,6 +121,11 @@ export const ConnectComponentsProvider = ({
     connectInstance.initParams.locale
   );
 
+  // Initialize analytics client with native system info
+  const analyticsClient = useMemo(() => {
+    return new AnalyticsClient(Constants.SYSTEM_INFO);
+  }, []);
+
   if (!connectInstance.onUpdate) {
     connectInstance.onUpdate = (options: StripeConnectUpdateParams) => {
       if (options.appearance) {
@@ -130,8 +138,8 @@ export const ConnectComponentsProvider = ({
   }
 
   const value = useMemo(
-    () => ({ connectInstance, locale, appearance }),
-    [connectInstance, locale, appearance]
+    () => ({ connectInstance, locale, appearance, analyticsClient }),
+    [connectInstance, locale, appearance, analyticsClient]
   );
 
   return (

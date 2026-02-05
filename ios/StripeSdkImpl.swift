@@ -2,8 +2,10 @@ import AuthenticationServices
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
+@_spi(STP) import StripeCore
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
+import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
 
@@ -21,6 +23,18 @@ class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticat
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         return RCTKeyWindow() ?? ASPresentationAnchor()
     }
+}
+
+// Helper to get device type identifier
+private func getDeviceType() -> String {
+    var systemInfo = utsname()
+    uname(&systemInfo)
+    let machineMirror = Mirror(reflecting: systemInfo.machine)
+    let identifier = machineMirror.children.reduce("") { identifier, element in
+        guard let value = element.value as? Int8, value != 0 else { return identifier }
+        return identifier + String(UnicodeScalar(UInt8(value)))
+    }
+    return identifier.isEmpty ? UIDevice.current.model : identifier
 }
 
 @objc(StripeSdkImpl)
@@ -103,6 +117,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             "API_VERSIONS": [
                 "CORE": STPAPIClient.apiVersion,
                 "ISSUING": STPAPIClient.apiVersion,
+            ],
+            "SYSTEM_INFO": [
+                "sdkVersion": StripeAPIConfiguration.STPSDKVersion,
+                "osVersion": UIDevice.current.systemVersion,
+                "deviceType": getDeviceType(),
+                "appName": Bundle.stp_applicationName() ?? "",
+                "appVersion": Bundle.stp_applicationVersion() ?? "",
             ],
         ]
     }

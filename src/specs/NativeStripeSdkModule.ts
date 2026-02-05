@@ -108,7 +108,16 @@ export interface Spec extends TurboModule {
       Omit<PaymentMethod.CollectBankAccountParams, 'onEvent'>
     >
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
-  getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
+  getConstants(): {
+    API_VERSIONS: { CORE: string; ISSUING: string };
+    SYSTEM_INFO: {
+      sdkVersion: string;
+      osVersion: string;
+      deviceType: string;
+      appName: string;
+      appVersion: string;
+    };
+  };
   canAddCardToWallet(
     params: UnsafeObject<CanAddCardToWalletParams>
   ): Promise<CanAddCardToWalletResult>;
