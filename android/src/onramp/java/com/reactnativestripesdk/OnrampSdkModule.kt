@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.graphics.Color
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.bridge.Arguments
@@ -59,8 +58,8 @@ import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -131,23 +130,17 @@ class OnrampSdkModule(
       OnrampCallbacks()
         .authenticateUserCallback { result ->
           handleOnrampAuthenticationResult(result, authenticateUserPromise!!)
-        }
-        .verifyIdentityCallback { result ->
+        }.verifyIdentityCallback { result ->
           handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
-        }
-        .collectPaymentCallback { result ->
+        }.collectPaymentCallback { result ->
           handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
-        }
-        .authorizeCallback { result ->
+        }.authorizeCallback { result ->
           handleOnrampAuthorizationResult(result, authorizePromise!!)
-        }
-        .checkoutCallback { result ->
+        }.checkoutCallback { result ->
           handleOnrampCheckoutResult(result, checkoutPromise!!)
-        }
-        .verifyKycCallback { result ->
+        }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
-        }
-        .onrampSessionClientSecretProvider { sessionId ->
+        }.onrampSessionClientSecretProvider { sessionId ->
           checkoutClientSecretDeferred = CompletableDeferred()
 
           val params = Arguments.createMap()
@@ -157,8 +150,6 @@ class OnrampSdkModule(
 
           checkoutClientSecretDeferred!!.await()
         }
-      
-
 
     val coordinator =
       onrampCoordinator ?: OnrampCoordinator
@@ -716,8 +707,7 @@ class OnrampSdkModule(
             } else {
               null
             },
-          )
-          .heightDp(
+          ).heightDp(
             if (primaryButtonMap.hasKey("height")) {
               primaryButtonMap.getDouble("height").toFloat()
             } else {
