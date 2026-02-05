@@ -216,21 +216,6 @@ export type RegisterLinkUserResult =
     };
 
 /**
- * Result of authenticating an existing Link user.
- */
-export type AuthenticateUserResult =
-  | {
-      /** The crypto customer ID after successful authentication. */
-      customerId: string;
-      error?: undefined;
-    }
-  | {
-      customerId?: undefined;
-      /** Present if authentication failed with an error. */
-      error: StripeError<OnrampError>;
-    };
-
-/**
  * Describes the payment method currently selected by the user.
  */
 export type PaymentMethodDisplayData = {
