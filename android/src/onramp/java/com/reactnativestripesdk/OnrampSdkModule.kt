@@ -58,7 +58,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 @SuppressLint("RestrictedApi")
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
@@ -79,6 +81,7 @@ class OnrampSdkModule(
   private var verifyKycPromise: Promise? = null
 
   private var checkoutClientSecretDeferred: CompletableDeferred<String>? = null
+  private val rnScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
   @ReactMethod
   override fun initialise(
@@ -126,14 +129,28 @@ class OnrampSdkModule(
       OnrampCallbacks()
         .verifyIdentityCallback { result ->
           handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
-        }.collectPaymentCallback { result ->
+        }
+        .collectPaymentCallback { result ->
           handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
-        }.authorizeCallback { result ->
+        }
+        .authorizeCallback { result ->
           handleOnrampAuthorizationResult(result, authorizePromise!!)
-        }.checkoutCallback { result ->
+        }
+        .checkoutCallback { result ->
           handleOnrampCheckoutResult(result, checkoutPromise!!)
-        }.verifyKycCallback { result ->
+        }
+        .verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
+        }
+        .onrampSessionClientSecretProvider { sessionId ->
+          checkoutClientSecretDeferred = CompletableDeferred()
+
+          val params = Arguments.createMap()
+          params.putString("onrampSessionId", sessionId)
+
+          emitOnCheckoutClientSecretRequested(params)
+
+          checkoutClientSecretDeferred!!.await()
         }
 
     val coordinator =
@@ -148,7 +165,8 @@ class OnrampSdkModule(
         if (appearanceMap != null) {
           mapAppearance(appearanceMap)
         } else {
-          LinkAppearance().style(style = Style.AUTOMATIC)
+          LinkAppearance()
+            .style(Style.AUTOMATIC)
         }
 
       val displayName = config.getString("merchantDisplayName") ?: ""
@@ -481,17 +499,6 @@ class OnrampSdkModule(
         return
       }
 
-    val checkoutHandler: suspend () -> String = {
-      checkoutClientSecretDeferred = CompletableDeferred()
-
-      val params = Arguments.createMap()
-      params.putString("onrampSessionId", onrampSessionId)
-
-      emitOnCheckoutClientSecretRequested(params)
-
-      checkoutClientSecretDeferred!!.await()
-    }
-
     checkoutPromise = promise
 
     presenter.performCheckout(onrampSessionId)
@@ -586,22 +593,35 @@ class OnrampSdkModule(
       )
       return
     }
+    rnScope.launch {
+      val iconDataUri: String =
+        try {
+          val base64 =
+            withContext(Dispatchers.Default) {
+              val drawable =
+                withTimeout(5_000L) {
+                  withContext(Dispatchers.IO) {
+                    paymentDetails.imageLoader()
+                  }
+                }
 
-    val icon =
-      "data:image/png;base64," +
-        getBase64FromBitmap(
-          getBitmapFromDrawable(
-            paymentDetails.icon,
-          ),
-        )
+              getBitmapFromDrawable(drawable)?.let { bitmap ->
+                getBase64FromBitmap(bitmap)
+              } ?: ""
+            }
 
-    val displayData = Arguments.createMap()
+          if (base64.isNotEmpty()) "data:image/png;base64,$base64" else ""
+        } catch (_: Exception) {
+          ""
+        }
 
-    displayData.putString("icon", icon)
-    displayData.putString("label", paymentDetails.label)
-    displayData.putString("sublabel", paymentDetails.sublabel)
+      val displayData = Arguments.createMap()
+      displayData.putString("icon", iconDataUri)
+      displayData.putString("label", paymentDetails.label)
+      displayData.putString("sublabel", paymentDetails.sublabel)
 
-    promise.resolve(createResult("displayData", displayData))
+      promise.resolve(createResult("displayData", displayData))
+    }
   }
 
   @ReactMethod
@@ -657,7 +677,7 @@ class OnrampSdkModule(
           .contentOnPrimary(Color(android.graphics.Color.parseColor(contentColorStr)))
           .borderSelected(Color(android.graphics.Color.parseColor(borderSelectedColorStr)))
       } else {
-        null
+        Colors()
       }
 
     val darkColors =
@@ -671,7 +691,7 @@ class OnrampSdkModule(
           .contentOnPrimary(Color(android.graphics.Color.parseColor(contentColorStr)))
           .borderSelected(Color(android.graphics.Color.parseColor(borderSelectedColorStr)))
       } else {
-        null
+        Colors()
       }
 
     val style =
@@ -690,7 +710,8 @@ class OnrampSdkModule(
             } else {
               null
             },
-          ).heightDp(
+          )
+          .heightDp(
             if (primaryButtonMap.hasKey("height")) {
               primaryButtonMap.getDouble("height").toFloat()
             } else {
@@ -698,16 +719,14 @@ class OnrampSdkModule(
             },
           )
       } else {
-        null
+        PrimaryButton()
       }
 
-    val builder = LinkAppearance()
-    LinkAppearance()
-    lightColors?.let { builder.lightColors(it) }
-    darkColors?.let { builder.darkColors(it) }
-    builder.style(style)
-    primaryButton?.let { builder.primaryButton(it) }
-    return builder
+    return LinkAppearance()
+      .lightColors(lightColors)
+      .darkColors(darkColors)
+      .style(style)
+      .primaryButton(primaryButton)
   }
 
   private fun handleOnrampIdentityVerificationResult(
@@ -757,18 +776,41 @@ class OnrampSdkModule(
   ) {
     when (result) {
       is OnrampCollectPaymentMethodResult.Completed -> {
-        val displayData = Arguments.createMap()
-        val icon =
-          "data:image/png;base64," +
-            getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
-        displayData.putString("icon", icon)
-        displayData.putString("label", result.displayData.label)
-        result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
-        promise.resolve(createResult("displayData", displayData))
+        rnScope.launch {
+          val iconDataUri =
+            try {
+              val base64 =
+                withContext(Dispatchers.Default) {
+                  val drawable =
+                    withTimeout(5_000L) {
+                      withContext(Dispatchers.IO) {
+                        result.displayData.imageLoader()
+                      }
+                    }
+
+                  getBitmapFromDrawable(drawable)?.let { bitmap ->
+                    getBase64FromBitmap(bitmap)
+                  } ?: ""
+                }
+
+              if (base64.isNotEmpty()) "data:image/png;base64,$base64" else ""
+            } catch (_: Exception) {
+              ""
+            }
+
+          val displayData = Arguments.createMap()
+          displayData.putString("icon", iconDataUri)
+          displayData.putString("label", result.displayData.label)
+          result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
+
+          promise.resolve(createResult("displayData", displayData))
+        }
       }
+
       is OnrampCollectPaymentMethodResult.Cancelled -> {
         promise.resolve(createCanceledError("Payment collection was cancelled"))
       }
+
       is OnrampCollectPaymentMethodResult.Failed -> {
         promise.resolve(createFailedError(result.error))
       }
