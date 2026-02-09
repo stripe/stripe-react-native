@@ -610,7 +610,6 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
       const { url, navigationType } = event;
-      console.log('url, navigationType:', url, navigationType);
 
       // Handle CSV export downloads
       if (isCsvExportUrl(url)) {
