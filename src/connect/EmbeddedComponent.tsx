@@ -610,6 +610,22 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
       const { url, navigationType } = event;
+      console.log('url, navigationType:', url, navigationType);
+
+      // Handle CSV export downloads
+      if (isCsvExportUrl(url)) {
+        NativeStripeSdk.downloadAndShareFile(url, null)
+          .then((result) => {
+            if (!result.success) {
+              console.warn('CSV export share failed:', result.error);
+            }
+          })
+          .catch((error) => {
+            handleUnexpectedError(error);
+          });
+        return false; // Block WebView navigation
+      }
+
       if (navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
@@ -687,6 +703,19 @@ function isValidUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
     return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// Detects Stripe CSV export URLs
+function isCsvExportUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (
+      parsedUrl.hostname.includes('stripe-data-exports') ||
+      parsedUrl.pathname.includes('stripe-data-exports')
+    );
   } catch {
     return false;
   }
