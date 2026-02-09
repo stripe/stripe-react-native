@@ -1,18 +1,22 @@
 package com.reactnativestripesdk
 
-import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
+import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerDelegate
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerInterface
+import com.reactnativestripesdk.utils.PaymentMethodMessagingElementAppearanceException
+import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.asMapOrNull
+import com.reactnativestripesdk.utils.getDoubleOrNull
 import com.reactnativestripesdk.utils.getStringList
-import com.stripe.android.crypto.onramp.model.PaymentMethodType
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
@@ -86,5 +90,90 @@ class PaymentMethodMessagingElementViewManager :
 
     return config
   }
+
+  private fun parseAppearance(
+    map: ReadableMap,
+    context: Context
+  ): PaymentMethodMessagingElement.Appearance {
+    val font = map.getMap("font")?.let {
+      parseFont(
+        it,
+        context
+      )
+    }
+
+//    val textColor = dynamicColorFromParams(
+//
+//    )
+    return PaymentMethodMessagingElement.Appearance()
+  }
+
+  private fun parseFont(
+    map: ReadableMap,
+    context: Context
+  ): PaymentMethodMessagingElement.Appearance.Font {
+    val fontMap = map.getMap("font")
+    val fontFamily = getFontResId(
+      fontMap,
+      "family",
+      context,
+    )
+    val scaleFactor = fontMap.getDoubleOrNull("scale") ?: 1.0
+    val textSize: Double = 16 * scaleFactor
+
+
+    val font = PaymentMethodMessagingElement.Appearance.Font()
+      .fontFamily(fontFamily)
+      .fontSizeSp(textSize.toFloat())
+
+    return font
+  }
+
+  /**
+   * Parses a ThemedColor from [params] at [key]. Supports both:
+   * - Single hex string: "#RRGGBB"
+   * - Light/dark object: { "light": "#RRGGBB", "dark": "#RRGGBB" }
+   * For light/dark objects, chooses the appropriate color based on current UI mode.
+   * Returns null if no color is provided.
+   */
+  private fun dynamicColorFromParams(
+    params: ReadableMap?,
+    key: String,
+    theme: PaymentMethodMessagingElement.Appearance.Theme
+  ): Int? {
+    if (params == null) {
+      return null
+    }
+
+    // First check if it's a nested map { "light": "#RRGGBB", "dark": "#RRGGBB" }
+    if (params.hasKey(key) && params.getType(key) == ReadableType.Map) {
+      val colorMap = params.getMap(key)
+      val isDark = theme == PaymentMethodMessagingElement.Appearance.Theme.DARK
+
+      // Pick the hex for current mode, or null
+      val hex = if (isDark) {
+        colorMap?.getString("dark")
+      } else {
+        colorMap?.getString("light")
+      }
+
+      return colorFromHex(hex)
+    }
+
+    // Check if it's a single color string
+    return colorFromHex(params.getString(key))
+  }
+
+  @Throws(PaymentMethodMessagingElementAppearanceException::class)
+  private fun colorFromHex(hexString: String?): Int? =
+    hexString?.trim()?.replace("#", "")?.let {
+      if (it.length == 6 || it.length == 8) {
+        "#$it".toColorInt()
+      } else {
+        throw PaymentMethodMessagingElementAppearanceException(
+          "Failed to set appearance. Expected hex string of length 6 or 8, but received: $it",
+        )
+      }
+    }
 }
 

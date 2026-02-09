@@ -35,6 +35,10 @@ class PaymentMethodMessagingElementView(
     data class Configure(
       val configuration: PaymentMethodMessagingElement.Configuration,
     ) : Event
+
+    data class Appearance(
+      val appearance: PaymentMethodMessagingElement.Appearance
+    ) : Event
   }
 
   var latestElementConfig: PaymentMethodMessagingElement.Configuration? = null
@@ -48,48 +52,45 @@ class PaymentMethodMessagingElementView(
     val messagingElement = remember {
       PaymentMethodMessagingElement.create(context.applicationContext as Application)
     }
+    var appearance = remember { PaymentMethodMessagingElement.Appearance() }
 
     // collect events: configure
     LaunchedEffect(Unit) {
       events.consumeAsFlow().collect { ev ->
         when (ev) {
           is Event.Configure -> {
+            val loadingPayload = Arguments.createMap()
+            loadingPayload.putString("result", "loading")
+            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(loadingPayload)
             val result =
               messagingElement.configure(
                 configuration = ev.configuration,
               )
 
+            val payload = Arguments.createMap()
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
-                val payload =
-                  Arguments.createMap().apply {
-                    putString("result", "success")
-                  }
-                requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
+                payload.putString("result", "loaded")
               }
               is PaymentMethodMessagingElement.ConfigureResult.NoContent -> {
-                val payload =
-                  Arguments.createMap().apply {
-                    putString("result", "no_content")
-                  }
+                payload.putString("result", "no_content")
                 reportHeightChange(0f)
-                requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
               }
               is PaymentMethodMessagingElement.ConfigureResult.Failed -> {
                 // send the error back to JS
                 val err = result.error
                 val msg = err.localizedMessage ?: err.toString()
                 // build a RN map
-                val payload =
-                  Arguments.createMap().apply {
-                    putString("result", "failed")
-                    putString("message", msg)
-                  }
+                payload.putString("result", "failed")
+                payload.putString("message", msg)
                 reportHeightChange(0f)
-                requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
               }
 
             }
+            requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
+          }
+          is Event.Appearance -> {
+            appearance = ev.appearance
           }
         }
       }
@@ -99,7 +100,7 @@ class PaymentMethodMessagingElementView(
       MeasureMessagingElement(
         reportHeightChange = { h -> reportHeightChange(h) },
       ) {
-        messagingElement.Content()
+        messagingElement.Content(appearance)
       }
     }
   }
@@ -161,6 +162,12 @@ class PaymentMethodMessagingElementView(
     config: PaymentMethodMessagingElement.Configuration,
   ) {
     events.trySend(Event.Configure(config))
+  }
+
+  fun appearance(
+    appearance: PaymentMethodMessagingElement.Appearance
+  ) {
+    events.trySend(Event.Appearance(appearance))
   }
 
   private fun requireStripeSdkModule() = requireNotNull(reactContext.getNativeModule(StripeSdkModule::class.java))

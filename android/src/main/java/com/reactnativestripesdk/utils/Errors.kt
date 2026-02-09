@@ -54,6 +54,10 @@ class PaymentSheetAppearanceException(
   message: String,
 ) : Exception(message)
 
+class PaymentMethodMessagingElementAppearanceException(
+  message: String,
+) : Exception(message)
+
 class PaymentSheetException(
   message: String,
 ) : Exception(message)

@@ -86,8 +86,10 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
           ({ result: r }) => {
             let loadResult: PaymentMethodMessagingElementResult;                                                                       
                                                                                                                                       
-            if (r === 'success') {                                                                                                     
-              loadResult = { status: 'succeeded' };                                                                                    
+            if (r === 'loaded') {                                                                                                     
+              loadResult = { status: 'loaded' };  
+            } else if (r === 'loading') {
+              loadResult = { status: 'loading' }                                                                                 
             } else if (r === 'no_content') {                                                                                           
               loadResult = { status: 'no_content' };                                                                                   
             } else {                                                                                                                   

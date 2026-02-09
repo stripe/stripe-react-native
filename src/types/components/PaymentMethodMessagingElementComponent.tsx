@@ -13,15 +13,16 @@ import * as PaymentSheetTypes from '../PaymentSheet';
 
 /**
  * The final result of a configure call.
- * Typically: succeeded, no_content, or failed with error.
+ * Typically: loading, loaded, no_content, or failed with error.
  */
 export type PaymentMethodMessagingElementResult =
-  | { status: 'succeeded' }
+  | { status: 'loading' }
+  | { status: 'loaded' }
   | { status: 'no_content' }
   | { status: 'failed'; error: Error };
 
 /** Style for the images displayed by the element. */
-export enum Style {
+export enum PaymentMethodMessagingElementStyle {
   /** A flat style */
   Flat = 'flat',
   /** A dark style */
@@ -34,11 +35,9 @@ export interface PaymentMethodMessagingElementAppearance {
   /** Font settings for the element. */
   font?: PaymentSheetTypes.FontConfig;
   /** The color used for the element text. */
-  textColor?: string;
-  /** The color used for the info icon. */
-  infoIconColor?: string;
+  textColor?: PaymentSheetTypes.ThemedColor;
   /** The theme of the images displayed by the element. */
-  style?: Style;
+  style?: PaymentMethodMessagingElementStyle;
 }
 
 /**
