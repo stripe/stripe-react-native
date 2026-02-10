@@ -135,11 +135,6 @@ class StripeSdkModule(
                   it,
                 )
                 createPlatformPayPaymentMethodPromise = null
-              } ?: run {
-                Log.d(
-                  "StripeReactNative",
-                  "No promise was found, Google Pay result went unhandled,",
-                )
               }
             }
           }
@@ -1656,18 +1651,9 @@ class StripeSdkModule(
         activity: Activity,
         bundle: Bundle?,
       ) {
-        Log.d(
-          "StripeSdkModule",
-          "[LIFECYCLE] onActivityCreated: ${activity.javaClass.name}, " +
-            "bundle=${if (bundle != null) "present" else "null"}, " +
-            "isRecreatingReactActivity=$isRecreatingReactActivity, " +
-            "isAuthWebViewActive=$isAuthWebViewActive",
-        )
-
         // Only set flag when ReactActivity is actually being recreated (bundle != null)
         // bundle != null means this is a recreation, not first creation
         if (activity is ReactActivity && bundle != null) {
-          Log.d("StripeSdkModule", "[LIFECYCLE] ReactActivity recreated with saved state, setting isRecreatingReactActivity = true")
           isRecreatingReactActivity = true
         }
 
@@ -1675,55 +1661,32 @@ class StripeSdkModule(
         val isStripeActivity = activity.javaClass.name.startsWith("com.stripe.android")
         val shouldFinish = isRecreatingReactActivity && isStripeActivity && !isAuthWebViewActive
 
-        if (isStripeActivity) {
-          Log.d(
-            "StripeSdkModule",
-            "[LIFECYCLE] Stripe activity detected. " +
-              "shouldFinish=$shouldFinish (isRecreatingReactActivity=$isRecreatingReactActivity, " +
-              "isAuthWebViewActive=$isAuthWebViewActive)",
-          )
-        }
-
         if (shouldFinish) {
-          Log.d("StripeSdkModule", "[LIFECYCLE] Finishing Stripe activity: ${activity.javaClass.name}")
           activity.finish()
         }
 
         // Reset flag after finishing Stripe activities
         if (isRecreatingReactActivity && shouldFinish) {
           Handler(Looper.getMainLooper()).post {
-            Log.d("StripeSdkModule", "[LIFECYCLE] Resetting isRecreatingReactActivity = false")
             isRecreatingReactActivity = false
           }
         }
       }
 
-      override fun onActivityStarted(activity: Activity) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityStarted: ${activity.javaClass.name}")
-      }
+      override fun onActivityStarted(activity: Activity) {}
 
-      override fun onActivityResumed(activity: Activity) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityResumed: ${activity.javaClass.name}")
-      }
+      override fun onActivityResumed(activity: Activity) {}
 
-      override fun onActivityPaused(activity: Activity) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityPaused: ${activity.javaClass.name}")
-      }
+      override fun onActivityPaused(activity: Activity) {}
 
-      override fun onActivityStopped(activity: Activity) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityStopped: ${activity.javaClass.name}")
-      }
+      override fun onActivityStopped(activity: Activity) {}
 
       override fun onActivitySaveInstanceState(
         activity: Activity,
         bundle: Bundle,
-      ) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivitySaveInstanceState: ${activity.javaClass.name}")
-      }
+      ) {}
 
-      override fun onActivityDestroyed(activity: Activity) {
-        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityDestroyed: ${activity.javaClass.name}")
-      }
+      override fun onActivityDestroyed(activity: Activity) {}
     }
 
   /**
@@ -1755,5 +1718,8 @@ class StripeSdkModule(
 
     // Read the Stripe Android SDK version from gradle.properties at build time
     private val STRIPE_ANDROID_SDK_VERSION = BuildConfig.STRIPE_ANDROID_SDK_VERSION
+
+    // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
+    private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
   }
 }

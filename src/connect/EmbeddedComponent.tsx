@@ -36,6 +36,12 @@ const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 const sdkVersion = pjson.version;
 
+// Android deep link polling configuration
+// These constants control the polling mechanism that prevents Expo Router from dismissing screens
+const POLLING_INTERVAL_MS = 500; // How often to check for pending deep links
+const URL_DEDUPLICATION_TIMEOUT_MS = 1000; // How long to remember handled URLs
+const DEEP_LINK_GRACE_PERIOD_MS = 500; // Time to wait for deep link after app resumes
+
 // react-native-webview.html will only load versions in the format X.Y.Z
 if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
   throw new Error(
@@ -141,7 +147,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   } | null>(null);
 
   // Store pending authenticated webview promises (for Android Custom Tabs)
-  // Multiple auth webviews can be opened simultaneously, so we need a Map
+  // Uses a Map keyed by auth session ID to support multiple auth flows.
+  // Currently processes promises in FIFO order (first entry resolved first).
   const pendingAuthWebViewPromises = useRef<
     Map<
       string,
@@ -181,12 +188,22 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
-  // Deep link handler for Android auth webview (Custom Tabs redirect)
-  // Uses polling to avoid broadcasting to Expo Router which causes screen dismissal
+  // Android deep link polling mechanism (Android-only)
+  //
+  // PROBLEM: On Android, completing auth in Custom Tabs causes a stripe-connect:// deep link
+  // that gets broadcast to React Native's Linking module, which triggers Expo Router and
+  // dismisses the current screen.
+  //
+  // SOLUTION: This polling mechanism intercepts the deep link before Expo Router receives it:
+  // 1. MainActivity.onNewIntent() captures stripe-connect:// URLs and stores them
+  // 2. This effect polls for pending URLs while auth is active
+  // 3. URLs are processed directly and never broadcast to Expo Router
+  // 4. Deduplication prevents the same URL from being processed twice
+  //
+  // This preserves the navigation stack and prevents unwanted screen dismissals.
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
-    // Poll for pending URLs every 500ms when auth is active
     const pollInterval = setInterval(async () => {
       if (pendingAuthWebViewPromises.current.size === 0) {
         return;
@@ -207,10 +224,10 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               // Mark as handled
               recentlyHandledUrls.current.add(url);
 
-              // Clear from the set after 1 second
+              // Clear from the set after deduplication timeout
               setTimeout(() => {
                 recentlyHandledUrls.current.delete(url);
-              }, 1000);
+              }, URL_DEDUPLICATION_TIMEOUT_MS);
 
               const firstEntry = pendingAuthWebViewPromises.current
                 .entries()
@@ -230,22 +247,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
                 // Reset the Android flag
                 NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
-                  // Silent error - this is not critical
+                  // Intentionally silent - flag reset is not critical
                 });
               }
             }
           });
         }
       } catch (_error) {
-        // Silent error - polling will retry
+        // Intentionally silent - polling will retry on next interval
       }
-    }, 500);
+    }, POLLING_INTERVAL_MS);
 
     return () => {
       clearInterval(pollInterval);
     };
   }, []);
 
+  // Handle app state changes to detect when user returns from auth flow
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
@@ -254,7 +272,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       ) {
         if (pendingAuthWebViewPromises.current.size > 0) {
           // Give the deep link handler time to process the URL
-          // If no deep link arrives within 500ms, assume the user cancelled
+          // If no deep link arrives within the grace period, assume the user cancelled
           pendingAuthWebViewPromises.current.forEach((promiseData, id) => {
             // Only set timeout if one doesn't already exist
             if (!promiseData.timeoutId) {
@@ -264,7 +282,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   pendingAuthWebViewPromises.current.delete(id);
                   stillPending.callback(id, null);
                 }
-              }, 500);
+              }, DEEP_LINK_GRACE_PERIOD_MS);
 
               // Store the timeout ID so we can clear it later if needed
               promiseData.timeoutId = timeoutId;
@@ -682,10 +700,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
             }
           })
           .catch((error) => {
-            console.error(
-              `[EmbeddedComponent] Error opening authenticated webview:`,
-              error
-            );
+            if (__DEV__) {
+              console.error(
+                `[EmbeddedComponent] Error opening authenticated webview:`,
+                error
+              );
+            }
             componentAnalytics.logAuthenticatedWebViewError(
               id,
               error instanceof Error ? error : new Error(String(error))
