@@ -113,7 +113,7 @@ class PaymentMethodMessagingElementViewManager :
     font?.let { appearance.font(font) }
     val colors = PaymentMethodMessagingElement.Appearance.Colors()
     textColor?.let { colors.textColor(it) }
-    // linkTextColor?.let { colors.infoIconColor(linkTextColor) }
+    linkTextColor?.let { colors.infoIconColor(linkTextColor) }
     appearance.colors(colors)
 
     return appearance
