@@ -8,7 +8,7 @@ import React, {
 import { AccessibilityProps, HostComponent, LayoutAnimation, NativeSyntheticEvent, Platform } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
-  PaymentMethodMessagingElementResult,
+  PaymentMethodMessagingElementState,
 } from '../types/components/PaymentMethodMessagingElementComponent';
 import { PaymentMethodMessagingElementConfiguration } from '../types/components/PaymentMethodMessagingElementComponent';
 import NativePaymentMethodMessagingElement, { NativeProps } from '../specs/NativePaymentMethodMessagingElement';
@@ -17,7 +17,7 @@ import { addListener } from '../events';
 export interface Props extends AccessibilityProps {
   appearance?: PaymentMethodMessagingElementAppearance;
   configuration: PaymentMethodMessagingElementConfiguration;
-  onLoadComplete?(event: PaymentMethodMessagingElementResult): void;
+  onLoadComplete?(event: PaymentMethodMessagingElementState): void;
 }
 
 /**
@@ -58,7 +58,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
     const onLoadCompleteHandler = useCallback(
       (
         event: NativeSyntheticEvent<{
-          result: PaymentMethodMessagingElementResult;
+          result: PaymentMethodMessagingElementState;
         }>
       ) => {
         console.log("is this being called?")
@@ -84,7 +84,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         const sub = addListener(
           'paymentMethodMessagingElementConfigureResult',
           ({ result: r }) => {
-            let loadResult: PaymentMethodMessagingElementResult;                                                                       
+            let loadResult: PaymentMethodMessagingElementState;                                                                       
                                                                                                                                       
             if (r === 'loaded') {                                                                                                     
               loadResult = { status: 'loaded' };  

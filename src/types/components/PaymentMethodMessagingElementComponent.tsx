@@ -12,10 +12,9 @@ import * as PaymentSheetTypes from '../PaymentSheet';
 // -----------------------------------------------------------------------------
 
 /**
- * The final result of a configure call.
- * Typically: loading, loaded, no_content, or failed with error.
+ * The current state of the PaymentMethodMessagingElement view. Typically loading, succeeded, no_content, or failed.
  */
-export type PaymentMethodMessagingElementResult =
+export type PaymentMethodMessagingElementState =
   | { status: 'loading' }
   | { status: 'loaded' }
   | { status: 'no_content' }
