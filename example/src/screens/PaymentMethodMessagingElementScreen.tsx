@@ -1,5 +1,6 @@
 import {
-  PaymentMethodMessagingElement
+  PaymentMethodMessagingElement,
+  PaymentMethodMessagingElementStyle
  } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, Dimensions } from 'react-native';
@@ -9,11 +10,11 @@ import PaymentScreen from '../components/PaymentScreen';
 export default function PaymentMethodMessagingElementScreen() {
 
   const [price, setPrice] = useState(1000)
-  const [config, setConfig] = useState({ amount: price, currency: 'usd' })
+  const [config, setConfig] = useState({ amount: price, currency: 'usd', locale: "ko"})
   const [result, setResult] = useState("")
 
   useEffect(() => {
-    setConfig({ amount: price, currency: 'usd' })
+    setConfig({ amount: price, currency: 'usd', locale: "ko"})
   }, [price])
 
   return (
@@ -28,6 +29,10 @@ export default function PaymentMethodMessagingElementScreen() {
           setResult(e.status)
         }
         }
+        appearance={{
+          style: PaymentMethodMessagingElementStyle.Flat,
+          textColor: '#FFF245',
+        }}
       />
       <Button
         variant="primary"

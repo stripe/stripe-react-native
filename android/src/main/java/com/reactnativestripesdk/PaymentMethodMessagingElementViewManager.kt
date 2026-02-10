@@ -46,11 +46,18 @@ class PaymentMethodMessagingElementViewManager :
   }
 
   override fun needsCustomLayoutForChildren(): Boolean = true
+  @ReactProp(name = "appearance")
   override fun setAppearance(
     view: PaymentMethodMessagingElementView?,
     value: Dynamic?
   ) {
     //TODO("Not yet implemented")
+    println("YEET setAppearance being called?")
+    val readableMap = value?.asMapOrNull() ?: return
+    view?.let {
+      val appearance = parseAppearance(readableMap, view.context)
+      view.appearance(appearance)
+    }
   }
 
   @ReactProp(name = "configuration")
@@ -102,10 +109,18 @@ class PaymentMethodMessagingElementViewManager :
       )
     }
 
-//    val textColor = dynamicColorFromParams(
-//
-//    )
-    return PaymentMethodMessagingElement.Appearance()
+    val theme = getTheme(map)
+    val textColor = dynamicColorFromParams(map, "textColor", theme)
+    val linkTextColor = dynamicColorFromParams(map, "linkTextColor", theme)
+    val appearance = PaymentMethodMessagingElement.Appearance()
+    appearance.theme(theme)
+    font?.let { appearance.font(font) }
+    val colors = PaymentMethodMessagingElement.Appearance.Colors()
+    textColor?.let { colors.textColor(it) }
+    linkTextColor?.let { colors.infoIconColor(linkTextColor) }
+    appearance.colors(colors)
+
+    return appearance
   }
 
   private fun parseFont(
@@ -127,6 +142,15 @@ class PaymentMethodMessagingElementViewManager :
       .fontSizeSp(textSize.toFloat())
 
     return font
+  }
+
+  private fun getTheme(map: ReadableMap): PaymentMethodMessagingElement.Appearance.Theme {
+    val style = map.getString("style")
+    return when(style) {
+      "dark" -> PaymentMethodMessagingElement.Appearance.Theme.DARK
+      "flat" -> PaymentMethodMessagingElement.Appearance.Theme.FLAT
+      else -> PaymentMethodMessagingElement.Appearance.Theme.LIGHT
+    }
   }
 
   /**

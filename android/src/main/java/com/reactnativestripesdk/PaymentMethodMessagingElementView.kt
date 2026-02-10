@@ -52,9 +52,9 @@ class PaymentMethodMessagingElementView(
     val messagingElement = remember {
       PaymentMethodMessagingElement.create(context.applicationContext as Application)
     }
-    var appearance = remember { PaymentMethodMessagingElement.Appearance() }
+    var appearance by remember { mutableStateOf(PaymentMethodMessagingElement.Appearance()) }
 
-    // collect events: configure
+    // collect events: configure, appearance
     LaunchedEffect(Unit) {
       events.consumeAsFlow().collect { ev ->
         when (ev) {
@@ -116,7 +116,7 @@ class PaymentMethodMessagingElementView(
     Box(
       Modifier
         // Clamp the host Android view height; drive it in Dp
-        .requiredHeight(heightDp)
+        //.requiredHeight(heightDp)
         // Post-layout: convert px -> dp, update RN & our dp state
         .onSizeChanged { size ->
           val h = with(density) { size.height.toDp() }

@@ -36,6 +36,8 @@ export interface PaymentMethodMessagingElementAppearance {
   font?: PaymentSheetTypes.FontConfig;
   /** The color used for the element text. */
   textColor?: PaymentSheetTypes.ThemedColor;
+  /** The color used for the text that links to available BNPL plans. */
+  linkTextColor?: PaymentSheetTypes.ThemedColor;
   /** The theme of the images displayed by the element. */
   style?: PaymentMethodMessagingElementStyle;
 }

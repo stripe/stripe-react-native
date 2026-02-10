@@ -1,6 +1,6 @@
 
 import Foundation
-@_spi(PaymentMethodMessagingElementPreview) import StripePaymentSheet
+@_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
 import UIKit
 
 @objc(PaymentMethodMessagingElementView)
@@ -19,11 +19,26 @@ class PaymentMethodMessagingElementView: RCTViewManager {
 public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecognizerDelegate {
     private var paymentMethodMessagingElementView: UIView?
     private var messagingInstance: PaymentMethodMessagingElement?
+    private var appearanceConfig: PaymentMethodMessagingElement.Appearance?
+    private var lastConfig: NSDictionary?
+
+    @objc var appearance: NSDictionary? {
+        didSet {
+            if let appearance = appearance {
+                print("Appearance received:", appearance)
+                appearanceConfig = parseAppearance(params: appearance)
+                // Re-initialize if configuration already exists
+                if let config = lastConfig {
+                    initMessagingElement(config: config)
+                }
+            }
+        }
+    }
 
     @objc var configuration: NSDictionary? {
         didSet {
             if let configuration = configuration {
-                print("Configuration received:", configuration)
+                lastConfig = configuration
                 initMessagingElement(config: configuration)
             }
         }
@@ -57,8 +72,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     }
 
     private func attachPaymentElementIfAvailable() {
-        // remove previous view
-        //removePaymentMethodMessagingElement()
+        removePaymentMethodMessagingElement()
         guard let messagingElement = messagingInstance else {
             return
         }
@@ -81,36 +95,150 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         paymentMethodMessagingElementView?.removeFromSuperview()
         paymentMethodMessagingElementView = nil
     }
-    
+
+    private func parseAppearance(params: NSDictionary) -> PaymentMethodMessagingElement.Appearance {
+        var appearance = PaymentMethodMessagingElement.Appearance()
+
+        // Parse theme/style
+        if let styleString = params["style"] as? String {
+            switch styleString {
+            case "dark":
+                appearance.style = .alwaysDark
+            case "flat":
+                appearance.style = .flat
+            case "light":
+                appearance.style = .alwaysLight
+            default:
+                appearance.style = .automatic
+            }
+        }
+
+        // Parse font
+        if let fontParams = params["font"] as? NSDictionary {
+            if let fontFamily = fontParams["family"] as? String,
+               let customFont = UIFont(name: fontFamily, size: UIFont.systemFontSize) {
+                appearance.font = customFont
+            }
+            // Note: Scale factor is handled differently in iOS - typically through font size
+            if let scale = fontParams["scale"] as? CGFloat {
+                appearance.font.withSize(UIFont.systemFontSize * scale)
+            }
+        }
+
+        // Parse colors
+        if let textColorHex = parseThemedColor(params: params, key: "textColor") {
+            appearance.textColor = textColorHex
+        }
+
+        if let linkTextColorHex = parseThemedColor(params: params, key: "linkTextColor") {
+            appearance.infoIconColor = linkTextColorHex
+        }
+
+        return appearance
+    }
+
+    private func parseThemedColor(params: NSDictionary, key: String) -> UIColor? {
+        // Check if it's a dictionary with light/dark keys
+        if let colorDict = params[key] as? [String: String] {
+            let lightHex = colorDict["light"]
+            let darkHex = colorDict["dark"]
+
+            if let light = lightHex, let dark = darkHex {
+                if #available(iOS 13.0, *) {
+                    return UIColor { traitCollection in
+                        return traitCollection.userInterfaceStyle == .dark
+                            ? UIColor(hexString: dark)
+                            : UIColor(hexString: light)
+                    }
+                } else {
+                    return UIColor(hexString: light)
+                }
+            }
+        }
+
+        // Check if it's a plain string
+        if let colorString = params[key] as? String {
+            return UIColor(hexString: colorString)
+        }
+
+        return nil
+    }
 
     private func buildPaymentMethodMessagingElementConfiguration(
         params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
-        
-        let amount = params["amount"] as? Int ?? 0
-        
-        let configuration = PaymentMethodMessagingElement.Configuration(
-            amount: amount, currency: "usd"
+
+        // Parse required parameters
+        guard let amount = params["amount"] as? Int else {
+            let error: NSDictionary = [
+                "code": "InvalidConfiguration",
+                "message": "amount is required"
+            ]
+            return (error, nil)
+        }
+
+        guard let currency = params["currency"] as? String else {
+            let error: NSDictionary = [
+                "code": "InvalidConfiguration",
+                "message": "currency is required"
+            ]
+            return (error, nil)
+        }
+
+        // Parse optional parameters
+        let locale = params["locale"] as? String
+        let country = params["country"] as? String
+
+        var paymentMethodTypes: [STPPaymentMethodType]? = nil
+        if let paymentMethodTypesArray = params["paymentMethodTypes"] as? [String] {
+            paymentMethodTypes = paymentMethodTypesArray.map {
+                STPPaymentMethodType.fromIdentifier($0)
+            }
+        }
+
+        var configuration = PaymentMethodMessagingElement.Configuration(
+            amount: amount,
+            currency: currency,
+            locale: locale,
+            countryCode: country,
+            paymentMethodTypes: paymentMethodTypes,
         )
-        
+
+        // Apply appearance if available
+        if let appearance = appearanceConfig {
+            configuration.appearance = appearance
+        }
+
         return (nil, configuration)
     }
     
     private func initMessagingElement(config: NSDictionary) {
-        guard let configuration = buildPaymentMethodMessagingElementConfiguration(params: config).configuration else {
+        let configResult = buildPaymentMethodMessagingElementConfiguration(params: config)
+
+        if let error = configResult.error {
+            print("Configuration error:", error)
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult([
+                "result": "failed",
+                "error": error
+            ])
             return
         }
-        
+
+        guard let configuration = configResult.configuration else {
+            return
+        }
+
         var result: String?
         var height: CGFloat? = 0
-        
+
         Task {
             do {
+                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["result": "loading"])
                 switch await PaymentMethodMessagingElement.create(configuration: configuration) {
                 case .success(let paymentMethodMessagingElement):
                     self.messagingInstance = paymentMethodMessagingElement
                     height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-                    result = "success"
+                    result = "loaded"
                 case .noContent:
                     result = "no_content"
                     self.messagingInstance = nil

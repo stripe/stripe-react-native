@@ -107,7 +107,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
 
     return (
       <NativePaymentMethodMessagingElement
-        key={configuration.amount}
+        //key={configuration.amount}
         appearance={appearance}
         style={[{width: '100%', height: height}]}
         configuration={configuration}
