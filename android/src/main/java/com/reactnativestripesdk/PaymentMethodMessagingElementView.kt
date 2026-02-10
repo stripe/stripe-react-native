@@ -21,13 +21,12 @@ import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
 import com.stripe.android.model.PaymentMethod
-import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 
-@OptIn(ExperimentalCustomPaymentMethodsApi::class, PaymentMethodMessagingElementPreview::class)
+@OptIn(PaymentMethodMessagingElementPreview::class)
 class PaymentMethodMessagingElementView(
   context: Context,
 ) : StripeAbstractComposeView(context) {

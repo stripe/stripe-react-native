@@ -1,7 +1,6 @@
 package com.reactnativestripesdk
 
 import android.content.Context
-import android.content.res.Configuration
 import androidx.core.graphics.toColorInt
 import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.ReadableMap
@@ -13,7 +12,6 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerDelegate
 import com.facebook.react.viewmanagers.PaymentMethodMessagingElementViewManagerInterface
 import com.reactnativestripesdk.utils.PaymentMethodMessagingElementAppearanceException
-import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
 import com.reactnativestripesdk.utils.asMapOrNull
 import com.reactnativestripesdk.utils.getDoubleOrNull
 import com.reactnativestripesdk.utils.getStringList
@@ -115,7 +113,7 @@ class PaymentMethodMessagingElementViewManager :
     font?.let { appearance.font(font) }
     val colors = PaymentMethodMessagingElement.Appearance.Colors()
     textColor?.let { colors.textColor(it) }
-    linkTextColor?.let { colors.infoIconColor(linkTextColor) }
+    //linkTextColor?.let { colors.infoIconColor(linkTextColor) }
     appearance.colors(colors)
 
     return appearance
