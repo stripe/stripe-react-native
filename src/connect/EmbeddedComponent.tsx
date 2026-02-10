@@ -229,20 +229,15 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                 promiseData.callback(id, url);
 
                 // Reset the Android flag
-                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(
-                  (error) => {
-                    console.error(
-                      '[EmbeddedComponent] Error resetting auth webview flag:',
-                      error
-                    );
-                  }
-                );
+                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
+                  // Silent error - this is not critical
+                });
               }
             }
           });
         }
-      } catch (error) {
-        console.error('[EmbeddedComponent] Error polling for URLs:', error);
+      } catch (_error) {
+        // Silent error - polling will retry
       }
     }, 500);
 

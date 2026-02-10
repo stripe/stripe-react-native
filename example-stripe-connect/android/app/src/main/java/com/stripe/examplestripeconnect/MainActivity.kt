@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -23,7 +22,6 @@ class MainActivity : ReactActivity() {
     @JvmStatic
     fun storePendingUrl(url: String) {
       synchronized(urlsLock) {
-        Log.d("MainActivity", "[DEEP_LINK] Storing URL in static storage: $url")
         pendingUrls.add(url)
       }
     }
@@ -76,11 +74,8 @@ class MainActivity : ReactActivity() {
   override fun onNewIntent(intent: Intent) {
     val uri: Uri? = intent.data
     if (uri != null && uri.scheme == "stripe-connect") {
-      val fullUrl = uri.toString()
-      Log.d("MainActivity", "[DEEP_LINK] Intercepting stripe-connect URL: $fullUrl")
-
       // Store in static storage (doesn't require ReactContext)
-      storePendingUrl(fullUrl)
+      storePendingUrl(uri.toString())
 
       // CRITICAL: Do NOT call super.onNewIntent() for stripe-connect URLs
       // This prevents React Native's Linking module from broadcasting to Expo Router
