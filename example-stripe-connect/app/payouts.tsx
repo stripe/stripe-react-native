@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -10,6 +10,14 @@ export default function PayoutsScreen() {
   const router = useRouter();
   const { viewControllerSettings } = useSettings();
   const textColor = useAppearanceTextColor();
+
+  // Debug logging to track screen lifecycle
+  useEffect(() => {
+    console.log('[PayoutsScreen] Mounted');
+    return () => {
+      console.log('[PayoutsScreen] Unmounted');
+    };
+  }, []);
 
   const isModal = viewControllerSettings.presentationType === 'present_modally';
   const showHeader = viewControllerSettings.embedInNavigationBar;

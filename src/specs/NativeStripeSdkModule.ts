@@ -214,6 +214,10 @@ export interface Spec extends TurboModule {
     url: string,
     filename?: string | null
   ): Promise<{ success: boolean; error?: string }>;
+  authWebViewDeepLinkHandled(id: string): Promise<void>;
+
+  storeStripeConnectDeepLink(url: string): Promise<void>;
+  pollPendingStripeConnectUrls(): Promise<string[]>;
 
   // Events
   addListener: (eventType: string) => void;

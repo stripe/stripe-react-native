@@ -140,17 +140,27 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     WebView: typeof WebView | null;
   } | null>(null);
 
-  // Store pending authenticated webview promise (for Android Custom Tabs)
-  const pendingAuthWebViewPromise = useRef<{
-    id: string;
-    callback: (id: string, url: string | null) => void;
-  } | null>(null);
+  // Store pending authenticated webview promises (for Android Custom Tabs)
+  // Multiple auth webviews can be opened simultaneously, so we need a Map
+  const pendingAuthWebViewPromises = useRef<
+    Map<
+      string,
+      {
+        callback: (id: string, url: string | null) => void;
+        timeoutId?: NodeJS.Timeout;
+      }
+    >
+  >(new Map());
 
   // Store pending Financial Connections promise
   const pendingFinancialConnectionsPromise = useRef<{
     id: string;
     cleanup: () => void;
   } | null>(null);
+
+  // Track recently handled URLs to prevent duplicate processing
+  // This is needed because the SDK uses dual delivery paths (setIntent + direct emit)
+  const recentlyHandledUrls = useRef<Set<string>>(new Set());
 
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
@@ -171,16 +181,100 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
+  // Deep link handler for Android auth webview (Custom Tabs redirect)
+  // Uses polling to avoid broadcasting to Expo Router which causes screen dismissal
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    // Poll for pending URLs every 500ms when auth is active
+    const pollInterval = setInterval(async () => {
+      if (pendingAuthWebViewPromises.current.size === 0) {
+        return;
+      }
+
+      try {
+        const pendingUrls =
+          await NativeStripeSdk.pollPendingStripeConnectUrls();
+
+        if (pendingUrls && pendingUrls.length > 0) {
+          pendingUrls.forEach((url: string) => {
+            if (url.startsWith('stripe-connect://')) {
+              // Deduplication: Skip if we've handled this exact URL
+              if (recentlyHandledUrls.current.has(url)) {
+                return;
+              }
+
+              // Mark as handled
+              recentlyHandledUrls.current.add(url);
+
+              // Clear from the set after 1 second
+              setTimeout(() => {
+                recentlyHandledUrls.current.delete(url);
+              }, 1000);
+
+              const firstEntry = pendingAuthWebViewPromises.current
+                .entries()
+                .next().value;
+
+              if (firstEntry) {
+                const [id, promiseData] = firstEntry;
+
+                // Clear the timeout if it exists
+                if (promiseData.timeoutId) {
+                  clearTimeout(promiseData.timeoutId);
+                }
+
+                // Remove from Map and invoke callback
+                pendingAuthWebViewPromises.current.delete(id);
+                promiseData.callback(id, url);
+
+                // Reset the Android flag
+                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(
+                  (error) => {
+                    console.error(
+                      '[EmbeddedComponent] Error resetting auth webview flag:',
+                      error
+                    );
+                  }
+                );
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error('[EmbeddedComponent] Error polling for URLs:', error);
+      }
+    }, 500);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, []);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        if (pendingAuthWebViewPromise.current) {
-          const { id, callback } = pendingAuthWebViewPromise.current;
-          pendingAuthWebViewPromise.current = null;
-          callback(id, null);
+        if (pendingAuthWebViewPromises.current.size > 0) {
+          // Give the deep link handler time to process the URL
+          // If no deep link arrives within 500ms, assume the user cancelled
+          pendingAuthWebViewPromises.current.forEach((promiseData, id) => {
+            // Only set timeout if one doesn't already exist
+            if (!promiseData.timeoutId) {
+              const timeoutId = setTimeout(() => {
+                const stillPending = pendingAuthWebViewPromises.current.get(id);
+                if (stillPending) {
+                  pendingAuthWebViewPromises.current.delete(id);
+                  stillPending.callback(id, null);
+                }
+              }, 500);
+
+              // Store the timeout ID so we can clear it later if needed
+              promiseData.timeoutId = timeoutId;
+            }
+          });
         }
       }
 
@@ -188,7 +282,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
 
     return () => {
-      pendingAuthWebViewPromise.current = null;
+      // Clear all pending timeouts and promises
+      // We intentionally want the latest ref value at cleanup time
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const promises = pendingAuthWebViewPromises.current;
+      promises.forEach((promiseData, _id) => {
+        if (promiseData.timeoutId) {
+          clearTimeout(promiseData.timeoutId);
+        }
+      });
+      promises.clear();
       pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
@@ -568,9 +671,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               }
               handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise to be resolved by deep link listener
-              pendingAuthWebViewPromise.current = {
-                id,
+              // Android: Store promise in Map to be resolved by deep link listener
+              pendingAuthWebViewPromises.current.set(id, {
                 callback: (authId: string, resultUrl: string | null) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
@@ -581,10 +683,14 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   }
                   handleAuthWebViewResult(authId, resultUrl);
                 },
-              };
+              });
             }
           })
           .catch((error) => {
+            console.error(
+              `[EmbeddedComponent] Error opening authenticated webview:`,
+              error
+            );
             componentAnalytics.logAuthenticatedWebViewError(
               id,
               error instanceof Error ? error : new Error(String(error))

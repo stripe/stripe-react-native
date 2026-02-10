@@ -1,0 +1,112 @@
+package com.stripe.examplestripeconnect
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
+import com.facebook.react.defaults.DefaultReactActivityDelegate
+
+import expo.modules.ReactActivityDelegateWrapper
+
+class MainActivity : ReactActivity() {
+  companion object {
+    // Static storage for pending stripe-connect:// URLs
+    // This allows storing URLs even before ReactContext is available
+    private val pendingUrls = mutableListOf<String>()
+    private val urlsLock = Any()
+
+    @JvmStatic
+    fun storePendingUrl(url: String) {
+      synchronized(urlsLock) {
+        Log.d("MainActivity", "[DEEP_LINK] Storing URL in static storage: $url")
+        pendingUrls.add(url)
+      }
+    }
+
+    @JvmStatic
+    fun getPendingUrls(): List<String> {
+      synchronized(urlsLock) {
+        val urls = pendingUrls.toList()
+        pendingUrls.clear()
+        return urls
+      }
+    }
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    // Set the theme to AppTheme BEFORE onCreate to support
+    // coloring the background, status bar, and navigation bar.
+    // This is required for expo-splash-screen.
+    setTheme(R.style.AppTheme);
+    super.onCreate(null)
+  }
+
+  /**
+   * Returns the name of the main component registered from JavaScript. This is used to schedule
+   * rendering of the component.
+   */
+  override fun getMainComponentName(): String = "main"
+
+  /**
+   * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
+   * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
+   */
+  override fun createReactActivityDelegate(): ReactActivityDelegate {
+    return ReactActivityDelegateWrapper(
+          this,
+          BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          object : DefaultReactActivityDelegate(
+              this,
+              mainComponentName,
+              fabricEnabled
+          ){})
+  }
+
+  /**
+   * Intercept stripe-connect:// deep links and store them in the SDK
+   * WITHOUT broadcasting to React Native's Linking module.
+   *
+   * This prevents Expo Router from receiving the URL and dismissing the screen.
+   */
+  override fun onNewIntent(intent: Intent) {
+    val uri: Uri? = intent.data
+    if (uri != null && uri.scheme == "stripe-connect") {
+      val fullUrl = uri.toString()
+      Log.d("MainActivity", "[DEEP_LINK] Intercepting stripe-connect URL: $fullUrl")
+
+      // Store in static storage (doesn't require ReactContext)
+      storePendingUrl(fullUrl)
+
+      // CRITICAL: Do NOT call super.onNewIntent() for stripe-connect URLs
+      // This prevents React Native's Linking module from broadcasting to Expo Router
+      return
+    }
+
+    // For all other URLs, use normal handling
+    super.onNewIntent(intent)
+  }
+
+  /**
+    * Align the back button behavior with Android S
+    * where moving root activities to background instead of finishing activities.
+    * @see <a href="https://developer.android.com/reference/android/app/Activity#onBackPressed()">onBackPressed</a>
+    */
+  override fun invokeDefaultOnBackPressed() {
+      if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+          if (!moveTaskToBack(false)) {
+              // For non-root activities, use the default implementation to finish them.
+              super.invokeDefaultOnBackPressed()
+          }
+          return
+      }
+
+      // Use the default back button implementation on Android S
+      // because it's doing more than [Activity.moveTaskToBack] in fact.
+      super.invokeDefaultOnBackPressed()
+  }
+}

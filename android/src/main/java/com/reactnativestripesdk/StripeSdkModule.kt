@@ -5,9 +5,12 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
@@ -105,6 +108,10 @@ class StripeSdkModule(
   internal var paymentSheetConfirmationTokenCreationCallback = CompletableDeferred<ReadableMap>()
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
+
+  // Storage for pending stripe-connect:// deep link URLs to prevent Expo Router from receiving them
+  private val pendingStripeConnectUrls = mutableListOf<String>()
+  private val pendingUrlsLock = Any()
 
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
@@ -1371,11 +1378,12 @@ class StripeSdkModule(
     url: String,
     promise: Promise,
   ) {
+    isAuthWebViewActive = true
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
 
     UiThreadUtil.runOnUiThread {
       try {
-        val uri = android.net.Uri.parse(url)
+        val uri = url.toUri()
         val builder =
           androidx.browser.customtabs.CustomTabsIntent
             .Builder()
@@ -1386,13 +1394,26 @@ class StripeSdkModule(
 
         val customTabsIntent = builder.build()
 
+        // NOTE: We intentionally do NOT use FLAG_ACTIVITY_NO_HISTORY here.
+        // That flag can cause React Native's state restoration to fail when returning from Custom Tabs,
+        // resulting in the navigation stack being reset and the previous screen being dismissed.
+        // Custom Tabs will be properly cleaned up when the user navigates back or the session completes.
+
         // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
         // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
         // The React Native Linking module will capture the deep link and pass it back to the JS layer.
         customTabsIntent.launchUrl(activity, uri)
 
+        // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
+        Handler(Looper.getMainLooper()).postDelayed({
+          if (isAuthWebViewActive) {
+            isAuthWebViewActive = false
+          }
+        }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
+
         promise.resolve(null)
       } catch (e: Exception) {
+        isAuthWebViewActive = false
         promise.resolve(createError("Failed", e))
       }
     }
@@ -1509,6 +1530,70 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun authWebViewDeepLinkHandled(
+    id: String,
+    promise: Promise,
+  ) {
+    isAuthWebViewActive = false
+    promise.resolve(null)
+  }
+
+  /**
+   * Store a stripe-connect:// deep link URL for later retrieval.
+   * This prevents the URL from being broadcast to Expo Router.
+   */
+  @ReactMethod
+  override fun storeStripeConnectDeepLink(
+    url: String,
+    promise: Promise,
+  ) {
+    synchronized(pendingUrlsLock) {
+      pendingStripeConnectUrls.add(url)
+    }
+    promise.resolve(null)
+  }
+
+  /**
+   * Poll for pending stripe-connect:// deep link URLs.
+   * Returns all pending URLs and clears the queue.
+   * Also checks MainActivity's static storage for URLs received before ReactContext was available.
+   */
+  @ReactMethod
+  override fun pollPendingStripeConnectUrls(promise: Promise) {
+    synchronized(pendingUrlsLock) {
+      val urlsArray = Arguments.createArray()
+
+      // First, add URLs from our own storage
+      pendingStripeConnectUrls.forEach { url ->
+        urlsArray.pushString(url)
+      }
+      pendingStripeConnectUrls.clear()
+
+      // Also check MainActivity's static storage for early-arriving URLs
+      // NOTE: This uses reflection because:
+      // 1. This is example-app-specific code (MainActivity.kt in example-stripe-connect/)
+      // 2. The SDK cannot directly depend on the example app's MainActivity
+      // 3. User applications should implement their own MainActivity pattern if needed
+      // 4. If the class doesn't exist, this gracefully falls back (expected in user apps)
+      try {
+        val mainActivityClass = Class.forName("com.stripe.examplestripeconnect.MainActivity")
+        val getPendingUrlsMethod = mainActivityClass.getMethod("getPendingUrls")
+
+        @Suppress("UNCHECKED_CAST")
+        val mainActivityUrls = getPendingUrlsMethod.invoke(null) as? List<String>
+        mainActivityUrls?.forEach { url ->
+          urlsArray.pushString(url)
+        }
+      } catch (e: Exception) {
+        // MainActivity might not exist or have this method - that's okay
+        // This is expected in projects that don't use our MainActivity implementation
+      }
+
+      promise.resolve(urlsArray)
+    }
+  }
+
   override fun addListener(eventType: String?) {
     // noop, iOS only
   }
@@ -1564,39 +1649,80 @@ class StripeSdkModule(
   }
 
   private var isRecreatingReactActivity = false
+  private var isAuthWebViewActive = false
   private val activityLifecycleCallbacks =
     object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(
         activity: Activity,
         bundle: Bundle?,
       ) {
-        if (activity is ReactActivity) {
+        Log.d(
+          "StripeSdkModule",
+          "[LIFECYCLE] onActivityCreated: ${activity.javaClass.name}, " +
+            "bundle=${if (bundle != null) "present" else "null"}, " +
+            "isRecreatingReactActivity=$isRecreatingReactActivity, " +
+            "isAuthWebViewActive=$isAuthWebViewActive",
+        )
+
+        // Only set flag when ReactActivity is actually being recreated (bundle != null)
+        // bundle != null means this is a recreation, not first creation
+        if (activity is ReactActivity && bundle != null) {
+          Log.d("StripeSdkModule", "[LIFECYCLE] ReactActivity recreated with saved state, setting isRecreatingReactActivity = true")
           isRecreatingReactActivity = true
         }
-        if (isRecreatingReactActivity && activity.javaClass.name.startsWith("com.stripe.android")) {
+
+        // Don't finish Stripe activities during auth webview flow to prevent dismissing the previous screen
+        val isStripeActivity = activity.javaClass.name.startsWith("com.stripe.android")
+        val shouldFinish = isRecreatingReactActivity && isStripeActivity && !isAuthWebViewActive
+
+        if (isStripeActivity) {
+          Log.d(
+            "StripeSdkModule",
+            "[LIFECYCLE] Stripe activity detected. " +
+              "shouldFinish=$shouldFinish (isRecreatingReactActivity=$isRecreatingReactActivity, " +
+              "isAuthWebViewActive=$isAuthWebViewActive)",
+          )
+        }
+
+        if (shouldFinish) {
+          Log.d("StripeSdkModule", "[LIFECYCLE] Finishing Stripe activity: ${activity.javaClass.name}")
           activity.finish()
+        }
+
+        // Reset flag after finishing Stripe activities
+        if (isRecreatingReactActivity && shouldFinish) {
+          Handler(Looper.getMainLooper()).post {
+            Log.d("StripeSdkModule", "[LIFECYCLE] Resetting isRecreatingReactActivity = false")
+            isRecreatingReactActivity = false
+          }
         }
       }
 
       override fun onActivityStarted(activity: Activity) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityStarted: ${activity.javaClass.name}")
       }
 
       override fun onActivityResumed(activity: Activity) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityResumed: ${activity.javaClass.name}")
       }
 
       override fun onActivityPaused(activity: Activity) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityPaused: ${activity.javaClass.name}")
       }
 
       override fun onActivityStopped(activity: Activity) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityStopped: ${activity.javaClass.name}")
       }
 
       override fun onActivitySaveInstanceState(
         activity: Activity,
         bundle: Bundle,
       ) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivitySaveInstanceState: ${activity.javaClass.name}")
       }
 
       override fun onActivityDestroyed(activity: Activity) {
+        Log.d("StripeSdkModule", "[LIFECYCLE] onActivityDestroyed: ${activity.javaClass.name}")
       }
     }
 
