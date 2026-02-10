@@ -3,18 +3,18 @@ import {
   PaymentMethodMessagingElementStyle
  } from '@stripe/stripe-react-native';
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, Dimensions } from 'react-native';
+import { Text, View, StyleSheet, Dimensions, Platform } from 'react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 
 export default function PaymentMethodMessagingElementScreen() {
 
   const [price, setPrice] = useState(1000)
-  const [config, setConfig] = useState({ amount: price, currency: 'usd', locale: "ko"})
+  const [config, setConfig] = useState({ amount: price, currency: 'usd'})
   const [result, setResult] = useState("")
 
   useEffect(() => {
-    setConfig({ amount: price, currency: 'usd', locale: "ko"})
+    setConfig({ amount: price, currency: 'usd'})
   }, [price])
 
   return (
@@ -31,7 +31,7 @@ export default function PaymentMethodMessagingElementScreen() {
         }
         appearance={{
           style: PaymentMethodMessagingElementStyle.Flat,
-          textColor: '#FFF245',
+          textColor: '#FFF245'
         }}
       />
       <Button

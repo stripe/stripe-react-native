@@ -115,13 +115,10 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
 
         // Parse font
         if let fontParams = params["font"] as? NSDictionary {
+            let scale = fontParams["scale"] as? CGFloat ?? 1
             if let fontFamily = fontParams["family"] as? String,
-               let customFont = UIFont(name: fontFamily, size: UIFont.systemFontSize) {
+               let customFont = UIFont(name: fontFamily, size: UIFont.systemFontSize * scale) {
                 appearance.font = customFont
-            }
-            // Note: Scale factor is handled differently in iOS - typically through font size
-            if let scale = fontParams["scale"] as? CGFloat {
-                appearance.font.withSize(UIFont.systemFontSize * scale)
             }
         }
 
@@ -133,6 +130,8 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         if let linkTextColorHex = parseThemedColor(params: params, key: "linkTextColor") {
             appearance.infoIconColor = linkTextColorHex
         }
+        
+        print(appearance.font)
 
         return appearance
     }

@@ -31,7 +31,7 @@ export interface Props extends AccessibilityProps {
  *      textColor: '#FFFFFF',
  *      infoIconColor: '#CCCCCC',
  *      font: {
- *        size: 14,
+ *        family: 14,
  *      },
  *    }}
  *    configuration={{
