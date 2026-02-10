@@ -15,7 +15,18 @@ import expo.modules.ReactActivityDelegateWrapper
 class MainActivity : ReactActivity() {
   companion object {
     // Static storage for pending stripe-connect:// URLs
-    // This allows storing URLs even before ReactContext is available
+    //
+    // WHY STATIC: Deep links can arrive very early in the app lifecycle, before
+    // ReactContext is available. Static storage persists across Activity recreation
+    // and is accessible even when the React Native bridge isn't ready yet.
+    //
+    // THREAD SAFETY: Uses synchronized block with urlsLock to ensure thread-safe
+    // access from multiple sources (main thread, React Native bridge thread).
+    //
+    // ALTERNATIVE APPROACHES:
+    // - SharedPreferences: Overkill for transient deep link storage
+    // - Singleton manager: Similar complexity without benefit
+    // - ReactContext storage: Not available early enough in lifecycle
     private val pendingUrls = mutableListOf<String>()
     private val urlsLock = Any()
 
