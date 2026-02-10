@@ -25,7 +25,6 @@
     @"embeddedPaymentElementLoadingFailed",
     @"onCustomPaymentMethodConfirmHandlerCallback",
     @"onCheckoutClientSecretRequested",
-    @"onCheckoutClientSecretRequested",
     @"paymentMethodMessagingElementDidUpdateHeight",
     @"paymentMethodMessagingElementConfigureResult",
   ];
