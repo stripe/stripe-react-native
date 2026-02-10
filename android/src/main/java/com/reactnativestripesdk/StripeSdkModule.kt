@@ -1458,7 +1458,7 @@ class StripeSdkModule(
     file: java.io.File,
     promise: Promise,
   ) {
-    val activity = currentActivity
+    val activity = reactApplicationContext.getCurrentActivity()
     if (activity == null) {
       promise.resolve(
         Arguments.createMap().apply {

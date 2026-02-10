@@ -1949,8 +1949,6 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
 
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let self = self else { return }
-
             if let error = error {
                 resolve(["success": false, "error": "NetworkError", "message": error.localizedDescription])
                 return
@@ -1965,20 +1963,23 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let tempDir = FileManager.default.temporaryDirectory
             let fileName = filename ?? "export.csv"
             let fileURL = tempDir
-                .appendingPathComponent("stripe-export-\(UUID().uuidString)")
+                .appendingPathComponent(fileName.replacingOccurrences(of: " ", with: "-"))
+                .deletingPathExtension()
                 .appendingPathExtension("csv")
 
             do {
                 try data.write(to: fileURL)
 
                 // Present share sheet on main thread
-                DispatchQueue.main.async {
-                    self.presentShareSheet(fileURL: fileURL) { success in
-                        // Cleanup
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            try? FileManager.default.removeItem(at: fileURL)
-                        }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else {
+                        // Avoid leaving temp files behind if module is gone
+                        try? FileManager.default.removeItem(at: fileURL)
+                        resolve(["success": false, "error": "ModuleDeallocated"])
+                        return
+                    }
 
+                    self.presentShareSheet(fileURL: fileURL) { success in
                         resolve([
                             "success": success
                         ])
@@ -1993,6 +1994,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
 
     private func presentShareSheet(fileURL: URL, completion: @escaping (Bool) -> Void) {
         guard let rootViewController = RCTKeyWindow()?.rootViewController else {
+            // Clean up temp file
+            try? FileManager.default.removeItem(at: fileURL)
             completion(false)
             return
         }
@@ -2015,6 +2018,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         }
 
         activityVC.completionWithItemsHandler = { _, completed, _, _ in
+            // Clean up temp file after sharing is complete
+            try? FileManager.default.removeItem(at: fileURL)
             completion(completed)
         }
 
