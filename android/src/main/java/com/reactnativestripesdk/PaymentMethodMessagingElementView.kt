@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +18,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
-import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElement
 import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingElementPreview
 import kotlinx.coroutines.channels.Channel
@@ -36,7 +33,7 @@ class PaymentMethodMessagingElementView(
     ) : Event
 
     data class Appearance(
-      val appearance: PaymentMethodMessagingElement.Appearance
+      val appearance: PaymentMethodMessagingElement.Appearance,
     ) : Event
   }
 
@@ -48,9 +45,10 @@ class PaymentMethodMessagingElementView(
   @SuppressLint("RestrictedApi")
   @Composable
   override fun Content() {
-    val messagingElement = remember {
-      PaymentMethodMessagingElement.create(context.applicationContext as Application)
-    }
+    val messagingElement =
+      remember {
+        PaymentMethodMessagingElement.create(context.applicationContext as Application)
+      }
     var appearance by remember { mutableStateOf(PaymentMethodMessagingElement.Appearance()) }
 
     // collect events: configure, appearance
@@ -84,7 +82,6 @@ class PaymentMethodMessagingElementView(
                 payload.putString("message", msg)
                 reportHeightChange(0f)
               }
-
             }
             requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(payload)
           }
@@ -155,15 +152,11 @@ class PaymentMethodMessagingElementView(
   }
 
   // APIs
-  fun configure(
-    config: PaymentMethodMessagingElement.Configuration,
-  ) {
+  fun configure(config: PaymentMethodMessagingElement.Configuration) {
     events.trySend(Event.Configure(config))
   }
 
-  fun appearance(
-    appearance: PaymentMethodMessagingElement.Appearance
-  ) {
+  fun appearance(appearance: PaymentMethodMessagingElement.Appearance) {
     events.trySend(Event.Appearance(appearance))
   }
 

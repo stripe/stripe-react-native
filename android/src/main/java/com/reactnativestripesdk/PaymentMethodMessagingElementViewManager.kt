@@ -23,8 +23,7 @@ import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingE
 @ReactModule(name = PaymentMethodMessagingElementViewManager.NAME)
 class PaymentMethodMessagingElementViewManager :
   ViewGroupManager<PaymentMethodMessagingElementView>(),
-  PaymentMethodMessagingElementViewManagerInterface<PaymentMethodMessagingElementView>
-{
+  PaymentMethodMessagingElementViewManagerInterface<PaymentMethodMessagingElementView> {
   companion object {
     const val NAME = "PaymentMethodMessagingElementView"
   }
@@ -44,10 +43,11 @@ class PaymentMethodMessagingElementViewManager :
   }
 
   override fun needsCustomLayoutForChildren(): Boolean = true
+
   @ReactProp(name = "appearance")
   override fun setAppearance(
     view: PaymentMethodMessagingElementView?,
-    value: Dynamic?
+    value: Dynamic?,
   ) {
     val readableMap = value?.asMapOrNull() ?: return
     view?.let {
@@ -72,17 +72,16 @@ class PaymentMethodMessagingElementViewManager :
     }
   }
 
-  private fun parseElementConfiguration(
-    map: ReadableMap,
-  ): PaymentMethodMessagingElement.Configuration {
+  private fun parseElementConfiguration(map: ReadableMap): PaymentMethodMessagingElement.Configuration {
     val amount = map.getDouble("amount").toLong()
     val currency = map.getString("currency")
     val locale = map.getString("locale")
     val countryCode = map.getString("countryCode")
     val stringPaymentMethodTypes = map.getStringList("paymentMethodTypes")
-    val paymentMethodTypes = stringPaymentMethodTypes?.mapNotNull {
-      PaymentMethod.Type.fromCode(it)
-    }
+    val paymentMethodTypes =
+      stringPaymentMethodTypes?.mapNotNull {
+        PaymentMethod.Type.fromCode(it)
+      }
 
     val config = PaymentMethodMessagingElement.Configuration()
     config.amount(amount)
@@ -96,14 +95,15 @@ class PaymentMethodMessagingElementViewManager :
 
   private fun parseAppearance(
     map: ReadableMap,
-    context: Context
+    context: Context,
   ): PaymentMethodMessagingElement.Appearance {
-    val font = map.getMap("font")?.let {
-      parseFont(
-        it,
-        context
-      )
-    }
+    val font =
+      map.getMap("font")?.let {
+        parseFont(
+          it,
+          context,
+        )
+      }
 
     val theme = getTheme(map)
     val textColor = dynamicColorFromParams(map, "textColor", theme)
@@ -113,7 +113,7 @@ class PaymentMethodMessagingElementViewManager :
     font?.let { appearance.font(font) }
     val colors = PaymentMethodMessagingElement.Appearance.Colors()
     textColor?.let { colors.textColor(it) }
-    //linkTextColor?.let { colors.infoIconColor(linkTextColor) }
+    // linkTextColor?.let { colors.infoIconColor(linkTextColor) }
     appearance.colors(colors)
 
     return appearance
@@ -121,28 +121,30 @@ class PaymentMethodMessagingElementViewManager :
 
   private fun parseFont(
     map: ReadableMap,
-    context: Context
+    context: Context,
   ): PaymentMethodMessagingElement.Appearance.Font {
     val fontMap = map.getMap("font")
-    val fontFamily = getFontResId(
-      fontMap,
-      "family",
-      context,
-    )
+    val fontFamily =
+      getFontResId(
+        fontMap,
+        "family",
+        context,
+      )
     val scaleFactor = fontMap.getDoubleOrNull("scale") ?: 1.0
     val textSize: Double = 16 * scaleFactor
 
-
-    val font = PaymentMethodMessagingElement.Appearance.Font()
-      .fontFamily(fontFamily)
-      .fontSizeSp(textSize.toFloat())
+    val font =
+      PaymentMethodMessagingElement.Appearance
+        .Font()
+        .fontFamily(fontFamily)
+        .fontSizeSp(textSize.toFloat())
 
     return font
   }
 
   private fun getTheme(map: ReadableMap): PaymentMethodMessagingElement.Appearance.Theme {
     val style = map.getString("style")
-    return when(style) {
+    return when (style) {
       "dark" -> PaymentMethodMessagingElement.Appearance.Theme.DARK
       "flat" -> PaymentMethodMessagingElement.Appearance.Theme.FLAT
       else -> PaymentMethodMessagingElement.Appearance.Theme.LIGHT
@@ -159,7 +161,7 @@ class PaymentMethodMessagingElementViewManager :
   private fun dynamicColorFromParams(
     params: ReadableMap?,
     key: String,
-    theme: PaymentMethodMessagingElement.Appearance.Theme
+    theme: PaymentMethodMessagingElement.Appearance.Theme,
   ): Int? {
     if (params == null) {
       return null
@@ -171,11 +173,12 @@ class PaymentMethodMessagingElementViewManager :
       val isDark = theme == PaymentMethodMessagingElement.Appearance.Theme.DARK
 
       // Pick the hex for current mode, or null
-      val hex = if (isDark) {
-        colorMap?.getString("dark")
-      } else {
-        colorMap?.getString("light")
-      }
+      val hex =
+        if (isDark) {
+          colorMap?.getString("dark")
+        } else {
+          colorMap?.getString("light")
+        }
 
       return colorFromHex(hex)
     }
