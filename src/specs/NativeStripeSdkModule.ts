@@ -210,6 +210,11 @@ export interface Spec extends TurboModule {
     url: string
   ): Promise<{ url?: string } | null>;
 
+  downloadAndShareFile(
+    url: string,
+    filename?: string | null
+  ): Promise<{ success: boolean; error?: string }>;
+
   // Events
   addListener: (eventType: string) => void;
   removeListeners: (count: number) => void;

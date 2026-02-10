@@ -1398,6 +1398,117 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun downloadAndShareFile(
+    url: String,
+    filename: String?,
+    promise: Promise,
+  ) {
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        // Download file
+        val client = okhttp3.OkHttpClient()
+        val request =
+          okhttp3.Request
+            .Builder()
+            .url(url)
+            .build()
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful) {
+          promise.resolve(
+            Arguments.createMap().apply {
+              putBoolean("success", false)
+              putString("error", "NetworkError")
+              putString("message", "HTTP ${response.code}")
+            },
+          )
+          return@launch
+        }
+
+        // Save to cache directory
+        val exportsDir = java.io.File(reactApplicationContext.cacheDir, "stripe-exports")
+        exportsDir.mkdirs()
+
+        val file = java.io.File(exportsDir, "export-${java.util.UUID.randomUUID()}.csv")
+
+        response.body?.byteStream()?.use { input ->
+          file.outputStream().use { output ->
+            input.copyTo(output)
+          }
+        }
+
+        // Share on main thread
+        UiThreadUtil.runOnUiThread {
+          shareFile(file, promise)
+        }
+      } catch (e: Exception) {
+        promise.resolve(
+          Arguments.createMap().apply {
+            putBoolean("success", false)
+            putString("error", "DownloadFailed")
+            putString("message", e.message ?: "Unknown error")
+          },
+        )
+      }
+    }
+  }
+
+  private fun shareFile(
+    file: java.io.File,
+    promise: Promise,
+  ) {
+    val activity = reactApplicationContext.getCurrentActivity()
+    if (activity == null) {
+      promise.resolve(
+        Arguments.createMap().apply {
+          putBoolean("success", false)
+          putString("error", "NoActivity")
+          putString("message", "No activity available")
+        },
+      )
+      return
+    }
+
+    try {
+      val uri =
+        androidx.core.content.FileProvider.getUriForFile(
+          reactApplicationContext,
+          "${reactApplicationContext.packageName}.fileprovider",
+          file,
+        )
+
+      val shareIntent =
+        Intent(Intent.ACTION_SEND).apply {
+          type = "text/csv"
+          putExtra(Intent.EXTRA_STREAM, uri)
+          addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+      val chooser = Intent.createChooser(shareIntent, "Share CSV Export")
+      activity.startActivity(chooser)
+
+      // Schedule cleanup
+      android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+        file.delete()
+      }, 3000)
+
+      promise.resolve(
+        Arguments.createMap().apply {
+          putBoolean("success", true)
+        },
+      )
+    } catch (e: Exception) {
+      promise.resolve(
+        Arguments.createMap().apply {
+          putBoolean("success", false)
+          putString("error", "ShareFailed")
+          putString("message", e.message ?: "Unknown error")
+        },
+      )
+    }
+  }
+
   override fun addListener(eventType: String?) {
     // noop, iOS only
   }
