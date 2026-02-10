@@ -60,6 +60,7 @@ class StripeSdkPackage : BaseReactPackage() {
       AddressSheetViewManager(),
       EmbeddedPaymentElementViewManager(),
       NavigationBarManager(),
+      PaymentMethodMessagingElementViewManager(),
     )
 
   private fun getOnrampModuleClass(): Class<out NativeModule?> {
