@@ -1,7 +1,5 @@
 package com.stripe.examplestripeconnect
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 
@@ -11,10 +9,8 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import expo.modules.ReactActivityDelegateWrapper
-import com.reactnativestripesdk.StripeSdkModule
 
 class MainActivity : ReactActivity() {
-
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
@@ -42,31 +38,6 @@ class MainActivity : ReactActivity() {
               mainComponentName,
               fabricEnabled
           ){})
-  }
-
-  /**
-   * Intercept stripe-connect:// deep links and store them in the SDK
-   * WITHOUT broadcasting to React Native's Linking module.
-   *
-   * This prevents Expo Router from receiving the URL and dismissing the screen.
-   *
-   * NOTE: This manual implementation is OPTIONAL. The SDK now handles stripe-connect://
-   * URLs automatically via StripeConnectDeepLinkInterceptor Activity.
-   * This code is kept as a reference implementation for advanced use cases.
-   */
-  override fun onNewIntent(intent: Intent) {
-    val uri: Uri? = intent.data
-    if (uri != null && uri.scheme == "stripe-connect") {
-      // Store using SDK's static method
-      StripeSdkModule.storeStripeConnectDeepLink(uri.toString())
-
-      // CRITICAL: Do NOT call super.onNewIntent() for stripe-connect URLs
-      // This prevents React Native's Linking module from broadcasting to Expo Router
-      return
-    }
-
-    // For all other URLs, use normal handling
-    super.onNewIntent(intent)
   }
 
   /**

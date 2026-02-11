@@ -1577,7 +1577,7 @@ class StripeSdkModule(
         val mainActivityUrls = getPendingUrlsMethod.invoke(null) as? List<String>
         if (!mainActivityUrls.isNullOrEmpty()) {
           Log.w(
-            "StripeSdkModule",
+            TAG,
             "Using deprecated MainActivity.getPendingUrls() pattern. " +
               "This pattern is no longer needed and will be removed in a future version. " +
               "The SDK now handles stripe-connect:// URLs automatically.",
@@ -1592,6 +1592,7 @@ class StripeSdkModule(
 
       promise.resolve(urlsArray)
     } catch (e: Exception) {
+      Log.e(TAG, "Error polling URLs", e)
       promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
     }
   }
@@ -1722,6 +1723,7 @@ class StripeSdkModule(
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
+    private const val TAG = "StripeSdkModule"
 
     // Read the Stripe Android SDK version from gradle.properties at build time
     private val STRIPE_ANDROID_SDK_VERSION = BuildConfig.STRIPE_ANDROID_SDK_VERSION

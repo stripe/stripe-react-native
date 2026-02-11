@@ -1,7 +1,9 @@
 package com.reactnativestripesdk
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 
 /**
  * Transparent interceptor Activity that captures stripe-connect:// deep links
@@ -13,8 +15,9 @@ import android.os.Bundle
  * HOW IT WORKS:
  * 1. Android launches this Activity when a stripe-connect:// URL is opened
  * 2. onCreate() extracts the URL and stores it via StripeSdkModule.storeStripeConnectDeepLink()
- * 3. The Activity immediately finishes without showing any UI
- * 4. JavaScript polls for URLs via NativeStripeSdk.pollPendingStripeConnectUrls()
+ * 3. Launches an Intent to bring the main app to the foreground
+ * 4. The Activity immediately finishes without showing any UI
+ * 5. JavaScript polls for URLs via NativeStripeSdk.pollPendingStripeConnectUrls()
  *
  * MANIFEST CONFIGURATION:
  * The AndroidManifest.xml declares this Activity with:
@@ -38,10 +41,37 @@ class StripeConnectDeepLinkInterceptor : Activity() {
     if (url != null && url.startsWith("stripe-connect://")) {
       // Store in SDK's internal storage (thread-safe)
       StripeSdkModule.storeStripeConnectDeepLink(url)
+    } else {
+      Log.w(TAG, "Unexpected URL scheme in StripeConnectDeepLinkInterceptor: $url")
+    }
+
+    // Bring the main app back to the foreground
+    // This is critical because when Custom Tabs opens a deep link,
+    // the interceptor Activity starts in a new task. When it finishes,
+    // Android doesn't automatically return to the main app - it just shows
+    // the Custom Tab again. We need to explicitly bring the app forward.
+    try {
+      val packageName = applicationContext.packageName
+      val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+
+      if (launchIntent != null) {
+        // Flags to bring existing task to front without recreating activities
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        startActivity(launchIntent)
+      } else {
+        Log.w(TAG, "Could not get launch intent for package: $packageName")
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Error bringing app to foreground", e)
     }
 
     // Immediately finish - don't show any UI
     // This makes the Activity transparent to the user
     finish()
+  }
+
+  companion object {
+    private const val TAG = "StripeConnectInterceptor"
   }
 }
