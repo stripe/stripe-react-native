@@ -34,6 +34,7 @@ import type {
   StripeError,
   Token,
   VerifyMicrodepositsParams,
+  CreateRadarSessionResult,
 } from '../types';
 import type {
   EmbeddedPaymentElementConfiguration,
@@ -202,6 +203,7 @@ export interface Spec extends TurboModule {
     intentConfig: UnsafeObject<IntentConfiguration>
   ): Promise<void>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
+  createRadarSession(): Promise<CreateRadarSessionResult>;
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 

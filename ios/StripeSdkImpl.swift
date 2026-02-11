@@ -5,6 +5,7 @@ import PassKit
 @_spi(STP) import StripeCore
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
+import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
@@ -1232,6 +1233,26 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             }
         }
         #endif
+    }
+
+    @objc(createRadarSession:rejecter:)
+    public func createRadarSession(
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        STPAPIClient.shared.createRadarSession { (session, error) in
+            if let error = error as NSError? {
+                resolve(Errors.createError(ErrorType.Failed, error))
+                return
+            }
+
+            guard let session else {
+                resolve(Errors.createError(ErrorType.Unknown, "Radar session not available"))
+                return
+            }
+
+            resolve(["id": session.id])
+        }
     }
 
 #if canImport(StripeCryptoOnramp)

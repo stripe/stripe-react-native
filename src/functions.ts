@@ -31,6 +31,7 @@ import type {
   CanAddCardToWalletResult,
   FinancialConnections,
   PlatformPay,
+  CreateRadarSessionResult,
 } from './types';
 import { Platform, EventSubscription } from 'react-native';
 import type { CollectFinancialConnectionsAccountsParams } from './types/FinancialConnections';
@@ -909,6 +910,15 @@ export const openPlatformPaySetup = async (): Promise<void> => {
     await NativeStripeSdk.openApplePaySetup();
   }
 };
+
+/**
+ * Creates a [Radar session](https://docs.stripe.com/radar/radar-session).
+ * @returns A promise that resolves to a Radar session id, or an error.
+ */
+export const createRadarSession =
+  async (): Promise<CreateRadarSessionResult> => {
+    return await NativeStripeSdk.createRadarSession();
+  };
 
 export const setFinancialConnectionsForceNativeFlow = async (
   enabled: boolean

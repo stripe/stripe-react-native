@@ -454,6 +454,12 @@ RCT_EXPORT_METHOD(customPaymentMethodResultCallback:(nonnull NSDictionary *)resu
   [StripeSdkImpl.shared customPaymentMethodResultCallback:result resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(createRadarSession:(nonnull RCTPromiseResolveBlock)resolve
+                              reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createRadarSession:resolve rejecter:reject];
+}
+
 /* clang-format on */
 
 #ifdef RCT_NEW_ARCH_ENABLED

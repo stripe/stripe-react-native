@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
@@ -19,6 +20,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -63,6 +65,7 @@ import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.RadarSession
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -1322,6 +1325,31 @@ class StripeSdkModule(
       promise.resolve(CustomerSheetManager.createMissingInitError())
       return
     }
+  }
+
+  @ReactMethod
+  override fun createRadarSession(promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    stripe.createRadarSession(
+      stripeAccountId = stripeAccountId,
+      callback =
+        object : com.stripe.android.ApiResultCallback<RadarSession> {
+          override fun onSuccess(session: RadarSession) {
+            val result = WritableNativeMap()
+            result.putString("id", session.id)
+            promise.resolve(result)
+          }
+
+          override fun onError(e: Exception) {
+            promise.resolve(createError(ErrorType.Failed.toString(), e))
+          }
+        },
+      activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
+    )
   }
 
   @ReactMethod
