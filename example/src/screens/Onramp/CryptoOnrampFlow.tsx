@@ -28,7 +28,7 @@ import {
   saveUser,
   createLinkAuthToken,
   getCryptoCustomerId,
-} from '../../../server/onrampBackend';
+} from '../../api/onrampBackend';
 import {
   getDestinationParamsForNetwork,
   showError,
@@ -106,6 +106,16 @@ export default function CryptoOnrampFlow() {
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
+
+  // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    'Card' | 'BankAccount' | 'PlatformPay' | null
+  >(null);
+
+  // ACH settlement speed state
+  const [achSettlementSpeed, setAchSettlementSpeed] = useState<
+    'instant' | 'standard'
+  >('instant');
 
   // KYC Refresh state
   const [needsKycAddressUpdate, setNeedsKycAddressUpdate] = useState(false);
@@ -431,6 +441,14 @@ export default function CryptoOnrampFlow() {
         showError(`Could not collect payment: ${result.error.message}.`);
       } else if (result?.displayData) {
         setCurrentPaymentDisplayData(result.displayData);
+
+        // Track which payment type was actually selected (controls ACH segmented control visibility).
+        setSelectedPaymentMethod(request.type);
+
+        // If switching away from bank account, ensure UI will default to instant.
+        if (request.type !== 'BankAccount') {
+          setAchSettlementSpeed('instant');
+        }
       } else {
         showCanceled('Payment collection cancelled, please try again.');
       }
@@ -524,6 +542,12 @@ export default function CryptoOnrampFlow() {
       // Get the correct destination network and currency based on wallet network
       const destinationParams = getDestinationParamsForNetwork(walletNetwork!);
 
+      // Determine settlement speed based on payment method
+      const settlementSpeed: 'instant' | 'standard' =
+        selectedPaymentMethod === 'BankAccount'
+          ? achSettlementSpeed
+          : 'instant';
+
       const result = await createOnrampSession(
         cryptoPaymentToken!,
         walletAddress!,
@@ -533,7 +557,8 @@ export default function CryptoOnrampFlow() {
         10.0, // sourceAmount
         'usd', // sourceCurrency
         destinationParams.destinationCurrency,
-        '127.0.0.1' // customerIpAddress
+        '127.0.0.1', // customerIpAddress
+        settlementSpeed
       );
 
       if (result.success) {
@@ -560,6 +585,8 @@ export default function CryptoOnrampFlow() {
     walletNetwork,
     customerId,
     authToken,
+    achSettlementSpeed,
+    selectedPaymentMethod,
   ]);
 
   const handlePerformCheckout = useCallback(async () => {
@@ -626,6 +653,8 @@ export default function CryptoOnrampFlow() {
       setWalletAddress(null);
       setWalletNetwork(null);
       setOnrampSessionId(null);
+      setSelectedPaymentMethod(null);
+      setAchSettlementSpeed('instant');
     }
   }, [logOut]);
 
@@ -841,6 +870,37 @@ export default function CryptoOnrampFlow() {
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
           />
+
+          {selectedPaymentMethod === 'BankAccount' &&
+            currentPaymentDisplayData && (
+              <Collapse title="ACH Settlement Speed" initialExpanded={true}>
+                <View style={styles.segmentedRow}>
+                  <View style={styles.segment}>
+                    <Button
+                      title="Instant"
+                      variant={
+                        achSettlementSpeed === 'instant' ? 'primary' : 'default'
+                      }
+                      center
+                      onPress={() => setAchSettlementSpeed('instant')}
+                    />
+                  </View>
+                  <View style={{ width: 8 }} />
+                  <View style={styles.segment}>
+                    <Button
+                      title="Standard"
+                      variant={
+                        achSettlementSpeed === 'standard'
+                          ? 'primary'
+                          : 'default'
+                      }
+                      center
+                      onPress={() => setAchSettlementSpeed('standard')}
+                    />
+                  </View>
+                </View>
+              </Collapse>
+            )}
           <CryptoOperationsSection
             cardPaymentMethod={cardPaymentMethod}
             bankAccountPaymentMethod={bankAccountPaymentMethod}
@@ -899,5 +959,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     alignSelf: 'center',
     textAlign: 'center',
+  },
+  segmentedRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  segment: {
+    flex: 1,
   },
 });

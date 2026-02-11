@@ -45,8 +45,8 @@ import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
 import com.stripe.android.paymentelement.CreateIntentWithConfirmationTokenCallback
 import com.stripe.android.paymentelement.CustomPaymentMethodResult
 import com.stripe.android.paymentelement.CustomPaymentMethodResultHandler
-import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
+import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.CreateIntentCallback
 import com.stripe.android.paymentsheet.CreateIntentResult
 import com.stripe.android.paymentsheet.PaymentOptionResultCallback
@@ -58,13 +58,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.ByteArrayOutputStream
 import kotlin.Exception
+import kotlin.coroutines.resume
 
 @OptIn(
   ReactNativeSdkInternal::class,
   ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi::class,
-  ExperimentalCustomPaymentMethodsApi::class,
+  CardFundingFilteringPrivatePreview::class,
 )
 class PaymentSheetManager(
   context: ReactApplicationContext,
@@ -85,7 +88,6 @@ class PaymentSheetManager(
   private var keepJsAwake: KeepJsAwakeTask? = null
 
   @SuppressLint("RestrictedApi")
-  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun onCreate() {
     val activity = getCurrentActivityOrResolveWithError(initPromise) ?: return
     val merchantDisplayName = arguments.getString("merchantDisplayName").orEmpty()
@@ -140,28 +142,42 @@ class PaymentSheetManager(
 
     val paymentOptionCallback =
       PaymentOptionResultCallback { paymentOptionResult ->
-        val result =
-          paymentOptionResult.paymentOption?.let {
-            val bitmap = getBitmapFromDrawable(it.icon())
-            val imageString = getBase64FromBitmap(bitmap)
+        paymentOptionResult.paymentOption?.let { paymentOption ->
+          // Convert drawable to bitmap asynchronously to avoid shared state issues
+          CoroutineScope(Dispatchers.Default).launch {
+            val imageString =
+              try {
+                convertDrawableToBase64(paymentOption.icon())
+              } catch (e: Exception) {
+                val result =
+                  createError(
+                    PaymentSheetErrorType.Failed.toString(),
+                    "Failed to process payment option image: ${e.message}",
+                  )
+                resolvePresentPromise(result)
+                return@launch
+              }
+
             val option: WritableMap = Arguments.createMap()
-            option.putString("label", it.label)
+            option.putString("label", paymentOption.label)
             option.putString("image", imageString)
             val additionalFields: Map<String, Any> = mapOf("didCancel" to paymentOptionResult.didCancel)
-            createResult("paymentOption", option, additionalFields)
+            val result = createResult("paymentOption", option, additionalFields)
+            resolvePresentPromise(result)
           }
-            ?: run {
-              if (paymentSheetTimedOut) {
-                paymentSheetTimedOut = false
-                createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
-              } else {
-                createError(
-                  PaymentSheetErrorType.Canceled.toString(),
-                  "The payment option selection flow has been canceled",
-                )
-              }
+        } ?: run {
+          val result =
+            if (paymentSheetTimedOut) {
+              paymentSheetTimedOut = false
+              createError(PaymentSheetErrorType.Timeout.toString(), "The payment has timed out")
+            } else {
+              createError(
+                PaymentSheetErrorType.Canceled.toString(),
+                "The payment option selection flow has been canceled",
+              )
             }
-        resolvePresentPromise(result)
+          resolvePresentPromise(result)
+        }
       }
 
     val paymentResultCallback =
@@ -268,7 +284,9 @@ class PaymentSheetManager(
           mapToPreferredNetworks(arguments.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .cardBrandAcceptance(mapToCardBrandAcceptance(arguments))
-        .customPaymentMethods(parseCustomPaymentMethods(arguments.getMap("customPaymentMethodConfiguration")))
+        .apply {
+          mapToAllowedCardFundingTypes(arguments)?.let { allowedCardFundingTypes(it) }
+        }.customPaymentMethods(parseCustomPaymentMethods(arguments.getMap("customPaymentMethodConfiguration")))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
@@ -413,16 +431,31 @@ class PaymentSheetManager(
   private fun configureFlowController() {
     val onFlowControllerConfigure =
       PaymentSheet.FlowController.ConfigCallback { _, _ ->
-        val result =
-          flowController?.getPaymentOption()?.let {
-            val bitmap = getBitmapFromDrawable(it.icon())
-            val imageString = getBase64FromBitmap(bitmap)
+        flowController?.getPaymentOption()?.let { paymentOption ->
+          // Launch async job to convert drawable, but resolve promise synchronously
+          CoroutineScope(Dispatchers.Default).launch {
+            val imageString =
+              try {
+                convertDrawableToBase64(paymentOption.icon())
+              } catch (e: Exception) {
+                val result =
+                  createError(
+                    PaymentSheetErrorType.Failed.toString(),
+                    "Failed to process payment option image: ${e.message}",
+                  )
+                initPromise.resolve(result)
+                return@launch
+              }
+
             val option: WritableMap = Arguments.createMap()
-            option.putString("label", it.label)
+            option.putString("label", paymentOption.label)
             option.putString("image", imageString)
-            createResult("paymentOption", option)
-          } ?: run { Arguments.createMap() }
-        initPromise.resolve(result)
+            val result = createResult("paymentOption", option)
+            initPromise.resolve(result)
+          }
+        } ?: run {
+          initPromise.resolve(Arguments.createMap())
+        }
       }
 
     if (!paymentIntentClientSecret.isNullOrEmpty()) {
@@ -466,7 +499,6 @@ class PaymentSheetManager(
     } ?: run { resolvePresentPromise(map) }
   }
 
-  @OptIn(ExperimentalCustomPaymentMethodsApi::class)
   override fun onConfirmCustomPaymentMethod(
     customPaymentMethod: PaymentSheet.CustomPaymentMethod,
     billingDetails: PaymentMethod.BillingDetails,
@@ -550,17 +582,86 @@ class PaymentSheetManager(
   }
 }
 
+suspend fun waitForDrawableToLoad(
+  drawable: Drawable,
+  timeoutMs: Long = 3000,
+): Drawable {
+  // If already loaded, return immediately
+  if (drawable.intrinsicWidth > 1 && drawable.intrinsicHeight > 1) {
+    return drawable
+  }
+
+  // Use callback to be notified when drawable finishes loading
+  return withTimeoutOrNull(timeoutMs) {
+    suspendCancellableCoroutine { continuation ->
+      val callback =
+        object : Drawable.Callback {
+          override fun invalidateDrawable(who: Drawable) {
+            // Drawable has changed/loaded - check if it's ready now
+            if (who.intrinsicWidth > 1 && who.intrinsicHeight > 1) {
+              who.callback = null // Remove callback
+              if (continuation.isActive) {
+                continuation.resume(who)
+              }
+            }
+          }
+
+          override fun scheduleDrawable(
+            who: Drawable,
+            what: Runnable,
+            `when`: Long,
+          ) {}
+
+          override fun unscheduleDrawable(
+            who: Drawable,
+            what: Runnable,
+          ) {}
+        }
+
+      drawable.callback = callback
+
+      // Trigger an invalidation to check if it loads immediately
+      drawable.invalidateSelf()
+
+      continuation.invokeOnCancellation { drawable.callback = null }
+    }
+  } ?: drawable // Return drawable even if timeout (best effort)
+}
+
+suspend fun convertDrawableToBase64(drawable: Drawable): String? {
+  val loadedDrawable = waitForDrawableToLoad(drawable)
+  val bitmap = getBitmapFromDrawable(loadedDrawable)
+  return getBase64FromBitmap(bitmap)
+}
+
 fun getBitmapFromDrawable(drawable: Drawable): Bitmap? {
   val drawableCompat = DrawableCompat.wrap(drawable).mutate()
-  if (drawableCompat.intrinsicWidth <= 0 || drawableCompat.intrinsicHeight <= 0) {
+
+  // Determine the size to use - prefer intrinsic size, fall back to bounds
+  val width =
+    if (drawableCompat.intrinsicWidth > 0) {
+      drawableCompat.intrinsicWidth
+    } else {
+      drawableCompat.bounds.width()
+    }
+
+  val height =
+    if (drawableCompat.intrinsicHeight > 0) {
+      drawableCompat.intrinsicHeight
+    } else {
+      drawableCompat.bounds.height()
+    }
+
+  if (width <= 0 || height <= 0) {
     return null
   }
-  val bitmap =
-    createBitmap(drawableCompat.intrinsicWidth, drawableCompat.intrinsicHeight)
+
+  val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
   bitmap.eraseColor(Color.TRANSPARENT)
   val canvas = Canvas(bitmap)
-  drawable.setBounds(0, 0, canvas.width, canvas.height)
-  drawable.draw(canvas)
+  drawableCompat.setBounds(0, 0, canvas.width, canvas.height)
+  drawableCompat.draw(canvas)
+
   return bitmap
 }
 

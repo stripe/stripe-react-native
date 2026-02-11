@@ -1,9 +1,26 @@
 # CHANGELOG
 
-## x.x.x - x-x-x
+## 0.58.0 - 2026-01-27
+
+**Changes**
+- Updated Stripe iOS SDK from 25.0.1 to 25.6.0
+- Updated Stripe Android SDK from 22.2.+ to 22.7.+
+
+## 0.57.3 - 2026-01-21
+
+**Fixes**
+- `react-native-webview` is no longer a dependency of the SDK.
+
+## 0.57.2 - 2025-12-16
+
+**Fixes**
+- Fixed `update()` not working on Android for EmbeddedPaymentElement. The intent configuration is now properly passed to the native side when calling `update()`.
+
+## 0.57.1 - 2025-12-11
 **Fixes**
 - Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
 - Fixed `confirmPlatformPayPayment` not resolving on Android.
+- Fixed Android crash `IllegalStateException: Cannot locate windowRecomposer; View is not attached to a window` in EmbeddedPaymentElement. This occurred when React Native measured the view before it was attached to the window hierarchy.
 
 ## 0.57.0 - 2025-11-12
 **Changes**

@@ -1,5 +1,5 @@
 @testable import stripe_react_native
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 import XCTest
 
 class PaymentSheetUtilsTests: XCTestCase {
@@ -469,5 +469,106 @@ class PaymentSheetUtilsTests: XCTestCase {
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result[0].id, "cpmt_valid")
         XCTAssertEqual(result[1].id, "cpmt_valid2")
+    }
+
+    // MARK: - computeAllowedCardFundingTypes Tests
+
+    func test_computeAllowedCardFundingTypes_nilParams_returnsNil() {
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: [:])
+        XCTAssertNil(result)
+    }
+
+    func test_computeAllowedCardFundingTypes_noCardFundingFiltering_returnsNil() {
+        let params: NSDictionary = [
+            "someOtherKey": "value"
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNil(result)
+    }
+
+    func test_computeAllowedCardFundingTypes_debitOnly() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["debit"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.contains(.debit))
+        XCTAssertFalse(result!.contains(.credit))
+        XCTAssertFalse(result!.contains(.prepaid))
+        XCTAssertFalse(result!.contains(.unknown))
+    }
+
+    func test_computeAllowedCardFundingTypes_creditOnly() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["credit"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.contains(.credit))
+        XCTAssertFalse(result!.contains(.debit))
+    }
+
+    func test_computeAllowedCardFundingTypes_multipleTypes() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["debit", "credit", "prepaid"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.contains(.debit))
+        XCTAssertTrue(result!.contains(.credit))
+        XCTAssertTrue(result!.contains(.prepaid))
+        XCTAssertFalse(result!.contains(.unknown))
+    }
+
+    func test_computeAllowedCardFundingTypes_allFourTypes() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["debit", "credit", "prepaid", "unknown"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.contains(.debit))
+        XCTAssertTrue(result!.contains(.credit))
+        XCTAssertTrue(result!.contains(.prepaid))
+        XCTAssertTrue(result!.contains(.unknown))
+    }
+
+    func test_computeAllowedCardFundingTypes_emptyArray_returnsNil() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": []
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNil(result)
+    }
+
+    func test_computeAllowedCardFundingTypes_invalidTypes_ignored() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["invalid", "debit", "not_a_type"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertTrue(result!.contains(.debit))
+        XCTAssertFalse(result!.contains(.credit))
+    }
+
+    func test_computeAllowedCardFundingTypes_onlyInvalidTypes_returnsNil() {
+        let params: NSDictionary = [
+            "cardFundingFiltering": [
+                "allowedCardFundingTypes": ["invalid", "not_valid"]
+            ],
+        ]
+        let result = StripeSdkImpl.computeAllowedCardFundingTypes(params: params)
+        XCTAssertNil(result)
     }
 }

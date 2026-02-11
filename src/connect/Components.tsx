@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   View,
   useWindowDimensions,
@@ -23,6 +24,39 @@ import { useConnectComponents } from './ConnectComponentsProvider';
 export { NavigationBar } from './NavigationBar';
 export type { NavigationBarProps } from './NavigationBar';
 
+/**
+ * A full-screen modal component for Connect account onboarding.
+ * Guides connected accounts through the process of providing required information.
+ *
+ * **Platform differences:**
+ * - iOS: Uses native modal with UIKit navigation bar
+ * - Android: Uses React Native Modal with custom navigation bar
+ *
+ * @param props.title - Optional title displayed in navigation bar
+ * @param props.onExit - Required callback when user closes the onboarding flow
+ * @param props.onStepChange - Optional callback fired when onboarding step changes
+ * @param props.recipientTermsOfServiceUrl - URL for recipient terms of service
+ * @param props.fullTermsOfServiceUrl - URL for full terms of service
+ * @param props.privacyPolicyUrl - URL for privacy policy
+ * @param props.collectionOptions - Configuration for which account fields to collect
+ * @param props.onLoaderStart - Callback when component begins loading
+ * @param props.onLoadError - Callback when component fails to load
+ * @param props.onPageDidLoad - Callback when component finishes loading
+ *
+ * @example
+ * ```tsx
+ * <ConnectAccountOnboarding
+ *   title="Complete your account setup"
+ *   onExit={() => navigation.goBack()}
+ *   onStepChange={({ step }) => console.log('Current step:', step)}
+ *   collectionOptions={{
+ *     fields: 'currently_due',
+ *     futureRequirements: 'include'
+ *   }}
+ * />
+ * ```
+ * @category Connect
+ */
 export function ConnectAccountOnboarding({
   title,
   onExit,
@@ -50,10 +84,6 @@ export function ConnectAccountOnboarding({
   // Extract colors from appearance
   const backgroundColor = useMemo(() => {
     return appearance?.variables?.colorBackground || '#FFFFFF';
-  }, [appearance]);
-
-  const textColor = useMemo(() => {
-    return appearance?.variables?.colorText || '#000000';
   }, [appearance]);
 
   const loadingIndicatorColor = useMemo(() => {
@@ -102,7 +132,10 @@ export function ConnectAccountOnboarding({
 
   const { width, height } = useWindowDimensions();
 
-  const containerStyle = useMemo(() => ({ width, height }), [width, height]);
+  const containerStyle = useMemo(
+    () => ({ width, height, position: 'absolute' as const }),
+    [width, height]
+  );
 
   // iOS: Use native modal with native navigation bar
   if (Platform.OS === 'ios') {
@@ -111,7 +144,6 @@ export function ConnectAccountOnboarding({
         visible={visible}
         title={title}
         backgroundColor={backgroundColor}
-        textColor={textColor}
         onExitAction={onExitCallback}
         style={containerStyle}
       >
@@ -143,11 +175,19 @@ export function ConnectAccountOnboarding({
       presentationStyle="fullScreen"
     >
       <SafeAreaView style={styles.flex1}>
-        <NavigationBar
-          title={title}
-          onCloseButtonPress={onExitCallback}
-          style={styles.navBar}
-        />
+        <View
+          style={[
+            Platform.OS === 'android' && {
+              paddingTop: StatusBar.currentHeight || 0,
+            },
+          ]}
+        >
+          <NavigationBar
+            title={title}
+            onCloseButtonPress={onExitCallback}
+            style={styles.navBar}
+          />
+        </View>
         <View style={styles.onboardingWrapper}>
           {loading ? (
             <ActivityIndicator
@@ -171,6 +211,28 @@ export function ConnectAccountOnboarding({
   );
 }
 
+/**
+ * Displays a list of payments for the connected account with optional filtering.
+ * Embed this component to show payment history and details.
+ *
+ * @param props.defaultFilters - Optional filters to apply to the payments list
+ * @param props.onLoaderStart - Callback when component begins loading
+ * @param props.onLoadError - Callback when component fails to load
+ * @param props.onPageDidLoad - Callback when component finishes loading
+ * @param props.style - Optional styling for the component container
+ *
+ * @example
+ * ```tsx
+ * <ConnectPayments
+ *   defaultFilters={{
+ *     status: ['successful', 'pending'],
+ *     date: { after: new Date('2024-01-01') }
+ *   }}
+ *   style={{ flex: 1 }}
+ * />
+ * ```
+ * @category Connect
+ */
 export function ConnectPayments({
   defaultFilters,
   onLoaderStart,
@@ -198,6 +260,21 @@ export function ConnectPayments({
   );
 }
 
+/**
+ * Displays payout information for the connected account.
+ * Shows payout history, schedules, and details.
+ *
+ * @param props.onLoaderStart - Callback when component begins loading
+ * @param props.onLoadError - Callback when component fails to load
+ * @param props.onPageDidLoad - Callback when component finishes loading
+ * @param props.style - Optional styling for the component container
+ *
+ * @example
+ * ```tsx
+ * <ConnectPayouts style={{ flex: 1 }} />
+ * ```
+ * @category Connect
+ */
 export function ConnectPayouts({
   onLoaderStart,
   onLoadError,
@@ -215,6 +292,27 @@ export function ConnectPayouts({
   );
 }
 
+/**
+ * Displays detailed information for a specific payment.
+ * Typically used in a modal or detail view after selecting a payment from ConnectPayments.
+ *
+ * @param props.payment - The payment ID to display details for
+ * @param props.onClose - Required callback when user closes the detail view
+ * @param props.onLoaderStart - Callback when component begins loading
+ * @param props.onLoadError - Callback when component fails to load
+ * @param props.onPageDidLoad - Callback when component finishes loading
+ * @param props.style - Optional styling for the component container
+ *
+ * @example
+ * ```tsx
+ * <ConnectPaymentDetails
+ *   payment="py_1234567890"
+ *   onClose={() => setShowDetails(false)}
+ *   style={{ flex: 1 }}
+ * />
+ * ```
+ * @category Connect
+ */
 export function ConnectPaymentDetails({
   payment,
   onClose,

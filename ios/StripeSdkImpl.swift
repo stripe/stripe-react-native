@@ -2,9 +2,11 @@ import AuthenticationServices
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
+@_spi(STP) import StripeCore
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripePaymentsUI
+import UIKit
 #if canImport(StripeCryptoOnramp)
 @_spi(STP) import StripeCryptoOnramp
 
@@ -22,6 +24,18 @@ class ASWebAuthenticationPresentationContextProvider: NSObject, ASWebAuthenticat
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         return RCTKeyWindow() ?? ASPresentationAnchor()
     }
+}
+
+// Helper to get device type identifier
+private func getDeviceType() -> String {
+    var systemInfo = utsname()
+    uname(&systemInfo)
+    let machineMirror = Mirror(reflecting: systemInfo.machine)
+    let identifier = machineMirror.children.reduce("") { identifier, element in
+        guard let value = element.value as? Int8, value != 0 else { return identifier }
+        return identifier + String(UnicodeScalar(UInt8(value)))
+    }
+    return identifier.isEmpty ? UIDevice.current.model : identifier
 }
 
 @objc(StripeSdkImpl)
@@ -104,6 +118,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             "API_VERSIONS": [
                 "CORE": STPAPIClient.apiVersion,
                 "ISSUING": STPAPIClient.apiVersion,
+            ],
+            "SYSTEM_INFO": [
+                "sdkVersion": StripeAPIConfiguration.STPSDKVersion,
+                "osVersion": UIDevice.current.systemVersion,
+                "deviceType": getDeviceType(),
+                "appName": Bundle.stp_applicationName() ?? "",
+                "appVersion": Bundle.stp_applicationVersion() ?? "",
             ],
         ]
     }
@@ -1121,12 +1142,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        // Use connectedAccountId from params if provided
+        let originalStripeAccount = STPAPIClient.shared.stripeAccount
+        if let connectedAccountId = params["connectedAccountId"] as? String {
+            STPAPIClient.shared.stripeAccount = connectedAccountId
+        }
+
+        let wrappedResolve: RCTPromiseResolveBlock = { result in
+            // Restore original stripeAccount after completion
+            STPAPIClient.shared.stripeAccount = originalStripeAccount
+            resolve(result)
+        }
+
         FinancialConnections.presentForToken(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
             onEvent: onEvent,
-            resolve: resolve
+            resolve: wrappedResolve
         )
     }
 
@@ -1155,12 +1188,24 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             self?.emitter?.emitOnFinancialConnectionsEvent(mappedEvent)
         }
 
+        // Use connectedAccountId from params if provided
+        let originalStripeAccount = STPAPIClient.shared.stripeAccount
+        if let connectedAccountId = params["connectedAccountId"] as? String {
+            STPAPIClient.shared.stripeAccount = connectedAccountId
+        }
+
+        let wrappedResolve: RCTPromiseResolveBlock = { result in
+            // Restore original stripeAccount after completion
+            STPAPIClient.shared.stripeAccount = originalStripeAccount
+            resolve(result)
+        }
+
         FinancialConnections.present(
             withClientSecret: clientSecret,
             returnURL: returnURL,
             configuration: configuration,
             onEvent: onEvent,
-            resolve: resolve
+            resolve: wrappedResolve
         )
     }
 
@@ -1910,6 +1955,96 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 return
             }
         }
+    }
+
+    @objc(downloadAndShareFile:filename:resolver:rejecter:)
+    public func downloadAndShareFile(
+        url: String,
+        filename: String?,
+        resolver resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        guard let url = URL(string: url) else {
+            resolve(["success": false, "error": "InvalidURL"])
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            if let error = error {
+                resolve(["success": false, "error": "NetworkError", "message": error.localizedDescription])
+                return
+            }
+
+            guard let data = data else {
+                resolve(["success": false, "error": "NoData"])
+                return
+            }
+
+            // Save to temp directory
+            let tempDir = FileManager.default.temporaryDirectory
+            let fileName = filename ?? "export.csv"
+            let fileURL = tempDir
+                .appendingPathComponent(fileName.replacingOccurrences(of: " ", with: "-"))
+                .deletingPathExtension()
+                .appendingPathExtension("csv")
+
+            do {
+                try data.write(to: fileURL)
+
+                // Present share sheet on main thread
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else {
+                        // Avoid leaving temp files behind if module is gone
+                        try? FileManager.default.removeItem(at: fileURL)
+                        resolve(["success": false, "error": "ModuleDeallocated"])
+                        return
+                    }
+
+                    self.presentShareSheet(fileURL: fileURL) { success in
+                        resolve([
+                            "success": success
+                        ])
+                    }
+                }
+            } catch {
+                resolve(["success": false, "error": "FileSystemError", "message": error.localizedDescription])
+            }
+        }
+        task.resume()
+    }
+
+    private func presentShareSheet(fileURL: URL, completion: @escaping (Bool) -> Void) {
+        guard let rootViewController = RCTKeyWindow()?.rootViewController else {
+            // Clean up temp file
+            try? FileManager.default.removeItem(at: fileURL)
+            completion(false)
+            return
+        }
+
+        let activityVC = UIActivityViewController(
+            activityItems: [fileURL],
+            applicationActivities: nil
+        )
+
+        // iPad support
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = rootViewController.view
+            popover.sourceRect = CGRect(
+                x: rootViewController.view.bounds.midX,
+                y: rootViewController.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
+            popover.permittedArrowDirections = []
+        }
+
+        activityVC.completionWithItemsHandler = { _, completed, _, _ in
+            // Clean up temp file after sharing is complete
+            try? FileManager.default.removeItem(at: fileURL)
+            completion(completed)
+        }
+
+        rootViewController.present(activityVC, animated: true)
     }
 
     public func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {

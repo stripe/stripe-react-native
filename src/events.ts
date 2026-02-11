@@ -62,6 +62,7 @@ type Events = {
   >;
   embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
   embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
+  embeddedPaymentElementUpdateComplete: EventEmitter<UnsafeObject<any>>;
   onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
 };
 

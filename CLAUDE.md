@@ -79,7 +79,6 @@ This is the official Stripe React Native SDK, providing payment processing capab
   - Gradle build configuration
 
 - **`example/`** - Example React Native app demonstrating SDK usage
-  - Contains test server in `server/` directory
   - Configured for both iOS and Android development
 
 - **`e2e-tests/`** - End-to-end tests using Maestro framework

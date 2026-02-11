@@ -13,6 +13,7 @@ import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
 import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
 import { getClientSecretParams } from '../helpers';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 
 export default function PaymentSheetDeferredIntentMultiStepScreen() {
   const { initPaymentSheet, presentPaymentSheet, confirmPaymentSheetPayment } =
@@ -196,6 +197,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
         value={customerKeyType === 'customer_session'}
         onValueChange={toggleCustomerKeyType}
       />
+      <SelectedPaymentOption paymentOption={paymentMethodOption} />
       <Button
         variant="primary"
         loading={loading}

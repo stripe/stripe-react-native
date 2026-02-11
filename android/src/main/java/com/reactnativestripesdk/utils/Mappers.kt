@@ -25,7 +25,6 @@ import com.stripe.android.model.StripeIntent
 import com.stripe.android.model.StripeIntent.NextActionData
 import com.stripe.android.model.StripeIntent.NextActionType
 import com.stripe.android.model.Token
-import com.stripe.android.paymentelement.ExperimentalCustomPaymentMethodsApi
 import com.stripe.android.paymentsheet.PaymentSheet
 import java.lang.IllegalArgumentException
 
@@ -1036,7 +1035,6 @@ private fun Map<String, Any?>.toReadableMap(): ReadableMap {
   return writableMap
 }
 
-@OptIn(ExperimentalCustomPaymentMethodsApi::class)
 @SuppressLint("RestrictedApi")
 internal fun parseCustomPaymentMethods(customPaymentMethodConfig: ReadableMap?): List<PaymentSheet.CustomPaymentMethod> {
   if (customPaymentMethodConfig == null) {

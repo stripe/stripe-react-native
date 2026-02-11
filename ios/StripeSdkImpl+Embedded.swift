@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) @_spi(CustomPaymentMethodsBeta) import StripePaymentSheet
+@_spi(EmbeddedPaymentElementPrivateBeta) @_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(STP) @_spi(CustomPaymentMethodsBeta) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 @objc(StripeSdkImpl)
 extension StripeSdkImpl {
@@ -311,6 +311,9 @@ extension StripeSdkImpl {
     }
 
     configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
+    if let allowedCardFundingTypes = StripeSdkImpl.computeAllowedCardFundingTypes(params: params) {
+        configuration.allowedCardFundingTypes = allowedCardFundingTypes
+    }
 
     if let formSheetActionParams = params["formSheetAction"] as? NSDictionary,
        let actionType = formSheetActionParams["type"] as? String {

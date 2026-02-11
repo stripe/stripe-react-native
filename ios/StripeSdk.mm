@@ -390,6 +390,17 @@ RCT_EXPORT_METHOD(openAuthenticatedWebView:(nonnull NSString *)id
   [StripeSdkImpl.shared openAuthenticatedWebView:id url:url resolver:resolve rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(downloadAndShareFile:(nonnull NSString *)url
+                              filename:(nullable NSString *)filename
+                               resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared downloadAndShareFile:url
+                                    filename:filename
+                                    resolver:resolve
+                                    rejecter:reject];
+}
+
 RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent
                          clientSecret:(nonnull NSString *)clientSecret
                                params:(nonnull NSDictionary *)params

@@ -16,8 +16,8 @@ appId: ${APP_ID}
     text: "Agree and continue"
 - tapOn: "Agree and continue"
 - assertVisible:
-    text: "Test Institution"
-- tapOn: "Test Institution"
+    text: "Test (Non-OAuth)"
+- tapOn: "Test (Non-OAuth)"
 - extendedWaitUntil:
     # wait for the auth flow to finish
     visible: "Select account"
@@ -30,8 +30,8 @@ appId: ${APP_ID}
     text: "Done"
     optional: true
 - assertVisible:
-    text: "Not now"
-- tapOn: "Not now"
+    text: "Finish without saving"
+- tapOn: "Finish without saving"
 - assertVisible:
     text: "Done"
 - tapOn: "Done"

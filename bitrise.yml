@@ -465,7 +465,7 @@ workflows:
           inputs:
             - content: |
                 export PATH="${HOME}/.maestro/bin:$PATH"
-                yarn test:e2e:android
+                yarn test:e2e:android --record-on-failure
       - deploy-to-bitrise-io@2:
           is_always_run: true
           inputs:
@@ -562,7 +562,7 @@ workflows:
           inputs:
             - content: |
                 export PATH="${HOME}/.maestro/bin:$PATH"
-                yarn test:e2e:ios
+                yarn test:e2e:ios --record-on-failure
       - deploy-to-bitrise-io@2:
           is_always_run: true
           inputs:

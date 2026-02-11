@@ -64,6 +64,7 @@ interface CreateOnrampSessionRequest {
   wallet_address: string;
   crypto_customer_id: string;
   customer_ip_address: string;
+  settlement_speed: 'instant' | 'standard';
 }
 
 interface OnrampSessionResponse {
@@ -326,7 +327,8 @@ export class OnrampBackend {
     sourceAmount: number,
     sourceCurrency: string,
     destinationCurrency: string,
-    customerIpAddress: string
+    customerIpAddress: string,
+    settlementSpeed: 'instant' | 'standard' = 'instant'
   ): Promise<ApiResult<OnrampSessionResponse>> {
     const requestBody: CreateOnrampSessionRequest = {
       ui_mode: 'headless',
@@ -338,6 +340,7 @@ export class OnrampBackend {
       wallet_address: walletAddress,
       crypto_customer_id: cryptoCustomerId,
       customer_ip_address: customerIpAddress,
+      settlement_speed: settlementSpeed,
     };
 
     return this.makeRequest<OnrampSessionResponse>(
@@ -420,7 +423,8 @@ export const createOnrampSession = async (
   sourceAmount: number,
   sourceCurrency: string,
   destinationCurrency: string,
-  customerIpAddress: string
+  customerIpAddress: string,
+  settlementSpeed: 'instant' | 'standard' = 'instant'
 ): Promise<ApiResult<OnrampSessionResponse>> => {
   return defaultClient.createOnrampSession(
     paymentToken,
@@ -431,7 +435,8 @@ export const createOnrampSession = async (
     sourceAmount,
     sourceCurrency,
     destinationCurrency,
-    customerIpAddress
+    customerIpAddress,
+    settlementSpeed
   );
 };
 
