@@ -1552,40 +1552,47 @@ class StripeSdkModule(
   /**
    * Poll for pending stripe-connect:// deep link URLs.
    * Returns all pending URLs and clears the queue.
-   * Also checks MainActivity's static storage for URLs received before ReactContext was available.
+   *
+   * URLs are captured by StripeConnectDeepLinkInterceptor Activity, which prevents
+   * Expo Router from receiving the URLs and dismissing the current screen.
    */
   @ReactMethod
   override fun pollPendingStripeConnectUrls(promise: Promise) {
-    synchronized(pendingUrlsLock) {
+    try {
       val urlsArray = Arguments.createArray()
 
-      // First, add URLs from our own storage
-      pendingStripeConnectUrls.forEach { url ->
+      // Get URLs from SDK's internal storage (set by StripeConnectDeepLinkInterceptor)
+      val sdkUrls = retrievePendingUrls()
+      sdkUrls.forEach { url ->
         urlsArray.pushString(url)
       }
-      pendingStripeConnectUrls.clear()
 
-      // Also check MainActivity's static storage for early-arriving URLs
-      // NOTE: This uses reflection because:
-      // 1. This is example-app-specific code (MainActivity.kt in example-stripe-connect/)
-      // 2. The SDK cannot directly depend on the example app's MainActivity
-      // 3. User applications should implement their own MainActivity pattern if needed
-      // 4. If the class doesn't exist, this gracefully falls back (expected in user apps)
+      // Legacy: Support old MainActivity pattern (deprecated, will be removed in future version)
+      // This maintains backward compatibility for apps that implemented the manual pattern
       try {
         val mainActivityClass = Class.forName("com.stripe.examplestripeconnect.MainActivity")
         val getPendingUrlsMethod = mainActivityClass.getMethod("getPendingUrls")
 
         @Suppress("UNCHECKED_CAST")
         val mainActivityUrls = getPendingUrlsMethod.invoke(null) as? List<String>
-        mainActivityUrls?.forEach { url ->
-          urlsArray.pushString(url)
+        if (!mainActivityUrls.isNullOrEmpty()) {
+          Log.w(
+            "StripeSdkModule",
+            "Using deprecated MainActivity.getPendingUrls() pattern. " +
+              "This pattern is no longer needed and will be removed in a future version. " +
+              "The SDK now handles stripe-connect:// URLs automatically.",
+          )
+          mainActivityUrls.forEach { url ->
+            urlsArray.pushString(url)
+          }
         }
       } catch (e: Exception) {
-        // MainActivity might not exist or have this method - that's okay
-        // This is expected in projects that don't use our MainActivity implementation
+        // Expected when not using deprecated pattern - this is fine
       }
 
       promise.resolve(urlsArray)
+    } catch (e: Exception) {
+      promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
     }
   }
 
@@ -1721,5 +1728,41 @@ class StripeSdkModule(
 
     // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
     private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
+
+    // SDK-managed storage for pending stripe-connect:// URLs
+    // This is static because deep links can arrive before ReactContext is available
+    private val pendingConnectUrls = mutableListOf<String>()
+    private val urlsLock = Any()
+
+    /**
+     * Store a stripe-connect:// deep link URL.
+     * Called automatically by StripeConnectDeepLinkInterceptor.
+     * Can also be called manually from MainActivity if users implement custom handling.
+     *
+     * This method is thread-safe and can be called from any thread.
+     *
+     * @param url The stripe-connect:// URL to store
+     */
+    @JvmStatic
+    fun storeStripeConnectDeepLink(url: String) {
+      synchronized(urlsLock) {
+        pendingConnectUrls.add(url)
+      }
+    }
+
+    /**
+     * Retrieve and clear pending URLs.
+     * Internal method used by pollPendingStripeConnectUrls() bridge method.
+     *
+     * @return List of pending stripe-connect:// URLs
+     */
+    @JvmStatic
+    internal fun retrievePendingUrls(): List<String> {
+      synchronized(urlsLock) {
+        val urls = pendingConnectUrls.toList()
+        pendingConnectUrls.clear()
+        return urls
+      }
+    }
   }
 }

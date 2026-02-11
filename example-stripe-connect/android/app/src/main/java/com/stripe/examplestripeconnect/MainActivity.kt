@@ -11,41 +11,9 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import expo.modules.ReactActivityDelegateWrapper
+import com.reactnativestripesdk.StripeSdkModule
 
 class MainActivity : ReactActivity() {
-  companion object {
-    // Static storage for pending stripe-connect:// URLs
-    //
-    // WHY STATIC: Deep links can arrive very early in the app lifecycle, before
-    // ReactContext is available. Static storage persists across Activity recreation
-    // and is accessible even when the React Native bridge isn't ready yet.
-    //
-    // THREAD SAFETY: Uses synchronized block with urlsLock to ensure thread-safe
-    // access from multiple sources (main thread, React Native bridge thread).
-    //
-    // ALTERNATIVE APPROACHES:
-    // - SharedPreferences: Overkill for transient deep link storage
-    // - Singleton manager: Similar complexity without benefit
-    // - ReactContext storage: Not available early enough in lifecycle
-    private val pendingUrls = mutableListOf<String>()
-    private val urlsLock = Any()
-
-    @JvmStatic
-    fun storePendingUrl(url: String) {
-      synchronized(urlsLock) {
-        pendingUrls.add(url)
-      }
-    }
-
-    @JvmStatic
-    fun getPendingUrls(): List<String> {
-      synchronized(urlsLock) {
-        val urls = pendingUrls.toList()
-        pendingUrls.clear()
-        return urls
-      }
-    }
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
@@ -81,12 +49,16 @@ class MainActivity : ReactActivity() {
    * WITHOUT broadcasting to React Native's Linking module.
    *
    * This prevents Expo Router from receiving the URL and dismissing the screen.
+   *
+   * NOTE: This manual implementation is OPTIONAL. The SDK now handles stripe-connect://
+   * URLs automatically via StripeConnectDeepLinkInterceptor Activity.
+   * This code is kept as a reference implementation for advanced use cases.
    */
   override fun onNewIntent(intent: Intent) {
     val uri: Uri? = intent.data
     if (uri != null && uri.scheme == "stripe-connect") {
-      // Store in static storage (doesn't require ReactContext)
-      storePendingUrl(uri.toString())
+      // Store using SDK's static method
+      StripeSdkModule.storeStripeConnectDeepLink(uri.toString())
 
       // CRITICAL: Do NOT call super.onNewIntent() for stripe-connect URLs
       // This prevents React Native's Linking module from broadcasting to Expo Router
