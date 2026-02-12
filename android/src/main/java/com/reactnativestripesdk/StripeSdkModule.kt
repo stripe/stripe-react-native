@@ -1557,12 +1557,12 @@ class StripeSdkModule(
    * Expo Router from receiving the URLs and dismissing the current screen.
    */
   @ReactMethod
-  override fun pollAndClearPendingStripeConnectUrls(promise: Promise) {
+  override fun pollPendingStripeConnectUrls(promise: Promise) {
     try {
       val urlsArray = Arguments.createArray()
 
       // Get URLs from SDK's internal storage (set by StripeConnectDeepLinkInterceptor)
-      val sdkUrls = retrievePendingUrls()
+      val sdkUrls = retrieveAndClearPendingUrls()
       sdkUrls.forEach { url ->
         urlsArray.pushString(url)
       }

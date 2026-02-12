@@ -12,7 +12,7 @@
 
         <!-- Interceptor for stripe-connect:// deep links -->
         <activity
-            android:name=".StripeConnectDeepLinkInterceptor"
+            android:name=".StripeConnectDeepLinkInterceptorActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="true"
             android:launchMode="singleTask"
