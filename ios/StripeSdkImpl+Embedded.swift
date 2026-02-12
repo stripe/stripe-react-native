@@ -310,6 +310,10 @@ extension StripeSdkImpl {
       configuration.paymentMethodOrder = paymentMethodOrder
     }
 
+    if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+      configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
+    }
+
     configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
     if let allowedCardFundingTypes = StripeSdkImpl.computeAllowedCardFundingTypes(params: params) {
         configuration.allowedCardFundingTypes = allowedCardFundingTypes
