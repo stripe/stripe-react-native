@@ -211,7 +211,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
       try {
         const pendingUrls =
-          await NativeStripeSdk.pollPendingStripeConnectUrls();
+          await NativeStripeSdk.pollAndClearPendingStripeConnectUrls();
 
         if (pendingUrls && pendingUrls.length > 0) {
           pendingUrls.forEach((url: string) => {

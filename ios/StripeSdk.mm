@@ -417,8 +417,8 @@ RCT_EXPORT_METHOD(storeStripeConnectDeepLink:(nonnull NSString *)url
   resolve([NSNull null]);
 }
 
-RCT_EXPORT_METHOD(pollPendingStripeConnectUrls:(nonnull RCTPromiseResolveBlock)resolve
-                                        reject:(nonnull RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(pollAndClearPendingStripeConnectUrls:(nonnull RCTPromiseResolveBlock)resolve
+                                                reject:(nonnull RCTPromiseRejectBlock)reject)
 {
   // No-op for iOS - iOS doesn't need this mechanism
   resolve(@[]);

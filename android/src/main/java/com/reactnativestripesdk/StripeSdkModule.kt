@@ -1557,7 +1557,7 @@ class StripeSdkModule(
    * Expo Router from receiving the URLs and dismissing the current screen.
    */
   @ReactMethod
-  override fun pollPendingStripeConnectUrls(promise: Promise) {
+  override fun pollAndClearPendingStripeConnectUrls(promise: Promise) {
     try {
       val urlsArray = Arguments.createArray()
 
@@ -1754,7 +1754,7 @@ class StripeSdkModule(
 
     /**
      * Retrieve and clear pending URLs.
-     * Internal method used by pollPendingStripeConnectUrls() bridge method.
+     * Internal method used by pollAndClearPendingStripeConnectUrls() bridge method.
      *
      * @return List of pending stripe-connect:// URLs
      */

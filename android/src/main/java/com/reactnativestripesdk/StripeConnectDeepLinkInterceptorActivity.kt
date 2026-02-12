@@ -17,7 +17,7 @@ import android.util.Log
  * 2. onCreate() extracts the URL and stores it via StripeSdkModule.storeStripeConnectDeepLink()
  * 3. Launches an Intent to bring the main app to the foreground
  * 4. The Activity immediately finishes without showing any UI
- * 5. JavaScript polls for URLs via NativeStripeSdk.pollPendingStripeConnectUrls()
+ * 5. JavaScript polls for URLs via NativeStripeSdk.pollAndClearPendingStripeConnectUrls()
  *
  * MANIFEST CONFIGURATION:
  * The AndroidManifest.xml declares this Activity with:

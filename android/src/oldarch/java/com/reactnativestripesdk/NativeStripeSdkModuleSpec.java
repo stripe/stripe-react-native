@@ -286,7 +286,7 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void pollPendingStripeConnectUrls(Promise promise);
+  public abstract void pollAndClearPendingStripeConnectUrls(Promise promise);
 
   @ReactMethod
   @DoNotStrip
