@@ -1557,7 +1557,7 @@ class StripeSdkModule(
    * Expo Router from receiving the URLs and dismissing the current screen.
    */
   @ReactMethod
-  override fun pollPendingStripeConnectUrls(promise: Promise) {
+  override fun pollAndClearPendingStripeConnectUrls(promise: Promise) {
     try {
       val urlsArray = Arguments.createArray()
 
@@ -1759,7 +1759,7 @@ class StripeSdkModule(
      * @return List of pending stripe-connect:// URLs
      */
     @JvmStatic
-    internal fun retrievePendingUrls(): List<String> {
+    internal fun retrieveAndClearPendingUrls(): List<String> {
       synchronized(urlsLock) {
         val urls = pendingConnectUrls.toList()
         pendingConnectUrls.clear()

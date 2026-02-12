@@ -31,7 +31,7 @@ import android.util.Log
  * - Works automatically for all package names
  * - No MainActivity override needed
  */
-class StripeConnectDeepLinkInterceptor : Activity() {
+class StripeConnectDeepLinkInterceptorActivity : Activity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
