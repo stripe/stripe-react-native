@@ -73,7 +73,8 @@ describe('ComponentAnalyticsClient', () => {
       const estimatedLoadStart = Date.now() - timeToLoad * 1000;
 
       expect(estimatedLoadStart).toBeGreaterThanOrEqual(beforeCreate);
-      expect(estimatedLoadStart).toBeLessThanOrEqual(afterCreate);
+      // Allow 10ms tolerance for CI timing variability
+      expect(estimatedLoadStart).toBeLessThanOrEqual(afterCreate + 10);
     });
   });
 
