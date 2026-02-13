@@ -163,6 +163,7 @@ dependencies {
   implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
   implementation("com.stripe:stripe-android:$stripeVersion")
   implementation("com.stripe:financial-connections:$stripeVersion")
+  implementation("com.stripe:payment-method-messaging:$stripeVersion")
   
   if (isOnrampIncluded()) {
     implementation("com.stripe:crypto-onramp:$stripeVersion")
