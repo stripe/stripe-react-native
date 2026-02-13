@@ -278,6 +278,18 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void authWebViewDeepLinkHandled(String id, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void storeStripeConnectDeepLink(String url, Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void pollAndClearPendingStripeConnectUrls(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void addListener(String eventType);
 
   @ReactMethod
