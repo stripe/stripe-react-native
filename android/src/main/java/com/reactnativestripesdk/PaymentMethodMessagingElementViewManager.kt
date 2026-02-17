@@ -73,7 +73,7 @@ class PaymentMethodMessagingElementViewManager :
   }
 
   private fun parseElementConfiguration(map: ReadableMap): PaymentMethodMessagingElement.Configuration {
-    val amount = map.getDouble("amount").toLong()
+    val amount = map.getDoubleOrNull("amount")?.toLong()
     val currency = map.getString("currency")
     val locale = map.getString("locale")
     val countryCode = map.getString("countryCode")
@@ -84,7 +84,7 @@ class PaymentMethodMessagingElementViewManager :
       }
 
     val config = PaymentMethodMessagingElement.Configuration()
-    config.amount(amount)
+    amount?.let { config.amount(amount) }
     currency?.let { config.currency(it) }
     locale?.let { config.locale(it) }
     countryCode?.let { config.countryCode(it) }
@@ -123,14 +123,13 @@ class PaymentMethodMessagingElementViewManager :
     map: ReadableMap,
     context: Context,
   ): PaymentMethodMessagingElement.Appearance.Font {
-    val fontMap = map.getMap("font")
     val fontFamily =
       getFontResId(
-        fontMap,
+        map,
         "family",
         context,
       )
-    val scaleFactor = fontMap.getDoubleOrNull("scale") ?: 1.0
+    val scaleFactor = map.getDoubleOrNull("scale") ?: 1.0
     val textSize: Double = 16 * scaleFactor
 
     val font =
