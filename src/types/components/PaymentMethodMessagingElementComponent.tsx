@@ -62,7 +62,7 @@ export interface PaymentMethodMessagingElementConfiguration {
   paymentMethodTypes?: Array<string>;
 }
 
-export type OnLoadCompleteEvent = NativeSyntheticEvent<{
+export type OnStateChangeEvent = NativeSyntheticEvent<{
   result: PaymentMethodMessagingElementState;
 }>;
 
@@ -70,5 +70,5 @@ export interface NativeProps {
   style?: StyleProp<ViewStyle>;
   appearance?: PaymentMethodMessagingElementAppearance;
   configuration: PaymentMethodMessagingElementConfiguration;
-  onLoadComplete(event: OnLoadCompleteEvent): void;
+  onStateChange(event: OnStateChangeEvent): void;
 }

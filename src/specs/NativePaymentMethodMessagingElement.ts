@@ -8,14 +8,14 @@ import {
 } from '../types/components/PaymentMethodMessagingElementComponent';
 import { UnsafeMixed } from './utils';
 
-interface LoadCompleteEvent {
+interface StateChangeEvent {
   result: UnsafeMixed<PaymentMethodMessagingElementState>;
 }
 
 export interface NativeProps extends ViewProps {
   appearance?: UnsafeMixed<PaymentMethodMessagingElementAppearance>;
   configuration: UnsafeMixed<PaymentMethodMessagingElementConfiguration>;
-  onLoadComplete: DirectEventHandler<LoadCompleteEvent>;
+  onStateChange: DirectEventHandler<StateChangeEvent>;
 }
 
 type ComponentType = HostComponent<NativeProps>;
