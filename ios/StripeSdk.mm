@@ -401,6 +401,29 @@ RCT_EXPORT_METHOD(downloadAndShareFile:(nonnull NSString *)url
                                     rejecter:reject];
 }
 
+RCT_EXPORT_METHOD(authWebViewDeepLinkHandled:(nonnull NSString *)id
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  // No-op for iOS since it doesn't have this issue
+  resolve(@[]);
+}
+
+RCT_EXPORT_METHOD(storeStripeConnectDeepLink:(nonnull NSString *)url
+                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
+                                      reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  // No-op for iOS - iOS doesn't need this mechanism
+  resolve([NSNull null]);
+}
+
+RCT_EXPORT_METHOD(pollAndClearPendingStripeConnectUrls:(nonnull RCTPromiseResolveBlock)resolve
+                                                reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  // No-op for iOS - iOS doesn't need this mechanism
+  resolve(@[]);
+}
+
 RCT_EXPORT_METHOD(verifyMicrodeposits:(BOOL)isPaymentIntent
                          clientSecret:(nonnull NSString *)clientSecret
                                params:(nonnull NSDictionary *)params
@@ -452,6 +475,12 @@ RCT_EXPORT_METHOD(customPaymentMethodResultCallback:(nonnull NSDictionary *)resu
                   reject:(RCTPromiseRejectBlock)reject)
 {
   [StripeSdkImpl.shared customPaymentMethodResultCallback:result resolver:resolve rejecter:reject];
+}
+
+RCT_EXPORT_METHOD(createRadarSession:(nonnull RCTPromiseResolveBlock)resolve
+                              reject:(nonnull RCTPromiseRejectBlock)reject)
+{
+  [StripeSdkImpl.shared createRadarSession:resolve rejecter:reject];
 }
 
 /* clang-format on */

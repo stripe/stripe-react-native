@@ -5,9 +5,13 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
@@ -19,6 +23,7 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
@@ -63,6 +68,7 @@ import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
 import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.RadarSession
 import com.stripe.android.model.SetupIntent
 import com.stripe.android.model.Token
 import com.stripe.android.payments.bankaccount.CollectBankAccountConfiguration
@@ -106,6 +112,10 @@ class StripeSdkModule(
 
   internal var composeCompatView: StripeAbstractComposeView.CompatView? = null
 
+  // Storage for pending stripe-connect:// deep link URLs to prevent Expo Router from receiving them
+  private val pendingStripeConnectUrls = mutableListOf<String>()
+  private val pendingUrlsLock = Any()
+
   val eventEmitter: EventEmitterCompat by lazy { EventEmitterCompat(reactApplicationContext) }
 
   private val mActivityEventListener =
@@ -128,11 +138,6 @@ class StripeSdkModule(
                   it,
                 )
                 createPlatformPayPaymentMethodPromise = null
-              } ?: run {
-                Log.d(
-                  "StripeReactNative",
-                  "No promise was found, Google Pay result went unhandled,",
-                )
               }
             }
           }
@@ -1325,6 +1330,31 @@ class StripeSdkModule(
   }
 
   @ReactMethod
+  override fun createRadarSession(promise: Promise) {
+    if (!::stripe.isInitialized) {
+      promise.resolve(createMissingInitError())
+      return
+    }
+
+    stripe.createRadarSession(
+      stripeAccountId = stripeAccountId,
+      callback =
+        object : com.stripe.android.ApiResultCallback<RadarSession> {
+          override fun onSuccess(session: RadarSession) {
+            val result = WritableNativeMap()
+            result.putString("id", session.id)
+            promise.resolve(result)
+          }
+
+          override fun onError(e: Exception) {
+            promise.resolve(createError(ErrorType.Failed.toString(), e))
+          }
+        },
+      activity = getCurrentActivityOrResolveWithError(promise) as? AppCompatActivity,
+    )
+  }
+
+  @ReactMethod
   override fun createEmbeddedPaymentElement(
     intentConfig: ReadableMap,
     configuration: ReadableMap,
@@ -1371,11 +1401,12 @@ class StripeSdkModule(
     url: String,
     promise: Promise,
   ) {
+    isAuthWebViewActive = true
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
 
     UiThreadUtil.runOnUiThread {
       try {
-        val uri = android.net.Uri.parse(url)
+        val uri = url.toUri()
         val builder =
           androidx.browser.customtabs.CustomTabsIntent
             .Builder()
@@ -1386,13 +1417,26 @@ class StripeSdkModule(
 
         val customTabsIntent = builder.build()
 
+        // NOTE: We intentionally do NOT use FLAG_ACTIVITY_NO_HISTORY here.
+        // That flag can cause React Native's state restoration to fail when returning from Custom Tabs,
+        // resulting in the navigation stack being reset and the previous screen being dismissed.
+        // Custom Tabs will be properly cleaned up when the user navigates back or the session completes.
+
         // Note: Custom Tabs doesn't have built-in redirect handling like iOS ASWebAuthenticationSession.
         // The redirect will be handled via deep linking when the auth server redirects to stripe-connect://
         // The React Native Linking module will capture the deep link and pass it back to the JS layer.
         customTabsIntent.launchUrl(activity, uri)
 
+        // Fallback: Reset after timeout if JavaScript doesn't call authWebViewDeepLinkHandled
+        Handler(Looper.getMainLooper()).postDelayed({
+          if (isAuthWebViewActive) {
+            isAuthWebViewActive = false
+          }
+        }, AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS)
+
         promise.resolve(null)
       } catch (e: Exception) {
+        isAuthWebViewActive = false
         promise.resolve(createError("Failed", e))
       }
     }
@@ -1509,6 +1553,78 @@ class StripeSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun authWebViewDeepLinkHandled(
+    id: String,
+    promise: Promise,
+  ) {
+    isAuthWebViewActive = false
+    promise.resolve(null)
+  }
+
+  /**
+   * Store a stripe-connect:// deep link URL for later retrieval.
+   * This prevents the URL from being broadcast to Expo Router.
+   */
+  @ReactMethod
+  override fun storeStripeConnectDeepLink(
+    url: String,
+    promise: Promise,
+  ) {
+    synchronized(pendingUrlsLock) {
+      pendingStripeConnectUrls.add(url)
+    }
+    promise.resolve(null)
+  }
+
+  /**
+   * Poll for pending stripe-connect:// deep link URLs.
+   * Returns all pending URLs and clears the queue.
+   *
+   * URLs are captured by StripeConnectDeepLinkInterceptor Activity, which prevents
+   * Expo Router from receiving the URLs and dismissing the current screen.
+   */
+  @ReactMethod
+  override fun pollAndClearPendingStripeConnectUrls(promise: Promise) {
+    try {
+      val urlsArray = Arguments.createArray()
+
+      // Get URLs from SDK's internal storage (set by StripeConnectDeepLinkInterceptor)
+      val sdkUrls = retrieveAndClearPendingUrls()
+      sdkUrls.forEach { url ->
+        urlsArray.pushString(url)
+      }
+
+      // Legacy: Support old MainActivity pattern (deprecated, will be removed in future version)
+      // This maintains backward compatibility for apps that implemented the manual pattern
+      try {
+        val mainActivityClass = Class.forName("com.stripe.examplestripeconnect.MainActivity")
+        val getPendingUrlsMethod = mainActivityClass.getMethod("getPendingUrls")
+
+        @Suppress("UNCHECKED_CAST")
+        val mainActivityUrls = getPendingUrlsMethod.invoke(null) as? List<String>
+        if (!mainActivityUrls.isNullOrEmpty()) {
+          Log.w(
+            TAG,
+            "Using deprecated MainActivity.getPendingUrls() pattern. " +
+              "This pattern is no longer needed and will be removed in a future version. " +
+              "The SDK now handles stripe-connect:// URLs automatically.",
+          )
+          mainActivityUrls.forEach { url ->
+            urlsArray.pushString(url)
+          }
+        }
+      } catch (e: Exception) {
+        // Expected when not using deprecated pattern - this is fine
+      }
+
+      promise.resolve(urlsArray)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error polling URLs", e)
+      promise.reject("PollError", "Failed to poll pending Stripe Connect URLs: ${e.message}", e)
+    }
+  }
+
   override fun addListener(eventType: String?) {
     // noop, iOS only
   }
@@ -1564,40 +1680,49 @@ class StripeSdkModule(
   }
 
   private var isRecreatingReactActivity = false
+  private var isAuthWebViewActive = false
   private val activityLifecycleCallbacks =
     object : Application.ActivityLifecycleCallbacks {
       override fun onActivityCreated(
         activity: Activity,
         bundle: Bundle?,
       ) {
-        if (activity is ReactActivity) {
+        // Only set flag when ReactActivity is actually being recreated (bundle != null)
+        // bundle != null means this is a recreation, not first creation
+        if (activity is ReactActivity && bundle != null) {
           isRecreatingReactActivity = true
         }
-        if (isRecreatingReactActivity && activity.javaClass.name.startsWith("com.stripe.android")) {
+
+        // Don't finish Stripe activities during auth webview flow to prevent dismissing the previous screen
+        val isStripeActivity = activity.javaClass.name.startsWith("com.stripe.android")
+        val shouldFinish = isRecreatingReactActivity && isStripeActivity && !isAuthWebViewActive
+
+        if (shouldFinish) {
           activity.finish()
+        }
+
+        // Reset flag after finishing Stripe activities
+        if (isRecreatingReactActivity && shouldFinish) {
+          Handler(Looper.getMainLooper()).post {
+            isRecreatingReactActivity = false
+          }
         }
       }
 
-      override fun onActivityStarted(activity: Activity) {
-      }
+      override fun onActivityStarted(activity: Activity) {}
 
-      override fun onActivityResumed(activity: Activity) {
-      }
+      override fun onActivityResumed(activity: Activity) {}
 
-      override fun onActivityPaused(activity: Activity) {
-      }
+      override fun onActivityPaused(activity: Activity) {}
 
-      override fun onActivityStopped(activity: Activity) {
-      }
+      override fun onActivityStopped(activity: Activity) {}
 
       override fun onActivitySaveInstanceState(
         activity: Activity,
         bundle: Bundle,
-      ) {
-      }
+      ) {}
 
-      override fun onActivityDestroyed(activity: Activity) {
-      }
+      override fun onActivityDestroyed(activity: Activity) {}
     }
 
   /**
@@ -1626,8 +1751,48 @@ class StripeSdkModule(
 
   companion object {
     const val NAME = NativeStripeSdkModuleSpec.NAME
+    private const val TAG = "StripeSdkModule"
 
     // Read the Stripe Android SDK version from gradle.properties at build time
     private val STRIPE_ANDROID_SDK_VERSION = BuildConfig.STRIPE_ANDROID_SDK_VERSION
+
+    // Timeout for auth webview fallback (if JavaScript doesn't call authWebViewDeepLinkHandled)
+    private const val AUTH_WEBVIEW_FALLBACK_TIMEOUT_MS = 60_000L
+
+    // SDK-managed storage for pending stripe-connect:// URLs
+    // This is static because deep links can arrive before ReactContext is available
+    private val pendingConnectUrls = mutableListOf<String>()
+    private val urlsLock = Any()
+
+    /**
+     * Store a stripe-connect:// deep link URL.
+     * Called automatically by StripeConnectDeepLinkInterceptor.
+     * Can also be called manually from MainActivity if users implement custom handling.
+     *
+     * This method is thread-safe and can be called from any thread.
+     *
+     * @param url The stripe-connect:// URL to store
+     */
+    @JvmStatic
+    fun storeStripeConnectDeepLink(url: String) {
+      synchronized(urlsLock) {
+        pendingConnectUrls.add(url)
+      }
+    }
+
+    /**
+     * Retrieve and clear pending URLs.
+     * Internal method used by pollAndClearPendingStripeConnectUrls() bridge method.
+     *
+     * @return List of pending stripe-connect:// URLs
+     */
+    @JvmStatic
+    internal fun retrieveAndClearPendingUrls(): List<String> {
+      synchronized(urlsLock) {
+        val urls = pendingConnectUrls.toList()
+        pendingConnectUrls.clear()
+        return urls
+      }
+    }
   }
 }

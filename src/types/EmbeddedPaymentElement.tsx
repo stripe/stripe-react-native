@@ -215,6 +215,11 @@ export interface EmbeddedPaymentElementConfiguration {
    * Defaults to `true`.
    */
   embeddedViewDisplaysMandateText?: boolean;
+  /** By default, EmbeddedPaymentElement offers a card scan button within the new card entry form.
+   * When opensCardScannerAutomatically is set to true,
+   * the card entry form will initialize with the card scanner already open.
+   * Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
 }
 
 // -----------------------------------------------------------------------------
