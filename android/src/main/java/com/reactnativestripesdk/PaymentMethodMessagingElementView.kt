@@ -57,7 +57,7 @@ class PaymentMethodMessagingElementView(
         when (ev) {
           is Event.Configure -> {
             val loadingPayload = Arguments.createMap()
-            loadingPayload.putString("result", "loading")
+            loadingPayload.putString("status", "loading")
             requireStripeSdkModule().eventEmitter.emitPaymentMethodMessagingElementConfigureResult(loadingPayload)
             val result =
               messagingElement.configure(
@@ -67,10 +67,10 @@ class PaymentMethodMessagingElementView(
             val payload = Arguments.createMap()
             when (result) {
               is PaymentMethodMessagingElement.ConfigureResult.Succeeded -> {
-                payload.putString("result", "loaded")
+                payload.putString("status", "loaded")
               }
               is PaymentMethodMessagingElement.ConfigureResult.NoContent -> {
-                payload.putString("result", "no_content")
+                payload.putString("status", "no_content")
                 reportHeightChange(0f)
               }
               is PaymentMethodMessagingElement.ConfigureResult.Failed -> {
@@ -78,7 +78,7 @@ class PaymentMethodMessagingElementView(
                 val err = result.error
                 val msg = err.localizedMessage ?: err.toString()
                 // build a RN map
-                payload.putString("result", "failed")
+                payload.putString("status", "failed")
                 payload.putString("message", msg)
                 reportHeightChange(0f)
               }
