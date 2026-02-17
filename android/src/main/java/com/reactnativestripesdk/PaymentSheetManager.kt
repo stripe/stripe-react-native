@@ -433,7 +433,16 @@ class PaymentSheetManager(
 
   private fun configureFlowController() {
     val onFlowControllerConfigure =
-      PaymentSheet.FlowController.ConfigCallback { _, _ ->
+      PaymentSheet.FlowController.ConfigCallback { success, error ->
+        if (!success) {
+          initPromise.resolve(
+            createError(
+              PaymentSheetErrorType.Failed.toString(),
+              error?.message ?: "Failed to configure payment sheet",
+            )
+          )
+          return@ConfigCallback
+        }
         flowController?.getPaymentOption()?.let { paymentOption ->
           // Launch async job to convert drawable, but resolve promise synchronously
           CoroutineScope(Dispatchers.Default).launch {
