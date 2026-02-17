@@ -76,7 +76,7 @@ class PaymentMethodMessagingElementViewManager :
     val amount = map.getDoubleOrNull("amount")?.toLong()
     val currency = map.getString("currency")
     val locale = map.getString("locale")
-    val countryCode = map.getString("countryCode")
+    val countryCode = map.getString("country")
     val stringPaymentMethodTypes = map.getStringList("paymentMethodTypes")
     val paymentMethodTypes =
       stringPaymentMethodTypes?.mapNotNull {
