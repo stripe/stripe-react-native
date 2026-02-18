@@ -106,7 +106,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         guard var configuration = configResult.configuration else {
             return
         }
-        
+
         // Add appearance if available
         if let appearance = appearanceConfig {
             configuration.appearance = appearance

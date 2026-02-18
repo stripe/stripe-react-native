@@ -1,11 +1,3 @@
-//
-//  PaymentMethodMessagingElementConfigTests.swift
-//  stripe-react-native-Unit-Tests
-//
-//  Created by Tyler Clawson on 2/18/26.
-//
-
-import Foundation
 @testable import stripe_react_native
 @_spi(PaymentMethodMessagingElementPreview) @_spi(STP) import StripePaymentSheet
 import XCTest
@@ -19,7 +11,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
             "style": "dark",
             "font": [
                 "family": "Helvetica",
-                "scale": 1.5
+                "scale": 1.5,
             ],
             "textColor": "#123456",
             "linkTextColor": "#654321",
@@ -111,8 +103,8 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "font": [
                 "family": "Helvetica",
-                "scale": 2.0
-            ]
+                "scale": 2.0,
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -125,7 +117,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "font": [
                 "family": "Helvetica"
-            ]
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -138,7 +130,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "font": [
                 "scale": 2.0
-            ]
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -151,8 +143,8 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "font": [
                 "family": "NonExistentFont123",
-                "scale": 1.5
-            ]
+                "scale": 1.5,
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -187,12 +179,12 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "textColor": [
                 "light": "#000000",
-                "dark": "#FFFFFF"
+                "dark": "#FFFFFF",
             ],
             "linkTextColor": [
                 "light": "#0000FF",
-                "dark": "#FF0000"
-            ]
+                "dark": "#FF0000",
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -205,7 +197,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "textColor": [
                 "light": "#000000"
-            ]
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -218,7 +210,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "textColor": [
                 "dark": "#FFFFFF"
-            ]
+            ],
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
@@ -235,7 +227,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
             "currency": "usd",
             "locale": "en_US",
             "country": "US",
-            "paymentMethodTypes": ["card", "affirm", "afterpay_clearpay"]
+            "paymentMethodTypes": ["card", "affirm", "afterpay_clearpay"],
         ]
 
         let (error, configuration) = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: params)
@@ -253,7 +245,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
     func test_buildConfiguration_minimalConfiguration() throws {
         let params: NSDictionary = [
             "amount": 1000,
-            "currency": "usd"
+            "currency": "usd",
         ]
 
         let (error, configuration) = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: params)
@@ -269,7 +261,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "amount": 2000,
             "currency": "eur",
-            "locale": "fr_FR"
+            "locale": "fr_FR",
         ]
 
         let (error, configuration) = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: params)
@@ -288,7 +280,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "amount": 1500,
             "currency": "gbp",
-            "paymentMethodTypes": ["card", "klarna"]
+            "paymentMethodTypes": ["card", "klarna"],
         ]
 
         let (error, configuration) = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: params)
@@ -341,7 +333,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let params: NSDictionary = [
             "amount": 1000,
             "currency": "usd",
-            "paymentMethodTypes": []
+            "paymentMethodTypes": [],
         ]
 
         let (error, configuration) = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: params)
@@ -360,15 +352,15 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
             "textColor": "#FFFFFF",
             "font": [
                 "family": "Helvetica",
-                "scale": 1.2
-            ]
+                "scale": 1.2,
+            ],
         ]
 
         let configParams: NSDictionary = [
             "amount": 5000,
             "currency": "usd",
             "locale": "en_US",
-            "country": "US"
+            "country": "US",
         ]
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: appearanceParams)

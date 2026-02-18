@@ -10,7 +10,7 @@
 internal class PaymentMethodMessagingElementConfig {
     class func buildAppearanceFromParams(params: NSDictionary?) -> PaymentMethodMessagingElement.Appearance {
         var appearance = PaymentMethodMessagingElement.Appearance()
-        
+
         guard let params = params else { return appearance }
 
         // Parse theme/style
@@ -47,7 +47,7 @@ internal class PaymentMethodMessagingElementConfig {
 
         return appearance
     }
-    
+
     private class func parseThemedColor(params: NSDictionary, key: String) -> UIColor? {
         // Check if it's a dictionary with light/dark keys
         if let colorDict = params[key] as? [String: String] {
@@ -74,7 +74,7 @@ internal class PaymentMethodMessagingElementConfig {
 
         return nil
     }
-    
+
     class func buildPaymentMethodMessagingElementConfiguration(
         params: NSDictionary
     ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
