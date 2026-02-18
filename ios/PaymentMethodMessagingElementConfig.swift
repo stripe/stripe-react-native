@@ -55,14 +55,10 @@ internal class PaymentMethodMessagingElementConfig {
             let darkHex = colorDict["dark"]
 
             if let light = lightHex, let dark = darkHex {
-                if #available(iOS 13.0, *) {
-                    return UIColor { traitCollection in
-                        return traitCollection.userInterfaceStyle == .dark
-                            ? UIColor(hexString: dark)
-                            : UIColor(hexString: light)
-                    }
-                } else {
-                    return UIColor(hexString: light)
+                return UIColor { traitCollection in
+                    return traitCollection.userInterfaceStyle == .dark
+                        ? UIColor(hexString: dark)
+                        : UIColor(hexString: light)
                 }
             }
         }
