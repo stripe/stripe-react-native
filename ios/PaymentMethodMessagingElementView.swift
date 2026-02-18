@@ -24,7 +24,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     @objc var appearance: NSDictionary? {
         didSet {
             if let appearance = appearance {
-                appearanceConfig = parseAppearance(params: appearance)
+                appearanceConfig = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: appearance)
                 // Re-initialize if configuration already exists
                 if let config = lastConfig {
                     initMessagingElement(config: config)
@@ -92,121 +92,8 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         paymentMethodMessagingElementView = nil
     }
 
-    private func parseAppearance(params: NSDictionary) -> PaymentMethodMessagingElement.Appearance {
-        var appearance = PaymentMethodMessagingElement.Appearance()
-
-        // Parse theme/style
-        if let styleString = params["style"] as? String {
-            switch styleString {
-            case "dark":
-                appearance.style = .alwaysDark
-            case "flat":
-                appearance.style = .flat
-            case "light":
-                appearance.style = .alwaysLight
-            default:
-                appearance.style = .automatic
-            }
-        }
-
-        // Parse font
-        if let fontParams = params["font"] as? NSDictionary {
-            let scale = fontParams["scale"] as? CGFloat ?? 1
-            if let fontFamily = fontParams["family"] as? String,
-               let customFont = UIFont(name: fontFamily, size: UIFont.systemFontSize * scale) {
-                appearance.font = customFont
-            }
-        }
-
-        // Parse colors
-        if let textColorHex = parseThemedColor(params: params, key: "textColor") {
-            appearance.textColor = textColorHex
-        }
-
-        if let linkTextColorHex = parseThemedColor(params: params, key: "linkTextColor") {
-            appearance.infoIconColor = linkTextColorHex
-        }
-
-        return appearance
-    }
-
-    private func parseThemedColor(params: NSDictionary, key: String) -> UIColor? {
-        // Check if it's a dictionary with light/dark keys
-        if let colorDict = params[key] as? [String: String] {
-            let lightHex = colorDict["light"]
-            let darkHex = colorDict["dark"]
-
-            if let light = lightHex, let dark = darkHex {
-                if #available(iOS 13.0, *) {
-                    return UIColor { traitCollection in
-                        return traitCollection.userInterfaceStyle == .dark
-                            ? UIColor(hexString: dark)
-                            : UIColor(hexString: light)
-                    }
-                } else {
-                    return UIColor(hexString: light)
-                }
-            }
-        }
-
-        // Check if it's a plain string
-        if let colorString = params[key] as? String {
-            return UIColor(hexString: colorString)
-        }
-
-        return nil
-    }
-
-    private func buildPaymentMethodMessagingElementConfiguration(
-        params: NSDictionary
-    ) -> (error: NSDictionary?, configuration: PaymentMethodMessagingElement.Configuration?) {
-
-        // Parse required parameters
-        guard let amount = params["amount"] as? Int else {
-            let error: NSDictionary = [
-                "code": "InvalidConfiguration",
-                "message": "amount is required",
-            ]
-            return (error, nil)
-        }
-
-        guard let currency = params["currency"] as? String else {
-            let error: NSDictionary = [
-                "code": "InvalidConfiguration",
-                "message": "currency is required",
-            ]
-            return (error, nil)
-        }
-
-        // Parse optional parameters
-        let locale = params["locale"] as? String
-        let country = params["country"] as? String
-
-        var paymentMethodTypes: [STPPaymentMethodType]?
-        if let paymentMethodTypesArray = params["paymentMethodTypes"] as? [String] {
-            paymentMethodTypes = paymentMethodTypesArray.map {
-                STPPaymentMethodType.fromIdentifier($0)
-            }
-        }
-
-        var configuration = PaymentMethodMessagingElement.Configuration(
-            amount: amount,
-            currency: currency,
-            locale: locale,
-            countryCode: country,
-            paymentMethodTypes: paymentMethodTypes,
-        )
-
-        // Apply appearance if available
-        if let appearance = appearanceConfig {
-            configuration.appearance = appearance
-        }
-
-        return (nil, configuration)
-    }
-
     private func initMessagingElement(config: NSDictionary) {
-        let configResult = buildPaymentMethodMessagingElementConfiguration(params: config)
+        let configResult = PaymentMethodMessagingElementConfig.buildPaymentMethodMessagingElementConfiguration(params: config)
 
         if let error = configResult.error {
             StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult([
@@ -216,8 +103,13 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
             return
         }
 
-        guard let configuration = configResult.configuration else {
+        guard var configuration = configResult.configuration else {
             return
+        }
+        
+        // Add appearance if available
+        if let appearance = appearanceConfig {
+            configuration.appearance = appearance
         }
 
         var resultMap: [String: String] = [:]
@@ -239,7 +131,7 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
                     resultMap["status"] = "failed"
                     resultMap["message"] = error.localizedDescription
                 }
-                
+
                 StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
                 StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(resultMap)
                 attachPaymentElementIfAvailable()
