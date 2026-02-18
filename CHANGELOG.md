@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## x.x.x - 20xx-xx-xx
+
+**Changes**
+* [Added] Added support for creating a [Radar session](https://docs.stripe.com/radar/radar-session).
+
 ## 0.58.0 - 2026-01-27
 
 **Changes**

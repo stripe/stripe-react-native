@@ -190,6 +190,8 @@ export default function EmbeddedPaymentElementScreen() {
 
   // Local UI state
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [opensCardScannerAutomatically, setOpensCardScannerAutomatically] =
+    React.useState(false);
 
   // Hold configs once initialized
   const [intentConfig, setIntentConfig] =
@@ -382,6 +384,7 @@ export default function EmbeddedPaymentElementScreen() {
           },
         },
         appearance,
+        opensCardScannerAutomatically,
       };
 
       // 5. Intent config
@@ -417,8 +420,15 @@ export default function EmbeddedPaymentElementScreen() {
       setElementConfig(uiConfig);
       setIntentConfig(newIntentConfig);
     },
-    []
+    [opensCardScannerAutomatically]
   );
+
+  // Update config when opensCardScannerAutomatically changes
+  React.useEffect(() => {
+    setElementConfig((prev) =>
+      prev ? { ...prev, opensCardScannerAutomatically } : null
+    );
+  }, [opensCardScannerAutomatically]);
 
   return (
     <PaymentScreen onInit={initialize}>
@@ -436,6 +446,22 @@ export default function EmbeddedPaymentElementScreen() {
           onPress={() => {
             setModalVisible(true);
           }}
+        />
+      </View>
+      <View
+        style={{
+          flex: 1,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+        }}
+      >
+        <Text style={{ marginEnd: 10, textAlignVertical: 'center' }}>
+          Opens card scanner automatically
+        </Text>
+        <Switch
+          value={opensCardScannerAutomatically}
+          onValueChange={setOpensCardScannerAutomatically}
         />
       </View>
       {!modalVisible && (

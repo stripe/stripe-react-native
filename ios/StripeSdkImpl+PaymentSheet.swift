@@ -122,6 +122,10 @@ extension StripeSdkImpl {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
 
+        if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+            configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
+        }
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? [String] {
             configuration.paymentMethodOrder = paymentMethodOrder
         }

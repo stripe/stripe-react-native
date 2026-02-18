@@ -27,6 +27,7 @@ import type {
   FinancialConnections,
   PlatformPay,
   PlatformPayError,
+  CreateRadarSessionResult,
 } from '../types';
 import { useCallback } from 'react';
 import {
@@ -59,6 +60,7 @@ import {
   createPlatformPayToken,
   updatePlatformPaySheet,
   openPlatformPaySetup,
+  createRadarSession,
 } from '../functions';
 import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
@@ -320,6 +322,11 @@ export function useStripe() {
     return openPlatformPaySetup();
   }, []);
 
+  const _createRadarSession =
+    useCallback(async (): Promise<CreateRadarSessionResult> => {
+      return createRadarSession();
+    }, []);
+
   return {
     retrievePaymentIntent: _retrievePaymentIntent,
     retrieveSetupIntent: _retrieveSetupIntent,
@@ -355,5 +362,6 @@ export function useStripe() {
     createPlatformPayToken: _createPlatformPayToken,
     updatePlatformPaySheet: _updatePlatformPaySheet,
     openPlatformPaySetup: _openPlatformPaySetup,
+    createRadarSession: _createRadarSession,
   };
 }

@@ -100,6 +100,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             defaultBillingDetails: nil,
             preferredNetworks: nil,
             allowsRemovalOfLastSavedPaymentMethod: nil,
+            opensCardScannerAutomatically: nil,
             cardBrandAcceptance: .all
         )
 
@@ -148,6 +149,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             defaultBillingDetails: defaultBilling,
             preferredNetworks: preferredNetworks,
             allowsRemovalOfLastSavedPaymentMethod: false,
+            opensCardScannerAutomatically: true,
             cardBrandAcceptance: .all
         )
 
@@ -202,6 +204,7 @@ class CustomerSheetUtilsTests: XCTestCase {
             defaultBillingDetails: defaultBilling,
             preferredNetworks: nil,
             allowsRemovalOfLastSavedPaymentMethod: nil,
+            opensCardScannerAutomatically: nil,
             cardBrandAcceptance: .all
         )
 

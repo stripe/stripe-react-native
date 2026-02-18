@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
@@ -10,6 +10,8 @@ import { ExampleCustomerAdapter } from './ExampleCustomerAdapter';
 
 export default function CustomerSheetScreen() {
   const [useComponent, setUseComponent] = React.useState(false);
+  const [opensCardScannerAutomatically, setOpensCardScannerAutomatically] =
+    React.useState(false);
   const [stripeInitialized, setStripeInitialized] = React.useState(false);
   const [selectedPaymentOption, setSelectedPaymentOption] =
     React.useState<PaymentSheet.PaymentOption | null>(null);
@@ -19,6 +21,7 @@ export default function CustomerSheetScreen() {
   const [customerSheetVisible, setCustomerSheetVisible] = React.useState(false);
   const [customerAdapter, setCustomerAdapter] =
     React.useState<ExampleCustomerAdapter | null>(null);
+  const isFirstRender = useRef(true);
 
   const fetchCustomerSheetParams = async () => {
     const response = await fetch(`${API_URL}/customer-sheet`, {
@@ -44,7 +47,7 @@ export default function CustomerSheetScreen() {
     };
   };
 
-  const setup = async () => {
+  const setup = useCallback(async () => {
     const {
       customer: customerId,
       setupIntent: setupIntentClientSecret,
@@ -79,6 +82,7 @@ export default function CustomerSheetScreen() {
       billingDetailsCollectionConfiguration: {
         phone: PaymentSheet.CollectionMode.ALWAYS,
       },
+      opensCardScannerAutomatically,
     });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
@@ -101,7 +105,17 @@ export default function CustomerSheetScreen() {
     }
 
     setStripeInitialized(true);
-  };
+  }, [opensCardScannerAutomatically]);
+
+  // Re-initialize when opensCardScannerAutomatically changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setStripeInitialized(false);
+    setup();
+  }, [opensCardScannerAutomatically, setup]);
 
   const present = async () => {
     if (useComponent) {
@@ -175,6 +189,13 @@ export default function CustomerSheetScreen() {
           value={useComponent}
         />
       </View>
+      <View style={styles.switchRowSecond}>
+        <Text style={styles.switchLabel}>Opens card scanner: </Text>
+        <Switch
+          onValueChange={setOpensCardScannerAutomatically}
+          value={opensCardScannerAutomatically}
+        />
+      </View>
     </PaymentScreen>
   );
 }
@@ -182,6 +203,12 @@ export default function CustomerSheetScreen() {
 const styles = StyleSheet.create({
   switchRow: {
     marginTop: 350,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  switchRowSecond: {
+    marginTop: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

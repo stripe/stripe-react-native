@@ -26,6 +26,7 @@ extension StripeSdkImpl {
                 defaultBillingDetails: params["defaultBillingDetails"] as? NSDictionary,
                 preferredNetworks: params["preferredNetworks"] as? [Int],
                 allowsRemovalOfLastSavedPaymentMethod: params["allowsRemovalOfLastSavedPaymentMethod"] as? Bool,
+                opensCardScannerAutomatically: params["opensCardScannerAutomatically"] as? Bool,
                 cardBrandAcceptance: StripeSdkImpl.computeCardBrandAcceptance(params: params)
             )
         } catch {

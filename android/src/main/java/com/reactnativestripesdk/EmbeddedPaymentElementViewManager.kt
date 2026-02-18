@@ -132,6 +132,7 @@ class EmbeddedPaymentElementViewManager :
         map.getMap("billingDetailsCollectionConfiguration"),
       )
     val allowsRemovalOfLastSavedPaymentMethod = map.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+    val opensCardScannerAutomatically = map.getBooleanOr("opensCardScannerAutomatically", false)
     val primaryButtonLabel = map.getString("primaryButtonLabel")
     val paymentMethodOrder = map.getStringList("paymentMethodOrder")
 
@@ -156,6 +157,7 @@ class EmbeddedPaymentElementViewManager :
               ?.let { ArrayList(it) },
           ),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
+        .opensCardScannerAutomatically(opensCardScannerAutomatically)
         .cardBrandAcceptance(mapToCardBrandAcceptance(map))
         .apply {
           mapToAllowedCardFundingTypes(map)?.let { allowedCardFundingTypes(it) }

@@ -36,6 +36,12 @@ const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 const sdkVersion = pjson.version;
 
+// Android deep link polling configuration
+// These constants control the polling mechanism that prevents Expo Router from dismissing screens
+const POLLING_INTERVAL_MS = 500; // How often to check for pending deep links
+const URL_DEDUPLICATION_TIMEOUT_MS = 1000; // How long to remember handled URLs
+const DEEP_LINK_GRACE_PERIOD_MS = 500; // Time to wait for deep link after app resumes
+
 // react-native-webview.html will only load versions in the format X.Y.Z
 if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
   throw new Error(
@@ -140,17 +146,28 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     WebView: typeof WebView | null;
   } | null>(null);
 
-  // Store pending authenticated webview promise (for Android Custom Tabs)
-  const pendingAuthWebViewPromise = useRef<{
-    id: string;
-    callback: (id: string, url: string | null) => void;
-  } | null>(null);
+  // Store pending authenticated webview promises (for Android Custom Tabs)
+  // Uses a Map keyed by auth session ID to support multiple auth flows.
+  // Currently processes promises in FIFO order (first entry resolved first).
+  const pendingAuthWebViewPromises = useRef<
+    Map<
+      string,
+      {
+        callback: (id: string, url: string | null) => void;
+        timeoutId?: NodeJS.Timeout;
+      }
+    >
+  >(new Map());
 
   // Store pending Financial Connections promise
   const pendingFinancialConnectionsPromise = useRef<{
     id: string;
     cleanup: () => void;
   } | null>(null);
+
+  // Track recently handled URLs to prevent duplicate processing
+  // This is needed because the SDK uses dual delivery paths (setIntent + direct emit)
+  const recentlyHandledUrls = useRef<Set<string>>(new Set());
 
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
@@ -171,16 +188,106 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
+  // Android deep link polling mechanism (Android-only)
+  //
+  // PROBLEM: On Android, completing auth in Custom Tabs causes a stripe-connect:// deep link
+  // that gets broadcast to React Native's Linking module, which triggers Expo Router and
+  // dismisses the current screen.
+  //
+  // SOLUTION: This polling mechanism intercepts the deep link before Expo Router receives it:
+  // 1. MainActivity.onNewIntent() captures stripe-connect:// URLs and stores them
+  // 2. This effect polls for pending URLs while auth is active
+  // 3. URLs are processed directly and never broadcast to Expo Router
+  // 4. Deduplication prevents the same URL from being processed twice
+  //
+  // This preserves the navigation stack and prevents unwanted screen dismissals.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const pollInterval = setInterval(async () => {
+      if (pendingAuthWebViewPromises.current.size === 0) {
+        return;
+      }
+
+      try {
+        const pendingUrls =
+          await NativeStripeSdk.pollAndClearPendingStripeConnectUrls();
+
+        if (pendingUrls && pendingUrls.length > 0) {
+          pendingUrls.forEach((url: string) => {
+            if (url.startsWith('stripe-connect://')) {
+              // Deduplication: Skip if we've handled this exact URL
+              if (recentlyHandledUrls.current.has(url)) {
+                return;
+              }
+
+              // Mark as handled
+              recentlyHandledUrls.current.add(url);
+
+              // Clear from the set after deduplication timeout
+              setTimeout(() => {
+                recentlyHandledUrls.current.delete(url);
+              }, URL_DEDUPLICATION_TIMEOUT_MS);
+
+              const firstEntry = pendingAuthWebViewPromises.current
+                .entries()
+                .next().value;
+
+              if (firstEntry) {
+                const [id, promiseData] = firstEntry;
+
+                // Clear the timeout if it exists
+                if (promiseData.timeoutId) {
+                  clearTimeout(promiseData.timeoutId);
+                }
+
+                // Remove from Map and invoke callback
+                pendingAuthWebViewPromises.current.delete(id);
+                promiseData.callback(id, url);
+
+                // Reset the Android flag
+                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
+                  // Intentionally silent - flag reset is not critical
+                });
+              }
+            }
+          });
+        }
+      } catch (_error) {
+        // Intentionally silent - polling will retry on next interval
+      }
+    }, POLLING_INTERVAL_MS);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Handle app state changes to detect when user returns from auth flow
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        if (pendingAuthWebViewPromise.current) {
-          const { id, callback } = pendingAuthWebViewPromise.current;
-          pendingAuthWebViewPromise.current = null;
-          callback(id, null);
+        if (pendingAuthWebViewPromises.current.size > 0) {
+          // Give the deep link handler time to process the URL
+          // If no deep link arrives within the grace period, assume the user cancelled
+          pendingAuthWebViewPromises.current.forEach((promiseData, id) => {
+            // Only set timeout if one doesn't already exist
+            if (!promiseData.timeoutId) {
+              const timeoutId = setTimeout(() => {
+                const stillPending = pendingAuthWebViewPromises.current.get(id);
+                if (stillPending) {
+                  pendingAuthWebViewPromises.current.delete(id);
+                  stillPending.callback(id, null);
+                }
+              }, DEEP_LINK_GRACE_PERIOD_MS);
+
+              // Store the timeout ID so we can clear it later if needed
+              promiseData.timeoutId = timeoutId;
+            }
+          });
         }
       }
 
@@ -188,7 +295,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
 
     return () => {
-      pendingAuthWebViewPromise.current = null;
+      // Clear all pending timeouts and promises
+      // We intentionally want the latest ref value at cleanup time
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const promises = pendingAuthWebViewPromises.current;
+      promises.forEach((promiseData, _id) => {
+        if (promiseData.timeoutId) {
+          clearTimeout(promiseData.timeoutId);
+        }
+      });
+      promises.clear();
       pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
@@ -568,9 +684,8 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
               }
               handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise to be resolved by deep link listener
-              pendingAuthWebViewPromise.current = {
-                id,
+              // Android: Store promise in Map to be resolved by deep link listener
+              pendingAuthWebViewPromises.current.set(id, {
                 callback: (authId: string, resultUrl: string | null) => {
                   if (resultUrl) {
                     componentAnalytics.logAuthenticatedWebViewRedirected(
@@ -581,10 +696,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
                   }
                   handleAuthWebViewResult(authId, resultUrl);
                 },
-              };
+              });
             }
           })
           .catch((error) => {
+            if (__DEV__) {
+              console.error(
+                `[EmbeddedComponent] Error opening authenticated webview:`,
+                error
+              );
+            }
             componentAnalytics.logAuthenticatedWebViewError(
               id,
               error instanceof Error ? error : new Error(String(error))
