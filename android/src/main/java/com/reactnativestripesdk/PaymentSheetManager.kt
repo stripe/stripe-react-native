@@ -39,6 +39,7 @@ import com.reactnativestripesdk.utils.mapFromPaymentMethod
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.stripe.android.ExperimentalAllowsRemovalOfLastSavedPaymentMethodApi
+import com.stripe.android.PaymentConfiguration
 import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.ConfirmCustomPaymentMethodCallback
@@ -297,6 +298,14 @@ class PaymentSheetManager(
     configurationBuilder.paymentMethodLayout(
       mapToPaymentMethodLayout(arguments.getString("paymentMethodLayout")),
     )
+
+    val userKeyTermsDisplay =
+      computeTermsDisplayForUserKey(
+        PaymentConfiguration.getInstance(context).publishableKey,
+      )
+    if (userKeyTermsDisplay.isNotEmpty()) {
+      configurationBuilder.termsDisplay(userKeyTermsDisplay)
+    }
 
     paymentSheetConfiguration = configurationBuilder.build()
 

@@ -7,6 +7,7 @@ import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getLongOr
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isEmpty
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -75,6 +76,13 @@ private fun mapStringToLinkDisplay(value: String?): PaymentSheet.LinkConfigurati
     "automatic" -> PaymentSheet.LinkConfiguration.Display.Automatic
     "never" -> PaymentSheet.LinkConfiguration.Display.Never
     else -> PaymentSheet.LinkConfiguration.Display.Automatic
+  }
+
+internal fun computeTermsDisplayForUserKey(publishableKey: String): Map<PaymentMethod.Type, PaymentSheet.TermsDisplay> =
+  if (publishableKey.startsWith("uk_")) {
+    mapOf(PaymentMethod.Type.Card to PaymentSheet.TermsDisplay.NEVER)
+  } else {
+    emptyMap()
   }
 
 private val mapIntToButtonType =

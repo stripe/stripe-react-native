@@ -152,6 +152,11 @@ extension StripeSdkImpl {
           )
         }
 
+        let userKeyTermsDisplay = StripeSdkImpl.computeTermsDisplayForUserKey()
+        if !userKeyTermsDisplay.isEmpty {
+            configuration.termsDisplay = userKeyTermsDisplay
+        }
+
         return (nil, configuration)
     }
 
@@ -479,6 +484,13 @@ extension StripeSdkImpl {
         default:
             return .automatic
         }
+    }
+
+    internal static func computeTermsDisplayForUserKey() -> [STPPaymentMethodType: PaymentSheet.TermsDisplay] {
+        if STPAPIClient.shared.publishableKeyIsUserKey {
+            return [.card: .never]
+        }
+        return [:]
     }
 
     internal static func mapToLinkDisplay(value: String?) -> PaymentSheet.LinkConfiguration.Display {
