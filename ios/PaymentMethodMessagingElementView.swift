@@ -115,27 +115,25 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         var resultMap: [String: String] = [:]
         var height: CGFloat? = 0
 
-        Task {
-            do {
-                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
-                switch await PaymentMethodMessagingElement.create(configuration: configuration) {
-                case .success(let paymentMethodMessagingElement):
-                    self.messagingInstance = paymentMethodMessagingElement
-                    height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
-                    resultMap["status"] = "loaded"
-                case .noContent:
-                    resultMap["status"] = "no_content"
-                    self.messagingInstance = nil
-                case .failed(let error):
-                    self.messagingInstance = nil
-                    resultMap["status"] = "failed"
-                    resultMap["message"] = error.localizedDescription
-                }
-
-                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
-                StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(resultMap)
-                attachPaymentElementIfAvailable()
+        Task { @MainActor in
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(["status": "loading"])
+            switch await PaymentMethodMessagingElement.create(configuration: configuration) {
+            case .success(let paymentMethodMessagingElement):
+                self.messagingInstance = paymentMethodMessagingElement
+                height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: paymentMethodMessagingElement.view.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height
+                resultMap["status"] = "loaded"
+            case .noContent:
+                resultMap["status"] = "no_content"
+                self.messagingInstance = nil
+            case .failed(let error):
+                self.messagingInstance = nil
+                resultMap["status"] = "failed"
+                resultMap["message"] = error.localizedDescription
             }
+
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementConfigureResult(resultMap)
+            attachPaymentElementIfAvailable()
         }
     }
 }
