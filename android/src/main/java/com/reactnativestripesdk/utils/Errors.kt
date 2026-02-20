@@ -58,6 +58,14 @@ class PaymentSheetException(
   message: String,
 ) : Exception(message)
 
+class PaymentMethodMessagingElementAppearanceException(
+  message: String,
+) : Exception(message)
+
+class PaymentMethodMessagingElementConfigurationException(
+  message: String,
+) : Exception(message)
+
 internal fun mapError(
   code: String,
   message: String?,
