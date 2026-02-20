@@ -63,6 +63,7 @@ import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
+import com.stripe.android.model.AccountParams
 import com.stripe.android.model.CardParams
 import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
@@ -445,7 +446,7 @@ class StripeSdkModule(
     )
     CoroutineScope(Dispatchers.IO).launch {
       runCatching {
-        val token = stripe.createAccountToken(accountParams, null, stripeAccountId)
+        val token = stripe.createAccountTokenSynchronous(accountParams, null, stripeAccountId)
         promise.resolve(createResult("token", mapFromToken(token)))
       }.onFailure {
         promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
