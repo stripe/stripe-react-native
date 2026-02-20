@@ -43,9 +43,11 @@ class PaymentMethodMessagingElementConfigTest {
 
     val result = parseElementConfiguration(params)
 
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(1000)
-      .currency("usd")
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(1000)
+        .currency("usd")
 
     checkEquals(expected, result)
   }
@@ -60,10 +62,12 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseElementConfiguration(params)
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(1000)
-      .currency("usd")
-      .locale("en_US")
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(1000)
+        .currency("usd")
+        .locale("en_US")
 
     checkEquals(expected, result)
   }
@@ -78,10 +82,12 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseElementConfiguration(params)
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(1000)
-      .currency("usd")
-      .countryCode("US")
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(1000)
+        .currency("usd")
+        .countryCode("US")
 
     checkEquals(expected, result)
   }
@@ -96,12 +102,14 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseElementConfiguration(params)
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(1000)
-      .currency("usd")
-      .paymentMethodTypes(
-        listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna, PaymentMethod.Type.Affirm)
-      )
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(1000)
+        .currency("usd")
+        .paymentMethodTypes(
+          listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna, PaymentMethod.Type.Affirm),
+        )
 
     checkEquals(expected, result)
   }
@@ -116,12 +124,14 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseElementConfiguration(params)
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(1000)
-      .currency("usd")
-      .paymentMethodTypes(
-        listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna)
-      )
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(1000)
+        .currency("usd")
+        .paymentMethodTypes(
+          listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna),
+        )
 
     checkEquals(expected, result)
   }
@@ -138,12 +148,14 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseElementConfiguration(params)
-    val expected = PaymentMethodMessagingElement.Configuration()
-      .amount(5000)
-      .currency("eur")
-      .locale("fr_FR")
-      .countryCode("FR")
-      .paymentMethodTypes(listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna))
+    val expected =
+      PaymentMethodMessagingElement
+        .Configuration()
+        .amount(5000)
+        .currency("eur")
+        .locale("fr_FR")
+        .countryCode("FR")
+        .paymentMethodTypes(listOf(PaymentMethod.Type.Card, PaymentMethod.Type.Klarna))
 
     checkEquals(expected, result)
   }
@@ -179,10 +191,11 @@ class PaymentMethodMessagingElementConfigTest {
     val params = readableMapOf()
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -195,10 +208,11 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -211,10 +225,11 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.DARK)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.DARK)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -227,10 +242,11 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.FLAT)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.FLAT)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -243,10 +259,11 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -259,12 +276,15 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      val colors = PaymentMethodMessagingElement.Appearance.Colors()
-        .textColor("#FF0000".toColorInt())
-      colors(colors)
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .textColor("#FF0000".toColorInt())
+        colors(colors)
+      }
 
     checkEquals(expected, result)
   }
@@ -282,12 +302,15 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      val colors = PaymentMethodMessagingElement.Appearance.Colors()
-        .textColor("#000000".toColorInt())
-      colors(colors)
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .textColor("#000000".toColorInt())
+        colors(colors)
+      }
 
     checkEquals(expected, result)
   }
@@ -305,12 +328,15 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.DARK)
-      val colors = PaymentMethodMessagingElement.Appearance.Colors()
-        .textColor("#FFFFFF".toColorInt())
-      colors(colors)
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.DARK)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .textColor("#FFFFFF".toColorInt())
+        colors(colors)
+      }
 
     checkEquals(expected, result)
   }
@@ -333,12 +359,15 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      val colors = PaymentMethodMessagingElement.Appearance.Colors()
-        .infoIconColor("#0000FF".toColorInt())
-      colors(colors)
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .infoIconColor("#0000FF".toColorInt())
+        colors(colors)
+      }
 
     checkEquals(expected, result)
   }
@@ -356,12 +385,15 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      val colors = PaymentMethodMessagingElement.Appearance.Colors()
-        .infoIconColor("#0000FF".toColorInt())
-      colors(colors)
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val colors =
+          PaymentMethodMessagingElement.Appearance
+            .Colors()
+            .infoIconColor("#0000FF".toColorInt())
+        colors(colors)
+      }
 
     checkEquals(expected, result)
   }
@@ -377,14 +409,17 @@ class PaymentMethodMessagingElementConfigTest {
       )
 
     val result = parseAppearance(params, context)
-    val expected = PaymentMethodMessagingElement.Appearance().apply {
-      theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
-      val font = PaymentMethodMessagingElement.Appearance.Font()
-        .fontFamily(null)
-        .fontSizeSp((16 * 1.5).toFloat())
-      font(font)
-      colors(PaymentMethodMessagingElement.Appearance.Colors())
-    }
+    val expected =
+      PaymentMethodMessagingElement.Appearance().apply {
+        theme(PaymentMethodMessagingElement.Appearance.Theme.LIGHT)
+        val font =
+          PaymentMethodMessagingElement.Appearance
+            .Font()
+            .fontFamily(null)
+            .fontSizeSp((16 * 1.5).toFloat())
+        font(font)
+        colors(PaymentMethodMessagingElement.Appearance.Colors())
+      }
 
     checkEquals(expected, result)
   }
@@ -410,7 +445,7 @@ class PaymentMethodMessagingElementConfigTest {
 
   private fun checkEquals(
     expected: PaymentMethodMessagingElement.Configuration,
-    actual: PaymentMethodMessagingElement.Configuration
+    actual: PaymentMethodMessagingElement.Configuration,
   ) {
     val fieldNames = listOf("amount", "currency", "locale", "countryCode", "paymentMethodTypes")
 
@@ -429,7 +464,7 @@ class PaymentMethodMessagingElementConfigTest {
 
   private fun checkEquals(
     expected: PaymentMethodMessagingElement.Appearance,
-    actual: PaymentMethodMessagingElement.Appearance
+    actual: PaymentMethodMessagingElement.Appearance,
   ) {
     val fieldNames = listOf("theme", "font", "colors")
 
@@ -446,8 +481,8 @@ class PaymentMethodMessagingElementConfigTest {
         "font" -> {
           if (expectedValue != null && actualValue != null) {
             checkEqualsFont(
-              expectedValue,// as PaymentMethodMessagingElement.Appearance.Font,
-              actualValue,// as PaymentMethodMessagingElement.Appearance.Font
+              expectedValue, // as PaymentMethodMessagingElement.Appearance.Font,
+              actualValue, // as PaymentMethodMessagingElement.Appearance.Font
             )
           } else {
             assertEquals(expectedValue, actualValue)
@@ -456,8 +491,8 @@ class PaymentMethodMessagingElementConfigTest {
         "colors" -> {
           if (expectedValue != null && actualValue != null) {
             checkEqualsColors(
-              expectedValue,// as PaymentMethodMessagingElement.Appearance.Colors,
-              actualValue// as PaymentMethodMessagingElement.Appearance.Colors
+              expectedValue, // as PaymentMethodMessagingElement.Appearance.Colors,
+              actualValue, // as PaymentMethodMessagingElement.Appearance.Colors
             )
           } else {
             assertEquals(expectedValue, actualValue)
@@ -470,7 +505,7 @@ class PaymentMethodMessagingElementConfigTest {
 
   private fun checkEqualsFont(
     expected: Any,
-    actual: Any
+    actual: Any,
   ) {
     val fieldNames = listOf("fontFamily", "fontSizeSp")
 
@@ -489,7 +524,7 @@ class PaymentMethodMessagingElementConfigTest {
 
   private fun checkEqualsColors(
     expected: Any,
-    actual: Any
+    actual: Any,
   ) {
     val fieldNames = listOf("textColor", "infoIconColor")
 
@@ -505,5 +540,4 @@ class PaymentMethodMessagingElementConfigTest {
       assertEquals("Colors field '$fieldName' mismatch", expectedValue, actualValue)
     }
   }
-
 }

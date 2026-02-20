@@ -16,10 +16,12 @@ import com.stripe.android.paymentmethodmessaging.element.PaymentMethodMessagingE
 
 @Throws(PaymentMethodMessagingElementConfigurationException::class)
 fun parseElementConfiguration(map: ReadableMap): PaymentMethodMessagingElement.Configuration {
-  val amount = map.getDoubleOrNull("amount")?.toLong()
-    ?: throw PaymentMethodMessagingElementConfigurationException("`amount` is required")
-  val currency = map.getString("currency")
-    ?: throw PaymentMethodMessagingElementConfigurationException("`currency` is required")
+  val amount =
+    map.getDoubleOrNull("amount")?.toLong()
+      ?: throw PaymentMethodMessagingElementConfigurationException("`amount` is required")
+  val currency =
+    map.getString("currency")
+      ?: throw PaymentMethodMessagingElementConfigurationException("`currency` is required")
 
   val locale = map.getString("locale")
   val countryCode = map.getString("country")
@@ -143,4 +145,3 @@ private fun colorFromHex(hexString: String?): Int? =
       )
     }
   }
-
