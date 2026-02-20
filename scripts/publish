@@ -51,14 +51,14 @@ Please [see the changelog](https://github.com/stripe/stripe-react-native/blob/ma
 EOF
 )"
 
-  if which hub | grep -q "not found"; then
-    create_github_release_fallback "$release_notes"
-  else
+  if command -v hub >/dev/null 2>&1; then
     local current_version=${version_and_date% -*}
     echo "Creating GitHub release for tag: v$current_version"
     echo ""
     echo -n "    "
     hub release create -em "$release_notes" "v$current_version"
+  else
+    create_github_release_fallback "$release_notes"
   fi
 }
 
@@ -126,21 +126,26 @@ if ! grep -q 'working tree clean' <<< "$GIT_STATUS"; then
 fi
 
 echo "Installing dependencies according to lockfile"
-yarn -s install --frozen-lockfile
+yarn install --frozen-lockfile
 
 echo "Running tests"
-yarn -s run test
+yarn run test
+
+BRANCH_NAME=release-branch-$RANDOM
+git checkout -b "$BRANCH_NAME"
 
 echo "Bumping package.json $RELEASE_TYPE version and tagging commit"
-yarn -s version --$RELEASE_TYPE
+yarn version --"$RELEASE_TYPE"
 
 echo "Publishing release"
-yarn -s --ignore-scripts publish --non-interactive --access=public
+npm publish --ignore-scripts --access=public
+echo "Published to npm!"
 
 echo "Pushing git commit and tag"
-git push --follow-tags
+git push -u origin "$BRANCH_NAME" --follow-tags
 
-echo "Publish successful!"
+echo ""
+echo "Tag pushed! Please open a PR for your version bump: https://github.com/stripe/stripe-react-native/pulls"
 echo ""
 
 create_github_release

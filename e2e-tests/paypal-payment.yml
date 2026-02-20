@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Wallets"
 - scrollUntilVisible:
     element:
@@ -15,6 +16,12 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- tapOn:
+    # Deal with iOS system dialog
+    text: "Continue"
+    optional: true
+- assertVisible:
+    text: "AUTHORIZE TEST PAYMENT"
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
     text: "Success"

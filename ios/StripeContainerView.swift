@@ -1,24 +1,26 @@
 import Foundation
 import UIKit
 
-class StripeContainerView: UIView {
-    var tapRecognizer: UITapGestureRecognizer? = nil
+@objc(StripeContainerView)
+public class StripeContainerView: UIView {
+    var tapRecognizer: UITapGestureRecognizer?
 
-    @objc var keyboardShouldPersistTaps: Bool = true {
+    @objc public var keyboardShouldPersistTaps: Bool = true {
         didSet {
-            if (keyboardShouldPersistTaps == true) {
+            if keyboardShouldPersistTaps == true {
                 removeListener()
             } else {
                 setListener()
             }
         }
     }
-    
-    override init(frame: CGRect) {
+
+    public override init(frame: CGRect) {
         super.init(frame: frame)
     }
 
     func setListener() {
+        removeListener()
         tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(endEditing(_:)))
 
         tapRecognizer!.cancelsTouchesInView = false

@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useStripe } from '@stripe/stripe-react-native';
+import {
+  StripeProvider,
+  useStripe,
+  useOnramp,
+} from '@stripe/stripe-react-native';
 import {
   Linking,
   StyleSheet,
@@ -8,14 +12,17 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Text,
 } from 'react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
 import { Collapse } from '../components/Collapse';
+import { Onramp } from '@stripe/stripe-react-native';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { handleURLCallback } = useStripe();
+  const { configure } = useOnramp();
 
   const handleDeepLink = useCallback(
     async (url: string | null) => {
@@ -46,6 +53,39 @@ export default function HomeScreen() {
 
     return () => deepLinkListener.remove();
   }, [handleDeepLink]);
+
+  const handleConfigureOnramp = useCallback(() => {
+    const config: Onramp.Configuration = {
+      merchantDisplayName: 'Onramp RN Example',
+      appearance: {
+        lightColors: {
+          primary: '#2d22a1',
+          contentOnPrimary: '#ffffff',
+          borderSelected: '#07b8b8',
+        },
+        darkColors: {
+          primary: '#800080',
+          contentOnPrimary: '#ffffff',
+          borderSelected: '#526f3e',
+        },
+        style: 'ALWAYS_DARK',
+        primaryButton: {
+          cornerRadius: 8,
+          height: 48,
+        },
+      },
+    };
+
+    configure(config).then((result) => {
+      if (result?.error) {
+        console.error('Error configuring Onramp:', result.error.message);
+        Alert.alert('Onramp Configuration Error', result.error.message);
+      } else {
+        console.log('Onramp configured successfully.');
+        Alert.alert('Success', 'Onramp configured successfully.');
+      }
+    });
+  }, [configure]);
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
@@ -95,9 +135,35 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Prebuilt UI (EmbeddedPaymentElement)"
+              onPress={() => {
+                navigation.navigate('EmbeddedPaymentElementScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Prebuilt UI (EmbeddedPaymentElement - immediateAction rowSelectionBehavior)"
+              onPress={() => {
+                navigation.navigate(
+                  'EmbeddedPaymentElementImmediateActionScreen'
+                );
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Customer Sheet"
               onPress={() => {
                 navigation.navigate('CustomerSheetScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Customer Sheet with Customer Session"
+              onPress={() => {
+                navigation.navigate('CustomerSheetScreenCustomerSession');
               }}
             />
           </View>
@@ -140,6 +206,14 @@ export default function HomeScreen() {
           </View>
           <View style={styles.buttonContainer}>
             <Button
+              title="Finalize setup on the server"
+              onPress={() => {
+                navigation.navigate('NoWebhookSetupScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
               title="Recollect a CVC"
               onPress={() => {
                 navigation.navigate('CVCReCollectionScreen');
@@ -151,6 +225,14 @@ export default function HomeScreen() {
               title="Create tokens"
               onPress={() => {
                 navigation.navigate('CreateTokenScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="PaymentSheet with PMO SFU"
+              onPress={() => {
+                navigation.navigate('PaymentSheetWithPmoSfuScreen');
               }}
             />
           </View>
@@ -241,23 +323,6 @@ export default function HomeScreen() {
 
           <View style={styles.buttonContainer}>
             <Button
-              title="FPX"
-              onPress={() => {
-                navigation.navigate('FPXPaymentScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="giropay"
-              onPress={() => {
-                navigation.navigate('GiropayPaymentScreen');
-              }}
-            />
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
               title="iDEAL payment"
               onPress={() => {
                 navigation.navigate('IdealPaymentScreen');
@@ -282,23 +347,6 @@ export default function HomeScreen() {
               }}
             />
           </View>
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Sofort"
-              onPress={() => {
-                navigation.navigate('SofortPaymentScreen');
-              }}
-            />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Sofort SEPA Direct Debit set up"
-              onPress={() => {
-                navigation.navigate('SofortSetupFuturePaymentScreen');
-              }}
-            />
-          </View>
         </>
       </Collapse>
 
@@ -317,6 +365,22 @@ export default function HomeScreen() {
               title="Klarna"
               onPress={() => {
                 navigation.navigate('KlarnaPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Billie"
+              onPress={() => {
+                navigation.navigate('BilliePaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Alma"
+              onPress={() => {
+                navigation.navigate('AlmaPaymentScreen');
               }}
             />
           </View>
@@ -432,6 +496,74 @@ export default function HomeScreen() {
           </View>
         </>
       </Collapse>
+      <Collapse title="Connect embedded components">
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Account onboarding"
+            onPress={() => {
+              navigation.navigate('ConnectAccountOnboardingScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payments list"
+            onPress={() => {
+              navigation.navigate('ConnectPaymentsListScreen');
+            }}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Payouts list"
+            onPress={() => {
+              navigation.navigate('ConnectPayoutsListScreen');
+            }}
+          />
+        </View>
+      </Collapse>
+      <StripeProvider
+        publishableKey="pk_test_51K9W3OHMaDsveWq0oLP0ZjldetyfHIqyJcz27k2BpMGHxu9v9Cei2tofzoHncPyk3A49jMkFEgTOBQyAMTUffRLa00xzzARtZO"
+        merchantIdentifier="merchant.com.stripe.react.native"
+      >
+        <Collapse title="Crypto Onramp">
+          <>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Configure Onramp (Required First)"
+                onPress={() => {
+                  handleConfigureOnramp();
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Crypto Onramp Flow"
+                onPress={() => {
+                  navigation.navigate('CryptoOnrampFlow');
+                }}
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Register Crypto Link User"
+                onPress={() => {
+                  navigation.navigate('RegisterCryptoUserScreen');
+                }}
+              />
+            </View>
+          </>
+        </Collapse>
+      </StripeProvider>
+      <View style={styles.infoContainer}>
+        <Text style={styles.infoText}>
+          New arch enabled:{' '}
+          {(global as any).nativeFabricUIManager ? 'true' : 'false'}
+        </Text>
+        <Text style={styles.infoText}>
+          Bridgeless enabled: {(global as any).RN$Bridgeless ? 'true' : 'false'}
+        </Text>
+      </View>
     </ScrollView>
   );
 }
@@ -445,5 +577,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomColor: colors.light_gray,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  infoContainer: {
+    padding: 16,
+    gap: 4,
+  },
+  infoText: {
+    fontSize: 12,
   },
 });

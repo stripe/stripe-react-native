@@ -1,172 +1,564 @@
 package com.reactnativestripesdk
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
-import android.os.Bundle
-import com.facebook.react.bridge.ReactContext
+import android.content.res.Configuration
+import androidx.core.graphics.toColorInt
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
 import com.reactnativestripesdk.utils.PaymentSheetAppearanceException
+import com.reactnativestripesdk.utils.getBooleanOrNull
+import com.reactnativestripesdk.utils.getDoubleOrNull
+import com.reactnativestripesdk.utils.getFloatOr
+import com.reactnativestripesdk.utils.getFloatOrNull
+import com.stripe.android.paymentelement.AppearanceAPIAdditionsPreview
 import com.stripe.android.paymentsheet.PaymentSheet
+import com.stripe.android.uicore.StripeThemeDefaults
 
-fun buildPaymentSheetAppearance(userParams: Bundle?, context: Context): PaymentSheet.Appearance {
-  val colorParams = userParams?.getBundle(PaymentSheetAppearanceKeys.COLORS)
-  val lightColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams?.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+@SuppressLint("RestrictedApi")
+fun buildPaymentSheetAppearance(
+  userParams: ReadableMap?,
+  context: Context,
+): PaymentSheet.Appearance {
+  val colorParams = userParams?.getMap(PaymentSheetAppearanceKeys.COLORS)
+  val lightColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
+  val darkColorParams = colorParams?.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val insetParams = userParams?.getMap(PaymentSheetAppearanceKeys.FORM_INSETS)
 
-  return PaymentSheet.Appearance(
-    typography = buildTypography(userParams?.getBundle(PaymentSheetAppearanceKeys.FONT), context),
-    colorsLight = buildColors(lightColorParams, PaymentSheet.Colors.defaultLight),
-    colorsDark = buildColors(darkColorParams, PaymentSheet.Colors.defaultDark),
-    shapes = buildShapes(userParams?.getBundle(PaymentSheetAppearanceKeys.SHAPES)),
-    primaryButton = buildPrimaryButton(userParams?.getBundle(PaymentSheetAppearanceKeys.PRIMARY_BUTTON), context)
+  val embeddedAppearance =
+    buildEmbeddedAppearance(
+      userParams?.getMap(PaymentSheetAppearanceKeys.EMBEDDED_PAYMENT_ELEMENT),
+      context,
+    )
+
+  val builder = PaymentSheet.Appearance.Builder()
+  builder.typography(buildTypography(userParams?.getMap(PaymentSheetAppearanceKeys.FONT), context))
+  builder.colorsLight(buildColorsBuilder(isLightMode = true, lightColorParams).build())
+  builder.colorsDark(buildColorsBuilder(isLightMode = false, darkColorParams).build())
+  builder.shapes(buildShapes(userParams?.getMap(PaymentSheetAppearanceKeys.SHAPES)))
+  builder.primaryButton(
+    buildPrimaryButton(
+      userParams?.getMap(PaymentSheetAppearanceKeys.PRIMARY_BUTTON),
+      context,
+    ),
   )
+  builder.embeddedAppearance(embeddedAppearance)
+  builder.formInsetValues(buildFormInsets(insetParams))
+  return builder.build()
 }
 
-private fun buildTypography(fontParams: Bundle?, context: Context): PaymentSheet.Typography {
-  val scale = getDoubleOrNull(fontParams, PaymentSheetAppearanceKeys.SCALE)
-  val resId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, PaymentSheet.Typography.default.fontResId, context)
-  return PaymentSheet.Typography.default.copy(
-    sizeScaleFactor = scale?.toFloat() ?: PaymentSheet.Typography.default.sizeScaleFactor,
-    fontResId = resId
-  )
+@SuppressLint("RestrictedApi")
+@OptIn(AppearanceAPIAdditionsPreview::class)
+private fun buildTypography(
+  fontParams: ReadableMap?,
+  context: Context,
+): PaymentSheet.Typography {
+  val scale = fontParams.getDoubleOrNull(PaymentSheetAppearanceKeys.SCALE)
+  val resId =
+    getFontResId(
+      fontParams,
+      PaymentSheetAppearanceKeys.FAMILY,
+      context,
+    )
+  val builder = PaymentSheet.Typography.Builder()
+  scale?.let {
+    builder.sizeScaleFactor(it.toFloat())
+  }
+  resId?.let {
+    builder.fontResId(it)
+  }
+  return builder.build()
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun colorFromHexOrDefault(hexString: String?, default: Int): Int {
-  return hexString?.trim()?.replace("#","")?.let {
+private fun colorFromHex(hexString: String?): Int? =
+  hexString?.trim()?.replace("#", "")?.let {
     if (it.length == 6 || it.length == 8) {
-      return Color.parseColor("#$it")
-    } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
-  } ?: run {
-    return default
-  }
-}
-
-private fun buildColors(colorParams: Bundle?, default: PaymentSheet.Colors): PaymentSheet.Colors {
-  if (colorParams == null) {
-    return default
+      "#$it".toColorInt()
+    } else {
+      throw PaymentSheetAppearanceException(
+        "Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it",
+      )
+    }
   }
 
-  return default.copy(
-    primary = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY), default.primary),
-    surface = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND), default.surface),
-    component = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND), default.component),
-    componentBorder = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_BORDER), default.componentBorder),
-    componentDivider = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_DIVIDER), default.componentDivider),
-    onComponent = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.COMPONENT_TEXT), default.onComponent),
-    onSurface = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PRIMARY_TEXT), default.onSurface),
-    subtitle = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.SECONDARY_TEXT), default.subtitle),
-    placeholderText = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT), default.placeholderText),
-    appBarIcon = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.ICON), default.appBarIcon),
-    error = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.ERROR), default.error),
-  )
+@SuppressLint("RestrictedApi")
+private fun buildColorsBuilder(
+  isLightMode: Boolean,
+  colorParams: ReadableMap?,
+): PaymentSheet.Colors.Builder {
+  val builder =
+    if (isLightMode) {
+      PaymentSheet.Colors.Builder.light()
+    } else {
+      PaymentSheet.Colors.Builder.dark()
+    }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.PRIMARY))?.let {
+    builder.primary(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.BACKGROUND))?.let {
+    builder.surface(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.COMPONENT_BACKGROUND))?.let {
+    builder.component(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.COMPONENT_BORDER))?.let {
+    builder.componentBorder(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.COMPONENT_DIVIDER))?.let {
+    builder.componentDivider(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.COMPONENT_TEXT))?.let {
+    builder.onComponent(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.PRIMARY_TEXT))?.let {
+    builder.onSurface(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.SECONDARY_TEXT))?.let {
+    builder.subtitle(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.PLACEHOLDER_TEXT))?.let {
+    builder.placeholderText(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.ICON))?.let {
+    builder.appBarIcon(it)
+  }
+
+  colorFromHex(colorParams?.getString(PaymentSheetAppearanceKeys.ERROR))?.let {
+    builder.error(it)
+  }
+
+  return builder
 }
 
-private fun buildShapes(shapeParams: Bundle?): PaymentSheet.Shapes {
-  return PaymentSheet.Shapes.default.copy(
-    cornerRadiusDp = getFloatOr(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS, PaymentSheet.Shapes.default.cornerRadiusDp),
-    borderStrokeWidthDp = getFloatOr(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH, PaymentSheet.Shapes.default.borderStrokeWidthDp)
-  )
+@SuppressLint("RestrictedApi")
+private fun buildShapes(shapeParams: ReadableMap?): PaymentSheet.Shapes {
+  val builder = PaymentSheet.Shapes.Builder()
+
+  shapeParams.getFloatOrNull(PaymentSheetAppearanceKeys.BORDER_RADIUS)?.let {
+    builder.cornerRadiusDp(it)
+  }
+
+  shapeParams.getFloatOrNull(PaymentSheetAppearanceKeys.BORDER_WIDTH)?.let {
+    builder.borderStrokeWidthDp(it)
+  }
+
+  return builder.build()
 }
 
-private fun buildPrimaryButton(params: Bundle?, context: Context): PaymentSheet.PrimaryButton {
+@SuppressLint("RestrictedApi")
+private fun buildPrimaryButton(
+  params: ReadableMap?,
+  context: Context,
+): PaymentSheet.PrimaryButton {
   if (params == null) {
     return PaymentSheet.PrimaryButton()
   }
 
-  val fontParams = params.getBundle(PaymentSheetAppearanceKeys.FONT) ?: Bundle.EMPTY
-  val shapeParams = params.getBundle(PaymentSheetAppearanceKeys.SHAPES) ?: Bundle.EMPTY
-  val colorParams = params.getBundle(PaymentSheetAppearanceKeys.COLORS) ?: Bundle.EMPTY
-  val lightColorParams = colorParams.getBundle(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
-  val darkColorParams = colorParams.getBundle(PaymentSheetAppearanceKeys.DARK) ?: colorParams
+  val fontParams = params.getMap(PaymentSheetAppearanceKeys.FONT) ?: Arguments.createMap()
+  val shapeParams = params.getMap(PaymentSheetAppearanceKeys.SHAPES) ?: Arguments.createMap()
+  val colorParams = params.getMap(PaymentSheetAppearanceKeys.COLORS) ?: Arguments.createMap()
+  val lightColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.LIGHT) ?: colorParams
+  val darkColorParams = colorParams.getMap(PaymentSheetAppearanceKeys.DARK) ?: colorParams
 
   return PaymentSheet.PrimaryButton(
-    colorsLight = buildPrimaryButtonColors(lightColorParams, PaymentSheet.PrimaryButtonColors.defaultLight),
-    colorsDark = buildPrimaryButtonColors(darkColorParams, PaymentSheet.PrimaryButtonColors.defaultDark),
-    shape = PaymentSheet.PrimaryButtonShape(
-      cornerRadiusDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_RADIUS),
-      borderStrokeWidthDp = getFloatOrNull(shapeParams, PaymentSheetAppearanceKeys.BORDER_WIDTH),
-    ),
-    typography = PaymentSheet.PrimaryButtonTypography(
-      fontResId = getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, null, context)
-    )
+    colorsLight =
+      buildPrimaryButtonColors(true, lightColorParams, context).build(),
+    colorsDark =
+      buildPrimaryButtonColors(false, darkColorParams, context).build(),
+    shape =
+      PaymentSheet.PrimaryButtonShape(
+        cornerRadiusDp =
+          shapeParams.getFloatOrNull(PaymentSheetAppearanceKeys.BORDER_RADIUS),
+        borderStrokeWidthDp =
+          shapeParams.getFloatOrNull(PaymentSheetAppearanceKeys.BORDER_WIDTH),
+        heightDp = shapeParams.getFloatOrNull(PaymentSheetAppearanceKeys.HEIGHT),
+      ),
+    typography =
+      PaymentSheet.PrimaryButtonTypography(
+        fontResId =
+          getFontResId(fontParams, PaymentSheetAppearanceKeys.FAMILY, context),
+      ),
   )
 }
 
+@SuppressLint("RestrictedApi")
 @Throws(PaymentSheetAppearanceException::class)
-private fun buildPrimaryButtonColors(colorParams: Bundle, default: PaymentSheet.PrimaryButtonColors): PaymentSheet.PrimaryButtonColors {
-  return PaymentSheet.PrimaryButtonColors(
-    background = colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND)?.trim()?.replace("#", "")?.let {
-      if (it.length == 6 || it.length == 8) {
-        Color.parseColor("#$it")
-      } else throw PaymentSheetAppearanceException("Failed to set Payment Sheet appearance. Expected hex string of length 6 or 8, but received: $it")
-    } ?: run {
-      null
-    },
-    onBackground = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.TEXT), default.onBackground),
-    border = colorFromHexOrDefault(colorParams.getString(PaymentSheetAppearanceKeys.BORDER), default.border),
+private fun buildPrimaryButtonColors(
+  isLightMode: Boolean,
+  colorParams: ReadableMap,
+  context: Context,
+): PaymentSheet.PrimaryButtonColors.Builder {
+  val builder =
+    if (isLightMode) {
+      PaymentSheet.PrimaryButtonColors.Builder.light()
+    } else {
+      PaymentSheet.PrimaryButtonColors.Builder.dark()
+    }
+
+  // TODO: Why is background a string but successBackgroundColor a "dynamic" color?
+  // https://stripe.dev/stripe-react-native/api-reference/types/PaymentSheet.PrimaryButtonColorConfig.html
+  colorFromHex(colorParams.getString(PaymentSheetAppearanceKeys.BACKGROUND))?.let {
+    builder.background(it)
+  }
+
+  colorFromHex(colorParams.getString(PaymentSheetAppearanceKeys.TEXT))?.let {
+    builder.onBackground(it)
+  }
+
+  colorFromHex(colorParams.getString(PaymentSheetAppearanceKeys.BORDER))?.let {
+    builder.border(it)
+  }
+
+  dynamicColorFromParams(
+    context,
+    colorParams,
+    PaymentSheetAppearanceKeys.SUCCESS_BACKGROUND,
+  )?.let {
+    builder.successBackgroundColor(it)
+  }
+
+  dynamicColorFromParams(
+    context,
+    colorParams,
+    PaymentSheetAppearanceKeys.SUCCESS_TEXT,
+  )?.let {
+    builder.onSuccessBackgroundColor(it)
+  }
+  return builder
+}
+
+@SuppressLint("RestrictedApi")
+@Throws(PaymentSheetAppearanceException::class)
+private fun buildEmbeddedAppearance(
+  embeddedParams: ReadableMap?,
+  context: Context,
+): PaymentSheet.Appearance.Embedded {
+  val embeddedBuilder = PaymentSheet.Appearance.Embedded.Builder()
+  val rowParams = embeddedParams?.getMap(PaymentSheetAppearanceKeys.ROW)
+  val styleString = rowParams?.getString(PaymentSheetAppearanceKeys.STYLE)
+  when (styleString) {
+    "flatWithRadio" -> {
+      val flatParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLAT)
+      val radioParams = flatParams?.getMap(PaymentSheetAppearanceKeys.RADIO)
+      val separatorInsetsParams =
+        flatParams?.getMap(PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+
+      val flatRadioLightColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
+          .Builder
+          .light()
+
+      val flatRadioDarkColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio.Colors
+          .Builder
+          .dark()
+
+      dynamicColorFromParams(
+        context,
+        flatParams,
+        PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
+      )?.let {
+        flatRadioLightColorsBuilder.separatorColor(it)
+        flatRadioDarkColorsBuilder.separatorColor(it)
+      }
+
+      dynamicColorFromParams(
+        context,
+        radioParams,
+        PaymentSheetAppearanceKeys.SELECTED_COLOR,
+      )?.let {
+        flatRadioLightColorsBuilder.selectedColor(it)
+        flatRadioDarkColorsBuilder.selectedColor(it)
+      }
+
+      dynamicColorFromParams(
+        context,
+        radioParams,
+        PaymentSheetAppearanceKeys.UNSELECTED_COLOR,
+      )?.let {
+        flatRadioLightColorsBuilder.unselectedColor(it)
+        flatRadioDarkColorsBuilder.unselectedColor(it)
+      }
+
+      val rowStyleBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithRadio
+          .Builder()
+
+      flatParams.getFloatOrNull(PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS)?.let {
+        rowStyleBuilder.separatorThicknessDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.LEFT)?.let {
+        rowStyleBuilder.startSeparatorInsetDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.RIGHT)?.let {
+        rowStyleBuilder.endSeparatorInsetDp(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.topSeparatorEnabled(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.bottomSeparatorEnabled(it)
+      }
+
+      rowParams.getFloatOrNull(PaymentSheetAppearanceKeys.ADDITIONAL_INSETS)?.let {
+        rowStyleBuilder.additionalVerticalInsetsDp(it)
+      }
+
+      rowStyleBuilder.colorsLight(flatRadioLightColorsBuilder.build())
+      rowStyleBuilder.colorsDark(flatRadioDarkColorsBuilder.build())
+
+      embeddedBuilder.rowStyle(rowStyleBuilder.build())
+    }
+
+    "flatWithCheckmark" -> {
+      val flatParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLAT)
+      val checkmarkParams = flatParams?.getMap(PaymentSheetAppearanceKeys.CHECKMARK)
+      val separatorInsetsParams =
+        flatParams?.getMap(PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+
+      val flatCheckmarkLightColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors
+          .Builder
+          .light()
+      val flatCheckmarkDarkColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark.Colors
+          .Builder
+          .dark()
+
+      dynamicColorFromParams(
+        context,
+        flatParams,
+        PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
+      )?.let {
+        flatCheckmarkLightColorsBuilder.separatorColor(it)
+        flatCheckmarkDarkColorsBuilder.separatorColor(it)
+      }
+
+      dynamicColorFromParams(context, checkmarkParams, PaymentSheetAppearanceKeys.COLOR)?.let {
+        flatCheckmarkLightColorsBuilder.checkmarkColor(it)
+        flatCheckmarkDarkColorsBuilder.checkmarkColor(it)
+      }
+
+      val rowStyleBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithCheckmark
+          .Builder()
+
+      flatParams.getFloatOrNull(PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS)?.let {
+        rowStyleBuilder.separatorThicknessDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.LEFT)?.let {
+        rowStyleBuilder.startSeparatorInsetDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.RIGHT)?.let {
+        rowStyleBuilder.endSeparatorInsetDp(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.topSeparatorEnabled(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.bottomSeparatorEnabled(it)
+      }
+
+      checkmarkParams.getFloatOrNull(PaymentSheetAppearanceKeys.CHECKMARK_INSET)?.let {
+        rowStyleBuilder.checkmarkInsetDp(it)
+      }
+
+      rowParams.getFloatOrNull(PaymentSheetAppearanceKeys.ADDITIONAL_INSETS)?.let {
+        rowStyleBuilder.additionalVerticalInsetsDp(it)
+      }
+
+      // TODO: The theme is so crazy long, why does each Color thing has the same redundant Theme...
+      rowStyleBuilder.colorsLight(flatCheckmarkLightColorsBuilder.build())
+      rowStyleBuilder.colorsDark(flatCheckmarkDarkColorsBuilder.build())
+      embeddedBuilder.rowStyle(rowStyleBuilder.build())
+    }
+
+    "flatWithDisclosure" -> {
+      val flatParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLAT)
+      val disclosureParams = flatParams?.getMap(PaymentSheetAppearanceKeys.DISCLOSURE)
+      val separatorInsetsParams =
+        flatParams?.getMap(PaymentSheetAppearanceKeys.SEPARATOR_INSETS)
+
+      val flatDisclosureLightColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
+          .Builder
+          .light()
+      val flatDisclosureDarkColorsBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure.Colors
+          .Builder
+          .dark()
+
+      dynamicColorFromParams(
+        context,
+        flatParams,
+        PaymentSheetAppearanceKeys.SEPARATOR_COLOR,
+      )?.let {
+        flatDisclosureLightColorsBuilder.separatorColor(it)
+        flatDisclosureDarkColorsBuilder.separatorColor(it)
+      }
+
+      dynamicColorFromParams(context, disclosureParams, PaymentSheetAppearanceKeys.COLOR)?.let {
+        flatDisclosureLightColorsBuilder.disclosureColor(it)
+        flatDisclosureDarkColorsBuilder.disclosureColor(it)
+      }
+
+      val rowStyleBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FlatWithDisclosure
+          .Builder()
+
+      flatParams.getFloatOrNull(PaymentSheetAppearanceKeys.SEPARATOR_THICKNESS)?.let {
+        rowStyleBuilder.separatorThicknessDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.LEFT)?.let {
+        rowStyleBuilder.startSeparatorInsetDp(it)
+      }
+
+      separatorInsetsParams.getFloatOrNull(PaymentSheetAppearanceKeys.RIGHT)?.let {
+        rowStyleBuilder.endSeparatorInsetDp(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.TOP_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.topSeparatorEnabled(it)
+      }
+
+      flatParams.getBooleanOrNull(PaymentSheetAppearanceKeys.BOTTOM_SEPARATOR_ENABLED)?.let {
+        rowStyleBuilder.bottomSeparatorEnabled(it)
+      }
+
+      rowParams.getFloatOrNull(PaymentSheetAppearanceKeys.ADDITIONAL_INSETS)?.let {
+        rowStyleBuilder.additionalVerticalInsetsDp(it)
+      }
+
+      rowStyleBuilder.colorsLight(flatDisclosureLightColorsBuilder.build())
+      rowStyleBuilder.colorsDark(flatDisclosureDarkColorsBuilder.build())
+
+      embeddedBuilder.rowStyle(rowStyleBuilder.build())
+    }
+
+    "floatingButton" -> {
+      val floatingParams = rowParams.getMap(PaymentSheetAppearanceKeys.FLOATING)
+      val rowStyleBuilder =
+        PaymentSheet.Appearance.Embedded.RowStyle.FloatingButton
+          .Builder()
+
+      rowParams.getFloatOrNull(PaymentSheetAppearanceKeys.ADDITIONAL_INSETS)?.let {
+        rowStyleBuilder.additionalInsetsDp(it)
+      }
+
+      floatingParams.getFloatOrNull(PaymentSheetAppearanceKeys.SPACING)?.let {
+        rowStyleBuilder.spacingDp(it)
+      }
+
+      embeddedBuilder.rowStyle(rowStyleBuilder.build())
+    }
+
+    else -> {
+      System.err.println("WARN: Unsupported embedded payment element row style received: $styleString. Falling back to default.")
+    }
+  }
+  return embeddedBuilder.build()
+}
+
+@SuppressLint("RestrictedApi")
+private fun buildFormInsets(insetParams: ReadableMap?): PaymentSheet.Insets {
+  val defaults = StripeThemeDefaults.formInsets
+  val left = insetParams.getFloatOr(PaymentSheetAppearanceKeys.LEFT, defaults.start)
+  val top = insetParams.getFloatOr(PaymentSheetAppearanceKeys.TOP, defaults.top)
+  val right = insetParams.getFloatOr(PaymentSheetAppearanceKeys.RIGHT, defaults.end)
+  val bottom = insetParams.getFloatOr(PaymentSheetAppearanceKeys.BOTTOM, defaults.bottom)
+
+  return PaymentSheet.Insets(
+    startDp = left,
+    topDp = top,
+    endDp = right,
+    bottomDp = bottom,
   )
 }
 
-private fun getDoubleOrNull(bundle: Bundle?, key: String): Double? {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Double) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toDouble()
-    } else if (valueOfUnknownType is Float) {
-      return valueOfUnknownType.toDouble()
-    }
+/**
+ * Parses a ThemedColor from [params] at [key]. Supports both:
+ * - Single hex string: "#RRGGBB"
+ * - Light/dark object: { "light": "#RRGGBB", "dark": "#RRGGBB" }
+ * For light/dark objects, chooses the appropriate color based on current UI mode.
+ * Returns null if no color is provided.
+ */
+private fun dynamicColorFromParams(
+  context: Context,
+  params: ReadableMap?,
+  key: String,
+): Int? {
+  if (params == null) {
+    return null
   }
 
-  return null
-}
+  // First check if it's a nested map { "light": "#RRGGBB", "dark": "#RRGGBB" }
+  if (params.hasKey(key) && params.getType(key) == ReadableType.Map) {
+    val colorMap = params.getMap(key)
+    val isDark =
+      (
+        context.resources.configuration.uiMode
+          and Configuration.UI_MODE_NIGHT_MASK
+      ) == Configuration.UI_MODE_NIGHT_YES
 
-private fun getFloatOr(bundle: Bundle?, key: String, defaultValue: Float): Float {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Float) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toFloat()
-    } else if (valueOfUnknownType is Double) {
-      return valueOfUnknownType.toFloat()
-    }
+    // Pick the hex for current mode, or null
+    val hex =
+      if (isDark) {
+        colorMap?.getString(PaymentSheetAppearanceKeys.DARK)
+      } else {
+        colorMap?.getString(PaymentSheetAppearanceKeys.LIGHT)
+      }
+
+    return colorFromHex(hex)
   }
 
-  return defaultValue
-}
-
-private fun getFloatOrNull(bundle: Bundle?, key: String): Float? {
-  if (bundle?.containsKey(key) == true) {
-    val valueOfUnknownType = bundle.get(key)
-    if (valueOfUnknownType is Float) {
-      return valueOfUnknownType
-    } else if (valueOfUnknownType is Int) {
-      return valueOfUnknownType.toFloat()
-    } else if (valueOfUnknownType is Double) {
-      return valueOfUnknownType.toFloat()
-    }
-  }
-
-  return null
+  // Check if it's a single color string
+  return colorFromHex(params.getString(key))
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun getFontResId(bundle: Bundle?, key: String, defaultValue: Int?, context: Context): Int? {
+private fun getFontResId(
+  map: ReadableMap?,
+  key: String,
+  context: Context,
+): Int? {
   val fontErrorPrefix = "Encountered an error when setting a custom font:"
-  if (bundle?.containsKey(key) != true) {
-    return defaultValue
+  if (map?.hasKey(key) != true) {
+    return null
   }
 
-  val fontFileName = bundle.getString(key)
-          ?: throw PaymentSheetAppearanceException("$fontErrorPrefix expected String for font.$key, but received null.")
+  val fontFileName =
+    map.getString(key)
+      ?: throw PaymentSheetAppearanceException(
+        "$fontErrorPrefix expected String for font.$key, but received null.",
+      )
   if (Regex("[^a-z0-9]").containsMatchIn(fontFileName)) {
     throw PaymentSheetAppearanceException(
-      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font"
+      "$fontErrorPrefix appearance.font.$key should only contain lowercase alphanumeric characters on Android, but received '$fontFileName'. This value must match the filename in android/app/src/main/res/font",
     )
   }
 
+  @SuppressLint("DiscouragedApi")
   val id = context.resources.getIdentifier(fontFileName, "font", context.packageName)
   if (id == 0) {
     throw PaymentSheetAppearanceException("$fontErrorPrefix Failed to find font: $fontFileName")
@@ -199,9 +591,42 @@ private class PaymentSheetAppearanceKeys {
     const val SHAPES = "shapes"
     const val BORDER_RADIUS = "borderRadius"
     const val BORDER_WIDTH = "borderWidth"
+    const val HEIGHT = "height"
 
     const val PRIMARY_BUTTON = "primaryButton"
     const val TEXT = "text"
     const val BORDER = "border"
+    const val SUCCESS_BACKGROUND = "successBackgroundColor"
+    const val SUCCESS_TEXT = "successTextColor"
+
+    const val EMBEDDED_PAYMENT_ELEMENT = "embeddedPaymentElement"
+    const val ROW = "row"
+    const val STYLE = "style"
+    const val ADDITIONAL_INSETS = "additionalInsets"
+
+    const val FLAT = "flat"
+    const val SEPARATOR_THICKNESS = "separatorThickness"
+    const val SEPARATOR_COLOR = "separatorColor"
+    const val SEPARATOR_INSETS = "separatorInsets"
+    const val TOP_SEPARATOR_ENABLED = "topSeparatorEnabled"
+    const val BOTTOM_SEPARATOR_ENABLED = "bottomSeparatorEnabled"
+    const val RADIO = "radio"
+    const val SELECTED_COLOR = "selectedColor"
+    const val UNSELECTED_COLOR = "unselectedColor"
+    const val CHECKMARK = "checkmark"
+    const val DISCLOSURE = "disclosure"
+    const val COLOR = "color"
+    const val CHECKMARK_INSET = "inset"
+
+    const val FLOATING = "floating"
+    const val SPACING = "spacing"
+
+    // Keys for EdgeInsetsConfig
+    const val LEFT = "left"
+    const val RIGHT = "right"
+    const val TOP = "top"
+    const val BOTTOM = "bottom"
+
+    const val FORM_INSETS = "formInsetValues"
   }
 }

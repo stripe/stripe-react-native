@@ -21,3 +21,25 @@ export async function fetchPublishableKey(
     return null;
   }
 }
+
+export function getClientSecretParams(
+  customerKeyType: string,
+  remainingParams: any
+): any {
+  return customerKeyType === 'customer_session'
+    ? {
+        customerSessionClientSecret:
+          remainingParams.customerSessionClientSecret,
+      }
+    : { customerEphemeralKeySecret: remainingParams.ephemeralKey };
+}
+
+export async function fetchClientSecret(): Promise<string> {
+  const response = await fetch(`${API_URL}/account_session`, {
+    method: 'POST',
+  });
+  const json = await response.json();
+  const { clientSecret } = json;
+
+  return clientSecret;
+}

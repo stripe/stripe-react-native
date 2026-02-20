@@ -15,8 +15,8 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
     var overridesSetSelectedPaymentOption: Bool
     var overridesFetchSelectedPaymentOption: Bool
     var overridesSetupIntentClientSecretForCustomerAttach: Bool
-    var stripeSdk: StripeSdk
-    
+    var stripeSdk: StripeSdkImpl
+
     init(
         fetchPaymentMethods: Bool,
         attachPaymentMethod: Bool,
@@ -27,7 +27,7 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
         customerId: String,
         ephemeralKeySecret: String,
         setupIntentClientSecret: String?,
-        stripeSdk: StripeSdk
+        stripeSdk: StripeSdkImpl
     ) {
         self.overridesFetchPaymentMethods = fetchPaymentMethods
         self.overridesAttachPaymentMethod = attachPaymentMethod
@@ -36,7 +36,7 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
         self.overridesFetchSelectedPaymentOption = fetchSelectedPaymentOption
         self.overridesSetupIntentClientSecretForCustomerAttach = setupIntentClientSecretForCustomerAttach
         self.stripeSdk = stripeSdk
-        
+
         if let setupIntentClientSecret = setupIntentClientSecret {
             super.init(
                 customerEphemeralKeyProvider: {
@@ -54,9 +54,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             )
         }
     }
-    
+
     override func fetchPaymentMethods() async throws -> [STPPaymentMethod] {
-        if (self.overridesFetchPaymentMethods) {
+        if self.overridesFetchPaymentMethods {
             return await withCheckedContinuation({ continuation in
                 fetchPaymentMethods { paymentMethods in
                     continuation.resume(returning: paymentMethods)
@@ -66,9 +66,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             return try await super.fetchPaymentMethods()
         }
     }
-    
+
     override func attachPaymentMethod(_ paymentMethodId: String) async throws {
-        if (self.overridesAttachPaymentMethod) {
+        if self.overridesAttachPaymentMethod {
             return await withCheckedContinuation({ continuation in
                 attachPaymentMethod(paymentMethodId) {
                     continuation.resume(returning: ())
@@ -78,9 +78,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             return try await super.attachPaymentMethod(paymentMethodId)
         }
     }
-    
+
     override func detachPaymentMethod(paymentMethodId: String) async throws {
-        if (self.overridesDetachPaymentMethod) {
+        if self.overridesDetachPaymentMethod {
             return await withCheckedContinuation({ continuation in
                 detachPaymentMethod(paymentMethodId) {
                     continuation.resume(returning: ())
@@ -90,9 +90,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             return try await super.detachPaymentMethod(paymentMethodId: paymentMethodId)
         }
     }
-    
+
     override func setSelectedPaymentOption(paymentOption: CustomerPaymentOption?) async throws {
-        if (self.overridesSetSelectedPaymentOption) {
+        if self.overridesSetSelectedPaymentOption {
             return await withCheckedContinuation({ continuation in
                 setSelectedPaymentOption(paymentOption) {
                     continuation.resume(returning: ())
@@ -102,9 +102,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             return try await super.setSelectedPaymentOption(paymentOption: paymentOption)
         }
     }
-    
+
     override func fetchSelectedPaymentOption() async throws -> CustomerPaymentOption? {
-        if (self.overridesFetchSelectedPaymentOption) {
+        if self.overridesFetchSelectedPaymentOption {
             return await withCheckedContinuation({ continuation in
                 fetchSelectedPaymentOption { paymentOption in
                     continuation.resume(returning: paymentOption)
@@ -114,9 +114,9 @@ class ReactNativeCustomerAdapter: StripeCustomerAdapter {
             return try await super.fetchSelectedPaymentOption()
         }
     }
-    
+
     override func setupIntentClientSecretForCustomerAttach() async throws -> String {
-        if (self.overridesSetupIntentClientSecretForCustomerAttach) {
+        if self.overridesSetupIntentClientSecretForCustomerAttach {
             return await withCheckedContinuation({ continuation in
                 setupIntentClientSecretForCustomerAttach { clientSecret in
                     continuation.resume(returning: clientSecret)
@@ -132,42 +132,42 @@ extension ReactNativeCustomerAdapter {
     func fetchPaymentMethods(completion: @escaping ([STPPaymentMethod]) -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.fetchPaymentMethodsCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterFetchPaymentMethodsCallback", body: [:])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterFetchPaymentMethodsCallback()
         }
     }
-    
+
     func attachPaymentMethod(_ paymentMethodId: String, completion: @escaping () -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.attachPaymentMethodCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterAttachPaymentMethodCallback", body: ["paymentMethodId": paymentMethodId])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterAttachPaymentMethodCallback(["paymentMethodId": paymentMethodId])
         }
     }
-    
+
     func detachPaymentMethod(_ paymentMethodId: String, completion: @escaping () -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.detachPaymentMethodCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterDetachPaymentMethodCallback", body: ["paymentMethodId": paymentMethodId])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterDetachPaymentMethodCallback(["paymentMethodId": paymentMethodId])
         }
     }
-    
+
     func setSelectedPaymentOption(_ paymentOption: CustomerPaymentOption?, completion: @escaping () -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.setSelectedPaymentOptionCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterSetSelectedPaymentOptionCallback", body: ["paymentOption": paymentOption?.value])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterSetSelectedPaymentOptionCallback(["paymentOption": paymentOption?.value])
         }
     }
-    
+
     func fetchSelectedPaymentOption(completion: @escaping (CustomerPaymentOption?) -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.fetchSelectedPaymentOptionCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterFetchSelectedPaymentOptionCallback", body: [:])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterFetchSelectedPaymentOptionCallback()
         }
     }
-    
+
     func setupIntentClientSecretForCustomerAttach(completion: @escaping (String) -> Void) {
         DispatchQueue.main.async {
             self.stripeSdk.setupIntentClientSecretForCustomerAttachCallback = completion
-            self.stripeSdk.sendEvent(withName: "onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback", body: [:])
+            self.stripeSdk.emitter?.emitOnCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback()
         }
     }
 }

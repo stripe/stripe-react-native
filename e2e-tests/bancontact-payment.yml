@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank redirects"
 - tapOn: "Bancontact Payment"
 - assertVisible:
@@ -11,6 +12,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST PAYMENT"
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
     text: "Success"

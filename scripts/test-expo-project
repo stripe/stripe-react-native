@@ -1,0 +1,181 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_NAME="StripeExpoTest"
+DEFAULT_PLATFORMS="android,ios"
+
+usage() {
+  cat <<'EOF'
+Create a throwaway Expo app that depends on the current stripe-react-native checkout and verifies native builds via `expo prebuild`.
+
+USAGE:
+  ./scripts/test-expo-project --sdk-version <expo_sdk_version> [options]
+
+REQUIRED ARGUMENTS:
+  --sdk-version, --version, -v   Expo SDK version to target (e.g. 51)
+
+OPTIONS:
+  --platforms       Comma separated list of platforms to build (android, ios). Default: android,ios
+  --keep-project    Do not delete the temporary project directory (helpful for debugging failures)
+  -h, --help        Print this help message
+EOF
+}
+
+export EXPO_NO_TELEMETRY=1
+
+EXPO_SDK_VERSION=""
+PLATFORMS="$DEFAULT_PLATFORMS"
+KEEP_PROJECT=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --sdk-version|--version|-v)
+      EXPO_SDK_VERSION=${2:-}
+      if [[ -z "$EXPO_SDK_VERSION" ]]; then
+        echo "Error! --sdk-version requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --platforms)
+      PLATFORMS=${2:-}
+      if [[ -z "$PLATFORMS" ]]; then
+        echo "Error! --platforms requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --keep-project)
+      KEEP_PROJECT=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Error! Unknown argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$EXPO_SDK_VERSION" ]]; then
+  echo "Error! Missing required --sdk-version argument."
+  usage
+  exit 1
+fi
+
+RUN_ANDROID=0
+RUN_IOS=0
+IFS=',' read -r -a PLATFORM_ARRAY <<< "$PLATFORMS"
+for PLATFORM in "${PLATFORM_ARRAY[@]}"; do
+  case "${PLATFORM// }" in
+    android)
+      RUN_ANDROID=1
+      ;;
+    ios)
+      RUN_IOS=1
+      ;;
+    "")
+      ;;
+    *)
+      echo "Error! Unknown platform: ${PLATFORM}"
+      exit 1
+      ;;
+  esac
+done
+IFS=$'\n\t'
+
+if [[ $RUN_ANDROID -eq 0 && $RUN_IOS -eq 0 ]]; then
+  echo "Error! At least one platform must be selected."
+  exit 1
+fi
+
+cd "$REPO_ROOT"
+
+if [[ ! -f package.json ]]; then
+  echo "Error! Could not locate package.json. Please run this script from the repository root."
+  exit 1
+fi
+
+echo "Packing local stripe-react-native package"
+PACK_OUTPUT="$(npm pack)"
+TARBALL_FILENAME="$(echo "$PACK_OUTPUT" | tail -n 1 | tr -d '\r\n')"
+TARBALL_PATH="$REPO_ROOT/$TARBALL_FILENAME"
+
+TMP_DIR="$(mktemp -d)"
+PROJECT_DIR="$TMP_DIR/$PROJECT_NAME"
+
+cleanup() {
+  if [[ -f "$TARBALL_PATH" ]]; then
+    rm -f "$TARBALL_PATH"
+  fi
+
+  if [[ $KEEP_PROJECT -eq 1 ]]; then
+    echo "Temporary project preserved at: $PROJECT_DIR"
+    return
+  fi
+
+  if [[ -d "$TMP_DIR" ]]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT
+
+echo "Creating Expo project ($PROJECT_NAME) targeting SDK $EXPO_SDK_VERSION"
+cd "$TMP_DIR"
+npx create-expo-app@latest "$PROJECT_NAME" --template "default@$EXPO_SDK_VERSION" --yes
+
+cd "$PROJECT_DIR"
+
+echo "Installing local stripe-react-native tarball"
+npm install "$TARBALL_PATH"
+
+APP_JSON_PATH="$PROJECT_DIR/app.json"
+
+echo "Configuring Expo plugins in app.json"
+node "$SCRIPT_DIR/update-expo-plugins.js" --app-json "$APP_JSON_PATH" --expo-version "$EXPO_SDK_VERSION"
+
+echo "Ensuring expo-build-properties dependency is installed"
+npx expo install expo-build-properties
+
+PREBUILD_TARGET="all"
+if [[ $RUN_ANDROID -eq 1 && $RUN_IOS -eq 0 ]]; then
+  PREBUILD_TARGET="android"
+elif [[ $RUN_ANDROID -eq 0 && $RUN_IOS -eq 1 ]]; then
+  PREBUILD_TARGET="ios"
+fi
+
+echo "Running expo prebuild for platform(s): $PREBUILD_TARGET"
+npx expo prebuild --clean --platform "$PREBUILD_TARGET"
+
+if [[ $RUN_ANDROID -eq 1 ]]; then
+  echo "Building Android project"
+  (
+    cd android
+    ./gradlew assembleRelease
+  )
+fi
+
+if [[ $RUN_IOS -eq 1 ]]; then
+  echo "Building iOS project"
+  (
+    cd ios
+    xcodebuild \
+      -workspace "$PROJECT_NAME.xcworkspace" \
+      -configuration Release \
+      -scheme "$PROJECT_NAME" \
+      -destination 'generic/platform=iOS Simulator' \
+      -derivedDataPath "$TMP_DIR/DerivedData"
+  )
+fi
+
+echo "All requested Expo builds finished successfully."

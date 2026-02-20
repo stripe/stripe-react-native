@@ -1,9 +1,13 @@
-import { Platform } from 'react-native';
+// Demo backend - no configuration needed
+export const API_URL =
+  'https://rigorous-heartbreaking-cephalopod.stripedemos.com';
 
-// Address to stripe server running on local machine
-const LOCAL_URL =
-  Platform.OS === 'android' ? 'http://10.0.2.2:4242' : 'http://localhost:4242';
-// Address to stripe server running on Glitch
-const GLITCH_URL = 'https://rigorous-heartbreaking-cephalopod.glitch.me';
+/*
+🛠️ To use Custom Backend:
 
-export const API_URL = __DEV__ ? LOCAL_URL : GLITCH_URL;
+Remote/Codesandbox:
+1. Fork this codesandbox: https://codesandbox.io/p/devbox/rigorous-heartbreaking-cephalopod-m358cz
+2. Deploy your fork or get the preview URL
+3. Update CUSTOM_BACKEND_URL above with your URL
+4. Update API_URL above to: CUSTOM_BACKEND_URL
+*/

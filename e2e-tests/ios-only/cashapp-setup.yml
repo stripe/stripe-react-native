@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Wallets"
 - scrollUntilVisible:
     element:
@@ -15,6 +16,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Setup for later"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST SETUP"
 - tapOn: "AUTHORIZE TEST SETUP"
 - assertVisible:
     text: "Success"

@@ -1,4 +1,9 @@
-import type { BillingDetails, AddressDetails, CardBrand } from './Common';
+import type {
+  BillingDetails,
+  AddressDetails,
+  CardBrand,
+  UserInterfaceStyle,
+} from './Common';
 import type { CartSummaryItem } from './ApplePay';
 import type {
   ButtonType,
@@ -9,14 +14,13 @@ import type {
 import type { FutureUsage } from './PaymentIntent';
 import type { Result } from './PaymentMethod';
 import type { StripeError } from './Errors';
+import type { Result as ConfirmationTokenResult } from './ConfirmationToken';
 
-export type SetupParams = IntentParams & {
+export type SetupParamsBase = IntentParams & {
   /** Your customer-facing business name. On Android, this is required and cannot be an empty string. */
   merchantDisplayName: string;
   /** The identifier of the Stripe Customer object. See https://stripe.com/docs/api/customers/object#customer_object-id */
   customerId?: string;
-  /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
-  customerEphemeralKeySecret?: string;
   /** When set to true, separates out the payment method selection & confirmation steps.
    * If true, you must call `confirmPaymentSheetPayment` on your own. Defaults to false. */
   customFlow?: boolean;
@@ -24,8 +28,10 @@ export type SetupParams = IntentParams & {
   applePay?: ApplePayParams;
   /** Android only. Enable Google Pay in the Payment Sheet by passing a GooglePayParams object.  */
   googlePay?: GooglePayParams;
+  /** Configuration for Link */
+  link?: LinkParams;
   /** The color styling to use for PaymentSheet UI. Defaults to 'automatic'. */
-  style?: 'alwaysLight' | 'alwaysDark' | 'automatic';
+  style?: UserInterfaceStyle;
   /** A URL that redirects back to your app that PaymentSheet can use to auto-dismiss web views used for additional authentication, e.g. 3DS2 */
   returnURL?: string;
   /** Configuration for how billing details are collected during checkout. */
@@ -55,7 +61,56 @@ export type SetupParams = IntentParams & {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
+  /** By default, PaymentSheet will use a dynamic ordering that optimizes payment method display for the customer.
+   *  You can override the default order in which payment methods are displayed in PaymentSheet with a list of payment method types.
+   *  See https://stripe.com/docs/api/payment_methods/object#payment_method_object-type for the list of valid types.  You may also pass external payment methods.
+   *  - Example: ["card", "external_paypal", "klarna"]
+   *  - Note: If you omit payment methods from this list, they’ll be automatically ordered by Stripe after the ones you provide. Invalid payment methods are ignored.
+   */
+  paymentMethodOrder?: Array<String>;
+  /** This is an experimental feature that may be removed at any time.
+   *  Defaults to true. If true, the customer can delete all saved payment methods.
+   *  If false, the customer can't delete if they only have one saved payment method remaining.
+   */
+  allowsRemovalOfLastSavedPaymentMethod?: boolean;
+  /**
+   * Defines the layout orientations available for displaying payment methods in PaymentSheet.
+   * - Note: Defaults to `Automatic` if not set
+   */
+  paymentMethodLayout?: PaymentMethodLayout;
+  /**
+   * By default, PaymentSheet will accept all supported cards by Stripe.
+   * You can specify card brands PaymentSheet should block or allow payment for by providing an array of those card brands.
+   * Note: This is only a client-side solution.
+   * Note: Card brand filtering is not currently supported in Link.
+   */
+  cardBrandAcceptance?: CardBrandAcceptance;
+  /**
+   * Configuration for filtering cards by funding type.
+   * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+   */
+  cardFundingFiltering?: CardFundingFiltering;
+  /** Configuration for custom payment methods in PaymentSheet */
+  customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
+  /** By default, PaymentSheet offers a card scan button within the new card entry form.
+   * When opensCardScannerAutomatically is set to true,
+   * the card entry form will initialize with the card scanner already open.
+   * Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
 };
+
+export type SetupParams =
+  | (SetupParamsBase & {
+      /** A short-lived token that allows the SDK to access a Customer’s payment methods. */
+      customerEphemeralKeySecret: string;
+      customerSessionClientSecret?: never;
+    })
+  | (SetupParamsBase & {
+      customerEphemeralKeySecret?: never;
+      /** The client secret of this Customer Session. Used on the client to set up secure access to the given customer. */
+      customerSessionClientSecret: string;
+    })
+  | SetupParamsBase;
 
 export type IntentParams =
   | {
@@ -119,6 +174,21 @@ export type GooglePayParams = {
   buttonType?: ButtonType;
 };
 
+export type LinkParams = {
+  /** Display configuration for Link */
+  display?: LinkDisplay;
+};
+
+/**
+ * Display configuration for Link
+ */
+export enum LinkDisplay {
+  /** Link will be displayed when available. */
+  AUTOMATIC = 'automatic',
+  /** Link will never be displayed. */
+  NEVER = 'never',
+}
+
 /**
  * Used to customize the appearance of your PaymentSheet
  */
@@ -131,8 +201,12 @@ export type AppearanceParams = RecursivePartial<{
     | { light: GlobalColorConfig; dark: GlobalColorConfig };
   /** Describes the appearance of shapes in the PaymentSheet, such as buttons, inputs, and tabs. */
   shapes: {
-    /** The border radius used for buttons, inputs, and tabs in your PaymentSheet.
-     * @default 6.0
+    /** The border radius used for buttons, inputs, tabs in PaymentSheet
+     *   - Note: On iOS, the behavior of this property is consistent with the behavior of corner radius on `CALayer`
+     *   - Note: On iOS, When `nil`, the behavior depends:
+     *     - iOS 26+ and `UIDesignRequiresCompatibility = NO`: Various `UICornerConfiguration` values are used to match Liquid Glass.
+     *     - Pre-iOS 26: A 6.0 corner radius is applied.
+     *   - Note: On Android, a 6.0 corner radius is applied.
      */
     borderRadius: number;
     /** The border width used for inputs and tabs in your PaymentSheet.
@@ -144,7 +218,34 @@ export type AppearanceParams = RecursivePartial<{
   };
   /** Describes the appearance of the primary "Pay" button at the bottom of your Payment Sheet */
   primaryButton: PrimaryButtonConfig;
+
+  /** Describes the appearance of the Embedded Mobile Payment Element */
+  embeddedPaymentElement: EmbeddedPaymentElementAppearance;
+
+  /** Describes the inset values applied to Mobile Payment Element forms */
+  formInsetValues: EdgeInsetsConfig;
+
+  /** Setting this boolean to `true` will call the iOS applyLiquidGlass() method
+   * (https://stripe.dev/stripe-ios/stripepaymentsheet/documentation/stripepaymentsheet/paymentsheet/appearance/applyliquidglass())
+   * on the Appearance object prior to applying other appearance customizations set on AppearanceParams.
+   * Requires iOS26 and Xcode 26, and will be ignored if these requirements are not met.
+   * @default false
+   */
+  applyLiquidGlass?: boolean;
+
+  /** Describes the navigation bar style (iOS only)
+   *  @default Plain
+   */
+  navigationBarStyle?: NavigationBarStyle;
 }>;
+
+/** Display styles for the navigation bar (iOS only) */
+export enum NavigationBarStyle {
+  /** Default style */
+  Plain = 'plain',
+  /** Style to match iOS 26 Liquid Glass. Requires: iOS26 and Xcode 26, and will be ignored if these requirements are not met. */
+  Glass = 'glass',
+}
 
 export type FontConfig = {
   /**
@@ -251,6 +352,11 @@ export type PrimaryButtonConfig = {
      * @default The root `appearance.shapes.shadow`
      */
     shadow: ShadowConfig;
+    /**
+     * The height of the primary button
+     * @default 48
+     */
+    height: number;
   };
 };
 
@@ -267,14 +373,148 @@ export type PrimaryButtonColorConfig = {
    * @default The System quaternary label on iOS, transparent on Android.
    */
   border: string;
+  /** The background color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default Green (#34C759 on iOS, system green on Android)
+   */
+  successBackgroundColor?: ThemedColor;
+  /** The text color of the primary button when in a success state. Supports both single color strings and light/dark color objects.
+   * @default White
+   */
+  successTextColor?: ThemedColor;
 };
+
+/** A color that’s either a single hex or a light/dark pair */
+export type ThemedColor = string | { light: string; dark: string };
+
+/** Represents edge insets */
+export interface EdgeInsetsConfig {
+  top?: number;
+  left?: number;
+  bottom?: number;
+  right?: number;
+}
+
+/** Display styles for rows in the Embedded Mobile Payment Element */
+export enum RowStyle {
+  /** A flat style with radio buttons */
+  FlatWithRadio = 'flatWithRadio',
+  /** A floating button style */
+  FloatingButton = 'floatingButton',
+  /** A flat style with a checkmark */
+  FlatWithCheckmark = 'flatWithCheckmark',
+  /** A flat style with a disclosure
+   * Note that the EmbeddedPaymentElementConfiguration.rowSelectionBehavior must be set to `immediateAction` to use this style.
+   */
+  FlatWithDisclosure = 'flatWithDisclosure',
+}
+
+/** Describes the appearance of the radio button */
+export interface RadioConfig {
+  /** The color of the radio button when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  selectedColor?: ThemedColor;
+
+  /** The color of the radio button when unselected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  unselectedColor?: ThemedColor;
+}
+
+/** Describes the appearance of the checkmark */
+export interface CheckmarkConfig {
+  /** The color of the checkmark when selected, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.primary
+   */
+  color?: ThemedColor;
+}
+
+/** Describes the appearance of the disclosure indicator */
+export interface DisclosureConfig {
+  /** The color of the disclosure indicator, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The iOS or Android system gray color
+   */
+  color?: ThemedColor;
+}
+
+/** Describes the appearance of the flat style row */
+export interface FlatConfig {
+  /** The thickness of the separator line between rows.
+   * @default 1.0
+   */
+  separatorThickness?: number;
+
+  /** The color of the separator line between rows, represented as a hex string #AARRGGBB or #RRGGBB.
+   * @default The root appearance.colors.componentBorder
+   */
+  separatorColor?: ThemedColor;
+
+  /** The insets of the separator line between rows.
+   * @default { top: 0, left: 30, bottom: 0, right: 0 } for RowStyle.FlatWithRadio
+   * @default { top: 0, left: 0, bottom: 0, right: 0 } for RowStyle.FlatWithCheckmark, RowStyle.FlatWithDisclosure, and RowStyle.FloatingButton
+   */
+  separatorInsets?: EdgeInsetsConfig;
+
+  /** Determines if the top separator is visible at the top of the Element.
+   * @default true
+   */
+  topSeparatorEnabled?: boolean;
+
+  /** Determines if the bottom separator is visible at the bottom of the Element.
+   * @default true
+   */
+  bottomSeparatorEnabled?: boolean;
+
+  /** Appearance settings for the radio button (used when RowStyle is FlatWithRadio) */
+  radio?: RadioConfig;
+
+  /** Appearance settings for the checkmark (used when RowStyle is FlatWithCheckmark) */
+  checkmark?: CheckmarkConfig;
+
+  /** Appearance settings for the disclosure indicator (used when RowStyle is FlatWithDisclosure) */
+  disclosure?: DisclosureConfig;
+}
+
+/** Describes the appearance of the floating button style payment method row */
+export interface FloatingConfig {
+  /** The spacing between payment method rows.
+   * @default 12.0
+   */
+  spacing?: number;
+}
+
+/** Describes the appearance of the row in the Embedded Mobile Payment Element */
+export interface RowConfig {
+  /** The display style of the row.
+   * @default RowStyle.FlatWithRadio
+   */
+  style?: RowStyle;
+
+  /** Additional vertical insets applied to a payment method row.
+   * Increasing this value increases the height of each row.
+   * @default 6.0
+   */
+  additionalInsets?: number;
+
+  /** Appearance settings for the flat style row */
+  flat?: FlatConfig;
+
+  /** Appearance settings for the floating button style row */
+  floating?: FloatingConfig;
+}
+
+/** Describes the appearance of the Embedded Mobile Payment Element */
+export interface EmbeddedPaymentElementAppearance {
+  /** Describes the appearance of the row in the Embedded Mobile Payment Element */
+  row?: RowConfig;
+}
 
 type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
     : T[P] extends object
-    ? RecursivePartial<T[P]>
-    : T[P];
+      ? RecursivePartial<T[P]>
+      : T[P];
 };
 export interface PaymentOption {
   label: string;
@@ -332,23 +572,50 @@ export type IntentCreationCallbackParams =
     };
 
 export type IntentConfiguration = {
-  /*
-    Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
-    - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
-    - Parameters:
-      - paymentMethod: The PaymentMethod representing the customer's payment details.
-      - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
-      - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
-  */
-  confirmHandler: (
+  /**
+   * Called when the customer confirms payment. Your implementation should create a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+   * - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+   * - Note: Either `confirmHandler` or `confirmationTokenConfirmHandler` must be provided, but not both.
+   * - Parameters:
+   *   - paymentMethod: The PaymentMethod representing the customer's payment details.
+   *   - shouldSavePaymentMethod: This is `true` if the customer selected the "Save this payment method for future use" checkbox. Set `setup_future_usage` on the PaymentIntent to `off_session` if this is `true`.
+   *   - intentCreationCallback: Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using customFlow: false (default), the error's localizedMessage will be displayed to the customer in the sheet. If you're using customFlow: true, the `confirm` method fails with the error.
+   */
+  confirmHandler?: (
     paymentMethod: Result,
     shouldSavePaymentMethod: boolean,
     intentCreationCallback: (result: IntentCreationCallbackParams) => void
   ) => void;
+
+  /**
+   * Called when the customer confirms payment using confirmation tokens.
+   * Your implementation should follow the guide to create (and optionally confirm) a PaymentIntent or SetupIntent on your server and call the `intentCreationCallback` with its client secret or an error if one occurred.
+   *
+   * - Note: You must create the PaymentIntent or SetupIntent with the same values used as the `IntentConfiguration` e.g. the same amount, currency, etc.
+   * - Note: When confirming the PaymentIntent or SetupIntent on your server, use the confirmation token ID (`confirmationToken.id`) as the `confirmation_token` parameter.
+   * - Note: Either `confirmHandler` or `confirmationTokenConfirmHandler` must be provided, but not both.
+   *
+   * @param confirmationToken - The ConfirmationToken representing the customer's payment details and any additional information collected during checkout (e.g., billing details, shipping address). This token contains a secure, non-PII preview of the payment method that can be safely passed to your server. Use `confirmationToken.id` when confirming the intent on your server.
+   * @param intentCreationCallback - Call this with the `client_secret` of the PaymentIntent or SetupIntent created by your server or the error that occurred. If you're using PaymentSheet, the error's localizedMessage will be displayed to the customer in the sheet. If you're using PaymentSheet.FlowController, the `confirm` method fails with the error.
+   *
+   * @see https://stripe.com/docs/api/confirmation_tokens
+   */
+  confirmationTokenConfirmHandler?: (
+    confirmationToken: ConfirmationTokenResult,
+    intentCreationCallback: (result: IntentCreationCallbackParams) => void
+  ) => void;
+
   /* Information about the payment (PaymentIntent) or setup (SetupIntent).*/
   mode: Mode;
   /* A list of payment method types to display to the customer. If undefined or empty, we dynamically determine the payment methods using your Stripe Dashboard settings. */
   paymentMethodTypes?: Array<string>;
+  /** The connected account whose payment method configurations will apply to the PaymentSheet session.
+   * Affects the allowed payment methods and whether card brand choice is enabled.
+   * If saved, the payment method will be saved to your platform account. See our
+   * [PaymentIntent docs](https://docs.stripe.com/api/payment_intents/object#payment_intent_object-on_behalf_of)
+   * for more information.
+   */
+  onBehalfOf?: string;
 };
 
 export type Mode = PaymentMode | SetupMode;
@@ -381,6 +648,17 @@ export type PaymentMode = {
   /* Controls when the funds will be captured.
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-capture_method */
   captureMethod?: CaptureMethod;
+  /** Additional payment method options params.
+  Seealso: https://docs.stripe.com/api/payment_intents/create#create_payment_intent-payment_method_options */
+  paymentMethodOptions?: PaymentMethodOptions;
+};
+
+export type PaymentMethodOptions = {
+  /* This feature is in Public Preview. It may not be feature complete and have breaking changes as we develop and update functionality.
+  A map of payment method types to setup_future_usage value. (e.g. card: 'OffSession') */
+  setupFutureUsageValues: {
+    [key: string]: FutureUsage;
+  };
 };
 
 /* Use this if your integration creates a SetupIntent */
@@ -392,3 +670,154 @@ export type SetupMode = {
   Seealso: https://stripe.com/docs/api/payment_intents/create#create_payment_intent-setup_future_usage */
   setupFutureUsage: FutureUsage;
 };
+
+export enum PaymentMethodLayout {
+  /**
+   * Payment methods are arranged horizontally.
+   * Users can swipe left or right to navigate through different payment methods.
+   */
+  Horizontal = 'Horizontal',
+
+  /**
+   * Payment methods are arranged vertically.
+   * Users can scroll up or down to navigate through different payment methods.
+   */
+  Vertical = 'Vertical',
+
+  /**
+   * This lets Stripe choose the best layout for payment methods in the sheet.
+   */
+  Automatic = 'Automatic',
+}
+
+/**
+ * Card funding types that can be filtered.
+ * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export enum CardFundingType {
+  /** Debit cards */
+  Debit = 'debit',
+  /** Credit cards */
+  Credit = 'credit',
+  /** Prepaid cards */
+  Prepaid = 'prepaid',
+  /**
+   * Unknown or undetermined funding type.
+   * Include this if you want to accept cards where the funding type cannot be determined from card metadata.
+   */
+  Unknown = 'unknown',
+}
+
+/**
+ * Configuration for filtering cards by funding type.
+ * @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+ */
+export type CardFundingFiltering = {
+  /** List of allowed card funding types. If not set, all types are accepted. */
+  allowedCardFundingTypes?: CardFundingType[];
+};
+
+/** Card brand categories that can be allowed or disallowed */
+export enum CardBrandCategory {
+  /** Visa branded cards */
+  Visa = 'visa',
+  /** Mastercard branded cards */
+  Mastercard = 'mastercard',
+  /** American Express branded cards */
+  Amex = 'amex',
+  /**
+   * Discover branded cards
+   * Note: Encompasses all of Discover Global Network (Discover, Diners, JCB, UnionPay, Elo)
+   */
+  Discover = 'discover',
+}
+
+/** Filter types for card brand acceptance */
+export enum CardBrandAcceptanceFilter {
+  /** Accept all card brands supported by Stripe */
+  All = 'all',
+  /** Accept only the specified card brands */
+  Allowed = 'allowed',
+  /** Accept all card brands except the specified ones */
+  Disallowed = 'disallowed',
+}
+
+/** Options to only allow certain card brands on the client. Defaults to 'CardBrandAcceptanceFilter.All'. */
+export type CardBrandAcceptance =
+  | {
+      /** Accept all card brands supported by Stripe */
+      filter: CardBrandAcceptanceFilter.All;
+    }
+  | {
+      /** Accept only the specified card brands */
+      filter: CardBrandAcceptanceFilter.Allowed;
+      /** List of card brands to accept
+       * Note: Any card brands that do not map to a CardBrandCategory will be blocked when using an allow list
+       */
+      brands: CardBrandCategory[];
+    }
+  | {
+      /** Accept all card brands except the specified ones */
+      filter: CardBrandAcceptanceFilter.Disallowed;
+      /** List of card brands to block
+       * Note: Any card brands that do not map to a CardBrandCategory will be accepted when using a disallow list
+       */
+      brands: CardBrandCategory[];
+    };
+
+/**
+ * Configuration for a custom payment method.
+ */
+export interface CustomPaymentMethod {
+  /** The custom payment method ID (beginning with `cpmt_`) as created in your Stripe Dashboard. */
+  id: string;
+  /** Optional subtitle to display beneath the custom payment method name. */
+  subtitle?: string;
+  /** Whether to disable billing detail collection for this custom payment method. Defaults to true. */
+  disableBillingDetailCollection?: boolean;
+}
+
+/**
+ * Custom payment method confirmation result type for PaymentSheet.
+ */
+export enum CustomPaymentMethodResultStatus {
+  /** The custom payment method transaction was completed successfully */
+  Completed = 'completed',
+  /** The custom payment method transaction was canceled by the user */
+  Canceled = 'canceled',
+  /** The custom payment method transaction failed */
+  Failed = 'failed',
+}
+
+/**
+ * Result object returned when a custom payment method transaction completes.
+ * Contains the transaction status and, in case of failure, an error message.
+ */
+export type CustomPaymentMethodResult =
+  | { status: CustomPaymentMethodResultStatus.Completed }
+  | { status: CustomPaymentMethodResultStatus.Canceled }
+  | { status: CustomPaymentMethodResultStatus.Failed; error: string };
+
+/**
+ * Callback function called when a custom payment method is selected and confirmed.
+ * Your implementation should complete the payment using your custom payment provider's SDK.
+ */
+export type ConfirmCustomPaymentMethodCallback = (
+  customPaymentMethod: CustomPaymentMethod,
+  billingDetails: BillingDetails | null,
+  /**
+   * Call this function with the result of your custom payment method transaction.
+   * @param result The result of the custom payment method confirmation
+   */
+  resultHandler: (result: CustomPaymentMethodResult) => void
+) => void;
+
+/**
+ * Configuration for custom payment methods in PaymentSheet.
+ */
+export interface CustomPaymentMethodConfiguration {
+  /** Array of custom payment methods to display in the Payment Sheet */
+  customPaymentMethods: CustomPaymentMethod[];
+  /** Callback function to handle custom payment method confirmation */
+  confirmCustomPaymentMethodCallback: ConfirmCustomPaymentMethodCallback;
+}

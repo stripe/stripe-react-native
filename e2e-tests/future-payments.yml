@@ -1,12 +1,13 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "More payment scenarios"
 - tapOn: "Set up future payments"
 - assertVisible:
     text: "E-mail"
 - inputText: "4242424242424242"
-- inputText: "0125"
+- inputText: "0145"
 - inputText: "123"
 - tapOn:
     text: "E-mail"

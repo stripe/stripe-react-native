@@ -4,24 +4,28 @@ import { colors } from '../colors';
 
 interface Props {
   title: string;
+  children?: React.ReactNode;
+  initialExpanded?: boolean;
 }
 
-export const Collapse: React.FC<Props> = React.memo(({ children, title }) => {
-  const [expanded, setExpanded] = React.useState(false);
+export const Collapse: React.FC<Props> = React.memo(
+  ({ children, title, initialExpanded = false }) => {
+    const [expanded, setExpanded] = React.useState(initialExpanded);
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => setExpanded(!expanded)}
-      >
-        <Text style={styles.title}>{title}</Text>
-      </TouchableOpacity>
+    return (
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={() => setExpanded(!expanded)}
+        >
+          <Text style={styles.title}>{title}</Text>
+        </TouchableOpacity>
 
-      {expanded && <View style={styles.content}>{children}</View>}
-    </View>
-  );
-});
+        {expanded && <View style={styles.content}>{children}</View>}
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: {

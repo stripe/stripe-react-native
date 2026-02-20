@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank Debits"
 - tapOn: "SEPA Direct Debit set up"
 - assertVisible:

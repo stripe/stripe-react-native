@@ -1,5 +1,5 @@
 import type { CardFormView, BillingDetails } from '@stripe/stripe-react-native';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   StyleSheet,
@@ -20,6 +20,7 @@ export default function MultilineWebhookPaymentScreen() {
   const [saveCard, setSaveCard] = useState(false);
   const [isComplete, setComplete] = useState(false);
   const [inputDisabled, setInputDisabled] = useState(false);
+  const ref = useRef<CardFormView.Methods>(null);
 
   const { confirmPayment, loading } = useConfirmPayment();
 
@@ -95,6 +96,7 @@ export default function MultilineWebhookPaymentScreen() {
         style={styles.input}
       />
       <CardForm
+        ref={ref}
         disabled={inputDisabled}
         placeholders={{
           number: '4242 4242 4242 4242',
@@ -128,6 +130,22 @@ export default function MultilineWebhookPaymentScreen() {
         disabled={!isComplete}
         loading={loading}
       />
+      <View style={[styles.row, styles.rowWithGap]}>
+        <Button
+          variant="default"
+          onPress={() => {
+            ref.current?.focus();
+          }}
+          title="Focus"
+        />
+        <Button
+          variant="default"
+          onPress={() => {
+            ref.current?.blur();
+          }}
+          title="Blur"
+        />
+      </View>
     </PaymentScreen>
   );
 }
@@ -149,6 +167,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  rowWithGap: {
+    gap: 16,
   },
   text: {
     marginLeft: 12,

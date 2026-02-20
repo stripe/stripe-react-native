@@ -12,6 +12,7 @@ import type {
   StripeError,
   VerifyMicrodepositsError,
   CollectBankAccountError,
+  RadarError,
 } from './Errors';
 import * as ApplePay from './ApplePay';
 import * as PaymentIntent from './PaymentIntent';
@@ -25,6 +26,8 @@ import * as CardFormView from './components/CardFormView';
 import * as Token from './Token';
 import * as FinancialConnections from './FinancialConnections';
 import * as PlatformPay from './PlatformPay';
+import * as Onramp from './Onramp';
+import * as ConfirmationToken from './ConfirmationToken';
 
 export {
   ApplePay,
@@ -39,6 +42,8 @@ export {
   Token,
   FinancialConnections,
   PlatformPay,
+  Onramp,
+  ConfirmationToken,
 };
 
 export * from './PushProvisioning';
@@ -46,6 +51,7 @@ export * from './Errors';
 export * from './CustomerSheet';
 export type { Address, BillingDetails, AddressDetails } from './Common';
 export { CardBrand } from './Common';
+export { PaymentMethodLayout } from './PaymentSheet';
 
 /**
  * @ignore
@@ -153,6 +159,7 @@ export type InitPaymentSheetResult =
 
 export type PresentPaymentSheetResult = {
   paymentOption?: PaymentSheet.PaymentOption | undefined;
+  didCancel?: boolean;
   error?: StripeError<PaymentSheetError> | undefined;
 };
 
@@ -169,6 +176,16 @@ export type CreateTokenResult =
 export type ConfirmPaymentSheetPaymentResult = {
   error?: StripeError<PaymentSheetError>;
 };
+
+export type CreateRadarSessionResult =
+  | {
+      id: string;
+      error?: undefined;
+    }
+  | {
+      id?: undefined;
+      error: StripeError<RadarError>;
+    };
 
 export type ApplePayResult =
   | {
@@ -276,3 +293,9 @@ export type CollectBankAccountForSetupResult =
       setupIntent?: undefined;
       error: StripeError<CollectBankAccountError>;
     };
+
+export type PaymentOptionData = {
+  icon: string; // base64 string
+  label: string;
+  sublabel?: string;
+};

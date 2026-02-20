@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import {
   useStripe,
@@ -8,7 +8,10 @@ import {
 import { colors } from '../colors';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { API_URL } from '../Config';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
+import { getClientSecretParams } from '../helpers';
 
 export default function PaymentsUICustomScreen() {
   const { initPaymentSheet, presentPaymentSheet, confirmPaymentSheetPayment } =
@@ -20,31 +23,54 @@ export default function PaymentsUICustomScreen() {
     label: string;
   } | null>(null);
 
-  const fetchPaymentSheetParams = async () => {
+  const [customerKeyType, setCustomerKeyType] = useState<string>(
+    'legacy_ephemeral_key'
+  );
+
+  const fetchPaymentSheetParams = async (customer_key_type: string) => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        customer_key_type,
+      }),
     });
-    const { paymentIntent, ephemeralKey, customer } = await response.json();
 
-    return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-    };
+    if (customer_key_type === 'customer_session') {
+      const { paymentIntent, customerSessionClientSecret, customer } =
+        await response.json();
+      return {
+        paymentIntent,
+        customerSessionClientSecret,
+        customer,
+      };
+    } else {
+      const { paymentIntent, ephemeralKey, customer } = await response.json();
+      return {
+        paymentIntent,
+        ephemeralKey,
+        customer,
+      };
+    }
   };
 
-  const initialisePaymentSheet = async () => {
+  const initialisePaymentSheet = useCallback(async () => {
     setLoading(true);
 
     try {
-      const { paymentIntent } = await fetchPaymentSheetParams();
+      const { paymentIntent, ...remainingParams } =
+        await fetchPaymentSheetParams(customerKeyType);
+
+      const clientSecretParams = getClientSecretParams(
+        customerKeyType,
+        remainingParams
+      );
 
       const address: Address = {
         city: 'San Francisco',
-        country: 'AT',
+        country: 'US',
         line1: '510 Townsend St.',
         line2: '123 Street',
         postalCode: '94102',
@@ -63,8 +89,9 @@ export default function PaymentsUICustomScreen() {
         merchantDisplayName: 'Example Inc.',
         style: 'automatic',
         googlePay: { merchantCountryCode: 'US', testEnv: true },
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
+        ...clientSecretParams,
       });
 
       if (!error) {
@@ -80,7 +107,20 @@ export default function PaymentsUICustomScreen() {
     } finally {
       setLoading(false);
     }
+  }, [customerKeyType, initPaymentSheet]);
+
+  const toggleCustomerKeyType = (value: boolean) => {
+    if (value) {
+      setCustomerKeyType('customer_session');
+    } else {
+      setCustomerKeyType('legacy_ephemeral_key');
+    }
   };
+
+  useEffect(() => {
+    setPaymentSheetEnabled(false);
+    initialisePaymentSheet().catch((err) => console.log(err));
+  }, [customerKeyType, initialisePaymentSheet]);
 
   const choosePaymentOption = async () => {
     const { error, paymentOption } = await presentPaymentSheet();
@@ -115,6 +155,10 @@ export default function PaymentsUICustomScreen() {
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
       <View>
+        <CustomerSessionSwitch
+          value={customerKeyType === 'customer_session'}
+          onValueChange={toggleCustomerKeyType}
+        />
         <Button
           variant="primary"
           loading={loading}
@@ -122,6 +166,8 @@ export default function PaymentsUICustomScreen() {
           disabled={!paymentSheetEnabled}
           onPress={choosePaymentOption}
         />
+        <SelectedPaymentOption paymentOption={paymentMethod} />
+
         <Button
           variant="primary"
           loading={loading}

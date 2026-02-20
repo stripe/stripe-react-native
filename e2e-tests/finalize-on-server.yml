@@ -1,12 +1,13 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "More payment scenarios"
 - tapOn: "Finalize payments on the server"
 - assertVisible:
     text: "Pay"
 - inputText: "4242424242424242"
-- inputText: "0125"
+- inputText: "0145"
 - inputText: "123"
 - tapOn:
     text: "Pay"

@@ -1,20 +1,20 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Buy now pay later"
 - scrollUntilVisible:
     element:
       text: "Afterpay and Clearpay"
     direction: DOWN
 - tapOn: "Afterpay and Clearpay"
-- assertVisible:
-    text: "E-mail"
-- tapOn:
-    text: "E-mail"
+- tapOn: "E-mail"
 - inputText: "test@stripe.com"
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST PAYMENT"
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
     text: "Success"

@@ -5,7 +5,10 @@ import {
   IOSConfig,
   withAndroidManifest,
   withEntitlementsPlist,
+  withGradleProperties,
+  withPodfile,
 } from '@expo/config-plugins';
+import path from 'path';
 
 const {
   addMetaDataItemToMainApplication,
@@ -22,6 +25,13 @@ type StripePluginProps = {
    */
   merchantIdentifier: string | string[];
   enableGooglePay: boolean;
+  /**
+   * Whether to include Onramp functionality in the build.
+   * When true, adds StripeSdk_includeOnramp=true to gradle.properties for Android
+   * and includes the Onramp pod for iOS.
+   * Defaults to false.
+   */
+  includeOnramp?: boolean;
 };
 
 const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
@@ -33,15 +43,48 @@ const withStripe: ConfigPlugin<StripePluginProps> = (config, props) => {
 
 const withStripeIos: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { merchantIdentifier }
+  { merchantIdentifier, includeOnramp = false }
 ) => {
-  return withEntitlementsPlist(expoConfig, (config) => {
-    config.modResults = setApplePayEntitlement(
+  let resultConfig = withEntitlementsPlist(expoConfig, (entitlementsConfig) => {
+    entitlementsConfig.modResults = setApplePayEntitlement(
       merchantIdentifier,
-      config.modResults
+      entitlementsConfig.modResults
     );
-    return config;
+    return entitlementsConfig;
   });
+
+  // Conditionally include Onramp pod for iOS.
+  if (includeOnramp) {
+    resultConfig = withPodfile(resultConfig, (config) => {
+      const podfile = config.modResults.contents;
+
+      const localPodPath = path.dirname(
+        require.resolve('@stripe/stripe-react-native/package.json', {
+          paths: [config.modRequest.projectRoot],
+        })
+      );
+      const relativePodPath = path.relative(
+        path.join(config.modRequest.projectRoot, 'ios'),
+        localPodPath
+      );
+
+      // Using Expo BuildProperties with `extraPods` unfortunately results in
+      // an empty pod, so we're modifying the Podfile directly. The pod line
+      // *must* come after the use_native_modules! call.
+      const podLine = `  pod 'stripe-react-native/Onramp', :path => '${relativePodPath}'`;
+
+      if (!podfile.includes(podLine)) {
+        config.modResults.contents = podfile.replace(
+          'config = use_native_modules!(config_command)',
+          (match) => `${match}\n${podLine}`
+        );
+      }
+
+      return config;
+    });
+  }
+
+  return resultConfig;
 };
 
 /**
@@ -94,9 +137,9 @@ export const withNoopSwiftFile: ConfigPlugin = (config) => {
 
 const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
   expoConfig,
-  { enableGooglePay = false }
+  { enableGooglePay = false, includeOnramp = false }
 ) => {
-  return withAndroidManifest(expoConfig, (config) => {
+  let resultConfig = withAndroidManifest(expoConfig, (config) => {
     config.modResults = setGooglePayMetaData(
       enableGooglePay,
       config.modResults
@@ -104,6 +147,17 @@ const withStripeAndroid: ConfigPlugin<StripePluginProps> = (
 
     return config;
   });
+
+  resultConfig = withGradleProperties(resultConfig, (config) => {
+    config.modResults = setOnrampGradleProperty(
+      includeOnramp,
+      config.modResults
+    );
+
+    return config;
+  });
+
+  return resultConfig;
 };
 
 /**
@@ -133,6 +187,49 @@ export function setGooglePayMetaData(
       mainApplication,
       GOOGLE_PAY_META_NAME
     );
+  }
+
+  return modResults;
+}
+
+/**
+ * Adds or removes the StripeSdk_includeOnramp property in gradle.properties.
+ *
+ * @param includeOnramp Whether to include Onramp functionality
+ * @param modResults The current gradle.properties as PropertiesItem array
+ * @returns Modified PropertiesItem array
+ */
+export function setOnrampGradleProperty(
+  includeOnramp: boolean,
+  modResults: AndroidConfig.Properties.PropertiesItem[]
+): AndroidConfig.Properties.PropertiesItem[] {
+  const ONRAMP_PROPERTY_KEY = 'StripeSdk_includeOnramp';
+
+  // Find existing property if it exists
+  const existingPropertyIndex = modResults.findIndex(
+    (item) => item.type === 'property' && item.key === ONRAMP_PROPERTY_KEY
+  );
+
+  if (includeOnramp) {
+    // Add or update the property to true
+    const propertyItem = {
+      type: 'property' as const,
+      key: ONRAMP_PROPERTY_KEY,
+      value: 'true',
+    };
+
+    if (existingPropertyIndex >= 0) {
+      // Update existing property
+      modResults[existingPropertyIndex] = propertyItem;
+    } else {
+      // Add new property at the end
+      modResults.push(propertyItem);
+    }
+  } else {
+    // Remove the property if it exists
+    if (existingPropertyIndex >= 0) {
+      modResults.splice(existingPropertyIndex, 1);
+    }
   }
 
   return modResults;

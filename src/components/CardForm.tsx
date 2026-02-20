@@ -1,4 +1,3 @@
-import type { CardFormView, CardBrand } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -9,21 +8,17 @@ import React, {
 import {
   AccessibilityProps,
   NativeSyntheticEvent,
-  requireNativeComponent,
-  UIManager,
   StyleProp,
-  findNodeHandle,
   ViewStyle,
 } from 'react-native';
+import NativeCardForm, { Commands } from '../specs/NativeCardForm';
 import {
   currentlyFocusedInput,
   focusInput,
   registerInput,
   unregisterInput,
 } from '../helpers';
-
-const CardFormNative =
-  requireNativeComponent<CardFormView.NativeProps>('CardForm');
+import type { CardBrand, CardFormView } from '../types';
 
 /**
  *  Card Form Component Props
@@ -80,11 +75,11 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     {
       onFormComplete,
       cardStyle,
-      // postalCodeEnabled = true,
-      // onFocus,
-      // onBlur,
       placeholders,
       defaultValues,
+      autofocus,
+      dangerouslyGetFullCardDetails,
+      disabled,
       ...props
     },
     ref
@@ -92,8 +87,8 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     const inputRef = useRef<any>(null);
 
     const onFormCompleteHandler = useCallback(
-      (event: NativeSyntheticEvent<CardFormView.Details>) => {
-        const card = event.nativeEvent;
+      (event: NativeSyntheticEvent<{ card: CardFormView.Details }>) => {
+        const card = event.nativeEvent.card;
 
         const data: CardFormView.Details = {
           last4: card.last4,
@@ -120,19 +115,11 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     );
 
     const focus = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'focus' as any,
-        []
-      );
+      Commands.focus(inputRef.current);
     };
 
     const blur = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'blur' as any,
-        []
-      );
+      Commands.blur(inputRef.current);
     };
 
     useImperativeHandle(ref, () => ({
@@ -140,15 +127,15 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
       blur,
     }));
 
-    const onFocusHandler = useCallback((event) => {
-      const { focusedField } = event.nativeEvent;
-      if (focusedField) {
-        focusInput(inputRef.current);
-        // onFocus?.(focusedField);
-      } else {
-        // onBlur?.();
-      }
-    }, []);
+    const onFocusHandler = useCallback(
+      (event: CardFormView.OnFocusChangeEvent) => {
+        const { focusedField } = event.nativeEvent;
+        if (focusedField) {
+          focusInput(inputRef.current);
+        }
+      },
+      []
+    );
 
     useLayoutEffect(() => {
       const inputRefValue = inputRef.current;
@@ -165,7 +152,7 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
     }, [inputRef]);
 
     return (
-      <CardFormNative
+      <NativeCardForm
         ref={inputRef}
         onFormComplete={onFormCompleteHandler}
         cardStyle={{
@@ -179,8 +166,6 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           textColor: cardStyle?.textColor,
           textErrorColor: cardStyle?.textErrorColor,
           fontFamily: cardStyle?.fontFamily,
-          // disabledBackgroundColor: cardStyle?.disabledBackgroundColor,
-          // type: cardStyle?.type,
         }}
         placeholders={{
           number: placeholders?.number,
@@ -192,7 +177,10 @@ export const CardForm = forwardRef<CardFormView.Methods, Props>(
           ...(defaultValues ?? {}),
         }}
         onFocusChange={onFocusHandler}
-        // postalCodeEnabled={postalCodeEnabled}
+        autofocus={autofocus ?? false}
+        dangerouslyGetFullCardDetails={dangerouslyGetFullCardDetails ?? false}
+        disabled={disabled ?? false}
+        postalCodeEnabled
         {...props}
       />
     );

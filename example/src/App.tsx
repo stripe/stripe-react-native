@@ -1,50 +1,61 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
-import HomeScreen from './screens/HomeScreen';
-import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
-import ApplePayScreen from './screens/ApplePayScreen';
-import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
+import type { EmbeddedPaymentElementResult } from '@stripe/stripe-react-native';
+import React from 'react';
 import { StatusBar } from 'react-native';
 import { colors } from './colors';
-import CreateTokenScreen from './screens/CreateTokenScreen';
-import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
-import PaymentSheetWithSetupIntent from './screens/PaymentSheetWithSetupIntent';
-import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
-import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
-import IdealPaymentScreen from './screens/IdealPaymentScreen';
-import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
-import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
-import PaymentResultScreen from './screens/PaymentResultScreen';
-import SofortPaymentScreen from './screens/SofortPaymentScreen';
-import SofortSetupFuturePaymentScreen from './screens/SofortSetupFuturePaymentScreen';
-import FPXPaymentScreen from './screens/FPXPaymentScreen';
-import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
-import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
-import SepaPaymentScreen from './screens/SepaPaymentScreen';
-import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
-import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
-import GiropayPaymentScreen from './screens/GiropayPaymentScreen';
-import EPSPaymentScreen from './screens/EPSPaymentScreen';
-import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
-import P24PaymentScreen from './screens/P24PaymentScreen';
-import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
-import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
-import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
-import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
-import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
-import GooglePayScreen from './screens/GooglePayScreen';
+import { useNavigationPersistence } from './hooks/useNavigationPersistence';
 import ACHPaymentScreen from './screens/ACHPaymentScreen';
 import ACHSetupScreen from './screens/ACHSetupScreen';
-import PayPalScreen from './screens/PayPalScreen';
 import AffirmScreen from './screens/AffirmScreen';
-import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
+import AfterpayClearpayPaymentScreen from './screens/AfterpayClearpayPaymentScreen';
+import AlipayPaymentScreen from './screens/AlipayPaymentScreen';
+import AlmaPaymentScreen from './screens/AlmaPaymentScreen';
+import ApplePayScreen from './screens/ApplePayScreen';
+import AuBECSDebitPaymentScreen from './screens/AuBECSDebitPaymentScreen';
+import AuBECSDebitSetupPaymentScreen from './screens/AuBECSDebitSetupPaymentScreen';
+import BancontactPaymentScreen from './screens/BancontactPaymentScreen';
+import BancontactSetupFuturePaymentScreen from './screens/BancontactSetupFuturePaymentScreen';
+import BilliePaymentScreen from './screens/BilliePaymentScreen';
 import CashAppScreen from './screens/CashAppScreen';
-import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
-import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
+import CollectBankAccountScreen from './screens/CollectBankAccountScreen';
+import ConnectAccountOnboardingScreen from './screens/ConnectAccountOnboardingScreen';
+import ConnectPaymentsListScreen from './screens/ConnectPaymentsListScreen';
+import ConnectPayoutsListScreen from './screens/ConnectPayoutsListScreen';
+import CreateTokenScreen from './screens/CreateTokenScreen';
 import CustomerSheetScreen from './screens/CustomerSheetScreen';
+import CustomerSheetScreenCustomerSession from './screens/CustomerSheetScreenCustomerSession';
+import CVCReCollectionScreen from './screens/CVCReCollectionScreen';
+import EmbeddedPaymentElementConfirmScreen from './screens/EmbeddedPaymentElementConfirmScreen';
+import EmbeddedPaymentElementImmediateActionScreen from './screens/EmbeddedPaymentElementImmediateActionScreen';
+import EmbeddedPaymentElementScreen from './screens/EmbeddedPaymentElementScreen';
+import EPSPaymentScreen from './screens/EPSPaymentScreen';
+import GooglePayScreen from './screens/GooglePayScreen';
+import GrabPayPaymentScreen from './screens/GrabPayPaymentScreen';
+import HomeScreen from './screens/HomeScreen';
+import IdealPaymentScreen from './screens/IdealPaymentScreen';
+import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
+import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
+import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
+import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
+import NoWebhookSetupScreen from './screens/NoWebhookSetupScreen';
+import OxxoPaymentScreen from './screens/OxxoPaymentScreen';
+import P24PaymentScreen from './screens/P24PaymentScreen';
+import PaymentResultScreen from './screens/PaymentResultScreen';
+import PaymentSheetDeferredIntentMultiStepScreen from './screens/PaymentSheetDeferredIntentMultiStepScreen';
+import PaymentSheetDeferredIntentScreen from './screens/PaymentSheetDeferredIntentScreen';
+import PaymentSheetWithPmoSfuScreen from './screens/PaymentSheetWithPmoSfuScreen';
+import PaymentSheetWithSetupIntent from './screens/PaymentSheetWithSetupIntent';
+import PaymentsUICompleteScreen from './screens/PaymentsUICompleteScreen';
+import PaymentsUICustomScreen from './screens/PaymentsUICustomScreen';
+import PayPalScreen from './screens/PayPalScreen';
 import RevolutPayScreen from './screens/RevolutPayScreen';
+import SepaPaymentScreen from './screens/SepaPaymentScreen';
+import SepaSetupFuturePaymentScreen from './screens/SepaSetupFuturePaymentScreen';
+import SetupFuturePaymentScreen from './screens/SetupFuturePaymentScreen';
+import WebhookPaymentScreen from './screens/WebhookPaymentScreen';
+import CryptoOnrampFlow from './screens/Onramp/CryptoOnrampFlow';
+import RegisterCryptoUserScreen from './screens/Onramp/RegisterCryptoUserScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -52,6 +63,7 @@ export type RootStackParamList = {
   WebhookPaymentScreen: undefined;
   HomeScreen: undefined;
   NoWebhookPaymentScreen: undefined;
+  NoWebhookSetupScreen: undefined;
   CreateTokenScreen: undefined;
   ApplePayScreen: undefined;
   SetupFuturePaymentScreen: undefined;
@@ -63,15 +75,13 @@ export type RootStackParamList = {
   IdealSetupFuturePaymentScreen: undefined;
   AlipayPaymentScreen: undefined;
   PaymentResultScreen: { url: string };
-  SofortPaymentScreen: undefined;
-  SofortSetupFuturePaymentScreen: undefined;
-  FPXPaymentScreen: undefined;
   BancontactPaymentScreen: undefined;
   BancontactSetupFuturePaymentScreen: undefined;
+  BilliePaymentScreen: undefined;
+  AlmaPaymentScreen: undefined;
   SepaPaymentScreen: undefined;
   SepaSetupFuturePaymentScreen: undefined;
   OxxoPaymentScreen: undefined;
-  GiropayPaymentScreen: undefined;
   EPSPaymentScreen: undefined;
   GrabPayPaymentScreen: undefined;
   P24PaymentScreen: undefined;
@@ -89,8 +99,20 @@ export type RootStackParamList = {
   CollectBankAccountScreen: undefined;
   PaymentSheetDeferredIntentScreen: undefined;
   PaymentSheetDeferredIntentMultiStepScreen: undefined;
+  EmbeddedPaymentElementScreen: undefined;
+  EmbeddedPaymentElementImmediateActionScreen: undefined;
+  EmbeddedPaymentElementConfirmScreen: {
+    confirm: () => Promise<EmbeddedPaymentElementResult>;
+  };
   CustomerSheetScreen: undefined;
+  CustomerSheetScreenCustomerSession: undefined;
   RevolutPayScreen: undefined;
+  PaymentSheetWithPmoSfuScreen: undefined;
+  ConnectAccountOnboardingScreen: undefined;
+  ConnectPaymentsListScreen: undefined;
+  ConnectPayoutsListScreen: undefined;
+  CryptoOnrampFlow: undefined;
+  RegisterCryptoUserScreen: undefined;
 };
 
 declare global {
@@ -100,6 +122,12 @@ declare global {
 }
 
 export default function App() {
+  const { isReady, initialState, onStateChange } = useNavigationPersistence();
+
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <>
       <StatusBar
@@ -107,7 +135,10 @@ export default function App() {
         barStyle="light-content"
         translucent
       />
-      <NavigationContainer>
+      <NavigationContainer
+        initialState={initialState}
+        onStateChange={onStateChange}
+      >
         <Stack.Navigator
           screenOptions={{
             headerTintColor: colors.white,
@@ -131,6 +162,10 @@ export default function App() {
           <Stack.Screen
             name="NoWebhookPaymentScreen"
             component={NoWebhookPaymentScreen}
+          />
+          <Stack.Screen
+            name="NoWebhookSetupScreen"
+            component={NoWebhookSetupScreen}
           />
           <Stack.Screen
             name="AuBECSDebitPaymentScreen"
@@ -166,6 +201,18 @@ export default function App() {
             component={PaymentSheetDeferredIntentMultiStepScreen}
           />
           <Stack.Screen
+            name="EmbeddedPaymentElementScreen"
+            component={EmbeddedPaymentElementScreen}
+          />
+          <Stack.Screen
+            name="EmbeddedPaymentElementImmediateActionScreen"
+            component={EmbeddedPaymentElementImmediateActionScreen}
+          />
+          <Stack.Screen
+            name="EmbeddedPaymentElementConfirmScreen"
+            component={EmbeddedPaymentElementConfirmScreen}
+          />
+          <Stack.Screen
             name="PaymentsUICustomScreen"
             component={PaymentsUICustomScreen}
           />
@@ -190,15 +237,6 @@ export default function App() {
             name="PaymentResultScreen"
             component={PaymentResultScreen}
           />
-          <Stack.Screen name="FPXPaymentScreen" component={FPXPaymentScreen} />
-          <Stack.Screen
-            name="SofortPaymentScreen"
-            component={SofortPaymentScreen}
-          />
-          <Stack.Screen
-            name="SofortSetupFuturePaymentScreen"
-            component={SofortSetupFuturePaymentScreen}
-          />
           <Stack.Screen
             name="GrabPayPaymentScreen"
             component={GrabPayPaymentScreen}
@@ -213,6 +251,10 @@ export default function App() {
             component={BancontactSetupFuturePaymentScreen}
           />
           <Stack.Screen
+            name="BilliePaymentScreen"
+            component={BilliePaymentScreen}
+          />
+          <Stack.Screen
             name="SepaPaymentScreen"
             component={SepaPaymentScreen}
           />
@@ -223,10 +265,6 @@ export default function App() {
           <Stack.Screen
             name="OxxoPaymentScreen"
             component={OxxoPaymentScreen}
-          />
-          <Stack.Screen
-            name="GiropayPaymentScreen"
-            component={GiropayPaymentScreen}
           />
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"
@@ -250,7 +288,36 @@ export default function App() {
             name="CustomerSheetScreen"
             component={CustomerSheetScreen}
           />
+          <Stack.Screen
+            name="CustomerSheetScreenCustomerSession"
+            component={CustomerSheetScreenCustomerSession}
+          />
           <Stack.Screen name="RevolutPayScreen" component={RevolutPayScreen} />
+          <Stack.Screen
+            name="PaymentSheetWithPmoSfuScreen"
+            component={PaymentSheetWithPmoSfuScreen}
+          />
+          <Stack.Screen name="CryptoOnrampFlow" component={CryptoOnrampFlow} />
+          <Stack.Screen
+            name="RegisterCryptoUserScreen"
+            component={RegisterCryptoUserScreen}
+          />
+          <Stack.Screen
+            name="AlmaPaymentScreen"
+            component={AlmaPaymentScreen}
+          />
+          <Stack.Screen
+            name="ConnectAccountOnboardingScreen"
+            component={ConnectAccountOnboardingScreen}
+          />
+          <Stack.Screen
+            name="ConnectPaymentsListScreen"
+            component={ConnectPaymentsListScreen}
+          />
+          <Stack.Screen
+            name="ConnectPayoutsListScreen"
+            component={ConnectPayoutsListScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

@@ -1,0 +1,31 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
+- scrollUntilVisible:
+    centerElement: true
+    element:
+      text: "BufoPay (test)"
+    timeout: 150000
+- tapOn:
+    text: "BufoPay (test)"
+- scrollUntilVisible:
+    element:
+      text: "Complete payment"
+    timeout: 30000
+- tapOn:
+    text: "Complete payment"
+- extendedWaitUntil:
+    visible: "Custom Payment Method"
+    timeout: 30000
+- assertVisible:
+    text: "Processing payment with cpmt_1RlDWcCWPdGs21gLuSlYP6FB"
+- tapOn: "Success"
+- assertVisible:
+    text: "Payment confirmed"
+- tapOn: "OK"

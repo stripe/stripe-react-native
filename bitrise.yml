@@ -1,0 +1,599 @@
+---
+format_version: '11'
+default_step_lib_source: 'https://github.com/bitrise-io/bitrise-steplib.git'
+project_type: react-native
+
+trigger_map:
+  - push_branch: 'master'
+    pipeline: main-trigger-pipeline
+  - pull_request_source_branch: '*'
+    pipeline: main-trigger-pipeline
+
+app:
+  envs:
+    - NODE_VERSION: '22'
+    - JAVA_VERSION: '17'
+    - ANDROID_API_LEVEL: '33'
+    - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
+    - RETRY_SLEEP_FAST: 10
+    - RETRY_SLEEP_SLOW: 45
+
+pipelines:
+  main-trigger-pipeline:
+    workflows:
+      js-tests: {}
+      unit-test-ios: {}
+      unit-test-android: {}
+      e2e-build-ios-old-arch: {}
+      e2e-tests-ios-old-arch:
+        depends_on: [e2e-build-ios-old-arch]
+        parallel: 3
+      e2e-build-ios-new-arch: {}
+      e2e-tests-ios-new-arch:
+        depends_on: [e2e-build-ios-new-arch]
+        parallel: 3
+      e2e-build-android-old-arch: {}
+      e2e-tests-android-old-arch:
+        depends_on: [e2e-build-android-old-arch]
+        parallel: 4
+      e2e-build-android-new-arch: {}
+      e2e-tests-android-new-arch:
+        depends_on: [e2e-build-android-new-arch]
+        parallel: 4
+  test-projects:
+    workflows:
+      expo-sdk-52: {}
+      expo-sdk-53: {}
+      expo-sdk-54: {}
+      rn-076: {}
+      rn-078: {}
+      rn-081: {}
+      rn-082: {}
+
+workflows:
+  # JavaScript Tests
+  js-tests:
+    before_run:
+      - _prepare_js
+    steps:
+      - script@1:
+          title: Run TypeScript Checks
+          inputs:
+            - content: yarn typescript
+      - script@1:
+          title: Run ESLint
+          inputs:
+            - content: yarn lint
+      - script@1:
+          title: Run Jest Tests
+          inputs:
+            - content: yarn test
+      - script@1:
+          title: Run Example TypeScript Checks
+          inputs:
+            - content: cd example && yarn typescript
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.medium
+
+  unit-test-ios:
+    envs:
+      - NEW_ARCH_ENABLED: true
+    before_run:
+      - _prepare_ios
+    steps:
+      - script@1:
+          title: Check iOS Code Formatting
+          inputs:
+            - content: |
+                brew install swiftlint
+                yarn format:ios:check
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
+      - xcode-test@4:
+          title: Xcode Test for iOS
+          inputs:
+            - project_path: example/ios/example.xcworkspace
+            - destination: platform=iOS Simulator,name=iPhone 16 Pro Max
+            - scheme: stripe-react-native-Unit-Tests
+            - log_formatter: xcbeautify
+      - save-cache@1:
+          title: Save Pods Cache
+          is_always_run: true
+          inputs:
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+
+  unit-test-android:
+    before_run:
+      - _prepare_android
+    steps:
+      - script@1:
+          title: Check Android Code Formatting
+          inputs:
+            - content: yarn format:android:check
+      - script@1:
+          title: Check Android Lint
+          inputs:
+            - content: yarn lint:android
+      - android-unit-test:
+          inputs:
+            - project_location: $BITRISE_SOURCE_DIR/example/android
+            - module: stripe_stripe-react-native
+            - variant: debug
+      - save-gradle-cache@1:
+          is_always_run: true
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-build-android-old-arch:
+    envs:
+      - NEW_ARCH_ENABLED: false
+    before_run:
+      - _e2e_build_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-build-android-new-arch:
+    envs:
+      - NEW_ARCH_ENABLED: true
+    before_run:
+      - _e2e_build_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-tests-android-old-arch:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - BUILD_WORKFLOW: e2e-build-android-old-arch
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
+    before_run:
+      - _e2e_tests_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-tests-android-new-arch:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - BUILD_WORKFLOW: e2e-build-android-new-arch
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
+    before_run:
+      - _e2e_tests_android
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: g2.linux.x-large
+
+  e2e-build-ios-old-arch:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+    before_run:
+      - _e2e_build_ios
+
+  e2e-build-ios-new-arch:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+    before_run:
+      - _e2e_build_ios
+
+  e2e-tests-ios-old-arch:
+    envs:
+      - NEW_ARCH_ENABLED: false
+      - RCT_NEW_ARCH_ENABLED: 0
+      - BUILD_WORKFLOW: e2e-build-ios-old-arch
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
+    before_run:
+      - _e2e_tests_ios
+
+  e2e-tests-ios-new-arch:
+    envs:
+      - NEW_ARCH_ENABLED: true
+      - RCT_NEW_ARCH_ENABLED: 1
+      - BUILD_WORKFLOW: e2e-build-ios-new-arch
+      - SHARD_INDEX: '${BITRISE_IO_PARALLEL_INDEX}'
+      - SHARD_COUNT: '${BITRISE_IO_PARALLEL_TOTAL}'
+    before_run:
+      - _e2e_tests_ios
+
+  expo-sdk-52:
+    envs:
+      - EXPO_SDK_VERSION: '52'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build Expo SDK 52 project
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
+
+  expo-sdk-53:
+    envs:
+      - EXPO_SDK_VERSION: '53'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build Expo SDK 53 project
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
+
+  expo-sdk-54:
+    envs:
+      - EXPO_SDK_VERSION: '54'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build Expo SDK 54 project
+          inputs:
+            - content: ./scripts/test-expo-project --sdk-version "$EXPO_SDK_VERSION"
+
+  rn-076:
+    envs:
+      - RN_VERSION: '0.76'
+      - ORG_GRADLE_JVMARGS: '-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build React Native 0.76 project
+          inputs:
+            - content: ./scripts/test-project --version "$RN_VERSION"
+    meta:
+      bitrise.io:
+        # 0.76 requires Xcode 16.4
+        stack: osx-xcode-16.4.x
+        machine_type_id: g2.mac.4large
+
+  rn-078:
+    envs:
+      - RN_VERSION: '0.78'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build React Native 0.78 project
+          inputs:
+            - content: ./scripts/test-project --version "$RN_VERSION"
+
+  rn-081:
+    envs:
+      - RN_VERSION: '0.81'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build React Native 0.81 project
+          inputs:
+            - content: ./scripts/test-project --version "$RN_VERSION"
+
+  rn-082:
+    envs:
+      - RN_VERSION: '0.82'
+    before_run:
+      - _test_projects_base
+    steps:
+      - script@1:
+          title: Build React Native 0.82 project
+          inputs:
+            - content: ./scripts/test-project --version "$RN_VERSION"
+
+  _test_projects_base:
+    before_run:
+      - _prepare_js
+    steps:
+      - set-java-version@1:
+          inputs:
+            - set_java_version: $JAVA_VERSION
+
+  _prepare_js_env:
+    steps:
+      - nvm@1:
+          inputs:
+            - node_version: $NODE_VERSION
+      - script@1:
+          title: Use Yarn v1
+          inputs:
+            - content: |
+                corepack disable || true
+                npm i -g yarn@1.22.22
+                YARN_CACHE_DIR="$(yarn cache dir)"
+                envman add --key YARN_CACHE_DIR --value "$YARN_CACHE_DIR"
+      - restore-cache@2:
+          title: Restore Yarn Cache
+          inputs:
+            - key: |
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+                yarn-cache-{{ .OS }}-{{ .Arch }}-
+
+  _save_js_env:
+    steps:
+      - save-cache@1:
+          title: Save Yarn Cache
+          is_always_run: true
+          inputs:
+            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}-{{ checksum "example/yarn.lock" }}
+            - paths: |
+                $YARN_CACHE_DIR
+
+  _prepare_js:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - yarn@0:
+          title: Install Dependencies (No Pods)
+          inputs:
+            - command: bootstrap-no-pods
+  _prepare_ios:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      # - restore-cache@2:
+      #     title: Restore Pods Cache
+      #     inputs:
+      #       - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+      - activate-build-cache-for-xcode: {}
+      - yarn@0:
+          title: Bootstrap Project
+          inputs:
+            - command: bootstrap-no-pods
+
+  _prepare_android:
+    before_run:
+      - _prepare_js_env
+    after_run:
+      - _save_js_env
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - restore-gradle-cache@2: {}
+      - yarn@0:
+          title: Install Dependencies (No Pods)
+          inputs:
+            - command: bootstrap-no-pods
+      - set-java-version@1:
+          inputs:
+            - set_java_version: $JAVA_VERSION
+
+  _start_android_emulator:
+    steps:
+      - avd-manager@2:
+          inputs:
+            - profile: 'pixel_6'
+            - abi: 'x86_64'
+            - api_level: $ANDROID_API_LEVEL
+            - tag: 'google_apis'
+            - start_command_flags: >
+                -camera-back none
+                -camera-front none
+                -netdelay none
+                -netspeed full
+                -memory 8192
+                -no-snapshot
+                -no-audio
+                -no-window
+                -gpu swiftshader_indirect
+                -no-boot-anim
+
+  _e2e_build_android:
+    before_run:
+      - _prepare_android
+    steps:
+      - script@1:
+          title: Build Android App
+          timeout: 1200
+          inputs:
+            - content: |
+                cd example/android
+                yarn build:android
+                ./gradlew assembleRelease -PnewArchEnabled=$NEW_ARCH_ENABLED -PreactNativeArchitectures=x86_64 --no-daemon --build-cache --no-scan
+      - save-gradle-cache@1:
+          is_always_run: true
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/example/android/app/build/outputs/apk/release/app-release.apk:APK'
+
+  _e2e_tests_android:
+    before_run:
+      - _start_android_emulator
+    after_run:
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
+    steps:
+      - activate-ssh-key@4:
+          run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+      - git-clone@8: {}
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: $BUILD_WORKFLOW
+      - script@1:
+          title: Install Maestro CLI
+          inputs:
+            - content: |
+                curl -Ls "https://get.maestro.mobile.dev" | bash
+                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+      - wait-for-android-emulator@1:
+          inputs:
+            - boot_timeout: 600
+      - script@1:
+          title: Install APK
+          inputs:
+            - content: adb install -r "$APK"
+      - script@1:
+          title: Run E2E Tests
+          timeout: 2400
+          inputs:
+            - content: |
+                export PATH="${HOME}/.maestro/bin:$PATH"
+                yarn test:e2e:android --record-on-failure
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - notify_user_groups: none
+            - deploy_path: e2e-artifacts
+            - is_compress: true
+
+  _e2e_build_ios:
+    before_run:
+      - _prepare_ios
+    steps:
+      # Note this must run before installing pods.
+      - script@1:
+          title: Build App JS Bundle
+          inputs:
+            - content: yarn example build:ios
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
+      - script@1:
+          title: Build iOS App (Release, Simulator)
+          timeout: 1800
+          inputs:
+            - content: |
+                set -euo pipefail
+
+                cd "$BITRISE_SOURCE_DIR/example/ios"
+                OUT_DIR="$BITRISE_SOURCE_DIR/xcb-out/Release-iphonesimulator"
+                mkdir -p "$OUT_DIR"
+
+                DERIVED_DATA_PATH="$BITRISE_SOURCE_DIR/DerivedData"
+                xcodebuild -workspace example.xcworkspace \
+                  -scheme example \
+                  -configuration Release \
+                  -sdk iphonesimulator \
+                  -derivedDataPath "$DERIVED_DATA_PATH" \
+                  build | xcbeautify
+
+                APP_ROOT="$DERIVED_DATA_PATH/Build/Products/Release-iphonesimulator"
+                APP_DIR="$APP_ROOT/ReactTestApp.app"
+                ZIP_OUT="$BITRISE_SOURCE_DIR/app-release.app.zip"
+                mkdir -p "$(dirname "$ZIP_OUT")"
+                ( cd "$APP_ROOT" && zip -qr "$ZIP_OUT" "$(basename "$APP_DIR")" )
+      - save-cache@1:
+          title: Save Pods Cache
+          is_always_run: true
+          inputs:
+            - key: pods-{{ .Arch }}-{{ getenv "NEW_ARCH_ENABLED" }}-{{ checksum "example/ios/Podfile.lock" }}
+            - paths: |
+                example/ios/Pods
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - pipeline_intermediate_files: '$BITRISE_SOURCE_DIR/app-release.app.zip:IOS_APP_ZIP'
+
+  _e2e_tests_ios:
+    before_run:
+      - _prepare_ios
+    after_run:
+      # TODO: Reenable this once we have the webhook urls on bitrise.
+      # - _notify_e2e_failure
+    steps:
+      - pull-intermediate-files@1:
+          inputs:
+            - artifact_sources: $BUILD_WORKFLOW
+      - script@1:
+          title: Unzip .app and Install to Simulator
+          inputs:
+            - content: |
+                set -euo pipefail
+
+                # Unzip app.
+                OUT="$BITRISE_SOURCE_DIR/ios-artifact"
+                mkdir -p "$OUT"
+                unzip -q "$IOS_APP_ZIP" -d "$OUT"
+                IOS_APP="$(find "$OUT" -maxdepth 2 -type d -name "*.app" | head -n 1)"
+
+                # Boot and wait for simulator.
+
+                DEVICE_UUID=$(xcrun simctl list devices "18.6" | grep "iPhone 16 Pro Max" | grep -oE '([A-F0-9-]{36})')
+                xcrun simctl bootstatus "$DEVICE_UUID" -b
+
+                # Install app.
+                xcrun simctl install booted "$IOS_APP"
+      - script@1:
+          title: Install Maestro CLI
+          inputs:
+            - content: |
+                curl -Ls "https://get.maestro.mobile.dev" | bash
+                echo "${HOME}/.maestro/bin" >> $BITRISE_STEP_SOURCE_DIR/envs.txt
+      - script@1:
+          title: Run iOS E2E Tests (Maestro)
+          timeout: 2400
+          inputs:
+            - content: |
+                export PATH="${HOME}/.maestro/bin:$PATH"
+                yarn test:e2e:ios --record-on-failure
+      - deploy-to-bitrise-io@2:
+          is_always_run: true
+          inputs:
+            - notify_user_groups: none
+            - deploy_path: e2e-artifacts
+            - is_compress: true
+
+  _notify_e2e_failure:
+    steps:
+      - slack@3:
+          is_always_run: true
+          run_if: '{{getenv "FINANCIAL_CONNECTIONS_TESTS_FAILED" | eq "true"}}'
+          inputs:
+            - webhook_url: $SLACK_LINK_MOBILE_ALERT_CHANNEL_WEBHOOK_URL
+            - text: |
+                🚨 *Financial Connections Tests Failed*
+                Platform: $BITRISE_PLATFORM
+                Architecture: $NEW_ARCH_ENABLED
+                Shard: $SHARD_INDEX
+                Build: $BITRISE_BUILD_URL
+      - slack@3:
+          is_always_run: true
+          run_if: '.IsBuildFailed && {{getenv "BITRISE_GIT_BRANCH" | eq "master"}}'
+          inputs:
+            - webhook_url: $SLACK_RUN_CHANNEL_WEBHOOK_URL
+            - text: |
+                *Nightly Build Failed*
+                Platform: $BITRISE_PLATFORM
+                Build: $BITRISE_BUILD_URL
+
+meta:
+  bitrise.io:
+    stack: osx-xcode-26.0.x
+    machine_type_id: g2.mac.4large

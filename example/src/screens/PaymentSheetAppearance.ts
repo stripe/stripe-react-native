@@ -1,7 +1,20 @@
 import { Platform } from 'react-native';
-import type { PaymentSheet } from '@stripe/stripe-react-native';
+import {
+  NavigationBarStyle,
+  type PaymentSheet,
+} from '@stripe/stripe-react-native';
 
-const appearance: PaymentSheet.AppearanceParams = {
+const appearance: PaymentSheet.AppearanceParams = {};
+
+const liquidGlassAppearance: PaymentSheet.AppearanceParams = {
+  applyLiquidGlass: true,
+};
+
+const liquidGlassNavigationOnlyAppearance: PaymentSheet.AppearanceParams = {
+  navigationBarStyle: NavigationBarStyle.Glass,
+};
+
+const customAppearance: PaymentSheet.AppearanceParams = {
   font: {
     scale: 1.1,
     family: Platform.OS === 'android' ? 'macondoregular' : 'Macondo-Regular',
@@ -64,3 +77,9 @@ const appearance: PaymentSheet.AppearanceParams = {
 };
 
 export default appearance;
+export {
+  appearance,
+  liquidGlassAppearance,
+  liquidGlassNavigationOnlyAppearance,
+  customAppearance,
+};

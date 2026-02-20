@@ -2,27 +2,28 @@ package com.reactnativestripesdk.addresssheet
 
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.events.Event
-import com.facebook.react.uimanager.events.RCTEventEmitter
 
-internal class AddressSheetEvent constructor(viewTag: Int, private val eventType: EventType, private val eventMap: WritableMap?) : Event<AddressSheetEvent>(viewTag) {
+internal class AddressSheetEvent(
+  surfaceId: Int,
+  viewTag: Int,
+  private val eventType: EventType,
+  private val eventMap: WritableMap?,
+) : Event<AddressSheetEvent>(surfaceId, viewTag) {
   enum class EventType {
     OnSubmit,
-    OnError
+    OnError,
   }
 
-  override fun dispatch(rctEventEmitter: RCTEventEmitter) {
-    rctEventEmitter.receiveEvent(viewTag, eventName, eventMap)
-  }
+  override fun getEventData() = eventMap
 
   companion object {
-    const val ON_SUBMIT = "onSubmitAction"
-    const val ON_ERROR = "onErrorAction"
+    const val ON_SUBMIT = "topSubmitAction"
+    const val ON_ERROR = "topErrorAction"
   }
 
-  override fun getEventName(): String {
-    return when (eventType) {
+  override fun getEventName(): String =
+    when (eventType) {
       EventType.OnSubmit -> ON_SUBMIT
       EventType.OnError -> ON_ERROR
     }
-  }
 }

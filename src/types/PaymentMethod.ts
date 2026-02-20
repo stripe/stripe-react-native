@@ -5,7 +5,8 @@ import type {
   BankAcccountType,
 } from './Token';
 import type { FutureUsage } from './PaymentIntent';
-import type { Address, BillingDetails } from './Common';
+import type { BillingDetails, UserInterfaceStyle } from './Common';
+import type { FinancialConnectionsEvent } from './FinancialConnections';
 
 export interface Result {
   id: string;
@@ -19,7 +20,6 @@ export interface Result {
   Fpx: FpxResult;
   Ideal: IdealResult;
   SepaDebit: SepaDebitResult;
-  Sofort: SofortResult;
   Upi: UpiResult;
   USBankAccount: USBankAccountResult;
 }
@@ -30,11 +30,9 @@ export type CreateParams =
   | OxxoParams
   | P24Params
   | AlipayParams
-  | GiropayParams
   | SepaParams
   | EpsParams
   | AuBecsDebitParams
-  | SofortParams
   | GrabPayParams
   | FPXParams
   | AfterpayClearpayParams
@@ -97,13 +95,6 @@ export interface OxxoParams {
   };
 }
 
-export interface SofortParams {
-  paymentMethodType: 'Sofort';
-  paymentMethodData: {
-    country: string;
-    billingDetails: BillingDetails;
-  };
-}
 export interface GrabPayParams {
   paymentMethodType: 'GrabPay';
   paymentMethodData?: {
@@ -126,13 +117,6 @@ export interface SepaParams {
   };
 }
 
-export interface GiropayParams {
-  paymentMethodType: 'Giropay';
-  paymentMethodData: {
-    billingDetails: BillingDetails;
-  };
-}
-
 export interface AfterpayClearpayParams {
   paymentMethodType: 'AfterpayClearpay';
   paymentMethodData: {
@@ -144,9 +128,8 @@ export interface AfterpayClearpayParams {
 export type KlarnaParams = {
   paymentMethodType: 'Klarna';
   paymentMethodData: {
-    billingDetails: Pick<Required<BillingDetails>, 'email'> & {
-      address: Pick<Required<Address>, 'country'>;
-    } & BillingDetails;
+    // Email and country are no longer required by Klarna
+    billingDetails?: BillingDetails;
     shippingDetails?: ShippingDetails;
   };
 };
@@ -263,10 +246,6 @@ export interface SepaDebitResult {
   last4?: string;
 }
 
-export interface SofortResult {
-  country?: string;
-}
-
 export interface UpiResult {
   vpa?: string;
 }
@@ -294,12 +273,10 @@ export type Type =
   | 'SepaDebit'
   | 'AuBecsDebit'
   | 'BacsDebit'
-  | 'Giropay'
   | 'P24'
   | 'Eps'
   | 'Bancontact'
   | 'Oxxo'
-  | 'Sofort'
   | 'Upi'
   | 'USBankAccount'
   | 'PayPal'
@@ -313,4 +290,15 @@ export type CollectBankAccountParams = {
       email?: string;
     };
   };
+  /** iOS only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
+};
+
+export type CollectBankAccountTokenParams = {
+  /** iOS only. Style options for colors in Financial Connections. By default, the bank account collector will automatically switch between light and dark mode compatible colors based on device settings. */
+  style?: UserInterfaceStyle;
+  /** An optional event listener to receive @type {FinancialConnectionEvent} for specific events during the process of a user connecting their financial accounts. */
+  onEvent?: (event: FinancialConnectionsEvent) => void;
 };

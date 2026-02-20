@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank redirects"
 - scrollUntilVisible:
     element:
@@ -12,17 +13,11 @@ appId: ${APP_ID}
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
-- assertVisible:
-    text: "Optional - choose your bank"
-- tapOn:
-    text: "Optional - choose your bank"
-    optional: true
-- tapOn:
-    text: "Knab"
-    optional: true
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST PAYMENT"
 - tapOn: "AUTHORIZE TEST PAYMENT"
 - assertVisible:
     text: "Success"

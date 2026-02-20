@@ -1,6 +1,6 @@
 {
   "name": "@stripe/stripe-react-native",
-  "version": "0.37.2",
+  "version": "0.58.0",
   "author": "Stripe",
   "description": "Stripe SDK for React Native",
   "main": "lib/commonjs/index",
@@ -12,23 +12,50 @@
     "test": "jest",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern \"docs/api-reference/*\" --ignore-path .gitignore",
-    "prepare": "bob build && husky install",
+    "prepare": "bob build && rm -rf lib/*/package.json && husky",
     "release": "./scripts/publish",
     "example": "yarn --cwd example",
     "pods": "cd example && npx pod-install --quiet",
-    "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore",
+    "update-pods": "cd example/ios && pod update Stripe StripeApplePay StripeFinancialConnections StripePayments StripePaymentSheet StripePaymentsUI StripeCore StripeUICore StripeCryptoOnramp",
     "bootstrap": "yarn example && yarn && yarn pods",
     "bootstrap-no-pods": "yarn example && yarn",
     "docs": "yarn typedoc ./src/index.tsx --out ./docs/api-reference --tsconfig ./tsconfig.json --readme none --sort source-order",
-    "run-example-ios": "cd example;react-native run-ios --configuration Release --simulator \"iPhone 15\"",
-    "run-example-android": "cd example;react-native run-android --variant=release",
+    "run-example-ios": "cd example && yarn ios --simulator \"iPhone 16 Pro Max\"",
+    "run-example-ios:release": "cd example && yarn build:ios && yarn ios --mode Release --simulator \"iPhone 16 Pro Max\" --no-packager",
+    "run-example-android": "cd example && yarn android",
+    "run-example-android:release": "cd example && yarn build:android && yarn android --mode=release --no-packager",
     "test:e2e:ios": "bash ./scripts/run-maestro-tests ios",
     "test:e2e:android": "bash ./scripts/run-maestro-tests android",
-    "test:unit:ios": "xcodebuild test -workspace example/ios/StripeSdkExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 13' -scheme UnitTests",
-    "test:unit:android": "cd example/android && ./gradlew connectedAndroidTest",
+    "test:unit:ios": "xcodebuild test -workspace example/ios/example.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max' -scheme stripe-react-native-Unit-Tests",
+    "test:unit:android": "cd example/android && ./gradlew :stripe_stripe-react-native:testDebugUnitTest",
     "test-ios": "maestro test -e APP_ID=com.stripe.react.native",
-    "test-android": "maestro test -e APP_ID=com.example.reactnativestripesdk"
+    "test-android": "maestro test -e APP_ID=com.stripe.react.native",
+    "format:android:check": "cd android && ./gradlew spotlessCheck",
+    "format:android:write": "cd android && ./gradlew spotlessApply",
+    "lint:android": "cd android && ./gradlew :lint-rules:jar && cd ../example/android && RN_STRIPE_WARNINGS_AS_ERRORS=true ./gradlew :stripe_stripe-react-native:lint --rerun-tasks",
+    "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
+    "format:ios:write": "./scripts/format-changed-ios"
   },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "jest",
+    "stripe-react-native.podspec",
+    "app.plugin.js",
+    "LICENSE",
+    "!android/.cxx",
+    "!android/.gradle",
+    "!android/build",
+    "!android/src/androidTest",
+    "!android/lint-rules",
+    "!ios/build",
+    "!ios/Tests",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
   "keywords": [
     "react-native",
     "ios",
@@ -40,66 +67,69 @@
     "url": "https://github.com/stripe/stripe-react-native/issues"
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
-  "dependencies": {},
   "devDependencies": {
-    "@babel/plugin-transform-typescript": "^7.13.0",
-    "@expo/config-types": "^47.0.0",
-    "@react-native-community/bob": "^0.16.2",
-    "@react-native-community/eslint-config": "^3.0.0",
-    "@types/jest": "^26.0.23",
-    "@types/react": "^16.9.19",
-    "@types/react-native": "0.62.13",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.3",
-    "expo": "^47.0.8",
-    "husky": "^8.0.0",
-    "jest": "^26.6.3",
-    "metro-react-native-babel-preset": "^0.70.3",
-    "prettier": "^2.0.5",
-    "react": "18.0.0",
-    "react-native": "0.69.9",
-    "ts-node": "^9.1.1",
-    "typedoc": "^0.22.12",
-    "typescript": "~4.4.4"
+    "@expo/config-plugins": "^9.0.16",
+    "@react-native/babel-preset": "^0.81.0",
+    "@react-native/eslint-config": "^0.81.1",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.0.10",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.1.7",
+    "jest": "^29.2.1",
+    "prettier": "^3.5.2",
+    "react": "19.1.0",
+    "react-native": "^0.81.0",
+    "react-native-builder-bob": "^0.40.13",
+    "react-native-webview": "^13.16.0",
+    "react-test-renderer": "19.1.0",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.27.9",
+    "typescript": "^5.7.3"
   },
   "peerDependencies": {
     "expo": ">=46.0.9",
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": "*"
   },
   "peerDependenciesMeta": {
     "expo": {
+      "optional": true
+    },
+    "react-native-webview": {
       "optional": true
     }
   },
   "jest": {
     "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest/setup.js"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/",
       "<rootDir>/e2e"
-    ]
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|react-native-webview)/)"
+    ],
+    "moduleNameMapper": {
+      "^.+/package\\.json$": "<rootDir>/package.json"
+    }
   },
   "eslintConfig": {
     "extends": [
-      "@react-native-community",
-      "prettier"
+      "@react-native",
+      "plugin:prettier/recommended"
     ],
     "rules": {
       "no-shadow": "off",
       "@typescript-eslint/no-shadow": [
         "error"
-      ],
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
       ],
       "no-restricted-syntax": [
         "error",
@@ -107,7 +137,8 @@
           "selector": "TSEnumDeclaration[const=true]",
           "message": "`const enum` declarations are not allowed"
         }
-      ]
+      ],
+      "@react-native/no-deep-imports": "off"
     }
   },
   "eslintIgnore": [
@@ -122,7 +153,7 @@
     "trailingComma": "es5",
     "useTabs": false
   },
-  "@react-native-community/bob": {
+  "react-native-builder-bob": {
     "source": "src",
     "output": "lib",
     "targets": [
@@ -138,15 +169,31 @@
           "configFile": true
         }
       ],
-      [
-        "typescript",
-        {
-          "configFile": true
-        }
-      ]
+      "typescript"
     ]
   },
   "resolutions": {
     "simple-plist": "1.3.1"
+  },
+  "codegenConfig": {
+    "android": {
+      "javaPackageName": "com.reactnativestripesdk"
+    },
+    "ios": {
+      "componentProvider": {
+        "ApplePayButton": "ApplePayButtonComponentView",
+        "AddToWalletButton": "AddToWalletButtonComponentView",
+        "AddressSheetView": "AddressSheetViewComponentView",
+        "AuBECSDebitForm": "AuBECSDebitFormComponentView",
+        "CardField": "CardFieldComponentView",
+        "CardForm": "CardFormComponentView",
+        "EmbeddedPaymentElementView": "EmbeddedPaymentElementViewComponentView",
+        "NavigationBar": "NavigationBarComponentView",
+        "StripeContainer": "StripeContainerComponentView"
+      }
+    },
+    "name": "rnstripe",
+    "type": "all",
+    "jsSrcsDir": "./src/specs"
   }
 }

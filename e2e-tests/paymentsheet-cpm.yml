@@ -1,0 +1,36 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (single-step)"
+- tapOn: "Checkout"
+- scrollUntilVisible:
+    element:
+      text: "BufoPay (test)"
+    timeout: 150000
+- tapOn:
+    text: "BufoPay (test)"
+- scrollUntilVisible:
+    element:
+      id: "primary_button" # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "purchase!" # iOS
+    optional: true
+- tapOn:
+    id: "primary_button" # Android
+    optional: true
+- tapOn:
+    text: "purchase!" # iOS
+    optional: true
+- extendedWaitUntil:
+    visible: "Custom Payment Method"
+    timeout: 30000
+- assertVisible:
+    text: "Processing payment with cpmt_1RlDWcCWPdGs21gLuSlYP6FB"
+- tapOn: "Success"
+- assertVisible:
+    text: "The payment was confirmed successfully"
+- tapOn: "OK"

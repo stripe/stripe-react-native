@@ -9,25 +9,25 @@ import Foundation
 import StripePaymentSheet
 
 @objc(AddressSheetView)
-class AddressSheetView: UIView {
-    @objc var visible = false
-    @objc var presentationStyle: String = "popover"
-    @objc var animationStyle: String = ""
-    @objc var appearance: NSDictionary? = nil
-    @objc var defaultValues: NSDictionary? = nil
-    @objc var additionalFields: NSDictionary? = nil
-    @objc var allowedCountries: [String] = []
-    @objc var autocompleteCountries: [String] = []
-    @objc var primaryButtonTitle: String? = nil
-    @objc var sheetTitle: String? = nil
-    @objc var onSubmitAction: RCTDirectEventBlock?
-    @objc var onErrorAction: RCTDirectEventBlock?
+public class AddressSheetView: UIView {
+    @objc public var visible = false
+    @objc public var presentationStyle: String = "popover"
+    @objc public var animationStyle: String = ""
+    @objc public var appearance: NSDictionary?
+    @objc public var defaultValues: NSDictionary?
+    @objc public var additionalFields: NSDictionary?
+    @objc public var allowedCountries: [String] = []
+    @objc public var autocompleteCountries: [String] = []
+    @objc public var primaryButtonTitle: String?
+    @objc public var sheetTitle: String?
+    @objc public var onSubmitAction: RCTDirectEventBlock?
+    @objc public var onErrorAction: RCTDirectEventBlock?
 
     private var wasVisible = false
-    private var addressViewController: AddressViewController? = nil
-    internal var addressDetails: AddressViewController.AddressDetails? = nil
-    
-    override init(frame: CGRect) {
+    private var addressViewController: AddressViewController?
+    internal var addressDetails: AddressViewController.AddressDetails?
+
+    override public init(frame: CGRect) {
         super.init(frame: frame)
     }
 
@@ -35,20 +35,26 @@ class AddressSheetView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func didSetProps(_ changedProps: [String]!) {
-        if (visible && !wasVisible) {
+    @objc public func didSetProps() {
+        if visible && !wasVisible {
             presentAddressSheet()
             wasVisible = true
-        } else if (!visible && wasVisible) {
+        } else if !visible && wasVisible {
             addressViewController?.dismiss(animated: true)
             wasVisible = false
         }
     }
-    
+
+    override public func didSetProps(_ changedProps: [String]!) {
+        // This is only called on old arch, for new arch didSetProps() will be called
+        // by the view component.
+        self.didSetProps()
+    }
+
     private func presentAddressSheet() {
-        if (STPAPIClient.shared.publishableKey == nil) {
+        if STPAPIClient.shared.publishableKey == nil {
             onErrorAction!(
-                Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.") as? [AnyHashable : Any]
+                Errors.createError(ErrorType.Failed, "No publishable key set. Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.") as? [AnyHashable: Any]
             )
             return
         }
@@ -57,26 +63,26 @@ class AddressSheetView: UIView {
             config = try buildAddressSheetConfiguration()
         } catch {
             onErrorAction!(
-                Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable : Any]
+                Errors.createError(ErrorType.Failed, error.localizedDescription) as? [AnyHashable: Any]
             )
             return
         }
-        
+
         self.addressViewController = AddressViewController(
             configuration: config,
             delegate: self
         )
-                
+
         let navigationController = UINavigationController(rootViewController: addressViewController!)
         navigationController.modalPresentationStyle = getModalPresentationStyle()
         navigationController.modalTransitionStyle = getModalTransitionStyle()
-        let vc = findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController())
+        let vc = findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
         vc.present(navigationController, animated: true)
     }
-    
+
     private func buildAddressSheetConfiguration() throws -> AddressViewController.Configuration {
         let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
-        
+
         return AddressViewController.Configuration(
             defaultValues: AddressSheetUtils.buildDefaultValues(params: defaultValues),
             additionalFields: AddressSheetUtils.buildAdditionalFieldsConfiguration(params: additionalFields),
@@ -84,11 +90,11 @@ class AddressSheetView: UIView {
             appearance: appearanceConfiguration,
             buttonTitle: primaryButtonTitle,
             title: sheetTitle
-          )
+        )
     }
-    
+
     private func getModalPresentationStyle() -> UIModalPresentationStyle {
-        switch (presentationStyle) {
+        switch presentationStyle {
         case "fullscreen":
             return .fullScreen
         case "pageSheet":
@@ -105,9 +111,9 @@ class AddressSheetView: UIView {
             return .popover
         }
     }
-    
+
     private func getModalTransitionStyle() -> UIModalTransitionStyle {
-        switch (animationStyle) {
+        switch animationStyle {
         case "flip":
             return .flipHorizontal
         case "curl":
@@ -123,13 +129,13 @@ class AddressSheetView: UIView {
 }
 
 extension AddressSheetView: AddressViewControllerDelegate {
-    func addressViewControllerDidFinish(_ addressViewController: AddressViewController, with address: AddressViewController.AddressDetails?) {
+    public func addressViewControllerDidFinish(_ addressViewController: AddressViewController, with address: AddressViewController.AddressDetails?) {
         guard let address = address else {
             onErrorAction!(
                 Errors.createError(
                     ErrorType.Canceled,
                     "The flow has been canceled."
-                ) as? [AnyHashable : Any]
+                ) as? [AnyHashable: Any]
             )
             return
         }

@@ -1,0 +1,13 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Wallets"
+- tapOn: "Apple Pay"
+- tapOn: "Buy with Apple\_Pay"
+- tapOn: "Pay with Passcode"
+- assertVisible:
+    text: "Done"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

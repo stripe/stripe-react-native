@@ -1,4 +1,3 @@
-import type { CardFieldInput, CardBrand } from '../types';
 import React, {
   forwardRef,
   useCallback,
@@ -9,10 +8,7 @@ import React, {
 import {
   AccessibilityProps,
   NativeSyntheticEvent,
-  requireNativeComponent,
-  UIManager,
   StyleProp,
-  findNodeHandle,
   ViewStyle,
 } from 'react-native';
 import {
@@ -21,9 +17,11 @@ import {
   registerInput,
   unregisterInput,
 } from '../helpers';
-
-const CardFieldNative =
-  requireNativeComponent<CardFieldInput.NativeProps>('CardField');
+import NativeCardField, {
+  Commands,
+  FocusChangeEvent,
+} from '../specs/NativeCardField';
+import type { CardBrand, CardFieldInput } from '../types';
 
 /**
  *  Card Field Component Props
@@ -46,6 +44,8 @@ export interface Props extends AccessibilityProps {
   /** The list of preferred networks that should be used to process payments made with a co-branded card.
    * This value will only be used if your user hasn't selected a network themselves. */
   preferredNetworks?: Array<CardBrand>;
+  /** The account (if any) for which the funds of the intent are intended. */
+  onBehalfOf?: string;
   /**
    * WARNING: If set to `true` the full card number will be returned in the `onCardChange` handler.
    * Only do this if you're certain that you fulfill the necessary PCI compliance requirements.
@@ -81,8 +81,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
       onBlur,
       cardStyle,
       placeholders,
+      autofocus,
       postalCodeEnabled,
-      countryCode,
+      disabled,
+      dangerouslyGetFullCardDetails,
       ...props
     },
     ref
@@ -90,8 +92,8 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     const inputRef = useRef<any>(null);
 
     const onCardChangeHandler = useCallback(
-      (event: NativeSyntheticEvent<CardFieldInput.Details>) => {
-        const card = event.nativeEvent;
+      (event: NativeSyntheticEvent<{ card: CardFieldInput.Details }>) => {
+        const card = event.nativeEvent.card;
 
         const data: CardFieldInput.Details = {
           last4: card.last4,
@@ -122,11 +124,11 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const onFocusHandler = useCallback(
-      (event) => {
+      (event: NativeSyntheticEvent<FocusChangeEvent>) => {
         const { focusedField } = event.nativeEvent;
         if (focusedField) {
           focusInput(inputRef.current);
-          onFocus?.(focusedField);
+          onFocus?.(focusedField as CardFieldInput.FieldName);
         } else {
           onBlur?.();
         }
@@ -135,27 +137,15 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     );
 
     const focus = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'focus' as any,
-        []
-      );
+      Commands.focus(inputRef.current);
     };
 
     const blur = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'blur' as any,
-        []
-      );
+      Commands.blur(inputRef.current);
     };
 
     const clear = () => {
-      UIManager.dispatchViewManagerCommand(
-        findNodeHandle(inputRef.current),
-        'clear' as any,
-        []
-      );
+      Commands.clear(inputRef.current);
     };
 
     useImperativeHandle(ref, () => ({
@@ -179,12 +169,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
     }, [inputRef]);
 
     return (
-      <CardFieldNative
+      <NativeCardField
         ref={inputRef}
         onCardChange={onCardChangeHandler}
         onFocusChange={onFocusHandler}
-        postalCodeEnabled={postalCodeEnabled ?? true}
-        countryCode={countryCode ?? null}
         cardStyle={{
           backgroundColor: cardStyle?.backgroundColor,
           borderColor: cardStyle?.borderColor,
@@ -203,6 +191,10 @@ export const CardField = forwardRef<CardFieldInput.Methods, Props>(
           cvc: placeholders?.cvc,
           postalCode: placeholders?.postalCode,
         }}
+        autofocus={autofocus ?? false}
+        postalCodeEnabled={postalCodeEnabled ?? true}
+        disabled={disabled ?? false}
+        dangerouslyGetFullCardDetails={dangerouslyGetFullCardDetails ?? false}
         {...props}
       />
     );

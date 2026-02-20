@@ -41,6 +41,18 @@ export default function AffirmScreen() {
       return;
     }
 
+    const billingDetails = {
+      email: email,
+      name: 'Jane Doe',
+      address: {
+        city: 'San Francisco',
+        country: 'US',
+        line1: '123 Market St',
+        postalCode: '94103',
+        state: 'California',
+      },
+    };
+
     const shippingDetails: PaymentMethod.ShippingDetails = {
       address: {
         city: 'Houston',
@@ -55,6 +67,7 @@ export default function AffirmScreen() {
     const { error, paymentIntent } = await confirmPayment(clientSecret, {
       paymentMethodType: 'Affirm',
       paymentMethodData: {
+        billingDetails,
         shippingDetails,
       },
     });

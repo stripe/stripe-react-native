@@ -8,15 +8,15 @@
 import Foundation
 import Stripe
 
-extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayContextDelegate {
-    func paymentAuthorizationViewController(
+extension StripeSdkImpl: PKPaymentAuthorizationViewControllerDelegate, STPApplePayContextDelegate {
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didAuthorizePayment payment: PKPayment,
         handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
     ) {
         applePaymentMethodFlowCanBeCanceled = false
-        
-        if (platformPayUsesDeprecatedTokenFlow) {
+
+        if platformPayUsesDeprecatedTokenFlow {
             STPAPIClient.shared.createToken(with: payment) { token, error in
                 if let error = error {
                     self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Failed, error))
@@ -43,24 +43,24 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                     if let shippingContact = payment.shippingContact {
                         promiseResult["shippingContact"] = Mappers.mapFromShippingContact(shippingContact: shippingContact)
                     }
-                    
+
                     self.createPlatformPayPaymentMethodResolver?(promiseResult)
                 }
                 completion(PKPaymentAuthorizationResult.init(status: .success, errors: nil))
             }
         }
     }
-    
-    func paymentAuthorizationViewControllerDidFinish(
+
+    public func paymentAuthorizationViewControllerDidFinish(
         _ controller: PKPaymentAuthorizationViewController
     ) {
-        if (applePaymentMethodFlowCanBeCanceled) {
+        if applePaymentMethodFlowCanBeCanceled {
             self.createPlatformPayPaymentMethodResolver?(Errors.createError(ErrorType.Canceled, "The payment has been canceled"))
             applePaymentMethodFlowCanBeCanceled = false
         }
         _ = maybeDismissApplePay()
     }
-    
+
     func maybeDismissApplePay() -> Bool {
         if let applePaymentAuthorizationController = applePaymentAuthorizationController {
             DispatchQueue.main.async {
@@ -70,9 +70,9 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         }
         return false
     }
-    
+
     @available(iOS 15.0, *)
-    func paymentAuthorizationViewController(
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didChangeCouponCode couponCode: String,
         handler completion: @escaping (PKPaymentRequestCouponCodeUpdate) -> Void
@@ -83,15 +83,15 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
         } else {
             completion(
                 PKPaymentRequestCouponCodeUpdate.init(
-                     errors: self.applePayCouponCodeErrors,
-                     paymentSummaryItems: self.applePaySummaryItems,
-                     shippingMethods: self.applePayShippingMethods
+                    errors: self.applePayCouponCodeErrors,
+                    paymentSummaryItems: self.applePaySummaryItems,
+                    shippingMethods: self.applePayShippingMethods
                 )
             )
         }
     }
-    
-    func paymentAuthorizationViewController(
+
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didSelect shippingMethod: PKShippingMethod,
         handler completion: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
@@ -105,8 +105,8 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
             )
         }
     }
-    
-    func paymentAuthorizationViewController(
+
+    public func paymentAuthorizationViewController(
         _ controller: PKPaymentAuthorizationViewController,
         didSelectShippingContact contact: PKContact,
         handler completion: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
@@ -124,8 +124,8 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
             )
         }
     }
-    
-    func applePayContext(
+
+    public func applePayContext(
         _ context: STPApplePayContext,
         didSelect shippingMethod: PKShippingMethod,
         handler: @escaping (PKPaymentRequestShippingMethodUpdate) -> Void
@@ -139,8 +139,8 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
             )
         }
     }
-    
-    func applePayContext(
+
+    public func applePayContext(
         _ context: STPApplePayContext,
         didSelectShippingContact contact: PKContact,
         handler: @escaping (PKPaymentRequestShippingContactUpdate) -> Void
@@ -158,8 +158,8 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
             )
         }
     }
-    
-    func applePayContext(
+
+    public func applePayContext(
         _ context: STPApplePayContext,
         didCreatePaymentMethod paymentMethod: STPPaymentMethod,
         paymentInformation: PKPayment,
@@ -174,21 +174,21 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
             RCTMakeAndLogError("Tried to complete Apple Pay payment, but no client secret was found.", nil, nil)
         }
     }
-    
-   func applePayContext(
-       _ context: STPApplePayContext,
-       willCompleteWithResult authorizationResult: PKPaymentAuthorizationResult,
-       handler: @escaping (PKPaymentAuthorizationResult) -> Void
-   ) {
-       if let callback = self.platformPayOrderTrackingJSCallback {
-           self.orderTrackingHandler = (authorizationResult, handler)
-           callback(nil)
-       } else {
-           handler(authorizationResult)
-       }
-   }
-    
-    func applePayContext(
+
+    public func applePayContext(
+        _ context: STPApplePayContext,
+        willCompleteWithResult authorizationResult: PKPaymentAuthorizationResult,
+        handler: @escaping (PKPaymentAuthorizationResult) -> Void
+    ) {
+        if let callback = self.platformPayOrderTrackingJSCallback {
+            self.orderTrackingHandler = (authorizationResult, handler)
+            callback(nil)
+        } else {
+            handler(authorizationResult)
+        }
+    }
+
+    public func applePayContext(
         _ context: STPApplePayContext,
         didCompleteWith status: STPPaymentStatus,
         error: Error?
@@ -209,7 +209,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
 
                         if let paymentIntent = paymentIntent {
                             let result = Mappers.mapFromPaymentIntent(paymentIntent: paymentIntent)
-                            if (paymentIntent.paymentMethod == nil) {
+                            if paymentIntent.paymentMethod == nil {
                                 result.setValue(Mappers.mapFromPaymentMethod(self.confirmApplePayPaymentMethod), forKey: "paymentMethod")
                             }
                             resolve(Mappers.createResult("paymentIntent", result))
@@ -231,7 +231,7 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
 
                         if let setupIntent = setupIntent {
                             let result = Mappers.mapFromSetupIntent(setupIntent: setupIntent)
-                            if (setupIntent.paymentMethod == nil) {
+                            if setupIntent.paymentMethod == nil {
                                 result.setValue(Mappers.mapFromPaymentMethod(self.confirmApplePayPaymentMethod), forKey: "paymentMethod")
                             }
                             resolve(Mappers.createResult("setupIntent", result))
@@ -242,38 +242,34 @@ extension StripeSdk : PKPaymentAuthorizationViewControllerDelegate, STPApplePayC
                     }
                 }
             }
-            break
         case .error:
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Failed, error as NSError?))
             }
-            break
         case .userCancellation:
             let message = "The payment has been canceled"
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Canceled, message))
             }
-            break
         @unknown default:
             if let resolve = self.confirmApplePayResolver {
                 resolve(Errors.createError(ErrorType.Unknown, error as NSError?))
             }
-            break
         }
         confirmApplePayResolver = nil
         confirmApplePayPaymentClientSecret = nil
         confirmApplePaySetupClientSecret = nil
     }
-    
+
 }
 
 extension STPPaymentMethod {
     func splitApplePayAddressByNewline() -> STPPaymentMethod {
         let address = self.billingDetails?.address?.line1?.split(whereSeparator: \.isNewline)
-        if (address?.indices.contains(0) == true) {
+        if address?.indices.contains(0) == true {
             self.billingDetails?.address?.line1 = String(address?[0] ?? "")
         }
-        if (address?.indices.contains(1) == true) {
+        if address?.indices.contains(1) == true {
             self.billingDetails?.address?.line2 = String(address?[1] ?? "")
         }
         return self
@@ -283,10 +279,10 @@ extension STPPaymentMethod {
 extension STPToken {
     func splitApplePayAddressByNewline() -> STPToken {
         let address = self.card?.address?.line1?.split(whereSeparator: \.isNewline)
-        if (address?.indices.contains(0) == true) {
+        if address?.indices.contains(0) == true {
             self.card?.address?.line1 = String(address?[0] ?? "")
         }
-        if (address?.indices.contains(1) == true) {
+        if address?.indices.contains(1) == true {
             self.card?.address?.line2 = String(address?[1] ?? "")
         }
         return self

@@ -1,18 +1,345 @@
 # CHANGELOG
 
-## Unreleased
+## x.x.x - 20xx-xx-xx
+
+**Changes**
+* [Added] Added support for creating a [Radar session](https://docs.stripe.com/radar/radar-session).
+
+## 0.58.0 - 2026-01-27
+
+**Changes**
+- Updated Stripe iOS SDK from 25.0.1 to 25.6.0
+- Updated Stripe Android SDK from 22.2.+ to 22.7.+
+
+## 0.57.3 - 2026-01-21
+
+**Fixes**
+- `react-native-webview` is no longer a dependency of the SDK.
+
+## 0.57.2 - 2025-12-16
+
+**Fixes**
+- Fixed `update()` not working on Android for EmbeddedPaymentElement. The intent configuration is now properly passed to the native side when calling `update()`.
+
+## 0.57.1 - 2025-12-11
+**Fixes**
+- Fixed Android crash `NoSuchKeyException: customFlow` when initializing PaymentSheet without explicitly setting the `customFlow` parameter.
+- Fixed `confirmPlatformPayPayment` not resolving on Android.
+- Fixed Android crash `IllegalStateException: Cannot locate windowRecomposer; View is not attached to a window` in EmbeddedPaymentElement. This occurred when React Native measured the view before it was attached to the window hierarchy.
+
+## 0.57.0 - 2025-11-12
+**Changes**
+- [Changed] Updated Stripe iOS SDK from 24.25.0 to 25.0.0
+- [Changed] Updated Stripe Android SDK from 21.29.+ to 22.0.+
+- [Removed] Removed Giropay. Use alternative payment methods instead. See [this page](https://docs.stripe.com/payments/giropay) for more information.
+
+**Fixes**
+- [#2201](https://github.com/stripe/stripe-react-native/issues/2201) Fixed iOS sheets (PaymentSheet, CustomerSheet, AddressSheet, etc.) not presenting in scene-based lifecycle apps. The SDK now properly supports both traditional app delegates and scene-based lifecycles (iOS 13+) by using `RCTKeyWindow`.
+
+## 0.56.0 - 2025-11-06
+
+**Changes**
+- [Added] CustomerSession is now generally available. The `customerSessionClientSecret` parameter is no longer experimental.
+- [Added] ConfirmationTokens are now generally available. The `confirmationTokenConfirmHandler` parameter and `ConfirmationToken.Result` type are no longer experimental.
+- [Added] Added support for `CustomerSession` to CustomerSheet. The CustomerSession object grants the SDK temporary access to the Customer and provides additional configuration options. These configuration options allow you to customize the behavior of CustomerSheet. A complete list of features exposed on the CustomerSession are [in our API docs](https://docs.corp.stripe.com/api/customer_sessions/create#create_customer_session-components-customer_sheet). 
+* [Added] Added support for `onBehalfOf` to CustomerSheet.IntentConfiguration. This parameter makes CustomerSheet use a connected account to determine the payment method that users see and whether CardBrandChoice is enabled. For more information, see the [SetupIntent docs](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-on_behalf_of).
+
+**Fixes**
+- Fixed Android crash `IllegalStateException: State must be at least CREATED to move to DESTROYED` when removing payment methods in EmbeddedPaymentElement. The crash occurred when views were destroyed before completing the lifecycle initialization. 
+
+## 0.55.1 - 2025-10-23
+
+**Fixes**
+- Fixes an issue with `FinancialConnectionsEvent` not being populated properly on Android
+- Fixes an issue with Link payment methods having an `Unknown` payment method type
+
+## 0.55.0 - 2025-10-20
+* [Added] Added appearance.applyLiquidGlass. When set to `true`, changes the values of various properties on the Appearance object used by PaymentSheet, PaymentSheet.FlowController, EmbeddedPaymentElement, CustomerSheet, and AddressViewController to match Liquid Glass when building with Xcode 26 or later and running on iOS 26. This includes appearance.cornerRadius, appearance.borderWidth, appearance.navigationBarStyle, colors.background, navigationBarStyle, and others. This feature is in public preview while we gather feedback and is subject to change. Please use https://github.com/stripe/stripe-ios/issues to file feedback!
+
+| <img src="https://github.com/user-attachments/assets/0d9d333e-41e0-43d0-816b-675916d19d0b" /> | <img src="https://github.com/user-attachments/assets/d043fe5d-65de-4901-be08-21945a2657c1" /> |
+| ------ | ------ |
+
+* [Added] appearance.navigationBarStyle. Setting to NavigationBarStyle.Glass will change the sheet navigation bar to a glassy appearance when building with Xcode 26 or later and running on iOS 26. Setting appearance.applyLiquidGlass to `true` will set this value to NavigationBarStyle.Glass.
+## 0.54.1 - 2025-10-01
+
+**Fixes**
+
+- [#2147](https://github.com/stripe/stripe-react-native/pull/2147) Fix Stripe UI errors when rotating screen
+
+## 0.54.0 - 2025-09-29
+
+**Features**
+- [#2140](https://github.com/stripe/stripe-react-native/pull/2140) Added support for the Alma payment method
+
+## 0.53.1 - 2025-09-19
+
+**Fixes**
+
+- [#2128](https://github.com/stripe/stripe-react-native/pull/2128) Fix headless task not registered by StripeProvider.
+- [#2129](https://github.com/stripe/stripe-react-native/pull/2129) Fix iOS build on new arch 0.81 with static linkage
+- Embedded Payment Element rendering invalid payment option images on Android
+
+## 0.53.0 - 2025-09-15
+
+**Features**
+- Added `isLoaded` flag to `useEmbeddedPaymentElement` hook that indicates when the embedded payment element has finished loading and is ready to display (height > 1). Useful for showing loading states and smooth UI transitions.
+
+**Fixes**
+- Fixed Android EmbeddedPaymentElement not respecting Link configuration. Now properly honors `LinkDisplay.NEVER` to hide Link payment method when configured.
+- Fixed Android EmbeddedPaymentElement layout measurement issues by improving height calculation and switching from `onPlaced` to `onSizeChanged` for better layout synchronization.
+- Fixed an issue on Android when adding US bank accounts via the Mobile Payment Element for Stripe Connect accounts.
+
+## 0.52.0 - 2025-09-08
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- [#2079](https://github.com/stripe/stripe-react-native/pull/2079) Added support to differentiate between a user closing FlowController and selecting a payment option
+
+**Fixes**
+- [#2092](https://github.com/stripe/stripe-react-native/pull/2092) Fix Android crash in release mode when using the new architecture.
+
+## 0.51.0 - 2025-08-20
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- [#1956](https://github.com/stripe/stripe-react-native/pull/1956) Added support for the Billie payment method
+- Added `image` and `mandateHTML` to `EmbeddedPaymentElement.PaymentOptionDisplayData`
+- Added `embeddedViewDisplaysMandateText` to `EmbeddedPaymentElementConfiguration`
+
+**Changes**
+- Klarna: Made `billingDetails.email` and `billingDetails.address.country` optional when creating Klarna payment methods. See Stripe docs: [Migrate Klarna from Sources – Field mapping reference](https://docs.stripe.com/payments/klarna/migrate) ("Not required when using the Payment Element. It’s collected automatically.").
+
+**Fixes**
+- Fixed iOS crash "Stripe SDK confirmPayment must not be null" when calling `confirmPayment` with optional parameters. Updated native bridge to properly handle nullable params argument. [#2048](https://github.com/stripe/stripe-react-native/issues/2048)
+
+## 0.50.3 - 2025-08-07
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Fixed**
+- Fixed Android crash when using `RowSelectionBehavior.ImmediateAction` with `FormSheetAction.Confirm` in EmbeddedPaymentElement.
+
+## 0.50.2 - 2025-08-06
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Changes**
+- Renamed `RowStyle.FlatWithChevron` to `RowStyle.FlatWithDisclosure` and updated related interfaces (`ChevronConfig` → `DisclosureConfig`).
+- Updated `stripe-ios` to 24.19.0
+- Updated `stripe-android` to 21.22.+
+- Added `successBackgroundColor` and `successTextColor` properties to `PrimaryButtonColorConfig` for customizing the primary button appearance in success states.
+
+**Fixes**
+- Fixed missing `onCustomPaymentMethodConfirmHandlerCallback` in old architecture codegen patch. This resolves pod install failures when using React Native 0.74+ with old architecture and custom payment methods.
+- Fixes an issue where saved payment methods weren't auto selected when using `EmbeddedPaymentElement` on Android.
+
+## 0.50.1 - 2025-07-22
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Fixes**
+- Fixed embedded payment element color support to accept both single color strings and light/dark color objects for `ThemedColor` properties (separatorColor, selectedColor, unselectedColor, checkmark color, chevron color).
+- Fixed Android crash when providing partial `billingDetailsCollectionConfiguration` objects. Now gracefully handles missing fields like `attachDefaultsToPaymentMethod` by using safe accessor methods with default values.
+- Fixed Android Kotlin compilation errors where nullable `ReadableMap?` was passed to functions expecting non-nullable `ReadableMap`. Added null checks in `EmbeddedPaymentElementViewManager` and `AddToWalletButtonManager`. [#1988](https://github.com/stripe/stripe-react-native/issues/1988)
+
+## 0.50.0 - 2025-07-17
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- Added support for Custom Payment Methods in PaymentSheet and Embedded Payment Element.
+
+**Fixes**
+- Removed Sofort from playground pages. Sofort is no longer support by Stripe.
+- **Patches**
+- Fixed codegen error when using React Native 0.74+ with old architecture by converting EventEmitter properties to callback functions in TurboModule interface. [#1977](https://github.com/stripe/stripe-react-native/issues/1977). See `patches/README.md` for more info.
+
+## 0.49.0 - 2025-07-02
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- Added rowSelectionBehavior to `EmbeddedPaymentElementConfiguration` with `immediateAction` option
+- Added `flatWithChevron` to `AppearanceParams.embeddedPaymentElement.rowConfig.style`
+- Added `PaymentMethodOptions` to `PaymentMode` to enable setting payment method level setup future usage value
+- Added `None` to `FutureUsage`
+
+## 0.48.0 - 2025-06-11
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Feature**
+- Added `height` to `PrimaryButtonConfig.shapes`.
+- Added `formInsetValues` to `AppearanceParams`.
+
+## 0.47.1 - 2025-05-29
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Fixes**
+- Fixed EmbeddedPaymentElement unable to present view controllers after navigating back and forth between screens.
+- Fixed EmbeddedPaymentElement not sizing correctly on Android when the user has saved payment methods.
+
+## 0.47.0 - 2025-05-21
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- Added `customerEphemeralKeySecret` and `customerSessionClientSecret` to EmbeddedPaymentElement
+
+## 0.46.0 - 2025-05-08
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+- Added support for the Embedded Payment Element. Learn more by visiting the [docs](https://docs.stripe.com/payments/mobile/embedded).
+
+## 0.45.0 - 2025-04-29
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+** Features **
+- Support for the New Architecture in React Native v0.68 or later.
+- Ability to update saved cards when using CustomerSessions (private preview)
+
+**Fixes**
+- Updated `stripe-ios` to 24.12.\*
+- Updated `stripe-android` to 21.12.\*
+
+## 0.44.0 - 2025-04-15
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+
+- Added `LinkParams` to allow control over Link in PaymentSheet.
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.11.\*
+- Updated `stripe-android` to 21.10.\*
+- Fixed an issue where launching a Financial Connections flow would fail on Android.
+
+## 0.43.0 - 2025-03-11
+
+⚠️ Warning: This version contains a bug affecting Connect platforms on Android where users may encounter errors when adding US bank accounts via the Mobile Payment Element. For Connect platform integrations, please upgrade to version v0.53.0 or newer.
+
+**Features**
+
+- Financial Connections now supports dark mode, and will automatically adapt to the device's theme. [Learn more](https://docs.stripe.com/financial-connections/other-data-powered-products?platform=react-native#connections-customize-react-native) about configuring appearance settings.
+- Added card brand filtering to PaymentSheet and CustomerSheet to specify allowed or blocked card brands. [1857](https://github.com/stripe/stripe-react-native/pull/1857)
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.7.\*
+- Updated `stripe-android` to 21.6.\*
+- Supports React Native 0.78
+- Compatible with new architecture when bridgeless mode is disabled
+
+## 0.42.0 - 2025-02-25
+
+**Features**
+
+- Added ability to pass an `onEvent` listener to Financial Connections methods via a `params` argument. This includes the following methods, both when used directly or via `useStripe` or `useFinancialConnectionsSheet`:
+  - `collectBankAccountForPayment`
+  - `collectBankAccountForSetup`
+  - `collectBankAccountToken`
+  - `collectFinancialConnectionsAccounts`
+- Added ability to pass `metadata` to `PaymentMethod.ConfirmParams` and `PaymentMethod.CreateParams`
+
+## 0.41.0 - 2024-12-19
+
+**Fixes**
+
+- Updated `stripe-ios` to 24.2.\*
+
+## 0.40.0 - 2024-11-19
+
+**Breaking changes**
+
+- Removed support for FPX payments via the bank picker UI. If you'd like to accept FPX payments, we recommend using [Mobile Payment Element](https://docs.stripe.com/payments/accept-a-payment?platform=react-native). Also see the [FPX Payment guide](https://docs.stripe.com/payments/fpx/accept-a-payment?web-or-mobile=mobile) for more info on how to integrate FPX specifically.
+
+**Features**
+
+- `CustomerSheet` is now generally available!
+  - If you were using `CustomerSheetBeta`, change that to `CustomerSheet`.
+  - If you were using `CustomerSheetBeta.CustomerSheet`, change that to `CustomerSheet.Component`
+- Enabled vertical mode
+
+## 0.39.0 - 2024-10-15
+
+**Features**
+
+- Adds support for CustomerSession in private beta [1744](https://github.com/stripe/stripe-react-native/pull/1744)
+- Added `onBehalfOf` prop to CardField
+
+**Fixes**
+
+- Updated `stripe-ios` to 23.30.\*
+- Updated `stripe-android` to 20.52.\*
+
+## 0.38.6 - 2024-09-04
+
+**Fixes**
+
+- Fixed build errors on Android when using React Native 0.75.x
+
+## 0.38.4 - 2024-08-02
+
+**Fixes**
+
+- Fixed an issue on Android where `allowsRemovalOfLastSavedPaymentMethod` would default to `false` if not provided.
+
+## 0.38.3 - 2024-07-22
+
+**Fixes**
+
+- Fixed an issue on Android where `CustomerSheet` could get stuck in an error state after forwarding an error to the `intentCreationCallback`.
+
+## 0.38.2 - 2024-07-19
+
+**Fixes**
+
+- Updated `stripe-ios` to 23.28.\*
+- Updated `stripe-android` to 20.48.\*
+
+## 0.38.1 - 2024-06-28
+
+**Fixes**
+
+- Fixed `preferredNetworks` prop on CardForm on iOS not always being applied
+- Updated `stripe-android` to 20.47.3
+
+## 0.38.0 - 2024-05-24
+
+**Features**
+
+- Adds support for `paymentMethodOrder` in PaymentSheet, which provides client side sorting of payment methods.
+- Updated `stripe-android` to 20.44.\*
+
+## 0.37.3 - 2024-04-19
+
+**Fixes**
+
+- Fixed an issue with generating App Privacy reports.
+- Updated `stripe-ios` to 23.27.\*
+- Updated `stripe-android` to 20.41.\*
 
 ## 0.37.2 - 2024-04-02
 
 **Fixes**
 
-- Native library updates.
+- Updated `stripe-ios` to 23.26.\*
+- Updated `stripe-android` to 20.40.\*
 
 ## 0.37.1 - 2024-03-15
 
 **Fixes**
 
-- Native library updates.
+- Updated `stripe-ios` to 23.25.\*
+- Updated `stripe-android` to 20.39.\*
 
 ## 0.37.0 - 2024-02-16
 

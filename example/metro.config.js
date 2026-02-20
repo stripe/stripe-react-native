@@ -1,20 +1,19 @@
-const path = require('path');
-const exclusionList = require('metro-config/src/defaults/exclusionList');
+const { makeMetroConfig } = require('@rnx-kit/metro-config');
 const escape = require('escape-string-regexp');
-const pak = require('../package.json');
+const exclusionList =
+  require('metro-config/private/defaults/exclusionList').default;
+const packageJson = require('../package.json');
+const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 
-const modules = Object.keys({
-  ...pak.peerDependencies,
-});
+const modules = Object.keys(packageJson.peerDependencies);
 
-module.exports = {
+module.exports = makeMetroConfig({
   projectRoot: __dirname,
   watchFolders: [root],
-
   // We need to make sure that only one version is loaded for peerDependencies
-  // So we blacklist them at the root, and alias them to the versions in example's node_modules
+  // So we block them at the root, and alias them to the versions in example's node_modules
   resolver: {
     blacklistRE: exclusionList(
       modules.map(
@@ -28,13 +27,4 @@ module.exports = {
       return acc;
     }, {}),
   },
-
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: true,
-      },
-    }),
-  },
-};
+});

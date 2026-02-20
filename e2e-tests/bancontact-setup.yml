@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank redirects"
 - tapOn: "Bancontact SEPA Direct Debit set up"
 - assertVisible:
@@ -11,6 +12,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "Save"
     retryTapIfNoChange: false
+- assertVisible:
+    text: "AUTHORIZE TEST SETUP"
 - tapOn: "AUTHORIZE TEST SETUP"
 - assertVisible:
     text: "Success"

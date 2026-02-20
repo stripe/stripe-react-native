@@ -1,0 +1,38 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: 'Wallets'
+- tapOn: 'Google Pay'
+# The emulator won't have a Google account set up, so we expect an error message.
+# This at least allows us to verify that the Google Pay button is present and somewhat functional.
+
+# Donate with G Pay
+- tapOn:
+    id: 'donate-with-g-pay'
+- assertVisible: 'Google Pay requires a Google account to be set up on this device.'
+- tapOn: OK
+- assertVisible: 'Google Pay has been canceled'
+- tapOn: OK
+
+# G Pay logo only button
+- tapOn:
+    id: 'pay-with-g-pay'
+- assertVisible: 'Google Pay requires a Google account to be set up on this device.'
+- tapOn: OK
+- assertVisible: 'The payment has been canceled'
+- tapOn: OK
+
+# Buy with G Pay
+- tapOn:
+    id: 'buy-with-g-pay'
+- assertVisible: 'Google Pay requires a Google account to be set up on this device.'
+- tapOn: OK
+- assertVisible: 'The payment has been canceled'
+- tapOn: OK
+
+# Add to G Pay
+- tapOn:
+    id: 'add-to-g-pay'
+- assertVisible: 'TAP_AND_PAY_UNAVAILABLE'
+- tapOn: OK

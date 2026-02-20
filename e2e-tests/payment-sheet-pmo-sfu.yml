@@ -1,0 +1,43 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "More payment scenarios"
+- tapOn: "PaymentSheet with PMO SFU"
+- tapOn: "Checkout"
+- extendedWaitUntil:
+    visible: "TEST"
+    timeout: 150000
+- tapOn:
+    text: "Card"
+    optional: true
+- tapOn:
+    text: "New card"
+    optional: true
+- assertVisible:
+    text: "By providing your card information, you allow Example Inc. to charge your card for future payments in accordance with their terms."
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- tapOn:
+    text: "MM / YY"
+    optional: true
+- inputText: "0145"
+- inputText: "123"
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "purchase!" # iOS
+    optional: true
+- tapOn:
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "purchase!" # iOS
+    optional: true
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

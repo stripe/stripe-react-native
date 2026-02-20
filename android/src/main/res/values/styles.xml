@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.StripeReactNative.Transparent" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Core transparency settings -->
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        
+        <!-- Enhanced transparency and touch handling -->
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowEnableSplitTouch">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        
+        <!-- Performance optimizations -->
+        <item name="android:windowDisablePreview">true</item>
+        
+        <!-- Prevent visual artifacts -->
+        <item name="android:windowShowWallpaper">false</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+</resources> 

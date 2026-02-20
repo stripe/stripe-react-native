@@ -1,16 +1,25 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element: "Card element only"
+    direction: DOWN
+    timeout: 5000
 - tapOn: "Card element only"
 - assertVisible:
     text: "E-mail"
 - inputText: "4242424242424242"
-- inputText: "0125"
+- inputText: "0145"
 - inputText: "123"
 - tapOn:
     text: "E-mail"
 - inputText: "test@stripe.com"
+- scrollUntilVisible:
+    element:
+      text: "Pay"
+    direction: DOWN
 - tapOn:
     text: "Pay"
     retryTapIfNoChange: false

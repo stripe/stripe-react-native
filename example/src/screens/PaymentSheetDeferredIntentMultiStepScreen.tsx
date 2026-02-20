@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import {
   useStripe,
@@ -11,6 +11,9 @@ import { colors } from '../colors';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import CustomerSessionSwitch from '../components/CustomerSessionSwitch';
+import { getClientSecretParams } from '../helpers';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 
 export default function PaymentSheetDeferredIntentMultiStepScreen() {
   const { initPaymentSheet, presentPaymentSheet, confirmPaymentSheetPayment } =
@@ -22,29 +25,51 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     label: string;
   } | null>(null);
 
-  const fetchPaymentSheetParams = async () => {
+  const [customerKeyType, setCustomerKeyType] = useState<string>(
+    'legacy_ephemeral_key'
+  );
+
+  const fetchPaymentSheetParams = async (customer_key_type: string) => {
     const response = await fetch(`${API_URL}/payment-sheet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        customer_key_type,
+      }),
     });
-    const { customer } = await response.json();
 
-    return {
-      customer,
-    };
+    if (customer_key_type === 'customer_session') {
+      const { customerSessionClientSecret, customer } = await response.json();
+      return {
+        customerSessionClientSecret,
+        customer,
+      };
+    } else {
+      const { ephemeralKey, customer } = await response.json();
+      return {
+        ephemeralKey,
+        customer,
+      };
+    }
   };
 
-  const initialisePaymentSheet = async () => {
+  const initialisePaymentSheet = useCallback(async () => {
     setLoading(true);
 
     try {
-      const { customer } = await fetchPaymentSheetParams();
+      const { customer, ...remainingParams } =
+        await fetchPaymentSheetParams(customerKeyType);
+
+      const clientSecretParams = getClientSecretParams(
+        customerKeyType,
+        remainingParams
+      );
 
       const address: Address = {
         city: 'San Francisco',
-        country: 'AT',
+        country: 'US',
         line1: '510 Townsend St.',
         line2: '123 Street',
         postalCode: '94102',
@@ -61,8 +86,9 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
         customFlow: true,
         merchantDisplayName: 'Example Inc.',
         style: 'automatic',
-        returnURL: 'stripe-example://stripe-redirect',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
         defaultBillingDetails: billingDetails,
+        ...clientSecretParams,
         intentConfiguration: {
           confirmHandler: async (
             paymentMethod: PaymentMethod.Result,
@@ -120,7 +146,20 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     } finally {
       setLoading(false);
     }
+  }, [customerKeyType, initPaymentSheet]);
+
+  const toggleCustomerKeyType = (value: boolean) => {
+    if (value) {
+      setCustomerKeyType('customer_session');
+    } else {
+      setCustomerKeyType('legacy_ephemeral_key');
+    }
   };
+
+  useEffect(() => {
+    setPaymentSheetEnabled(false);
+    initialisePaymentSheet().catch((err) => console.log(err));
+  }, [customerKeyType, initialisePaymentSheet]);
 
   const choosePaymentOption = async () => {
     const { error, paymentOption } = await presentPaymentSheet();
@@ -154,6 +193,11 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
+      <CustomerSessionSwitch
+        value={customerKeyType === 'customer_session'}
+        onValueChange={toggleCustomerKeyType}
+      />
+      <SelectedPaymentOption paymentOption={paymentMethodOption} />
       <Button
         variant="primary"
         loading={loading}

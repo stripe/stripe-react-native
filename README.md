@@ -23,7 +23,7 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
-**PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps. PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods. PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, Sofort, and ACH.
+**PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps. PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods. PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
 
 #### Recommended usage
 
@@ -75,6 +75,7 @@ to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obt
 - Android 5.0 (API level 21) and above
   - Your `compileSdkVersion` must be `34`. See [this issue](https://github.com/stripe/stripe-react-native/issues/812) for potential workarounds.
 - Android gradle plugin 4.x and above
+- Kotlin 2.x and above. See [this issue](https://github.com/stripe/stripe-react-native/issues/1924#issuecomment-2867227374) for how to update the Kotlin version when using react-native 0.77 and below or Expo SDK 52.
 
 _Components_
 
@@ -105,6 +106,8 @@ You'll need to run `pod install` in your `ios` directory to install the native d
 
 ## Usage example
 
+For a complete example, [visit our docs](https://docs.stripe.com/payments/accept-a-payment?platform=react-native).
+
 ```tsx
 // App.ts
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -122,33 +125,39 @@ function App() {
 }
 
 // PaymentScreen.ts
-import { CardField, useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 
 export default function PaymentScreen() {
-  const { confirmPayment } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  const setup = async () => {
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: 'Example, Inc.',
+      paymentIntentClientSecret: paymentIntent, // retrieve this from your server
+    });
+    if (error) {
+      // handle error
+    }
+  };
+
+  useEffect(() => {
+    setup();
+  }, []);
+
+  const checkout = async () => {
+    const { error } = await presentPaymentSheet();
+
+    if (error) {
+      // handle error
+    } else {
+      // success
+    }
+  };
 
   return (
-    <CardField
-      postalCodeEnabled={true}
-      placeholders={{
-        number: '4242 4242 4242 4242',
-      }}
-      cardStyle={{
-        backgroundColor: '#FFFFFF',
-        textColor: '#000000',
-      }}
-      style={{
-        width: '100%',
-        height: 50,
-        marginVertical: 30,
-      }}
-      onCardChange={(cardDetails) => {
-        console.log('cardDetails', cardDetails);
-      }}
-      onFocus={(focusedField) => {
-        console.log('focusField', focusedField);
-      }}
-    />
+    <View>
+      <Button title="Checkout" onPress={checkout} />
+    </View>
   );
 }
 ```
@@ -205,14 +214,6 @@ function App() {
 ```
 
 You can find more details about the `StripeProvider` component in the [API reference](https://stripe.dev/stripe-react-native/api-reference/index.html#StripeProvider).
-
-##### Additional steps for webhook forwarding
-
-Certain payment methods require a [webhook listener](https://stripe.com/docs/payments/payment-intents/verifying-status#webhooks) to notify you of changes in the status. When developing locally, you can use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhook events to your local dev server.
-
-- [Install the `stripe-cli`](https://stripe.com/docs/stripe-cli#install)
-- Run `stripe listen --forward-to localhost:4242/webhook`
-- The CLI will print a webhook secret (such as, `whsec_***`) to the console. Set STRIPE_WEBHOOK_SECRET to this value in your `example/.env` file.
 
 ## Testing
 
@@ -273,3 +274,14 @@ If you're still having troubles, please [open an issue](https://github.com/strip
 ### `Apple Pay Is Not Available in "My App Name"`
 
 This can occur if you attempt to process an Apple Pay payment on a physical device (even in test mode) without having created **and uploaded** your Apple Pay Certificate to the Stripe Dashboard. Learn how to do that [here](https://stripe.com/docs/apple-pay#csr).
+
+### `UnsupportedModulePropertyParserError` on iOS
+
+While installing pods in your iOS project using a Stripe React Native version before 0.52, the old architecture, and a React Native version after 0.74, you may encounter the following error:
+
+```
+UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
+```
+
+If possible, update to version 0.52 or above of the Stripe React Native SDK. 
+If you are unable to do so, please follow our [guide to apply the fix patch](https://github.com/stripe/stripe-react-native/tree/master/patches).

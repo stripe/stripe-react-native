@@ -1,12 +1,15 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform, View, Text, Switch } from 'react-native';
 import { useFinancialConnectionsSheet } from '@stripe/stripe-react-native';
+import { setFinancialConnectionsForceNativeFlow } from '@stripe/stripe-react-native/src/functions';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
 import { API_URL } from '../Config';
+import type { FinancialConnectionsEvent } from '@stripe/stripe-react-native/src/types/FinancialConnections';
 
 export default function CollectBankAccountScreen() {
   const [clientSecret, setClientSecret] = React.useState('');
+  const [forceNativeFlow, setForceNativeFlow] = React.useState(false);
   const {
     loading,
     collectBankAccountToken,
@@ -15,6 +18,20 @@ export default function CollectBankAccountScreen() {
 
   React.useEffect(() => {
     fetchClientSecret();
+  }, []);
+
+  React.useEffect(() => {
+    if (Platform.OS === 'ios') {
+      setFinancialConnectionsForceNativeFlow(forceNativeFlow);
+    }
+  }, [forceNativeFlow]);
+
+  React.useEffect(() => {
+    return () => {
+      if (Platform.OS === 'ios') {
+        setFinancialConnectionsForceNativeFlow(false);
+      }
+    };
   }, []);
 
   const fetchClientSecret = async () => {
@@ -34,7 +51,12 @@ export default function CollectBankAccountScreen() {
 
   const handleCollectTokenPress = async () => {
     const { session, token, error } = await collectBankAccountToken(
-      clientSecret
+      clientSecret,
+      {
+        onEvent: (event: FinancialConnectionsEvent) => {
+          console.log('Event received:', event);
+        },
+      }
     );
 
     if (error) {
@@ -55,7 +77,13 @@ export default function CollectBankAccountScreen() {
 
   const handleCollectSessionPress = async () => {
     const { session, error } = await collectFinancialConnectionsAccounts(
-      clientSecret
+      clientSecret,
+      {
+        onEvent: (event: FinancialConnectionsEvent) => {
+          console.log('Event received:', event);
+          console.log('Institution name:', event.metadata.institutionName);
+        },
+      }
     );
 
     if (error) {
@@ -71,7 +99,25 @@ export default function CollectBankAccountScreen() {
   };
 
   return (
-    <PaymentScreen>
+    <PaymentScreen paymentMethod="us_bank_account">
+      {Platform.OS === 'ios' && (
+        <View
+          style={{
+            marginBottom: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text>Force native flow</Text>
+          <Switch
+            value={forceNativeFlow}
+            onValueChange={setForceNativeFlow}
+            accessibilityLabel="Force native flow"
+            testID="force_native_flow_switch"
+          />
+        </View>
+      )}
       <Button
         variant="primary"
         onPress={handleCollectTokenPress}

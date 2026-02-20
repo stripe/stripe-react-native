@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useStripe } from './useStripe';
+import type { CollectFinancialConnectionsAccountsParams } from '../types/FinancialConnections';
+import type { CollectBankAccountTokenParams } from '../types/PaymentMethod';
 
 /**
  * React hook for accessing functions on the Financial Connections sheet.
@@ -13,9 +15,9 @@ export function useFinancialConnectionsSheet() {
     useStripe();
 
   const _collectBankAccountToken = useCallback(
-    async (clientSecret: string) => {
+    async (clientSecret: string, params?: CollectBankAccountTokenParams) => {
       setLoading(true);
-      const result = await collectBankAccountToken(clientSecret);
+      const result = await collectBankAccountToken(clientSecret, params);
       setLoading(false);
       return result;
     },
@@ -23,9 +25,15 @@ export function useFinancialConnectionsSheet() {
   );
 
   const _collectFinancialConnectionsAccounts = useCallback(
-    async (clientSecret: string) => {
+    async (
+      clientSecret: string,
+      params?: CollectFinancialConnectionsAccountsParams
+    ) => {
       setLoading(true);
-      const result = await collectFinancialConnectionsAccounts(clientSecret);
+      const result = await collectFinancialConnectionsAccounts(
+        clientSecret,
+        params
+      );
       setLoading(false);
       return result;
     },

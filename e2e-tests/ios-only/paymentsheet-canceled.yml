@@ -1,13 +1,14 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (single-step)"
 - assertVisible:
     text: "Checkout"
 - tapOn: "Checkout"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     id: "UIButton.Close"

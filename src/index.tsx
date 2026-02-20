@@ -5,6 +5,7 @@ export { useStripe } from './hooks/useStripe';
 export { usePlatformPay } from './hooks/usePlatformPay';
 export { usePaymentSheet } from './hooks/usePaymentSheet';
 export { useFinancialConnectionsSheet } from './hooks/useFinancialConnectionsSheet';
+export { useOnramp } from './hooks/useOnramp';
 
 //components
 export { initStripe, StripeProvider } from './components/StripeProvider';
@@ -30,3 +31,19 @@ export * from './types/index';
 
 export * from './components/CustomerSheet';
 export type { Props as CustomerSheetProps } from './components/CustomerSheet';
+
+export * from './types/EmbeddedPaymentElement';
+export * from './types/PaymentSheet';
+export * from './types/ConfirmationToken';
+
+//connect components
+export {
+  ConnectComponentsProvider,
+  loadConnectAndInitialize,
+} from './connect/ConnectComponentsProvider';
+export type {
+  StripeConnectInstance,
+  StripeConnectInitParams,
+  StripeConnectUpdateParams,
+} from './connect/connectTypes';
+export * from './connect/Components';

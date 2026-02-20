@@ -1,0 +1,95 @@
+--- src/specs/NativeStripeSdkModule.ts.orig	2025-07-09 10:31:12.373374861 -0600
++++ src/specs/NativeStripeSdkModule.ts	2025-07-09 10:31:34.254519742 -0600
+@@ -1,7 +1,6 @@
+ import { TurboModuleRegistry } from 'react-native';
+ import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
+ import type {
+-  EventEmitter,
+   Int32,
+ } from 'react-native/Libraries/Types/CodegenTypes';
+ import type {
+@@ -185,35 +184,47 @@
+   ): Promise<void>;
+   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
+
+-  // Events
+-  onConfirmHandlerCallback: EventEmitter<{
+-    paymentMethod: UnsafeObject<PaymentMethod.Result>;
+-    shouldSavePaymentMethod: boolean;
+-  }>;
+-  onConfirmationTokenHandlerCallback: EventEmitter<UnsafeObject<any>>;
+-  onFinancialConnectionsEvent: EventEmitter<
+-    UnsafeObject<FinancialConnectionsEvent>
+-  >;
+-  onOrderTrackingCallback: EventEmitter<void>;
+-  onCustomerAdapterFetchPaymentMethodsCallback: EventEmitter<void>;
+-  onCustomerAdapterAttachPaymentMethodCallback: EventEmitter<{
+-    paymentMethodId: string;
+-  }>;
+-  onCustomerAdapterDetachPaymentMethodCallback: EventEmitter<{
+-    paymentMethodId: string;
+-  }>;
+-  onCustomerAdapterSetSelectedPaymentOptionCallback: EventEmitter<{
+-    paymentOption: string;
+-  }>;
+-  onCustomerAdapterFetchSelectedPaymentOptionCallback: EventEmitter<void>;
+-  onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback: EventEmitter<void>;
+-  embeddedPaymentElementDidUpdateHeight: EventEmitter<UnsafeObject<any>>;
+-  embeddedPaymentElementWillPresent: EventEmitter<void>;
+-  embeddedPaymentElementDidUpdatePaymentOption: EventEmitter<UnsafeObject<any>>;
+-  embeddedPaymentElementFormSheetConfirmComplete: EventEmitter<
+-    UnsafeObject<any>
+-  >;
+-  embeddedPaymentElementRowSelectionImmediateAction: EventEmitter<void>;
+-  embeddedPaymentElementLoadingFailed: EventEmitter<UnsafeObject<any>>;
+-  onCustomPaymentMethodConfirmHandlerCallback: EventEmitter<UnsafeObject<any>>;
++  // Events (callback form for old architecture)
++  onConfirmHandlerCallback(
++    callback: (event: {
++      paymentMethod: UnsafeObject<PaymentMethod.Result>;
++      shouldSavePaymentMethod: boolean;
++    }) => void
++  ): void;
++  onConfirmationTokenHandlerCallback(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
++  onFinancialConnectionsEvent(
++    callback: (event: UnsafeObject<FinancialConnectionsEvent>) => void
++  ): void;
++  onOrderTrackingCallback(callback: () => void): void;
++  onCustomerAdapterFetchPaymentMethodsCallback(callback: () => void): void;
++  onCustomerAdapterAttachPaymentMethodCallback(
++    callback: (event: { paymentMethodId: string }) => void
++  ): void;
++  onCustomerAdapterDetachPaymentMethodCallback(
++    callback: (event: { paymentMethodId: string }) => void
++  ): void;
++  onCustomerAdapterSetSelectedPaymentOptionCallback(
++    callback: (event: { paymentOption: string }) => void
++  ): void;
++  onCustomerAdapterFetchSelectedPaymentOptionCallback(
++    callback: () => void
++  ): void;
++  onCustomerAdapterSetupIntentClientSecretForCustomerAttachCallback(
++    callback: () => void
++  ): void;
++  embeddedPaymentElementDidUpdateHeight(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
++  embeddedPaymentElementWillPresent(callback: () => void): void;
++  embeddedPaymentElementDidUpdatePaymentOption(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
++  embeddedPaymentElementFormSheetConfirmComplete(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
++  embeddedPaymentElementRowSelectionImmediateAction(callback: () => void): void;
++  embeddedPaymentElementLoadingFailed(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
++  onCustomPaymentMethodConfirmHandlerCallback(
++    callback: (event: UnsafeObject<any>) => void
++  ): void;
+ }
+
+ export default TurboModuleRegistry.getEnforcing<Spec>('StripeSdk');

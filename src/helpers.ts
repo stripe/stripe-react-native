@@ -2,7 +2,8 @@ import type React from 'react';
 import type { StripeError } from './types';
 
 import { Platform, NativeModules } from 'react-native';
-const TextInputState = require('react-native/Libraries/Components/TextInput/TextInputState');
+// @ts-ignore TextInputState has no type definition
+import TextInputState from 'react-native/Libraries/Components/TextInput/TextInputState';
 
 /**
  * Determines whether or not this library is being used inside of

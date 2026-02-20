@@ -8,15 +8,15 @@ import {
   Platform,
   NativeSyntheticEvent,
 } from 'react-native';
-import NativeStripeSdk from '../NativeStripeSdk';
+import NativeStripeSdk from '../specs/NativeStripeSdkModule';
 import {
   ButtonType,
   ButtonStyle,
   ShippingMethod,
   ShippingContact,
 } from '../types/PlatformPay';
-import GooglePayButtonNative from './GooglePayButtonNative';
-import ApplePayButtonNative from './ApplePayButtonNative';
+import NativeApplePayButton from '../specs/NativeApplePayButton';
+import NativeGooglePayButton from '../specs/NativeGooglePayButton';
 
 /**
  *  PlatformPayButton Component Props
@@ -141,6 +141,17 @@ export function PlatformPayButton({
       }
     : undefined;
 
+  const callbackProps: any = {
+    onShippingMethodSelectedAction: shippingMethodCallback,
+    onShippingContactSelectedAction: shippingContactCallback,
+    onCouponCodeEnteredAction: couponCodeCallback,
+    onOrderTrackingAction: orderTrackingCallback,
+    hasShippingMethodCallback: !!onShippingMethodSelected,
+    hasShippingContactCallback: !!onShippingContactSelected,
+    hasCouponCodeCallback: !!onCouponCodeEntered,
+    hasOrderTrackingCallback: !!setOrderTracking,
+  };
+
   return (
     <TouchableOpacity
       disabled={disabled}
@@ -149,20 +160,17 @@ export function PlatformPayButton({
       style={[disabled ? styles.disabled : styles.notDisabled, style]}
     >
       {Platform.OS === 'ios' ? (
-        <ApplePayButtonNative
+        <NativeApplePayButton
           type={type}
           buttonStyle={appearance}
-          borderRadius={borderRadius}
-          disabled={disabled}
-          onShippingMethodSelectedAction={shippingMethodCallback}
-          onShippingContactSelectedAction={shippingContactCallback}
-          onCouponCodeEnteredAction={couponCodeCallback}
-          onOrderTrackingAction={orderTrackingCallback}
+          buttonBorderRadius={borderRadius}
+          disabled={disabled ?? false}
           style={styles.nativeButtonStyle}
+          {...callbackProps}
           {...props}
         />
       ) : (
-        <GooglePayButtonNative
+        <NativeGooglePayButton
           type={type}
           appearance={appearance}
           borderRadius={borderRadius}

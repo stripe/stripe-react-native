@@ -1,9 +1,63 @@
 {
-  "name": "StripeSdkExample",
-  "displayName": "StripeSdk Example",
-  "expo": {
-    "name": "StripeSdkExample",
-    "slug": "StripeSdkExample",
-    "sdkVersion": "44.0.0"
+  "name": "example",
+  "displayName": "RN Stripe",
+  "singleApp": "example",
+  "components": [
+    {
+      "appKey": "example",
+      "displayName": "example",
+      "slug": "example"
+    }
+  ],
+  "resources": {
+    "android": [
+      "dist/res",
+      "dist/main.android.jsbundle",
+      "src/assets/fonts/Macondo-Regular.ttf"
+    ],
+    "ios": [
+      "dist/assets",
+      "dist/main.ios.jsbundle",
+      "src/assets/fonts/Macondo-Regular.ttf"
+    ]
+  },
+  "ios": {
+    "bundleIdentifier": "com.stripe.react.native",
+    "codeSignEntitlements": {
+      "com.apple.developer.in-app-payments": ["merchant.com.stripe.react.native"]
+    },
+    "urlTypes": [
+      {
+        "CFBundleURLSchemes": ["stripe-connect"]
+      }
+    ]
+  },
+  "android": {
+    "package": "com.stripe.react.native",
+    "versionCode": 4, 
+    "permissions": [
+      {
+        "android:name": "android.permission.CAMERA",
+        "android:maxSdkVersion": "34"
+      }
+    ],
+    "metaData": [{
+      "android:name": "com.google.android.gms.wallet.api.enabled",
+      "android:value": "true"
+    }],
+    "signingConfigs": {
+      "debug": {
+        "keyAlias": "androiddebugkey",
+        "keyPassword": "android",
+        "storeFile": "debug.keystore",
+        "storePassword": "android"
+      },
+      "release": {
+        "keyAlias": "androidreleasekey",
+        "keyPassword": "android_release",
+        "storeFile": "release.keystore",
+        "storePassword": "android_release"
+      }
+    }
   }
 }

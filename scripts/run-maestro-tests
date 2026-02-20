@@ -1,8 +1,82 @@
 #!/bin/bash
 
-trap 'exit' INT
+set -uo pipefail
 
-PLATFORM=${1:-}
+PLATFORM=""
+RECORD_ON_FAILURE=false
+IS_RECORDING=false
+NEW_ARCH_ENABLED=${NEW_ARCH_ENABLED:-false}
+
+stop_recording() {
+  local recording_dir=$1
+
+  if [ "$IS_RECORDING" = true ]; then
+    echo "Stopping recording..."
+
+    if [ "$PLATFORM" = "android" ]; then
+      adb shell "kill -2 \$(cat /data/local/tmp/recording_pid.txt)" 2>/dev/null || true
+      sleep 2
+      adb pull /data/local/tmp/recording.mp4 "$recording_dir/recording.mp4" 2>/dev/null || true
+      adb shell "rm -f /data/local/tmp/recording.mp4 /data/local/tmp/recording_pid.txt" 2>/dev/null || true
+
+    elif [ "$PLATFORM" = "ios" ]; then
+      killall -SIGINT simctl || true
+    fi
+
+    IS_RECORDING=false
+    echo "Recording saved to $recording_dir/recording.mp4"
+  fi
+}
+
+start_recording() {
+  local recording_dir=$1
+
+  echo "Starting screen recording..."
+  mkdir -p "$recording_dir"
+
+  if [ "$PLATFORM" = "android" ]; then
+    adb shell "screenrecord --bugreport /data/local/tmp/recording.mp4 & echo \$! > /data/local/tmp/recording_pid.txt" &
+    IS_RECORDING=true
+  elif [ "$PLATFORM" = "ios" ]; then
+    xcrun simctl io booted recordVideo --codec=h264 -f "$recording_dir/recording.mp4" &
+    IS_RECORDING=true
+  fi
+}
+
+cleanup() {
+  if [ "$IS_RECORDING" = true ]; then
+    echo "Interrupt cleanup - stopping recording..."
+    if [ "$PLATFORM" = "android" ]; then
+      adb shell "kill -2 \$(cat /data/local/tmp/recording_pid.txt)" 2>/dev/null || true
+    elif [ "$PLATFORM" = "ios" ]; then
+      killall -SIGINT simctl || true
+    fi
+    IS_RECORDING=false
+  fi
+}
+
+handle_interrupt() {
+  cleanup
+  exit 130
+}
+
+trap cleanup EXIT
+trap handle_interrupt INT TERM
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --record-on-failure)
+      RECORD_ON_FAILURE=true
+      ;;
+    *)
+      if [ -z "$PLATFORM" ]; then
+        PLATFORM="$1"
+      fi
+      ;;
+  esac
+  shift
+done
 
 # Validate passed platform
 case $PLATFORM in
@@ -20,27 +94,100 @@ if [ "$PLATFORM" == "ios" ]; then
   APPID="com.stripe.react.native"
   allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/ios-only/*.yml)
 else
-  APPID="com.example.reactnativestripesdk"
+  APPID="com.stripe.react.native"
   allTestFiles=$(ls ./e2e-tests/*.yml ./e2e-tests/android-only/*.yml)
 fi
 
 failedTests=()
+failedFinancialConnectionsTests=()
+
+# Ensure artifacts directory exists even if shard has no tests
+mkdir -p e2e-artifacts
+
+# Optional sharding configuration via environment variables
+# Set SHARD_COUNT to the total number of shards and SHARD_INDEX to the index for this job (0-based)
+SHARD_COUNT=${SHARD_COUNT:-}
+SHARD_INDEX=${SHARD_INDEX:-}
+if { [ -n "$SHARD_COUNT" ] || [ -n "$SHARD_INDEX" ]; } && { [ -z "$SHARD_COUNT" ] || [ -z "$SHARD_INDEX" ]; }; then
+  echo "Error! Both SHARD_COUNT and SHARD_INDEX must be set to enable sharding."
+  exit 1
+fi
+
+if [ -n "$SHARD_COUNT" ]; then
+  if ! [[ $SHARD_COUNT =~ ^[0-9]+$ ]] || ! [[ $SHARD_INDEX =~ ^[0-9]+$ ]]; then
+    echo "Error! SHARD_COUNT and SHARD_INDEX must be integers."
+    exit 1
+  fi
+  if [ "$SHARD_COUNT" -le 0 ] || [ "$SHARD_INDEX" -lt 0 ] || [ "$SHARD_INDEX" -ge "$SHARD_COUNT" ]; then
+    echo "Error! SHARD_INDEX must satisfy 0 <= SHARD_INDEX < SHARD_COUNT. Got SHARD_INDEX=$SHARD_INDEX, SHARD_COUNT=$SHARD_COUNT"
+    exit 1
+  fi
+  echo "Sharding enabled: SHARD_INDEX=$SHARD_INDEX SHARD_COUNT=$SHARD_COUNT"
+fi
+
+# Retry configuration
+MAX_ATTEMPTS=3
+RETRY_DELAYS=(30 120) # Delay before retry 1, retry 2, etc.
+
+idx=0
 for file in $allTestFiles
 do
-  if ! maestro test "$file" -e APP_ID="$APPID";
-  then
-    echo "Test ${file} failed. Retrying in 30 seconds..."
-    sleep 30
-    if ! maestro test "$file" -e APP_ID="$APPID";
-    then
-      echo "Test ${file} failed again. Retrying for the last time in 120 seconds..."
-      sleep 120
-      if ! maestro test "$file" -e APP_ID="$APPID";
-      then
-        failedTests+=("$file")
-      fi
+  testName=$(basename "${file%.*}")
+  testCmd="maestro test \"$file\" -e APP_ID=\"$APPID\" -e NEW_ARCH=\"$NEW_ARCH_ENABLED\" --flatten-debug-output"
+
+  # Shard filter: only run files where (idx % SHARD_COUNT) == SHARD_INDEX
+  if [ -n "$SHARD_COUNT" ]; then
+    mod=$(( idx % SHARD_COUNT ))
+    if [ "$mod" -ne "$SHARD_INDEX" ]; then
+      idx=$((idx + 1))
+      continue
     fi
   fi
+
+  success=false
+  for attempt in $(seq 1 $MAX_ATTEMPTS); do
+    # Determine artifact directory name
+    if [ "$attempt" -eq 1 ]; then
+      artifactDir="e2e-artifacts/$testName"
+    else
+      artifactDir="e2e-artifacts/$testName-retry-$((attempt - 1))"
+    fi
+
+    # Start recording on retry attempts (after first failure)
+    if [ "$attempt" -gt 1 ] && [ "$RECORD_ON_FAILURE" = "true" ]; then
+      start_recording "$artifactDir"
+    fi
+
+    if eval "$testCmd --debug-output $artifactDir"; then
+      # Stop recording if it was running
+      if [ "$attempt" -gt 1 ] && [ "$RECORD_ON_FAILURE" = "true" ]; then
+        stop_recording "$artifactDir"
+      fi
+      success=true
+      break
+    fi
+
+    # Stop recording if it was running
+    if [ "$attempt" -gt 1 ] && [ "$RECORD_ON_FAILURE" = "true" ]; then
+      stop_recording "$artifactDir"
+    fi
+
+    # If not the last attempt, wait before retrying
+    if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+      delay=${RETRY_DELAYS[$((attempt - 1))]}
+      echo "Test ${file} failed. Retrying in ${delay}s..."
+      sleep "$delay"
+    fi
+  done
+
+  if [ "$success" = false ]; then
+    failedTests+=("$file")
+    if [[ "$testName" == *"financial-connections"* ]]; then
+      failedFinancialConnectionsTests+=("$file")
+    fi
+  fi
+
+  idx=$((idx + 1))
 done
 
 if [ ${#failedTests[@]} -eq 0 ]; then

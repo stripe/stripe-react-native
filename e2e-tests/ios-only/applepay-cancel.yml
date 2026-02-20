@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Wallets"
 - tapOn: "Apple Pay"
 - tapOn: "Buy with Apple\_Pay"

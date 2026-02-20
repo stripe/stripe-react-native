@@ -4,21 +4,25 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
+### Prerequisites
+
+- Install swiftlint
+  - `brew install swiftlint`
+
 ### Running the example app
 
 - Install the dependencies
   - `yarn bootstrap`
-- Set up env vars
-  - `cp example/.env.example example/.env` and set the variable values in your newly created `.env` file.
 - Start the example
-  - Terminal 1: `yarn example start:server`
-  - Terminal 2: `yarn example start`
-  - Terminal 3: depending on what platform you want to build for run either
+  - Terminal 1: `yarn example start`
+  - Terminal 2: depending on what platform you want to build for run either
     - `yarn example ios`
     - or
     - `yarn example android`
 
-To edit the Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
+The example app uses a pre-configured demo backend, so no server setup is required.
+
+To edit the Swift and Objective-C files, open `example/ios/StripeSdkExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > stripe-react-native`.
 
 To edit the Kotlin files, open `example/android` in Android studio and find the source files at `reactnativestripesdk` under `Android`.
 
@@ -60,6 +64,12 @@ To install local/private packages across local environment we recommend use [yal
 - Run `yalc publish` in `@stripe/stripe-react-native` package to publish all the files that should be published in remote NPM registry.
 - Run `yalc add @stripe/stripe-react-native` in your dependent project, which will copy the current version from the store to your project's .yalc folder and inject a file:.yalc/@stripe/stripe-react-native into package.json.
 - In your dependent project run `yarn install` and `cd ios && pod install`
+
+### Updating native SDKs
+
+The React Native SDK depends on underlying native iOS and Android SDKs, which should be kept on their latest, up-to-date versions.
+
+To set the native SDK dependency versions, set `StripeSdk_stripeVersion` in `android/gradle.properties`, `stripe_version` in `stripe-react-native.podspec`, and run `cd example/ios && pod update`.
 
 ### Commit message convention
 
@@ -199,3 +209,63 @@ Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcem
 
 For answers to common questions about this code of conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
+
+### Maintaining the Stripe old-architecture patch
+
+We ship `patches/old-arch-codegen-fix.patch` so that the library builds on **React-Native ≥ 0.74 in the old architecture** (it converts `EventEmitter` properties into callback functions so code-gen doesn't fail).
+
+#### When to Update the Patch
+
+The patch needs to be updated when:
+- You modify `src/specs/NativeStripeSdkModule.ts` and add/remove/change EventEmitter properties
+- You upgrade dependencies that might affect the TurboModule interface
+- The patch fails to apply during testing or CI
+
+#### How to Update the Patch
+
+1. **Make your changes to the source code** in `src/specs/NativeStripeSdkModule.ts`
+
+2. **Create a backup of the original file**:
+   ```bash
+   cp src/specs/NativeStripeSdkModule.ts src/specs/NativeStripeSdkModule.ts.orig
+   ```
+
+3. **Apply the old-arch compatible changes**:
+   - Remove the `EventEmitter` import from the imports section
+   - Convert all `EventEmitter` properties to callback function methods
+   - For example, change:
+     ```typescript
+     onConfirmHandlerCallback: EventEmitter<{
+       paymentMethod: UnsafeObject<PaymentMethod.Result>;
+       shouldSavePaymentMethod: boolean;
+     }>;
+     ```
+     To:
+     ```typescript
+     onConfirmHandlerCallback(
+       callback: (event: {
+         paymentMethod: UnsafeObject<PaymentMethod.Result>;
+         shouldSavePaymentMethod: boolean;
+       }) => void
+     ): void;
+     ```
+
+4. **Generate the new patch**:
+   ```bash
+   diff -u src/specs/NativeStripeSdkModule.ts.orig src/specs/NativeStripeSdkModule.ts > patches/old-arch-codegen-fix.patch
+   ```
+
+5. **Test the patch**:
+   ```bash
+   # Test that the patch applies cleanly
+   git stash  # stash your changes
+   patch -p0 < patches/old-arch-codegen-fix.patch
+   # Verify the file looks correct
+   git stash pop  # restore your changes
+   ```
+
+6. **Commit the updated patch**:
+   ```bash
+   git add patches/old-arch-codegen-fix.patch
+   git commit -m "chore: update old-arch codegen fix patch"
+   ```

@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Accept a payment"
 - tapOn: "Prebuilt UI (multi-step) (deferred intent)"
 - extendedWaitUntil:
@@ -9,10 +10,10 @@ appId: ${APP_ID}
 - tapOn:
     text: "Choose payment method"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
-    above: "+ Add"
+    text: "Card"
     optional: true
 - tapOn:
     text: "Card number"
@@ -20,11 +21,24 @@ appId: ${APP_ID}
 - tapOn:
     text: "MM / YY"
     optional: true
-- inputText: "0125"
+- inputText: "0145"
 - tapOn:
     text: "CVC"
 - inputText: "123"
-- tapOn: "Continue"
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Continue" # iOS
+    optional: true
+- tapOn:
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "Continue" # iOS
+    optional: true
 - tapOn:
     text: .*Buy.*4242
 - assertVisible:

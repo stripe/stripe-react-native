@@ -1,11 +1,16 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Accept a payment"
+- scrollUntilVisible:
+    element:
+      text: "Customer Sheet"
+    direction: DOWN
 - tapOn: "Customer Sheet"
 - tapOn: "Edit payment methods"
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000
 - tapOn:
     text: "Card number"
@@ -13,7 +18,8 @@ appId: ${APP_ID}
 - tapOn:
     text: "MM / YY"
     optional: true
-- inputText: "0125123"
+- inputText: "0145"
+- inputText: "123"
 - tapOn:
     text: "Done"
     optional: true
@@ -30,5 +36,5 @@ appId: ${APP_ID}
     id: "customer_adapter_switch"
 - tapOn: .*4242
 - extendedWaitUntil:
-    visible: "TEST MODE"
+    visible: "TEST"
     timeout: 150000

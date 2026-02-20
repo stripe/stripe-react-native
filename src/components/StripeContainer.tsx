@@ -1,14 +1,7 @@
 import React from 'react';
 
-import {
-  requireNativeComponent,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-  View,
-} from 'react-native';
-
-const StripeContainerNative = requireNativeComponent<any>('StripeContainer');
+import { StyleProp, StyleSheet, ViewStyle, View } from 'react-native';
+import NativeStripeContainer from '../specs/NativeStripeContainer';
 
 /**
  *  Stripe Container Component Props
@@ -31,14 +24,14 @@ export function StripeContainer({
   children,
 }: Props) {
   return (
-    <StripeContainerNative
-      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+    <NativeStripeContainer
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps ?? true}
       style={styles.container}
     >
       <View style={styles.container} accessible={false}>
         {children}
       </View>
-    </StripeContainerNative>
+    </NativeStripeContainer>
   );
 }
 

@@ -138,6 +138,7 @@ export default function ACHSetupScreen() {
             email,
           },
         },
+        style: 'automatic',
       }
     );
 

@@ -1,0 +1,17 @@
+# Validates that we are testing the correct react architecture.
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- runFlow:
+    when:
+      true: ${NEW_ARCH == 'true'}
+    commands:
+      - assertVisible: 'New arch enabled: true'
+      - assertVisible: 'Bridgeless enabled: true'
+- runFlow:
+    when:
+      true: ${NEW_ARCH == 'false'}
+    commands:
+      - assertVisible: 'New arch enabled: false'
+      - assertVisible: 'Bridgeless enabled: false'

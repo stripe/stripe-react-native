@@ -6,6 +6,7 @@ import {
   verifyMicrodepositsForPayment,
   VerifyMicrodepositsParams,
   collectBankAccountForPayment,
+  FinancialConnections,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -94,6 +95,10 @@ export default function ACHPaymentScreen() {
         billingDetails: {
           name: 'David Wallace',
         },
+        metadata: {
+          order_id: '1234',
+          description: 'Test order',
+        },
       },
     });
 
@@ -136,6 +141,11 @@ export default function ACHPaymentScreen() {
 
     setSecret(clientSecret);
 
+    const onEvent = (event: FinancialConnections.FinancialConnectionsEvent) => {
+      let value = JSON.stringify(event, null, 2);
+      console.log(`Received Financial Connections event: ${value}`);
+    };
+
     const { paymentIntent, error } = await collectBankAccountForPayment(
       clientSecret,
       {
@@ -146,6 +156,8 @@ export default function ACHPaymentScreen() {
             email,
           },
         },
+        style: 'alwaysLight',
+        onEvent: onEvent,
       }
     );
 

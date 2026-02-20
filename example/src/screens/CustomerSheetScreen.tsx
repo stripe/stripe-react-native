@@ -1,14 +1,17 @@
-import React from 'react';
-import { Alert, Image, StyleSheet, Switch, Text, View } from 'react-native';
-import { CustomerSheetBeta } from '@stripe/stripe-react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { CustomerSheet } from '@stripe/stripe-react-native';
 import { PaymentSheet } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
+import SelectedPaymentOption from '../components/SelectedPaymentOption';
 import { API_URL } from '../Config';
 import { ExampleCustomerAdapter } from './ExampleCustomerAdapter';
 
 export default function CustomerSheetScreen() {
   const [useComponent, setUseComponent] = React.useState(false);
+  const [opensCardScannerAutomatically, setOpensCardScannerAutomatically] =
+    React.useState(false);
   const [stripeInitialized, setStripeInitialized] = React.useState(false);
   const [selectedPaymentOption, setSelectedPaymentOption] =
     React.useState<PaymentSheet.PaymentOption | null>(null);
@@ -18,6 +21,7 @@ export default function CustomerSheetScreen() {
   const [customerSheetVisible, setCustomerSheetVisible] = React.useState(false);
   const [customerAdapter, setCustomerAdapter] =
     React.useState<ExampleCustomerAdapter | null>(null);
+  const isFirstRender = useRef(true);
 
   const fetchCustomerSheetParams = async () => {
     const response = await fetch(`${API_URL}/customer-sheet`, {
@@ -43,7 +47,7 @@ export default function CustomerSheetScreen() {
     };
   };
 
-  const setup = async () => {
+  const setup = useCallback(async () => {
     const {
       customer: customerId,
       setupIntent: setupIntentClientSecret,
@@ -64,11 +68,11 @@ export default function CustomerSheetScreen() {
       address: address,
     };
 
-    const { error } = await CustomerSheetBeta.initialize({
+    const { error } = await CustomerSheet.initialize({
       setupIntentClientSecret,
       customerEphemeralKeySecret,
       customerId,
-      returnURL: 'stripe-example://stripe-redirect',
+      returnURL: 'com.stripe.react.native://stripe-redirect',
       removeSavedPaymentMethodMessage:
         'Are you sure you wanna remove this payment method? 😿',
       style: 'alwaysLight',
@@ -78,6 +82,7 @@ export default function CustomerSheetScreen() {
       billingDetailsCollectionConfiguration: {
         phone: PaymentSheet.CollectionMode.ALWAYS,
       },
+      opensCardScannerAutomatically,
     });
     if (error) {
       Alert.alert(error.code, error.localizedMessage);
@@ -87,7 +92,7 @@ export default function CustomerSheetScreen() {
       error: retrievalError,
       paymentOption,
       paymentMethod,
-    } = await CustomerSheetBeta.retrievePaymentOptionSelection();
+    } = await CustomerSheet.retrievePaymentOptionSelection();
     if (retrievalError) {
       Alert.alert(retrievalError.code, retrievalError.localizedMessage);
     }
@@ -100,14 +105,24 @@ export default function CustomerSheetScreen() {
     }
 
     setStripeInitialized(true);
-  };
+  }, [opensCardScannerAutomatically]);
+
+  // Re-initialize when opensCardScannerAutomatically changes (skip first render)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setStripeInitialized(false);
+    setup();
+  }, [opensCardScannerAutomatically, setup]);
 
   const present = async () => {
     if (useComponent) {
       setCustomerSheetVisible(true);
     } else {
       const { error, paymentOption, paymentMethod } =
-        await CustomerSheetBeta.present();
+        await CustomerSheet.present();
       if (error) {
         Alert.alert(error.code, error.localizedMessage);
       }
@@ -136,12 +151,12 @@ export default function CustomerSheetScreen() {
         }}
       />
       {useComponent && customerAdapter && (
-        <CustomerSheetBeta.CustomerSheet
+        <CustomerSheet.Component
           visible={customerSheetVisible}
           setupIntentClientSecret={setupIntent}
           customerEphemeralKeySecret={ephemeralKeySecret}
           customerId={customer}
-          returnURL={'stripe-example://stripe-redirect'}
+          returnURL={'com.stripe.react.native://stripe-redirect'}
           onResult={({ error, paymentOption, paymentMethod }) => {
             setCustomerSheetVisible(false);
             if (error) {
@@ -158,14 +173,7 @@ export default function CustomerSheetScreen() {
           customerAdapter={customerAdapter}
         />
       )}
-      {selectedPaymentOption?.image && (
-        <Image
-          style={styles.image}
-          source={{
-            uri: `data:image/png;base64,${selectedPaymentOption?.image}`,
-          }}
-        />
-      )}
+      <SelectedPaymentOption paymentOption={selectedPaymentOption} />
       <View style={styles.switchRow}>
         <Text style={styles.switchLabel}>Use component: </Text>
         <Switch
@@ -181,6 +189,13 @@ export default function CustomerSheetScreen() {
           value={useComponent}
         />
       </View>
+      <View style={styles.switchRowSecond}>
+        <Text style={styles.switchLabel}>Opens card scanner: </Text>
+        <Switch
+          onValueChange={setOpensCardScannerAutomatically}
+          value={opensCardScannerAutomatically}
+        />
+      </View>
     </PaymentScreen>
   );
 }
@@ -192,8 +207,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  switchRowSecond: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   switchLabel: {
     fontSize: 20,
   },
-  image: { alignSelf: 'center', width: 150, height: 100 },
 });

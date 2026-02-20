@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import {
   AddressDetails,
@@ -7,7 +7,7 @@ import {
   Address,
   PaymentSheetError,
   PaymentSheet,
-  PaymentMethod,
+  ConfirmationToken,
 } from '@stripe/stripe-react-native';
 import Button from '../components/Button';
 import PaymentScreen from '../components/PaymentScreen';
@@ -24,10 +24,14 @@ export default function PaymentSheetDeferredIntentScreen() {
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        customer_key_type: 'customer_session',
+      }),
     });
-    const { ephemeralKey, customer } = await response.json();
+
+    const { customerSessionClientSecret, customer } = await response.json();
     return {
-      ephemeralKey,
+      customerSessionClientSecret,
       customer,
     };
   };
@@ -64,95 +68,107 @@ export default function PaymentSheetDeferredIntentScreen() {
     setLoading(false);
   };
 
-  const initialisePaymentSheet = async (shippingDetails?: AddressDetails) => {
-    const { ephemeralKey, customer } = await fetchPaymentSheetParams();
+  const initialisePaymentSheet = useCallback(
+    async (shippingDetails?: AddressDetails) => {
+      const { customer, customerSessionClientSecret } =
+        await fetchPaymentSheetParams();
 
-    const address: Address = {
-      city: 'San Francisco',
-      country: 'AT',
-      line1: '510 Townsend St.',
-      line2: '123 Street',
-      postalCode: '94102',
-      state: 'California',
-    };
-    const billingDetails: BillingDetails = {
-      name: 'Jane Doe',
-      email: 'foo@bar.com',
-      phone: '555-555-555',
-      address: address,
-    };
+      const address: Address = {
+        city: 'San Francisco',
+        country: 'US',
+        line1: '510 Townsend St.',
+        line2: '123 Street',
+        postalCode: '94102',
+        state: 'California',
+      };
+      const billingDetails: BillingDetails = {
+        name: 'Jane Doe',
+        email: 'foo@bar.com',
+        phone: '555-555-555',
+        address: address,
+      };
 
-    const { error } = await initPaymentSheet({
-      customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
-      customFlow: false,
-      merchantDisplayName: 'Example Inc.',
-      applePay: { merchantCountryCode: 'US' },
-      style: 'automatic',
-      returnURL: 'stripe-example://stripe-redirect',
-      defaultBillingDetails: billingDetails,
-      defaultShippingDetails: shippingDetails,
-      allowsDelayedPaymentMethods: true,
-      primaryButtonLabel: 'purchase!',
-      intentConfiguration: {
-        confirmHandler: async (
-          paymentMethod: PaymentMethod.Result,
-          _shouldSavePaymentMethod: boolean,
-          intentCreationCallback: (
-            result: PaymentSheet.IntentCreationCallbackParams
-          ) => void
-        ) => {
-          const response = await fetch(
-            `${API_URL}/payment-intent-for-payment-sheet`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                paymentMethodId: paymentMethod.id,
-                customerId: customer,
-              }),
+      const { error } = await initPaymentSheet({
+        customerId: customer,
+        customFlow: false,
+        customerSessionClientSecret,
+        merchantDisplayName: 'Example Inc.',
+        applePay: { merchantCountryCode: 'US' },
+        style: 'automatic',
+        returnURL: 'com.stripe.react.native://stripe-redirect',
+        defaultBillingDetails: billingDetails,
+        defaultShippingDetails: shippingDetails,
+        allowsDelayedPaymentMethods: true,
+        primaryButtonLabel: 'purchase!',
+        cardBrandAcceptance: {
+          filter: PaymentSheet.CardBrandAcceptanceFilter.Disallowed,
+          brands: [PaymentSheet.CardBrandCategory.Amex],
+        },
+        intentConfiguration: {
+          confirmationTokenConfirmHandler: async (
+            confirmationToken: ConfirmationToken.Result,
+            intentCreationCallback: (
+              result: PaymentSheet.IntentCreationCallbackParams
+            ) => void
+          ) => {
+            console.log('confirmationToken', confirmationToken.id);
+            const response = await fetch(
+              `${API_URL}/payment-intent-for-payment-sheet`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  customerId: customer,
+                }),
+              }
+            );
+            const { clientSecret, error: responseError } =
+              await response.json();
+
+            if (responseError) {
+              intentCreationCallback({
+                error: {
+                  code: 'Failed',
+                  message: responseError.raw.message,
+                  localizedMessage: responseError.raw.message,
+                },
+              });
+            } else {
+              intentCreationCallback({ clientSecret });
             }
-          );
-          const { clientSecret, error: responseError } = await response.json();
+          },
+          mode: {
+            amount: 6099,
+            currencyCode: 'USD',
+          },
+        },
+      });
+      if (!error) {
+        setPaymentSheetEnabled(true);
+      } else if (error.code === PaymentSheetError.Failed) {
+        Alert.alert(
+          `PaymentSheet init failed with error code: ${error.code}`,
+          error.message
+        );
+      } else if (error.code === PaymentSheetError.Canceled) {
+        Alert.alert(
+          `PaymentSheet init was canceled with code: ${error.code}`,
+          error.message
+        );
+      }
+    },
+    [initPaymentSheet]
+  );
 
-          if (responseError) {
-            intentCreationCallback({
-              error: {
-                code: 'Failed',
-                message: responseError.raw.message,
-                localizedMessage: responseError.raw.message,
-              },
-            });
-          } else {
-            intentCreationCallback({ clientSecret });
-          }
-        },
-        mode: {
-          amount: 6099,
-          currencyCode: 'USD',
-        },
-        paymentMethodTypes: ['card'],
-      },
-    });
-    if (!error) {
-      setPaymentSheetEnabled(true);
-    } else if (error.code === PaymentSheetError.Failed) {
-      Alert.alert(
-        `PaymentSheet init failed with error code: ${error.code}`,
-        error.message
-      );
-    } else if (error.code === PaymentSheetError.Canceled) {
-      Alert.alert(
-        `PaymentSheet init was canceled with code: ${error.code}`,
-        error.message
-      );
-    }
-  };
+  useEffect(() => {
+    setPaymentSheetEnabled(false);
+    initialisePaymentSheet().catch((err) => console.log(err));
+  }, [initialisePaymentSheet]);
 
   return (
-    // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
+    // In your app's checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
     <PaymentScreen onInit={initialisePaymentSheet}>
       <Button

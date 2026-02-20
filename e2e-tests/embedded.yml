@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
+- tapOn:
+    text: "Card"
+- tapOn:
+    text: "Card number"
+- inputText: "4242424242424242"
+- inputText: "0145"
+- inputText: "123"
+- scrollUntilVisible:
+    element:
+      id: primary_button # Android
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: "Continue" # iOS
+    optional: true
+
+- tapOn:
+    id: primary_button # Android
+    optional: true
+- tapOn:
+    text: "Continue" # iOS
+    optional: true
+
+- scrollUntilVisible:
+    element:
+      text: "Complete payment"
+    timeout: 30000
+- tapOn: "Complete payment"
+- assertVisible:
+    text: "Success"
+- tapOn: "OK"

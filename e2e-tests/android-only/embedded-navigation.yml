@@ -1,0 +1,38 @@
+appId: ${APP_ID}
+---
+# Test that navigating away from and back to the embedded payment element works correctly
+- launchApp:
+    clearState: true
+- tapOn: "Accept a payment"
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
+
+# Tap Card to present the form sheet
+- tapOn:
+    text: "Card"
+
+# Wait for the form sheet to appear
+- extendedWaitUntil:
+    visible: "Card number"
+    timeout: 30000
+
+# Dismiss the form sheet by tapping outside (top 15% of screen for iOS)
+- tapOn:
+    point: "50%,8%"
+
+# Navigate back to menu
+- back
+
+# Navigate back to embedded payment element
+- tapOn: "Prebuilt UI (EmbeddedPaymentElement)"
+- extendedWaitUntil:
+    visible: "Card"
+    timeout: 150000
+
+# Tap Card again to present the form sheet
+- tapOn:
+    text: "Card"
+- assertVisible:
+    text: "Card number"

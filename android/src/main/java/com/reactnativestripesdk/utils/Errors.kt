@@ -1,7 +1,7 @@
 package com.reactnativestripesdk.utils
 
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeMap
 import com.stripe.android.core.exception.APIException
 import com.stripe.android.core.exception.AuthenticationException
 import com.stripe.android.core.exception.InvalidRequestException
@@ -10,44 +10,64 @@ import com.stripe.android.model.PaymentIntent
 import com.stripe.android.model.SetupIntent
 
 enum class ErrorType {
-  Failed, Canceled, Unknown
+  Failed,
+  Canceled,
+  Unknown,
 }
 
 enum class ConfirmPaymentErrorType {
-  Failed, Canceled, Unknown
+  Failed,
+  Canceled,
+  Unknown,
 }
 
 enum class CreateTokenErrorType {
-  Failed
+  Failed,
 }
 
 enum class ConfirmSetupIntentErrorType {
-  Failed, Canceled, Unknown
+  Failed,
+  Canceled,
+  Unknown,
 }
 
 enum class RetrievePaymentIntentErrorType {
-  Unknown
+  Unknown,
 }
 
 enum class RetrieveSetupIntentErrorType {
-  Unknown
+  Unknown,
 }
 
 enum class PaymentSheetErrorType {
-  Failed, Canceled, Timeout
+  Failed,
+  Canceled,
+  Timeout,
 }
 
 enum class GooglePayErrorType {
-  Failed, Canceled
+  Failed,
+  Canceled,
 }
 
-class PaymentSheetAppearanceException(message: String) : Exception(message)
+class PaymentSheetAppearanceException(
+  message: String,
+) : Exception(message)
 
-class PaymentSheetException(message: String) : Exception(message)
+class PaymentSheetException(
+  message: String,
+) : Exception(message)
 
-internal fun mapError(code: String, message: String?, localizedMessage: String?, declineCode: String?, type: String?, stripeErrorCode: String?): WritableMap {
-  val map: WritableMap = WritableNativeMap()
-  val details: WritableMap = WritableNativeMap()
+internal fun mapError(
+  code: String,
+  message: String?,
+  localizedMessage: String?,
+  declineCode: String?,
+  type: String?,
+  stripeErrorCode: String?,
+): WritableMap {
+  val map: WritableMap = Arguments.createMap()
+  val details: WritableMap = Arguments.createMap()
   details.putString("code", code)
   details.putString("message", message)
   details.putString("localizedMessage", localizedMessage)
@@ -59,61 +79,117 @@ internal fun mapError(code: String, message: String?, localizedMessage: String?,
   return map
 }
 
-internal fun createError(code: String, message: String?): WritableMap {
-  return mapError(code, message, message, null, null, null)
-}
+internal fun createError(
+  code: String,
+  message: String?,
+): WritableMap = mapError(code, message, message, null, null, null)
 
-internal fun createMissingActivityError(): WritableMap {
-  return mapError(
+internal fun createMissingActivityError(): WritableMap =
+  mapError(
     "Failed",
     "Activity doesn't exist yet. You can safely retry this method.",
     null,
     null,
     null,
-    null)
-}
+    null,
+  )
 
-internal fun createError(code: String, error: PaymentIntent.Error?): WritableMap {
-  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.code, error?.code)
-}
+internal fun createError(
+  code: String,
+  error: PaymentIntent.Error?,
+): WritableMap =
+  mapError(
+    code,
+    error?.message,
+    error?.message,
+    error?.declineCode,
+    error?.type?.code,
+    error?.code,
+  )
 
-internal fun createError(code: String, error: SetupIntent.Error?): WritableMap {
-  return mapError(code, error?.message, error?.message, error?.declineCode, error?.type?.code, error?.code)
-}
+internal fun createError(
+  code: String,
+  error: SetupIntent.Error?,
+): WritableMap =
+  mapError(
+    code,
+    error?.message,
+    error?.message,
+    error?.declineCode,
+    error?.type?.code,
+    error?.code,
+  )
 
-internal fun createError(code: String, error: Exception): WritableMap {
-  return when (error) {
+internal fun createError(
+  code: String,
+  error: Exception,
+): WritableMap =
+  when (error) {
     is CardException -> {
-      mapError(code, error.message, error.localizedMessage, error.declineCode, error.stripeError?.type, error.stripeError?.code)
+      mapError(
+        code,
+        error.message,
+        error.localizedMessage,
+        error.declineCode,
+        error.stripeError?.type,
+        error.stripeError?.code,
+      )
     }
     is InvalidRequestException -> {
-      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+      mapError(
+        code,
+        error.message,
+        error.localizedMessage,
+        error.stripeError?.declineCode,
+        error.stripeError?.type,
+        error.stripeError?.code,
+      )
     }
     is AuthenticationException -> {
-      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+      mapError(
+        code,
+        error.message,
+        error.localizedMessage,
+        error.stripeError?.declineCode,
+        error.stripeError?.type,
+        error.stripeError?.code,
+      )
     }
     is APIException -> {
-      mapError(code, error.message, error.localizedMessage, error.stripeError?.declineCode, error.stripeError?.type, error.stripeError?.code)
+      mapError(
+        code,
+        error.message,
+        error.localizedMessage,
+        error.stripeError?.declineCode,
+        error.stripeError?.type,
+        error.stripeError?.code,
+      )
     }
     else -> mapError(code, error.message, error.localizedMessage.orEmpty(), null, null, null)
   }
-}
 
-internal fun createError(code: String, error: Throwable): WritableMap {
+internal fun createError(
+  code: String,
+  error: Throwable,
+): WritableMap {
   (error as? Exception)?.let {
-    return createError(
-      code,
-      it)
+    return createError(code, it)
   }
-  return mapError(
-    code,
-    error.message,
-    error.localizedMessage,
-    null,
-    null,
-    null)
+  return mapError(code, error.message, error.localizedMessage, null, null, null)
 }
 
-internal fun createMissingInitError(): WritableMap {
-  return createError(ErrorType.Failed.toString(), "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.")
-}
+internal fun createCanceledError(message: String? = null): WritableMap = createError(ErrorType.Canceled.toString(), message)
+
+internal fun createFailedError(error: Throwable): WritableMap = createError(ErrorType.Failed.toString(), error)
+
+internal fun createMissingInitError(): WritableMap =
+  createError(
+    ErrorType.Failed.toString(),
+    "Stripe has not been initialized. Initialize Stripe in your app with the StripeProvider component or the initStripe method.",
+  )
+
+internal fun createOnrampNotConfiguredError(): WritableMap =
+  createError(
+    ErrorType.Failed.toString(),
+    "Onramp is not configured.",
+  )

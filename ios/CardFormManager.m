@@ -9,6 +9,7 @@ RCT_EXPORT_VIEW_PROPERTY(autofocus, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(cardStyle, NSDictionary)
 RCT_EXPORT_VIEW_PROPERTY(disabled, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(preferredNetworks, NSArray)
+RCT_EXPORT_VIEW_PROPERTY(onBehalfOf, NSString)
 RCT_EXTERN_METHOD(focus:(nonnull NSNumber*) reactTag)
 RCT_EXTERN_METHOD(blur:(nonnull NSNumber*) reactTag)
 @end

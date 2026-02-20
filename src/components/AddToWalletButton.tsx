@@ -3,7 +3,6 @@ import {
   AccessibilityProps,
   StyleProp,
   ViewStyle,
-  requireNativeComponent,
   NativeSyntheticEvent,
   ImageSourcePropType,
 } from 'react-native';
@@ -13,9 +12,7 @@ import type {
   StripeError,
   GooglePayCardToken,
 } from '../types';
-
-const AddToWalletButtonNative =
-  requireNativeComponent<any>('AddToWalletButton');
+import NativeAddToWalletButton from '../specs/NativeAddToWalletButton';
 
 /**
  *  Add to wallet button component props
@@ -81,7 +78,7 @@ export interface Props extends AccessibilityProps {
  */
 export function AddToWalletButton({ onComplete, ...props }: Props) {
   return (
-    <AddToWalletButtonNative
+    <NativeAddToWalletButton
       {...props}
       onCompleteAction={(
         value: NativeSyntheticEvent<{

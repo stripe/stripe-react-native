@@ -6,55 +6,71 @@
 //
 
 import Foundation
-import StripeFinancialConnections
 import Stripe
+import StripeFinancialConnections
 
 class FinancialConnections {
 
     internal static func present(
         withClientSecret: String,
         returnURL: String? = nil,
+        configuration: FinancialConnectionsSheet.Configuration? = nil,
+        onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
-    ) -> Void {
+    ) {
         DispatchQueue.main.async {
-            FinancialConnectionsSheet(financialConnectionsSessionClientSecret: withClientSecret, returnURL: returnURL).present(
-              from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
-              completion: { result in
-                  switch result {
-                  case .completed(session: let session):
-                      resolve([ "session": mapFromSessionResult(session) ])
-                  case .canceled:
-                      resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
-                  case .failed(let error):
-                      resolve(Errors.createError(ErrorType.Failed, error))
-                  }
-            })
+            let financialConnectionsSheet = FinancialConnectionsSheet(
+                financialConnectionsSessionClientSecret: withClientSecret,
+                returnURL: returnURL,
+                configuration: configuration ?? .init()
+            )
+            financialConnectionsSheet.onEvent = onEvent
+            financialConnectionsSheet.present(
+                from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                completion: { result in
+                    switch result {
+                    case .completed(session: let session):
+                        resolve([ "session": mapFromSessionResult(session) ])
+                    case .canceled:
+                        resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
+                    case .failed(let error):
+                        resolve(Errors.createError(ErrorType.Failed, error))
+                    }
+                })
         }
     }
 
     internal static func presentForToken(
         withClientSecret: String,
         returnURL: String? = nil,
+        configuration: FinancialConnectionsSheet.Configuration? = nil,
+        onEvent: ((FinancialConnectionsEvent) -> Void)? = nil,
         resolve: @escaping RCTPromiseResolveBlock
-    ) -> Void {
+    ) {
         DispatchQueue.main.async {
-            FinancialConnectionsSheet(financialConnectionsSessionClientSecret: withClientSecret, returnURL: returnURL).presentForToken(
-              from: findViewControllerPresenter(from: UIApplication.shared.delegate?.window??.rootViewController ?? UIViewController()),
-              completion: { result in
-                  switch result {
-                  case .completed(result: let result):
-                      resolve(
-                        [
-                            "session": mapFromSessionResult(result.session),
-                            "token"  : mapFromTokenResult(result.token)
-                        ]
-                      )
-                  case .canceled:
-                      resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
-                  case .failed(let error):
-                      resolve(Errors.createError(ErrorType.Failed, error))
-                  }
-            })
+            let financialConnectionsSheet = FinancialConnectionsSheet(
+                financialConnectionsSessionClientSecret: withClientSecret,
+                returnURL: returnURL,
+                configuration: configuration ?? .init()
+            )
+            financialConnectionsSheet.onEvent = onEvent
+            financialConnectionsSheet.presentForToken(
+                from: findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController()),
+                completion: { result in
+                    switch result {
+                    case .completed(result: let result):
+                        resolve(
+                            [
+                                "session": mapFromSessionResult(result.session),
+                                "token": mapFromTokenResult(result.token),
+                            ]
+                        )
+                    case .canceled:
+                        resolve(Errors.createError(ErrorType.Canceled, "The flow has been canceled."))
+                    case .failed(let error):
+                        resolve(Errors.createError(ErrorType.Failed, error))
+                    }
+                })
         }
     }
 
@@ -65,7 +81,7 @@ class FinancialConnections {
             "id": session.id,
             "clientSecret": session.clientSecret,
             "livemode": session.livemode,
-            "accounts": mapFromAccountsList(accounts: session.accounts)
+            "accounts": mapFromAccountsList(accounts: session.accounts),
         ]
     }
 

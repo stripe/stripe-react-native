@@ -1,0 +1,30 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Vouchers"
+- tapOn: "OXXO"
+- assertVisible:
+    text: "E-mail"
+- tapOn:
+    text: "E-mail"
+- inputText: "test@stripe.com"
+- tapOn:
+    text: "Pay"
+    retryTapIfNoChange: false
+- assertVisible:
+    text: "MX$14.00"
+- runFlow:
+    when:
+      platform: android
+    commands:
+      - pressKey: back
+- runFlow:
+    when:
+      platform: ios
+    commands:
+      - tapOn:
+          text: "Close"
+          optional: true
+- assertVisible:
+    text: "Success"

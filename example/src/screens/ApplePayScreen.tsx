@@ -21,6 +21,7 @@ export default function ApplePayScreen() {
   const [cardDetails, setCardDetails] = useState<any>(null);
   const [isApplePaySupported, setIsApplePaySupported] = useState(false);
   const [clientSecret, setClientSecret] = useState<String | null>(null);
+  const [isPaymentInProgress, setIsPaymentInProgress] = useState(false);
   const {
     createPlatformPayPaymentMethod,
     createPlatformPayToken,
@@ -213,34 +214,47 @@ export default function ApplePayScreen() {
       Alert.alert('No client secret is set.');
       return;
     }
-    const { paymentIntent, error } = await confirmPlatformPayPayment(
-      clientSecret as string,
-      {
-        applePay: {
-          cartItems: cart,
-          merchantCountryCode: 'US',
-          currencyCode: 'USD',
-          shippingMethods,
-          requiredShippingAddressFields: [
-            PlatformPay.ContactField.EmailAddress,
-            PlatformPay.ContactField.PhoneNumber,
-            PlatformPay.ContactField.PostalAddress,
-            PlatformPay.ContactField.Name,
-          ],
-          requiredBillingContactFields: [
-            PlatformPay.ContactField.PostalAddress,
-          ],
-          shippingType: PlatformPay.ApplePayShippingType.StorePickup,
-          additionalEnabledNetworks: ['JCB'],
-        },
+
+    // Prevent multiple simultaneous payment attempts
+    if (isPaymentInProgress) {
+      console.log('Payment already in progress, ignoring duplicate request');
+      return;
+    }
+
+    setIsPaymentInProgress(true);
+
+    try {
+      const { paymentIntent, error } = await confirmPlatformPayPayment(
+        clientSecret as string,
+        {
+          applePay: {
+            cartItems: cart,
+            merchantCountryCode: 'US',
+            currencyCode: 'USD',
+            shippingMethods,
+            requiredShippingAddressFields: [
+              PlatformPay.ContactField.EmailAddress,
+              PlatformPay.ContactField.PhoneNumber,
+              PlatformPay.ContactField.PostalAddress,
+              PlatformPay.ContactField.Name,
+            ],
+            requiredBillingContactFields: [
+              PlatformPay.ContactField.PostalAddress,
+            ],
+            shippingType: PlatformPay.ApplePayShippingType.StorePickup,
+            additionalEnabledNetworks: ['JCB'],
+          },
+        }
+      );
+      if (error) {
+        Alert.alert(error.code, error.localizedMessage);
+      } else {
+        Alert.alert('Success', 'Check the logs for payment intent details.');
+        console.log(JSON.stringify(paymentIntent, null, 2));
+        setClientSecret(null);
       }
-    );
-    if (error) {
-      Alert.alert(error.code, error.localizedMessage);
-    } else {
-      Alert.alert('Success', 'Check the logs for payment intent details.');
-      console.log(JSON.stringify(paymentIntent, null, 2));
-      setClientSecret(null);
+    } finally {
+      setIsPaymentInProgress(false);
     }
   };
 
@@ -316,7 +330,7 @@ export default function ApplePayScreen() {
           onPress={pay}
           appearance={PlatformPay.ButtonStyle.White}
           borderRadius={4}
-          disabled={!isApplePaySupported}
+          disabled={!isApplePaySupported || isPaymentInProgress}
           style={styles.payButton}
           onShippingContactSelected={({ shippingContact }) => {
             console.log(JSON.stringify(shippingContact, null, 2));

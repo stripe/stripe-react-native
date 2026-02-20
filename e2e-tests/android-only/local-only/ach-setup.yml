@@ -1,6 +1,7 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- launchApp:
+    clearState: true
 - tapOn: "Bank Debits"
 - scrollUntilVisible:
     element:
@@ -11,7 +12,7 @@ appId: ${APP_ID}
     text: "Collect bank account"
     retryTapIfNoChange: false
 - tapOn: "Agree"
-- tapOn: "Test Institution"
+- tapOn: "Test (Non-OAuth)"
 - tapOn: "Success"
 - tapOn: "Link account"
 - tapOn: "Done"
