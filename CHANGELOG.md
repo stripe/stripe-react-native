@@ -2,6 +2,9 @@
 
 ## x.x.x - 20xx-xx-xx
 
+**Features**
+* [Added] Connect embedded components are now available in private preview, including Account Onboarding, Payments, and Payouts.
+
 **Changes**
 * [Added] Added support for creating a [Radar session](https://docs.stripe.com/radar/radar-session).
 
