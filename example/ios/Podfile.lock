@@ -1820,13 +1820,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - Stripe (25.6.0):
-    - StripeApplePay (= 25.6.0)
-    - StripeCore (= 25.6.0)
-    - StripeIssuing (= 25.6.0)
-    - StripePayments (= 25.6.0)
-    - StripePaymentsUI (= 25.6.0)
-    - StripeUICore (= 25.6.0)
+  - Stripe (25.6.3):
+    - StripeApplePay (= 25.6.3)
+    - StripeCore (= 25.6.3)
+    - StripeIssuing (= 25.6.3)
+    - StripePayments (= 25.6.3)
+    - StripePaymentsUI (= 25.6.3)
+    - StripeUICore (= 25.6.3)
   - stripe-react-native (0.58.0):
     - hermes-engine
     - RCTRequired
@@ -1872,12 +1872,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Stripe (~> 25.6.0)
-    - StripeApplePay (~> 25.6.0)
-    - StripeFinancialConnections (~> 25.6.0)
-    - StripePayments (~> 25.6.0)
-    - StripePaymentSheet (~> 25.6.0)
-    - StripePaymentsUI (~> 25.6.0)
+    - Stripe (~> 25.6.3)
+    - StripeApplePay (~> 25.6.3)
+    - StripeFinancialConnections (~> 25.6.3)
+    - StripePayments (~> 25.6.3)
+    - StripePaymentSheet (~> 25.6.3)
+    - StripePaymentsUI (~> 25.6.3)
     - Yoga
   - stripe-react-native/NewArch (0.58.0):
     - hermes-engine
@@ -1923,7 +1923,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - stripe-react-native/Core
-    - StripeCryptoOnramp (~> 25.6.0)
+    - StripeCryptoOnramp (~> 25.6.3)
     - Yoga
   - stripe-react-native/Tests (0.58.0):
     - hermes-engine
@@ -1947,46 +1947,46 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - StripeApplePay (25.6.0):
-    - StripeCore (= 25.6.0)
-  - StripeCameraCore (25.6.0):
-    - StripeCore (= 25.6.0)
-  - StripeCore (25.6.0)
-  - StripeCryptoOnramp (25.6.0):
-    - StripeApplePay (= 25.6.0)
-    - StripeCore (= 25.6.0)
-    - StripeIdentity (= 25.6.0)
-    - StripePayments (= 25.6.0)
-    - StripePaymentSheet (= 25.6.0)
-    - StripePaymentsUI (= 25.6.0)
-    - StripeUICore (= 25.6.0)
-  - StripeFinancialConnections (25.6.0):
-    - StripeCore (= 25.6.0)
-    - StripeUICore (= 25.6.0)
-  - StripeIdentity (25.6.0):
-    - StripeCameraCore (= 25.6.0)
-    - StripeCore (= 25.6.0)
-    - StripeUICore (= 25.6.0)
-  - StripeIssuing (25.6.0):
-    - StripeCore (= 25.6.0)
-    - StripePayments (= 25.6.0)
-    - StripePaymentsUI (= 25.6.0)
-  - StripePayments (25.6.0):
-    - StripeCore (= 25.6.0)
-    - StripePayments/Stripe3DS2 (= 25.6.0)
-  - StripePayments/Stripe3DS2 (25.6.0):
-    - StripeCore (= 25.6.0)
-  - StripePaymentSheet (25.6.0):
-    - StripeApplePay (= 25.6.0)
-    - StripeCore (= 25.6.0)
-    - StripePayments (= 25.6.0)
-    - StripePaymentsUI (= 25.6.0)
-  - StripePaymentsUI (25.6.0):
-    - StripeCore (= 25.6.0)
-    - StripePayments (= 25.6.0)
-    - StripeUICore (= 25.6.0)
-  - StripeUICore (25.6.0):
-    - StripeCore (= 25.6.0)
+  - StripeApplePay (25.6.3):
+    - StripeCore (= 25.6.3)
+  - StripeCameraCore (25.6.3):
+    - StripeCore (= 25.6.3)
+  - StripeCore (25.6.3)
+  - StripeCryptoOnramp (25.6.3):
+    - StripeApplePay (= 25.6.3)
+    - StripeCore (= 25.6.3)
+    - StripeIdentity (= 25.6.3)
+    - StripePayments (= 25.6.3)
+    - StripePaymentSheet (= 25.6.3)
+    - StripePaymentsUI (= 25.6.3)
+    - StripeUICore (= 25.6.3)
+  - StripeFinancialConnections (25.6.3):
+    - StripeCore (= 25.6.3)
+    - StripeUICore (= 25.6.3)
+  - StripeIdentity (25.6.3):
+    - StripeCameraCore (= 25.6.3)
+    - StripeCore (= 25.6.3)
+    - StripeUICore (= 25.6.3)
+  - StripeIssuing (25.6.3):
+    - StripeCore (= 25.6.3)
+    - StripePayments (= 25.6.3)
+    - StripePaymentsUI (= 25.6.3)
+  - StripePayments (25.6.3):
+    - StripeCore (= 25.6.3)
+    - StripePayments/Stripe3DS2 (= 25.6.3)
+  - StripePayments/Stripe3DS2 (25.6.3):
+    - StripeCore (= 25.6.3)
+  - StripePaymentSheet (25.6.3):
+    - StripeApplePay (= 25.6.3)
+    - StripeCore (= 25.6.3)
+    - StripePayments (= 25.6.3)
+    - StripePaymentsUI (= 25.6.3)
+  - StripePaymentsUI (25.6.3):
+    - StripeCore (= 25.6.3)
+    - StripePayments (= 25.6.3)
+    - StripeUICore (= 25.6.3)
+  - StripeUICore (25.6.3):
+    - StripeCore (= 25.6.3)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2311,21 +2311,21 @@ SPEC CHECKSUMS:
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
-  Stripe: 972031d58e807f086d7abfd5ca1cc5c807023257
-  stripe-react-native: 2a3e3f30ff8bd512fe8b70ee01baeaf33db18763
-  StripeApplePay: 3eee619b7332ab5de545dc70eb20c44a5259c0db
-  StripeCameraCore: 58c16a7ce6168dc10e79d058394a6f6b03873b91
-  StripeCore: 2c8be132466d6eb445cd63d792d9eca9f43e86d2
-  StripeCryptoOnramp: fbec9bcdab1df2f842a266c539c414ec51a94f19
-  StripeFinancialConnections: c9c269c39930b7fe6f03f5e58a61ca23897a1072
-  StripeIdentity: d8b071464ac82254007a71c2da45bd7fd273abf6
-  StripeIssuing: 6c9a6024b25fdde3a3d8a267293c153df91b7c41
-  StripePayments: 80a90e9e37f92082929869e5043a6f23f68d7483
-  StripePaymentSheet: 5cce6e291554b467764e0715f27f11a48c5e7e48
-  StripePaymentsUI: 79789f1de71b7fecb414fabffe441ceec3b2a13c
-  StripeUICore: 7f5d6e1c2d29f3946877e3986079adbf680ec096
+  Stripe: b7e576506f438e2120565fe63ff0b3bccbe0f359
+  stripe-react-native: 8b98a8de82ec55dceb42ca1ffe22ed90781c2229
+  StripeApplePay: f65990e7cbd0cf3019e3ac783e24a17bc06bb9b1
+  StripeCameraCore: 16b9b6da79fc62751de8d02f7a87bf30821f20f3
+  StripeCore: 6a59c7d35494ce98ef039b0464c1c9e570594325
+  StripeCryptoOnramp: c46541a2c5e1e8f0444c01e444179dd117a962ca
+  StripeFinancialConnections: 47e242fd49c8acd5181b242f3c7af1b89a9e7df9
+  StripeIdentity: 9b6b91c63b3cb34b08c5dff91d04a1358e129751
+  StripeIssuing: 1f64daac1c805f507b0b02bbe000a844714f36de
+  StripePayments: 792befb2001d5c83a1d3f733c3d296f578919ed6
+  StripePaymentSheet: 4713e14cb9480e6ec3b92237fed1d4246fd610dc
+  StripePaymentsUI: f54666111f7751aaedb3ed947104a9ca472f3d4e
+  StripeUICore: 451e3c6d42bd35239b62fd7afc35aaf05ebb8958
   Yoga: 3fd22c2cae22d7a2b0f0b538f55f7c2a17dc94d5
 
 PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

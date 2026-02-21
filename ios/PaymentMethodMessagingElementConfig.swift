@@ -42,7 +42,7 @@ internal class PaymentMethodMessagingElementConfig {
         }
 
         if let linkTextColorHex = parseThemedColor(params: params, key: "linkTextColor") {
-            appearance.infoIconColor = linkTextColorHex
+            appearance.linkTextColor = linkTextColorHex
         }
 
         return appearance
