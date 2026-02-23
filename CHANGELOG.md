@@ -2,6 +2,10 @@
 
 ## x.x.x - 20xx-xx-xx
 
+**Changes**
+* [Breaking] `authenticateUser` has been removed in favor of `onrampAuthorize` in `useOnramp` hook.
+* [Changed] Updated Stripe Android from 22.7.+ to 22.8.+
+
 ## 0.59.0 - 2026-02-20
 
 **Features**
