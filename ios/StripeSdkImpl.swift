@@ -1337,28 +1337,15 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
-        guard isPublishableKeyAvailable(resolve), let coordinator = requireOnrampCoordinator(resolve) else {
+        guard isPublishableKeyAvailable(resolve), requireOnrampCoordinator(resolve) != nil else {
             return
         }
 
-        Task {
-            do {
-                let presentingViewController = await MainActor.run {
-                    findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
-                }
-                let result = try await coordinator.authenticateUser(from: presentingViewController)
-                switch result {
-                case let .completed(customerId):
-                    resolve(["customerId": customerId])
-                case .canceled:
-                    let errorResult = Errors.createError(ErrorType.Canceled, "Authentication was cancelled")
-                    resolve(["error": errorResult["error"]!])
-                }
-            } catch {
-                let errorResult = Errors.createError(ErrorType.Failed, error)
-                resolve(["error": errorResult["error"]!])
-            }
-        }
+        let errorResult = Errors.createError(
+            ErrorType.Failed,
+            "authenticateUser is not available with this Stripe iOS SDK version. Use onrampAuthorize(linkAuthIntentId:) or authenticateUserWithToken(linkAuthTokenClientSecret:)."
+        )
+        resolve(["error": errorResult["error"]!])
     }
 
     @objc(authenticateUserWithToken:resolver:rejecter:)
@@ -1739,7 +1726,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let formattedBrandName = String(format: mappedFunding.displayNameWithBrand, brandName ?? "")
             let sublabel = "\(formattedBrandName) •••• \(last4)"
 
-            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let result = PaymentMethodDisplayData(paymentMethodType: .card, icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
             resolve(["displayData": displayData])
@@ -1751,7 +1738,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             let icon = PaymentSheetImageLibrary.bankIcon(for: iconCode, iconStyle: .filled)
             let sublabel = "\(bankName) •••• \(last4)"
 
-            let result = PaymentMethodDisplayData(icon: icon, label: label, sublabel: sublabel)
+            let result = PaymentMethodDisplayData(paymentMethodType: .bankAccount, icon: icon, label: label, sublabel: sublabel)
             let displayData = Mappers.paymentMethodDisplayDataToMap(result)
 
             resolve(["displayData": displayData])
