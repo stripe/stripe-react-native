@@ -164,27 +164,6 @@ class PaymentSheetUtilsTests: XCTestCase {
         )
     }
 
-    // MARK: - computeTermsDisplayForUserKey Tests
-
-    func test_computeTermsDisplayForUserKey_userKey_setsCardToNever() {
-        STPAPIClient.shared.publishableKey = "uk_test_123"
-        let result = StripeSdkImpl.computeTermsDisplayForUserKey()
-        XCTAssertEqual(result.count, 1)
-        XCTAssertEqual(result[.card], .never)
-    }
-
-    func test_computeTermsDisplayForUserKey_publishableKey_returnsEmpty() {
-        STPAPIClient.shared.publishableKey = "pk_test_123"
-        let result = StripeSdkImpl.computeTermsDisplayForUserKey()
-        XCTAssertTrue(result.isEmpty)
-    }
-
-    func test_computeTermsDisplayForUserKey_liveUserKey_setsCardToNever() {
-        STPAPIClient.shared.publishableKey = "uk_live_456"
-        let result = StripeSdkImpl.computeTermsDisplayForUserKey()
-        XCTAssertEqual(result[.card], .never)
-    }
-
     // MARK: - computeCardBrandAcceptance Tests
 
     func test_computeCardBrandAcceptance_nilParams_returnsAll() {

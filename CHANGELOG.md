@@ -2,6 +2,8 @@
 
 ## x.x.x - 20xx-xx-xx
 
+## 0.59.0 - 2026-02-20
+
 **Features**
 * [Added] Connect embedded components are now available in private preview, including Account Onboarding, Payments, and Payouts.
 
