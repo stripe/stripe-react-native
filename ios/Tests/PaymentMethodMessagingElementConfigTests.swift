@@ -28,7 +28,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
 
         // Verify colors
         XCTAssertNotNil(appearance.textColor)
-        XCTAssertNotNil(appearance.infoIconColor)
+        XCTAssertNotNil(appearance.linkTextColor)
     }
 
     func test_buildAppearanceFromParams_partialConfiguration() throws {
@@ -172,7 +172,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
 
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
 
-        XCTAssertNotNil(appearance.infoIconColor)
+        XCTAssertNotNil(appearance.linkTextColor)
     }
 
     func test_buildAppearanceFromParams_themedColors() throws {
@@ -190,7 +190,7 @@ class PaymentMethodMessagingElementConfigTests: XCTestCase {
         let appearance = PaymentMethodMessagingElementConfig.buildAppearanceFromParams(params: params)
 
         XCTAssertNotNil(appearance.textColor)
-        XCTAssertNotNil(appearance.infoIconColor)
+        XCTAssertNotNil(appearance.linkTextColor)
     }
 
     func test_buildAppearanceFromParams_themedColorMissingDark() throws {
