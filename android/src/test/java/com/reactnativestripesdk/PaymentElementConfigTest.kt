@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
-import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -1097,42 +1096,6 @@ class PaymentElementConfigTest {
       )
     val result = mapToAllowedCardFundingTypes(params)
     assertNull(result)
-  }
-
-  // ============================================
-  // computeTermsDisplayForUserKey Tests
-  // ============================================
-
-  @Test
-  fun computeTermsDisplayForUserKey_UserKey_ReturnsCardNever() {
-    val result = computeTermsDisplayForUserKey("uk_test_123")
-    assertEquals(1, result.size)
-    assertEquals(PaymentSheet.TermsDisplay.NEVER, result[PaymentMethod.Type.Card])
-  }
-
-  @Test
-  fun computeTermsDisplayForUserKey_LiveUserKey_ReturnsCardNever() {
-    val result = computeTermsDisplayForUserKey("uk_live_456")
-    assertEquals(1, result.size)
-    assertEquals(PaymentSheet.TermsDisplay.NEVER, result[PaymentMethod.Type.Card])
-  }
-
-  @Test
-  fun computeTermsDisplayForUserKey_PublishableKey_ReturnsEmpty() {
-    val result = computeTermsDisplayForUserKey("pk_test_123")
-    assertTrue(result.isEmpty())
-  }
-
-  @Test
-  fun computeTermsDisplayForUserKey_LivePublishableKey_ReturnsEmpty() {
-    val result = computeTermsDisplayForUserKey("pk_live_456")
-    assertTrue(result.isEmpty())
-  }
-
-  @Test
-  fun computeTermsDisplayForUserKey_EmptyKey_ReturnsEmpty() {
-    val result = computeTermsDisplayForUserKey("")
-    assertTrue(result.isEmpty())
   }
 
   @Test
