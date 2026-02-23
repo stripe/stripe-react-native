@@ -82,11 +82,6 @@ export function useOnramp() {
     []
   );
 
-  const _authenticateUser =
-    useCallback(async (): Promise<Onramp.AuthenticateUserResult> => {
-      return NativeOnrampSdk.authenticateUser();
-    }, []);
-
   const _verifyIdentity = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
@@ -246,14 +241,6 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     updatePhoneNumber: _updatePhoneNumber,
-
-    /**
-     * Presents Link UI to authenticate an existing Link user.
-     * `hasLinkAccount` must be called before this.
-     *
-     * @returns Promise that resolves to an object with customerId or error
-     */
-    authenticateUser: _authenticateUser,
 
     /**
      * Authenticates the user with an encrypted Link auth token.
