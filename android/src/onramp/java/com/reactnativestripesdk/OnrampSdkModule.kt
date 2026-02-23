@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.graphics.Color
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.bridge.Arguments
@@ -127,17 +126,13 @@ class OnrampSdkModule(
       OnrampCallbacks()
         .verifyIdentityCallback { result ->
           handleOnrampIdentityVerificationResult(result, identityVerificationPromise!!)
-        }
-        .collectPaymentCallback { result ->
+        }.collectPaymentCallback { result ->
           handleOnrampCollectPaymentResult(result, collectPaymentPromise!!)
-        }
-        .authorizeCallback { result ->
+        }.authorizeCallback { result ->
           handleOnrampAuthorizationResult(result, authorizePromise!!)
-        }
-        .checkoutCallback { result ->
+        }.checkoutCallback { result ->
           handleOnrampCheckoutResult(result, checkoutPromise!!)
-        }
-        .verifyKycCallback { result ->
+        }.verifyKycCallback { result ->
           handleOnrampKycVerificationResult(result, verifyKycPromise!!)
         }
 
@@ -592,11 +587,13 @@ class OnrampSdkModule(
       return
     }
 
-    val icon = "data:image/png;base64," + getBase64FromBitmap(
-      getBitmapFromDrawable(
-        paymentDetails.icon
-      )
-    )
+    val icon =
+      "data:image/png;base64," +
+        getBase64FromBitmap(
+          getBitmapFromDrawable(
+            paymentDetails.icon,
+          ),
+        )
 
     val displayData = Arguments.createMap()
 
@@ -692,14 +689,13 @@ class OnrampSdkModule(
               primaryButtonMap.getDouble("cornerRadius").toFloat()
             } else {
               null
-            }
-          )
-          .heightDp(
+            },
+          ).heightDp(
             if (primaryButtonMap.hasKey("height")) {
               primaryButtonMap.getDouble("height").toFloat()
             } else {
               null
-            }
+            },
           )
       } else {
         null
@@ -707,10 +703,10 @@ class OnrampSdkModule(
 
     val builder = LinkAppearance()
     LinkAppearance()
-      lightColors?.let { builder.lightColors(it) }
-      darkColors?.let { builder.darkColors(it) }
-      builder.style(style)
-      primaryButton?.let { builder.primaryButton(it) }
+    lightColors?.let { builder.lightColors(it) }
+    darkColors?.let { builder.darkColors(it) }
+    builder.style(style)
+    primaryButton?.let { builder.primaryButton(it) }
     return builder
   }
 
@@ -762,8 +758,9 @@ class OnrampSdkModule(
     when (result) {
       is OnrampCollectPaymentMethodResult.Completed -> {
         val displayData = Arguments.createMap()
-        val icon = "data:image/png;base64," +
-          getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
+        val icon =
+          "data:image/png;base64," +
+            getBase64FromBitmap(getBitmapFromDrawable(result.displayData.icon))
         displayData.putString("icon", icon)
         displayData.putString("label", result.displayData.label)
         result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
