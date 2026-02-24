@@ -200,6 +200,14 @@ class PaymentSheetUtilsTests: XCTestCase {
         XCTAssertNil(result)
     }
 
+    func test_mapToTermsDisplay_invalidPaymentMethodType_returnsNil() {
+        let params: NSDictionary = [
+            "termsDisplay": ["foobar": "never"]
+        ]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNil(result)
+    }
+
     func test_mapToTermsDisplay_emptyMap_returnsNil() {
         let params: NSDictionary = [
             "termsDisplay": [String: String]()

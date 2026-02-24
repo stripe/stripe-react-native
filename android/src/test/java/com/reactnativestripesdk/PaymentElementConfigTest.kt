@@ -1151,6 +1151,16 @@ class PaymentElementConfigTest {
   }
 
   @Test
+  fun mapToTermsDisplay_InvalidPaymentMethodType_Skipped() {
+    val params =
+      readableMapOf(
+        "termsDisplay" to readableMapOf("foobar" to "never"),
+      )
+    val result = mapToTermsDisplay(params)
+    assertNull(result)
+  }
+
+  @Test
   fun mapToTermsDisplay_EmptyMap_ReturnsNull() {
     val params =
       readableMapOf(
