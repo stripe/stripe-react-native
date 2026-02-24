@@ -100,10 +100,10 @@ export type SetupParamsBase = IntentParams & {
   /**
    * A map of payment method types to their terms display configuration.
    * Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
-   * Keys are payment method type strings (e.g. "card"), values are 'automatic' or 'never'.
-   * If not set, defaults to 'automatic' for all payment method types.
+   * Keys are payment method type strings (e.g. "card"), values are `TermsDisplay.AUTOMATIC` or `TermsDisplay.NEVER`.
+   * If not set, defaults to `TermsDisplay.AUTOMATIC` for all payment method types.
    *
-   * Example: `{ card: 'never' }` to hide the card mandate disclaimer.
+   * Example: `{ card: TermsDisplay.NEVER }` to hide the card mandate disclaimer.
    */
   termsDisplay?: {
     [key: string]: TermsDisplay;
