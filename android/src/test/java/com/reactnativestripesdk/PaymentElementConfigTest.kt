@@ -3,6 +3,7 @@ package com.reactnativestripesdk
 import com.reactnativestripesdk.utils.PaymentSheetException
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
 import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
@@ -1095,6 +1096,67 @@ class PaymentElementConfigTest {
           ),
       )
     val result = mapToAllowedCardFundingTypes(params)
+    assertNull(result)
+  }
+
+  // ============================================
+  // mapToTermsDisplay Tests
+  // ============================================
+
+  @Test
+  fun mapToTermsDisplay_NullParams_ReturnsNull() {
+    val result = mapToTermsDisplay(null)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToTermsDisplay_NoTermsDisplayKey_ReturnsNull() {
+    val params = readableMapOf("someOtherKey" to "value")
+    val result = mapToTermsDisplay(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToTermsDisplay_CardNever_ReturnsSingleEntry() {
+    val params =
+      readableMapOf(
+        "termsDisplay" to readableMapOf("card" to "never"),
+      )
+    val result = mapToTermsDisplay(params)
+    assertNotNull(result)
+    assertEquals(1, result!!.size)
+    assertEquals(PaymentSheet.TermsDisplay.NEVER, result[PaymentMethod.Type.Card])
+  }
+
+  @Test
+  fun mapToTermsDisplay_CardAutomatic_ReturnsSingleEntry() {
+    val params =
+      readableMapOf(
+        "termsDisplay" to readableMapOf("card" to "automatic"),
+      )
+    val result = mapToTermsDisplay(params)
+    assertNotNull(result)
+    assertEquals(1, result!!.size)
+    assertEquals(PaymentSheet.TermsDisplay.AUTOMATIC, result[PaymentMethod.Type.Card])
+  }
+
+  @Test
+  fun mapToTermsDisplay_InvalidValue_Skipped() {
+    val params =
+      readableMapOf(
+        "termsDisplay" to readableMapOf("card" to "invalid"),
+      )
+    val result = mapToTermsDisplay(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapToTermsDisplay_EmptyMap_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "termsDisplay" to readableMapOf(),
+      )
+    val result = mapToTermsDisplay(params)
     assertNull(result)
   }
 

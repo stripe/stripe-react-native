@@ -164,6 +164,50 @@ class PaymentSheetUtilsTests: XCTestCase {
         )
     }
 
+    // MARK: - mapToTermsDisplay Tests
+
+    func test_mapToTermsDisplay_noTermsDisplay_returnsNil() {
+        let params: NSDictionary = [:]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNil(result)
+    }
+
+    func test_mapToTermsDisplay_cardNever_returnsSingleEntry() {
+        let params: NSDictionary = [
+            "termsDisplay": ["card": "never"]
+        ]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.count, 1)
+        XCTAssertEqual(result?[.card], .never)
+    }
+
+    func test_mapToTermsDisplay_cardAutomatic_returnsSingleEntry() {
+        let params: NSDictionary = [
+            "termsDisplay": ["card": "automatic"]
+        ]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.count, 1)
+        XCTAssertEqual(result?[.card], .automatic)
+    }
+
+    func test_mapToTermsDisplay_invalidValue_returnsNil() {
+        let params: NSDictionary = [
+            "termsDisplay": ["card": "invalid"]
+        ]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNil(result)
+    }
+
+    func test_mapToTermsDisplay_emptyMap_returnsNil() {
+        let params: NSDictionary = [
+            "termsDisplay": [String: String]()
+        ]
+        let result = StripeSdkImpl.mapToTermsDisplay(params: params)
+        XCTAssertNil(result)
+    }
+
     // MARK: - computeCardBrandAcceptance Tests
 
     func test_computeCardBrandAcceptance_nilParams_returnsAll() {

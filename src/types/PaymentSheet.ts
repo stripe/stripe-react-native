@@ -97,6 +97,17 @@ export type SetupParamsBase = IntentParams & {
    * the card entry form will initialize with the card scanner already open.
    * Defaults to false. */
   opensCardScannerAutomatically?: boolean;
+  /**
+   * A map of payment method types to their terms display configuration.
+   * Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+   * Keys are payment method type strings (e.g. "card"), values are 'automatic' or 'never'.
+   * If not set, defaults to 'automatic' for all payment method types.
+   *
+   * Example: `{ card: 'never' }` to hide the card mandate disclaimer.
+   */
+  termsDisplay?: {
+    [key: string]: TermsDisplay;
+  };
 };
 
 export type SetupParams =
@@ -186,6 +197,16 @@ export enum LinkDisplay {
   /** Link will be displayed when available. */
   AUTOMATIC = 'automatic',
   /** Link will never be displayed. */
+  NEVER = 'never',
+}
+
+/**
+ * Controls whether legal terms (e.g. mandate disclaimers) are displayed for a payment method.
+ */
+export enum TermsDisplay {
+  /** Show legal agreements only when necessary. */
+  AUTOMATIC = 'automatic',
+  /** Never show legal agreements. */
   NEVER = 'never',
 }
 

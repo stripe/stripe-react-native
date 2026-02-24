@@ -298,6 +298,8 @@ class PaymentSheetManager(
       mapToPaymentMethodLayout(arguments.getString("paymentMethodLayout")),
     )
 
+    mapToTermsDisplay(arguments)?.let { configurationBuilder.termsDisplay(it) }
+
     paymentSheetConfiguration = configurationBuilder.build()
 
     if (arguments.getBooleanOr("customFlow", false)) {
