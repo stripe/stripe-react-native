@@ -17,8 +17,8 @@ We want this community to be friendly and respectful to each other. Please follo
   - Terminal 1: `yarn example start`
   - Terminal 2: depending on what platform you want to build for run either
     - `yarn example ios`
-    - or
     - `yarn example android`
+    - `yarn example android --mode release` (for enabling card scanning functionality)
 
 The example app uses a pre-configured demo backend, so no server setup is required.
 
