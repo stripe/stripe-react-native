@@ -226,7 +226,8 @@ export function useOnramp() {
 
     /**
      * Presents UI to verify KYC information for the current Link user.
-     * Requires the user to be authenticated with prior calls to either `authenticateUser` or `authorize`, and also requires prior KYC info attachement via `attachKycInfo`.
+     * Requires the user to be authenticated with prior calls to either `authenticateUserWithToken` or `authorize`,
+     * and also requires prior KYC info attachement via `attachKycInfo`.
      *
      * @param updatedAddress: An optional updated address. Specify this parameter if the user has elected to change the address after a prior call to this API returned `UpdateAddress`. Otherwise, specify `null` to show the user's existing KYC information on the presented flow.
      *
