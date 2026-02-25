@@ -71,7 +71,8 @@ export interface Card {
 export type CreateParams =
   | CreateCardTokenParams
   | CreateBankAccountTokenParams
-  | CreatePiiTokenParams;
+  | CreatePiiTokenParams
+  | CreateAccountTokenParams;
 
 /** Creates a single-use token that represents a credit card’s details. Use this in combination with either the CardField or CardForm components. This token can be used in place of a credit card object with any API method. See https://stripe.com/docs/api/tokens/create_card*/
 export type CreateCardTokenParams = {
@@ -102,3 +103,18 @@ export type CreatePiiTokenParams = {
   /** The user's personal ID number */
   personalId: string;
 };
+
+export type AccountBusinessType = 'Company' | 'Individual';
+
+/** Creates a single-use token that wraps a user’s legal entity information. See https://stripe.com/docs/api/tokens/create_account */
+export type CreateAccountTokenParams = {
+  type: 'Account';
+  businessType: AccountBusinessType;
+  individual?: AccountIndividual;
+  tosShownAndAccepted?: boolean;
+};
+
+export type AccountIndividual = {
+  phone?: string;
+  email?: string;
+}
