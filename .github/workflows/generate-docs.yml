@@ -3,11 +3,14 @@ name: Generate docs
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   generate-docs:
     name: generate-docs
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
       - name: checkout
         uses: actions/checkout@v4
