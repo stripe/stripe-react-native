@@ -673,7 +673,7 @@ export type SetupMode = {
 
 export enum PaymentMethodLayout {
   /**
-   * Payment methods are arranged horizontally.
+   * Payment methods are arranged horizontally. TEST UPDATE
    * Users can swipe left or right to navigate through different payment methods.
    */
   Horizontal = 'Horizontal',
