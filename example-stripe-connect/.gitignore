@@ -18,6 +18,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Signing credentials (DO NOT COMMIT)
+.signing/
+keystore.properties
+
 # Metro
 .metro-health-check*
 
