@@ -1772,11 +1772,6 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         resolveWithCryptoOnrampNotAvailableError(resolve)
     }
 
-    @objc(authenticateUser:rejecter:)
-    public func authenticateUser(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolveWithCryptoOnrampNotAvailableError(resolve)
-    }
-
     @objc(authenticateUserWithToken:resolver:rejecter:)
     public func authenticateUserWithToken(
         _ linkAuthTokenClientSecret: String,
