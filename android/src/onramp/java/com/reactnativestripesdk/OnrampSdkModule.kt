@@ -58,6 +58,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -94,6 +95,11 @@ class OnrampSdkModule(
     this.publishableKey = publishableKey
 
     promise.resolve(null)
+  }
+
+  override fun invalidate() {
+    super.invalidate()
+    rnScope.cancel()
   }
 
   /**
