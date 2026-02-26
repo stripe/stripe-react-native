@@ -103,12 +103,12 @@ internal class PaymentMethodMessagingElementConfig {
             }
         }
 
-        var configuration = PaymentMethodMessagingElement.Configuration(
+        let configuration = PaymentMethodMessagingElement.Configuration(
             amount: amount,
             currency: currency,
             locale: locale,
             countryCode: country,
-            paymentMethodTypes: paymentMethodTypes,
+            paymentMethodTypes: paymentMethodTypes
         )
 
         return (nil, configuration)
