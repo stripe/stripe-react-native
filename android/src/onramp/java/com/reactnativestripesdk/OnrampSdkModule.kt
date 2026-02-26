@@ -3,7 +3,6 @@ package com.reactnativestripesdk
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.graphics.Color
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.SavedStateHandle
 import com.facebook.react.bridge.Arguments
@@ -33,7 +32,6 @@ import com.stripe.android.crypto.onramp.model.OnrampAuthorizeResult
 import com.stripe.android.crypto.onramp.model.OnrampCallbacks
 import com.stripe.android.crypto.onramp.model.OnrampCheckoutResult
 import com.stripe.android.crypto.onramp.model.OnrampCollectPaymentMethodResult
-import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.OnrampConfigurationResult
 import com.stripe.android.crypto.onramp.model.OnrampCreateCryptoPaymentTokenResult
 import com.stripe.android.crypto.onramp.model.OnrampHasLinkAccountResult
@@ -45,10 +43,6 @@ import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
 import com.stripe.android.crypto.onramp.model.PaymentMethodType
-import com.stripe.android.link.LinkAppearance
-import com.stripe.android.link.LinkAppearance.Colors
-import com.stripe.android.link.LinkAppearance.PrimaryButton
-import com.stripe.android.link.LinkAppearance.Style
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
@@ -161,26 +155,7 @@ class OnrampSdkModule(
         .also { this.onrampCoordinator = it }
 
     CoroutineScope(Dispatchers.IO).launch {
-      val appearanceMap = config.getMap("appearance")
-      val appearance =
-        if (appearanceMap != null) {
-          mapAppearance(appearanceMap)
-        } else {
-          LinkAppearance()
-            .style(Style.AUTOMATIC)
-        }
-
-      val displayName = config.getString("merchantDisplayName") ?: ""
-
-      val cryptoCustomerId = config.getString("cryptoCustomerId")
-
-      val configuration =
-        OnrampConfiguration()
-          .merchantDisplayName(displayName)
-          .publishableKey(publishableKey)
-          .appearance(appearance)
-          .cryptoCustomerId(cryptoCustomerId)
-
+      val configuration = mapConfig(config, publishableKey)
       val configureResult = coordinator.configure(configuration)
 
       CoroutineScope(Dispatchers.Main).launch {
@@ -659,74 +634,6 @@ class OnrampSdkModule(
         handleAuthenticateUserWithTokenResult(result, promise)
       }
     }
-  }
-
-  private fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
-    val lightColorsMap = appearanceMap.getMap("lightColors")
-    val darkColorsMap = appearanceMap.getMap("darkColors")
-    val styleStr = appearanceMap.getString("style")
-    val primaryButtonMap = appearanceMap.getMap("primaryButton")
-
-    val lightColors =
-      if (lightColorsMap != null) {
-        val primaryColorStr = lightColorsMap.getString("primary")
-        val contentColorStr = lightColorsMap.getString("contentOnPrimary")
-        val borderSelectedColorStr = lightColorsMap.getString("borderSelected")
-
-        Colors()
-          .primary(Color(android.graphics.Color.parseColor(primaryColorStr)))
-          .contentOnPrimary(Color(android.graphics.Color.parseColor(contentColorStr)))
-          .borderSelected(Color(android.graphics.Color.parseColor(borderSelectedColorStr)))
-      } else {
-        Colors()
-      }
-
-    val darkColors =
-      if (darkColorsMap != null) {
-        val primaryColorStr = darkColorsMap.getString("primary")
-        val contentColorStr = darkColorsMap.getString("contentOnPrimary")
-        val borderSelectedColorStr = darkColorsMap.getString("borderSelected")
-
-        Colors()
-          .primary(Color(android.graphics.Color.parseColor(primaryColorStr)))
-          .contentOnPrimary(Color(android.graphics.Color.parseColor(contentColorStr)))
-          .borderSelected(Color(android.graphics.Color.parseColor(borderSelectedColorStr)))
-      } else {
-        Colors()
-      }
-
-    val style =
-      when (styleStr) {
-        "ALWAYS_LIGHT" -> Style.ALWAYS_LIGHT
-        "ALWAYS_DARK" -> Style.ALWAYS_DARK
-        else -> Style.AUTOMATIC
-      }
-
-    val primaryButton =
-      if (primaryButtonMap != null) {
-        PrimaryButton()
-          .cornerRadiusDp(
-            if (primaryButtonMap.hasKey("cornerRadius")) {
-              primaryButtonMap.getDouble("cornerRadius").toFloat()
-            } else {
-              null
-            },
-          ).heightDp(
-            if (primaryButtonMap.hasKey("height")) {
-              primaryButtonMap.getDouble("height").toFloat()
-            } else {
-              null
-            },
-          )
-      } else {
-        PrimaryButton()
-      }
-
-    return LinkAppearance()
-      .lightColors(lightColors)
-      .darkColors(darkColors)
-      .style(style)
-      .primaryButton(primaryButton)
   }
 
   private fun handleOnrampIdentityVerificationResult(
