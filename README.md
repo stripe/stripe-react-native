@@ -39,15 +39,15 @@ npm install @stripe/stripe-react-native
 
 ### Expo
 
-> [Find Expo's full documentation here](https://docs.expo.io/versions/latest/sdk/stripe/).
+> [Find Expo's full documentation here](https://docs.expo.dev/versions/latest/sdk/stripe/).
 
 Each Expo SDK version requires a specific `stripe-react-native` version. See the [CHANGELOG](./CHANGELOG.md) for a mapping of versions. To install the correct version for your Expo SDK version run:
 
 ```sh
-expo install @stripe/stripe-react-native
+npx expo install @stripe/stripe-react-native
 ```
 
-Next, add:
+Next, add the config plugin to your `app.json` file:
 
 ```json
 {
@@ -66,7 +66,9 @@ Next, add:
 }
 ```
 
-to your `app.json` file, where `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array.
+In the above code snippet:
+- `merchantIdentifier` is the Apple merchant ID obtained [here](https://stripe.com/docs/apple-pay?platform=react-native). Otherwise, Apple Pay will not work as expected. If you have multiple `merchantIdentifier`s, you can set them in an array.
+- `enableGooglePay` is a boolean to indicate whether the Google Pay is enabled or not.
 
 ### Requirements
 
