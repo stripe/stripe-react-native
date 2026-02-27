@@ -24,7 +24,6 @@ export interface Spec extends TurboModule {
     updatedAddress: UnsafeObject<Address> | null
   ) => Promise<Onramp.VerifyKycResult>;
   updatePhoneNumber(phone: string): Promise<Onramp.VoidResult>;
-  authenticateUser(): Promise<Onramp.AuthenticateUserResult>;
   authenticateUserWithToken(
     linkAuthTokenClientSecret: string
   ): Promise<Onramp.VoidResult>;

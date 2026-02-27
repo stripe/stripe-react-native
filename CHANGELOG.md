@@ -4,6 +4,10 @@
 **Fixes**
 * [Fixed] A build issue when using Xcode 16 ([#2323](https://github.com/stripe/stripe-react-native/issues/2323))
 
+**Changes**
+* [Breaking] `authenticateUser` has been removed in favor of `onrampAuthorize` in `useOnramp` hook.
+* [Changed] Updated Stripe Android from 22.7.+ to 22.8.+
+
 ## 0.59.0 - 2026-02-20
 
 **Features**

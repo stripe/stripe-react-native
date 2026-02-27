@@ -69,11 +69,6 @@ class FakeOnrampSdkModule(
   }
 
   @ReactMethod
-  override fun authenticateUser(promise: Promise?) {
-    promise?.resolveNotImplemented()
-  }
-
-  @ReactMethod
   override fun verifyIdentity(promise: Promise?) {
     promise?.resolveNotImplemented()
   }
