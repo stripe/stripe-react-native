@@ -1827,7 +1827,7 @@ PODS:
     - StripePayments (= 25.7.0)
     - StripePaymentsUI (= 25.7.0)
     - StripeUICore (= 25.7.0)
-  - stripe-react-native (0.59.0):
+  - stripe-react-native (0.59.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1848,10 +1848,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.59.0)
-    - stripe-react-native/NewArch (= 0.59.0)
+    - stripe-react-native/Core (= 0.59.1)
+    - stripe-react-native/NewArch (= 0.59.1)
     - Yoga
-  - stripe-react-native/Core (0.59.0):
+  - stripe-react-native/Core (0.59.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1879,7 +1879,7 @@ PODS:
     - StripePaymentSheet (~> 25.7.0)
     - StripePaymentsUI (~> 25.7.0)
     - Yoga
-  - stripe-react-native/NewArch (0.59.0):
+  - stripe-react-native/NewArch (0.59.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1901,7 +1901,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.59.0):
+  - stripe-react-native/Onramp (0.59.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1925,7 +1925,7 @@ PODS:
     - stripe-react-native/Core
     - StripeCryptoOnramp (~> 25.7.0)
     - Yoga
-  - stripe-react-native/Tests (0.59.0):
+  - stripe-react-native/Tests (0.59.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2312,7 +2312,7 @@ SPEC CHECKSUMS:
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: 5a268e3dfb92bbb760b74204566b94bb5bac1bad
-  stripe-react-native: fab444deef0f860690e250992a7a013198294e5a
+  stripe-react-native: e68e9c8a291154b1704bcfd83a45ff196a67f6f3
   StripeApplePay: b00ac8e20b37c6ff8e1560bb75cb29b44d1e9c6e
   StripeCameraCore: 32629ce9af97164758ea8f31b581f23b9a755bc2
   StripeCore: 4dee30f1a4df24aea608b07d43fb76e05a231e8e
@@ -2328,4 +2328,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

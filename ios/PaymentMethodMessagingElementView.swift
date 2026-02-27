@@ -76,7 +76,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         let messagingElementView = messagingElement.view
         addSubview(messagingElementView)
         messagingElementView.translatesAutoresizingMaskIntoConstraints = false
+        let height = self.messagingInstance?.view.systemLayoutSizeFitting(CGSize(width: self.messagingInstance?.view.bounds.width ?? 0, height: UIView.layoutFittingCompressedSize.height)).height
 
+        StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": height ?? 0])
         NSLayoutConstraint.activate([
             messagingElementView.topAnchor.constraint(equalTo: topAnchor),
             messagingElementView.leadingAnchor.constraint(equalTo: leadingAnchor),
