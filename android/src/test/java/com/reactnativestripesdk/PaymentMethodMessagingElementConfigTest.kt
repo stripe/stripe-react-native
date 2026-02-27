@@ -365,7 +365,7 @@ class PaymentMethodMessagingElementConfigTest {
         val colors =
           PaymentMethodMessagingElement.Appearance
             .Colors()
-            .infoIconColor("#0000FF".toColorInt())
+            .linkTextColor("#0000FF".toColorInt())
         colors(colors)
       }
 
@@ -391,7 +391,7 @@ class PaymentMethodMessagingElementConfigTest {
         val colors =
           PaymentMethodMessagingElement.Appearance
             .Colors()
-            .infoIconColor("#0000FF".toColorInt())
+            .linkTextColor("#0000FF".toColorInt())
         colors(colors)
       }
 
@@ -526,7 +526,7 @@ class PaymentMethodMessagingElementConfigTest {
     expected: Any,
     actual: Any,
   ) {
-    val fieldNames = listOf("textColor", "infoIconColor")
+    val fieldNames = listOf("textColor", "linkTextColor")
 
     for (fieldName in fieldNames) {
       val expectedField = expected.javaClass.getDeclaredField(fieldName)

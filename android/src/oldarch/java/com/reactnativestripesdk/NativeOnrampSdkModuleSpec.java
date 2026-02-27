@@ -74,10 +74,6 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
-  public abstract void authenticateUser(Promise promise);
-
-  @ReactMethod
-  @DoNotStrip
   public abstract void verifyIdentity(Promise promise);
 
   @ReactMethod
