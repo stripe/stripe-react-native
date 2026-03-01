@@ -267,6 +267,31 @@ const StripeConstants = {
       Failed: 'failed',
     },
   },
+
+  PaymentIntent: {
+    Status: {
+      Succeeded: 'Succeeded',
+      RequiresPaymentMethod: 'RequiresPaymentMethod',
+      RequiresConfirmation: 'RequiresConfirmation',
+      Canceled: 'Canceled',
+      Processing: 'Processing',
+      RequiresAction: 'RequiresAction',
+      RequiresCapture: 'RequiresCapture',
+      Unknown: 'Unknown',
+    },
+  },
+
+  SetupIntent: {
+    Status: {
+      Succeeded: 'Succeeded',
+      RequiresPaymentMethod: 'RequiresPaymentMethod',
+      RequiresConfirmation: 'RequiresConfirmation',
+      Canceled: 'Canceled',
+      Processing: 'Processing',
+      RequiresAction: 'RequiresAction',
+      Unknown: 'Unknown',
+    },
+  },
 };
 
 // EmbeddedPaymentElement constants and enums for testing
@@ -376,23 +401,3 @@ module.exports = {
   PlatformPayButton: () => 'PlatformPayButton',
   useStripe: jest.fn(() => mockFunctions),
 };
-
-// Mock NativeStripeSdkModule with getConstants for system info
-jest.mock('./src/specs/NativeStripeSdkModule', () => ({
-  default: {
-    getConstants: jest.fn(() => ({
-      API_VERSIONS: {
-        CORE: '2024-12-15',
-        ISSUING: '2024-12-15',
-      },
-      SYSTEM_INFO: {
-        sdkVersion: '1.0.0',
-        osVersion: '18.0',
-        deviceType: 'iPhone14,5',
-        appName: 'TestApp',
-        appVersion: '1.0.0',
-      },
-    })),
-    openAuthenticatedWebView: jest.fn(),
-  },
-}));
