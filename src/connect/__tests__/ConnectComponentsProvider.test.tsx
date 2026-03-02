@@ -1,3 +1,10 @@
+// Mock dependencies BEFORE imports
+import { mockCreateNativeStripeSdkMock } from '../testUtils';
+
+jest.mock('../../specs/NativeStripeSdkModule', () =>
+  mockCreateNativeStripeSdkMock()
+);
+
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import {

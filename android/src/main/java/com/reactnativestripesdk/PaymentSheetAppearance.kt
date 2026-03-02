@@ -537,7 +537,7 @@ private fun dynamicColorFromParams(
 }
 
 @Throws(PaymentSheetAppearanceException::class)
-private fun getFontResId(
+internal fun getFontResId(
   map: ReadableMap?,
   key: String,
   context: Context,

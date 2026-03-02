@@ -43,12 +43,6 @@ RCT_EXPORT_METHOD(registerLinkUser:(nonnull NSDictionary *)info
   [StripeSdkImpl.shared registerLinkUser:info resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(authenticateUser:(nonnull RCTPromiseResolveBlock)resolve
-                            reject:(nonnull RCTPromiseRejectBlock)reject)
-{
-  [StripeSdkImpl.shared authenticateUser:resolve rejecter:reject];
-}
-
 RCT_EXPORT_METHOD(authenticateUserWithToken:(nonnull NSString *)linkAuthTokenClientSecret
                                     resolve:(nonnull RCTPromiseResolveBlock)resolve
                                      reject:(nonnull RCTPromiseRejectBlock)reject)

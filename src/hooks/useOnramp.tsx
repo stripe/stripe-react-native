@@ -82,11 +82,6 @@ export function useOnramp() {
     []
   );
 
-  const _authenticateUser =
-    useCallback(async (): Promise<Onramp.AuthenticateUserResult> => {
-      return NativeOnrampSdk.authenticateUser();
-    }, []);
-
   const _verifyIdentity = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
@@ -231,7 +226,8 @@ export function useOnramp() {
 
     /**
      * Presents UI to verify KYC information for the current Link user.
-     * Requires the user to be authenticated with prior calls to either `authenticateUser` or `authorize`, and also requires prior KYC info attachement via `attachKycInfo`.
+     * Requires the user to be authenticated with prior calls to either `authenticateUserWithToken` or `authorize`,
+     * and also requires prior KYC info attachement via `attachKycInfo`.
      *
      * @param updatedAddress: An optional updated address. Specify this parameter if the user has elected to change the address after a prior call to this API returned `UpdateAddress`. Otherwise, specify `null` to show the user's existing KYC information on the presented flow.
      *
@@ -246,14 +242,6 @@ export function useOnramp() {
      * @returns Promise that resolves to an object with an optional error property
      */
     updatePhoneNumber: _updatePhoneNumber,
-
-    /**
-     * Presents Link UI to authenticate an existing Link user.
-     * `hasLinkAccount` must be called before this.
-     *
-     * @returns Promise that resolves to an object with customerId or error
-     */
-    authenticateUser: _authenticateUser,
 
     /**
      * Authenticates the user with an encrypted Link auth token.

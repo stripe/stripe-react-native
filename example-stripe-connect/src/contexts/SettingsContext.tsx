@@ -90,9 +90,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   const publishableKey = appInfo?.publishable_key ?? null;
 
   // Find the selected merchant from the list
-  const selectedMerchant =
-    availableMerchants.find((m) => m.merchant_id === selectedMerchantId) ??
-    null;
+  const selectedMerchant = useMemo(() => {
+    // If no merchant ID is selected, return null
+    if (!selectedMerchantId) return null;
+
+    // Try to find in available merchants first
+    const found = availableMerchants.find(
+      (m) => m.merchant_id === selectedMerchantId
+    );
+
+    // If found, return it
+    if (found) return found;
+
+    // If not found, create a custom merchant object
+    // This supports custom merchant IDs entered by the user
+    return {
+      merchant_id: selectedMerchantId,
+      display_name: 'Other',
+    };
+  }, [selectedMerchantId, availableMerchants]);
 
   // Load settings from AsyncStorage on mount
   useEffect(() => {

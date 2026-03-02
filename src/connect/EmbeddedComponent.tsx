@@ -26,6 +26,7 @@ import type {
   StripeConnectInitParams,
 } from './connectTypes';
 import type { FinancialConnections } from '../types';
+import { ComponentAnalyticsClient } from './analytics/ComponentAnalyticsClient';
 
 const DEVELOPMENT_MODE = false;
 const DEVELOPMENT_URL =
@@ -34,6 +35,12 @@ const PRODUCTION_URL = 'https://connect-js.stripe.com';
 const BASE_URL = DEVELOPMENT_MODE ? DEVELOPMENT_URL : PRODUCTION_URL;
 
 const sdkVersion = pjson.version;
+
+// Android deep link polling configuration
+// These constants control the polling mechanism that prevents Expo Router from dismissing screens
+const POLLING_INTERVAL_MS = 500; // How often to check for pending deep links
+const URL_DEDUPLICATION_TIMEOUT_MS = 1000; // How long to remember handled URLs
+const DEEP_LINK_GRACE_PERIOD_MS = 500; // Time to wait for deep link after app resumes
 
 // react-native-webview.html will only load versions in the format X.Y.Z
 if (!/^\d+\.\d+\.\d+$/.test(sdkVersion)) {
@@ -139,17 +146,28 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     WebView: typeof WebView | null;
   } | null>(null);
 
-  // Store pending authenticated webview promise (for Android Custom Tabs)
-  const pendingAuthWebViewPromise = useRef<{
-    id: string;
-    callback: (id: string, url: string | null) => void;
-  } | null>(null);
+  // Store pending authenticated webview promises (for Android Custom Tabs)
+  // Uses a Map keyed by auth session ID to support multiple auth flows.
+  // Currently processes promises in FIFO order (first entry resolved first).
+  const pendingAuthWebViewPromises = useRef<
+    Map<
+      string,
+      {
+        callback: (id: string, url: string | null) => void;
+        timeoutId?: NodeJS.Timeout;
+      }
+    >
+  >(new Map());
 
   // Store pending Financial Connections promise
   const pendingFinancialConnectionsPromise = useRef<{
     id: string;
     cleanup: () => void;
   } | null>(null);
+
+  // Track recently handled URLs to prevent duplicate processing
+  // This is needed because the SDK uses dual delivery paths (setIntent + direct emit)
+  const recentlyHandledUrls = useRef<Set<string>>(new Set());
 
   const loadWebViewComponent = useCallback(async () => {
     if (dynamicWebview) return;
@@ -170,16 +188,106 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
+  // Android deep link polling mechanism (Android-only)
+  //
+  // PROBLEM: On Android, completing auth in Custom Tabs causes a stripe-connect:// deep link
+  // that gets broadcast to React Native's Linking module, which triggers Expo Router and
+  // dismisses the current screen.
+  //
+  // SOLUTION: This polling mechanism intercepts the deep link before Expo Router receives it:
+  // 1. MainActivity.onNewIntent() captures stripe-connect:// URLs and stores them
+  // 2. This effect polls for pending URLs while auth is active
+  // 3. URLs are processed directly and never broadcast to Expo Router
+  // 4. Deduplication prevents the same URL from being processed twice
+  //
+  // This preserves the navigation stack and prevents unwanted screen dismissals.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const pollInterval = setInterval(async () => {
+      if (pendingAuthWebViewPromises.current.size === 0) {
+        return;
+      }
+
+      try {
+        const pendingUrls =
+          await NativeStripeSdk.pollAndClearPendingStripeConnectUrls();
+
+        if (pendingUrls && pendingUrls.length > 0) {
+          pendingUrls.forEach((url: string) => {
+            if (url.startsWith('stripe-connect://')) {
+              // Deduplication: Skip if we've handled this exact URL
+              if (recentlyHandledUrls.current.has(url)) {
+                return;
+              }
+
+              // Mark as handled
+              recentlyHandledUrls.current.add(url);
+
+              // Clear from the set after deduplication timeout
+              setTimeout(() => {
+                recentlyHandledUrls.current.delete(url);
+              }, URL_DEDUPLICATION_TIMEOUT_MS);
+
+              const firstEntry = pendingAuthWebViewPromises.current
+                .entries()
+                .next().value;
+
+              if (firstEntry) {
+                const [id, promiseData] = firstEntry;
+
+                // Clear the timeout if it exists
+                if (promiseData.timeoutId) {
+                  clearTimeout(promiseData.timeoutId);
+                }
+
+                // Remove from Map and invoke callback
+                pendingAuthWebViewPromises.current.delete(id);
+                promiseData.callback(id, url);
+
+                // Reset the Android flag
+                NativeStripeSdk.authWebViewDeepLinkHandled(id).catch(() => {
+                  // Intentionally silent - flag reset is not critical
+                });
+              }
+            }
+          });
+        }
+      } catch (_error) {
+        // Intentionally silent - polling will retry on next interval
+      }
+    }, POLLING_INTERVAL_MS);
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Handle app state changes to detect when user returns from auth flow
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        if (pendingAuthWebViewPromise.current) {
-          const { id, callback } = pendingAuthWebViewPromise.current;
-          pendingAuthWebViewPromise.current = null;
-          callback(id, null);
+        if (pendingAuthWebViewPromises.current.size > 0) {
+          // Give the deep link handler time to process the URL
+          // If no deep link arrives within the grace period, assume the user cancelled
+          pendingAuthWebViewPromises.current.forEach((promiseData, id) => {
+            // Only set timeout if one doesn't already exist
+            if (!promiseData.timeoutId) {
+              const timeoutId = setTimeout(() => {
+                const stillPending = pendingAuthWebViewPromises.current.get(id);
+                if (stillPending) {
+                  pendingAuthWebViewPromises.current.delete(id);
+                  stillPending.callback(id, null);
+                }
+              }, DEEP_LINK_GRACE_PERIOD_MS);
+
+              // Store the timeout ID so we can clear it later if needed
+              promiseData.timeoutId = timeoutId;
+            }
+          });
         }
       }
 
@@ -187,13 +295,23 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     });
 
     return () => {
-      pendingAuthWebViewPromise.current = null;
+      // Clear all pending timeouts and promises
+      // We intentionally want the latest ref value at cleanup time
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const promises = pendingAuthWebViewPromises.current;
+      promises.forEach((promiseData, _id) => {
+        if (promiseData.timeoutId) {
+          clearTimeout(promiseData.timeoutId);
+        }
+      });
+      promises.clear();
       pendingFinancialConnectionsPromise.current?.cleanup();
       subscription.remove();
     };
   }, []);
 
-  const { connectInstance, appearance, locale } = useConnectComponents();
+  const { connectInstance, appearance, locale, analyticsClient } =
+    useConnectComponents();
   const { fonts, publishableKey, fetchClientSecret, overrides } =
     connectInstance.initParams as StripeConnectInitParamsInternal;
 
@@ -206,6 +324,22 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     callbacks,
     style,
   } = props;
+
+  // Initialize component analytics client
+  const componentAnalytics = useMemo(
+    () =>
+      new ComponentAnalyticsClient(analyticsClient, {
+        publishableKey,
+        platformId: overrides?.platformId,
+        merchantId: overrides?.merchantId,
+        livemode:
+          typeof overrides?.livemode === 'boolean'
+            ? overrides.livemode
+            : publishableKey?.startsWith('pk_live_'),
+        component,
+      }),
+    [analyticsClient, publishableKey, overrides, component]
+  );
 
   const hashParams = {
     component,
@@ -292,6 +426,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     return undefined;
   }, [WebViewComponent]);
 
+  // Track component lifecycle events
+  useEffect(() => {
+    // Log component created
+    componentAnalytics.logComponentCreated();
+  }, [componentAnalytics]);
+
+  // Track component viewed (when web view is visible)
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const handleLayout = useCallback(() => {
+    if (!hasBeenViewed) {
+      setHasBeenViewed(true);
+      componentAnalytics.logComponentViewed();
+    }
+  }, [hasBeenViewed, componentAnalytics]);
+
   const handleAuthWebViewResult = (id: string, resultUrl: string | null) => {
     ref.current?.injectJavaScript(`
       (function() {
@@ -339,10 +488,16 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
 
   const onMessageCallback = useCallback(
     async (event: WebViewMessageEvent) => {
-      const message = JSON.parse(event.nativeEvent.data) as {
-        type: string;
-        data?: unknown;
-      };
+      let message: { type: string; data?: unknown };
+      try {
+        message = JSON.parse(event.nativeEvent.data);
+      } catch (error) {
+        componentAnalytics.logDeserializeMessageError(
+          'unknown',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return;
+      }
 
       if (message.type === 'fetchClientSecret') {
         const clientSecret = await fetchClientSecret().catch((error) => {
@@ -360,7 +515,13 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
         // message.data is of type string
         console.debug(`[EmbeddedComponent ${component}]: ${message.data}`);
       } else if (message.type === 'pageDidLoad') {
+        const pageViewId = (message.data as { pageViewId?: string })
+          ?.pageViewId;
+        componentAnalytics.logComponentWebPageLoaded(pageViewId);
         onPageDidLoad?.();
+      } else if (message.type === 'componentLoaded') {
+        // Connect JS fully initialized
+        componentAnalytics.logComponentLoaded();
       } else if (message.type === 'accountSessionClaimed') {
         // message.data is of type {elementTagName: string, merchantId: string}
       } else if (message.type === 'openFinancialConnections') {
@@ -488,7 +649,12 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           // remove the 'set' prefix and lowercase the first letter
           const functionName =
             setter.charAt(3).toLowerCase() + setter.substring(4);
-          callbacks?.[functionName]?.(value);
+          if (callbacks?.[functionName]) {
+            callbacks[functionName](value);
+          } else {
+            // Unrecognized setter function
+            componentAnalytics.logUnrecognizedSetter(setter);
+          }
         }
       } else if (message.type === 'openAuthenticatedWebView') {
         const { url, id } = message.data as { id: string; url: string };
@@ -501,22 +667,51 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
           return;
         }
 
+        // Log authenticated web view opened
+        componentAnalytics.logAuthenticatedWebViewOpened(id);
+
         // On Android, we need to wait for the deep link callback
         // On iOS, the promise resolves with the redirect URL
         NativeStripeSdk.openAuthenticatedWebView(id, url)
           .then((result) => {
             if (Platform.OS === 'ios') {
               // iOS returns the redirect URL directly
-              handleAuthWebViewResult(id, result?.url ?? null);
+              const resultUrl = result?.url ?? null;
+              if (resultUrl) {
+                componentAnalytics.logAuthenticatedWebViewRedirected(id);
+              } else {
+                componentAnalytics.logAuthenticatedWebViewCanceled(id);
+              }
+              handleAuthWebViewResult(id, resultUrl);
             } else {
-              // Android: Store promise to be resolved by deep link listener
-              pendingAuthWebViewPromise.current = {
-                id,
-                callback: handleAuthWebViewResult,
-              };
+              // Android: Store promise in Map to be resolved by deep link listener
+              pendingAuthWebViewPromises.current.set(id, {
+                callback: (authId: string, resultUrl: string | null) => {
+                  if (resultUrl) {
+                    componentAnalytics.logAuthenticatedWebViewRedirected(
+                      authId
+                    );
+                  } else {
+                    componentAnalytics.logAuthenticatedWebViewCanceled(authId);
+                  }
+                  handleAuthWebViewResult(authId, resultUrl);
+                },
+              });
             }
           })
-          .catch(handleUnexpectedError);
+          .catch((error) => {
+            if (__DEV__) {
+              console.error(
+                `[EmbeddedComponent] Error opening authenticated webview:`,
+                error
+              );
+            }
+            componentAnalytics.logAuthenticatedWebViewError(
+              id,
+              error instanceof Error ? error : new Error(String(error))
+            );
+            handleUnexpectedError(error);
+          });
       } else {
         // unhandled message
       }
@@ -524,6 +719,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
     [
       callbacks,
       component,
+      componentAnalytics,
       fetchClientSecret,
       handleUnexpectedError,
       onLoadError,
@@ -535,6 +731,21 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
   const onShouldStartLoadWithRequest = useCallback(
     (event: ShouldStartLoadRequest) => {
       const { url, navigationType } = event;
+
+      // Handle CSV export downloads
+      if (isCsvExportUrl(url)) {
+        NativeStripeSdk.downloadAndShareFile(url, null)
+          .then((result) => {
+            if (!result.success) {
+              console.warn('CSV export share failed:', result.error);
+            }
+          })
+          .catch((error) => {
+            handleUnexpectedError(error);
+          });
+        return false; // Block WebView navigation
+      }
+
       if (navigationType !== 'click') return true;
 
       // Allow navigation within allowed Stripe domains (matching iOS SDK behavior)
@@ -581,6 +792,7 @@ export function EmbeddedComponent(props: EmbeddedComponentProps) {
       injectedJavaScriptBeforeContentLoaded={'(function() {})();'}
       onMessage={onMessageCallback}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onLayout={handleLayout}
       // Camera/Media Permissions - matches iOS SDK behavior
       mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
       allowsInlineMediaPlayback={true}
@@ -611,6 +823,19 @@ function isValidUrl(url: string): boolean {
   try {
     const parsedUrl = new URL(url);
     return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// Detects Stripe CSV export URLs
+function isCsvExportUrl(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (
+      parsedUrl.hostname.includes('stripe-data-exports') ||
+      parsedUrl.pathname.includes('stripe-data-exports')
+    );
   } catch {
     return false;
   }

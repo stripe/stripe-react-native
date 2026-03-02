@@ -15,7 +15,6 @@ jest.mock('../src/specs/NativeOnrampSdkModule', () => ({
     attachKycInfo: jest.fn(),
     presentKycInfoVerification: jest.fn(),
     updatePhoneNumber: jest.fn(),
-    authenticateUser: jest.fn(),
     authenticateUserWithToken: jest.fn(),
     verifyIdentity: jest.fn(),
     collectPaymentMethod: jest.fn(),

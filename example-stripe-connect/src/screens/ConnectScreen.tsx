@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ConnectComponentsProvider,
   loadConnectAndInitialize,
@@ -82,7 +83,9 @@ const ConnectScreen: React.FC<Props> = ({ children }) => {
 
   return (
     <ConnectComponentsProvider connectInstance={stripeConnectInstance}>
-      <View style={styles.container}>{children}</View>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        {children}
+      </SafeAreaView>
     </ConnectComponentsProvider>
   );
 };

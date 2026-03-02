@@ -92,6 +92,24 @@ export type SetupParamsBase = IntentParams & {
   cardFundingFiltering?: CardFundingFiltering;
   /** Configuration for custom payment methods in PaymentSheet */
   customPaymentMethodConfiguration?: CustomPaymentMethodConfiguration;
+  /** By default, PaymentSheet offers a card scan button within the new card entry form.
+   * When opensCardScannerAutomatically is set to true,
+   * the card entry form will initialize with the card scanner already open.
+   * Defaults to false. */
+  opensCardScannerAutomatically?: boolean;
+  /**
+   * A map of payment method types to their terms display configuration.
+   * Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+   * Keys are snake_case payment method type strings (e.g. "card", "us_bank_account").
+   * See https://docs.stripe.com/api/payment_methods/object#payment_method_object-type for the full list of values.
+   * Values are `TermsDisplay.AUTOMATIC` or `TermsDisplay.NEVER`.
+   * If not set, defaults to `TermsDisplay.AUTOMATIC` for all payment method types.
+   *
+   * Example: `{ card: TermsDisplay.NEVER }` to hide the card mandate disclaimer.
+   */
+  termsDisplay?: {
+    [key: string]: TermsDisplay;
+  };
 };
 
 export type SetupParams =
@@ -181,6 +199,16 @@ export enum LinkDisplay {
   /** Link will be displayed when available. */
   AUTOMATIC = 'automatic',
   /** Link will never be displayed. */
+  NEVER = 'never',
+}
+
+/**
+ * Controls whether legal terms (e.g. mandate disclaimers) are displayed for a payment method.
+ */
+export enum TermsDisplay {
+  /** Show legal agreements only when necessary. */
+  AUTOMATIC = 'automatic',
+  /** Never show legal agreements. */
   NEVER = 'never',
 }
 

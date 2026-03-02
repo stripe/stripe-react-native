@@ -21,6 +21,7 @@ class CustomerSheetUtils {
         defaultBillingDetails: NSDictionary?,
         preferredNetworks: [Int]?,
         allowsRemovalOfLastSavedPaymentMethod: Bool?,
+        opensCardScannerAutomatically: Bool?,
         cardBrandAcceptance: PaymentSheet.CardBrandAcceptance
     ) -> CustomerSheet.Configuration {
         var config = CustomerSheet.Configuration()
@@ -58,6 +59,9 @@ class CustomerSheetUtils {
         }
         if let allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod {
             config.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
+        }
+        if let opensCardScannerAutomatically = opensCardScannerAutomatically {
+            config.opensCardScannerAutomatically = opensCardScannerAutomatically
         }
         config.cardBrandAcceptance = cardBrandAcceptance
         return config

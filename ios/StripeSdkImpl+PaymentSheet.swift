@@ -122,6 +122,10 @@ extension StripeSdkImpl {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
 
+        if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+            configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
+        }
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? [String] {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
@@ -146,6 +150,10 @@ extension StripeSdkImpl {
             from: customPaymentMethodConfig,
             sdkImpl: self
           )
+        }
+
+        if let termsDisplay = StripeSdkImpl.mapToTermsDisplay(params: params) {
+            configuration.termsDisplay = termsDisplay
         }
 
         return (nil, configuration)
@@ -475,6 +483,27 @@ extension StripeSdkImpl {
         default:
             return .automatic
         }
+    }
+
+    internal static func mapToTermsDisplay(params: NSDictionary) -> [STPPaymentMethodType: PaymentSheet.TermsDisplay]? {
+        guard let termsDisplayDict = params["termsDisplay"] as? [String: String] else {
+            return nil
+        }
+
+        var result: [STPPaymentMethodType: PaymentSheet.TermsDisplay] = [:]
+        for (code, value) in termsDisplayDict {
+            let paymentMethodType = STPPaymentMethodType.fromIdentifier(code)
+            let termsDisplay: PaymentSheet.TermsDisplay? = switch value {
+            case "never": .never
+            case "automatic": .automatic
+            default: nil
+            }
+            if paymentMethodType != .unknown, let termsDisplay {
+                result[paymentMethodType] = termsDisplay
+            }
+        }
+
+        return result.isEmpty ? nil : result
     }
 
     internal static func mapToLinkDisplay(value: String?) -> PaymentSheet.LinkConfiguration.Display {

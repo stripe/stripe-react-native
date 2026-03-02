@@ -1,4 +1,6 @@
 // Mock dependencies BEFORE imports
+import { mockCreateNativeStripeSdkMock } from '../testUtils';
+
 jest.mock('react-native-webview', () => {
   const React = require('react');
   return {
@@ -12,12 +14,11 @@ jest.mock('react-native-webview', () => {
   };
 });
 
-jest.mock('../../specs/NativeStripeSdkModule', () => ({
-  __esModule: true,
-  default: {
+jest.mock('../../specs/NativeStripeSdkModule', () =>
+  mockCreateNativeStripeSdkMock({
     openAuthenticatedWebView: jest.fn(),
-  },
-}));
+  })
+);
 
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';

@@ -34,6 +34,7 @@ import type {
   StripeError,
   Token,
   VerifyMicrodepositsParams,
+  CreateRadarSessionResult,
 } from '../types';
 import type {
   EmbeddedPaymentElementConfiguration,
@@ -108,7 +109,16 @@ export interface Spec extends TurboModule {
       Omit<PaymentMethod.CollectBankAccountParams, 'onEvent'>
     >
   ): Promise<ConfirmSetupIntentResult | ConfirmPaymentResult>;
-  getConstants(): { API_VERSIONS: { CORE: string; ISSUING: string } };
+  getConstants(): {
+    API_VERSIONS: { CORE: string; ISSUING: string };
+    SYSTEM_INFO: {
+      sdkVersion: string;
+      osVersion: string;
+      deviceType: string;
+      appName: string;
+      appVersion: string;
+    };
+  };
   canAddCardToWallet(
     params: UnsafeObject<CanAddCardToWalletParams>
   ): Promise<CanAddCardToWalletResult>;
@@ -193,6 +203,7 @@ export interface Spec extends TurboModule {
     intentConfig: UnsafeObject<IntentConfiguration>
   ): Promise<void>;
   clearEmbeddedPaymentOption(viewTag: Int32): Promise<void>;
+  createRadarSession(): Promise<CreateRadarSessionResult>;
 
   setFinancialConnectionsForceNativeFlow(enabled: boolean): Promise<void>;
 
@@ -200,6 +211,15 @@ export interface Spec extends TurboModule {
     id: string,
     url: string
   ): Promise<{ url?: string } | null>;
+
+  downloadAndShareFile(
+    url: string,
+    filename?: string | null
+  ): Promise<{ success: boolean; error?: string }>;
+  authWebViewDeepLinkHandled(id: string): Promise<void>;
+
+  storeStripeConnectDeepLink(url: string): Promise<void>;
+  pollAndClearPendingStripeConnectUrls(): Promise<string[]>;
 
   // Events
   addListener: (eventType: string) => void;

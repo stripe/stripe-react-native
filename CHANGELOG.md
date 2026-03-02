@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 0.59.1 - 2026-02-25
+**Fixes**
+* [Fixed] A build issue when using Xcode 16 ([#2323](https://github.com/stripe/stripe-react-native/issues/2323))
+
+**Changes**
+* [Breaking] `authenticateUser` has been removed in favor of `onrampAuthorize` in `useOnramp` hook.
+* [Changed] Updated Stripe Android from 22.7.+ to 22.8.+
+
+## 0.59.0 - 2026-02-20
+
+**Features**
+* [Added] Connect embedded components are now available in private preview, including Account Onboarding, Payments, and Payouts.
+
+**Changes**
+* [Added] Added support for creating a [Radar session](https://docs.stripe.com/radar/radar-session).
+
 ## 0.58.0 - 2026-01-27
 
 **Changes**
