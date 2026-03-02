@@ -26,7 +26,7 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 **PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps.
 - PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods.
 - PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
-- PaymentSheet integrates [Google Payment Card Recognition](https://developers.google.com/pay/payment-card-recognition/debit-credit-card-recognition) to provide card scanning ability on Android. To enable card scanning in your app, follow [our guide](https://docs.corp.stripe.com/payments/accept-a-payment?payment-ui=mobile&platform=react-native#react-native-card-scanning).
+- PaymentSheet provides card scanning on iOS and Android, with the Android functionality provided by [Google Payment Card Recognition](https://developers.google.com/pay/payment-card-recognition/debit-credit-card-recognition). To enable card scanning in your app, follow [our guide](https://docs.corp.stripe.com/payments/accept-a-payment?payment-ui=mobile&platform=react-native#react-native-card-scanning).
 
 #### Recommended usage
 
