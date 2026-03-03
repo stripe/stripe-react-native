@@ -123,7 +123,7 @@ workflows:
             - notify_user_groups: none
     meta:
       bitrise.io:
-        stack: osx-xcode-16.0.x
+        stack: osx-xcode-16.1.x
         machine_type_id: g2.mac.large
 
   unit-test-android:
