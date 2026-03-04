@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.59.2 - 2026-03-04
+**Changes**
+- Updated Stripe iOS SDK from 25.6.+ to 25.7.+
+- Updated Stripe Android SDK from 22.7.+ to 22.8.+
+
 ## 0.59.1 - 2026-02-25
 **Fixes**
 * [Fixed] A build issue when using Xcode 16 ([#2323](https://github.com/stripe/stripe-react-native/issues/2323))
