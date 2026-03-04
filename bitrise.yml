@@ -23,6 +23,7 @@ pipelines:
     workflows:
       js-tests: {}
       unit-test-ios: {}
+      build-ios-xcode-16: {}
       unit-test-android: {}
       e2e-build-ios-old-arch: {}
       e2e-tests-ios-old-arch:
@@ -113,6 +114,28 @@ workflows:
       - deploy-to-bitrise-io@2:
           inputs:
             - notify_user_groups: none
+
+  build-ios-xcode-16:
+    before_run:
+      - _prepare_ios
+    steps:
+      - script@1:
+          title: Install Pods
+          inputs:
+            - content: yarn pods
+      - xcode-build-for-test@2:
+          title: Build iOS (Xcode 16)
+          inputs:
+            - project_path: example/ios/example.xcworkspace
+            - scheme: stripe-react-native-Unit-Tests
+            - destination: generic/platform=iOS Simulator
+      - deploy-to-bitrise-io@2:
+          inputs:
+            - notify_user_groups: none
+    meta:
+      bitrise.io:
+        stack: osx-xcode-16.1.x
+        machine_type_id: g2.mac.large
 
   unit-test-android:
     before_run:
