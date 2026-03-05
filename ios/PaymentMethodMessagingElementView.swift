@@ -21,6 +21,9 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
     private var appearanceConfig: PaymentMethodMessagingElement.Appearance?
     private var lastConfig: NSDictionary?
 
+    // Used to track height updates
+    private var previousHeight: CGFloat?
+
     @objc var appearance: NSDictionary? {
         didSet {
             if let appearance = appearance {
@@ -64,6 +67,19 @@ public class PaymentMethodMessagingElementContainerView: UIView, UIGestureRecogn
         if newWindow == nil {
             // Remove the view when moving away from window
             removePaymentMethodMessagingElement()
+        }
+    }
+
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+
+        // Calculate our natural height
+        let desiredHeight = systemLayoutSizeFitting(CGSize(width: frame.width, height: UIView.layoutFittingCompressedSize.height)).height
+
+        // Notify if changed
+        if desiredHeight != previousHeight {
+            StripeSdkImpl.shared.emitter?.emitPaymentMethodMessagingElementDidUpdateHeight(["height": desiredHeight])
+            self.previousHeight = desiredHeight
         }
     }
 
