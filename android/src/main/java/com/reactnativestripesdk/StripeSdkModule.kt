@@ -63,6 +63,7 @@ import com.stripe.android.core.reactnative.ReactNativeSdkInternal
 import com.stripe.android.customersheet.CustomerSheet
 import com.stripe.android.googlepaylauncher.GooglePayLauncher
 import com.stripe.android.model.BankAccountTokenParams
+import com.stripe.android.model.AccountParams
 import com.stripe.android.model.CardParams
 import com.stripe.android.model.ConfirmPaymentIntentParams
 import com.stripe.android.model.ConfirmSetupIntentParams
@@ -413,6 +414,10 @@ class StripeSdkModule(
         createTokenFromPii(params, promise)
       }
 
+      "Account" -> {
+        createTokenFromAccount(params, promise)
+      }
+
       else -> {
         promise.resolve(
           createError(
@@ -424,10 +429,32 @@ class StripeSdkModule(
     }
   }
 
-  private fun createTokenFromPii(
-    params: ReadableMap,
-    promise: Promise,
-  ) {
+  private fun createTokenFromAccount(params: ReadableMap, promise: Promise) {
+    val businessType = getValOr(params, "businessType", null)
+    if (businessType != "Individual") {
+      promise.resolve(createError(CreateTokenErrorType.Failed.toString(), "businessType currently only accepts the Individual account type"))
+      return
+    }
+
+    val individualData = params.getMap("individual")
+    val accountParams = AccountParams.create(
+      tosShownAndAccepted = params.getBooleanOr("tosShownAndAccepted", false),
+      individual = AccountParams.BusinessTypeParams.Individual(
+        email = getValOr(individualData, "email", null),
+        phone = getValOr(individualData, "phone", null)
+      )
+    )
+    CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
+        val token = stripe.createAccountTokenSynchronous(accountParams, null, stripeAccountId)
+        promise.resolve(createResult("token", mapFromToken(token)))
+      }.onFailure {
+        promise.resolve(createError(CreateTokenErrorType.Failed.toString(), it.message))
+      }
+    }
+  }
+
+  private fun createTokenFromPii(params: ReadableMap, promise: Promise) {
     getValOr(params, "personalId", null)?.let {
       CoroutineScope(Dispatchers.IO).launch {
         runCatching {
