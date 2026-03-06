@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ## 0.59.2 - 2026-03-04
+**Features**
+* [Added] Added `termsDisplay` to `PaymentSheet.Configuration`, allowing control over whether legal agreements are shown per payment method type. ([#2322](https://github.com/stripe/stripe-react-native/pull/2322))
+
 **Changes**
 - Updated Stripe iOS SDK from 25.6.+ to 25.7.+
 - Updated Stripe Android SDK from 22.7.+ to 22.8.+
