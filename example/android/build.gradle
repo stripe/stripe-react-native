@@ -17,7 +17,11 @@ buildscript {
 
     dependencies {
         getReactNativeDependencies().each { dependency ->
-            classpath(dependency)
+            if (dependency.startsWith("org.jetbrains.kotlin:kotlin-gradle-plugin")) {
+                classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.10")
+            } else {
+                classpath(dependency)
+            }
         }
     }
 }
