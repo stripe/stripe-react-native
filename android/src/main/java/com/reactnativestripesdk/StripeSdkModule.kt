@@ -1340,10 +1340,10 @@ class StripeSdkModule(
       stripeAccountId = stripeAccountId,
       callback =
         object : com.stripe.android.ApiResultCallback<RadarSession> {
-          override fun onSuccess(session: RadarSession) {
-            val result = WritableNativeMap()
-            result.putString("id", session.id)
-            promise.resolve(result)
+          override fun onSuccess(result: RadarSession) {
+            val response = WritableNativeMap()
+            response.putString("id", result.id)
+            promise.resolve(response)
           }
 
           override fun onError(e: Exception) {
