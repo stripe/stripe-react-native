@@ -1545,11 +1545,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             paymentMethodType = .card
         case "BankAccount":
             paymentMethodType = .bankAccount
+        case "CardAndBankAccount":
+            paymentMethodType = .cardAndBankAccount
         case "PlatformPay":
             guard let applePayParams = platformPayParams["applePay"] as? NSDictionary else {
                 resolve(Errors.createError(ErrorType.Failed, "You must provide the `applePay` parameter."))
                 return
-            }
+        }
 
             let (error, paymentRequest) = ApplePayUtils.createPaymentRequest(merchantIdentifier: merchantIdentifier, params: applePayParams)
             if let paymentRequest {

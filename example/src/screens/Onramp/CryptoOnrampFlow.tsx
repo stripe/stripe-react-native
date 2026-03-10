@@ -109,7 +109,7 @@ export default function CryptoOnrampFlow() {
 
   // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'Card' | 'BankAccount' | 'PlatformPay' | null
+    'Card' | 'BankAccount' | 'CardAndBankAccount' | 'PlatformPay' | null
   >(null);
 
   // ACH settlement speed state
@@ -425,6 +425,7 @@ export default function CryptoOnrampFlow() {
   type CollectPaymentRequest =
     | { type: 'Card' }
     | { type: 'BankAccount' }
+    | { type: 'CardAndBankAccount' }
     | { type: 'PlatformPay'; params: PlatformPay.PaymentMethodParams };
 
   const handleCollectPaymentMethod = useCallback(
@@ -464,6 +465,10 @@ export default function CryptoOnrampFlow() {
     handleCollectPaymentMethod({ type: 'BankAccount' });
   }, [handleCollectPaymentMethod]);
 
+  // const handleCollectCardAndBankAccountPayment = useCallback(async () => {
+  //   handleCollectPaymentMethod({ type: 'CardAndBankAccount' });
+  // }, [handleCollectPaymentMethod]);
+
   const handleCollectApplePayPayment = useCallback(async () => {
     const platformPayParams: PlatformPay.PaymentMethodParams = {
       applePay: {
@@ -484,6 +489,24 @@ export default function CryptoOnrampFlow() {
       params: platformPayParams,
     });
   }, [handleCollectPaymentMethod]);
+
+  // const handleCollectGooglePayPayment = useCallback(async () => {
+  //   const googlePayParams: PlatformPay.PaymentMethodParams = {
+  //     googlePay: {
+  //       testEnv: true,
+  //       merchantName: 'Example',
+  //       merchantCountryCode: 'US',
+  //       currencyCode: 'USD',
+  //       amount: 100,
+  //       label: 'Example',
+  //     },
+  //   };
+
+  //   handleCollectPaymentMethod({
+  //     type: 'PlatformPay',
+  //     params: googlePayParams,
+  //   });
+  // }, [handleCollectPaymentMethod]);
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;

@@ -433,6 +433,20 @@ class OnrampSdkModule(
       when (paymentMethod) {
         "Card" -> PaymentMethodSelection.Card()
         "BankAccount" -> PaymentMethodSelection.BankAccount()
+        "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
+        "PlatformPay" -> {
+          val currencyCode = platformPayParams.getString("currencyCode") ?: ""
+          val amount = platformPayParams.getInt("amount").toLong()
+          val transactionId = platformPayParams.getString("transactionId")
+          val label = platformPayParams.getString("label")
+
+          PaymentMethodSelection.GooglePay(
+            currencyCode = currencyCode,
+            amount = amount,
+            transactionId = transactionId,
+            label = label,
+          )
+        }
         else -> {
           promise.resolve(
             createFailedError(
