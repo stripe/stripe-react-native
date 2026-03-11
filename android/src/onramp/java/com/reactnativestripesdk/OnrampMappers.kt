@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
+import com.stripe.android.googlepaylauncher.GooglePayEnvironment
+import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
@@ -25,12 +27,64 @@ internal fun mapConfig(
 
   val displayName = configMap.getString("merchantDisplayName") ?: ""
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
+  val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
 
-  return OnrampConfiguration()
+  val config = OnrampConfiguration()
     .merchantDisplayName(displayName)
     .publishableKey(publishableKey)
     .appearance(appearance)
     .cryptoCustomerId(cryptoCustomerId)
+
+  if (googlePayConfig != null) {
+    config.googlePayConfig(googlePayConfig)
+  }
+
+  return config
+}
+
+@SuppressLint("RestrictedApi")
+internal fun mapGooglePayConfig(
+  params: ReadableMap?,
+): GooglePayPaymentMethodLauncher.Config? {
+  if (params == null) return null
+
+  val testEnv = params.hasKey("testEnv") && params.getBoolean("testEnv")
+  val merchantCountryCode = params.getString("merchantCountryCode") ?: return null
+  val merchantName = params.getString("merchantName") ?: return null
+  val existingPaymentMethodRequired =
+    params.hasKey("existingPaymentMethodRequired") && params.getBoolean("existingPaymentMethodRequired")
+
+  val billingAddressConfig =
+    mapGooglePayBillingAddressConfig(params.getMap("billingAddressConfig"))
+
+  return GooglePayPaymentMethodLauncher.Config(
+    environment = if (testEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
+    merchantCountryCode = merchantCountryCode,
+    merchantName = merchantName,
+    billingAddressConfig = billingAddressConfig,
+    existingPaymentMethodRequired = existingPaymentMethodRequired,
+  )
+}
+
+private fun mapGooglePayBillingAddressConfig(
+  params: ReadableMap?,
+): GooglePayPaymentMethodLauncher.BillingAddressConfig {
+  if (params == null) return GooglePayPaymentMethodLauncher.BillingAddressConfig()
+
+  val isRequired = params.hasKey("isRequired") && params.getBoolean("isRequired")
+  val format =
+    when (params.getString("format")) {
+      "Full" -> GooglePayPaymentMethodLauncher.BillingAddressConfig.Format.Full
+      else -> GooglePayPaymentMethodLauncher.BillingAddressConfig.Format.Min
+    }
+  val isPhoneNumberRequired =
+    params.hasKey("isPhoneNumberRequired") && params.getBoolean("isPhoneNumberRequired")
+
+  return GooglePayPaymentMethodLauncher.BillingAddressConfig(
+    isRequired = isRequired,
+    format = format,
+    isPhoneNumberRequired = isPhoneNumberRequired,
+  )
 }
 
 @SuppressLint("RestrictedApi")

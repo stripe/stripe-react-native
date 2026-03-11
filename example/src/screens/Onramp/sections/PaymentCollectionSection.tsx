@@ -1,30 +1,30 @@
 import React from 'react';
 import { Collapse } from '../../../components/Collapse';
 import Button from '../../../components/Button';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { PlatformPayButton } from '@stripe/stripe-react-native';
 
 interface PaymentCollectionSectionProps {
-  isApplePaySupported: boolean;
-  handleCollectApplePayPayment: () => void;
+  isPlatformPaySupported: boolean;
+  handleCollectPlatformPayPayment: () => void;
   handleCollectCardPayment: () => void;
   handleCollectBankAccountPayment: () => void;
   handleCollectCardAndBankAccountPayment: () => void;
 }
 
 export function PaymentCollectionSection({
-  isApplePaySupported,
-  handleCollectApplePayPayment,
+  isPlatformPaySupported,
+  handleCollectPlatformPayPayment,
   handleCollectCardPayment,
   handleCollectBankAccountPayment,
   handleCollectCardAndBankAccountPayment,
 }: PaymentCollectionSectionProps) {
   return (
     <Collapse title="Payment Collection" initialExpanded={true}>
-      {Platform.OS === 'ios' && isApplePaySupported && (
+      {isPlatformPaySupported && (
         <View style={{ marginBottom: 12 }}>
           <PlatformPayButton
-            onPress={handleCollectApplePayPayment}
+            onPress={handleCollectPlatformPayPayment}
             style={{ width: '100%', height: 44 }}
           />
         </View>

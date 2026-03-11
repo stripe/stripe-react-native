@@ -102,7 +102,7 @@ export default function CryptoOnrampFlow() {
     null
   );
 
-  const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [isPlatformPayAvailable, setIsPlatformPayAvailable] = useState(false);
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
@@ -490,23 +490,23 @@ export default function CryptoOnrampFlow() {
     });
   }, [handleCollectPaymentMethod]);
 
-  // const handleCollectGooglePayPayment = useCallback(async () => {
-  //   const googlePayParams: PlatformPay.PaymentMethodParams = {
-  //     googlePay: {
-  //       testEnv: true,
-  //       merchantName: 'Example',
-  //       merchantCountryCode: 'US',
-  //       currencyCode: 'USD',
-  //       amount: 100,
-  //       label: 'Example',
-  //     },
-  //   };
+  const handleCollectGooglePayPayment = useCallback(async () => {
+    const googlePayParams: PlatformPay.PaymentMethodParams = {
+      googlePay: {
+        testEnv: true,
+        merchantName: 'Example',
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        amount: 100,
+        label: 'Example',
+      },
+    };
 
-  //   handleCollectPaymentMethod({
-  //     type: 'PlatformPay',
-  //     params: googlePayParams,
-  //   });
-  // }, [handleCollectPaymentMethod]);
+    handleCollectPaymentMethod({
+      type: 'PlatformPay',
+      params: googlePayParams,
+    });
+  }, [handleCollectPaymentMethod]);
 
   const validateOnrampSessionParams = useCallback((): {
     isValid: boolean;
@@ -684,13 +684,15 @@ export default function CryptoOnrampFlow() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (Platform.OS === 'ios') {
-        try {
-          const supported = await isPlatformPaySupported();
-          if (mounted) setIsApplePaySupported(!!supported);
-        } catch {
-          if (mounted) setIsApplePaySupported(false);
-        }
+      try {
+        const params =
+          Platform.OS === 'android'
+            ? { googlePay: { testEnv: true } }
+            : undefined;
+        const supported = await isPlatformPaySupported(params);
+        if (mounted) setIsPlatformPayAvailable(!!supported);
+      } catch {
+        if (mounted) setIsPlatformPayAvailable(false);
       }
     })();
     return () => {
@@ -888,8 +890,12 @@ export default function CryptoOnrampFlow() {
           />
           <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
           <PaymentCollectionSection
-            isApplePaySupported={isApplePaySupported}
-            handleCollectApplePayPayment={handleCollectApplePayPayment}
+            isPlatformPaySupported={isPlatformPayAvailable}
+            handleCollectPlatformPayPayment={
+              Platform.OS === 'ios'
+                ? handleCollectApplePayPayment
+                : handleCollectGooglePayPayment
+            }
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
             handleCollectCardAndBankAccountPayment={

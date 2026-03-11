@@ -435,10 +435,20 @@ class OnrampSdkModule(
         "BankAccount" -> PaymentMethodSelection.BankAccount()
         "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
         "PlatformPay" -> {
-          val currencyCode = platformPayParams.getString("currencyCode") ?: ""
-          val amount = platformPayParams.getInt("amount").toLong()
-          val transactionId = platformPayParams.getString("transactionId")
-          val label = platformPayParams.getString("label")
+          val googlePayParams =
+            platformPayParams.getMap("googlePay")
+              ?: run {
+                promise.resolve(
+                  createFailedError(
+                    IllegalArgumentException("Missing googlePay params in platformPayParams"),
+                  ),
+                )
+                return
+              }
+          val currencyCode = googlePayParams.getString("currencyCode") ?: ""
+          val amount = googlePayParams.getDouble("amount").toLong()
+          val transactionId = googlePayParams.getString("transactionId")
+          val label = googlePayParams.getString("label")
 
           PaymentMethodSelection.GooglePay(
             currencyCode = currencyCode,

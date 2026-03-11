@@ -74,6 +74,17 @@ export default function HomeScreen() {
           height: 48,
         },
       },
+      googlePay: {
+        testEnv: true,
+        merchantCountryCode: 'US',
+        merchantName: 'Onramp Example',
+        existingPaymentMethodRequired: false,
+        billingAddressConfig: {
+          isRequired: true,
+          format: 'Full',
+          isPhoneNumberRequired: false,
+        },
+      },
     };
 
     configure(config).then((result) => {
