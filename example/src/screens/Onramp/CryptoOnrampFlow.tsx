@@ -465,9 +465,9 @@ export default function CryptoOnrampFlow() {
     handleCollectPaymentMethod({ type: 'BankAccount' });
   }, [handleCollectPaymentMethod]);
 
-  // const handleCollectCardAndBankAccountPayment = useCallback(async () => {
-  //   handleCollectPaymentMethod({ type: 'CardAndBankAccount' });
-  // }, [handleCollectPaymentMethod]);
+  const handleCollectCardAndBankAccountPayment = useCallback(async () => {
+    handleCollectPaymentMethod({ type: 'CardAndBankAccount' });
+  }, [handleCollectPaymentMethod]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
     const platformPayParams: PlatformPay.PaymentMethodParams = {
@@ -892,6 +892,9 @@ export default function CryptoOnrampFlow() {
             handleCollectApplePayPayment={handleCollectApplePayPayment}
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
+            handleCollectCardAndBankAccountPayment={
+              handleCollectCardAndBankAccountPayment
+            }
           />
 
           {selectedPaymentMethod === 'BankAccount' &&

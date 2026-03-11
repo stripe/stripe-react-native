@@ -9,6 +9,7 @@ interface PaymentCollectionSectionProps {
   handleCollectApplePayPayment: () => void;
   handleCollectCardPayment: () => void;
   handleCollectBankAccountPayment: () => void;
+  handleCollectCardAndBankAccountPayment: () => void;
 }
 
 export function PaymentCollectionSection({
@@ -16,6 +17,7 @@ export function PaymentCollectionSection({
   handleCollectApplePayPayment,
   handleCollectCardPayment,
   handleCollectBankAccountPayment,
+  handleCollectCardAndBankAccountPayment,
 }: PaymentCollectionSectionProps) {
   return (
     <Collapse title="Payment Collection" initialExpanded={true}>
@@ -35,6 +37,11 @@ export function PaymentCollectionSection({
       <Button
         title="Collect Bank Account Payment"
         onPress={handleCollectBankAccountPayment}
+        variant="primary"
+      />
+      <Button
+        title="Collect Card or Bank Account Payment"
+        onPress={handleCollectCardAndBankAccountPayment}
         variant="primary"
       />
     </Collapse>
