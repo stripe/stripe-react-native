@@ -378,7 +378,7 @@ module.exports = {
 };
 
 // Mock NativeStripeSdkModule with getConstants for system info
-jest.mock('./src/specs/NativeStripeSdkModule', () => ({
+jest.mock('../src/specs/NativeStripeSdkModule', () => ({
   default: {
     getConstants: jest.fn(() => ({
       API_VERSIONS: {
