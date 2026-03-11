@@ -29,11 +29,12 @@ internal fun mapConfig(
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
   val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
 
-  val config = OnrampConfiguration()
-    .merchantDisplayName(displayName)
-    .publishableKey(publishableKey)
-    .appearance(appearance)
-    .cryptoCustomerId(cryptoCustomerId)
+  val config =
+    OnrampConfiguration()
+      .merchantDisplayName(displayName)
+      .publishableKey(publishableKey)
+      .appearance(appearance)
+      .cryptoCustomerId(cryptoCustomerId)
 
   if (googlePayConfig != null) {
     config.googlePayConfig(googlePayConfig)
@@ -43,9 +44,7 @@ internal fun mapConfig(
 }
 
 @SuppressLint("RestrictedApi")
-internal fun mapGooglePayConfig(
-  params: ReadableMap?,
-): GooglePayPaymentMethodLauncher.Config? {
+internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLauncher.Config? {
   if (params == null) return null
 
   val testEnv = params.hasKey("testEnv") && params.getBoolean("testEnv")
@@ -66,9 +65,7 @@ internal fun mapGooglePayConfig(
   )
 }
 
-private fun mapGooglePayBillingAddressConfig(
-  params: ReadableMap?,
-): GooglePayPaymentMethodLauncher.BillingAddressConfig {
+private fun mapGooglePayBillingAddressConfig(params: ReadableMap?): GooglePayPaymentMethodLauncher.BillingAddressConfig {
   if (params == null) return GooglePayPaymentMethodLauncher.BillingAddressConfig()
 
   val isRequired = params.hasKey("isRequired") && params.getBoolean("isRequired")
