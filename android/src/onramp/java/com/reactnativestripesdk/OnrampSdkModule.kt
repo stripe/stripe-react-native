@@ -42,7 +42,7 @@ import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
-import com.stripe.android.crypto.onramp.model.PaymentMethodType
+import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
@@ -431,8 +431,8 @@ class OnrampSdkModule(
 
     val method =
       when (paymentMethod) {
-        "Card" -> PaymentMethodType.Card
-        "BankAccount" -> PaymentMethodType.BankAccount
+        "Card" -> PaymentMethodSelection.Card()
+        "BankAccount" -> PaymentMethodSelection.BankAccount()
         else -> {
           promise.resolve(
             createFailedError(
