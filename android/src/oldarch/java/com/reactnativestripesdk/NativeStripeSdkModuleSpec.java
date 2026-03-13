@@ -142,7 +142,8 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
     Map<String, Object> constants = getTypedExportedConstants();
     if (ReactBuildConfig.DEBUG || ReactBuildConfig.IS_INTERNAL_BUILD) {
       Set<String> obligatoryFlowConstants = new HashSet<>(Arrays.asList(
-          "API_VERSIONS"
+          "API_VERSIONS",
+          "SYSTEM_INFO"
       ));
       Set<String> optionalFlowConstants = new HashSet<>();
       Set<String> undeclaredConstants = new HashSet<>(constants.keySet());
@@ -266,6 +267,10 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
 
   @ReactMethod
   @DoNotStrip
+  public abstract void createRadarSession(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
   public abstract void setFinancialConnectionsForceNativeFlow(boolean enabled, Promise promise);
 
   @ReactMethod
@@ -295,8 +300,4 @@ public abstract class NativeStripeSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void removeListeners(double count);
-
-  @ReactMethod
-  @DoNotStrip
-  public abstract void createRadarSession(Promise promise);
 }
