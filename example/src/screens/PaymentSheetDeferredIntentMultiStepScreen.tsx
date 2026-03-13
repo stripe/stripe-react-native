@@ -183,8 +183,13 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     if (error) {
       Alert.alert(`Error code: ${error.code}`, error.message);
     } else {
-      Alert.alert('Success', 'The payment was confirmed successfully!');
+      Alert.alert(
+        'Success',
+        'The payment was confirmed successfully! Initializing next payment...'
+      );
+      setPaymentMethodOption(null);
       setPaymentSheetEnabled(false);
+      await initialisePaymentSheet();
     }
     setLoading(false);
   };
