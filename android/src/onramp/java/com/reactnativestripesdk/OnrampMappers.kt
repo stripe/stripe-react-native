@@ -29,18 +29,12 @@ internal fun mapConfig(
   val cryptoCustomerId = configMap.getString("cryptoCustomerId")
   val googlePayConfig = mapGooglePayConfig(configMap.getMap("googlePay"))
 
-  val config =
-    OnrampConfiguration()
-      .merchantDisplayName(displayName)
-      .publishableKey(publishableKey)
-      .appearance(appearance)
-      .cryptoCustomerId(cryptoCustomerId)
-
-  if (googlePayConfig != null) {
-    config.googlePayConfig(googlePayConfig)
-  }
-
-  return config
+  return OnrampConfiguration()
+    .merchantDisplayName(displayName)
+    .publishableKey(publishableKey)
+    .appearance(appearance)
+    .cryptoCustomerId(cryptoCustomerId)
+    .apply { googlePayConfig?.let { googlePayConfig(it) } }
 }
 
 @SuppressLint("RestrictedApi")
