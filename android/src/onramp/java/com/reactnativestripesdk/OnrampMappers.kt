@@ -148,6 +148,7 @@ internal fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     .primaryButton(primaryButton)
 }
 
+@SuppressLint("RestrictedApi")
 internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String =
   when (type) {
     PaymentMethodDisplayData.Type.Card -> "Card"
