@@ -43,6 +43,7 @@ allprojects {
         }()
         maven { url uri("$rootDir/privateMavenRepository") }
         mavenCentral()
+        maven { url "/Users/tjclawson/.m2/repository" }
         google()
     }
 }

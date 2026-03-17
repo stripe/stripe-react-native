@@ -257,11 +257,15 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    unregisterStripeUIManager(paymentSheetManager)
-    paymentSheetManager =
-      PaymentSheetManager(reactApplicationContext, params, promise).also {
-        registerStripeUIManager(it)
-      }
+    if (paymentSheetManager != null) {
+      paymentSheetManager?.configure(params, promise)
+    } else {
+      unregisterStripeUIManager(paymentSheetManager)
+      paymentSheetManager =
+        PaymentSheetManager(reactApplicationContext, params, promise).also {
+          registerStripeUIManager(it)
+        }
+    }
   }
 
   @ReactMethod
