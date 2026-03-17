@@ -90,7 +90,7 @@ export function useOnramp() {
 
   /**
    * The set of payment methods supported by crypto onramp collection.
-   * - 'Card' and 'BankAccount' present Link for collection.
+   * - 'Card', 'BankAccount', 'CardAndBankAccount' present Link for collection.
    * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
    */
   type OnrampPaymentMethod =
