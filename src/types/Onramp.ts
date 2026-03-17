@@ -258,6 +258,8 @@ export type PaymentMethodDisplayData = {
   label: string;
   /** Details about the underlying payment method, e.g., "Visa Credit •••• 4242". */
   sublabel?: string;
+  /** The type of payment method */
+  type: string;
 };
 
 /**

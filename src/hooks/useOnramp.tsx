@@ -93,12 +93,16 @@ export function useOnramp() {
    * - 'Card' and 'BankAccount' present Link for collection.
    * - 'PlatformPay' presents Apple Pay / Google Pay using provided params.
    */
-  type OnrampPaymentMethod = 'Card' | 'BankAccount' | 'PlatformPay';
+  type OnrampPaymentMethod =
+    | 'Card'
+    | 'BankAccount'
+    | 'CardAndBankAccount'
+    | 'PlatformPay';
 
   // Overloads for stronger type-safety at call-sites
   const _collectPaymentMethod: {
     (
-      paymentMethod: 'Card' | 'BankAccount',
+      paymentMethod: 'Card' | 'BankAccount' | 'CardAndBankAccount',
       platformPayParams?: undefined
     ): Promise<Onramp.CollectPaymentMethodResult>;
     (

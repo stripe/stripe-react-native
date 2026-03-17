@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
+import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance
@@ -146,3 +147,10 @@ internal fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     .style(style)
     .primaryButton(primaryButton)
 }
+
+internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String =
+  when (type) {
+    PaymentMethodDisplayData.Type.Card -> "Card"
+    PaymentMethodDisplayData.Type.BankAccount -> "BankAccount"
+    PaymentMethodDisplayData.Type.GooglePay -> "GooglePay"
+  }

@@ -1,6 +1,5 @@
 import {
   Onramp,
-  PaymentOptionData,
   PlatformPay,
   useOnramp,
   useStripe,
@@ -52,6 +51,7 @@ import {
   OnrampResponseStatusSection,
 } from './sections';
 import { colors } from '../../colors';
+import { PaymentMethodDisplayData } from '../../../../src/types/Onramp';
 
 export default function CryptoOnrampFlow() {
   const {
@@ -96,7 +96,7 @@ export default function CryptoOnrampFlow() {
   const [bankAccountPaymentMethod] = useState('BankAccount');
 
   const [currentPaymentDisplayData, setCurrentPaymentDisplayData] =
-    useState<PaymentOptionData | null>(null);
+    useState<PaymentMethodDisplayData | null>(null);
 
   const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
     null
@@ -447,7 +447,7 @@ export default function CryptoOnrampFlow() {
         setSelectedPaymentMethod(request.type);
 
         // If switching away from bank account, ensure UI will default to instant.
-        if (request.type !== 'BankAccount') {
+        if (result.displayData.type !== 'BankAccount') {
           setAchSettlementSpeed('instant');
         }
       } else {
@@ -903,8 +903,8 @@ export default function CryptoOnrampFlow() {
             }
           />
 
-          {selectedPaymentMethod === 'BankAccount' &&
-            currentPaymentDisplayData && (
+          {currentPaymentDisplayData &&
+            currentPaymentDisplayData?.type === 'BankAccount' && (
               <Collapse title="ACH Settlement Speed" initialExpanded={true}>
                 <View style={styles.segmentedRow}>
                   <View style={styles.segment}>
