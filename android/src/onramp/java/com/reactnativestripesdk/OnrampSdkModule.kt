@@ -433,6 +433,30 @@ class OnrampSdkModule(
       when (paymentMethod) {
         "Card" -> PaymentMethodSelection.Card()
         "BankAccount" -> PaymentMethodSelection.BankAccount()
+        "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
+        "PlatformPay" -> {
+          val googlePayParams =
+            platformPayParams.getMap("googlePay")
+              ?: run {
+                promise.resolve(
+                  createFailedError(
+                    IllegalArgumentException("Missing googlePay params in platformPayParams"),
+                  ),
+                )
+                return
+              }
+          val currencyCode = googlePayParams.getString("currencyCode") ?: ""
+          val amount = googlePayParams.getDouble("amount").toLong()
+          val transactionId = googlePayParams.getString("transactionId")
+          val label = googlePayParams.getString("label")
+
+          PaymentMethodSelection.GooglePay(
+            currencyCode = currencyCode,
+            amount = amount,
+            transactionId = transactionId,
+            label = label,
+          )
+        }
         else -> {
           promise.resolve(
             createFailedError(
@@ -596,6 +620,12 @@ class OnrampSdkModule(
       displayData.putString("label", paymentDetails.label)
       displayData.putString("sublabel", paymentDetails.sublabel)
 
+      if (token.hasKey("card")) {
+        displayData.putString("type", "Card")
+      } else if (token.hasKey("us_bank_account")) {
+        displayData.putString("type", "BankAccount")
+      }
+
       promise.resolve(createResult("displayData", displayData))
     }
   }
@@ -709,6 +739,7 @@ class OnrampSdkModule(
           displayData.putString("icon", iconDataUri)
           displayData.putString("label", result.displayData.label)
           result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
+          displayData.putString("type", mapPaymentDetailsType(result.displayData.type))
 
           promise.resolve(createResult("displayData", displayData))
         }
