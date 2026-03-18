@@ -295,32 +295,32 @@ class PaymentSheetManager(
   }
 
   fun configure(
-    newArgs: ReadableMap,
-    newInitPromise: Promise,
+    args: ReadableMap,
+    promise: Promise,
   ) {
-    val merchantDisplayName = newArgs.getString("merchantDisplayName").orEmpty()
+    val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
       initPromise.resolve(
         createError(ErrorType.Failed.toString(), "merchantDisplayName cannot be empty or null."),
       )
       return
     }
-    val primaryButtonLabel = newArgs.getString("primaryButtonLabel")
-    val googlePayConfig = buildGooglePayConfig(newArgs.getMap("googlePay"))
-    val linkConfig = buildLinkConfig(newArgs.getMap("link"))
-    val allowsDelayedPaymentMethods = newArgs.getBooleanOr("allowsDelayedPaymentMethods", false)
-    val billingDetailsMap = newArgs.getMap("defaultBillingDetails")
-    val billingConfigParams = newArgs.getMap("billingDetailsCollectionConfiguration")
-    val paymentMethodOrder = newArgs.getStringList("paymentMethodOrder")
+    val primaryButtonLabel = args.getString("primaryButtonLabel")
+    val googlePayConfig = buildGooglePayConfig(args.getMap("googlePay"))
+    val linkConfig = buildLinkConfig(args.getMap("link"))
+    val allowsDelayedPaymentMethods = args.getBooleanOr("allowsDelayedPaymentMethods", false)
+    val billingDetailsMap = args.getMap("defaultBillingDetails")
+    val billingConfigParams = args.getMap("billingDetailsCollectionConfiguration")
+    val paymentMethodOrder = args.getStringList("paymentMethodOrder")
     val allowsRemovalOfLastSavedPaymentMethod =
-      newArgs.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
+      args.getBooleanOr("allowsRemovalOfLastSavedPaymentMethod", true)
     val opensCardScannerAutomatically =
-      newArgs.getBooleanOr("opensCardScannerAutomatically", false)
-    paymentIntentClientSecret = newArgs.getString("paymentIntentClientSecret").orEmpty()
-    setupIntentClientSecret = newArgs.getString("setupIntentClientSecret").orEmpty()
+      args.getBooleanOr("opensCardScannerAutomatically", false)
+    paymentIntentClientSecret = args.getString("paymentIntentClientSecret").orEmpty()
+    setupIntentClientSecret = args.getString("setupIntentClientSecret").orEmpty()
     intentConfiguration =
       try {
-        buildIntentConfiguration(newArgs.getMap("intentConfiguration"))
+        buildIntentConfiguration(args.getMap("intentConfiguration"))
       } catch (error: PaymentSheetException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
@@ -328,7 +328,7 @@ class PaymentSheetManager(
 
     val appearance =
       try {
-        buildPaymentSheetAppearance(newArgs.getMap("appearance"), context)
+        buildPaymentSheetAppearance(args.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
@@ -336,14 +336,14 @@ class PaymentSheetManager(
 
     val customerConfiguration =
       try {
-        buildCustomerConfiguration(newArgs)
+        buildCustomerConfiguration(args)
       } catch (error: PaymentSheetException) {
         initPromise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
 
     val shippingDetails =
-      newArgs.getMap("defaultShippingDetails")?.let {
+      args.getMap("defaultShippingDetails")?.let {
         AddressSheetView.buildAddressDetails(it)
       }
 
@@ -362,26 +362,26 @@ class PaymentSheetManager(
         .link(linkConfig)
         .billingDetailsCollectionConfiguration(billingDetailsConfig)
         .preferredNetworks(
-          mapToPreferredNetworks(newArgs.getIntegerList("preferredNetworks")),
+          mapToPreferredNetworks(args.getIntegerList("preferredNetworks")),
         ).allowsRemovalOfLastSavedPaymentMethod(allowsRemovalOfLastSavedPaymentMethod)
         .opensCardScannerAutomatically(opensCardScannerAutomatically)
-        .cardBrandAcceptance(mapToCardBrandAcceptance(newArgs))
+        .cardBrandAcceptance(mapToCardBrandAcceptance(args))
         .apply {
-          mapToAllowedCardFundingTypes(newArgs)?.let { allowedCardFundingTypes(it) }
-        }.customPaymentMethods(parseCustomPaymentMethods(newArgs.getMap("customPaymentMethodConfiguration")))
+          mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
+        }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
 
     configurationBuilder.paymentMethodLayout(
-      mapToPaymentMethodLayout(newArgs.getString("paymentMethodLayout")),
+      mapToPaymentMethodLayout(args.getString("paymentMethodLayout")),
     )
 
-    mapToTermsDisplay(newArgs)?.let { configurationBuilder.termsDisplay(it) }
+    mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
 
     paymentSheetConfiguration = configurationBuilder.build()
     if (arguments.getBooleanOr("customFlow", false)) {
-      configureFlowController(newInitPromise)
+      configureFlowController(promise)
     }
   }
 
