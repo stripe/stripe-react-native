@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, Text, View, StyleSheet } from 'react-native';
-import type { PaymentMethodDisplayData } from '../../../../../src/types/Onramp';
+import type { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
 import { colors } from '../../../colors';
 
 type Props = {

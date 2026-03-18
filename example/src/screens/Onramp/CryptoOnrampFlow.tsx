@@ -51,7 +51,7 @@ import {
   OnrampResponseStatusSection,
 } from './sections';
 import { colors } from '../../colors';
-import { PaymentMethodDisplayData } from '../../../../src/types/Onramp';
+import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
 
 export default function CryptoOnrampFlow() {
   const {
