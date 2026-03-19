@@ -1289,9 +1289,19 @@ class Mappers {
     }
 
     class func paymentMethodDisplayDataToMap(_ paymentMethodDisplayData: PaymentMethodDisplayData) -> [String: String] {
+        let type = switch paymentMethodDisplayData.paymentMethodType {
+        case .card:
+            "Card"
+        case .bankAccount:
+            "BankAccount"
+        case .applePay:
+            "ApplePay"
+        }
+
         var result = [
             "icon": "data:image/png;base64," + (paymentMethodDisplayData.icon.pngData()?.base64EncodedString(options: []) ?? ""),
             "label": paymentMethodDisplayData.label,
+            "type": type,
         ]
 
         if let sublabel = paymentMethodDisplayData.sublabel {

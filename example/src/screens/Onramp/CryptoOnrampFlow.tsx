@@ -1,6 +1,5 @@
 import {
   Onramp,
-  PaymentOptionData,
   PlatformPay,
   useOnramp,
   useStripe,
@@ -52,6 +51,7 @@ import {
   OnrampResponseStatusSection,
 } from './sections';
 import { colors } from '../../colors';
+import { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
 
 export default function CryptoOnrampFlow() {
   const {
@@ -96,20 +96,20 @@ export default function CryptoOnrampFlow() {
   const [bankAccountPaymentMethod] = useState('BankAccount');
 
   const [currentPaymentDisplayData, setCurrentPaymentDisplayData] =
-    useState<PaymentOptionData | null>(null);
+    useState<PaymentMethodDisplayData | null>(null);
 
   const [cryptoPaymentToken, setCryptoPaymentToken] = useState<string | null>(
     null
   );
 
-  const [isApplePaySupported, setIsApplePaySupported] = useState(false);
+  const [isPlatformPayAvailable, setIsPlatformPayAvailable] = useState(false);
   const [authInProgress, setAuthInProgress] = useState<
     null | 'login' | 'signup'
   >(null);
 
   // Payment method state used to help determine ACH settlement speed segmented control visibility (only available for bank account payments).
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'Card' | 'BankAccount' | 'PlatformPay' | null
+    'Card' | 'BankAccount' | 'CardAndBankAccount' | 'PlatformPay' | null
   >(null);
 
   // ACH settlement speed state
@@ -425,6 +425,7 @@ export default function CryptoOnrampFlow() {
   type CollectPaymentRequest =
     | { type: 'Card' }
     | { type: 'BankAccount' }
+    | { type: 'CardAndBankAccount' }
     | { type: 'PlatformPay'; params: PlatformPay.PaymentMethodParams };
 
   const handleCollectPaymentMethod = useCallback(
@@ -446,7 +447,7 @@ export default function CryptoOnrampFlow() {
         setSelectedPaymentMethod(request.type);
 
         // If switching away from bank account, ensure UI will default to instant.
-        if (request.type !== 'BankAccount') {
+        if (result.displayData.type !== 'BankAccount') {
           setAchSettlementSpeed('instant');
         }
       } else {
@@ -462,6 +463,10 @@ export default function CryptoOnrampFlow() {
 
   const handleCollectBankAccountPayment = useCallback(async () => {
     handleCollectPaymentMethod({ type: 'BankAccount' });
+  }, [handleCollectPaymentMethod]);
+
+  const handleCollectCardAndBankAccountPayment = useCallback(async () => {
+    handleCollectPaymentMethod({ type: 'CardAndBankAccount' });
   }, [handleCollectPaymentMethod]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
@@ -482,6 +487,24 @@ export default function CryptoOnrampFlow() {
     handleCollectPaymentMethod({
       type: 'PlatformPay',
       params: platformPayParams,
+    });
+  }, [handleCollectPaymentMethod]);
+
+  const handleCollectGooglePayPayment = useCallback(async () => {
+    const googlePayParams: PlatformPay.PaymentMethodParams = {
+      googlePay: {
+        testEnv: true,
+        merchantName: 'Example',
+        merchantCountryCode: 'US',
+        currencyCode: 'USD',
+        amount: 100,
+        label: 'Example',
+      },
+    };
+
+    handleCollectPaymentMethod({
+      type: 'PlatformPay',
+      params: googlePayParams,
     });
   }, [handleCollectPaymentMethod]);
 
@@ -661,13 +684,15 @@ export default function CryptoOnrampFlow() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (Platform.OS === 'ios') {
-        try {
-          const supported = await isPlatformPaySupported();
-          if (mounted) setIsApplePaySupported(!!supported);
-        } catch {
-          if (mounted) setIsApplePaySupported(false);
-        }
+      try {
+        const params =
+          Platform.OS === 'android'
+            ? { googlePay: { testEnv: true } }
+            : undefined;
+        const supported = await isPlatformPaySupported(params);
+        if (mounted) setIsPlatformPayAvailable(!!supported);
+      } catch {
+        if (mounted) setIsPlatformPayAvailable(false);
       }
     })();
     return () => {
@@ -865,14 +890,21 @@ export default function CryptoOnrampFlow() {
           />
           <VerifyIdentitySection handleVerifyIdentity={handleVerifyIdentity} />
           <PaymentCollectionSection
-            isApplePaySupported={isApplePaySupported}
-            handleCollectApplePayPayment={handleCollectApplePayPayment}
+            isPlatformPaySupported={isPlatformPayAvailable}
+            handleCollectPlatformPayPayment={
+              Platform.OS === 'ios'
+                ? handleCollectApplePayPayment
+                : handleCollectGooglePayPayment
+            }
             handleCollectCardPayment={handleCollectCardPayment}
             handleCollectBankAccountPayment={handleCollectBankAccountPayment}
+            handleCollectCardAndBankAccountPayment={
+              handleCollectCardAndBankAccountPayment
+            }
           />
 
-          {selectedPaymentMethod === 'BankAccount' &&
-            currentPaymentDisplayData && (
+          {currentPaymentDisplayData &&
+            currentPaymentDisplayData?.type === 'BankAccount' && (
               <Collapse title="ACH Settlement Speed" initialExpanded={true}>
                 <View style={styles.segmentedRow}>
                   <View style={styles.segment}>

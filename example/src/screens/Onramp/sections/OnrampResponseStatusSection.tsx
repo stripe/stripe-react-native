@@ -1,12 +1,12 @@
 import React from 'react';
 import { Image, Text, View, StyleSheet } from 'react-native';
-import type { PaymentOptionData } from '@stripe/stripe-react-native';
+import type { PaymentMethodDisplayData } from '@stripe/stripe-react-native/src/types/Onramp';
 import { colors } from '../../../colors';
 
 type Props = {
   response: string | null;
   customerId: string | null;
-  paymentDisplayData: PaymentOptionData | null;
+  paymentDisplayData: PaymentMethodDisplayData | null;
   cryptoPaymentToken: string | null;
   authToken: string | null;
   walletAddress: string | null;

@@ -23,7 +23,10 @@ Get started with our [📚 integration guides](https://stripe.com/docs/payments/
 
 **Native UI**: We provide native screens and elements to securely collect payment details on Android and iOS.
 
-**PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps. PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods. PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
+**PaymentSheet**: [Learn how to integrate](https://stripe.com/docs/payments/accept-a-payment) PaymentSheet, our new pre-built payments UI for mobile apps.
+- PaymentSheet lets you accept cards, Apple Pay, Google Pay, and much more out of the box and also supports saving & reusing payment methods.
+- PaymentSheet currently accepts the following payment methods: Card, Apple Pay, Google Pay, SEPA Debit, Bancontact, Billie, iDEAL, EPS, P24, Afterpay/Clearpay, Klarna, Giropay, and ACH.
+- PaymentSheet provides card scanning on iOS and Android, with the Android functionality provided by [Google Payment Card Recognition](https://developers.google.com/pay/payment-card-recognition/debit-credit-card-recognition). To enable card scanning in your app, follow [our guide](https://docs.corp.stripe.com/payments/accept-a-payment?payment-ui=mobile&platform=react-native#react-native-card-scanning).
 
 #### Recommended usage
 
@@ -97,7 +100,7 @@ implementation 'com.google.android.material:material:<version>'
 
 #### iOS
 
-The Stripe React Native SDK requires Xcode 14.1 or later and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
+The Stripe React Native SDK supports all [Apple supported Xcode versions](https://developer.apple.com/news/upcoming-requirements/) and is compatible with apps targeting iOS 13 or above. For iOS 12 support, please use [`@stripe/stripe-react-native@0.19.0`](https://github.com/stripe/stripe-react-native/releases/tag/v0.19.0).
 
 The SDK uses TypeScript features available in Babel version `7.9.0` and above.
 Alternatively use the `plugin-transform-typescript` plugin in your project.
@@ -283,5 +286,5 @@ While installing pods in your iOS project using a Stripe React Native version be
 UnsupportedModulePropertyParserError: Module NativeStripeSdkModule: TypeScript interfaces extending TurboModule must only contain 'FunctionTypeAnnotation's. Property 'onConfirmHandlerCallback' refers to a 'TSTypeReference'.
 ```
 
-If possible, update to version 0.52 or above of the Stripe React Native SDK. 
+If possible, update to version 0.52 or above of the Stripe React Native SDK.
 If you are unable to do so, please follow our [guide to apply the fix patch](https://github.com/stripe/stripe-react-native/tree/master/patches).

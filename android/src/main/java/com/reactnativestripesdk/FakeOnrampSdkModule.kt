@@ -78,7 +78,7 @@ class FakeOnrampSdkModule(
     updatedAddress: ReadableMap?,
     promise: Promise,
   ) {
-    promise?.resolveNotImplemented()
+    promise.resolveNotImplemented()
   }
 
   @ReactMethod
@@ -126,7 +126,7 @@ class FakeOnrampSdkModule(
     token: ReadableMap,
     promise: Promise,
   ) {
-    promise?.resolveNotImplemented()
+    promise.resolveNotImplemented()
   }
 
   @ReactMethod

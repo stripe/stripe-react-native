@@ -42,7 +42,7 @@ import com.stripe.android.crypto.onramp.model.OnrampTokenAuthenticationResult
 import com.stripe.android.crypto.onramp.model.OnrampUpdatePhoneNumberResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyIdentityResult
 import com.stripe.android.crypto.onramp.model.OnrampVerifyKycInfoResult
-import com.stripe.android.crypto.onramp.model.PaymentMethodType
+import com.stripe.android.crypto.onramp.model.PaymentMethodSelection
 import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
@@ -431,8 +431,32 @@ class OnrampSdkModule(
 
     val method =
       when (paymentMethod) {
-        "Card" -> PaymentMethodType.Card
-        "BankAccount" -> PaymentMethodType.BankAccount
+        "Card" -> PaymentMethodSelection.Card()
+        "BankAccount" -> PaymentMethodSelection.BankAccount()
+        "CardAndBankAccount" -> PaymentMethodSelection.CardAndBankAccount()
+        "PlatformPay" -> {
+          val googlePayParams =
+            platformPayParams.getMap("googlePay")
+              ?: run {
+                promise.resolve(
+                  createFailedError(
+                    IllegalArgumentException("Missing googlePay params in platformPayParams"),
+                  ),
+                )
+                return
+              }
+          val currencyCode = googlePayParams.getString("currencyCode") ?: ""
+          val amount = googlePayParams.getDouble("amount").toLong()
+          val transactionId = googlePayParams.getString("transactionId")
+          val label = googlePayParams.getString("label")
+
+          PaymentMethodSelection.GooglePay(
+            currencyCode = currencyCode,
+            amount = amount,
+            transactionId = transactionId,
+            label = label,
+          )
+        }
         else -> {
           promise.resolve(
             createFailedError(
@@ -596,6 +620,12 @@ class OnrampSdkModule(
       displayData.putString("label", paymentDetails.label)
       displayData.putString("sublabel", paymentDetails.sublabel)
 
+      if (token.hasKey("card")) {
+        displayData.putString("type", "Card")
+      } else if (token.hasKey("us_bank_account")) {
+        displayData.putString("type", "BankAccount")
+      }
+
       promise.resolve(createResult("displayData", displayData))
     }
   }
@@ -709,6 +739,7 @@ class OnrampSdkModule(
           displayData.putString("icon", iconDataUri)
           displayData.putString("label", result.displayData.label)
           result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
+          displayData.putString("type", mapPaymentDetailsType(result.displayData.type))
 
           promise.resolve(createResult("displayData", displayData))
         }

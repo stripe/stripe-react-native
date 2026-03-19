@@ -14,6 +14,36 @@ export type Configuration = {
   appearance: LinkAppearance;
   /** The identifier of the Stripe crypto customer object. */
   cryptoCustomerId?: string;
+  /** Google Pay configuration. Required on Android to enable Google Pay as a payment method. */
+  googlePay?: GooglePayConfig;
+};
+
+/**
+ * Configuration for Google Pay within the onramp flow.
+ */
+export type GooglePayConfig = {
+  /** Whether to use the test environment. Defaults to false. */
+  testEnv?: boolean;
+  /** Two-letter ISO 3166-1 alpha-2 country code of the merchant. */
+  merchantCountryCode: string;
+  /** Merchant name displayed in the Google Pay sheet. */
+  merchantName: string;
+  /** Whether an existing payment method is required. Defaults to false. */
+  existingPaymentMethodRequired?: boolean;
+  /** Billing address collection configuration. */
+  billingAddressConfig?: GooglePayBillingAddressConfig;
+};
+
+/**
+ * Billing address configuration for Google Pay.
+ */
+export type GooglePayBillingAddressConfig = {
+  /** Whether a billing address is required. Defaults to false. */
+  isRequired?: boolean;
+  /** Format of the billing address. Defaults to 'Min'. */
+  format?: 'Min' | 'Full';
+  /** Whether a phone number is required. Defaults to false. */
+  isPhoneNumberRequired?: boolean;
 };
 
 /**
@@ -228,6 +258,8 @@ export type PaymentMethodDisplayData = {
   label: string;
   /** Details about the underlying payment method, e.g., "Visa Credit •••• 4242". */
   sublabel?: string;
+  /** The type of payment method */
+  type: 'Card' | 'BankAccount' | 'ApplePay' | 'GooglePay';
 };
 
 /**
