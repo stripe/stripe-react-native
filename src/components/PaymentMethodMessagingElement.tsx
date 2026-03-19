@@ -9,8 +9,7 @@ import {
   AccessibilityProps,
   HostComponent,
   LayoutAnimation,
-  NativeSyntheticEvent,
-  Platform,
+  NativeSyntheticEvent
 } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
@@ -29,7 +28,9 @@ export interface Props extends AccessibilityProps {
 }
 
 /**
- *  Payment Method Messaging Element Component Props
+ * This feature is in Public Preview. It may not be feature complete and have breaking changes as we develop and update functionality.
+ *  
+ * Payment Method Messaging Element to display promotional information about available BNPL plans.
  *
  * @example
  * ```tsx
@@ -61,7 +62,6 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
     const viewRef =
       useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
 
-    const isAndroid = Platform.OS === 'android';
     const [height, setHeight] = useState<number | undefined>();
 
     const onStateChangeHandler = useCallback(
@@ -85,7 +85,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         }
       );
       return () => sub.remove();
-    }, [isAndroid]);
+    });
 
     useEffect(() => {
       // listen for load complete
@@ -113,7 +113,7 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         }
       );
       return () => sub.remove();
-    }, [isAndroid, onStateChange]);
+    }, [onStateChange]);
 
     return (
       <NativePaymentMethodMessagingElement

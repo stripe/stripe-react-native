@@ -23,6 +23,7 @@ export default function PaymentMethodMessagingElementScreen() {
   const [style, setStyle] = useState<PaymentMethodMessagingElementStyle>(
     PaymentMethodMessagingElementStyle.Light
   );
+  const [fontSize, setFontSize] = useState<number>(16);
   const [config, setConfig] = useState({
     amount: price,
     currency: 'usd',
@@ -66,6 +67,9 @@ export default function PaymentMethodMessagingElementScreen() {
           style: style,
           textColor: colorMap[textColor],
           linkTextColor: colorMap[linkTextColor],
+          font: {
+            size: fontSize,
+          }
         }}
       />
       <Text style={styles.pickerLabel}>State: {status}</Text>
@@ -142,6 +146,18 @@ export default function PaymentMethodMessagingElementScreen() {
         </Picker>
       </View>
       <View style={styles.pickerContainer}>
+        <Text style={styles.pickerLabel}>Font Size:</Text>
+        <Picker
+          selectedValue={fontSize}
+          onValueChange={(itemValue) => setFontSize(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="12" value={12} />
+          <Picker.Item label="16" value={16} />
+          <Picker.Item label="24" value={24} />
+        </Picker>
+      </View>
+      <View style={styles.pickerContainer}>
         <Text style={styles.pickerLabel}>Style:</Text>
         <Picker
           selectedValue={style}
@@ -170,7 +186,7 @@ const styles = StyleSheet.create({
   pickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    width: '90%',
   },
   pickerLabel: {
     fontSize: 16,
@@ -178,6 +194,6 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    height: Platform.OS === 'ios' ? 200 : 50,
+    height: Platform.OS === 'ios' ? 200 : 60,
   },
 });
