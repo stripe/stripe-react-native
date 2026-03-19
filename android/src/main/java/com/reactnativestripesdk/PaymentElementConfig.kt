@@ -14,7 +14,7 @@ import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @Throws(PaymentSheetException::class)
-internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): PaymentSheet.IntentConfiguration? {
+fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): PaymentSheet.IntentConfiguration? {
   if (intentConfigurationParams == null) {
     return null
   }
@@ -60,7 +60,7 @@ private fun buildIntentConfigurationMode(modeParams: ReadableMap): PaymentSheet.
     )
   }
 
-internal fun buildLinkConfig(params: ReadableMap?): PaymentSheet.LinkConfiguration {
+fun buildLinkConfig(params: ReadableMap?): PaymentSheet.LinkConfiguration {
   if (params == null) {
     return PaymentSheet.LinkConfiguration()
   }
@@ -79,7 +79,7 @@ private fun mapStringToLinkDisplay(value: String?): PaymentSheet.LinkConfigurati
     else -> PaymentSheet.LinkConfiguration.Display.Automatic
   }
 
-internal fun mapToTermsDisplay(params: ReadableMap?): Map<PaymentMethod.Type, PaymentSheet.TermsDisplay>? {
+fun mapToTermsDisplay(params: ReadableMap?): Map<PaymentMethod.Type, PaymentSheet.TermsDisplay>? {
   val termsDisplayMap = params?.getMap("termsDisplay") ?: return null
   val result = mutableMapOf<PaymentMethod.Type, PaymentSheet.TermsDisplay>()
   termsDisplayMap.forEachKey { code ->
@@ -109,7 +109,7 @@ private val mapIntToButtonType =
     1001 to PaymentSheet.GooglePayConfiguration.ButtonType.Plain,
   )
 
-internal fun buildGooglePayConfig(params: ReadableMap?): PaymentSheet.GooglePayConfiguration? {
+fun buildGooglePayConfig(params: ReadableMap?): PaymentSheet.GooglePayConfiguration? {
   if (params == null || params.isEmpty()) {
     return null
   }
@@ -139,7 +139,7 @@ internal fun buildGooglePayConfig(params: ReadableMap?): PaymentSheet.GooglePayC
 }
 
 @Throws(PaymentSheetException::class)
-internal fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.CustomerConfiguration? {
+fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.CustomerConfiguration? {
   val customerId = map?.getString("customerId").orEmpty()
   val customerEphemeralKeySecret = map?.getString("customerEphemeralKeySecret").orEmpty()
   val customerSessionClientSecret = map?.getString("customerSessionClientSecret").orEmpty()
@@ -164,7 +164,7 @@ internal fun buildCustomerConfiguration(map: ReadableMap?): PaymentSheet.Custome
   }
 }
 
-internal fun buildBillingDetails(map: ReadableMap?): PaymentSheet.BillingDetails? {
+fun buildBillingDetails(map: ReadableMap?): PaymentSheet.BillingDetails? {
   if (map == null) {
     return null
   }
@@ -186,7 +186,7 @@ internal fun buildBillingDetails(map: ReadableMap?): PaymentSheet.BillingDetails
   )
 }
 
-internal fun buildBillingDetailsCollectionConfiguration(map: ReadableMap?): PaymentSheet.BillingDetailsCollectionConfiguration =
+fun buildBillingDetailsCollectionConfiguration(map: ReadableMap?): PaymentSheet.BillingDetailsCollectionConfiguration =
   PaymentSheet.BillingDetailsCollectionConfiguration(
     name = mapToCollectionMode(map?.getString("name")),
     phone = mapToCollectionMode(map?.getString("phone")),
@@ -195,7 +195,7 @@ internal fun buildBillingDetailsCollectionConfiguration(map: ReadableMap?): Paym
     attachDefaultsToPaymentMethod = map.getBooleanOr("attachDefaultsToPaymentMethod", false),
   )
 
-internal fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode =
+fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode =
   when (str) {
     "automatic" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
     "never" -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Never
@@ -203,7 +203,7 @@ internal fun mapToCollectionMode(str: String?): PaymentSheet.BillingDetailsColle
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.CollectionMode.Automatic
   }
 
-internal fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode =
+fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode =
   when (str) {
     "automatic" ->
       PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
@@ -213,7 +213,7 @@ internal fun mapToAddressCollectionMode(str: String?): PaymentSheet.BillingDetai
     else -> PaymentSheet.BillingDetailsCollectionConfiguration.AddressCollectionMode.Automatic
   }
 
-internal fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBrandAcceptance {
+fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBrandAcceptance {
   val cardBrandAcceptanceParams = params?.getMap("cardBrandAcceptance") ?: return PaymentSheet.CardBrandAcceptance.all()
   val filter = cardBrandAcceptanceParams.getString("filter") ?: return PaymentSheet.CardBrandAcceptance.all()
 
@@ -239,7 +239,7 @@ internal fun mapToCardBrandAcceptance(params: ReadableMap?): PaymentSheet.CardBr
   }
 }
 
-internal fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? =
+fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAcceptance.BrandCategory? =
   when (brand) {
     "visa" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Visa
     "mastercard" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Mastercard
@@ -249,7 +249,7 @@ internal fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAccept
   }
 
 @OptIn(CardFundingFilteringPrivatePreview::class)
-internal fun mapToAllowedCardFundingTypes(params: ReadableMap?): List<PaymentSheet.CardFundingType>? {
+fun mapToAllowedCardFundingTypes(params: ReadableMap?): List<PaymentSheet.CardFundingType>? {
   val cardFundingFiltering = params?.getMap("cardFundingFiltering") ?: return null
   val allowedTypes = cardFundingFiltering.getStringList("allowedCardFundingTypes") ?: return null
 
