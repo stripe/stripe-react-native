@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+- tapOn: "Payment Method Messaging Element"
+- tapOn: "PMME"
+- extendedWaitUntil:
+    visible: "loaded"
+    timeout: 10000
+- assertVisible:
+    text: "4 interest-free payments of $2.50 with"
+    text: "See plans"
+- tapOn: "See plans"
+- extendedWaitUntil:
+    visible: "Choose how you want to pay"
+    timeout: 10000
+- assertVisible:
+    text: "Choose how you want to pay"
+

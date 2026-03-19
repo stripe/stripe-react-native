@@ -77,14 +77,13 @@ private fun parseFont(
       "family",
       context,
     )
-  val scaleFactor = map.getDoubleOrNull("scale") ?: 1.0
-  val textSize: Double = 16 * scaleFactor
+  val size = map.getDoubleOrNull("size") ?: 1.0
 
   val font =
     PaymentMethodMessagingElement.Appearance
       .Font()
       .fontFamily(fontFamily)
-      .fontSizeSp(textSize.toFloat())
+      .fontSizeSp(size.toFloat())
 
   return font
 }
