@@ -19,9 +19,9 @@ export default function PaymentMethodMessagingElementScreen() {
   >('black');
   const [linkTextColor, setLinkTextColor] = useState<
     'blue' | 'red' | 'yellow' | 'black'
-  >('black');
+  >('blue');
   const [style, setStyle] = useState<PaymentMethodMessagingElementStyle>(
-    PaymentMethodMessagingElementStyle.Flat
+    PaymentMethodMessagingElementStyle.Light
   );
   const [config, setConfig] = useState({
     amount: price,
@@ -149,16 +149,16 @@ export default function PaymentMethodMessagingElementScreen() {
           style={styles.picker}
         >
           <Picker.Item
-            label="Flat"
-            value={PaymentMethodMessagingElementStyle.Flat}
+            label="Light"
+            value={PaymentMethodMessagingElementStyle.Light}
           />
           <Picker.Item
             label="Dark"
             value={PaymentMethodMessagingElementStyle.Dark}
           />
           <Picker.Item
-            label="Light"
-            value={PaymentMethodMessagingElementStyle.Light}
+            label="Flat"
+            value={PaymentMethodMessagingElementStyle.Flat}
           />
         </Picker>
       </View>
