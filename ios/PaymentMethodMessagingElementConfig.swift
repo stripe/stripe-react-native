@@ -50,7 +50,7 @@ internal class PaymentMethodMessagingElementConfig {
 
         return appearance
     }
-    
+
     private class func buildFont(params: NSDictionary) throws -> PaymentSheet.Appearance.Font {
         var font = PaymentSheet.Appearance.Font()
         if let fontName = params["font"] as? String {

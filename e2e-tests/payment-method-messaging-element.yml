@@ -5,15 +5,15 @@ appId: ${APP_ID}
 - tapOn: "Payment Method Messaging Element"
 - tapOn: "PMME"
 - extendedWaitUntil:
-  visible: "loaded"
-  timeout: 10000
+    visible: "loaded"
+    timeout: 10000
 - assertVisible:
-  - text: "4 interest-free payments of $2.50 with"
-  - text: "See plans"
+    text: "4 interest-free payments of $2.50 with"
+    text: "See plans"
 - tapOn: "See plans"
 - extendedWaitUntil:
-  visible: "Choose how you want to pay"
-  timeout: 10000
+    visible: "Choose how you want to pay"
+    timeout: 10000
 - assertVisible:
-  - text: "Choose how you want to pay"
+    text: "Choose how you want to pay"
 

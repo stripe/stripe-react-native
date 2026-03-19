@@ -9,7 +9,7 @@ import {
   AccessibilityProps,
   HostComponent,
   LayoutAnimation,
-  NativeSyntheticEvent
+  NativeSyntheticEvent,
 } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
@@ -29,7 +29,6 @@ export interface Props extends AccessibilityProps {
 
 /**
  * This feature is in Public Preview. It may not be feature complete and have breaking changes as we develop and update functionality.
- *  
  * Payment Method Messaging Element to display promotional information about available BNPL plans.
  *
  * @example

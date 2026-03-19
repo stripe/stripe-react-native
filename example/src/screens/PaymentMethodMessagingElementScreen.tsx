@@ -69,7 +69,7 @@ export default function PaymentMethodMessagingElementScreen() {
           linkTextColor: colorMap[linkTextColor],
           font: {
             size: fontSize,
-          }
+          },
         }}
       />
       <Text style={styles.pickerLabel}>State: {status}</Text>
