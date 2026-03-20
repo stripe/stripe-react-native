@@ -283,7 +283,6 @@ class PaymentSheetManager(
               .confirmCustomPaymentMethodCallback(this)
               .build(activity, signal)
           }
-        initPromise.resolve(Arguments.createMap())
       }
     }
     configure(arguments, initPromise)
@@ -300,7 +299,7 @@ class PaymentSheetManager(
   ) {
     val merchantDisplayName = args.getString("merchantDisplayName").orEmpty()
     if (merchantDisplayName.isEmpty()) {
-      initPromise.resolve(
+      promise.resolve(
         createError(ErrorType.Failed.toString(), "merchantDisplayName cannot be empty or null."),
       )
       return
@@ -322,7 +321,7 @@ class PaymentSheetManager(
       try {
         buildIntentConfiguration(args.getMap("intentConfiguration"))
       } catch (error: PaymentSheetException) {
-        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+        promise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
 
@@ -330,7 +329,7 @@ class PaymentSheetManager(
       try {
         buildPaymentSheetAppearance(args.getMap("appearance"), context)
       } catch (error: PaymentSheetAppearanceException) {
-        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+        promise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
 
@@ -338,7 +337,7 @@ class PaymentSheetManager(
       try {
         buildCustomerConfiguration(args)
       } catch (error: PaymentSheetException) {
-        initPromise.resolve(createError(ErrorType.Failed.toString(), error))
+        promise.resolve(createError(ErrorType.Failed.toString(), error))
         return
       }
 
@@ -380,8 +379,10 @@ class PaymentSheetManager(
     mapToTermsDisplay(args)?.let { configurationBuilder.termsDisplay(it) }
 
     paymentSheetConfiguration = configurationBuilder.build()
-    if (arguments.getBooleanOr("customFlow", false)) {
+    if (args.getBooleanOr("customFlow", false)) {
       configureFlowController(promise)
+    } else {
+      promise.resolve(Arguments.createMap())
     }
   }
 
@@ -491,7 +492,7 @@ class PaymentSheetManager(
         callback = onFlowControllerConfigure,
       )
     } else {
-      initPromise.resolve(
+      promise.resolve(
         createError(
           ErrorType.Failed.toString(),
           "One of `paymentIntentClientSecret`, `setupIntentClientSecret`, or `intentConfiguration` is required",
