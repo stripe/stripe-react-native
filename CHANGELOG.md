@@ -2,7 +2,7 @@
 
 ## 0.60.0 - 2026-03-23
 **Changes**
-- Updated Stripe Android SDK from 22.8.+ to 23.0.+
+- Updated Stripe Android SDK from 22.8.+ to 23.0.+. See our [migration guide](https://github.com/stripe/stripe-android/blob/master/MIGRATING.md#migrating-from-versions--2300) for more information.
 
 **Fixes**
 * [Fixed] Multiple instances of PaymentSheet being held in memory when calling `initPaymentSheet` multiple times. ([2347](https://github.com/stripe/stripe-react-native/pull/2347))
