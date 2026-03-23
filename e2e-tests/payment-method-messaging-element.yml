@@ -9,8 +9,8 @@ appId: ${APP_ID}
     timeout: 10000
 - assertVisible:
     text: "4 interest-free payments of $2.50 with"
-    text: "See plans"
-- tapOn: "See plans"
+    text: " See plans"
+- tapOn: " See plans"
 - extendedWaitUntil:
     visible: "Choose how you want to pay"
     timeout: 10000
