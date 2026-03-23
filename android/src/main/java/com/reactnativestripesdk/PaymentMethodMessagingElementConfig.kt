@@ -77,7 +77,7 @@ private fun parseFont(
       "family",
       context,
     )
-  val size = map.getDoubleOrNull("size") ?: 1.0
+  val size = map.getDoubleOrNull("size") ?: 16.0
 
   val font =
     PaymentMethodMessagingElement.Appearance
