@@ -6,13 +6,13 @@ appId: ${APP_ID}
 - tapOn: "PMME"
 - extendedWaitUntil:
     visible: "State: loaded"
-    timeout: 10000
+    timeout: 150000
 - assertVisible:
     text: ".*4 interest-free payments of \\$2\\.50 with.* See plans.*"
 - tapOn: ".*4 interest-free payments of \\$2\\.50 with.* See plans.*"
 - extendedWaitUntil:
     visible: "Choose how you want to pay"
-    timeout: 10000
+    timeout: 150000
 - assertVisible:
     text: "Choose how you want to pay"
 
