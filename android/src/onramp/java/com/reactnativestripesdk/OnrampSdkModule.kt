@@ -289,35 +289,8 @@ class OnrampSdkModule(
       }
     CoroutineScope(Dispatchers.IO).launch {
       val firstName = kycInfo.getString("firstName")
-      if (firstName.isNullOrEmpty()) {
-        promise.resolve(
-          createError(
-            ErrorType.Unknown.toString(),
-            "Missing required field: firstName",
-          ),
-        )
-        return@launch
-      }
       val lastName = kycInfo.getString("lastName")
-      if (lastName.isNullOrEmpty()) {
-        promise.resolve(
-          createError(
-            ErrorType.Unknown.toString(),
-            "Missing required field: lastName",
-          ),
-        )
-        return@launch
-      }
       val idNumber = kycInfo.getString("idNumber")
-      if (idNumber.isNullOrEmpty()) {
-        promise.resolve(
-          createError(
-            ErrorType.Unknown.toString(),
-            "Missing required field: idNumber",
-          ),
-        )
-        return@launch
-      }
 
       val dateOfBirthMap = kycInfo.getMap("dateOfBirth")
       val dob =
@@ -333,17 +306,11 @@ class OnrampSdkModule(
             year = dateOfBirthMap.getInt("year"),
           )
         } else {
-          promise.resolve(
-            createError(
-              ErrorType.Unknown.toString(),
-              "Missing required field: dateOfBirth",
-            ),
-          )
-          return@launch
+          null
         }
 
       val addressMap = kycInfo.getMap("address")
-      val addressObj = mapToPaymentSheetAddress(addressMap) ?: PaymentSheet.Address()
+      val addressObj = mapToPaymentSheetAddress(addressMap)
 
       val kycInfoObj =
         KycInfo(
