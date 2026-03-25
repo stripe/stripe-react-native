@@ -10,7 +10,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import com.facebook.react.ReactActivity
@@ -97,6 +96,8 @@ class StripeSdkModule(
 
   private val stripeUIManagers = mutableListOf<StripeUIManager>()
   private var paymentSheetManager: PaymentSheetManager? = null
+  private var flowControllerManager: FlowControllerManager? = null
+  private var lastConfigured: BasePaymentSheetManager? = null
   private var paymentLauncherManager: PaymentLauncherManager? = null
   private var collectBankAccountLauncherManager: CollectBankAccountLauncherManager? = null
   private var financialConnectionsSheetManager: FinancialConnectionsSheetManager? = null
@@ -257,13 +258,27 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager != null) {
-      paymentSheetManager?.configure(params, promise)
+    val customFlow = params.getBooleanOr("customFlow", false)
+    if (customFlow) {
+      if (flowControllerManager != null) {
+        flowControllerManager?.configure(params, promise)
+      } else {
+        flowControllerManager =
+          FlowControllerManager(reactApplicationContext, params, promise).also {
+            registerStripeUIManager(it)
+          }
+      }
+      lastConfigured = flowControllerManager
     } else {
-      paymentSheetManager =
-        PaymentSheetManager(reactApplicationContext, params, promise).also {
-          registerStripeUIManager(it)
-        }
+      if (paymentSheetManager != null) {
+        paymentSheetManager?.configure(params, promise)
+      } else {
+        paymentSheetManager =
+          PaymentSheetManager(reactApplicationContext, params, promise).also {
+            registerStripeUIManager(it)
+          }
+      }
+      lastConfigured = paymentSheetManager
     }
   }
 
@@ -272,30 +287,27 @@ class StripeSdkModule(
     options: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
+    if (lastConfigured == null) {
+      promise.resolve(BasePaymentSheetManager.createMissingInitError())
       return
     }
 
     val timeout = options.getLongOrNull("timeout")
     if (timeout != null) {
-      paymentSheetManager?.presentWithTimeout(
-        timeout,
-        promise,
-      )
+      lastConfigured!!.presentWithTimeout(timeout, promise)
     } else {
-      paymentSheetManager?.present(promise)
+      lastConfigured!!.present(promise)
     }
   }
 
   @ReactMethod
   override fun confirmPaymentSheetPayment(promise: Promise) {
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
+    if (flowControllerManager == null) {
+      promise.resolve(BasePaymentSheetManager.createMissingInitError())
       return
     }
 
-    paymentSheetManager?.confirmPayment(promise)
+    flowControllerManager?.confirmPayment(promise)
   }
 
   @ReactMethod
@@ -311,12 +323,12 @@ class StripeSdkModule(
   ) {
     embeddedIntentCreationCallback.complete(params)
 
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
+    if (lastConfigured == null) {
+      promise.resolve(BasePaymentSheetManager.createMissingInitError())
       return
     }
 
-    paymentSheetManager?.paymentSheetIntentCreationCallback?.complete(params)
+    lastConfigured!!.paymentSheetIntentCreationCallback.complete(params)
   }
 
   @ReactMethod
@@ -339,12 +351,12 @@ class StripeSdkModule(
     embeddedConfirmationTokenCreationCallback.complete(params)
     paymentSheetConfirmationTokenCreationCallback.complete(params)
 
-    if (paymentSheetManager == null) {
-      promise.resolve(PaymentSheetManager.createMissingInitError())
+    if (lastConfigured == null) {
+      promise.resolve(BasePaymentSheetManager.createMissingInitError())
       return
     }
 
-    paymentSheetManager?.paymentSheetConfirmationTokenCreationCallback?.complete(params)
+    lastConfigured!!.paymentSheetConfirmationTokenCreationCallback.complete(params)
   }
 
   @ReactMethod
@@ -554,6 +566,7 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     unregisterStripeUIManager(paymentSheetManager)
+    unregisterStripeUIManager(flowControllerManager)
     paymentLauncherManager =
       PaymentLauncherManager
         .forNextActionPayment(
