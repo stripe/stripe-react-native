@@ -124,6 +124,7 @@ export enum CryptoNetwork {
   optimism = 'optimism',
   worldchain = 'worldchain',
   xrpl = 'xrpl',
+  sui = 'sui',
 }
 
 /**
@@ -143,20 +144,20 @@ export type DateOfBirth = {
  * Know Your Customer (KYC) information required for crypto operations.
  *
  * Notes:
+ * - All fields are optional at the transport layer; provide the fields you have collected so far.
  * - `idNumber` may be required depending on region/regulatory requirements (for US, this is SSN).
- * - `address` fields are optional at the field level, but the object is required.
  */
 export type KycInfo = {
-  /** Customer’s first name. */
-  firstName: string;
-  /** Customer’s last name. */
-  lastName: string;
+  /** Customer’s first name, if collected. */
+  firstName?: string;
+  /** Customer’s last name, if collected. */
+  lastName?: string;
   /** Government ID number (e.g., SSN for US). May be required by region. */
   idNumber?: string;
-  /** Customer’s date of birth. */
-  dateOfBirth: DateOfBirth;
-  /** Customer’s address. */
-  address: Address;
+  /** Customer’s date of birth, if collected. */
+  dateOfBirth?: DateOfBirth;
+  /** Customer’s address, if collected. */
+  address?: Address;
 };
 
 /**

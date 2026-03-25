@@ -22,6 +22,8 @@ export function getDefaultAddressForNetwork(
       return '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
     case Onramp.CryptoNetwork.xrpl:
       return 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH';
+    case Onramp.CryptoNetwork.sui:
+      return '0x7b3a4f4f8d4d6c0f5d9e4f12a5c9b3e1d4a7f8c2b6e1a9d0c3f4b5a6d7e8f90';
     default:
       return '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
   }
@@ -54,6 +56,8 @@ export function getDestinationParamsForNetwork(network: Onramp.CryptoNetwork): {
       return { destinationNetwork: 'aptos', destinationCurrency: 'apt' };
     case Onramp.CryptoNetwork.xrpl:
       return { destinationNetwork: 'xrpl', destinationCurrency: 'xrp' };
+    case Onramp.CryptoNetwork.sui:
+      return { destinationNetwork: 'sui', destinationCurrency: 'sui' };
     default:
       return { destinationNetwork: 'ethereum', destinationCurrency: 'eth' };
   }
