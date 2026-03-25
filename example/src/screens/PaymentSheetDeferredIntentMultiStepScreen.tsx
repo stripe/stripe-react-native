@@ -6,7 +6,6 @@ import {
   BillingDetails,
   PaymentMethod,
   PaymentSheet,
-  PaymentSheetError
 } from '@stripe/stripe-react-native';
 import { colors } from '../colors';
 import Button from '../components/Button';
@@ -25,8 +24,6 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     image: string;
     label: string;
   } | null>(null);
-
-  const [isCustomFlow, setIsCustomFlow] = useState(false)
 
   const [customerKeyType, setCustomerKeyType] = useState<string>(
     'legacy_ephemeral_key'
@@ -58,7 +55,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     }
   };
 
-  const initialisePaymentSheet = useCallback(async (customFlow: boolean) => {
+  const initialisePaymentSheet = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -86,7 +83,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
       };
 
       const { error, paymentOption } = await initPaymentSheet({
-        customFlow: customFlow,
+        customFlow: true,
         merchantDisplayName: 'Example Inc.',
         style: 'automatic',
         returnURL: 'com.stripe.react.native://stripe-redirect',
@@ -149,7 +146,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     } finally {
       setLoading(false);
     }
-  }, [customerKeyType, isCustomFlow, initPaymentSheet]);
+  }, [customerKeyType, initPaymentSheet]);
 
   const toggleCustomerKeyType = (value: boolean) => {
     if (value) {
@@ -161,7 +158,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
 
   useEffect(() => {
     setPaymentSheetEnabled(false);
-    initialisePaymentSheet(isCustomFlow).catch((err) => console.log(err));
+    initialisePaymentSheet().catch((err) => console.log(err));
   }, [customerKeyType, initialisePaymentSheet]);
 
   const choosePaymentOption = async () => {
@@ -179,40 +176,6 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     }
   };
 
-  const openPaymentSheet = async () => {
-    setLoading(true);
-    const { error } = await presentPaymentSheet();
-
-    if (!error) {
-      Alert.alert('Success', 'The payment was confirmed successfully');
-    } else {
-      switch (error.code) {
-        case PaymentSheetError.Failed:
-          Alert.alert(
-            `PaymentSheet present failed with error code: ${error.code}`,
-            error.message
-          );
-          setPaymentSheetEnabled(false);
-          break;
-        case PaymentSheetError.Canceled:
-          Alert.alert(
-            `PaymentSheet present was canceled with code: ${error.code}`,
-            error.message
-          );
-          break;
-        case PaymentSheetError.Timeout:
-          Alert.alert(
-            `PaymentSheet present timed out: ${error.code}`,
-            error.message
-          );
-          break;
-      }
-    }
-    setPaymentMethodOption(null);
-    setLoading(false);
-    await initialisePaymentSheet(isCustomFlow);
-  };
-
   const onPressBuy = async () => {
     setLoading(true);
     const { error } = await confirmPaymentSheetPayment();
@@ -225,13 +188,13 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     }
     setPaymentMethodOption(null);
     setLoading(false);
-    await initialisePaymentSheet(isCustomFlow);
+    await initialisePaymentSheet();
   };
 
   return (
     // In your app’s checkout, make a network request to the backend and initialize PaymentSheet.
     // To reduce loading time, make this request before the Checkout button is tapped, e.g. when the screen is loaded.
-    <PaymentScreen onInit={() => initialisePaymentSheet(isCustomFlow)}>
+    <PaymentScreen onInit={initialisePaymentSheet}>
       <CustomerSessionSwitch
         value={customerKeyType === 'customer_session'}
         onValueChange={toggleCustomerKeyType}
@@ -245,29 +208,15 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
         onPress={choosePaymentOption}
       />
 
-      <Button
-          variant="primary"
-          loading={loading}
-          title={`isCustomFlow ${isCustomFlow}`}
-          onPress={ () => setIsCustomFlow(!isCustomFlow)}
-        />
-
       <View style={styles.section}>
         <Button
           variant="primary"
           loading={loading}
           disabled={!paymentMethodOption || !paymentSheetEnabled}
-          title={`Confirm with FlowController${
+          title={`Buy${
             paymentMethodOption ? ` with ${paymentMethodOption.label}` : ''
           }`}
           onPress={onPressBuy}
-        />
-
-        <Button
-          variant="primary"
-          loading={loading}
-          title={`Present PaymentSheet`}
-          onPress={openPaymentSheet}
         />
       </View>
     </PaymentScreen>
