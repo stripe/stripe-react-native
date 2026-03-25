@@ -590,4 +590,150 @@ class PaymentSheetManagerTest {
     assertNotNull(resolved)
     assertTrue(!resolved.hasKey("error"))
   }
+
+  @Test
+  fun determinePaymentSheetInitializationShape_UsesPaymentMethodCallbackModeForDeferredIntent() {
+    val params =
+      readableMapOf(
+        "customFlow" to true,
+        "intentConfiguration" to readableMapOf(),
+      )
+
+    val shape = determinePaymentSheetInitializationShape(params)
+
+    assertEquals(
+      PaymentSheetInitializationShape(
+        customFlow = true,
+        intentCallbackMode = PaymentSheetIntentCallbackMode.PAYMENT_METHOD,
+      ),
+      shape,
+    )
+  }
+
+  @Test
+  fun determinePaymentSheetInitializationShape_UsesConfirmationTokenCallbackMode() {
+    val params =
+      readableMapOf(
+        "intentConfiguration" to
+          readableMapOf(
+            "confirmationTokenConfirmHandler" to true,
+          ),
+      )
+
+    val shape = determinePaymentSheetInitializationShape(params)
+
+    assertEquals(
+      PaymentSheetInitializationShape(
+        customFlow = false,
+        intentCallbackMode = PaymentSheetIntentCallbackMode.CONFIRMATION_TOKEN,
+      ),
+      shape,
+    )
+  }
+
+  @Test
+  fun determinePaymentSheetInitializationShape_DiffersWhenSwitchingFromCustomFlowToStandardFlow() {
+    val manualChargeParams =
+      readableMapOf(
+        "customFlow" to true,
+        "intentConfiguration" to readableMapOf(),
+      )
+    val addCardParams =
+      readableMapOf(
+        "customFlow" to false,
+        "intentConfiguration" to readableMapOf(),
+      )
+
+    val manualChargeShape = determinePaymentSheetInitializationShape(manualChargeParams)
+    val addCardShape = determinePaymentSheetInitializationShape(addCardParams)
+
+    assertTrue(manualChargeShape != addCardShape)
+  }
+
+  @Test
+  fun determinePaymentSheetInitializationShape_DiffersWhenSwitchingFromDeferredToImmediateIntent() {
+    val deferredIntentParams =
+      readableMapOf(
+        "intentConfiguration" to readableMapOf(),
+      )
+    val immediateIntentParams =
+      readableMapOf(
+        "paymentIntentClientSecret" to "pi_123_secret_456",
+      )
+
+    val deferredIntentShape = determinePaymentSheetInitializationShape(deferredIntentParams)
+    val immediateIntentShape = determinePaymentSheetInitializationShape(immediateIntentParams)
+
+    assertTrue(deferredIntentShape != immediateIntentShape)
+  }
+
+  @Test
+  fun canReusePaymentSheetManager_ReturnsFalse_WhenStandardFlowManagerHasNoPaymentSheet() {
+    val currentShape =
+      PaymentSheetInitializationShape(
+        customFlow = false,
+        intentCallbackMode = PaymentSheetIntentCallbackMode.PAYMENT_METHOD,
+      )
+    val nextParams =
+      readableMapOf(
+        "intentConfiguration" to readableMapOf(),
+      )
+
+    val canReuse =
+      canReusePaymentSheetManager(
+        currentShape = currentShape,
+        nextParams = nextParams,
+        hasFlowController = false,
+        hasPaymentSheet = false,
+      )
+
+    assertTrue(!canReuse)
+  }
+
+  @Test
+  fun canReusePaymentSheetManager_ReturnsFalse_WhenCustomFlowManagerHasNoFlowController() {
+    val currentShape =
+      PaymentSheetInitializationShape(
+        customFlow = true,
+        intentCallbackMode = PaymentSheetIntentCallbackMode.PAYMENT_METHOD,
+      )
+    val nextParams =
+      readableMapOf(
+        "customFlow" to true,
+        "intentConfiguration" to readableMapOf(),
+      )
+
+    val canReuse =
+      canReusePaymentSheetManager(
+        currentShape = currentShape,
+        nextParams = nextParams,
+        hasFlowController = false,
+        hasPaymentSheet = false,
+      )
+
+    assertTrue(!canReuse)
+  }
+
+  @Test
+  fun canReusePaymentSheetManager_ReturnsTrue_WhenShapeMatchesAndRequiredStateExists() {
+    val currentShape =
+      PaymentSheetInitializationShape(
+        customFlow = false,
+        intentCallbackMode = PaymentSheetIntentCallbackMode.NONE,
+      )
+    val nextParams =
+      readableMapOf(
+        "paymentIntentClientSecret" to "pi_123_secret_456",
+      )
+
+    val canReuse =
+      canReusePaymentSheetManager(
+        currentShape = currentShape,
+        nextParams = nextParams,
+        hasFlowController = false,
+        hasPaymentSheet = true,
+      )
+
+    assertTrue(canReuse)
+  }
 }

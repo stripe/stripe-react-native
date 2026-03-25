@@ -257,9 +257,10 @@ class StripeSdkModule(
     params: ReadableMap,
     promise: Promise,
   ) {
-    if (paymentSheetManager != null) {
+    if (paymentSheetManager?.canReuse(params) == true) {
       paymentSheetManager?.configure(params, promise)
     } else {
+      unregisterStripeUIManager(paymentSheetManager)
       paymentSheetManager =
         PaymentSheetManager(reactApplicationContext, params, promise).also {
           registerStripeUIManager(it)

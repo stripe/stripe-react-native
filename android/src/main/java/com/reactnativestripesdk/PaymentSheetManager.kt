@@ -75,6 +75,8 @@ class PaymentSheetManager(
   private val initPromise: Promise,
 ) : StripeUIManager(context),
   ConfirmCustomPaymentMethodCallback {
+  private val initializationShape =
+    determinePaymentSheetInitializationShape(arguments)
   private var paymentSheet: PaymentSheet? = null
   private var flowController: PaymentSheet.FlowController? = null
   private var paymentIntentClientSecret: String? = null
@@ -289,9 +291,18 @@ class PaymentSheetManager(
   }
 
   override fun onDestroy() {
+    super.onDestroy()
     flowController = null
     paymentSheet = null
   }
+
+  fun canReuse(params: ReadableMap): Boolean =
+    canReusePaymentSheetManager(
+      currentShape = initializationShape,
+      nextParams = params,
+      hasFlowController = flowController != null,
+      hasPaymentSheet = paymentSheet != null,
+    )
 
   fun configure(
     args: ReadableMap,
@@ -731,6 +742,53 @@ internal fun mapToPaymentMethodOptions(options: ReadableMap?): PaymentSheet.Inte
   } else {
     null
   }
+}
+
+internal enum class PaymentSheetIntentCallbackMode {
+  NONE,
+  PAYMENT_METHOD,
+  CONFIRMATION_TOKEN,
+}
+
+internal data class PaymentSheetInitializationShape(
+  val customFlow: Boolean,
+  val intentCallbackMode: PaymentSheetIntentCallbackMode,
+)
+
+internal fun canReusePaymentSheetManager(
+  currentShape: PaymentSheetInitializationShape,
+  nextParams: ReadableMap,
+  hasFlowController: Boolean,
+  hasPaymentSheet: Boolean,
+): Boolean {
+  val nextShape = determinePaymentSheetInitializationShape(nextParams)
+  if (currentShape != nextShape) {
+    return false
+  }
+
+  return if (currentShape.customFlow) {
+    hasFlowController
+  } else {
+    hasPaymentSheet
+  }
+}
+
+internal fun determinePaymentSheetInitializationShape(
+  params: ReadableMap,
+): PaymentSheetInitializationShape {
+  val intentConfiguration = params.getMap("intentConfiguration")
+  val intentCallbackMode =
+    when {
+      intentConfiguration == null -> PaymentSheetIntentCallbackMode.NONE
+      intentConfiguration.hasKey("confirmationTokenConfirmHandler") ->
+        PaymentSheetIntentCallbackMode.CONFIRMATION_TOKEN
+      else -> PaymentSheetIntentCallbackMode.PAYMENT_METHOD
+    }
+
+  return PaymentSheetInitializationShape(
+    customFlow = params.getBooleanOr("customFlow", false),
+    intentCallbackMode = intentCallbackMode,
+  )
 }
 
 internal fun handleFlowControllerConfigured(
