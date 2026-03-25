@@ -90,17 +90,6 @@ class PaymentSheetManager(
 
   @SuppressLint("RestrictedApi")
   override fun onCreate() {
-    val isCustomFlow = arguments.getBooleanOr("customFlow", false)
-    lastConfigureWasCustomFlow = isCustomFlow
-    if (isCustomFlow) {
-      if (flowController == null) {
-        initFlowController(arguments, initPromise)
-      }
-    } else {
-      if (paymentSheet == null) {
-        initPaymentSheet(arguments, initPromise)
-      }
-    }
     configure(arguments, initPromise)
   }
 
@@ -108,67 +97,6 @@ class PaymentSheetManager(
     super.onDestroy()
     flowController = null
     paymentSheet = null
-  }
-
-  private fun initPaymentSheet(
-    args: ReadableMap,
-    promise: Promise
-  ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
-    val intentConfigMap = args.getMap("intentConfiguration")
-    val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    paymentSheet =
-      if (intentConfiguration != null) {
-        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        @SuppressLint("RestrictedApi")
-        builder
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
-      } else {
-        @SuppressLint("RestrictedApi")
-        PaymentSheet
-          .Builder(buildPaymentSheetResultCallback())
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity, signal)
-      }
-  }
-
-  private fun initFlowController(
-    args: ReadableMap,
-    promise: Promise
-  ) {
-    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
-    val intentConfigMap = args.getMap("intentConfiguration")
-    val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
-    flowController =
-      if (intentConfiguration != null) {
-        val builder =
-          PaymentSheet.FlowController
-            .Builder(
-              resultCallback = buildPaymentSheetResultCallback(),
-              paymentOptionResultCallback = buildPaymentOptionCallback(),
-            )
-        if (useConfirmationTokenCallback) {
-          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
-        } else {
-          builder.createIntentCallback(buildIntentCreationCallback())
-        }
-        builder
-          .confirmCustomPaymentMethodCallback(this)
-          .build(activity)
-      } else {
-        PaymentSheet.FlowController
-          .Builder(
-            resultCallback = buildPaymentSheetResultCallback(),
-            paymentOptionResultCallback = buildPaymentOptionCallback(),
-          ).confirmCustomPaymentMethodCallback(this)
-          .build(activity)
-      }
   }
 
   fun configure(
@@ -245,7 +173,8 @@ class PaymentSheetManager(
         .cardBrandAcceptance(mapToCardBrandAcceptance(args))
         .apply {
           mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
-        }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
+        }
+        .customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
@@ -270,6 +199,67 @@ class PaymentSheetManager(
       }
       promise.resolve(Arguments.createMap())
     }
+  }
+
+  private fun initPaymentSheet(
+    args: ReadableMap,
+    promise: Promise
+  ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val intentConfigMap = args.getMap("intentConfiguration")
+    val useConfirmationTokenCallback = intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
+    paymentSheet =
+      if (intentConfiguration != null) {
+        val builder = PaymentSheet.Builder(buildPaymentSheetResultCallback())
+        if (useConfirmationTokenCallback) {
+          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
+        } else {
+          builder.createIntentCallback(buildIntentCreationCallback())
+        }
+        @SuppressLint("RestrictedApi")
+        builder
+          .confirmCustomPaymentMethodCallback(this)
+          .build(activity, signal)
+      } else {
+        @SuppressLint("RestrictedApi")
+        PaymentSheet
+          .Builder(buildPaymentSheetResultCallback())
+          .confirmCustomPaymentMethodCallback(this)
+          .build(activity, signal)
+      }
+  }
+
+  private fun initFlowController(
+    args: ReadableMap,
+    promise: Promise
+  ) {
+    val activity = getCurrentActivityOrResolveWithError(promise) ?: return
+    val intentConfigMap = args.getMap("intentConfiguration")
+    val useConfirmationTokenCallback =
+      intentConfigMap?.hasKey("confirmationTokenConfirmHandler") == true
+    flowController =
+      if (intentConfiguration != null) {
+        val builder =
+          PaymentSheet.FlowController
+            .Builder(
+              resultCallback = buildPaymentSheetResultCallback(),
+              paymentOptionResultCallback = buildPaymentOptionCallback(),
+            )
+        if (useConfirmationTokenCallback) {
+          builder.createIntentCallback(buildCreateConfirmationTokenCallback())
+        } else {
+          builder.createIntentCallback(buildIntentCreationCallback())
+        }
+        builder.confirmCustomPaymentMethodCallback(this)
+        builder.build(activity)
+      } else {
+        PaymentSheet.FlowController
+          .Builder(
+            resultCallback = buildPaymentSheetResultCallback(),
+            paymentOptionResultCallback = buildPaymentOptionCallback(),
+          ).confirmCustomPaymentMethodCallback(this)
+          .build(activity)
+      }
   }
 
   private fun buildCreateConfirmationTokenCallback(): CreateIntentWithConfirmationTokenCallback {

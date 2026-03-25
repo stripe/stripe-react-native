@@ -26,7 +26,7 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
     label: string;
   } | null>(null);
 
-  const [isCustomFlow, setIsCustomFlow] = useState(true)
+  const [isCustomFlow, setIsCustomFlow] = useState(false)
 
   const [customerKeyType, setCustomerKeyType] = useState<string>(
     'legacy_ephemeral_key'
