@@ -186,7 +186,9 @@ export default function PaymentSheetDeferredIntentMultiStepScreen() {
       Alert.alert('Success', 'The payment was confirmed successfully!');
       setPaymentSheetEnabled(false);
     }
+    setPaymentMethodOption(null);
     setLoading(false);
+    await initialisePaymentSheet();
   };
 
   return (
