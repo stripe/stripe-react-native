@@ -47,7 +47,6 @@ import com.stripe.android.link.LinkController.PaymentMethodPreview
 import com.stripe.android.link.PaymentMethodPreviewDetails
 import com.stripe.android.model.CardBrand
 import com.stripe.android.model.DateOfBirth
-import com.stripe.android.paymentsheet.PaymentSheet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
