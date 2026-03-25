@@ -22,9 +22,9 @@ class PaymentSheetManagerTest {
     val context = Mockito.mock(ReactApplicationContext::class.java)
     val initPromise = Mockito.mock(Promise::class.java)
     val args =
-        readableMapOf(
-            "merchantDisplayName" to "Test Store",
-        )
+      readableMapOf(
+        "merchantDisplayName" to "Test Store",
+      )
 
     val manager = PaymentSheetManager(context, args, initPromise)
     val promise = Mockito.mock(Promise::class.java)
@@ -39,10 +39,10 @@ class PaymentSheetManagerTest {
     val resolved = captor.value
 
     // PaymentSheetManager.onConfigure resolves with an empty WritableMap (no error key)
-      Assert.assertNotNull(resolved)
-      Assert.assertTrue(resolved is WritableMap)
+    Assert.assertNotNull(resolved)
+    Assert.assertTrue(resolved is WritableMap)
     val map = resolved as WritableMap
-      Assert.assertTrue(!map.hasKey("error"))
+    Assert.assertTrue(!map.hasKey("error"))
   }
 
   // ============================================
@@ -54,9 +54,9 @@ class PaymentSheetManagerTest {
     val context = Mockito.mock(ReactApplicationContext::class.java)
     val initPromise = Mockito.mock(Promise::class.java)
     val args =
-        readableMapOf(
-            "merchantDisplayName" to "Test Store",
-        )
+      readableMapOf(
+        "merchantDisplayName" to "Test Store",
+      )
 
     val manager = PaymentSheetManager(context, args, initPromise)
     val promise = Mockito.mock(Promise::class.java)
@@ -65,12 +65,12 @@ class PaymentSheetManagerTest {
     val captor = ArgumentCaptor.forClass(WritableMap::class.java)
     Mockito.verify(promise).resolve(captor.capture())
     val resolved = captor.value
-      Assert.assertNotNull(resolved)
+    Assert.assertNotNull(resolved)
     val errorMap = resolved.getMap("error")
-      Assert.assertNotNull(errorMap)
-      Assert.assertTrue(
-          errorMap!!.getString("message")!!.contains("custom flow"),
-      )
+    Assert.assertNotNull(errorMap)
+    Assert.assertTrue(
+      errorMap!!.getString("message")!!.contains("custom flow"),
+    )
   }
 
   // ============================================
@@ -82,9 +82,9 @@ class PaymentSheetManagerTest {
     val context = Mockito.mock(ReactApplicationContext::class.java)
     val initPromise = Mockito.mock(Promise::class.java)
     val args =
-        readableMapOf(
-            "merchantDisplayName" to "",
-        )
+      readableMapOf(
+        "merchantDisplayName" to "",
+      )
 
     // onCreate is called on the UI thread normally, but we can test
     // configure() directly which has the same validation logic.
@@ -96,9 +96,9 @@ class PaymentSheetManagerTest {
     Mockito.verify(promise).resolve(captor.capture())
     val resolved = captor.value
     val errorMap = resolved.getMap("error")
-      Assert.assertNotNull(errorMap)
-      Assert.assertTrue(
-          errorMap!!.getString("message")!!.contains("merchantDisplayName"),
-      )
+    Assert.assertNotNull(errorMap)
+    Assert.assertTrue(
+      errorMap!!.getString("message")!!.contains("merchantDisplayName"),
+    )
   }
 }
