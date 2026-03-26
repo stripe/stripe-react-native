@@ -2,7 +2,7 @@ import Contacts
 import Stripe
 @_spi(ConfirmationTokensPublicPreview) import StripePayments
 #if canImport(StripeCryptoOnramp)
-@_spi(STP) import StripeCryptoOnramp
+@_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 @_spi(STP) import StripePaymentSheet
 #else
 import StripePaymentSheet
@@ -1230,62 +1230,81 @@ class Mappers {
         )
     }
 
-    class func mapToKycAddress(_ params: [String: String]) -> Address {
+    class func mapToKycAddress(_ params: [String: Any]) -> Address {
         return Address(
-            city: params["city"],
-            country: params["country"],
-            line1: params["line1"],
-            line2: params["line2"],
-            postalCode: params["postalCode"],
-            state: params["state"]
+            city: normalizedString(params["city"]),
+            country: normalizedString(params["country"]),
+            line1: normalizedString(params["line1"]),
+            line2: normalizedString(params["line2"]),
+            postalCode: normalizedString(params["postalCode"]),
+            state: normalizedString(params["state"])
         )
     }
 
-    class func mapToKycInfo(_ params: [String: Any?]) throws -> KycInfo {
-        guard let firstName = params["firstName"] as? String, !firstName.isEmpty else {
-            throw KycInfoError.missingRequiredField("firstName")
-        }
-
-        guard let lastName = params["lastName"] as? String, !lastName.isEmpty else {
-            throw KycInfoError.missingRequiredField("lastName")
-        }
-
-        guard let idNumber = params["idNumber"] as? String, !idNumber.isEmpty else {
-            throw KycInfoError.missingRequiredField("idNumber")
-        }
-
-        guard let dateOfBirthParams = params["dateOfBirth"] as? [String: Int] else {
-            throw KycInfoError.missingRequiredField("dateOfBirth")
-        }
-
-        guard let day = dateOfBirthParams["day"] else {
-            throw KycInfoError.missingRequiredField("dateOfBirth.day")
-        }
-
-        guard let month = dateOfBirthParams["month"] else {
-            throw KycInfoError.missingRequiredField("dateOfBirth.month")
-        }
-
-        guard let year = dateOfBirthParams["year"] else {
-            throw KycInfoError.missingRequiredField("dateOfBirth.year")
-        }
-
-        let dateOfBirth = KycInfo.DateOfBirth(day: day, month: month, year: year)
-
-        // All address parameters are optional, so we don’t guard.
-        let address = if let addressParams = params["address"] as? [String: String] {
-            mapToKycAddress(addressParams)
-        } else {
-            Address()
-        }
+    class func mapToKycInfo(_ params: [String: Any]) throws -> KycInfo {
+        let address = try mapOptionalKycAddress(params["address"])
+        let dateOfBirth = try mapOptionalDateOfBirth(params["dateOfBirth"])
 
         return KycInfo(
-            firstName: firstName,
-            lastName: lastName,
-            idNumber: idNumber,
+            firstName: normalizedString(params["firstName"]),
+            lastName: normalizedString(params["lastName"]),
+            idNumber: normalizedString(params["idNumber"]),
             address: address,
             dateOfBirth: dateOfBirth
         )
+    }
+
+    private class func mapOptionalKycAddress(_ value: Any?) throws -> Address? {
+        guard let value else {
+            return nil
+        }
+
+        guard let addressParams = value as? [String: Any] else {
+            throw KycInfoError.invalidField("address")
+        }
+
+        return mapToKycAddress(addressParams)
+    }
+
+    private class func mapOptionalDateOfBirth(_ value: Any?) throws -> KycInfo.DateOfBirth? {
+        guard let value else {
+            return nil
+        }
+
+        guard let dateOfBirthParams = value as? [String: Any] else {
+            throw KycInfoError.invalidField("dateOfBirth")
+        }
+
+        guard
+            let day = intValue(dateOfBirthParams["day"]),
+            let month = intValue(dateOfBirthParams["month"]),
+            let year = intValue(dateOfBirthParams["year"])
+        else {
+            throw KycInfoError.invalidField("dateOfBirth")
+        }
+
+        return KycInfo.DateOfBirth(day: day, month: month, year: year)
+    }
+
+    private class func intValue(_ value: Any?) -> Int? {
+        if let intValue = value as? Int {
+            return intValue
+        }
+
+        if let number = value as? NSNumber {
+            return number.intValue
+        }
+
+        return nil
+    }
+
+    private class func normalizedString(_ value: Any?) -> String? {
+        guard let stringValue = value as? String else {
+            return nil
+        }
+
+        let trimmed = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     class func paymentMethodDisplayDataToMap(_ paymentMethodDisplayData: PaymentMethodDisplayData) -> [String: String] {
@@ -1312,7 +1331,7 @@ class Mappers {
     }
 
     enum KycInfoError: Swift.Error {
-        case missingRequiredField(String)
+        case invalidField(String)
     }
 #endif
 }

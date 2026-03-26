@@ -11,7 +11,7 @@
 @protocol STPPaymentCardTextFieldDelegate;
 @protocol STPCardFormViewDelegate;
 
-typedef NS_ENUM(NSUInteger, STPPaymentStatus);
+typedef NS_ENUM(NSInteger, STPPaymentStatus);
 
 // stripe_react_native-Swift.h also depends on these headers.
 #import <React/RCTBridgeModule.h>
