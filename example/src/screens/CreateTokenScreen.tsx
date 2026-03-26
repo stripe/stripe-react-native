@@ -54,6 +54,13 @@ export default function CreateTokenScreen() {
         title="Create a token from a card"
         accessibilityLabel="Create a token from a card"
       />
+      <Text style={styles.or}>OR</Text>
+      <Button
+        variant="primary"
+        onPress={() => _createToken('Account')}
+        title="Create a token from an account"
+        accessibilityLabel="Create a token from an account"
+      />
     </PaymentScreen>
   );
 }
@@ -78,6 +85,13 @@ function buildTestTokenParams(type: Token.Type): Token.CreateParams {
         routingNumber: '110000000', // Routing number is REQUIRED for US bank accounts
         country: 'US',
         currency: 'usd',
+      };
+    case 'Account':
+      return {
+        type: 'Account',
+        businessType: 'Individual',
+        individual: {},
+        tosShownAndAccepted: true,
       };
     default:
       throw new Error(`Unsupported token type`);
