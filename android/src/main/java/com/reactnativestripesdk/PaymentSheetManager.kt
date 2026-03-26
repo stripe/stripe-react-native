@@ -173,8 +173,7 @@ class PaymentSheetManager(
         .cardBrandAcceptance(mapToCardBrandAcceptance(args))
         .apply {
           mapToAllowedCardFundingTypes(args)?.let { allowedCardFundingTypes(it) }
-        }
-        .customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
+        }.customPaymentMethods(parseCustomPaymentMethods(args.getMap("customPaymentMethodConfiguration")))
 
     primaryButtonLabel?.let { configurationBuilder.primaryButtonLabel(it) }
     paymentMethodOrder?.let { configurationBuilder.paymentMethodOrder(it) }
@@ -203,7 +202,7 @@ class PaymentSheetManager(
 
   private fun initPaymentSheet(
     args: ReadableMap,
-    promise: Promise
+    promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
@@ -231,7 +230,7 @@ class PaymentSheetManager(
 
   private fun initFlowController(
     args: ReadableMap,
-    promise: Promise
+    promise: Promise,
   ) {
     val activity = getCurrentActivityOrResolveWithError(promise) ?: return
     val intentConfigMap = args.getMap("intentConfiguration")
@@ -317,8 +316,8 @@ class PaymentSheetManager(
     }
   }
 
-  private fun buildPaymentSheetResultCallback(): PaymentSheetResultCallback {
-    return PaymentSheetResultCallback { paymentResult ->
+  private fun buildPaymentSheetResultCallback(): PaymentSheetResultCallback =
+    PaymentSheetResultCallback { paymentResult ->
       if (paymentSheetTimedOut) {
         paymentSheetTimedOut = false
         resolvePaymentResult(
@@ -347,7 +346,6 @@ class PaymentSheetManager(
         }
       }
     }
-  }
 
   private fun buildPaymentOptionCallback(): PaymentOptionResultCallback {
     return PaymentOptionResultCallback { paymentOptionResult ->
