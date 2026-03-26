@@ -8,7 +8,7 @@ import StripeFinancialConnections
 import StripePaymentsUI
 import UIKit
 #if canImport(StripeCryptoOnramp)
-@_spi(STP) import StripeCryptoOnramp
+@_spi(CryptoOnrampAlpha) import StripeCryptoOnramp
 
 @_spi(STP)
 @_spi(EmbeddedPaymentElementPrivateBeta)
@@ -1347,6 +1347,13 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.authenticateUserWithToken(linkAuthTokenClientSecret)
                 resolve([:])  // Return empty object on success
             } catch {
+                if let onrampError = error as? CryptoOnrampCoordinator.Error,
+                   case let .seamlessSignInTokenInvalid(reason) = onrampError {
+                    let errorResult = Errors.createError(ErrorType.Failed, reason ?? onrampError.localizedDescription)
+                    resolve(["error": errorResult["error"]!])
+                    return
+                }
+
                 let errorResult = Errors.createError(ErrorType.Failed, error)
                 resolve(["error": errorResult["error"]!])
             }
@@ -1391,7 +1398,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
             return
         }
 
-        guard let kycInfoDictionary = info as? [String: Any?] else {
+        guard let kycInfoDictionary = info as? [String: Any] else {
             let errorResult = Errors.createError(ErrorType.Failed, "Unexpected format of KYC info dictionary. Expected String keys.")
             resolve(["error": errorResult["error"]!])
             return
@@ -1403,8 +1410,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 try await coordinator.attachKYCInfo(info: kycInfo)
                 resolve([:])  // Return empty object on success
             } catch {
-                if let missingFieldError = error as? Mappers.KycInfoError, case let .missingRequiredField(field) = missingFieldError {
-                    let errorResult = Errors.createError(ErrorType.Unknown, "Missing required field: \(field)")
+                if let kycInfoError = error as? Mappers.KycInfoError, case let .invalidField(field) = kycInfoError {
+                    let errorResult = Errors.createError(ErrorType.Unknown, "Invalid format for field: \(field)")
                     resolve(["error": errorResult["error"]!])
                 } else {
                     let errorResult = Errors.createError(ErrorType.Failed, error)
