@@ -29,10 +29,13 @@ internal class PaymentMethodMessagingElementConfig {
 
         // Parse font
         if let fontParams = params["font"] as? NSDictionary {
-            let scale = fontParams["scale"] as? CGFloat ?? 1
-            if let fontFamily = fontParams["family"] as? String,
-               let customFont = UIFont(name: fontFamily, size: UIFont.systemFontSize * scale) {
+            let size = fontParams["size"] as? CGFloat
+            let family = fontParams["family"] as? String
+
+            if let family = family, let customFont = UIFont(name: family, size: size ?? UIFont.systemFontSize) {
                 appearance.font = customFont
+            } else if let size = size {
+                appearance.font = UIFont.systemFont(ofSize: size)
             }
         }
 
@@ -46,6 +49,18 @@ internal class PaymentMethodMessagingElementConfig {
         }
 
         return appearance
+    }
+
+    private class func buildFont(params: NSDictionary) throws -> PaymentSheet.Appearance.Font {
+        var font = PaymentSheet.Appearance.Font()
+        if let fontName = params["font"] as? String {
+            guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
+                throw PaymentSheetAppearanceError.missingFont(fontName)
+            }
+            font.base = customFont
+        }
+        font.sizeScaleFactor = params["scale"] as? CGFloat ?? PaymentSheet.Appearance.default.font.sizeScaleFactor
+        return font
     }
 
     private class func parseThemedColor(params: NSDictionary, key: String) -> UIColor? {
