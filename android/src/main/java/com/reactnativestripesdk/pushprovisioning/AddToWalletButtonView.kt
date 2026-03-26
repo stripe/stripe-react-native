@@ -2,6 +2,7 @@ package com.reactnativestripesdk.pushprovisioning
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.view.MotionEvent
@@ -12,10 +13,9 @@ import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
 import com.facebook.common.executors.UiThreadImmediateExecutorService
 import com.facebook.common.references.CloseableReference
-import com.facebook.datasource.BaseDataSubscriber
 import com.facebook.datasource.DataSource
 import com.facebook.drawee.backends.pipeline.Fresco
-import com.facebook.imagepipeline.image.CloseableBitmap
+import com.facebook.imagepipeline.datasource.BaseBitmapReferenceDataSubscriber
 import com.facebook.imagepipeline.image.CloseableImage
 import com.facebook.imagepipeline.request.ImageRequestBuilder
 import com.facebook.react.bridge.ReadableMap
@@ -36,6 +36,7 @@ class AddToWalletButtonView(
 
   private var loadedSource: String? = null
   private var currentDataSource: DataSource<CloseableReference<CloseableImage>>? = null
+  private var currentBitmapReference: CloseableReference<Bitmap>? = null
 
   init {
     scaleType = ScaleType.CENTER_CROP
@@ -118,20 +119,14 @@ class AddToWalletButtonView(
     currentDataSource = dataSource
 
     dataSource.subscribe(
-      object : BaseDataSubscriber<CloseableReference<CloseableImage>>() {
-        override fun onNewResultImpl(dataSource: DataSource<CloseableReference<CloseableImage>>) {
-          if (!dataSource.isFinished) return
-          val imageRef = dataSource.result ?: return
+      object : BaseBitmapReferenceDataSubscriber() {
+        override fun onNewResultImpl(bitmapReference: CloseableReference<Bitmap>?) {
+          val image = bitmapReference?.get() ?: return
 
-          try {
-            val image = imageRef.get()
-            if (image is CloseableBitmap) {
-              val drawable = image.underlyingBitmap.toDrawable(resources)
-              setImageWithRipple(drawable)
-            }
-          } finally {
-            CloseableReference.closeSafely(imageRef)
-          }
+          currentBitmapReference = bitmapReference.cloneOrNull()
+
+          val drawable = image.toDrawable(resources)
+          setImageWithRipple(drawable)
         }
 
         override fun onFailureImpl(dataSource: DataSource<CloseableReference<CloseableImage>>) {
@@ -165,6 +160,12 @@ class AddToWalletButtonView(
 
   private fun cancelCurrentRequest() {
     currentDataSource?.close()
+
+    currentBitmapReference?.let {
+      CloseableReference.closeSafely(it)
+    }
+
+    currentBitmapReference = null
     currentDataSource = null
   }
 
