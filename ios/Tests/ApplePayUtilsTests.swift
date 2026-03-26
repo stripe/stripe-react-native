@@ -422,6 +422,138 @@ class ApplePayUtilsTests: XCTestCase {
         XCTAssertEqual(result[0].rawValue, "customNetwork")
     }
 
+    // MARK: - configureRequestType Tests
+
+    @available(iOS 16.0, *)
+    func test_configureRequestType_recurringType_configuresRecurringRequest() throws {
+        let request = PKPaymentRequest()
+        try request.configureRequestType(requestParams: TestFixtures.RECURRING_REQUEST_PARAMS)
+        XCTAssertNotNil(request.recurringPaymentRequest)
+    }
+
+    @available(iOS 16.4, *)
+    func test_configureRequestType_deferredType_configuresDeferredRequest() throws {
+        let request = PKPaymentRequest()
+        try request.configureRequestType(requestParams: TestFixtures.DEFERRED_REQUEST_PARAMS)
+        XCTAssertNotNil(request.deferredPaymentRequest)
+    }
+
+    @available(iOS 16.0, *)
+    func test_configureRequestType_nilParams_doesNotThrow() throws {
+        let request = PKPaymentRequest()
+        XCTAssertNoThrow(try request.configureRequestType(requestParams: nil))
+    }
+
+    @available(iOS 16.0, *)
+    func test_configureRequestType_invalidType_throws() {
+        let request = PKPaymentRequest()
+        XCTAssertThrowsError(
+            try request.configureRequestType(requestParams: ["type": "InvalidType"])
+        ) { error in
+            XCTAssertEqual(
+                error as! ApplePayUtilsError, ApplePayUtilsError.invalidRequestType("Optional(\"InvalidType\")")
+            )
+        }
+    }
+
+    // MARK: - buildDeferredPaymentRequest Tests
+
+    @available(iOS 16.4, *)
+    func test_buildDeferredPaymentRequest_validParams_succeeds() throws {
+        let result = try ApplePayUtils.buildDeferredPaymentRequest(params: TestFixtures.DEFERRED_REQUEST_PARAMS)
+        XCTAssertEqual(result.paymentDescription, "Test deferred payment")
+        XCTAssertEqual(result.managementURL, URL(string: "https://example.com/manage")!)
+        XCTAssertEqual(result.billingAgreement, "You agree to be charged.")
+        XCTAssertNotNil(result.deferredBilling)
+        XCTAssertEqual(result.deferredBilling.label, "Test")
+        XCTAssertEqual(result.deferredBilling.amount, NSDecimalNumber(string: "9.99"))
+    }
+
+    @available(iOS 16.4, *)
+    func test_buildDeferredPaymentRequest_missingDescription_throws() {
+        let params: NSDictionary = [
+            "managementUrl": "https://example.com/manage",
+            "deferredBilling": [
+                "paymentType": "Deferred",
+                "label": "Test",
+                "amount": "9.99",
+                "deferredDate": 1700000000 as NSNumber,
+            ] as [String: Any],
+        ]
+        XCTAssertThrowsError(
+            try ApplePayUtils.buildDeferredPaymentRequest(params: params)
+        ) { error in
+            XCTAssertEqual(
+                error as! ApplePayUtilsError, ApplePayUtilsError.missingParameter(nil, "paymentDescription")
+            )
+        }
+    }
+
+    @available(iOS 16.4, *)
+    func test_buildDeferredPaymentRequest_missingManagementUrl_throws() {
+        let params: NSDictionary = [
+            "paymentDescription": "Test deferred payment",
+            "deferredBilling": [
+                "paymentType": "Deferred",
+                "label": "Test",
+                "amount": "9.99",
+                "deferredDate": 1700000000 as NSNumber,
+            ] as [String: Any],
+        ]
+        XCTAssertThrowsError(
+            try ApplePayUtils.buildDeferredPaymentRequest(params: params)
+        ) { error in
+            XCTAssertEqual(
+                error as! ApplePayUtilsError, ApplePayUtilsError.missingParameter(nil, "managementUrl")
+            )
+        }
+    }
+
+    @available(iOS 16.4, *)
+    func test_buildDeferredPaymentRequest_invalidUrl_throws() {
+        let params: NSDictionary = [
+            "paymentDescription": "Test deferred payment",
+            "managementUrl": "",
+            "deferredBilling": [
+                "paymentType": "Deferred",
+                "label": "Test",
+                "amount": "9.99",
+                "deferredDate": 1700000000 as NSNumber,
+            ] as [String: Any],
+        ]
+        XCTAssertThrowsError(
+            try ApplePayUtils.buildDeferredPaymentRequest(params: params)
+        ) { error in
+            XCTAssertEqual(
+                error as! ApplePayUtilsError, ApplePayUtilsError.invalidUrl("")
+            )
+        }
+    }
+
+    @available(iOS 16.4, *)
+    func test_buildDeferredPaymentRequest_optionalFields() throws {
+        let params: NSDictionary = [
+            "type": "Deferred",
+            "paymentDescription": "Test deferred payment",
+            "managementUrl": "https://example.com/manage",
+            "billingAgreement": "You agree to be charged.",
+            "tokenNotificationURL": "https://example.com/notify",
+            "freeCancellationDate": 1700000000.0,
+            "freeCancellationDateTimeZone": "America/New_York",
+            "deferredBilling": [
+                "paymentType": "Deferred",
+                "label": "Test",
+                "amount": "9.99",
+                "deferredDate": 1700000000 as NSNumber,
+            ] as [String: Any],
+        ]
+        let result = try ApplePayUtils.buildDeferredPaymentRequest(params: params)
+        XCTAssertEqual(result.billingAgreement, "You agree to be charged.")
+        XCTAssertEqual(result.tokenNotificationURL, URL(string: "https://example.com/notify")!)
+        XCTAssertEqual(result.freeCancellationDate, Date(timeIntervalSince1970: 1700000000))
+        XCTAssertEqual(result.freeCancellationDateTimeZone, TimeZone(identifier: "America/New_York"))
+    }
+
     private struct TestFixtures {
         static let MERCHANT_ID = "merchant.com.id"
         static let COUNTRY_CODE = "US"
@@ -454,5 +586,32 @@ class ApplePayUtilsTests: XCTestCase {
             "label": "immediate label",
             "amount": "2.00",
         ] as [String: Any]
+
+        static let DEFERRED_REQUEST_PARAMS: NSDictionary = [
+            "type": "Deferred",
+            "paymentDescription": "Test deferred payment",
+            "managementUrl": "https://example.com/manage",
+            "billingAgreement": "You agree to be charged.",
+            "deferredBilling": [
+                "paymentType": "Deferred",
+                "label": "Test",
+                "amount": "9.99",
+                "deferredDate": 1700000000 as NSNumber,
+            ] as [String: Any],
+        ]
+
+        static let RECURRING_REQUEST_PARAMS: NSDictionary = [
+            "type": "Recurring",
+            "description": "Test recurring payment",
+            "managementUrl": "https://example.com/manage",
+            "billingAgreement": "Monthly subscription.",
+            "billing": [
+                "paymentType": "Recurring",
+                "label": "Monthly",
+                "amount": "9.99",
+                "intervalUnit": "month",
+                "intervalCount": 1,
+            ] as [String: Any],
+        ]
     }
 }
