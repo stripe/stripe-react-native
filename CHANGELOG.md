@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.61.0 - 2026-03-25
+**Changes**
+- Updated Stripe iOS SDK from 25.7.+ to 25.9.+.
+- Updated Stripe Android SDK from 23.0.+ to 23.1.+.
+
 ## 0.60.0 - 2026-03-23
 **Changes**
 - Updated Stripe Android SDK from 22.8.+ to 23.0.+. See our [migration guide](https://github.com/stripe/stripe-android/blob/master/MIGRATING.md#migrating-from-versions--2300) for more information.
