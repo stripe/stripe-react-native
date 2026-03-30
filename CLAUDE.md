@@ -70,7 +70,7 @@ This is the official Stripe React Native SDK, providing payment processing capab
   - `index.tsx` - Main exports
 
 - **`ios/`** - Native iOS implementation in Swift/Objective-C
-  - Uses Stripe iOS SDK (~24.16.1)
+  - Uses Stripe iOS SDK (version specified in `stripe-react-native.podspec`)
   - Supports both Old and New Architecture (Fabric)
   - Test files in `ios/Tests/`
 
@@ -117,14 +117,14 @@ The SDK uses React Native's TurboModules/Fabric for native communication:
 
 ### Platform-Specific Notes
 
-- **iOS**: Requires Xcode 14.1+, iOS 13+ deployment target
-- **Android**: Requires API 21+, compileSdkVersion 34, Kotlin 2.x
-- **React Native**: Compatible with 0.78+, TypeScript 5.7+
+- **iOS**: See `stripe-react-native.podspec` for minimum iOS deployment target
+- **Android**: See `android/build.gradle` for SDK and Kotlin version configuration
+- **React Native**: See `peerDependencies` in `package.json` for compatible versions
 - **Expo**: Supported via plugin configuration
 
 ### Development File Locations
 
-- **iOS Native**: Open `example/ios/StripeSdkExample.xcworkspace` in Xcode
+- **iOS Native**: Open `example/ios/example.xcworkspace` in Xcode
   - Source files: `Pods > Development Pods > stripe-react-native`
 - **Android Native**: Open `example/android` in Android Studio
   - Source files: `reactnativestripesdk` under `Android`
