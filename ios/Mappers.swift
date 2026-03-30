@@ -1212,7 +1212,7 @@ class Mappers {
             }
         } else {
             darkContentOnPrimary ?? lightContentOnPrimary
-        } 
+        }
 
         let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
             .init(primary: primary, contentOnPrimary: contentOnPrimary, selectedBorder: selectedBorder)
