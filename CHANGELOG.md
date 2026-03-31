@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.62.0 - 2026-03-31
+**Changes**
+- Updated Stripe Android SDK from 23.1.+ to 23.2.+
+
+**Fixes**
+* [Fixed] Allow usage of PaymentSheet with customFlow and non customFlow configurations in same session. ([#2361](https://github.com/stripe/stripe-react-native/pull/2361))
+* [Fixed] Downgrade Kotlin version from 2.3.10 to 2.2.21 to prevent build errors with Expo. ([#2374](https://github.com/stripe/stripe-react-native/pull/2374))
+
 ## 0.61.0 - 2026-03-25
 **Changes**
 - Updated Stripe iOS SDK from 25.7.+ to 25.9.+.
