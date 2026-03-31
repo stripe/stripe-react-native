@@ -258,7 +258,9 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     if (paymentSheetManager != null) {
-      paymentSheetManager?.configure(params, promise)
+      UiThreadUtil.runOnUiThread {
+        paymentSheetManager?.configure(params, promise)
+      }
     } else {
       paymentSheetManager =
         PaymentSheetManager(reactApplicationContext, params, promise).also {
