@@ -391,6 +391,7 @@ jest.mock('../src/specs/NativeStripeSdkModule', () => ({
         deviceType: 'iPhone14,5',
         appName: 'TestApp',
         appVersion: '1.0.0',
+        isNewArchitecture: false,
       },
     })),
     openAuthenticatedWebView: jest.fn(),

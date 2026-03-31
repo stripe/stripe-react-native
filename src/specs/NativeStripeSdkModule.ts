@@ -117,6 +117,7 @@ export interface Spec extends TurboModule {
       deviceType: string;
       appName: string;
       appVersion: string;
+      isNewArchitecture: boolean;
     };
   };
   canAddCardToWallet(

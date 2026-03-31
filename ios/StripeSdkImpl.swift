@@ -42,6 +42,14 @@ private func getDeviceType() -> String {
 public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
     @objc public static let shared = StripeSdkImpl()
 
+    static var isNewArchitecture: Bool {
+        #if RCT_NEW_ARCH_ENABLED
+        return true
+        #else
+        return false
+        #endif
+    }
+
     @objc public weak var emitter: StripeSdkEmitter?
     @objc public weak var onrampEmitter: StripeOnrampSdkEmitter?
     weak var cardFieldView: CardFieldView?
@@ -125,6 +133,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 "deviceType": getDeviceType(),
                 "appName": Bundle.stp_applicationName() ?? "",
                 "appVersion": Bundle.stp_applicationVersion() ?? "",
+                "isNewArchitecture": Self.isNewArchitecture,
             ],
         ]
     }

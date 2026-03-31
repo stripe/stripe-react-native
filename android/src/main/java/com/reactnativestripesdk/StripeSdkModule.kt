@@ -213,6 +213,7 @@ class StripeSdkModule(
               ).toString()
           ),
           "appVersion" to (packageInfo?.versionName ?: ""),
+          "isNewArchitecture" to BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
         ),
     )
   }
