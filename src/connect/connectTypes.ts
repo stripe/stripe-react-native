@@ -302,6 +302,44 @@ export declare type AppearanceVariables = {
    */
   buttonSecondaryColorText?: string;
 
+  // Danger Button
+  /**
+   * The color used as a background for danger buttons to indicate destructive actions. This accepts hex values or RGB/HSL strings.
+   */
+  buttonDangerColorBackground?: string;
+  /**
+   * The color used as a border for danger buttons to indicate destructive actions. This accepts hex values or RGB/HSL strings.
+   */
+  buttonDangerColorBorder?: string;
+  /**
+   * The text color used for danger buttons to indicate destructive actions. This accepts hex values or RGB/HSL strings.
+   */
+  buttonDangerColorText?: string;
+
+  // Button Padding
+  /**
+   * The horizontal padding for buttons. This accepts a valid padding value.
+   */
+  buttonPaddingX?: string;
+  /**
+   * The vertical padding for buttons. This accepts a valid padding value.
+   */
+  buttonPaddingY?: string;
+
+  // Button Typography
+  /**
+   * The font size for button label typography. Button label typography variables accept a valid font size value ranging from 1px to 200px, 0.1em to 12em, and 0.1rem to 12rem.
+   */
+  buttonLabelFontSize?: string;
+  /**
+   * The font weight for button label typography. Button label typography variables accept a valid font weight value.
+   */
+  buttonLabelFontWeight?: string;
+  /**
+   * The text transform for button label typography. Button label typography variables accept a valid text transform value.
+   */
+  buttonLabelTextTransform?: string;
+
   /**
    * The color used for secondary text. This accepts hex values or RGB/RGBA/HSL strings.
    */
@@ -327,6 +365,10 @@ export declare type AppearanceVariables = {
    */
   actionPrimaryTextDecorationThickness?: string;
   /**
+   * The text transform for primary actions and links. This accepts a valid text transform value.
+   */
+  actionPrimaryTextTransform?: string;
+  /**
    * The color used for secondary actions and links. This accepts hex values or RGB/HSL strings.
    */
   actionSecondaryColorText?: string;
@@ -346,6 +388,10 @@ export declare type AppearanceVariables = {
    * The thickness of text decoration of secondary actions and links. This accepts a valid text decoration thickness value.
    */
   actionSecondaryTextDecorationThickness?: string;
+  /**
+   * The text transform for secondary actions and links. This accepts a valid text transform value.
+   */
+  actionSecondaryTextTransform?: string;
 
   // Neutral Badge Colors
   /**
@@ -403,6 +449,30 @@ export declare type AppearanceVariables = {
    */
   badgeDangerColorBorder?: string;
 
+  // Badge Padding
+  /**
+   * The horizontal padding used for badges. This supports pixel values only.
+   */
+  badgePaddingX?: string;
+  /**
+   * The vertical padding used for badges. This supports pixel values only.
+   */
+  badgePaddingY?: string;
+
+  // Badge Typography
+  /**
+   * The font size for badge label typography. Badge label typography variables accept a valid font size value ranging from 1px to 200px, 0.1em to 12em, and 0.1rem to 12rem.
+   */
+  badgeLabelFontSize?: string;
+  /**
+   * The font weight for badge label typography. Badge label typography variables accept a valid font weight value.
+   */
+  badgeLabelFontWeight?: string;
+  /**
+   * The text transform for badge label typography. Badge label typography variables accept a valid text transform value.
+   */
+  badgeLabelTextTransform?: string;
+
   // Background
   /**
    * The background color used when highlighting information, like the selected row on a table or particular piece of UI. This accepts hex values or RGB/HSL strings.
@@ -427,6 +497,24 @@ export declare type AppearanceVariables = {
    * The color used for to fill in form items like checkboxes, radio buttons and switches. This accepts hex values or RGB/HSL strings.
    */
   formAccentColor?: string;
+  /**
+   * The color used for placeholder text in form items. This accepts hex values or RGB/HSL strings.
+   */
+  formPlaceholderTextColor?: string;
+  /**
+   * The horizontal padding used for input fields in forms. This supports pixel values only.
+   */
+  inputFieldPaddingX?: string;
+  /**
+   * The vertical padding used for input fields in forms. This supports pixel values only.
+   */
+  inputFieldPaddingY?: string;
+
+  // Table
+  /**
+   * The vertical padding used for table rows. This supports pixel values only.
+   */
+  tableRowPaddingY?: string;
 
   // Border Sizing
   /**
