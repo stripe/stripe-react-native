@@ -633,6 +633,16 @@ class OnrampSdkModule(
     }
   }
 
+  @ReactMethod
+  override fun addListener(eventType: String?) {
+    // noop, iOS only
+  }
+
+  @ReactMethod
+  override fun removeListeners(count: Double) {
+    // noop, iOS only
+  }
+
   private fun handleOnrampIdentityVerificationResult(
     result: OnrampVerifyIdentityResult,
     promise: Promise,

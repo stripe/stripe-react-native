@@ -100,4 +100,12 @@ public abstract class NativeOnrampSdkModuleSpec extends ReactContextBaseJavaModu
   @ReactMethod
   @DoNotStrip
   public abstract void logout(Promise promise);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void addListener(String eventType);
+
+  @ReactMethod
+  @DoNotStrip
+  public abstract void removeListeners(double count);
 }

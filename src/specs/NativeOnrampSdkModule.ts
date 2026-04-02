@@ -39,6 +39,8 @@ export interface Spec extends TurboModule {
     token: UnsafeObject<Onramp.CryptoPaymentToken>
   ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
+  addListener: (eventType: string) => void;
+  removeListeners: (count: number) => void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('OnrampSdk');
