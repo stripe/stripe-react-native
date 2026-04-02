@@ -2,7 +2,7 @@ import AuthenticationServices
 import Foundation
 import PassKit
 @_spi(DashboardOnly) @_spi(STP) import Stripe
-@_spi(STP) import StripeCore
+@_spi(STP) @_spi(ReactNativeSDK) import StripeCore
 import StripeFinancialConnections
 @_spi(STP) @_spi(ConfirmationTokensPublicPreview) import StripePayments
 import StripePaymentsUI
@@ -48,6 +48,14 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         #else
         return false
         #endif
+    }
+
+    static var reactNativeVersion: String {
+        let version = RCTGetReactNativeVersion()
+        let major = version?["major"] ?? 0
+        let minor = version?["minor"] ?? 0
+        let patch = version?["patch"] ?? 0
+        return "\(major).\(minor).\(patch)"
     }
 
     @objc public weak var emitter: StripeSdkEmitter?
@@ -134,6 +142,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 "appName": Bundle.stp_applicationName() ?? "",
                 "appVersion": Bundle.stp_applicationVersion() ?? "",
                 "isNewArchitecture": Self.isNewArchitecture,
+                "reactNativeVersion": Self.reactNativeVersion,
             ],
         ]
     }
@@ -167,6 +176,8 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
         let url = appInfo["url"] as? String ?? ""
 
         STPAPIClient.shared.appInfo = STPAppInfo(name: name, partnerId: partnerId, version: version, url: url)
+        ReactNativeAnalytics.isNewArchitecture = Self.isNewArchitecture
+        ReactNativeAnalytics.reactNativeVersion = Self.reactNativeVersion
         self.merchantIdentifier = merchantIdentifier
         resolve(NSNull())
     }

@@ -118,6 +118,7 @@ export interface Spec extends TurboModule {
       appName: string;
       appVersion: string;
       isNewArchitecture: boolean;
+      reactNativeVersion: string;
     };
   };
   canAddCardToWallet(

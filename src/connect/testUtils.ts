@@ -18,6 +18,7 @@ export const mockNativeConstants = {
     appName: 'TestApp',
     appVersion: '1.0.0',
     isNewArchitecture: false,
+    reactNativeVersion: '0.81.5',
   },
 };
 
