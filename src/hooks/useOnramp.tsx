@@ -9,7 +9,7 @@ import { CryptoPaymentToken } from '../types/Onramp';
 function requireOnrampModule() {
   if (NativeOnrampSdk == null) {
     throw new Error(
-      "Onramp·module·is·not·available.·On·Android,·add·'StripeSdk_includeOnramp=true'·to·gradle.properties."
+      "Onramp module is not available. On Android, add 'StripeSdk_includeOnramp=true' to gradle.properties."
     );
   }
   return NativeOnrampSdk;
