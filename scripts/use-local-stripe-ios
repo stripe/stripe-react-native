@@ -1,0 +1,103 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+DEFAULT_PATH="$HOME/stripe/stripe-ios"
+
+usage() {
+  cat <<'EOF'
+Point the example app's Stripe iOS pods to a local stripe-ios checkout.
+This lets you modify stripe-ios source and see changes in the example app.
+
+USAGE:
+  ./scripts/use-local-stripe-ios [options]
+
+OPTIONS:
+  --path, -p      Path to your local stripe-ios checkout. Default: ~/stripe/stripe-ios
+  --reset         Remove local override and reinstall pods from CocoaPods
+  -h, --help      Print this help message
+
+EXAMPLES:
+  ./scripts/use-local-stripe-ios
+  ./scripts/use-local-stripe-ios --path /path/to/stripe-ios
+  ./scripts/use-local-stripe-ios --reset
+EOF
+}
+
+STRIPE_IOS_PATH="$DEFAULT_PATH"
+RESET=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --path|-p)
+      STRIPE_IOS_PATH=${2:-}
+      if [[ -z "$STRIPE_IOS_PATH" ]]; then
+        echo "Error! --path requires a value."
+        usage
+        exit 1
+      fi
+      shift 2
+      ;;
+    --reset)
+      RESET=1
+      shift
+      ;;
+    -h|--help|help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Error! Unknown option: $1"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+# Make sure our working dir is the repo root directory
+cd "$(git rev-parse --show-toplevel)"
+
+STRIPE_PODS=(
+  Stripe StripeApplePay StripeCameraCore StripeCore StripeCryptoOnramp
+  StripeFinancialConnections StripeIdentity StripeIssuing StripePayments
+  StripePaymentSheet StripePaymentsUI StripeUICore
+)
+
+clean_stripe_pods() {
+  local pods_dir="example/ios/Pods"
+  for pod_name in "${STRIPE_PODS[@]}"; do
+    rm -rf "$pods_dir/$pod_name"
+  done
+}
+
+if [[ "$RESET" -eq 1 ]]; then
+  echo "Resetting to CocoaPods-hosted Stripe iOS pods..."
+  clean_stripe_pods
+  (cd example/ios && pod install)
+  echo ""
+  echo "Done! Stripe iOS pods restored from CocoaPods."
+  exit 0
+fi
+
+STRIPE_IOS_PATH="$(eval echo "$STRIPE_IOS_PATH")"
+
+if [[ ! -d "$STRIPE_IOS_PATH" ]]; then
+  echo "Error! Directory not found: $STRIPE_IOS_PATH"
+  exit 1
+fi
+
+if [[ ! -f "$STRIPE_IOS_PATH/StripeCore.podspec" ]]; then
+  echo "Error! $STRIPE_IOS_PATH does not look like a stripe-ios checkout (missing StripeCore.podspec)"
+  exit 1
+fi
+
+echo "Using local stripe-ios at: $STRIPE_IOS_PATH"
+clean_stripe_pods
+(cd example/ios && STRIPE_IOS_PATH="$STRIPE_IOS_PATH" pod install)
+
+echo ""
+echo "Done! The example app now uses your local stripe-ios."
+echo "Edit files in $STRIPE_IOS_PATH and rebuild to see changes."
+echo ""
+echo "Run './scripts/use-local-stripe-ios --reset' to switch back."
