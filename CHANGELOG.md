@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.63.0 - 2026-04-06
+**Features**
+* [Added] Added types for new theming tokens for Connect Embedded Components ([#2372](https://github.com/stripe/stripe-react-native/pull/2372))
+
 ## 0.62.0 - 2026-03-31
 **Changes**
 - Updated Stripe Android SDK from 23.1.+ to 23.2.+
