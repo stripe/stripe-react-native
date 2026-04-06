@@ -137,6 +137,12 @@ class FakeOnrampSdkModule(
     promise.resolveNotImplemented()
   }
 
+  @ReactMethod
+  override fun addListener(eventType: String?) {}
+
+  @ReactMethod
+  override fun removeListeners(count: Double) {}
+
   private fun Promise.resolveNotImplemented() {
     this.resolve(
       createFailedError(

@@ -61,6 +61,7 @@ import kotlinx.coroutines.withTimeout
 class OnrampSdkModule(
   reactContext: ReactApplicationContext,
 ) : NativeOnrampSdkModuleSpec(reactContext) {
+  private val eventEmitterCompat = EventEmitterCompat(reactContext)
   private lateinit var publishableKey: String
   private var stripeAccountId: String? = null
 
@@ -142,7 +143,7 @@ class OnrampSdkModule(
           val params = Arguments.createMap()
           params.putString("onrampSessionId", sessionId)
 
-          emitOnCheckoutClientSecretRequested(params)
+          eventEmitterCompat.emitOnCheckoutClientSecretRequested(params)
 
           checkoutClientSecretDeferred!!.await()
         }
@@ -630,6 +631,16 @@ class OnrampSdkModule(
         handleAuthenticateUserWithTokenResult(result, promise)
       }
     }
+  }
+
+  @ReactMethod
+  override fun addListener(eventType: String?) {
+    // noop, iOS only
+  }
+
+  @ReactMethod
+  override fun removeListeners(count: Double) {
+    // noop, iOS only
   }
 
   private fun handleOnrampIdentityVerificationResult(
