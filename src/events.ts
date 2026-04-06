@@ -82,11 +82,15 @@ const compatOnrampEventEmitter =
     ? new NativeEventEmitter(NativeOnrampSdkModule as any)
     : DeviceEventEmitter;
 
-type OnrampEvents = 'onCheckoutClientSecretRequested';
+type OnrampEventMap = {
+  onCheckoutClientSecretRequested: void;
+};
 
-export function addOnrampListener(
-  event: OnrampEvents,
-  handler: (params: any) => void
+type OnrampEvents = keyof OnrampEventMap;
+
+export function addOnrampListener<EventT extends OnrampEvents>(
+  event: EventT,
+  handler: (params: OnrampEventMap[EventT]) => void
 ): EventSubscription {
   return compatOnrampEventEmitter.addListener(event, handler);
 }
