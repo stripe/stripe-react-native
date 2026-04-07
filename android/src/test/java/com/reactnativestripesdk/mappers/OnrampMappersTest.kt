@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk.mappers
 
 import android.annotation.SuppressLint
@@ -5,6 +7,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
 import com.reactnativestripesdk.utils.readableMapOf
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.link.LinkAppearance.Style
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
