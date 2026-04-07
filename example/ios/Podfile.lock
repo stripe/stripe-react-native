@@ -1827,7 +1827,7 @@ PODS:
     - StripePayments (= 25.9.0)
     - StripePaymentsUI (= 25.9.0)
     - StripeUICore (= 25.9.0)
-  - stripe-react-native (0.61.0):
+  - stripe-react-native (0.62.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1848,10 +1848,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - stripe-react-native/Core (= 0.61.0)
-    - stripe-react-native/NewArch (= 0.61.0)
+    - stripe-react-native/Core (= 0.62.0)
+    - stripe-react-native/NewArch (= 0.62.0)
     - Yoga
-  - stripe-react-native/Core (0.61.0):
+  - stripe-react-native/Core (0.62.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1879,7 +1879,7 @@ PODS:
     - StripePaymentSheet (~> 25.9.0)
     - StripePaymentsUI (~> 25.9.0)
     - Yoga
-  - stripe-react-native/NewArch (0.61.0):
+  - stripe-react-native/NewArch (0.62.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1901,7 +1901,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stripe-react-native/Onramp (0.61.0):
+  - stripe-react-native/Onramp (0.62.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1925,7 +1925,7 @@ PODS:
     - stripe-react-native/Core
     - StripeCryptoOnramp (~> 25.9.0)
     - Yoga
-  - stripe-react-native/Tests (0.61.0):
+  - stripe-react-native/Tests (0.62.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2312,7 +2312,7 @@ SPEC CHECKSUMS:
   RNCPicker: c8a3584b74133464ee926224463fcc54dfdaebca
   RNScreens: 61c18865ab074f4d995ac8d7cf5060522a649d05
   Stripe: 604acd978f3ec2921098f477ccaa229e12690373
-  stripe-react-native: bafcc82aa6f5fbd96384c9ec24437c4e2b3081f6
+  stripe-react-native: c2798b9c4308e0c9e0b525990a4aa77b5617a5a2
   StripeApplePay: 9dabe2d3d897419a7a7663dc3338ff4bc51b9f54
   StripeCameraCore: 5e9d3d273d3efd65760187bc83d80ec531211614
   StripeCore: 87c7dc5c110c1fd6b3de3ecdbc4df54c0ed5968a
@@ -2324,7 +2324,7 @@ SPEC CHECKSUMS:
   StripePaymentSheet: 0fc945d26c9884ad5781d6c636e1b8adedf9a886
   StripePaymentsUI: e2f00f9be6fea280d6188b805fdb5199a96e1151
   StripeUICore: bfe8754c2d78eeb0fc4ce147316a7e5129b58423
-  Yoga: 3fd22c2cae22d7a2b0f0b538f55f7c2a17dc94d5
+  Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
 PODFILE CHECKSUM: 605f3cad878b7c0eee93ebb4a78a8141d34cd328
 

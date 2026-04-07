@@ -21,4 +21,21 @@ options = {
 use_test_app! options do |target|
   pod 'stripe-react-native', path: '../node_modules/@stripe/stripe-react-native', testspecs: ['Tests']
   pod 'stripe-react-native/Onramp', path: '../node_modules/@stripe/stripe-react-native'
+
+  # Point Stripe iOS pods to a local checkout for development.
+  # Usage: STRIPE_IOS_PATH=~/stripe/stripe-ios pod install --clean-install
+  if ENV['STRIPE_IOS_PATH']
+    stripe_ios = File.expand_path(ENV['STRIPE_IOS_PATH'])
+    pod 'Stripe', path: stripe_ios
+    pod 'StripeApplePay', path: stripe_ios
+    pod 'StripeCameraCore', path: stripe_ios
+    pod 'StripeCore', path: stripe_ios
+    pod 'StripeCryptoOnramp', path: stripe_ios
+    pod 'StripeFinancialConnections', path: stripe_ios
+    pod 'StripeIdentity', path: stripe_ios
+    pod 'StripePayments', path: stripe_ios
+    pod 'StripePaymentSheet', path: stripe_ios
+    pod 'StripePaymentsUI', path: stripe_ios
+    pod 'StripeUICore', path: stripe_ios
+  end
 end
