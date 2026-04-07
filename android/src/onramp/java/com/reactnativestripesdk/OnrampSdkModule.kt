@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
@@ -23,6 +25,7 @@ import com.reactnativestripesdk.utils.createOnrampNotConfiguredError
 import com.reactnativestripesdk.utils.createResult
 import com.reactnativestripesdk.utils.getValOr
 import com.reactnativestripesdk.utils.mapToPaymentSheetAddress
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.OnrampCoordinator
 import com.stripe.android.crypto.onramp.model.CryptoNetwork
 import com.stripe.android.crypto.onramp.model.KycInfo

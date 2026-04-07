@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalCryptoOnramp::class)
+
 package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
 import com.facebook.react.bridge.ReadableMap
+import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
