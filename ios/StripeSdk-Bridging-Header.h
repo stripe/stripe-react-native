@@ -6,3 +6,4 @@
 #import <React/RCTUIManager.h>
 #import <PassKit/PassKit.h>
 #import <React/RCTEventEmitter.h>
+#import <React/RCTVersion.h>  
