@@ -60,6 +60,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 @SuppressLint("RestrictedApi")
+@OptIn(ExperimentalCryptoOnramp::class)
 @ReactModule(name = NativeOnrampSdkModuleSpec.NAME)
 class OnrampSdkModule(
   reactContext: ReactApplicationContext,
