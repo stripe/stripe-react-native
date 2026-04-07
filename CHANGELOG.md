@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+* [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
+
 ## 0.63.0 - 2026-04-06
 **Features**
 * [Added] Added types for new theming tokens for Connect Embedded Components ([#2372](https://github.com/stripe/stripe-react-native/pull/2372))

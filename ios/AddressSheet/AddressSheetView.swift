@@ -83,7 +83,7 @@ public class AddressSheetView: UIView {
     private func buildAddressSheetConfiguration() throws -> AddressViewController.Configuration {
         let appearanceConfiguration = try PaymentSheetAppearance.buildAppearanceFromParams(userParams: appearance)
 
-        return AddressViewController.Configuration(
+        var config = AddressViewController.Configuration(
             defaultValues: AddressSheetUtils.buildDefaultValues(params: defaultValues),
             additionalFields: AddressSheetUtils.buildAdditionalFieldsConfiguration(params: additionalFields),
             allowedCountries: allowedCountries,
@@ -91,6 +91,8 @@ public class AddressSheetView: UIView {
             buttonTitle: primaryButtonTitle,
             title: sheetTitle
         )
+        config.autocompleteCountries = Set(autocompleteCountries)
+        return config
     }
 
     private func getModalPresentationStyle() -> UIModalPresentationStyle {
