@@ -260,7 +260,7 @@ class AddressSheetUtilsTests: XCTestCase {
 
         XCTAssertEqual(config.allowedCountries, [])
         XCTAssertEqual(config.autocompleteCountries, [])
-        XCTAssertNil(config.buttonTitle)
+        XCTAssertEqual(config.buttonTitle, "Save address")
         XCTAssertNil(config.defaultValues.name)
         XCTAssertEqual(config.additionalFields.phone, .hidden)
     }
