@@ -239,7 +239,7 @@ class AddressSheetUtilsTests: XCTestCase {
         )
 
         XCTAssertEqual(config.allowedCountries, ["US", "GB"])
-        XCTAssertEqual(config.autocompleteCountries, Set(["US", "CA"]))
+        XCTAssertEqual(config.autocompleteCountries, ["US", "CA"])
         XCTAssertEqual(config.buttonTitle, "Save Address")
         XCTAssertEqual(config.title, "Shipping")
         XCTAssertEqual(config.defaultValues.name, testName)
@@ -259,7 +259,7 @@ class AddressSheetUtilsTests: XCTestCase {
         )
 
         XCTAssertEqual(config.allowedCountries, [])
-        XCTAssertEqual(config.autocompleteCountries, Set())
+        XCTAssertEqual(config.autocompleteCountries, [])
         XCTAssertNil(config.buttonTitle)
         XCTAssertNil(config.defaultValues.name)
         XCTAssertEqual(config.additionalFields.phone, .hidden)

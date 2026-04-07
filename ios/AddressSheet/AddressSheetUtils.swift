@@ -98,7 +98,7 @@ class AddressSheetUtils {
             buttonTitle: buttonTitle,
             title: sheetTitle
         )
-        config.autocompleteCountries = Set(autocompleteCountries)
+        config.autocompleteCountries = autocompleteCountries
         return config
     }
 
