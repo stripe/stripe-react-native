@@ -151,6 +151,7 @@ internal fun mapAppearance(appearanceMap: ReadableMap): LinkAppearance {
     .primaryButton(primaryButton)
 }
 
+@OptIn(ExperimentalCryptoOnramp::class)
 @SuppressLint("RestrictedApi")
 internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String =
   when (type) {
