@@ -225,6 +225,46 @@ class AddressSheetUtilsTests: XCTestCase {
         XCTAssertEqual(AddressSheetUtils.getFieldConfiguration(input: "", default: .required), .required)
     }
 
+    // MARK: - buildConfiguration Tests
+
+    func test_buildConfiguration_fullParams() throws {
+        let config = try AddressSheetUtils.buildConfiguration(
+            appearance: nil,
+            defaultValues: ["name": testName, "phone": testPhone],
+            additionalFields: ["phoneNumber": "required"],
+            allowedCountries: ["US", "GB"],
+            autocompleteCountries: ["US", "CA"],
+            buttonTitle: "Save Address",
+            sheetTitle: "Shipping"
+        )
+
+        XCTAssertEqual(config.allowedCountries, ["US", "GB"])
+        XCTAssertEqual(config.autocompleteCountries, Set(["US", "CA"]))
+        XCTAssertEqual(config.buttonTitle, "Save Address")
+        XCTAssertEqual(config.title, "Shipping")
+        XCTAssertEqual(config.defaultValues.name, testName)
+        XCTAssertEqual(config.defaultValues.phone, testPhone)
+        XCTAssertEqual(config.additionalFields.phone, .required)
+    }
+
+    func test_buildConfiguration_defaults() throws {
+        let config = try AddressSheetUtils.buildConfiguration(
+            appearance: nil,
+            defaultValues: nil,
+            additionalFields: nil,
+            allowedCountries: [],
+            autocompleteCountries: [],
+            buttonTitle: nil,
+            sheetTitle: nil
+        )
+
+        XCTAssertEqual(config.allowedCountries, [])
+        XCTAssertEqual(config.autocompleteCountries, Set())
+        XCTAssertNil(config.buttonTitle)
+        XCTAssertNil(config.defaultValues.name)
+        XCTAssertEqual(config.additionalFields.phone, .hidden)
+    }
+
     // MARK: - buildResult Tests
 
     func test_buildResult_fullData() {
