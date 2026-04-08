@@ -28,7 +28,11 @@ export type GooglePayConfig = {
   merchantCountryCode: string;
   /** Merchant name displayed in the Google Pay sheet. */
   merchantName: string;
-  /** Whether an existing payment method is required. Defaults to false. */
+  /** Set to true to request an email address. Defaults to false. */
+  isEmailRequired?: boolean;
+  /** Set to false if you don't support credit cards. Defaults to true. */
+  allowCreditCards?: boolean;
+  /** Whether an existing payment method is required. Defaults to true. */
   existingPaymentMethodRequired?: boolean;
   /** Billing address collection configuration. */
   billingAddressConfig?: GooglePayBillingAddressConfig;
