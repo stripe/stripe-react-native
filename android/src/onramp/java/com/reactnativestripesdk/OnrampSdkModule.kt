@@ -418,8 +418,19 @@ class OnrampSdkModule(
               }
           val currencyCode = googlePayParams.getString("currencyCode") ?: ""
           val amount = googlePayParams.getDouble("amount").toLong()
-          val transactionId = googlePayParams.getString("transactionId")
-          val label = googlePayParams.getString("label")
+
+          val transactionId =
+            if (googlePayParams.hasKey("transactionId")) {
+              googlePayParams.getString("transactionId")
+            } else {
+              null
+            }
+          val label =
+            if (googlePayParams.hasKey("label")) {
+              googlePayParams.getString("label")
+            } else {
+              null
+            }
 
           PaymentMethodSelection.GooglePay(
             currencyCode = currencyCode,

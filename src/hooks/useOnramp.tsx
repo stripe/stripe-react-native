@@ -1,7 +1,7 @@
 import { EventSubscription } from 'react-native';
 import NativeOnrampSdk from '../specs/NativeOnrampSdkModule';
 import { Onramp, OnrampError, StripeError } from '../types';
-import type { Address, PlatformPay } from '../types';
+import type { Address } from '../types';
 import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
@@ -107,14 +107,12 @@ export function useOnramp() {
     ): Promise<Onramp.CollectPaymentMethodResult>;
     (
       paymentMethod: 'PlatformPay',
-      platformPayParams: PlatformPay.PaymentMethodParams
+      platformPayParams: Onramp.OnrampPlatformPayParams
     ): Promise<Onramp.CollectPaymentMethodResult>;
   } = useCallback(
     async (
       paymentMethod: OnrampPaymentMethod,
-      platformPayParams?:
-        | PlatformPay.PaymentMethodParams
-        | Record<string, never>
+      platformPayParams?: Onramp.OnrampPlatformPayParams | Record<string, never>
     ): Promise<Onramp.CollectPaymentMethodResult> => {
       return NativeOnrampSdk.collectPaymentMethod(
         paymentMethod,
