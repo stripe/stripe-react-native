@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+* [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
+
 ## 0.63.0 - 2026-04-06
 **Changes**
 - Updated Stripe iOS SDK from 25.9.+ to 25.10.+.
