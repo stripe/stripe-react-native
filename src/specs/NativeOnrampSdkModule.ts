@@ -1,6 +1,5 @@
 import { TurboModuleRegistry } from 'react-native';
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
-import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 import type { Address, InitialiseParams, Onramp } from '../types';
 import type { UnsafeObject } from './utils';
 
@@ -33,7 +32,6 @@ export interface Spec extends TurboModule {
     platformPayParams: UnsafeObject<any>
   ): Promise<Onramp.CollectPaymentMethodResult>;
   provideCheckoutClientSecret(clientSecret: string | null): void;
-  onCheckoutClientSecretRequested: EventEmitter<UnsafeObject<any>>;
   createCryptoPaymentToken(): Promise<Onramp.CreateCryptoPaymentTokenResult>;
   performCheckout(onrampSessionId: string): Promise<Onramp.VoidResult>;
   onrampAuthorize(linkAuthIntentId: string): Promise<Onramp.AuthorizeResult>;
@@ -41,6 +39,8 @@ export interface Spec extends TurboModule {
     token: UnsafeObject<Onramp.CryptoPaymentToken>
   ): Promise<Onramp.PaymentDisplayDataResult>;
   logout(): Promise<Onramp.VoidResult>;
+  addListener: (eventType: string) => void;
+  removeListeners: (count: number) => void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('OnrampSdk');

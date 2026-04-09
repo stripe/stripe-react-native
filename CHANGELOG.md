@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## Unreleased
+
+**Fixes**
+* [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
+
+## 0.63.0 - 2026-04-06
+**Changes**
+- Updated Stripe iOS SDK from 25.9.+ to 25.10.+.
+- Updated Stripe Android SDK from 23.2.+ to 23.3.+.
+
+**Features**
+* [Added] Added types for new theming tokens for Connect Embedded Components ([#2372](https://github.com/stripe/stripe-react-native/pull/2372))
+
+## 0.62.0 - 2026-03-31
+**Changes**
+- Updated Stripe Android SDK from 23.1.+ to 23.2.+
+
+**Fixes**
+* [Fixed] Allow usage of PaymentSheet with customFlow and non customFlow configurations in same session. ([#2361](https://github.com/stripe/stripe-react-native/pull/2361))
+* [Fixed] Downgrade Kotlin version from 2.3.10 to 2.2.21 to prevent build errors with Expo. ([#2374](https://github.com/stripe/stripe-react-native/pull/2374))
+
 ## 0.61.0 - 2026-03-25
 **Changes**
 - Updated Stripe iOS SDK from 25.7.+ to 25.9.+.

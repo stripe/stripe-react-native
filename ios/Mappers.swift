@@ -1178,12 +1178,17 @@ class Mappers {
         let lightPrimaryHex = lightColors?["primary"] as? String
         let darkSelectedBorderHex = darkColors?["borderSelected"] as? String
         let lightSelectedBorderHex = lightColors?["borderSelected"] as? String
+        let darkContentOnPrimaryHex = darkColors?["contentOnPrimary"] as? String
+        let lightContentOnPrimaryHex = lightColors?["contentOnPrimary"] as? String
 
         let darkPrimary = darkPrimaryHex.flatMap { UIColor(hexString: $0) }
         let lightPrimary = lightPrimaryHex.flatMap { UIColor(hexString: $0) }
 
         let darkSelectedBorder = darkSelectedBorderHex.flatMap { UIColor(hexString: $0) }
         let lightSelectedBorder = lightSelectedBorderHex.flatMap { UIColor(hexString: $0) }
+
+        let darkContentOnPrimary = darkContentOnPrimaryHex.flatMap { UIColor(hexString: $0) }
+        let lightContentOnPrimary = lightContentOnPrimaryHex.flatMap { UIColor(hexString: $0) }
 
         let primary: UIColor? = if let darkPrimary, let lightPrimary {
             UIColor { trait in
@@ -1201,8 +1206,16 @@ class Mappers {
             darkSelectedBorder ?? lightSelectedBorder
         }
 
-        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil {
-            .init(primary: primary, selectedBorder: selectedBorder)
+        let contentOnPrimary: UIColor? = if let darkContentOnPrimary, let lightContentOnPrimary {
+            UIColor { trait in
+                trait.userInterfaceStyle == .dark ? darkContentOnPrimary : lightContentOnPrimary
+            }
+        } else {
+            darkContentOnPrimary ?? lightContentOnPrimary
+        }
+
+        let colors: LinkAppearance.Colors? = if primary != nil || selectedBorder != nil || contentOnPrimary != nil {
+            .init(primary: primary, contentOnPrimary: contentOnPrimary, selectedBorder: selectedBorder)
         } else {
             nil
         }

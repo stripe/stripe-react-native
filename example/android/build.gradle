@@ -22,10 +22,6 @@ buildscript {
     }
 }
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version "${KOTLIN_VERSION}"
-}
-
 allprojects {
     repositories {
         {
