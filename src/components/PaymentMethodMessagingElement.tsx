@@ -47,7 +47,7 @@ export interface Props extends AccessibilityProps {
  *      amount: 5000,
  *      countryCode: 'US',
  *    }}
- *    onLoadComplete={(event) => {
+ *    onStateChange={(event) => {
  *      console.log('PMME loaded with result:', event);
  *    }
  * />
