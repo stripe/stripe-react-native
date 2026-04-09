@@ -88,9 +88,9 @@ type OnrampEventMap = {
 
 type OnrampEvents = keyof OnrampEventMap;
 
-export function addOnrampListener(
+export function addOnrampListener<EventT extends OnrampEvents>(
   event: OnrampEvents,
-  handler: (params: any) => void
+  handler: (params: OnrampEventMap[EventT]) => void
 ): EventSubscription {
   if (compatOnrampEventEmitter == null) {
     // Return a no-op subscription when module is not available
