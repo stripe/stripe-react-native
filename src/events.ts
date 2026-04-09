@@ -89,7 +89,7 @@ type OnrampEventMap = {
 type OnrampEvents = keyof OnrampEventMap;
 
 export function addOnrampListener<EventT extends OnrampEvents>(
-  event: OnrampEvents,
+  event: EventT,
   handler: (params: OnrampEventMap[EventT]) => void
 ): EventSubscription {
   if (compatOnrampEventEmitter == null) {
