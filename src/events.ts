@@ -76,15 +76,17 @@ export function addListener<EventT extends keyof Events>(
 }
 
 const compatOnrampEventEmitter =
-  // On new arch we use native module events. On old arch this doesn't exist
-  // so use NativeEventEmitter on iOS and DeviceEventEmitter on Android.
   NativeOnrampSdkModule == null
     ? null
     : Platform.OS === 'ios'
       ? new NativeEventEmitter(NativeOnrampSdkModule as any)
       : DeviceEventEmitter;
 
-type OnrampEvents = 'onCheckoutClientSecretRequested';
+type OnrampEventMap = {
+  onCheckoutClientSecretRequested: void;
+};
+
+type OnrampEvents = keyof OnrampEventMap;
 
 export function addOnrampListener(
   event: OnrampEvents,

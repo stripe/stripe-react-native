@@ -15,6 +15,7 @@ typedef NS_ENUM(NSInteger, STPPaymentStatus);
 
 // stripe_react_native-Swift.h also depends on these headers.
 #import <React/RCTBridgeModule.h>
+#import <React/RCTVersion.h>
 #import <React/RCTViewManager.h>
 
 // When using frameworks the import is different.
