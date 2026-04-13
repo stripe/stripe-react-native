@@ -6,6 +6,15 @@ import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
 
+function requireOnrampModule() {
+  if (NativeOnrampSdk == null) {
+    throw new Error(
+      "Onramp module is not available. On Android, add 'StripeSdk_includeOnramp=true' to gradle.properties."
+    );
+  }
+  return NativeOnrampSdk;
+}
+
 let onCheckoutClientSecretRequestedSubscription: EventSubscription | null =
   null;
 
@@ -17,14 +26,14 @@ export function useOnramp() {
     async (
       config: Onramp.Configuration
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeOnrampSdk.configureOnramp(config);
+      return requireOnrampModule().configureOnramp(config);
     },
     []
   );
 
   const _hasLinkAccount = useCallback(
     async (email: string): Promise<Onramp.HasLinkAccountResult> => {
-      return NativeOnrampSdk.hasLinkAccount(email);
+      return requireOnrampModule().hasLinkAccount(email);
     },
     []
   );
@@ -33,7 +42,7 @@ export function useOnramp() {
     async (
       info: Onramp.LinkUserInfo
     ): Promise<Onramp.RegisterLinkUserResult> => {
-      return NativeOnrampSdk.registerLinkUser(info);
+      return requireOnrampModule().registerLinkUser(info);
     },
     []
   );
@@ -43,7 +52,10 @@ export function useOnramp() {
       walletAddress: string,
       network: Onramp.CryptoNetwork
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeOnrampSdk.registerWalletAddress(walletAddress, network);
+      return requireOnrampModule().registerWalletAddress(
+        walletAddress,
+        network
+      );
     },
     []
   );
@@ -52,14 +64,14 @@ export function useOnramp() {
     async (
       kycInfo: Onramp.KycInfo
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeOnrampSdk.attachKycInfo(kycInfo);
+      return requireOnrampModule().attachKycInfo(kycInfo);
     },
     []
   );
 
   const _presentKycInfoVerification = useCallback(
     async (updatedAddress: Address | null): Promise<Onramp.VerifyKycResult> => {
-      return NativeOnrampSdk.presentKycInfoVerification(updatedAddress);
+      return requireOnrampModule().presentKycInfoVerification(updatedAddress);
     },
     []
   );
@@ -68,7 +80,7 @@ export function useOnramp() {
     async (
       linkAuthTokenClientSecret: string
     ): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeOnrampSdk.authenticateUserWithToken(
+      return requireOnrampModule().authenticateUserWithToken(
         linkAuthTokenClientSecret
       );
     },
@@ -77,7 +89,7 @@ export function useOnramp() {
 
   const _updatePhoneNumber = useCallback(
     async (phone: string): Promise<{ error?: StripeError<OnrampError> }> => {
-      return NativeOnrampSdk.updatePhoneNumber(phone);
+      return requireOnrampModule().updatePhoneNumber(phone);
     },
     []
   );
@@ -85,7 +97,7 @@ export function useOnramp() {
   const _verifyIdentity = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
-    return NativeOnrampSdk.verifyIdentity();
+    return requireOnrampModule().verifyIdentity();
   }, []);
 
   /**
@@ -116,7 +128,7 @@ export function useOnramp() {
         | PlatformPay.PaymentMethodParams
         | Record<string, never>
     ): Promise<Onramp.CollectPaymentMethodResult> => {
-      return NativeOnrampSdk.collectPaymentMethod(
+      return requireOnrampModule().collectPaymentMethod(
         paymentMethod,
         (platformPayParams ?? {}) as any
       );
@@ -126,7 +138,7 @@ export function useOnramp() {
 
   const _createCryptoPaymentToken =
     useCallback(async (): Promise<Onramp.CreateCryptoPaymentTokenResult> => {
-      return NativeOnrampSdk.createCryptoPaymentToken();
+      return requireOnrampModule().createCryptoPaymentToken();
     }, []);
 
   const _performCheckout = useCallback(
@@ -140,20 +152,20 @@ export function useOnramp() {
         async () => {
           try {
             const clientSecret = await provideCheckoutClientSecret();
-            NativeOnrampSdk.provideCheckoutClientSecret(clientSecret);
+            requireOnrampModule().provideCheckoutClientSecret(clientSecret);
           } catch (error: any) {
-            NativeOnrampSdk.provideCheckoutClientSecret(null);
+            requireOnrampModule().provideCheckoutClientSecret(null);
           }
         }
       );
-      return NativeOnrampSdk.performCheckout(onrampSessionId);
+      return requireOnrampModule().performCheckout(onrampSessionId);
     },
     []
   );
 
   const _authorize = useCallback(
     async (linkAuthIntentId: string): Promise<Onramp.AuthorizeResult> => {
-      return NativeOnrampSdk.onrampAuthorize(linkAuthIntentId);
+      return requireOnrampModule().onrampAuthorize(linkAuthIntentId);
     },
     []
   );
@@ -162,7 +174,7 @@ export function useOnramp() {
     async (
       token: CryptoPaymentToken
     ): Promise<Onramp.PaymentDisplayDataResult> => {
-      return NativeOnrampSdk.getCryptoTokenDisplayData(token);
+      return requireOnrampModule().getCryptoTokenDisplayData(token);
     },
     []
   );
@@ -170,7 +182,7 @@ export function useOnramp() {
   const _logOut = useCallback(async (): Promise<{
     error?: StripeError<OnrampError>;
   }> => {
-    return NativeOnrampSdk.logout();
+    return requireOnrampModule().logout();
   }, []);
 
   const _isAuthError = (error?: StripeError<OnrampError>): boolean => {
