@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.64.0 - 2026-04-13
+**Changes**
+* [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay.
+* [Added] Now accepts `isEmailRequired` and `allowCreditCards` as part of `GooglePayConfig`.
+
 ## 0.63.0 - 2026-04-06
 **Changes**
 - Updated Stripe iOS SDK from 25.9.+ to 25.10.+.
