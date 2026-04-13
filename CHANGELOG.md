@@ -1,9 +1,12 @@
 # CHANGELOG
 
-## 0.64.0 - 2026-04-13
+## Unreleased
 **Changes**
 * [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
 * [Added] Now accepts `isEmailRequired` and `allowCreditCards` as part of `GooglePayConfig`. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
+
+**Fixes**
+* [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
 
 ## 0.63.0 - 2026-04-06
 **Changes**

@@ -76,9 +76,11 @@ export function addListener<EventT extends keyof Events>(
 }
 
 const compatOnrampEventEmitter =
-  Platform.OS === 'ios'
-    ? new NativeEventEmitter(NativeOnrampSdkModule as any)
-    : DeviceEventEmitter;
+  NativeOnrampSdkModule == null
+    ? null
+    : Platform.OS === 'ios'
+      ? new NativeEventEmitter(NativeOnrampSdkModule as any)
+      : DeviceEventEmitter;
 
 type OnrampEventMap = {
   onCheckoutClientSecretRequested: void;
@@ -90,5 +92,9 @@ export function addOnrampListener<EventT extends OnrampEvents>(
   event: EventT,
   handler: (params: OnrampEventMap[EventT]) => void
 ): EventSubscription {
+  if (compatOnrampEventEmitter == null) {
+    // Return a no-op subscription when module is not available
+    return { remove: () => {} } as EventSubscription;
+  }
   return compatOnrampEventEmitter.addListener(event, handler);
 }

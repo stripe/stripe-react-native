@@ -52,7 +52,7 @@ export const initStripe = async (params: InitStripeParams): Promise<void> => {
   await NativeStripeSdk.initialise(extendedParams);
 
   if (Platform.OS === 'android') {
-    await NativeOnrampSdk.initialise(extendedParams);
+    await NativeOnrampSdk?.initialise(extendedParams);
   }
 };
 

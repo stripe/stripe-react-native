@@ -25,6 +25,7 @@ import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.module.annotations.ReactModule
+import com.facebook.react.modules.systeminfo.ReactNativeVersion
 import com.reactnativestripesdk.addresssheet.AddressLauncherManager
 import com.reactnativestripesdk.customersheet.CustomerSheetManager
 import com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy
@@ -213,6 +214,11 @@ class StripeSdkModule(
               ).toString()
           ),
           "appVersion" to (packageInfo?.versionName ?: ""),
+          "isNewArchitecture" to BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
+          "reactNativeVersion" to
+            with(ReactNativeVersion.VERSION) {
+              "${get("major")}.${get("minor")}.${get("patch")}"
+            },
         ),
     )
   }

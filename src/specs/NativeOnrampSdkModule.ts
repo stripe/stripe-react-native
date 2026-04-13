@@ -43,4 +43,4 @@ export interface Spec extends TurboModule {
   removeListeners: (count: number) => void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('OnrampSdk');
+export default TurboModuleRegistry.get<Spec>('OnrampSdk');
