@@ -426,7 +426,7 @@ export default function CryptoOnrampFlow() {
     | { type: 'Card' }
     | { type: 'BankAccount' }
     | { type: 'CardAndBankAccount' }
-    | { type: 'PlatformPay'; params: PlatformPay.PaymentMethodParams };
+    | { type: 'PlatformPay'; params: Onramp.OnrampPlatformPayParams };
 
   const handleCollectPaymentMethod = useCallback(
     async (request: CollectPaymentRequest) => {
@@ -470,7 +470,7 @@ export default function CryptoOnrampFlow() {
   }, [handleCollectPaymentMethod]);
 
   const handleCollectApplePayPayment = useCallback(async () => {
-    const platformPayParams: PlatformPay.PaymentMethodParams = {
+    const platformPayParams: Onramp.OnrampPlatformPayParams = {
       applePay: {
         cartItems: [
           {
@@ -491,11 +491,8 @@ export default function CryptoOnrampFlow() {
   }, [handleCollectPaymentMethod]);
 
   const handleCollectGooglePayPayment = useCallback(async () => {
-    const googlePayParams: PlatformPay.PaymentMethodParams = {
+    const googlePayParams: Onramp.OnrampPlatformPayParams = {
       googlePay: {
-        testEnv: true,
-        merchantName: 'Example',
-        merchantCountryCode: 'US',
         currencyCode: 'USD',
         amount: 100,
         label: 'Example',

@@ -79,6 +79,8 @@ export default function HomeScreen() {
         merchantCountryCode: 'US',
         merchantName: 'Onramp Example',
         existingPaymentMethodRequired: false,
+        isEmailRequired: false,
+        allowCreditCards: true,
         billingAddressConfig: {
           isRequired: true,
           format: 'Full',

@@ -1,5 +1,9 @@
 import type { Address } from './Common';
 import type { OnrampError, StripeError } from './Errors';
+import type {
+  ApplePayBaseParams,
+  ApplePayPaymentMethodParams,
+} from './PlatformPay';
 
 /**
  * Configuration used to initialize and customize the crypto onramp experience.
@@ -28,7 +32,11 @@ export type GooglePayConfig = {
   merchantCountryCode: string;
   /** Merchant name displayed in the Google Pay sheet. */
   merchantName: string;
-  /** Whether an existing payment method is required. Defaults to false. */
+  /** Set to true to request an email address. Defaults to false. */
+  isEmailRequired?: boolean;
+  /** Set to false if you don't support credit cards. Defaults to true. */
+  allowCreditCards?: boolean;
+  /** Whether an existing payment method is required. Defaults to true. */
   existingPaymentMethodRequired?: boolean;
   /** Billing address collection configuration. */
   billingAddressConfig?: GooglePayBillingAddressConfig;
@@ -44,6 +52,33 @@ export type GooglePayBillingAddressConfig = {
   format?: 'Min' | 'Full';
   /** Whether a phone number is required. Defaults to false. */
   isPhoneNumberRequired?: boolean;
+};
+
+/**
+ * Google Pay parameters for the onramp collectPaymentMethod call.
+ * Only includes the fields passed to GooglePayPaymentMethodLauncher.present().
+ * Google Pay config (merchantCountryCode, testEnv, etc.) belongs in GooglePayConfig
+ * provided to configure().
+ */
+export type OnrampGooglePayParams = {
+  /** ISO 4217 alphabetic currency code (e.g. "USD"). */
+  currencyCode: string;
+  /** Amount in the currency's smallest unit. */
+  amount: number;
+  /** An optional label to display with the amount. */
+  label?: string;
+  /** A unique ID that identifies a transaction attempt. Required when sending callbacks to the Google Transaction Events API. */
+  transactionId?: string;
+};
+
+/**
+ * Platform Pay parameters for the onramp collectPaymentMethod call.
+ */
+export type OnrampPlatformPayParams = {
+  /** Google Pay parameters. Android only. */
+  googlePay?: OnrampGooglePayParams;
+  /** Apple Pay parameters. iOS only. */
+  applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
 };
 
 /**

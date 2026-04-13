@@ -418,6 +418,7 @@ class OnrampSdkModule(
               }
           val currencyCode = googlePayParams.getString("currencyCode") ?: ""
           val amount = googlePayParams.getDouble("amount").toLong()
+
           val transactionId = googlePayParams.getString("transactionId")
           val label = googlePayParams.getString("label")
 

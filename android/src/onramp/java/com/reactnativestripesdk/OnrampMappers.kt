@@ -50,6 +50,8 @@ internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLau
   val merchantName = params.getString("merchantName") ?: return null
   val existingPaymentMethodRequired =
     params.hasKey("existingPaymentMethodRequired") && params.getBoolean("existingPaymentMethodRequired")
+  val isEmailRequired = if (params.hasKey("isEmailRequired")) params.getBoolean("isEmailRequired") else false
+  val allowCreditCards = if (params.hasKey("allowCreditCards")) params.getBoolean("allowCreditCards") else true
 
   val billingAddressConfig =
     mapGooglePayBillingAddressConfig(params.getMap("billingAddressConfig"))
@@ -58,6 +60,8 @@ internal fun mapGooglePayConfig(params: ReadableMap?): GooglePayPaymentMethodLau
     environment = if (testEnv) GooglePayEnvironment.Test else GooglePayEnvironment.Production,
     merchantCountryCode = merchantCountryCode,
     merchantName = merchantName,
+    isEmailRequired = isEmailRequired,
+    allowCreditCards = allowCreditCards,
     billingAddressConfig = billingAddressConfig,
     existingPaymentMethodRequired = existingPaymentMethodRequired,
   )
