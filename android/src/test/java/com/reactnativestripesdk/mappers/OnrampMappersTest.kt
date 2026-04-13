@@ -53,7 +53,7 @@ class OnrampMappersTest {
     assertEquals(GooglePayEnvironment.Production, result!!.environment)
     assertFalse(result.isEmailRequired)
     assertTrue(result.allowCreditCards)
-    assertTrue(result.existingPaymentMethodRequired)
+    assertFalse(result.existingPaymentMethodRequired)
   }
 
   @Test
