@@ -416,6 +416,14 @@ export default function HomeScreen() {
               }}
             />
           </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Multibanco"
+              onPress={() => {
+                navigation.navigate('MultibancoPaymentScreen');
+              }}
+            />
+          </View>
         </>
       </Collapse>
 

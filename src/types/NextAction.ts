@@ -4,6 +4,7 @@ export type NextAction =
   | WeChatRedirectAction
   | AlipayRedirectAction
   | BoletoVoucherAction
+  | MultibancoVoucherAction
   | OxxoVoucherAction;
 
 export type VerifyWithMicrodepositsAction = {
@@ -37,6 +38,14 @@ export type BoletoVoucherAction = {
 export type KonbiniVoucherAction = {
   type: 'konbiniVoucher';
   voucherURL: string;
+};
+
+export type MultibancoVoucherAction = {
+  type: 'multibanco';
+  voucherURL: string;
+  entity?: string;
+  reference?: string;
+  expiresAt?: number;
 };
 
 export type OxxoVoucherAction = {

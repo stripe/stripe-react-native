@@ -37,6 +37,8 @@ class PaymentMethodFactory {
                 return try createBancontactPaymentMethodParams()
             case STPPaymentMethodType.billie:
                 return try createBilliePaymentMethodParams()
+            case STPPaymentMethodType.multibanco:
+                return try createMultibancoPaymentMethodParams()
             case STPPaymentMethodType.SEPADebit:
                 return try createSepaPaymentMethodParams()
             case STPPaymentMethodType.EPS:
@@ -89,6 +91,8 @@ class PaymentMethodFactory {
             case STPPaymentMethodType.bancontact:
                 return nil
             case STPPaymentMethodType.billie:
+                return nil
+            case STPPaymentMethodType.multibanco:
                 return nil
             case STPPaymentMethodType.SEPADebit:
                 return nil
@@ -297,6 +301,18 @@ class PaymentMethodFactory {
         return STPPaymentMethodParams(oxxo: params, billingDetails: billingDetails, metadata: metadata)
     }
 
+    private func createMultibancoPaymentMethodParams() throws -> STPPaymentMethodParams {
+        let params = STPPaymentMethodMultibancoParams()
+
+        guard let billingDetails = billingDetailsParams,
+              let email = billingDetails.email,
+              !email.isEmpty else {
+            throw PaymentMethodError.multibancoPaymentMissingParams
+        }
+
+        return STPPaymentMethodParams(multibanco: params, billingDetails: billingDetails, metadata: metadata)
+    }
+
     private func createEPSPaymentMethodParams() throws -> STPPaymentMethodParams {
         let params = STPPaymentMethodEPSParams()
 
@@ -406,6 +422,7 @@ enum PaymentMethodError: Error {
     case billiePaymentMissingParams
     case sepaPaymentMissingParams
     case p24PaymentMissingParams
+    case multibancoPaymentMissingParams
     case afterpayClearpayPaymentMissingParams
     // Klarna no longer requires email and country in billing details
     case weChatPayPaymentMissingParams
@@ -429,6 +446,8 @@ extension PaymentMethodError: LocalizedError {
             return NSLocalizedString("Billie requires that you provide the following billing details: email, country", comment: "Create payment error")
         case .sepaPaymentMissingParams:
             return NSLocalizedString("You must provide billing details and IBAN", comment: "Create payment error")
+        case .multibancoPaymentMissingParams:
+            return NSLocalizedString("Multibanco requires that you provide the following billing details: email", comment: "Create payment error")
         case .epsPaymentMissingParams:
             return NSLocalizedString("You must provide billing details", comment: "Create payment error")
         case .afterpayClearpayPaymentMissingParams:

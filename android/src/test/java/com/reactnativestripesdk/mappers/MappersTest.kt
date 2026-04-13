@@ -3,13 +3,18 @@ package com.reactnativestripesdk.mappers
 import android.annotation.SuppressLint
 import com.facebook.react.bridge.WritableMap
 import com.reactnativestripesdk.utils.createCanAddCardResult
+import com.reactnativestripesdk.utils.mapNextAction
+import com.reactnativestripesdk.utils.mapPaymentMethodType
 import com.reactnativestripesdk.utils.mapToAddress
 import com.reactnativestripesdk.utils.mapToBillingDetails
+import com.reactnativestripesdk.utils.mapToPaymentMethodType
 import com.reactnativestripesdk.utils.mapToPreferredNetworks
 import com.reactnativestripesdk.utils.parseCustomPaymentMethods
 import com.reactnativestripesdk.utils.readableArrayOf
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.model.CardBrand
+import com.stripe.android.model.PaymentMethod
+import com.stripe.android.model.StripeIntent
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -78,6 +83,34 @@ class MappersTest {
     val details = result.getMap("details")
     Assert.assertEquals(details?.getString("status"), "MISSING_CONFIGURATION")
     Assert.assertNull(details?.getMap("token"))
+  }
+
+  @Test
+  fun mapPaymentMethodType_Multibanco_ReturnsString() {
+    assertEquals("Multibanco", mapPaymentMethodType(PaymentMethod.Type.Multibanco))
+  }
+
+  @Test
+  fun mapToPaymentMethodType_Multibanco_ReturnsType() {
+    assertEquals(PaymentMethod.Type.Multibanco, mapToPaymentMethodType("Multibanco"))
+  }
+
+  @Test
+  fun mapNextAction_DisplayMultibancoDetails_ReturnsVoucherUrl() {
+    val result =
+      mapNextAction(
+        StripeIntent.NextActionType.DisplayMultibancoDetails,
+        StripeIntent.NextActionData.DisplayMultibancoDetails(
+          hostedVoucherUrl = "https://payments.stripe.com/multibanco/voucher",
+        ),
+      )
+
+    assertNotNull(result)
+    assertEquals("multibanco", result?.getString("type"))
+    assertEquals(
+      "https://payments.stripe.com/multibanco/voucher",
+      result?.getString("voucherURL"),
+    )
   }
 
   // ============================================
