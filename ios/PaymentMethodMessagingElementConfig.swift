@@ -51,18 +51,6 @@ internal class PaymentMethodMessagingElementConfig {
         return appearance
     }
 
-    private class func buildFont(params: NSDictionary) throws -> PaymentSheet.Appearance.Font {
-        var font = PaymentSheet.Appearance.Font()
-        if let fontName = params["font"] as? String {
-            guard let customFont = UIFont(name: fontName, size: UIFont.systemFontSize) else {
-                throw PaymentSheetAppearanceError.missingFont(fontName)
-            }
-            font.base = customFont
-        }
-        font.sizeScaleFactor = params["scale"] as? CGFloat ?? PaymentSheet.Appearance.default.font.sizeScaleFactor
-        return font
-    }
-
     private class func parseThemedColor(params: NSDictionary, key: String) -> UIColor? {
         // Check if it's a dictionary with light/dark keys
         if let colorDict = params[key] as? [String: String] {
