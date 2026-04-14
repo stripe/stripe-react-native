@@ -722,7 +722,7 @@ class OnrampSdkModule(
           displayData.putString("label", result.displayData.label)
           result.displayData.sublabel?.let { displayData.putString("sublabel", it) }
           displayData.putString("type", mapPaymentDetailsType(result.displayData.type))
-          
+
           val map = Arguments.createMap()
           map.putMap("displayData", displayData)
           result.kycInfo?.let { map.putMap("kycInfo", mapFromKycInfo(it)) }

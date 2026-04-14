@@ -8,7 +8,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
-import com.stripe.android.model.DateOfBirth
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
@@ -17,6 +16,7 @@ import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.model.DateOfBirth
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @SuppressLint("RestrictedApi")
@@ -183,22 +183,22 @@ internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
 }
 
 private fun mapFromKycAddress(address: PaymentSheet.Address): ReadableMap {
-    val result = Arguments.createMap()
+  val result = Arguments.createMap()
 
-    address.city?.let { result.putString("city", it) }
-    address.country?.let { result.putString("country", it) }
-    address.line1?.let { result.putString("line1", it) }
-    address.line2?.let { result.putString("line2", it) }
-    address.postalCode?.let { result.putString("postalCode", it) }
-    address.state?.let { result.putString("state", it) }
+  address.city?.let { result.putString("city", it) }
+  address.country?.let { result.putString("country", it) }
+  address.line1?.let { result.putString("line1", it) }
+  address.line2?.let { result.putString("line2", it) }
+  address.postalCode?.let { result.putString("postalCode", it) }
+  address.state?.let { result.putString("state", it) }
 
-    return result
+  return result
 }
 
 private fun mapFromDateOfBirth(dateOfBirth: DateOfBirth): ReadableMap {
-    val result = Arguments.createMap()
-    result.putInt("day", dateOfBirth.day)
-    result.putInt("month", dateOfBirth.month)
-    result.putInt("year", dateOfBirth.year)
-    return result
+  val result = Arguments.createMap()
+  result.putInt("day", dateOfBirth.day)
+  result.putInt("month", dateOfBirth.month)
+  result.putInt("year", dateOfBirth.year)
+  return result
 }
