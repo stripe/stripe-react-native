@@ -450,6 +450,13 @@ export default function CryptoOnrampFlow() {
         if (result.displayData.type !== 'BankAccount') {
           setAchSettlementSpeed('instant');
         }
+
+        if (result.kycInfo) {
+          Alert.alert(
+            'KYC Info From Platform Pay',
+            formatKycInfoForAlert(result.kycInfo)
+          );
+        }
       } else {
         showCanceled('Payment collection cancelled, please try again.');
       }
@@ -481,6 +488,11 @@ export default function CryptoOnrampFlow() {
         ],
         merchantCountryCode: 'US',
         currencyCode: 'USD',
+        // Optional: request these billing fields if you'd like Platform Pay to return customer KYC information.
+        requiredBillingContactFields: [
+          PlatformPay.ContactField.Name,
+          PlatformPay.ContactField.PostalAddress,
+        ],
       },
     };
 
@@ -961,6 +973,38 @@ export default function CryptoOnrampFlow() {
       <View style={{ height: 32 }} />
     </ScrollView>
   );
+}
+
+function formatKycInfoForAlert(kycInfo: Onramp.KycInfo): string {
+  const lines: string[] = [
+    "The following information was gathered from Platform Pay details. In your app, you could use this information to attach KYC details to the user with `attachKYCInfo` if it hasn't already been collected, or pre-fill KYC collection fields in your UI.",
+    '',
+  ];
+
+  if (kycInfo.firstName) {
+    lines.push(`First name: ${kycInfo.firstName}`);
+  }
+
+  if (kycInfo.lastName) {
+    lines.push(`Last name: ${kycInfo.lastName}`);
+  }
+
+  if (kycInfo.address) {
+    const addressLines = [
+      kycInfo.address.line1,
+      kycInfo.address.line2,
+      [kycInfo.address.city, kycInfo.address.state, kycInfo.address.postalCode]
+        .filter(Boolean)
+        .join(', '),
+      kycInfo.address.country,
+    ].filter(Boolean);
+
+    if (addressLines.length > 0) {
+      lines.push(`Address: ${addressLines.join(', ')}`);
+    }
+  }
+
+  return lines.join('\n');
 }
 
 const styles = StyleSheet.create({
