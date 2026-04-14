@@ -4,8 +4,11 @@ package com.reactnativestripesdk
 
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.model.DateOfBirth
 import com.stripe.android.crypto.onramp.model.OnrampConfiguration
 import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
@@ -14,6 +17,7 @@ import com.stripe.android.link.LinkAppearance
 import com.stripe.android.link.LinkAppearance.Colors
 import com.stripe.android.link.LinkAppearance.PrimaryButton
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.paymentsheet.PaymentSheet
 
 @SuppressLint("RestrictedApi")
 internal fun mapConfig(
@@ -163,3 +167,38 @@ internal fun mapPaymentDetailsType(type: PaymentMethodDisplayData.Type): String 
     PaymentMethodDisplayData.Type.BankAccount -> "BankAccount"
     PaymentMethodDisplayData.Type.GooglePay -> "GooglePay"
   }
+
+@OptIn(ExperimentalCryptoOnramp::class)
+@SuppressLint("RestrictedApi")
+internal fun mapFromKycInfo(kycInfo: KycInfo): ReadableMap {
+  val result = Arguments.createMap()
+
+  kycInfo.firstName?.let { result.putString("firstName", it) }
+  kycInfo.lastName?.let { result.putString("lastName", it) }
+  kycInfo.idNumber?.let { result.putString("idNumber", it) }
+  kycInfo.address?.let { result.putMap("address", mapFromKycAddress(it)) }
+  kycInfo.dateOfBirth?.let { result.putMap("dateOfBirth", mapFromDateOfBirth(it)) }
+
+  return result
+}
+
+private fun mapFromKycAddress(address: PaymentSheet.Address): ReadableMap {
+    val result = Arguments.createMap()
+
+    address.city?.let { result.putString("city", it) }
+    address.country?.let { result.putString("country", it) }
+    address.line1?.let { result.putString("line1", it) }
+    address.line2?.let { result.putString("line2", it) }
+    address.postalCode?.let { result.putString("postalCode", it) }
+    address.state?.let { result.putString("state", it) }
+
+    return result
+}
+
+private fun mapFromDateOfBirth(dateOfBirth: DateOfBirth): ReadableMap {
+    val result = Arguments.createMap()
+    result.putInt("day", dateOfBirth.day)
+    result.putInt("month", dateOfBirth.month)
+    result.putInt("year", dateOfBirth.year)
+    return result
+}

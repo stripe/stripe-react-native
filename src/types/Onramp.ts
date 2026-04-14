@@ -77,7 +77,6 @@ export type OnrampGooglePayParams = {
 export type OnrampPlatformPayParams = {
   /**
    * Google Pay parameters. Android only.
-   * To receive `kycInfo` back from `collectPaymentMethod`, TK @twig to complete.
    */
   googlePay?: OnrampGooglePayParams;
   /**

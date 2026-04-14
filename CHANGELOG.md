@@ -6,7 +6,7 @@
 * [Added] `CollectPaymentMethodResult` has changed to include an optional `kycInfo` field that includes billing contact information (name and address), if requested as part of  `platformPayParams`. If not already collected, this information can be used by the client app to attach KYC information using `attachKYCInfo` or pre-fill KYC collection fields in client UI.
 * [Added] Now accepts `isEmailRequired` and `allowCreditCards` as part of `GooglePayConfig`. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
 * Updated Stripe iOS SDK from 25.10.+ to 25.11.+.
-* Updated Android iOS SDK from TK @twig to complete.
+* Updated Android iOS SDK from 23.3.+ to 23.4.+.
 
 **Fixes**
 * [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
