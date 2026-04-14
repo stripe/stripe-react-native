@@ -7,6 +7,7 @@
 
 **Fixes**
 * [Fixed] `autocompleteCountries` prop on `AddressSheet` was silently ignored on iOS.
+* [Fixed] Calling `confirmPayment` without `params` no longer crashes in iOS builds. ([#2331](https://github.com/stripe/stripe-react-native/issues/2331))
 
 ## 0.63.0 - 2026-04-06
 **Changes**
