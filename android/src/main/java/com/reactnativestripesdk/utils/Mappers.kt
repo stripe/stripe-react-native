@@ -140,6 +140,7 @@ internal fun mapPaymentMethodType(type: PaymentMethod.Type?): String =
     PaymentMethod.Type.GrabPay -> "GrabPay"
     PaymentMethod.Type.Ideal -> "Ideal"
     PaymentMethod.Type.Netbanking -> "Netbanking"
+    PaymentMethod.Type.Multibanco -> "Multibanco"
     PaymentMethod.Type.Oxxo -> "Oxxo"
     PaymentMethod.Type.P24 -> "P24"
     PaymentMethod.Type.SepaDebit -> "SepaDebit"
@@ -171,6 +172,7 @@ internal fun mapToPaymentMethodType(type: String?): PaymentMethod.Type? =
     "Fpx" -> PaymentMethod.Type.Fpx
     "GrabPay" -> PaymentMethod.Type.GrabPay
     "Netbanking" -> PaymentMethod.Type.Netbanking
+    "Multibanco" -> PaymentMethod.Type.Multibanco
     "Oxxo" -> PaymentMethod.Type.Oxxo
     "P24" -> PaymentMethod.Type.P24
     "SepaDebit" -> PaymentMethod.Type.SepaDebit

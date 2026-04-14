@@ -28,6 +28,7 @@ export type CreateParams =
   | CardParams
   | IdealParams
   | OxxoParams
+  | MultibancoParams
   | P24Params
   | AlipayParams
   | SepaParams
@@ -92,6 +93,13 @@ export interface OxxoParams {
   paymentMethodType: 'Oxxo';
   paymentMethodData: {
     billingDetails: BillingDetails;
+  };
+}
+
+export interface MultibancoParams {
+  paymentMethodType: 'Multibanco';
+  paymentMethodData: {
+    billingDetails: BillingDetails & { email: string };
   };
 }
 
@@ -276,6 +284,7 @@ export type Type =
   | 'P24'
   | 'Eps'
   | 'Bancontact'
+  | 'Multibanco'
   | 'Oxxo'
   | 'Upi'
   | 'USBankAccount'
