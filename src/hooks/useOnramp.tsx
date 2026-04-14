@@ -283,7 +283,10 @@ export function useOnramp() {
      * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
      *  - iOS: provide `applePay` params
      *  - Android: provide `googlePay` params
-     * @returns Promise that resolves to an object with displayData or error
+     *  - To receive Apple Pay billing details back as `kycInfo`, request `.name` and/or `.postalAddress`
+     *    in `applePay.requiredBillingContactFields`
+     *  - To receive Google Pay billing details back as `kycInfo`, TK @twig to complete
+     * @returns Promise that resolves to an object with displayData, optional kycInfo, or error
      */
     collectPaymentMethod: _collectPaymentMethod,
 

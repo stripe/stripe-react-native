@@ -77,7 +77,11 @@ export type OnrampGooglePayParams = {
 export type OnrampPlatformPayParams = {
   /** Google Pay parameters. Android only. */
   googlePay?: OnrampGooglePayParams;
-  /** Apple Pay parameters. iOS only. */
+  /**
+   * Apple Pay parameters. iOS only.
+   * To receive `kycInfo` back from `collectPaymentMethod`, request Apple Pay billing
+   * `.name` and/or `.postalAddress` via `requiredBillingContactFields`.
+   */
   applePay?: ApplePayBaseParams & ApplePayPaymentMethodParams;
 };
 
@@ -305,10 +309,13 @@ export type CollectPaymentMethodResult =
   | {
       /** Display data for the selected payment method. */
       displayData: PaymentMethodDisplayData;
+      /** Partial KYC data returned from Platform Pay billing details, when requested. */
+      kycInfo?: KycInfo;
       error?: undefined;
     }
   | {
       displayData?: undefined;
+      kycInfo?: undefined;
       /** Present if collection/selection failed with an error. */
       error: StripeError<OnrampError>;
     };
