@@ -6,12 +6,17 @@ import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
+import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.googlepaylauncher.GooglePayEnvironment
+import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -19,6 +24,182 @@ import org.robolectric.RobolectricTestRunner
 @SuppressLint("RestrictedApi")
 @RunWith(RobolectricTestRunner::class)
 class OnrampMappersTest {
+  @Test
+  fun mapGooglePayConfig_NullMap_ReturnsNull() {
+    val result = mapGooglePayConfig(null)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapGooglePayConfig_MissingMerchantCountryCode_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "merchantName" to "Test Merchant",
+      )
+    val result = mapGooglePayConfig(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapGooglePayConfig_Defaults() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertEquals(GooglePayEnvironment.Production, result!!.environment)
+    assertFalse(result.isEmailRequired)
+    assertTrue(result.allowCreditCards)
+    assertFalse(result.existingPaymentMethodRequired)
+  }
+
+  @Test
+  fun mapGooglePayConfig_TestEnv() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "testEnv" to true,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertEquals(GooglePayEnvironment.Test, result!!.environment)
+  }
+
+  @Test
+  fun mapGooglePayConfig_IsEmailRequired_True() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "isEmailRequired" to true,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertTrue(result!!.isEmailRequired)
+  }
+
+  @Test
+  fun mapGooglePayConfig_AllowCreditCards_False() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "allowCreditCards" to false,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertFalse(result!!.allowCreditCards)
+  }
+
+  @Test
+  fun mapGooglePayConfig_MissingMerchantName_ReturnsNull() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+      )
+    val result = mapGooglePayConfig(params)
+    assertNull(result)
+  }
+
+  @Test
+  fun mapGooglePayConfig_ExistingPaymentMethodRequired_False() {
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "existingPaymentMethodRequired" to false,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertFalse(result!!.existingPaymentMethodRequired)
+  }
+
+  @Test
+  fun mapGooglePayConfig_WithBillingAddressConfig_IsRequired() {
+    val billingAddressConfig =
+      readableMapOf(
+        "isRequired" to true,
+      )
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "billingAddressConfig" to billingAddressConfig,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertTrue(result!!.billingAddressConfig.isRequired)
+  }
+
+  @Test
+  fun mapGooglePayConfig_WithBillingAddressConfig_FullFormat() {
+    val billingAddressConfig =
+      readableMapOf(
+        "format" to "Full",
+      )
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "billingAddressConfig" to billingAddressConfig,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertEquals(
+      GooglePayPaymentMethodLauncher.BillingAddressConfig.Format.Full,
+      result!!.billingAddressConfig.format,
+    )
+  }
+
+  @Test
+  fun mapGooglePayConfig_WithBillingAddressConfig_UnknownFormat_DefaultsToMin() {
+    val billingAddressConfig =
+      readableMapOf(
+        "format" to "Unknown",
+      )
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "billingAddressConfig" to billingAddressConfig,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertEquals(
+      GooglePayPaymentMethodLauncher.BillingAddressConfig.Format.Min,
+      result!!.billingAddressConfig.format,
+    )
+  }
+
+  @Test
+  fun mapGooglePayConfig_WithBillingAddressConfig_IsPhoneNumberRequired() {
+    val billingAddressConfig =
+      readableMapOf(
+        "isPhoneNumberRequired" to true,
+      )
+    val params =
+      readableMapOf(
+        "merchantCountryCode" to "US",
+        "merchantName" to "Test Merchant",
+        "billingAddressConfig" to billingAddressConfig,
+      )
+    val result = mapGooglePayConfig(params)
+
+    assertNotNull(result)
+    assertTrue(result!!.billingAddressConfig.isPhoneNumberRequired)
+  }
+
   @Test
   fun mapConfig_WithAppearance() {
     val appearance =

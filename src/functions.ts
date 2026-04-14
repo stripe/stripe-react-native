@@ -151,7 +151,7 @@ export const confirmPayment = async (
   try {
     const { paymentIntent, error } = await NativeStripeSdk.confirmPayment(
       paymentIntentClientSecret,
-      params,
+      params ?? null,
       options
     );
     if (error) {

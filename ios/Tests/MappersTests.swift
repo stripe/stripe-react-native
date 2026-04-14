@@ -351,6 +351,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .card), "Card")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .alipay), "Alipay")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .iDEAL), "Ideal")
+        XCTAssertEqual(Mappers.mapPaymentMethodType(type: .multibanco), "Multibanco")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .SEPADebit), "SepaDebit")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .USBankAccount), "USBankAccount")
         XCTAssertEqual(Mappers.mapPaymentMethodType(type: .payPal), "PayPal")
@@ -363,6 +364,7 @@ class MappersTests: XCTestCase {
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Card"), STPPaymentMethodType.card)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Alipay"), STPPaymentMethodType.alipay)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Ideal"), STPPaymentMethodType.iDEAL)
+        XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "Multibanco"), STPPaymentMethodType.multibanco)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "SepaDebit"), STPPaymentMethodType.SEPADebit)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "USBankAccount"), STPPaymentMethodType.USBankAccount)
         XCTAssertEqual(Mappers.mapToPaymentMethodType(type: "PayPal"), STPPaymentMethodType.payPal)
@@ -377,6 +379,31 @@ class MappersTests: XCTestCase {
 
     func test_mapToPaymentMethodType_nilInput_returnsNil() {
         XCTAssertNil(Mappers.mapToPaymentMethodType(type: nil))
+    }
+
+    func test_mapNextAction_multibancoDisplayDetails_returnsVoucherDetails() throws {
+        let nextAction = try XCTUnwrap(
+            STPIntentAction.decodedObject(fromAPIResponse: [
+                "multibanco_display_details": [
+                    "entity": "1234",
+                    "reference": "123456789",
+                    "expires_at": 1_714_405_124,
+                    "hosted_voucher_url": "https://payments.stripe.com/multibanco/voucher",
+                ],
+                "type": "multibanco_display_details",
+            ])
+        )
+
+        let result = try XCTUnwrap(Mappers.mapNextAction(nextAction: nextAction))
+
+        XCTAssertEqual(result["type"] as? String, "multibanco")
+        XCTAssertEqual(result["entity"] as? String, "1234")
+        XCTAssertEqual(result["reference"] as? String, "123456789")
+        XCTAssertEqual(result["expiresAt"] as? Double, 1_714_405_124)
+        XCTAssertEqual(
+            result["voucherURL"] as? String,
+            "https://payments.stripe.com/multibanco/voucher"
+        )
     }
 
     // MARK: - US Bank Account Type Mappers

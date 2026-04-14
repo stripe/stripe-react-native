@@ -63,7 +63,7 @@ export interface Spec extends TurboModule {
   ): Promise<HandleNextActionForSetupResult>;
   confirmPayment(
     paymentIntentClientSecret: string,
-    params?: UnsafeObject<PaymentIntent.ConfirmParams>,
+    params: UnsafeObject<PaymentIntent.ConfirmParams> | null,
     options?: UnsafeObject<PaymentIntent.ConfirmOptions>
   ): Promise<ConfirmPaymentResult>;
   confirmSetupIntent(

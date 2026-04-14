@@ -79,6 +79,8 @@ export default function HomeScreen() {
         merchantCountryCode: 'US',
         merchantName: 'Onramp Example',
         existingPaymentMethodRequired: false,
+        isEmailRequired: false,
+        allowCreditCards: true,
         billingAddressConfig: {
           isRequired: true,
           format: 'Full',
@@ -87,15 +89,20 @@ export default function HomeScreen() {
       },
     };
 
-    configure(config).then((result) => {
-      if (result?.error) {
-        console.error('Error configuring Onramp:', result.error.message);
-        Alert.alert('Onramp Configuration Error', result.error.message);
-      } else {
-        console.log('Onramp configured successfully.');
-        Alert.alert('Success', 'Onramp configured successfully.');
-      }
-    });
+    configure(config)
+      .then((result) => {
+        if (result?.error) {
+          console.error('Error configuring Onramp:', result.error.message);
+          Alert.alert('Onramp Configuration Error', result.error.message);
+        } else {
+          console.log('Onramp configured successfully.');
+          Alert.alert('Success', 'Onramp configured successfully.');
+        }
+      })
+      .catch((error) => {
+        console.error('Error configuring Onramp:', error.message);
+        Alert.alert('Onramp Configuration Error', error.message);
+      });
   }, [configure]);
 
   return (
@@ -413,6 +420,14 @@ export default function HomeScreen() {
               title="OXXO"
               onPress={() => {
                 navigation.navigate('OxxoPaymentScreen');
+              }}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Multibanco"
+              onPress={() => {
+                navigation.navigate('MultibancoPaymentScreen');
               }}
             />
           </View>
