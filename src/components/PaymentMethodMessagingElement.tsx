@@ -1,15 +1,8 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityProps,
   HostComponent,
   LayoutAnimation,
-  NativeSyntheticEvent,
 } from 'react-native';
 import {
   PaymentMethodMessagingElementAppearance,
@@ -39,7 +32,8 @@ export interface Props extends AccessibilityProps {
  *      textColor: '#FFFFFF',
  *      infoIconColor: '#CCCCCC',
  *      font: {
- *        family: 14,
+ *        family: 'Courier',
+ *        size: 16,
  *      },
  *    }}
  *    configuration={{
@@ -62,17 +56,6 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
       useRef<React.ComponentRef<HostComponent<NativeProps>>>(null);
 
     const [height, setHeight] = useState<number | undefined>();
-
-    const onStateChangeHandler = useCallback(
-      (
-        event: NativeSyntheticEvent<{
-          result: PaymentMethodMessagingElementState;
-        }>
-      ) => {
-        onStateChange?.(event.nativeEvent.result);
-      },
-      [onStateChange]
-    );
 
     useEffect(() => {
       // listen for height changes
@@ -107,7 +90,6 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
               ),
             };
           }
-
           onStateChange?.(state);
         }
       );
@@ -119,7 +101,6 @@ export const PaymentMethodMessagingElement = forwardRef<any, Props>(
         appearance={appearance}
         style={[{ width: '100%', height: height }]}
         configuration={configuration}
-        onStateChange={onStateChangeHandler}
         {...props}
         ref={viewRef}
       />
