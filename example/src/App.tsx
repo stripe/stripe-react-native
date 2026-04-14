@@ -36,6 +36,7 @@ import HomeScreen from './screens/HomeScreen';
 import IdealPaymentScreen from './screens/IdealPaymentScreen';
 import IdealSetupFuturePaymentScreen from './screens/IdealSetupFuturePaymentScreen';
 import KlarnaPaymentScreen from './screens/KlarnaPaymentScreen';
+import MultibancoPaymentScreen from './screens/MultibancoPaymentScreen';
 import MultilineWebhookPaymentScreen from './screens/MultilineWebhookPaymentScreen';
 import NoWebhookPaymentScreen from './screens/NoWebhookPaymentScreen';
 import NoWebhookSetupScreen from './screens/NoWebhookSetupScreen';
@@ -88,6 +89,7 @@ export type RootStackParamList = {
   AuBECSDebitPaymentScreen: undefined;
   AfterpayClearpayPaymentScreen: undefined;
   KlarnaPaymentScreen: undefined;
+  MultibancoPaymentScreen: undefined;
   AuBECSDebitSetupPaymentScreen: undefined;
   MultilineWebhookPaymentScreen: undefined;
   GooglePayScreen: undefined;
@@ -265,6 +267,10 @@ export default function App() {
           <Stack.Screen
             name="OxxoPaymentScreen"
             component={OxxoPaymentScreen}
+          />
+          <Stack.Screen
+            name="MultibancoPaymentScreen"
+            component={MultibancoPaymentScreen}
           />
           <Stack.Screen
             name="AfterpayClearpayPaymentScreen"

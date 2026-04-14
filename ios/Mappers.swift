@@ -295,6 +295,7 @@ class Mappers {
         case STPPaymentMethodType.EPS: return "Eps"
         case STPPaymentMethodType.bancontact: return "Bancontact"
         case STPPaymentMethodType.billie: return "Billie"
+        case STPPaymentMethodType.multibanco: return "Multibanco"
         case STPPaymentMethodType.OXXO: return "Oxxo"
         case STPPaymentMethodType.UPI: return "Upi"
         case STPPaymentMethodType.afterpayClearpay: return "AfterpayClearpay"
@@ -327,6 +328,7 @@ class Mappers {
             case "Eps": return STPPaymentMethodType.EPS
             case "Bancontact": return STPPaymentMethodType.bancontact
             case "Billie": return STPPaymentMethodType.billie
+            case "Multibanco": return STPPaymentMethodType.multibanco
             case "Oxxo": return STPPaymentMethodType.OXXO
             case "Upi": return STPPaymentMethodType.UPI
             case "AfterpayClearpay": return STPPaymentMethodType.afterpayClearpay
@@ -474,6 +476,14 @@ class Mappers {
                 return [
                     "type": "konbiniVoucher",
                     "voucherURL": it.konbiniDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
+                ]
+            case .multibancoDisplayDetails:
+                return [
+                    "type": "multibanco",
+                    "entity": it.multibancoDisplayDetails?.entity ?? NSNull(),
+                    "reference": it.multibancoDisplayDetails?.reference ?? NSNull(),
+                    "expiresAt": it.multibancoDisplayDetails?.expiresAt.timeIntervalSince1970 ?? NSNull(),
+                    "voucherURL": it.multibancoDisplayDetails?.hostedVoucherURL.absoluteString ?? NSNull(),
                 ]
             default: // .useStripeSDK, .BLIKAuthorize, .unknown
                 return nil
