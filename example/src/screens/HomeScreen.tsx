@@ -5,12 +5,12 @@ import {
   useStripe,
   useOnramp,
 } from '@stripe/stripe-react-native';
+import { requireOnrampModule } from '@stripe/stripe-react-native/src/hooks/useOnramp';
 import {
   Linking,
   StyleSheet,
   View,
   ScrollView,
-  Platform,
   Alert,
   Text,
 } from 'react-native';
@@ -104,6 +104,23 @@ export default function HomeScreen() {
         Alert.alert('Onramp Configuration Error', error.message);
       });
   }, [configure]);
+
+  const handleNavigateToOnramp = useCallback(
+    (route: 'CryptoOnrampFlow' | 'RegisterCryptoUserScreen') => {
+      try {
+        requireOnrampModule();
+      } catch (error: any) {
+        Alert.alert(
+          'Onramp Module Unavailable',
+          error?.message ?? 'Onramp module is not available.'
+        );
+        return;
+      }
+
+      navigation.navigate(route);
+    },
+    [navigation]
+  );
 
   return (
     <ScrollView accessibilityLabel="app-root" style={styles.container}>
@@ -566,7 +583,7 @@ export default function HomeScreen() {
               <Button
                 title="Crypto Onramp Flow"
                 onPress={() => {
-                  navigation.navigate('CryptoOnrampFlow');
+                  handleNavigateToOnramp('CryptoOnrampFlow');
                 }}
               />
             </View>
@@ -574,7 +591,7 @@ export default function HomeScreen() {
               <Button
                 title="Register Crypto Link User"
                 onPress={() => {
-                  navigation.navigate('RegisterCryptoUserScreen');
+                  handleNavigateToOnramp('RegisterCryptoUserScreen');
                 }}
               />
             </View>

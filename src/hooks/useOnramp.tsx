@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import { addOnrampListener } from '../events';
 import { CryptoPaymentToken } from '../types/Onramp';
 
-function requireOnrampModule() {
+export function requireOnrampModule() {
   if (NativeOnrampSdk == null) {
     throw new Error(
       Platform.select({
