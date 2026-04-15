@@ -1600,11 +1600,21 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 let presentingViewController = await MainActor.run {
                     findViewControllerPresenter(from: RCTKeyWindow()?.rootViewController ?? UIViewController())
                 }
-                if let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController) {
-                    let displayData = Mappers.paymentMethodDisplayDataToMap(result)
-                    resolve(["displayData": displayData])
-                } else {
+                let result = try await coordinator.collectPaymentMethod(type: paymentMethodType, from: presentingViewController)
+                switch result {
+                case .canceled:
                     let errorResult = Errors.createError(ErrorType.Canceled, "Payment collection was cancelled")
+                    resolve(["error": errorResult["error"]!])
+                case .completed(let displayData, let kycInfo):
+                    var response: [String: Any] = ["displayData": Mappers.paymentMethodDisplayDataToMap(displayData)]
+
+                    if let kycInfo {
+                        response["kycInfo"] = Mappers.mapFromKycInfo(kycInfo)
+                    }
+
+                    resolve(response)
+                @unknown default:
+                    let errorResult = Errors.createError(ErrorType.Failed, "Received an unexpected payment collection result")
                     resolve(["error": errorResult["error"]!])
                 }
             } catch {
