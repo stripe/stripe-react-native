@@ -1277,6 +1277,70 @@ class Mappers {
         )
     }
 
+    class func mapFromKycInfo(_ kycInfo: KycInfo) -> [String: Any] {
+        var result: [String: Any] = [:]
+
+        if let firstName = kycInfo.firstName {
+            result["firstName"] = firstName
+        }
+
+        if let lastName = kycInfo.lastName {
+            result["lastName"] = lastName
+        }
+
+        if let idNumber = kycInfo.idNumber {
+            result["idNumber"] = idNumber
+        }
+
+        if let address = kycInfo.address {
+            result["address"] = mapFromKycAddress(address)
+        }
+
+        if let dateOfBirth = kycInfo.dateOfBirth {
+            result["dateOfBirth"] = mapFromDateOfBirth(dateOfBirth)
+        }
+
+        return result
+    }
+
+    class func mapFromKycAddress(_ address: Address) -> [String: Any] {
+        var result: [String: Any] = [:]
+
+        if let city = address.city {
+            result["city"] = city
+        }
+
+        if let country = address.country {
+            result["country"] = country
+        }
+
+        if let line1 = address.line1 {
+            result["line1"] = line1
+        }
+
+        if let line2 = address.line2 {
+            result["line2"] = line2
+        }
+
+        if let postalCode = address.postalCode {
+            result["postalCode"] = postalCode
+        }
+
+        if let state = address.state {
+            result["state"] = state
+        }
+
+        return result
+    }
+
+    class func mapFromDateOfBirth(_ dateOfBirth: KycInfo.DateOfBirth) -> [String: Int] {
+        [
+            "day": dateOfBirth.day,
+            "month": dateOfBirth.month,
+            "year": dateOfBirth.year,
+        ]
+    }
+
     private class func mapOptionalKycAddress(_ value: Any?) throws -> Address? {
         guard let value else {
             return nil

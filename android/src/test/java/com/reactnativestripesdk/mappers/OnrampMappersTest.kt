@@ -6,12 +6,16 @@ import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
 import com.reactnativestripesdk.mapAppearance
 import com.reactnativestripesdk.mapConfig
+import com.reactnativestripesdk.mapFromKycInfo
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
+import com.stripe.android.crypto.onramp.model.KycInfo
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
+import com.stripe.android.model.DateOfBirth
+import com.stripe.android.paymentsheet.PaymentSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -399,5 +403,118 @@ class OnrampMappersTest {
 
     assertEquals(8f, state.primaryButton.cornerRadiusDp)
     assertEquals(48f, state.primaryButton.heightDp)
+  }
+
+  @Test
+  fun mapFromKycInfo_AllFields() {
+    val kycInfo =
+      KycInfo(
+        firstName = "Jane",
+        lastName = "Doe",
+        idNumber = "123456789",
+        address =
+          PaymentSheet.Address(
+            city = "San Francisco",
+            country = "US",
+            line1 = "123 Main St",
+            line2 = "Apt 4",
+            postalCode = "94105",
+            state = "CA",
+          ),
+        dateOfBirth = DateOfBirth(day = 15, month = 6, year = 1990),
+      )
+    val result = mapFromKycInfo(kycInfo)
+
+    assertEquals("Jane", result.getString("firstName"))
+    assertEquals("Doe", result.getString("lastName"))
+    assertEquals("123456789", result.getString("idNumber"))
+
+    val address = result.getMap("address")
+    assertNotNull(address)
+    assertEquals("San Francisco", address!!.getString("city"))
+    assertEquals("US", address.getString("country"))
+    assertEquals("123 Main St", address.getString("line1"))
+    assertEquals("Apt 4", address.getString("line2"))
+    assertEquals("94105", address.getString("postalCode"))
+    assertEquals("CA", address.getString("state"))
+
+    val dob = result.getMap("dateOfBirth")
+    assertNotNull(dob)
+    assertEquals(15, dob!!.getInt("day"))
+    assertEquals(6, dob.getInt("month"))
+    assertEquals(1990, dob.getInt("year"))
+  }
+
+  @Test
+  fun mapFromKycInfo_AllNullFields() {
+    val kycInfo =
+      KycInfo(
+        firstName = null,
+        lastName = null,
+        idNumber = null,
+        address = null,
+        dateOfBirth = null,
+      )
+    val result = mapFromKycInfo(kycInfo)
+
+    assertFalse(result.hasKey("firstName"))
+    assertFalse(result.hasKey("lastName"))
+    assertFalse(result.hasKey("idNumber"))
+    assertFalse(result.hasKey("address"))
+    assertFalse(result.hasKey("dateOfBirth"))
+  }
+
+  @Test
+  fun mapFromKycInfo_PartialFields() {
+    val kycInfo =
+      KycInfo(
+        firstName = "Jane",
+        lastName = null,
+        idNumber = null,
+        address = null,
+        dateOfBirth = DateOfBirth(day = 1, month = 1, year = 2000),
+      )
+    val result = mapFromKycInfo(kycInfo)
+
+    assertEquals("Jane", result.getString("firstName"))
+    assertFalse(result.hasKey("lastName"))
+    assertFalse(result.hasKey("idNumber"))
+    assertFalse(result.hasKey("address"))
+
+    val dob = result.getMap("dateOfBirth")
+    assertNotNull(dob)
+    assertEquals(1, dob!!.getInt("day"))
+    assertEquals(1, dob.getInt("month"))
+    assertEquals(2000, dob.getInt("year"))
+  }
+
+  @Test
+  fun mapFromKycInfo_AddressWithPartialFields() {
+    val kycInfo =
+      KycInfo(
+        firstName = null,
+        lastName = null,
+        idNumber = null,
+        address =
+          PaymentSheet.Address(
+            city = "New York",
+            country = "US",
+            line1 = null,
+            line2 = null,
+            postalCode = null,
+            state = null,
+          ),
+        dateOfBirth = null,
+      )
+    val result = mapFromKycInfo(kycInfo)
+
+    val address = result.getMap("address")
+    assertNotNull(address)
+    assertEquals("New York", address!!.getString("city"))
+    assertEquals("US", address.getString("country"))
+    assertFalse(address.hasKey("line1"))
+    assertFalse(address.hasKey("line2"))
+    assertFalse(address.hasKey("postalCode"))
+    assertFalse(address.hasKey("state"))
   }
 }

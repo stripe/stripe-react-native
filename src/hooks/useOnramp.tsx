@@ -283,7 +283,12 @@ export function useOnramp() {
      * @param platformPayParams Platform-specific parameters (required when `paymentMethod` is 'PlatformPay').
      *  - iOS: provide `applePay` params
      *  - Android: provide `googlePay` params
-     * @returns Promise that resolves to an object with displayData or error
+     *  - To receive Apple Pay billing details back as `kycInfo`, request `.name` and/or `.postalAddress`
+     *    in `applePay.requiredBillingContactFields`
+     *  - To receive Google Pay billing details back as `kycInfo`, ensure that the `GooglePayConfig`
+     *    passed to `configure` has `billingAddressConfig` with `format` set to `Full` and the desired fields
+     *    set to `true`.
+     * @returns Promise that resolves to an object with displayData, optional kycInfo, or error
      */
     collectPaymentMethod: _collectPaymentMethod,
 
