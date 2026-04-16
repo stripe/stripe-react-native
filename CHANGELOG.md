@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.64.0 - 2026-04-15
+## 0.64.0 - 2026-04-16
 **Changes**
 * [Breaking] `platformPayParams` has changed from `PlatformPay.PaymentMethodParams` to `Onramp.OnrampPlatformPayParams` to better match expectations for GooglePay. ([#2390] (https://github.com/stripe/stripe-react-native/pull/2390))
 * [Added] `CollectPaymentMethodResult` has changed to include an optional `kycInfo` field that includes billing contact information (name and address), if requested as part of  `platformPayParams`. If not already collected, this information can be used by the client app to attach KYC information using `attachKYCInfo` or pre-fill KYC collection fields in client UI.
