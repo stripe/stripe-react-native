@@ -629,7 +629,7 @@ public class StripeSdkImpl: NSObject, UIAdaptivePresentationControllerDelegate {
                 }
             }
         } else {
-            resolve(Errors.createError(ErrorType.Unknown, "Unhandled error occured"))
+            resolve(Errors.createError(ErrorType.Unknown, "Unhandled error occurred"))
         }
     }
 
