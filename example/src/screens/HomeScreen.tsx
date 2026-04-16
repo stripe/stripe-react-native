@@ -11,6 +11,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  Platform,
   Alert,
   Text,
 } from 'react-native';
