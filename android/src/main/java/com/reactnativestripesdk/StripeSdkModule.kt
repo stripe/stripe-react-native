@@ -224,6 +224,7 @@ class StripeSdkModule(
     )
   }
 
+  @SuppressLint("RestrictedApi")
   @ReactMethod
   override fun initialise(
     params: ReadableMap,
@@ -258,7 +259,6 @@ class StripeSdkModule(
       with(ReactNativeVersion.VERSION) {
         "${get("major")}.${get("minor")}.${get("patch")}"
       }
-
     preventActivityRecreation()
     setupComposeCompatView()
 
