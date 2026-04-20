@@ -17,11 +17,6 @@ Pod::Spec.new do |s|
   s.platforms    = { ios: '13.0' }
   s.source       = { git: 'https://github.com/stripe/stripe-react-native.git', tag: s.version.to_s }
 
-  # These headers contain c++ code so make sure they are private to avoid
-  # being exported to the umbrella header, which is used by swift interop.
-  # StripeSwiftInterop.h will cause circular dependency issues.
-  s.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
-
   s.header_dir = 'stripe_react_native'
   s.pod_target_xcconfig = {
     'USE_HEADERMAP' => 'YES',
@@ -44,6 +39,10 @@ Pod::Spec.new do |s|
   s.subspec 'Core' do |core|
     core.source_files = 'ios/**/*.{h,m,mm,swift}'
     core.exclude_files = [ 'ios/Tests/', 'ios/NewArch/', 'ios/StripeOnrampSdk.h', 'ios/StripeOnrampSdk.mm' ]
+    # These headers contain c++ code so make sure they are private to avoid
+    # being exported to the umbrella header, which is used by swift interop.
+    # StripeSwiftInterop.h will cause circular dependency issues.
+    core.private_header_files = [ 'ios/StripeSdk.h', 'ios/StripeSwiftInterop.h' ]
     core.dependency 'React-Core'
     core.dependency 'Stripe', stripe_version
     core.dependency 'StripePaymentSheet', stripe_version
