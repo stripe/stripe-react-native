@@ -33,6 +33,8 @@ import com.reactnativestripesdk.utils.ConfirmPaymentErrorType
 import com.reactnativestripesdk.utils.CreateTokenErrorType
 import com.reactnativestripesdk.utils.ErrorType
 import com.reactnativestripesdk.utils.GooglePayErrorType
+import com.reactnativestripesdk.utils.RetrievePaymentIntentErrorType
+import com.reactnativestripesdk.utils.RetrieveSetupIntentErrorType
 import com.reactnativestripesdk.utils.StripeUIManager
 import com.reactnativestripesdk.utils.createCanAddCardResult
 import com.reactnativestripesdk.utils.createError
@@ -689,8 +691,15 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val paymentIntent = stripe.retrievePaymentIntentSynchronous(clientSecret)
-      promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
+      runCatching {
+        val paymentIntent =
+          stripe.retrievePaymentIntentSynchronous(clientSecret, stripeAccountId)
+        promise.resolve(createResult("paymentIntent", mapFromPaymentIntentResult(paymentIntent)))
+      }.onFailure {
+        promise.resolve(
+          createError(RetrievePaymentIntentErrorType.Unknown.toString(), it.message),
+        )
+      }
     }
   }
 
@@ -700,8 +709,15 @@ class StripeSdkModule(
     promise: Promise,
   ) {
     CoroutineScope(Dispatchers.IO).launch {
-      val setupIntent = stripe.retrieveSetupIntentSynchronous(clientSecret)
-      promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
+      runCatching {
+        val setupIntent =
+          stripe.retrieveSetupIntentSynchronous(clientSecret, stripeAccountId)
+        promise.resolve(createResult("setupIntent", mapFromSetupIntentResult(setupIntent)))
+      }.onFailure {
+        promise.resolve(
+          createError(RetrieveSetupIntentErrorType.Unknown.toString(), it.message),
+        )
+      }
     }
   }
 
