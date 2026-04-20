@@ -5,12 +5,13 @@ package com.reactnativestripesdk.mappers
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
 import com.reactnativestripesdk.mapAppearance
-import com.reactnativestripesdk.mapConfig
 import com.reactnativestripesdk.mapFromKycInfo
 import com.reactnativestripesdk.mapGooglePayConfig
+import com.reactnativestripesdk.mapPaymentDetailsType
 import com.reactnativestripesdk.utils.readableMapOf
 import com.stripe.android.crypto.onramp.ExperimentalCryptoOnramp
 import com.stripe.android.crypto.onramp.model.KycInfo
+import com.stripe.android.crypto.onramp.model.PaymentMethodDisplayData
 import com.stripe.android.googlepaylauncher.GooglePayEnvironment
 import com.stripe.android.googlepaylauncher.GooglePayPaymentMethodLauncher
 import com.stripe.android.link.LinkAppearance.Style
@@ -364,6 +365,35 @@ class OnrampMappersTest {
   }
 
   @Test
+  fun mapAppearance_WithPrimaryButton_HeightOnly() {
+    val primaryButton =
+      readableMapOf(
+        "height" to 48.0,
+      )
+    val appearanceMap =
+      readableMapOf(
+        "primaryButton" to primaryButton,
+      )
+    val state = mapAppearance(appearanceMap).build()
+
+    assertNull(state.primaryButton.cornerRadiusDp)
+    assertEquals(48f, state.primaryButton.heightDp)
+  }
+
+  @Test
+  fun mapAppearance_WithPrimaryButton_EmptyMap() {
+    val primaryButton = readableMapOf()
+    val appearanceMap =
+      readableMapOf(
+        "primaryButton" to primaryButton,
+      )
+    val state = mapAppearance(appearanceMap).build()
+
+    assertNull(state.primaryButton.cornerRadiusDp)
+    assertNull(state.primaryButton.heightDp)
+  }
+
+  @Test
   fun mapAppearance_FullConfig() {
     val lightColors =
       readableMapOf(
@@ -403,6 +433,13 @@ class OnrampMappersTest {
 
     assertEquals(8f, state.primaryButton.cornerRadiusDp)
     assertEquals(48f, state.primaryButton.heightDp)
+  }
+
+  @Test
+  fun mapPaymentDetailsType_MapsAllSupportedTypes() {
+    assertEquals("Card", mapPaymentDetailsType(PaymentMethodDisplayData.Type.Card))
+    assertEquals("BankAccount", mapPaymentDetailsType(PaymentMethodDisplayData.Type.BankAccount))
+    assertEquals("GooglePay", mapPaymentDetailsType(PaymentMethodDisplayData.Type.GooglePay))
   }
 
   @Test
