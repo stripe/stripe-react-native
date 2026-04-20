@@ -5,6 +5,7 @@ package com.reactnativestripesdk.mappers
 import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.toArgb
 import com.reactnativestripesdk.mapAppearance
+import com.reactnativestripesdk.mapConfig
 import com.reactnativestripesdk.mapFromKycInfo
 import com.reactnativestripesdk.mapGooglePayConfig
 import com.reactnativestripesdk.mapPaymentDetailsType
