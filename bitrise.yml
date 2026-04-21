@@ -11,7 +11,7 @@ trigger_map:
 
 app:
   envs:
-    - NODE_VERSION: '22'
+    - NODE_VERSION: '22' # Keep in sync with .node-version
     - JAVA_VERSION: '17'
     - ANDROID_API_LEVEL: '33'
     - MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: true
