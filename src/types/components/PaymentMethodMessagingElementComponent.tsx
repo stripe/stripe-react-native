@@ -25,9 +25,25 @@ export enum PaymentMethodMessagingElementStyle {
   Light = 'light',
 }
 
+export interface PaymentMethodMessagingElementFont {
+  /**
+   * The font used for the element text.
+   *
+   * On iOS, this should be the "PostScript name" found in Font Book after installing the font.
+   * On Android, this should be the name of the font file (containing only lowercase alphanumeric characters) in android/app/src/main/res/font
+   *
+   * @default The OS's system font
+   */
+  family?: string;
+  /** The font size for text in the element. This value is required to be greater than 0.
+   * @default The OS's default text size.
+   */
+  size?: number;
+}
+
 export interface PaymentMethodMessagingElementAppearance {
   /** Font settings for the element. */
-  font?: PaymentSheetTypes.FontConfig;
+  font?: PaymentMethodMessagingElementFont;
   /** The color used for the element text. */
   textColor?: PaymentSheetTypes.ThemedColor;
   /** The color used for the text that links to available BNPL plans. */
