@@ -34,7 +34,9 @@
     "format:android:write": "cd android && ./gradlew detektFormat",
     "lint:android": "cd android && ./gradlew detekt",
     "format:ios:check": "swiftlint ios --config .swiftlint.yml --strict",
-    "format:ios:write": "./scripts/format-changed-ios"
+    "format:ios:write": "./scripts/format-changed-ios",
+    "test:package-types": "attw --pack .",
+    "prepublishOnly": "echo \"\\nPlease use ./scripts/publish instead\\n\" && exit 1"
   },
   "files": [
     "src",
@@ -68,6 +70,7 @@
   },
   "homepage": "https://github.com/stripe/stripe-react-native/#readme",
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.0",
     "@expo/config-plugins": "^9.0.16",
     "@react-native/babel-preset": "^0.81.0",
     "@react-native/eslint-config": "^0.81.1",
