@@ -91,7 +91,7 @@ Or open `example/android` in Android Studio and run the app from there.
 
 - **iOS**: Open `example/ios/example.xcworkspace` in Xcode. Find SDK source files at `Pods > Development Pods > stripe-react-native`.
 - **Android**: Open `example/android` in Android Studio. Find SDK source files under `reactnativestripesdk`.
-- **TypeScript**: Edit files in `src/` and `example/` with your editor of choice.
+- **TypeScript**: Edit files in `src/` and `example/` with your editor of choice. Metro picks up JS/TS changes from `src/` directly, but type definitions are served from `lib/`. If you change the SDK's public API and your editor shows stale types, run `yarn` at the repo root to rebuild `lib/`.
 
 ## Tests
 
