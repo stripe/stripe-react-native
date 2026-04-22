@@ -483,6 +483,7 @@ workflows:
 
   _e2e_tests_android:
     before_run:
+      - _prepare_js_env
       - _start_android_emulator
     after_run:
       # TODO: Reenable this once we have the webhook urls on bitrise.
