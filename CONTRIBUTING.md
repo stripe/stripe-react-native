@@ -63,7 +63,7 @@ cd example/ios && pod install --repo-update
 
 ### 2. Run the example app
 
-The example app uses a pre-configured remote demo backend, so **no server setup is required**.
+The example app uses a remote demo backend at `rigorous-heartbreaking-cephalopod.stripedemos.com`, so **no local server setup is required**. If you need to modify the backend (e.g. add a new endpoint), update the sandbox app at [sandbox-apps/rigorous-heartbreaking-cephalopod](https://codesandbox.io/p/devbox/rigorous-heartbreaking-cephalopod-m358cz) and deploy to stripedemos.com.
 
 **iOS:**
 ```sh
