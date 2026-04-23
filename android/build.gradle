@@ -76,10 +76,6 @@ if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
 }
 
-if (!project.plugins.hasPlugin('dev.detekt')) {
-  apply from: "detekt.gradle"
-}
-
 android {
   namespace "com.reactnativestripesdk"
   buildFeatures {
